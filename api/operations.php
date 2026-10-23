@@ -48,6 +48,7 @@ require_once __DIR__.'/operations-cron-dispatcher.php';
 require_once __DIR__.'/jrei-learning-operations.php';
 require_once __DIR__.'/jrei-hybrid-owner.php';
 require_once __DIR__.'/jrei-exam-research-owner.php';
+require_once __DIR__.'/jrei-ka-independent-source-review.php';
 require_once __DIR__.'/jrei-exam-commercial-catalogue.php';
 
 function operationsRegistry(): array {
@@ -426,6 +427,35 @@ function operationsRoute(string $path, string $verb): never {
                 ],true)?'hybrid_state_conflict':
                     'hybrid_owner_approval_required',409);
             }
+        }
+        // An independently configured ADMIN or SUPER_ADMIN may review
+        // original source authority and PRIVATE rights; the reviewer must
+        // differ from every approved investigation-scope actor. This is a
+        // distinct MFA route, not a shortcut to owner/source publication.
+        if($path==='/admin/operations/jrei-independent-source-review' &&
+           ($verb==='GET'||$verb==='POST')){
+            if(!in_array(
+                $configuration['operations_admins'][$accountId]['role']??'',
+                ['ADMIN','SUPER_ADMIN'],true))
+                fail('admin_forbidden',403);
+            if(!rateAllowed($pdo,'jrei_source_independent_review',$accountId,15,300))
+                fail('rate_limited',429);
+            if($verb==='GET')respond(
+                jrKaHumanSourceReviewSnapshot($pdo,$accountId));
+            if(!operationsMutationAllowed($_SERVER,
+                (string)($_SERVER['HTTP_X_CSRF_TOKEN']??''),$csrf))
+                fail('csrf_forbidden',403);
+            try{
+                jrKaIndependentHumanSourceReview(
+                    $pdo,$accountId,jsonBody());
+            }catch(InvalidArgumentException $e){
+                fail('invalid_independent_source_review',422);
+            }catch(DomainException $e){
+                fail('source_review_conflict_or_independence_required',409);
+            }
+            $state=jrKaHumanSourceReviewSnapshot($pdo,$accountId);
+            $state['mutationRecorded']=true;
+            respond($state);
         }
         // Read-only scientific/admin real mother-DB exam and TESTLY evidence.
         // Destructive emergency STOP/quarantine only, never auto-approve an
