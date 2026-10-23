@@ -19,6 +19,7 @@ function jrJreiLearningOwnerHazardQueue(PDO $pdo): array {
     $out=[
       'schema'=>'jr.jrei.learning-owner-hazard-queue.v1',
       'available'=>false,'totalRecordedHazardProposals'=>null,
+      'recordedVetoDecisions'=>null,'vetoStateConflicts'=>null,
       'items'=>[],'truncated'=>false,
       'onlyHumanRejectionSupported'=>true,
       'modelAlteredAutomatically'=>false,
