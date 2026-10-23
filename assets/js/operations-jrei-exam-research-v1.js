@@ -473,6 +473,14 @@
      monitor.append(elt('p','',T(
        'بازپرداخت تنها از فرایند مالی اصلی انجام می‌شود؛ این گزارش هیچ پولی منتقل نمی‌کند.',
        'Only the original commerce workflow handles refunds. This view moves no money.')));
+     monitor.append(elt('p','',T(
+       'مجوز صدور از سفارش واقعی: ','Verified-order policy: ')+
+       (access.grantSwitchEnabled?T('مجاز در تنظیمات','Owner opted in'):T('خاموش','OFF'))+
+       ' · '+T('پذیرش اتصال SKU به فروشگاه: ','Checkout SKU bridge: ')+
+       (access.checkoutBridgeOwnerOptIn?T('مجوز تنظیماتی روشن','Owner opt-in ON'):T('خاموش','OFF'))));
+     monitor.append(elt('p','',T(
+       'اعلام روشن‌بودن تنظیمات اثبات صحت پرداخت، عرضهٔ واقعی یا صدور مجوز نیست.',
+       'Configuration alone is not evidence of a verified purchase, live checkout or entitlement issuance.')));
      const rows=Array.isArray(access.cases)?access.cases:[];
      if(!access.schemaReady)monitor.append(elt('p','',T('جداول قابل مشاهده نیستند','Schema unavailable')));
      for(const entry of rows.slice(0,40)){
