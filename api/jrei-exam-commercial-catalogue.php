@@ -3,6 +3,7 @@ declare(strict_types=1);
 if(!defined('BERTINA_API_BOOTSTRAPPED')){http_response_code(404);exit;}
 require_once __DIR__.'/jrei-exam-product-readiness.php';
 require_once __DIR__.'/jrei-exam-source-release-impact.php';
+require_once __DIR__.'/jrei-exam-localization-owner.php';
 
 /**
  * Commercial examination catalogue projections from the existing mother DB.
@@ -139,6 +140,7 @@ function jrExamCommercialOwnerSnapshot(PDO $pdo,array $cfg): array {
       'productRegistry'=>null,'offeringRegistry'=>null,
       'productReleaseGates'=>null,
       'sourceReleaseImpact'=>null,
+      'localizedPromptReview'=>jrExamOwnerLocalizedPromptSnapshot($pdo),
       'preliminaryGradeEvidence'=>jrExamOwnerPreliminaryGradeEvidence($pdo),
       'entitlementGovernance'=>null,
       'operationalRisks'=>[
