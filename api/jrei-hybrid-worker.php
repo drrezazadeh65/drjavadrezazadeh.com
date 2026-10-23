@@ -288,6 +288,17 @@ function jrHybridHeartbeat(PDO $pdo,string $node,array $body,int $at): array {
         throw new InvalidArgumentException('invalid_heartbeat');
     $pdo->beginTransaction();
     try {
+        // Preserve the node -> job lock order used by owner disable/revoke
+        // and lease assignment. Otherwise a heartbeat locks the job first,
+        // while a concurrent node disable locks the node first: deadlock.
+        // A previously authenticated but now revoked node must not extend
+        // its lease during that concurrent administrative transition.
+        $q=$pdo->prepare("SELECT node_id FROM jrei_hybrid_nodes
+          WHERE node_id=? AND status='ENABLED' AND revoked_at IS NULL
+          FOR UPDATE");
+        $q->execute([$node]);
+        if($q->fetchColumn()===false)
+            throw new DomainException('worker_no_longer_enabled');
         $q=$pdo->prepare("SELECT lease_started_at,lease_expires_at
           FROM jrei_hybrid_jobs WHERE job_id=? AND lease_id=?
             AND leased_to_node=? AND status='LEASED' FOR UPDATE");
