@@ -98,7 +98,7 @@ function jrExamOwnerLocalizedPromptAction(PDO $pdo,string $actor,array $body): a
         throw new InvalidArgumentException('withdrawal_must_not_introduce_new_evidence');
     }
     if(!in_array($decision,['APPROVE','WITHDRAW'],true)||
-       !is_int($expected)||$expected<1||
+       !is_int($expected)||$expected<1||$expected>1000000000000||
        ($body['confirmation']??null)!==
          'INDEPENDENT_HUMAN_LOCALE_REVIEW_WITHOUT_PUBLIC_RELEASE')
         throw new InvalidArgumentException('invalid_exam_translation_review');
@@ -226,9 +226,25 @@ function jrExamOwnerLocalizedPromptAction(PDO $pdo,string $actor,array $body): a
 function jrExamOwnerLocalizedPromptSnapshot(PDO $pdo): array {
     $out=['schema'=>'jr.jrei.exam-prompt-locales-owner.v1',
        'available'=>false,'counts'=>null,'items'=>[],'truncated'=>false,
+       'reviewDecisionCount'=>null,'approvedWithEvidenceCount'=>null,
        'sourceContentComparedToTranslation'=>false,
        'translationPublishedAutomatically'=>false];
     try{
+        $q=$pdo->query('SELECT COUNT(*) FROM
+          jrei_exam_prompt_locale_review_history');
+        $out['reviewDecisionCount']=(int)$q->fetchColumn();
+        $q=$pdo->query("SELECT COUNT(*) FROM
+          jrei_exam_item_prompt_localizations
+          WHERE review_state='APPROVED'
+            AND translation_rights_evidence_sha256 IS NOT NULL
+            AND linguistic_equivalence_evidence_sha256 IS NOT NULL
+            AND translation_rights_evidence_sha256<>
+                linguistic_equivalence_evidence_sha256
+            AND prepared_by_account_id IS NOT NULL
+            AND independently_reviewed_by_account_id IS NOT NULL
+            AND prepared_by_account_id<>independently_reviewed_by_account_id
+            AND reviewed_at IS NOT NULL");
+        $out['approvedWithEvidenceCount']=(int)$q->fetchColumn();
         $q=$pdo->query('SELECT locale,review_state,COUNT(*) AS n
           FROM jrei_exam_item_prompt_localizations
           GROUP BY locale,review_state ORDER BY locale,review_state');
@@ -250,6 +266,10 @@ function jrExamOwnerLocalizedPromptSnapshot(PDO $pdo): array {
               'humanPrepared'=>(int)$r['has_author']===1,
               'humanReviewed'=>(int)$r['has_reviewer']===1];
         $out['available']=true;
-    }catch(Throwable $e){}
+    }catch(Throwable $e){
+        $out['counts']=null;$out['items']=[];$out['truncated']=false;
+        $out['reviewDecisionCount']=null;
+        $out['approvedWithEvidenceCount']=null;
+    }
     return $out;
 }
