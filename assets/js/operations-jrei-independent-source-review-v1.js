@@ -195,6 +195,135 @@
    if(data.truncated)entries.append(make('p','ops-muted',T(
      'نمایش حداکثر ۴۰ پرونده؛ مجموع سراسری نامعلوم است.',
      'At most 40 cases shown; complete total is unknown.')));
+   renderCurriculumGradeAlignment(data.curriculumGradeAlignment);
+ }
+ /**
+  * Independent human evidence for curriculum ID and grade mapping. Even an
+  * accepted match never certifies an exam key, topic ontology or public use.
+  */
+ function renderCurriculumGradeAlignment(review){
+   const panel=make('details','jr-exam-subsection');
+   panel.append(make('summary','',T(
+     'بازبینی مستقل انطباق پایه و برنامهٔ درسی با منبع اصلی',
+     'Independent curriculum-ID and grade alignment review')));
+   panel.append(make('p','ops-muted',T(
+     'اثر انگشت مدرک واقعیِ تطبیق پایه و شناسه برنامه درسی را فقط پس از بررسی دستی ثبت کنید. این گواهی، اصالت خودکار منبع، صحت سؤال یا مجوز تکثیر نیست.',
+     'Record a SHA-256 digest only after independently examining genuine evidence for the curriculum-ID and grade associated with the original source. This is not automated authentication, verified answer correctness or reproduction permission.')));
+   if(!review||review.schema!=='jr.jrei.curriculum-grade-human-review.v1'||
+      review.available!==true){
+     panel.append(make('p','ops-muted',T(
+       'مهاجرت انطباق یا اطلاعات معتبر موجود نیست؛ وضعیت نامعلوم است.',
+       'Curriculum review migration unavailable; alignment remains UNKNOWN.')));
+     entries.append(panel);return;
+   }
+   const cases=Array.isArray(review.queue)?review.queue.slice(0,30):[];
+   if(!cases.length)panel.append(make('p','ops-muted',T(
+     'دامنهٔ نیازمند بازبینی مستقل در این پنجره یافت نشد؛ این به معنی پوشش کامل علمی نیست.',
+     'No alignment review case in this window; scientific coverage is not thereby proven.')));
+   for(const item of cases){
+     if(!isUuid(item.requirementId)||!isUuid(item.sourceId))continue;
+     const card=make('article','jr-exam-coverage-row');
+     card.append(make('strong','',[
+       item.country,item.curriculum,item.curriculumVersion,item.level,
+       item.grade>0?item.grade:null,item.examCategory,item.year,
+       item.subject,item.expectedKind
+     ].filter(v=>v!==null&&v!==undefined).join(' · ').slice(0,380)));
+     card.append(make('span','',String(item.sourceTitle||'').slice(0,180)));
+     const form=make('form','jr-exam-coverage-form');
+     form.autocomplete='off';
+     const choice=make('label','',T(
+       'تصمیم مستقل درباره انطباق فراداده','Human decision on metadata alignment'));
+     const sel=make('select');
+     for(const [value,text] of [
+       ['REJECTED_SCOPE_ALIGNMENT',T('رد انطباق یا نیاز به بازبینی بیشتر',
+         'Alignment rejected / more evidence needed')],
+       ['ATTESTED_SCOPE_ALIGNMENT',T('انطباق مستند پایه و برنامه درسی را مستقلاً بررسی کردم',
+         'I independently verified documentary grade/curriculum metadata')],
+       ['REVOKED_SCOPE_ALIGNMENT',T('لغو گواهی قبلی این دامنه',
+         'Revoke prior attestation on this scope')]
+     ]){
+       const option=make('option','',text);option.value=value;sel.append(option);
+     }
+     choice.append(sel);
+     const reason=make('label','',T('دلیل اصلاح یا رد','Reason for rejection/revocation'));
+     const select=make('select');
+     for(const [value,text] of [
+       ['ISSUER_EVIDENCE_INCOMPLETE',T('مدرک صادرکننده ناکافی است','Issuer evidence incomplete')],
+       ['UNVERIFIED_CURRICULUM_ID',T('شناسه برنامه درسی تأیید نشده','Curriculum identifier unverified')],
+       ['GRADE_SCOPE_MISMATCH',T('پایه تحصیلی همخوان نیست','Grade mismatch')],
+       ['SOURCE_SUPERSEDED',T('منبع جایگزین شده','Source superseded')],
+       ['OFFICIAL_CORRECTION_REQUIRED',T('اصلاحیه رسمی باید بررسی شود','Official correction requires review')]
+     ]){
+       const o=make('option','',text);o.value=value;select.append(o);
+     }
+     reason.append(select);
+     const proofLabel=make('label','',T(
+       'SHA-256 مدرک مستقل انطباق پایه و برنامه درسی',
+       'SHA-256 of independently examined curriculum/grade evidence'));
+     const proof=make('input');proof.type='text';proof.maxLength=64;
+     proof.minLength=64;proof.pattern='[a-f0-9]{64}';
+     proof.spellcheck=false;proof.autocomplete='off';
+     proofLabel.append(proof);
+     const local=make('label','',T(
+       'محاسبه محلی SHA-256 فایل سند؛ هیچ فایلی ارسال نمی‌شود',
+       'Hash a local documentary evidence file; the file is never uploaded'));
+     const localFile=make('input');localFile.type='file';
+     localFile.accept='.pdf,.txt,.html,.htm,.png,.jpg,.jpeg';
+     localFile.addEventListener('change',async()=>{
+       const chosen=localFile.files?.[0];
+       if(!chosen)return;
+       try{
+         if(chosen.size<1||chosen.size>8*1024*1024||!crypto?.subtle)
+           throw Error('HASH_UNAVAILABLE');
+         const digest=await crypto.subtle.digest(
+           'SHA-256',await chosen.arrayBuffer());
+         if(active())proof.value=Array.from(new Uint8Array(digest))
+           .map(v=>v.toString(16).padStart(2,'0')).join('');
+       }catch{
+         status.textContent=T('محاسبه محلی ممکن نشد؛ فایل ارسال نشده است.',
+           'Local hash unavailable; no file was transmitted.');
+       }finally{localFile.value='';}
+     });
+     local.append(localFile);
+     const acknowledge=make('label','',T(
+       'سند را شخصاً بررسی کردم. می‌دانم تأیید فراداده، تأیید محتوای علمی یا اجازه انتشار نیست.',
+       'I personally reviewed the evidence and understand that metadata alignment is not scientific or publication approval.'));
+     const box=make('input');box.type='checkbox';box.required=true;
+     acknowledge.prepend(box);
+     const submit=make('button','',T('ثبت داوری مستقل با MFA',
+       'Record independent review with MFA'));
+     submit.type='submit';
+     const toggle=()=>{
+       const approving=sel.value==='ATTESTED_SCOPE_ALIGNMENT';
+       proofLabel.hidden=!approving;local.hidden=!approving;proof.required=approving;
+       reason.hidden=approving;select.disabled=approving;
+     };
+     sel.addEventListener('change',toggle);toggle();
+     form.append(choice,reason,proofLabel,local,acknowledge,submit);
+     form.addEventListener('submit',event=>{
+       event.preventDefault();
+       if(!active()||busy||!form.reportValidity())return;
+       const approving=sel.value==='ATTESTED_SCOPE_ALIGNMENT';
+       if(approving&&!isSha(proof.value.trim().toLowerCase()))return;
+       if(sel.value==='REVOKED_SCOPE_ALIGNMENT'&&
+          item.previousDecision!=='ATTESTED_SCOPE_ALIGNMENT')return;
+       if(!window.confirm(T(
+         'این تصمیم تنها برای انطباق فراداده است و هیچ اثر خودکار بر مجوزها یا پاسخ‌ها ندارد. ثبت شود؟',
+         'Record this metadata-only decision? It cannot authorize exam answers, reproduction or publication.')))return;
+       mutate({action:'review_curriculum_grade',
+         requirementId:item.requirementId,sourceId:item.sourceId,
+         revision:Number.isSafeInteger(item.revision)?item.revision:null,
+         decision:sel.value,
+         evidenceSha256:approving?proof.value.trim().toLowerCase():null,
+         reasonCode:approving?null:select.value,
+         confirmation:'REVIEW_CURRICULUM_GRADE_HUMAN_EVIDENCE'});
+     });
+     card.append(form);panel.append(card);
+   }
+   if(review.truncated)panel.append(make('p','ops-muted',T(
+     'صف ۳۰ رکورد محدود است؛ نمایش به معنی کامل‌بودن فهرست نیست.',
+     'The queue shows at most 30 records; it is not a complete inventory.')));
+   entries.append(panel);
  }
  async function load(){
    if(!active()||busy)return;
