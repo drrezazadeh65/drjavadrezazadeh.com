@@ -36,6 +36,8 @@ function jrHybridOwnerQueueHealth(PDO $pdo,array $cfg,int $at): array {
             COALESCE(SUM(CASE WHEN status='QUEUED'
               AND expires_at<? THEN 1 ELSE 0 END),0) expired_queued,
             COALESCE(SUM(CASE WHEN status='LEASED'
+              AND lease_started_at IS NOT NULL
+              AND lease_expires_at IS NOT NULL
               AND lease_expires_at>=?
               AND lease_started_at+?>=? THEN 1 ELSE 0 END),0) active_leased,
             COALESCE(SUM(CASE WHEN status='LEASED'
