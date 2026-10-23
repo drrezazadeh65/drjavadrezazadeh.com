@@ -9,6 +9,7 @@ require_once __DIR__.'/jrei-ka-registered-source-suggestions.php';
 require_once __DIR__.'/jrei-ka-coverage-link-corrections.php';
 require_once __DIR__.'/jrei-ka-independent-source-review.php';
 require_once __DIR__.'/jrei-ka-curriculum-grade-review.php';
+require_once __DIR__.'/jrei-ka-local-ocr-intake.php';
 require_once __DIR__.'/jrei-ka-scheduler.php';
 require_once __DIR__.'/jrei-ka-owner-controls.php';
 require_once __DIR__.'/jrei-ka-paper-key-proposals.php';
@@ -73,6 +74,7 @@ function jrExamResearchOwnerSnapshot(PDO $pdo,array $cfg): array {
       'sourceReview'=>[],'sourceQueue'=>[],'coverageTargets'=>[],
       'coverageScopeReviewQueue'=>[],'intakeStates'=>[],
       'sourceHumanReviewEvidence'=>jrKaHumanSourceReviewOwnerMetrics($pdo),
+      'privateLocalOcrIntakeEvidence'=>jrKaOwnerLocalOcrEvidenceSnapshot($pdo),
       'coverageObligations'=>[],'itemReviews'=>[],
       'blueprints'=>[],'preparationProgrammes'=>[],
       'preparationStages'=>[],'frameworks'=>[],
@@ -216,6 +218,8 @@ function jrExamResearchOwnerChange(PDO $pdo,array $cfg,string $actor,array $body
     if(!jrExamResearchSchemaReady($pdo))
         throw new DomainException('jrei_exam_research_migration_required');
     $action=$body['action']??null;
+    if($action==='ka_record_offline_ocr_metadata')
+        return jrKaOwnerLocalOcrIntake($pdo,$actor,$body);
     if($action==='ka_correct_coverage_link')
         return jrKaOwnerCorrectCoverageLink($pdo,$actor,$body);
     if(in_array($action,['ka_approve_coverage_scope',
