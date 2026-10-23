@@ -45,6 +45,8 @@ function jrExamOwnerSourceReleaseImpact(PDO $pdo): array {
        orig.object_reference<>CONCAT(orig.content_sha256,'.json') OR
        orig.content_sha256<>m.item_content_digest OR
        m.canonical_assessment_item_id IS NULL OR
+       (SELECT COUNT(*) FROM jrei_exam_item_metadata ambiguous
+         WHERE ambiguous.canonical_assessment_item_id=i.id)>1 OR
        m.provenance_digest IS NULL OR
        m.item_content_digest IS NULL OR
        m.answer_key_digest IS NULL OR
