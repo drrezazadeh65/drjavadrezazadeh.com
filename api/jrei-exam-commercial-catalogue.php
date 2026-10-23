@@ -89,6 +89,13 @@ function jrExamCommercialCatalogue(PDO $pdo,array $cfg,int $at=0): array {
               meta.copyright_review_state<>'APPROVED' OR
               i.item_type<>'SINGLE_CHOICE' OR i.is_sensitive<>0 OR
               orig.id IS NULL OR
+              orig.storage_provider<>'JR_EXAM_PUBLISHED_ITEM' OR
+              orig.mime_type<>'application/json' OR
+              orig.data_class<>'PRIVATE' OR
+              orig.malware_scan_status<>'CLEAN' OR
+              orig.encryption_key_reference IS NOT NULL OR
+              orig.byte_size<80 OR orig.byte_size>32768 OR
+              orig.object_reference<>CONCAT(orig.content_sha256,'.json') OR
               orig.content_sha256<>meta.item_content_digest OR
               meta.source_id IS NULL OR meta.source_id<>k.source_id OR
               k.item_id IS NULL OR k.key_state<>'APPROVED' OR
