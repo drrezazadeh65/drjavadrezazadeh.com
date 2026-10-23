@@ -43,7 +43,12 @@ function operationsCronRegistry(): array {
       'jrei_hybrid_incident_sensor'=>[
         'fa'=>'پایش اختلال دو Worker آموزشی','en'=>'JREI hybrid worker incident sensor',
         'relative'=>'internal/jrei-hybrid-incident-worker.php',
-        'defaultCadence'=>300,'minimumCadence'=>300,'sensitive'=>true]
+        'defaultCadence'=>300,'minimumCadence'=>300,'sensitive'=>true],
+      'jrei_hybrid_metadata_retention'=>[
+        'fa'=>'پاک‌سازی محدود فرادادهٔ موقت JREI',
+        'en'=>'JREI transient metadata retention',
+        'relative'=>'internal/jrei-hybrid-retention-worker.php',
+        'defaultCadence'=>86400,'minimumCadence'=>86400,'sensitive'=>true]
     ];
 }
 function operationsCronSourcePath(string $jobId): ?string {
