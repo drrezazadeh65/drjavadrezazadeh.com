@@ -48,6 +48,30 @@ function jrHybridApprovedCorpus(PDO $pdo,array $cfg,string $id,
        ($row['evaluationVersion']??null)!==$version)return null;
     return $row;
 }
+
+/**
+ * Recheck each digest/version at the INNODB lease decision and lock that
+ * approval row. An admin suspension cannot race into a newly leased job.
+ * Caller must already be inside the queue transaction.
+ */
+function jrHybridLockApprovedCorpus(PDO $pdo,array $cfg,array $offer): bool {
+    if(jrHybridCatalogueReady($pdo)){
+        $q=$pdo->prepare('SELECT status,dataset_sha256,evidence_sha256
+            FROM jrei_hybrid_public_datasets
+            WHERE dataset_id=? AND evaluation_version=? FOR UPDATE');
+        $q->execute([$offer['id'],$offer['evaluationVersion']]);
+        $r=$q->fetch(PDO::FETCH_ASSOC);
+        return is_array($r)&&$r['status']==='APPROVED'&&
+            hash_equals((string)$r['dataset_sha256'],$offer['datasetSha256'])&&
+            hash_equals((string)$r['evidence_sha256'],$offer['evidenceSha256']);
+    }
+    $legacy=jrHybridApprovedCorpus($pdo,$cfg,
+        $offer['id'],$offer['evaluationVersion']);
+    return is_array($legacy)&&
+        hash_equals((string)$legacy['datasetSha256'],$offer['datasetSha256'])&&
+        hash_equals((string)$legacy['evidenceSha256'],$offer['evidenceSha256']);
+}
+
 /**
  * Record ONLY short-lived digest advertisements from the authenticated node.
  * These are claims from a signed worker, not proof that its local file exists.
