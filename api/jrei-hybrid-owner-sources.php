@@ -185,10 +185,26 @@ function jrHybridSourceChange(PDO $pdo,string $actor,array $body): array {
             $q->execute([$proposal,$id,$sha,$prior,$mime,$bytes,$change,
               $retrieved,$publication,'PENDING_REVIEW',$now,$actor]);
             $created=$q->rowCount()===1;
-            if($created)operationsAudit($pdo,$actor,'jrei_source_version_staged',$proposal);
+            $recordStatus='PENDING_REVIEW';
+            if(!$created){
+                // A duplicate hash is immutable: do not claim an already
+                // rejected or reviewed proposal has been reopened.
+                $existing=$pdo->prepare('SELECT proposal_id,status FROM
+                    jrei_public_source_proposals
+                    WHERE source_id=? AND document_sha256=? LIMIT 1');
+                $existing->execute([$id,$sha]);
+                $priorProposal=$existing->fetch(PDO::FETCH_ASSOC);
+                if(!is_array($priorProposal))
+                    throw new DomainException('source_proposal_not_inserted');
+                $proposal=$priorProposal['proposal_id'];
+                $recordStatus=$priorProposal['status'];
+            }else{
+                operationsAudit($pdo,$actor,'jrei_source_version_staged',$proposal);
+            }
             $pdo->commit();
         }catch(Throwable $e){if($pdo->inTransaction())$pdo->rollBack();throw $e;}
-        return ['ok'=>true,'created'=>$created,'status'=>'PENDING_REVIEW',
+        return ['ok'=>true,'created'=>$created,'proposalId'=>$proposal,
+          'status'=>$recordStatus,
           'documentPublished'=>false,'verifiedAcquisition'=>false];
     }
     if($action==='review_source_version'){
