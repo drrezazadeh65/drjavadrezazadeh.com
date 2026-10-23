@@ -135,6 +135,7 @@ function jrExamCommercialOwnerSnapshot(PDO $pdo,array $cfg): array {
       'itemReviewCoverage'=>null,'itemReviewCoverageAvailable'=>false,
       'productRegistry'=>null,'offeringRegistry'=>null,
       'productReleaseGates'=>null,
+      'entitlementGovernance'=>null,
       'operationalRisks'=>[
         'unknownExpiredAttempts'=>null,'unfinishedDeadlineReviews'=>null,
         'activeAccessOnSuspendedExams'=>null,
@@ -251,5 +252,6 @@ function jrExamCommercialOwnerSnapshot(PDO $pdo,array $cfg): array {
         $base['itemReviewCoverage']=null;
     }
     $base['productReleaseGates']=jrExamOwnerProductReadiness($pdo,$cfg);
+    $base['entitlementGovernance']=jrExamOwnerEntitlementExposure($pdo,$cfg);
     return $base;
 }
