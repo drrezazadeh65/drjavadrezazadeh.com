@@ -378,6 +378,16 @@
            T('ثبت نشده','No recorded status')):
          T('نامعلوم؛ مهاجرت ترجمهٔ سؤال نصب نشده',
            'Unknown; reviewed translation migration absent'));
+     fact(T('تاریخچهٔ تصمیم‌های داوری ترجمهٔ سؤال',
+       'Recorded independent translation review decisions'),
+       locales.available?safeCount(locales.reviewDecisionCount):
+         T('نامعلوم؛ دفتر داوری موجود نیست',
+           'Unknown; audit history unavailable'));
+     fact(T('ترجمه‌های دارای شواهد متمایز زبان و مجوز',
+       'Translation records with distinct legal and linguistic evidence'),
+       locales.available?safeCount(locales.approvedWithEvidenceCount):
+         T('نامعلوم؛ شواهد ثبت نشده یا در دسترس نیست',
+           'Unknown; rights/equivalence evidence unavailable'));
      const lpanel=elt('details','jr-exam-subsection');
      lpanel.append(elt('summary','',T(
        'تطبیق مستقل متن سؤال دو زبانه با شناسه‌های اصلی',
