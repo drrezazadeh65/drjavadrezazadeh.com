@@ -29,9 +29,19 @@ test('exactly five public mobile dock destinations; install and updates remain d
  assert.match(s,/Install app or Add to Home Screen/);
  assert.match(s,/if\(installControl\)/);
  assert.match(s,/const installControl=isInstalled\?/);
- const area=s.slice(s.indexOf('const tabs=isFa?['),s.indexOf('const sheet=isFa?['));
- assert.equal((area.match(/\[u\('fa\//g)||[]).length,5);
- assert.equal((area.match(/\[u\('en\//g)||[]).length,5);
+ // The standard public dock has exactly five tabs, while the explicitly
+ // reviewed "start from my need" entry has its own four-tab task journey.
+ // Both are intentionally separate from install/update sheet actions.
+ const standard=s.slice(s.indexOf('const standardTabs=isFa?['),
+   s.indexOf('const needTabs=isFa?['));
+ const need=s.slice(s.indexOf('const needTabs=isFa?['),
+   s.indexOf('const tabs=needDockEligible?needTabs:standardTabs;'));
+ assert.ok(standard.length>100 && need.length>100);
+ assert.equal((standard.match(/\[u\('fa\//g)||[]).length,5);
+ assert.equal((standard.match(/\[u\('en\//g)||[]).length,5);
+ assert.equal((need.match(/\[u\('fa\//g)||[]).length,4);
+ assert.equal((need.match(/\[u\('en\//g)||[]).length,4);
+ assert.match(s,/const tabs=needDockEligible\?needTabs:standardTabs;/);
 });
 
 test('official bookstore styles are mobile-first without synthetic covers or extra payment promises',()=>{

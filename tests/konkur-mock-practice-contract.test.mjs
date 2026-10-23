@@ -9,7 +9,7 @@ test('mock entry extends rather than replaces both bilingual public Choice Studi
   assert.match(html,new RegExp('data-konkur-mock-practice data-locale="'+lang+'"'));
   assert.match(html,new RegExp('data-choice-studio data-locale="'+lang+'"'));
   assert.match(html,new RegExp('data-konkur-selection data-locale="'+lang+'"'));
-  assert.match(html,/jr-konkur-mock-practice-v1\.js\?v=20261022-review-v5/);
+  assert.match(html,/jr-konkur-mock-practice-v1\.js\?v=20261022-event-trend-guard-v6/);
   assert.match(html,/jr-konkur-mock-providers-v1\.js\?v=20261020-mock-directory-v1/);
   assert.match(html,/jr-konkur-mock-practice-v1\.css\?v=20261022-review-v3/);
   assert.ok(html.indexOf('jr-konkur-studio-v1.js')<html.indexOf('jr-konkur-mock-practice-v1.js'));
@@ -53,7 +53,7 @@ test('topic-level comparisons are bounded to same provider, cohort and repeated 
  const source=read('assets/js/jr-konkur-mock-practice-v1.js');
  for(const phrase of ['jr-km-subject-trend','row.provider===current.provider','row.group===current.group',
   'row.grade===current.grade','row.date.slice(0,4)===current.date.slice(0,4)',
-  'comparableSubjectRows','subjectMeasures','normalizedName','not proof of learning growth'])
+  'comparableSubjectRows','subjectMeasures','normalizedSubjectName','not proof of learning growth'])
   assert.ok(source.includes(phrase),'missing subject comparison guard: '+phrase);
 });
 
