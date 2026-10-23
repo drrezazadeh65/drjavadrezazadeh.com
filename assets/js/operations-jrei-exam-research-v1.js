@@ -64,9 +64,9 @@
  };
  const columns=[
    {key:'sourceCoverage',fa:'پوشش سال، مقطع و نوع آزمون',
-     en:'Source coverage by year, level and examination',fields:['educational_level','exam_category','examination_year','subject_id','source_count','rights_reviewed_count']},
+     en:'Source coverage by year, level and examination',fields:['country_code','curriculum_version','educational_level','exam_category','examination_year','subject_id','source_count','rights_reviewed_count']},
    {key:'coverageObligations',fa:'منابع مورد انتظار و پاسخ‌نامه‌های بررسی‌نشده',
-     en:'Expected exam papers and answer-key gaps',fields:['educational_level','examination_year','exam_category','subject_id','expected_kind','requirement_state','count']},
+     en:'Expected exam papers and answer-key gaps',fields:['country_code','curriculum_id','curriculum_version','educational_level','grade','examination_year','exam_category','subject_id','expected_kind','requirement_state','count']},
    {key:'sourceReview',fa:'حقوق انتشار و تأیید منابع',
      en:'Source licensing and review status',fields:['review_state','rights_state','count']},
    {key:'intakeStates',fa:'صف گردآوری و پردازش مجاز',
