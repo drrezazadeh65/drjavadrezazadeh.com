@@ -10,6 +10,7 @@
  * proof, scientific certification, admissions decision or automatic publish.
  */
 import {createHash} from 'node:crypto';
+import {hasDirectIdentifier} from './jrei-public-identifier-guard.mjs';
 
 const HASH=/^[a-f0-9]{64}$/;
 const ID=/^[A-Za-z0-9._:-]{1,80}$/;
@@ -29,8 +30,7 @@ const fail=(code,extra={})=>Object.freeze({
   modelTrained:false,code, ...extra
 });
 const sha=t=>createHash('sha256').update(t).digest('hex');
-const containsPrivacySignals=t=>
-  /[\w.+-]+@[\w.-]+\.[a-z]{2,}|(?<!\d)(?:\+98|0098|0)9\d{9}(?!\d)|(?<!\d)\d{16}(?!\d)/i.test(t);
+const containsPrivacySignals=hasDirectIdentifier;
 const extractNumbers=t=>Array.from(norm(t).matchAll(
   /(?:[0-9۰-۹٠-٩]+(?:[.,٬٫][0-9۰-۹٠-٩]+)*)/g),x=>x[0]);
 const normalNumber=t=>t
