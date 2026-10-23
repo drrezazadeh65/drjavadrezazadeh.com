@@ -170,8 +170,9 @@ function jrHybridRecoverOrphans(PDO $pdo,int $at): void {
     $q=$pdo->prepare("UPDATE jrei_hybrid_jobs SET
         status='NEEDS_REVIEW',failure_code='LEASE_OUTCOME_UNKNOWN',
         revision=revision+1
-        WHERE status='LEASED' AND lease_expires_at<?");
-    $q->execute([$at]);
+        WHERE status='LEASED' AND (lease_expires_at<?
+          OR lease_started_at+?<?)");
+    $q->execute([$at,JR_HYBRID_MAX_LEASE_AGE,$at]);
     $q=$pdo->prepare("UPDATE jrei_hybrid_jobs SET
         status='EXPIRED',revision=revision+1
         WHERE status='QUEUED' AND expires_at<?");
