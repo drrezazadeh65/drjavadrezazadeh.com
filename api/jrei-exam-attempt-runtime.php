@@ -358,10 +358,12 @@ function jrExamAttemptProgress(PDO $pdo,string $account,string $id): array {
     $q=$pdo->prepare("SELECT a.attempt_id,a.attempt_state,a.deadline_at,
       a.response_revision,a.starts_at,a.submitted_at,
       s.id AS session_id,s.subject_id,s.status AS session_state,
-      s.consent_id
+      s.consent_id,a.offering_id,o.offering_state,p.product_state
       FROM jrei_exam_commercial_attempts a
       JOIN eco_assessment_sessions s ON s.id=a.assessment_session_id
       JOIN eco_subjects sub ON sub.id=s.subject_id
+      JOIN jrei_exam_commercial_offerings o ON o.offering_id=a.offering_id
+      JOIN jrei_exam_commercial_products p ON p.product_id=o.product_id
       WHERE a.attempt_id=? AND a.account_id=? AND sub.owner_account_id=?
       LIMIT 1");
     $q->execute([$attemptId,$account,$account]);$a=$q->fetch(PDO::FETCH_ASSOC);
@@ -369,7 +371,9 @@ function jrExamAttemptProgress(PDO $pdo,string $account,string $id): array {
     $at=time();
     $canResume=$a['attempt_state']==='IN_PROGRESS'&&
         $a['session_state']==='IN_PROGRESS'&&
-        (int)$a['deadline_at']>=$at;
+        $a['offering_state']==='PUBLISHED'&&
+        $a['product_state']==='PUBLISHED'&&
+        (int)$a['deadline_at']>$at;
     $responses=[];
     if($canResume){
         // Do not serve even the candidate's saved choices after scoped
@@ -377,6 +381,7 @@ function jrExamAttemptProgress(PDO $pdo,string $account,string $id): array {
         $consent=jrExamAdultSubjectConsent($pdo,$account,$a['subject_id']);
         if($consent!==$a['consent_id'])
             throw new DomainException('original_exam_consent_superseded');
+        jrExamTrustedEntitlement($pdo,$account,$a['offering_id'],$at);
         $q=$pdo->prepare('SELECT r.item_id,r.selected_option_id
           FROM eco_assessment_responses r
           WHERE r.session_id=? ORDER BY r.item_id LIMIT 300');
