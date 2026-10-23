@@ -55,6 +55,10 @@
        fmt.format(enabledRows)],
       [T('توقف‌های نیازمند بررسی مدیر','Rows awaiting manual review'),
        fmt.format(reviewNeeded)],
+      [T('ردیف‌های ناشناخته (غیرقابل اجرا)','Unrecognised DB rows (non-executable)'),
+       Number.isSafeInteger(snapshot.unknownRegisteredRows)
+        ?fmt.format(snapshot.unknownRegisteredRows)
+        :T('نامشخص','Unknown')],
       [T('وضعیت دیتابیس مادر','Mother-DB scheduling policy'),
        snapshot.schemaReady?T('جدول وجود دارد؛ آزمون نشده','Table present; not tested'):
          T('Migration تکمیلی لازم است','Additive migration required')],
