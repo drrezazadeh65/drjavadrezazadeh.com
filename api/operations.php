@@ -440,6 +440,7 @@ function operationsRoute(string $path, string $verb): never {
                 $snapshot=jrExamResearchOwnerSnapshot($pdo,$configuration);
                 $snapshot['commercialCentre']=jrExamCommercialOwnerSnapshot($pdo,$configuration);
                 $snapshot['examDeadlineReview']=jrExamDeadlineOwnerBacklog($pdo);
+                $snapshot['liveAiReadiness']=jrAiOwnerReadiness($pdo,$configuration);
                 respond($snapshot);
             }
             if(!operationsMutationAllowed($_SERVER,
@@ -462,6 +463,7 @@ function operationsRoute(string $path, string $verb): never {
             $snapshot=jrExamResearchOwnerSnapshot($pdo,$configuration);
             $snapshot['commercialCentre']=jrExamCommercialOwnerSnapshot($pdo,$configuration);
                 $snapshot['examDeadlineReview']=jrExamDeadlineOwnerBacklog($pdo);
+                $snapshot['liveAiReadiness']=jrAiOwnerReadiness($pdo,$configuration);
             $snapshot['mutationRecorded']=($result['ok']??true)===true;
             respond($snapshot);
         }
