@@ -178,6 +178,23 @@ function jrKaIndependentHumanSourceReview(PDO $pdo,string $actor,array $body): a
               answer_key_state='UNKNOWN',updated_at=?
               WHERE source_id=? AND review_state='CANDIDATE_UNREVIEWED'");
             $q->execute([$now,$sourceId]);
+            if($q->rowCount()!==1)
+                throw new DomainException('source_review_concurrency_conflict');
+            // Original source revocation also suspends any already staged
+            // acquisition policy and future queued jobs when KA exists.
+            // An in-flight worker must independently recheck source rights.
+            if(function_exists('jrKaSchemaReady')&&jrKaSchemaReady($pdo)){
+                $q=$pdo->prepare("UPDATE jrei_ka_source_policies SET
+                  scheduling_state='SUSPENDED',updated_at=?,revision=revision+1
+                  WHERE source_id=? AND scheduling_state IN
+                    ('PENDING_REVIEW','APPROVED')");
+                $q->execute([$now,$sourceId]);
+                $q=$pdo->prepare("UPDATE jrei_ka_jobs SET
+                  job_state='CANCELLED',updated_at=?,revision=revision+1
+                  WHERE source_id=? AND job_state IN ('QUEUED','RETRY_WAIT')");
+                $q->execute([$now,$sourceId]);
+            }
+            $q=null;
         } else {
             // A request for more information creates a provenance event,
             // not a review stamp, download, or permission grant.
