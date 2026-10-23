@@ -70,6 +70,9 @@ function cfg(): array {
         // Daily JREI metadata evaluation is a separate private OFF switch.
         // No model training, marketing, payment or source authority follows.
         'jrei_learning_daily_enabled' => getenv('JR_JREI_LEARNING_DAILY_ENABLED') === 'true',
+        // Outbound Windows worker API: independently OFF, even if owner
+        // registers a public key or compiles a local model adapter.
+        'jrei_hybrid_enabled' => getenv('JR_JREI_HYBRID_ENABLED') === 'true',
         // Strictly optional BAHAR adult private storage; disabled until owner,
         // scientific/legal review and secret provisioning independently agree.
         'bahar_private_workbooks_enabled' => getenv('JR_BAHAR_PRIVATE_WORKBOOKS_ENABLED') === 'true',
@@ -498,6 +501,10 @@ require_once __DIR__.'/service-buyer-receipt.php';
 require_once __DIR__.'/consultation-delivery.php';
 $path=route();$verb=method();
 if (str_starts_with($path, '/admin/operations')) operationsRoute($path, $verb);
+if (str_starts_with($path,'/jrei/v1/worker/')) {
+    require_once __DIR__.'/jrei-hybrid-worker.php';
+    jrHybridWorkerRoute($path,$verb);
+}
 // JR Future Publishing: approved author-only read view. No checkout or payout writes.
 if ($path==='/publishing/download') jrPubDownloadRoute();
 if ($path==='/publishing/offer' && $verb==='GET') {
