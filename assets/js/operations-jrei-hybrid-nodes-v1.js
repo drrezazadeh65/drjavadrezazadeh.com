@@ -563,6 +563,52 @@
        'اجارهٔ منقضی نشان‌دهندهٔ نتیجهٔ نامعلوم است؛ بازیابی خودکار یا تأیید علمی از روی این اعداد انجام نمی‌شود.',
        'Expired leases indicate unknown execution outcomes; no automatic replay or scientific validation follows from these counts.')));
    }
+   const readiness=d.readiness;
+   if(readiness&&readiness.schema==='jr.jrei.owner-readiness.v1'){
+     cell(summary,T('آمادگی دریافت کار پژوهشی','Research job readiness'),
+       readiness.status==='CANDIDATE_FOR_GOVERNED_EVALUATION'?
+         T('فقط نامزد ارزیابی؛ اجرای واقعی هنوز تأیید نشده',
+           'Evaluation candidate; real execution not yet verified'):
+         T('هنوز آماده نیست','Not ready'));
+     cell(summary,T('نسخه‌های مجاز دادهٔ عمومی',
+       'Approved public corpus versions'),number(readiness.approvedCorpusVersions));
+     cell(summary,T('رایانه‌های با اعلام موجودی منطبق',
+       'Nodes declaring a matching version'),
+       number(readiness.declaringMatchedCorpusCount));
+     cell(summary,T('وضعیت دستیار گفت‌وگومحور عمومی','Public conversational AI'),
+       T('فعال‌سازی و پذیرش انجام نشده','Activation and acceptance not established'));
+     const blockers=Array.isArray(readiness.blockedReasons)?
+       readiness.blockedReasons:[];
+     if(blockers.length){
+       const cause={
+         HYBRID_TABLES_UNAVAILABLE:T('جداول پایه Worker در دیتابیس موجود نیست',
+           'Base Worker tables unavailable'),
+         PRIVATE_HYBRID_SWITCH_OFF:T('مجوز خصوصی اتصال سرور خاموش است',
+           'Private hybrid worker switch is OFF'),
+         GOVERNED_CORPUS_MIGRATION_REQUIRED:T('مهاجرت افزایشی دفتر داده اجرا نشده',
+           'Governed corpus migration is pending'),
+         NO_APPROVED_PUBLIC_HOLDOUT_VERSION:T('هیچ نسخهٔ پژوهشی عمومی بازبینی و تأیید نشده',
+           'No independently reviewed public holdout has been approved'),
+         NO_CONNECTED_ELIGIBLE_SIGNED_NODE:T('Worker امضاشدهٔ آماده در لحظه مشاهده نشده',
+           'No currently eligible signed worker observed'),
+         NODE_DECLARATION_REGISTRY_UNAVAILABLE:T('دفتر اعلام موجودی Worker نصب نشده',
+           'Signed local offer registry unavailable'),
+         NO_MATCHING_SIGNED_LOCAL_CORPUS_DECLARATION:T('هیچ Worker نسخهٔ منطبق اعلام نکرده',
+           'No worker advertises the exact approved corpus'),
+         UNKNOWN_JOB_OUTCOME_NEEDS_MANUAL_REVIEW:T('نتیجهٔ نامعلوم نیازمند تصمیم مدیر است',
+           'Unknown job outcomes require owner review'),
+         QUEUE_HEALTH_NOT_OBSERVABLE:T('سلامت صف هنوز قابل مشاهده نیست',
+           'Queue health cannot be established')
+       };
+       const details=el('details',undefined,'jr-hybrid-jobs');
+       details.append(el('summary',
+         T('موانع عملیاتی تأییدنشده','Operational readiness blockers')+
+           ' · '+number(blockers.length)));
+       for(const reason of blockers)details.append(el('p',
+         cause[reason]||String(reason).slice(0,90)));
+       listing.append(details);
+     }
+   }
    listing.append(summary);
    if(newNodeId){
      const note=el('p',T('نود جدید غیرفعال ثبت شد؛ شناسه زیر را در پیکربندی خصوصی همان رایانه وارد کنید:',
