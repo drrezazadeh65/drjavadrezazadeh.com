@@ -89,7 +89,11 @@ function jrHybridOwnerCorpusChange(PDO $pdo,string $actor,array $body): array {
            !is_int($cases)||$cases<200||$cases>10000||
            ($body['confirmation']??null)!=='PROPOSE_PUBLIC_HOLDOUT_FOR_REVIEW')
             throw new InvalidArgumentException('invalid_dataset_proposal');
-        $policyJson=json_encode($active,
+        // Node normalizeRetrievalPolicy() emits b,k1,maxEvidence in THAT order.
+        // SHA256(JSON.stringify(policy)) is order-sensitive across PHP and JS.
+        $canonical=['b'=>$active['b'],'k1'=>$active['k1'],
+            'maxEvidence'=>$active['maxEvidence']];
+        $policyJson=json_encode($canonical,
             JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR);
         $policyHash=hash('sha256',$policyJson);
         $pdo->beginTransaction();
