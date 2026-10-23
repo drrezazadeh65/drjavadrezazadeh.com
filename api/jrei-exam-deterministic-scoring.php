@@ -68,7 +68,6 @@ function jrExamVerifiedMcqContext(PDO $pdo,string $instrumentId,
              $row['authored_by_account_id']===$row['reviewer_account_id'])||
            $row['source_review_state']!=='AUTHORITATIVE_REVIEWED'||
            !in_array($row['source_rights_state'],[
-              'PERMITTED_PRIVATE_ANALYSIS','PERMITTED_PUBLIC_DISPLAY',
               'PERMITTED_REPRODUCTION'],true)||
            (int)$row['is_revoked']!==0||(int)$row['is_superseded']!==0)
             throw new DomainException('item_key_or_source_requires_independent_review');
