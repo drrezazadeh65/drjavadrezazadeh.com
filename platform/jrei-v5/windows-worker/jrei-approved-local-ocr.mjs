@@ -140,6 +140,7 @@ async function localOcr(manifestPath){
     if(imageFiles.length<1||imageFiles.length>8)
       throw Error('OCR_PAGES_OUT_OF_BOUNDS');
     const texts=[];
+    const pageObservations=[];
     for(const name of imageFiles){
       const path=join(subdir,name);
       const info=await lstat(path);
@@ -150,7 +151,21 @@ async function localOcr(manifestPath){
           '--psm','3'],55,1048576);
       if(typeof raw!=='string'||Buffer.byteLength(raw)>1048576)
         throw Error('OCR_PAGE_TEXT_OUT_OF_BOUNDS');
-      texts.push(raw.trim());
+      const normalized=raw.trim();
+      texts.push(normalized);
+      // These are local provenance and triage *observations*, never OCR
+      // confidence, equation correctness or proof of full page recognition.
+      const imageDigest=await fileDigest(path);
+      pageObservations.push({
+        pageNumber:Number(name.match(/\\d+/)?.[0]??0),
+        rasterSha256:imageDigest,
+        extractedTextSha256:digest(Buffer.from(normalized,'utf8')),
+        extractedBytes:Buffer.byteLength(normalized),
+        emptyOcrPage:normalized.length===0,
+        potentialMathSymbols:/[∑∏∫√∞∂∇≠≈≤≥∈⊂⊆⊗∠∥]/u.test(normalized)||
+          /\\\\(?:frac|sqrt|sum|int|lim|begin)\\b/u.test(normalized),
+        allEquationsAndFiguresScientificallyVerified:false
+      });
     }
     const text=texts.map((value,i)=>
       '[JREI-OCR-UNREVIEWED PAGE '+(i+1)+']\n'+value).join('\n\n');
@@ -166,6 +181,12 @@ async function localOcr(manifestPath){
       executableFingerprintsOwnerPinned:true,
       executableHashesReturned:false,
       renderedPageCount:imageFiles.length,
+      pageObservations,
+      pagesWithEmptyOcrText:pageObservations.filter(p=>p.emptyOcrPage).length,
+      pagesWithDetectedMathSymbols:pageObservations
+        .filter(p=>p.potentialMathSymbols).length,
+      mathSymbolsNotDetectedDoesNotProveAbsence:true,
+      perPageOcrConfidenceMeasured:false,
       wholeDocumentPageCountVerified:false,
       mayHaveOmittedPages:true,
       handwrittenOrMathematicalAccuracyValidated:false,
