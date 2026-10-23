@@ -104,7 +104,7 @@ function jrHybridAuthenticate(PDO $pdo,string $verb,string $path,
         return null;
     $sig=hex2bin($signature);
     if($sig===false)return null;
-    $canonical="jrei-worker-v1\n".$verb."\n".$path."\n".
+    // The worker signs the actual public /api/... HTTPS request path.\n    // route() strips /api for PHP dispatch only; never sign that stripped path.\n    $canonical="jrei-worker-v1\n".$verb."\n/api".$path."\n".
         $timestamp."\n".$nonce."\n".hash('sha256',$raw);
     if(!sodium_crypto_sign_verify_detached($sig,$canonical,$public))
         return null;
