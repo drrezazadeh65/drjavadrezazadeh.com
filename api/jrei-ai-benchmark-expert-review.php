@@ -18,6 +18,8 @@ function jrAiOwnerGradeBenchmark(PDO $pdo,string $actor,array $body): array {
     if(!is_string($id)||!validUuid($id)||
        !is_string($evidence)||strlen($evidence)!==64||
        !ctype_xdigit($evidence)||
+       !is_string($expectedAnswer)||strlen($expectedAnswer)!==64||
+       !ctype_xdigit($expectedAnswer)||
        ($body['confirmation']??null)!=='EXPERT_EVALUATION_NOT_MODEL_SELF_GRADE')
         throw new InvalidArgumentException('expert_review_invalid');
     $scores=[];
