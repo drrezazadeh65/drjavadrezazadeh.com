@@ -28,6 +28,13 @@ function jrJreiLearningOwnerHazardQueue(PDO $pdo): array {
     try{
         $pdo->query('SELECT decision_id,proposal_id,observation_sha256
             FROM jrei_learning_hazard_review_history LIMIT 0');
+        $q=$pdo->query('SELECT COUNT(*) FROM jrei_learning_hazard_review_history');
+        $out['recordedVetoDecisions']=(int)$q->fetchColumn();
+        $q=$pdo->query("SELECT COUNT(*) FROM jrei_learning_hazard_review_history h
+          LEFT JOIN jrei_learning_proposals p ON p.proposal_id=h.proposal_id
+          WHERE p.proposal_id IS NULL OR p.review_state<>'REJECTED'
+            OR p.decision<>'REJECTED_OWNER_HAZARD'");
+        $out['vetoStateConflicts']=(int)$q->fetchColumn();
         $predicate=jrJreiLearningHazardPredicate();
         $from=" FROM jrei_learning_proposals p
            JOIN jrei_learning_controls c ON c.id=1
