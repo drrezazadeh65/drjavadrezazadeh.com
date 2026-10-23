@@ -4,17 +4,10 @@ noStore:Object.freeze(['/api/','/fa/services/checkout/','/fa/shop/golden-talent/
 (()=>{
 const q=(s,r=document)=>r.querySelector(s),qa=(s,r=document)=>[...r.querySelectorAll(s)];
 const rawPath=location.pathname.replace(/index\.html$/,'');
-const gh='/drjavadrezazadeh.com/';
-const base=rawPath.includes(gh)?gh:'/';
-const relativePath=base==='/'?rawPath:'/'+rawPath.slice(base.length);
-const isFa=relativePath.startsWith('/fa/');
-const isJournal=relativePath.startsWith('/journal/');
-const isPrivateApp=JR_ROUTE_POLICY.app.some(prefix=>relativePath.startsWith(prefix));
-const isPersianStudentApp=relativePath.startsWith('/fa/app/student/')||relativePath.startsWith('/fa/assessments/golden-talent/start/');
+const gh='/drjavadrezazadeh.com/';const base=rawPath.includes(gh)?gh:'/';const relativePath=base==='/'?rawPath:'/'+rawPath.slice(base.length);const isFa=relativePath.startsWith('/fa/');const isJournal=relativePath.startsWith('/journal/');const isPrivateApp=JR_ROUTE_POLICY.app.some(prefix=>relativePath.startsWith(prefix));const isPersianStudentApp=relativePath.startsWith('/fa/app/student/')||relativePath.startsWith('/fa/assessments/golden-talent/start/');
 const u=p=>base+p.replace(/^\//,'');
 function ensurePwaHead(){
-const head=document.head;
-if(!head)return;
+const head=document.head;if(!head)return;
 if(!q('link[rel="manifest"]',head)){
 const link=document.createElement('link');link.rel='manifest';link.href=u('site.webmanifest');head.appendChild(link);
 }
