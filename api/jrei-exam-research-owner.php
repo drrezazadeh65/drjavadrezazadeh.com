@@ -75,6 +75,7 @@ function jrExamResearchOwnerSnapshot(PDO $pdo,array $cfg): array {
       'coverageScopeReviewQueue'=>[],'intakeStates'=>[],
       'sourceHumanReviewEvidence'=>jrKaHumanSourceReviewOwnerMetrics($pdo),
       'privateLocalOcrIntakeEvidence'=>jrKaOwnerLocalOcrEvidenceSnapshot($pdo),
+      'coverageCorrectionHistory'=>jrKaOwnerCoverageLinkCorrectionHistory($pdo),
       'coverageObligations'=>[],'itemReviews'=>[],
       'blueprints'=>[],'preparationProgrammes'=>[],
       'preparationStages'=>[],'frameworks'=>[],
