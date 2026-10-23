@@ -26,6 +26,9 @@ CREATE TABLE IF NOT EXISTS jrei_hybrid_nodes (
   created_by_account_id CHAR(36) NULL,
   CONSTRAINT fk_jrei_node_owner FOREIGN KEY (created_by_account_id)
     REFERENCES customer_accounts(id) ON DELETE SET NULL,
+  -- Each computer must generate its OWN Ed25519 keypair. Reject duplicate
+  -- public keys even if the owner submits the same registration twice.
+  UNIQUE KEY uq_jrei_hybrid_node_public_key(public_key_b64),
   KEY idx_jrei_nodes_status(status,revoked_at,last_seen_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
