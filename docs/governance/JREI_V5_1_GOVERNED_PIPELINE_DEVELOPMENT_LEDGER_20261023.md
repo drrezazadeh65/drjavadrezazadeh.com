@@ -43,3 +43,20 @@ Both private Windows configurations were last reported with datasets: []; no ind
 8. Produce acceptance evidence and release manifest. Only the owner explicitly authorizes and performs production deployment.
 
 Status: SOURCE IMPLEMENTED IN DEVELOPMENT; NOT TESTED, NOT DEPLOYED, NOT SCIENTIFICALLY VALIDATED.
+
+
+## Continued source development — model provenance, acquisition and dispatch diagnostics
+
+- A new owner-invoked HTTPS intake adapter stages document provenance only. It uses approved HTTPS sources, public-address DNS pinning, strict transport bounds, explicit rights confirmation, robots directives and no redirects. The CLI stores no fetched text by default. **Neither the adapter nor a source crawl has been executed.**
+- The separate claim-level gate refuses unchecked local model drafts, verifies each quoted extract against the specifically cited approved passage and screens uncited numerical claims. It can only mark a draft eligible for another human-controlled review; no automatically published answer is authorized.
+- A Windows localhost-only inference coordinator is added as a development source. It cannot install model weights, call paid inference, execute arbitrary shell commands or change signed Worker allowlists. It returns review decisions and claim digests, not public model output.
+- Additive model metadata registry migration `docs/migrations/20261023_jrei_model_registry_mother_mysql.sql` records rights and artifact SHA-256, with runtime/performance markers remaining UNKNOWN until final authorized acceptance.
+- Model version/rights actions and metrics placeholders are present in the original bilingual MFA-protected dashboard. A read-only Windows GGUF checksum CLI is staged. No model download, checksum execution, runtime benchmark or live inference has been undertaken.
+- Per-node dispatch diagnostics now distinguish suspended/offline/busy nodes, missing approved corpus, absent advertised version and an existing matching queue, querying authoritative mother DB records rather than claiming successful execution.
+- During continued development, a malformed robots-parser source edit was detected and repaired at source level. **It has not yet undergone the deferred consolidated test campaign.**
+
+## Operational constraints still unresolved
+
+The two Windows nodes previously connected with signed telemetry, but their locally approved dataset arrays were last known to be empty. No independently reviewed public corpus has been delivered and no licence-approved GGUF inference runtime has been installed or accepted. Owner-authorized additive migrations, separate local configuration updates, a genuinely reviewed 200+ case evaluation and all final acceptance tests remain outstanding.
+
+**Do not migrate, run tests, activate AI weights or deploy from this development ledger.** The entire final safety, syntax, transport, scientific, UX and regression acceptance is deferred by explicit owner instruction. Record a fresh branch SHA and check all concurrent changes before the eventual release.
