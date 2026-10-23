@@ -607,6 +607,65 @@
  }
 
 
+ function renderCountryExamGapWorklist(snapshot){
+   const queue=snapshot.coverageGapWorklist;
+   if(!queue||queue.schema!=='jr.jrei.coverage-gap-worklist.v1')return;
+   const unknown=T('نامعلوم؛ مهاجرت مصوب یا داده قابل‌دسترسی نیست',
+     'Unknown; approved migration or authoritative data unavailable');
+   fact(T('دامنه‌های تأییدشده برای بررسیِ منابع',
+     'Owner-approved source investigation scopes'),
+     queue.available?safeCount(queue.approvedScopeCount):unknown);
+   fact(T('پیوندهای دارای فرادادهٔ معتبر برای تحلیل خصوصی',
+     'Metadata-eligible links for private analysis'),
+     queue.available?safeCount(queue.eligibleMetadataLinkCount):unknown);
+   fact(T('دامنه‌های نیازمند بازبینی مستقل یا تکمیل پیوند',
+     'Approved scopes needing independent review or repair'),
+     queue.available?safeCount(queue.unresolvedScopeCount):unknown);
+   const panel=elt('details','jr-exam-subsection');
+   panel.append(elt('summary','',T(
+     'اولویت‌های تکمیل منابع و رفع خطاهای پوشش آزمون',
+     'Live source-coverage gaps and independent review worklist')));
+   panel.append(elt('p','',T(
+     'این فهرست بر مبنای دامنه‌های بررسیِ ثبت‌شده و وضعیت کنونی منابع ساخته می‌شود. یک منبع پیوندخورده ممکن است لغوشده، فاقد مجوز یا در انتظار بازبین مستقل باشد. هیچ ادعایی درباره صحت سؤال، پاسخ یا تکمیل پوشش درسی و پایه تحصیلی مطرح نیست.',
+     'Gaps are derived from registered owner-approved scopes and current source metadata. Links may be recalled, insufficiently licensed or awaiting an independent reviewer. Question correctness, actual curriculum/grade alignment and complete coverage are not established.')));
+   if(!queue.available){
+     panel.append(elt('p','',unknown));sections.append(panel);return;
+   }
+   const labels={
+     NO_SOURCE_CANDIDATE_LINKED:T('هنوز نامزد منبع ثبت نشده','Register a candidate source'),
+     SOURCE_LINK_NOT_RESOLVABLE:T('پیوند منبع نامعتبر یا حذف‌شده','Source link unavailable'),
+     SOURCE_REVOKED:T('منبع لغو اعتبار شده','Original source revoked'),
+     SOURCE_SUPERSEDED:T('منبع با نسخهٔ جدید جایگزین شده','Original source superseded'),
+     SOURCE_SCOPE_METADATA_MISMATCH:T('عدم انطباق فرادادهٔ منبع با دامنه','Source-scope metadata mismatch'),
+     PRIVATE_ANALYSIS_RIGHTS_NOT_REVIEWED:T('مجوز مطالعه و تحلیل خصوصی احراز نشده','Private-analysis rights not established'),
+     SEPARATE_SOURCE_REVIEWER_REQUIRED:T('تأیید بازبین مستقل دیگری ضروری است','Separate source reviewer required'),
+     SOURCE_AUTHORITY_REVIEW_INCOMPLETE:T('بازبینی اصالت منبع ناقص است','Source authority review incomplete'),
+     INDEPENDENT_SOURCE_REVIEW_REQUIRED:T('بررسی مستقل منبع همچنان الزامی است',
+       'Independent source review remains necessary')
+   };
+   const items=Array.isArray(queue.items)?queue.items.slice(0,60):[];
+   if(!items.length)panel.append(elt('p','',T(
+     'در محدودهٔ دامنه‌های مصوب، خلأ فرادادهٔ شناسایی‌شده‌ای ثبت نیست؛ این موضوع اثبات تکمیل علمی آزمون‌ها نیست.',
+     'No current metadata gap among owner-approved scopes; scientific examination completeness is not thereby proven.')));
+   for(const issue of items){
+     const card=elt('article','jr-exam-coverage-row');
+     card.append(elt('strong','',
+       [issue.country,issue.curriculum,issue.level,
+        issue.grade>0?issue.grade:null,issue.examCategory,
+        issue.year,issue.subject,issue.expectedKind]
+       .filter(x=>x!==null&&x!==undefined).join(' · ').slice(0,290)));
+     card.append(elt('span','',labels[issue.reason]||T(
+       'برای احراز منبع نیاز به بررسی است','Source requires independent review')));
+     card.append(elt('span','',T('دامنه: ','Scope: ')+
+       String(issue.requirementId||'').slice(0,36)));
+     panel.append(card);
+   }
+   if(queue.truncated)panel.append(elt('p','',T(
+     'فقط ۶۰ مورد نخست نمایش داده می‌شود؛ شمارنده‌های کلی از کل جدول محاسبه شده‌اند.',
+     'The first 60 gaps are displayed; aggregate counts use the complete table.')));
+   sections.append(panel);
+ }
+
  function renderCoverageScopeOwnerActions(snapshot){
    const rows=Array.isArray(snapshot.coverageScopeReviewQueue)
      ?snapshot.coverageScopeReviewQueue.slice(0,40):[];
@@ -1449,6 +1508,7 @@
    renderExpiredExamReviews(snapshot);
    renderKnowledgeAcquisition(snapshot);
    renderCountryExamCoverageMatrix(snapshot);
+   renderCountryExamGapWorklist(snapshot);
    renderCoverageScopeOwnerActions(snapshot);
    renderLiveModelReadiness(snapshot);
    for(const def of columns)viewGroup(def,snapshot[def.key],ready);
