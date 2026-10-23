@@ -695,7 +695,9 @@
        String(issue.requirementId||'').slice(0,36)));
      const uuid=/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i;
      if(uuid.test(issue.requirementId||'')){
-       if(uuid.test(issue.registeredSourceId||'')){
+       if(uuid.test(issue.registeredSourceId||'')&&
+          ['SOURCE_REVOKED','SOURCE_SUPERSEDED','SOURCE_SCOPE_METADATA_MISMATCH',
+           'SOURCE_LINK_NOT_RESOLVABLE'].includes(issue.reason)){
          const detach=elt('button','jr-exam-emergency',T(
            'اصلاح پیوند اشتباه بدون حذف منبع',
            'Detach incorrect link; retain original source'));
