@@ -122,6 +122,48 @@
   const chips=wrap.querySelector('.jr-assistant-chips');
   const form=wrap.querySelector('.jr-assistant-form');
   const input=wrap.querySelector('textarea');
+  // Actual inference is optional and cannot be switched on by a page's
+  // arbitrary metadata: the same-origin server must report ready, and the
+  // visitor must explicitly opt in to provider-side message processing.
+  let approvedLiveEndpoint='';
+  let liveCapabilitiesChecked=false;
+  const providerLabel=document.createElement('label');
+  providerLabel.className='jr-assistant-provider-consent';
+  providerLabel.hidden=true;
+  const providerConsent=document.createElement('input');
+  providerConsent.type='checkbox';
+  providerConsent.checked=false;
+  providerConsent.autocomplete='off';
+  providerLabel.append(
+    providerConsent,
+    document.createTextNode(isFa?
+      ' استفاده از مدل هوش مصنوعی زنده؛ پیام‌های همین گفتگو برای پردازش به ارائه‌دهندهٔ API ارسال می‌شوند. پاسخ‌ها ممکن است خطا داشته باشند.':
+      ' Use live AI: this conversation is sent to the external API provider for processing. AI answers may be incorrect.')
+  );
+  form.before(providerLabel);
+  async function discoverLiveAssistant(){
+    if(liveCapabilitiesChecked)return;
+    liveCapabilitiesChecked=true;
+    try{
+      const controller=new AbortController();
+      const stop=setTimeout(()=>controller.abort(),5000);
+      try{
+        const res=await fetch('/api/assistant/v1/capabilities',{
+          method:'GET',credentials:'omit',cache:'no-store',
+          headers:{Accept:'application/json'},signal:controller.signal
+        });
+        if(!res.ok)return;
+        const policy=await res.json();
+        if(policy?.schema!=='jr.jrei.assistant-capability.v1'||
+           policy.live!==true||policy.providerConsentRequired!==true)return;
+        approvedLiveEndpoint=location.origin+'/api/assistant/v1/chat';
+        providerLabel.hidden=false;
+      }finally{clearTimeout(stop);}
+    }catch(_){
+      // Offline or unaccepted providers retain local, no-network guidance.
+      approvedLiveEndpoint='';providerLabel.hidden=true;
+    }
+  }
   const leadEndpoint=trustedEndpoint?trustedEndpoint.replace(/\/v1\/chat$/,'/v1/leads'):'';
   const leadBox=document.createElement('div');
   leadBox.className='jr-assistant-lead';
@@ -223,13 +265,8 @@
 
   async function ask(message){
     if(busy||!message.trim()) return;
-    if(!endpoint){
-      addMessage('user',message.trim());
-      const local=fallback(message.trim());
-      addMessage('assistant',local.answer,local.links);
-      return;
-    }
-    if(!trustedEndpoint){
+    const chatEndpoint=providerConsent.checked?approvedLiveEndpoint:'';
+    if(!chatEndpoint){
       addMessage('user',message.trim());
       const local=fallback(message.trim());
       addMessage('assistant',local.answer,local.links);
@@ -250,13 +287,14 @@
       controller=new AbortController();
       activeRequest=controller;
       timer=setTimeout(()=>controller.abort(),30000);
-      const res=await fetch(trustedEndpoint,{
+      const res=await fetch(chatEndpoint,{
         method:'POST',
         mode:'cors',
         credentials:'omit',
         headers:{'Content-Type':'application/json','X-JR-Visitor':visitorId()},
         body:JSON.stringify({
           message:lastQuery,
+          providerConsent:true,
           history:history.slice(-8),
           page:{path:route||'/',title:document.title,lang:isFa?'fa':'en'}
         }),
@@ -294,8 +332,9 @@
     const opening=panel.hidden;
     panel.hidden=!opening;launcher.setAttribute('aria-expanded',opening?'true':'false');
     if(opening){
+      discoverLiveAssistant();
       if(!thread.childElementCount)
-        addMessage('assistant',trustedEndpoint?labels.greeting:staticGreeting);
+        addMessage('assistant',staticGreeting);
       setTimeout(()=>input.focus(),30);
     }
   });
