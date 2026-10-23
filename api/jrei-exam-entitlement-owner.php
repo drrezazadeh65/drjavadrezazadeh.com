@@ -193,6 +193,16 @@ function jrExamOwnerGrantVerifiedOrder(PDO $pdo,array $cfg,
            $o['delivery_review_state']!=='APPROVED'||
            (int)$o['closes_at']<=$now)
             throw new DomainException('exam_offering_not_safe_to_grant');
+        // An old owner APPROVED flag does NOT overrule a source or answer key
+        // that has subsequently been recalled, superseded or unreviewed.
+        // Reuse the ORIGINAL scoring/rights review, never a parallel key bank.
+        if(!is_string($o['instrument_version_id'])||
+           !validUuid($o['instrument_version_id'])||
+           !is_string($o['scoring_model_id'])||
+           !validUuid($o['scoring_model_id']))
+            throw new DomainException('exam_original_scoring_model_unavailable');
+        jrExamVerifiedMcqContext($pdo,
+            $o['instrument_version_id'],$o['scoring_model_id']);
         $q=$pdo->prepare("SELECT entitlement_id,state,verified_order_id
             FROM jrei_exam_commercial_entitlements
             WHERE offering_id=? AND account_id=? FOR UPDATE");
