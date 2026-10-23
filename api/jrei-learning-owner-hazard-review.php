@@ -76,6 +76,8 @@ function jrJreiLearningOwnerHazardQueue(PDO $pdo): array {
     }catch(Throwable $e){
         $out['totalRecordedHazardProposals']=null;
         $out['items']=[];$out['truncated']=false;
+        $out['recordedVetoDecisions']=null;
+        $out['vetoStateConflicts']=null;
     }
     return $out;
 }
