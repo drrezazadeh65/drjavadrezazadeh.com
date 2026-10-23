@@ -21,7 +21,8 @@ param(
 )
 $ErrorActionPreference='Stop'
 if(-not $OwnerApproved){throw 'Explicit owner approval required.'}
-if(-not [Environment]::OSVersion.Platform.ToString().Equals('Win32NT')){
+if(-not [System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform(
+  [System.Runtime.InteropServices.OSPlatform]::Windows)){
   throw 'Only Windows is supported.'
 }
 $taskName='JREI-Owner-Outbound-Worker'
