@@ -212,3 +212,49 @@ function jrKaIndependentHumanSourceReview(PDO $pdo,string $actor,array $body): a
         throw $e;
     }
 }
+
+/**
+ * Exact aggregate observability for the original MFA owner command centre.
+ * Historical human attestation counts do not certify live legal permissions;
+ * source rights can be revoked after any decision.
+ */
+function jrKaHumanSourceReviewOwnerMetrics(PDO $pdo): array {
+    $out=['schema'=>'jr.jrei.source-human-attestations-owner.v1',
+      'available'=>false,'recordedHumanDecisions'=>null,
+      'privateAnalysisAttestations'=>null,'quarantineDecisions'=>null,
+      'requestsForFurtherEvidence'=>null,
+      'currentPrivatelyReviewedSources'=>null,
+      'publicRedistributionAuthorized'=>false,
+      'actualDocumentAuthenticitySystemVerified'=>false,
+      'officialAnswerKeyScientificallyValidated'=>false];
+    try{
+        $q=$pdo->query("SELECT COUNT(*) AS total,
+          COALESCE(SUM(CASE WHEN decision='AUTHORIZE_PRIVATE_ANALYSIS'
+            THEN 1 ELSE 0 END),0) AS private_count,
+          COALESCE(SUM(CASE WHEN decision='QUARANTINE_UNRELIABLE'
+            THEN 1 ELSE 0 END),0) AS quarantined_count,
+          COALESCE(SUM(CASE WHEN decision='REQUEST_ADDITIONAL_EVIDENCE'
+            THEN 1 ELSE 0 END),0) AS deferred_count
+          FROM jrei_ka_source_review_attestations");
+        $a=$q->fetch(PDO::FETCH_ASSOC);
+        $q=$pdo->query("SELECT COUNT(DISTINCT s.source_id)
+          FROM jrei_exam_sources s
+          JOIN jrei_ka_source_review_attestations a
+            ON a.source_id=s.source_id
+          WHERE a.decision='AUTHORIZE_PRIVATE_ANALYSIS'
+            AND a.reviewer_account_id=s.reviewer_account_id
+            AND s.review_state='AUTHORITATIVE_REVIEWED'
+            AND s.rights_state='PERMITTED_PRIVATE_ANALYSIS'
+            AND s.verified_at IS NOT NULL
+            AND s.is_revoked=0 AND s.is_superseded=0");
+        $out['currentPrivatelyReviewedSources']=(int)$q->fetchColumn();
+        $out['recordedHumanDecisions']=(int)$a['total'];
+        $out['privateAnalysisAttestations']=(int)$a['private_count'];
+        $out['quarantineDecisions']=(int)$a['quarantined_count'];
+        $out['requestsForFurtherEvidence']=(int)$a['deferred_count'];
+        $out['available']=true;
+    }catch(Throwable $e){
+        // Absent staged mother-DB tables mean UNKNOWN; no fake zero.
+    }
+    return $out;
+}
