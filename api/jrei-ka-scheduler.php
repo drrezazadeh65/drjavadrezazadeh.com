@@ -121,6 +121,8 @@ function jrKaOwnerSnapshot(PDO $pdo,array $cfg): array {
       'privateAutoFetchOptIn'=>($cfg['jrei_ka_autofetch_enabled']??false)===true,
       'privateTextExtractionOptIn'=>($cfg['jrei_ka_text_extraction_enabled']??false)===true,
       'privatePassageProposalsOptIn'=>($cfg['jrei_ka_passage_proposals_enabled']??false)===true,
+      'paperKeyProposals'=>function_exists('jrKaPaperKeySnapshot')?
+          jrKaPaperKeySnapshot($pdo,$cfg):null,
       'passageReviewObservability'=>[
         'schemaReady'=>false,'runs'=>null,
         'incompleteRuns'=>null,'proposedSpans'=>null,
