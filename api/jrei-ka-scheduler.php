@@ -33,6 +33,9 @@ function jrKaScheduleApprovedSources(PDO $pdo,array $cfg,int $at): array {
       'workAutomaticallyDispatched'=>false,'ownerRightsBypassed'=>false];
     if(($cfg['jrei_ka_schedule_enabled']??false)!==true)
         return $summary;
+    if(($cfg['jrei_ka_night_mode_enabled']??false)===true&&
+       !jrJreiIranNightOpen($at))
+        return [...$summary,'status'=>'OUTSIDE_IRAN_NIGHT_WINDOW'];
     if(!jrKaSchemaReady($pdo))
         throw new DomainException('jrei_ka_migration_not_installed');
     $pdo->beginTransaction();
