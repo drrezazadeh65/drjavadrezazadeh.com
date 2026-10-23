@@ -120,6 +120,14 @@ function jrKaOwnerSnapshot(PDO $pdo,array $cfg): array {
       'privateScheduleOptIn'=>($cfg['jrei_ka_schedule_enabled']??false)===true,
       'privateAutoFetchOptIn'=>($cfg['jrei_ka_autofetch_enabled']??false)===true,
       'privateTextExtractionOptIn'=>($cfg['jrei_ka_text_extraction_enabled']??false)===true,
+      'privatePassageProposalsOptIn'=>($cfg['jrei_ka_passage_proposals_enabled']??false)===true,
+      'passageReviewObservability'=>[
+        'schemaReady'=>false,'runs'=>null,
+        'incompleteRuns'=>null,'proposedSpans'=>null,
+        'unreviewedSpans'=>null,'independentlyApprovedPublicCitations'=>0,
+        'publicCitationPublicationEnabled'=>false,
+        'reviewedRagIndexEstablished'=>false
+      ],
       'extractionObservability'=>[
         'schemaReady'=>false,'totalQueued'=>null,'activeClaimed'=>null,
         'textPendingReview'=>null,'ocrRequired'=>null,
@@ -272,6 +280,30 @@ function jrKaOwnerSnapshot(PDO $pdo,array $cfg): array {
         ];
     }catch(Throwable $e){
         $out['extractionObservability']['schemaReady']=false;
+    }
+    try{
+        foreach([
+           'SELECT observation_id,run_state,stored_passage_count FROM jrei_ka_private_passage_runs LIMIT 0',
+           'SELECT passage_id,passage_state,review_rights_state FROM jrei_ka_private_passages LIMIT 0'
+        ] as $sql)$pdo->query($sql);
+        $p=&$out['passageReviewObservability'];
+        $q=$pdo->query("SELECT COUNT(*) AS runs,
+            COALESCE(SUM(CASE WHEN run_state='PARTIAL_UNREVIEWED'
+              THEN 1 ELSE 0 END),0) AS incomplete
+            FROM jrei_ka_private_passage_runs");
+        $r=$q->fetch(PDO::FETCH_ASSOC);
+        $p['runs']=(int)($r['runs']??0);
+        $p['incompleteRuns']=(int)($r['incomplete']??0);
+        $q=$pdo->query("SELECT COUNT(*) AS total,
+             COALESCE(SUM(CASE WHEN passage_state='NEEDS_SCIENTIFIC_REVIEW'
+             THEN 1 ELSE 0 END),0) AS unreviewed
+             FROM jrei_ka_private_passages");
+        $r=$q->fetch(PDO::FETCH_ASSOC);
+        $p['proposedSpans']=(int)($r['total']??0);
+        $p['unreviewedSpans']=(int)($r['unreviewed']??0);
+        $p['schemaReady']=true;
+    }catch(Throwable $e){
+        $out['passageReviewObservability']['schemaReady']=false;
     }
     return $out;
 }
