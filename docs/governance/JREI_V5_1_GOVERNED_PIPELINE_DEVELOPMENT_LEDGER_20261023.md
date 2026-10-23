@@ -90,3 +90,12 @@ The existing site-wide operations alert subsystem, mother DB and Cron dispatcher
 - Production telemetry/recipient/passwords/UUIDs are never logged in public alert messages. Incident node IDs are hashed into pseudonymous source keys and raw learner data is absent.
 
 The consolidated final owner-authorized QA must also cover sensor silence during OFF switches, the per-feature email opt-in, Cron scheduling/lock behavior, incidents resolving after a recovered heartbeat or owner disable, stale jobs, mail outbox reservations, no duplicate notices on uncertain SMTP delivery, and the unchanged original alert center. **No intermediate tests, real Cron invocations, email sends or deployments have occurred in this development batch.**
+
+
+## Optional security metadata retention
+
+The original operations Cron registry now includes a separate, sensitive, **unregistered/disabled by default** `jrei_hybrid_metadata_retention` job. Its CLI source is `api/internal/jrei-hybrid-retention-worker.php` and it additionally requires private `JR_JREI_HYBRID_RETENTION_ENABLED=true`. It never runs from a public web request or registration/import alone.
+
+The job prunes at most 500 Ed25519 replay nonces older than two hours and, when the new optional offers table exists, up to 500 stale signed dataset advertisements older than seven days per authorized scheduled run. The nonce security check still independently rejects timestamps more than 90 seconds old. It **never deletes jobs, unknown outcomes, owner approvals, source versions, customer records, results, node keys or audit trails**. Real periodic execution, permissions, bounded SQL performance and every release-stage retention assertion remain deferred to consolidated owner-authorized QA.
+
+**State: code and governance only, no migrations, Cron executions, deletions, tests or deployment.**
