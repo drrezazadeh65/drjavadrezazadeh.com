@@ -73,6 +73,8 @@ function jrExamVerifiedMcqContext(PDO $pdo,string $instrumentId,
         obj.content_sha256 AS original_prompt_sha256,
         source.review_state AS source_review_state,
         source.rights_state AS source_rights_state,
+        source.reviewer_account_id AS source_reviewer_id,
+        source.verified_at AS source_reviewed_at,
         source.is_revoked,source.is_superseded
       FROM eco_assessment_items i
       LEFT JOIN jrei_exam_reviewed_answer_keys k ON k.item_id=i.id
@@ -116,6 +118,9 @@ function jrExamVerifiedMcqContext(PDO $pdo,string $instrumentId,
            ($row['authored_by_account_id']!==null&&
              $row['authored_by_account_id']===$row['reviewer_account_id'])||
            $row['source_review_state']!=='AUTHORITATIVE_REVIEWED'||
+           $row['source_reviewer_id']===null||
+           $row['source_reviewed_at']===null||
+           $row['source_reviewer_id']===$row['authored_by_account_id']||
            !in_array($row['source_rights_state'],[
               'PERMITTED_REPRODUCTION'],true)||
            (int)$row['is_revoked']!==0||(int)$row['is_superseded']!==0)
