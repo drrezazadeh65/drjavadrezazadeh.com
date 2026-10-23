@@ -48,6 +48,9 @@
    if(v===null||v===undefined||v==='')return T('نامعلوم','Unknown');
    const labels={
      AUTHORITATIVE_REVIEWED:T('منبع با تأیید مستقل','Independently source-reviewed'),
+     CANDIDATE_UNREVIEWED:T('منبع پیشنهادی بدون بررسی مستقل','Unreviewed candidate'),
+     SOURCE_CANDIDATE_LINKED_UNREVIEWED:T('منبع پیشنهادی پیوند شد؛ بررسی نشده','Candidate linked; review pending'),
+     QUARANTINED:T('قرنطینه شده','Quarantined'),
      REQUIRES_SOURCE_REVIEW:T('پوشش هنوز بررسی نشده','Coverage needs source review'),
      PERMISSION_UNVERIFIED:T('مجوز تکثیر تأیید نشده','Copy rights unverified'),
      NO_APPROVED_EVALUATION:T('ارزیابی تأییدشده وجود ندارد','No approved evaluation'),
@@ -311,6 +314,99 @@
        mutate(input);
      });
      coverage.append(form);actions.append(coverage);
+     // Link a *candidate* URI to an independently registered coverage need.
+     // HTTPS metadata is saved privately but never fetched or designated
+     // copyright-cleared, official, or scientifically approved by this form.
+     const openTargets=Array.isArray(snapshot.coverageTargets)
+       ?snapshot.coverageTargets:[];
+     if(openTargets.length){
+       const candidate=elt('details','jr-exam-subsection');
+       candidate.append(elt('summary','',T(
+         'ثبت منبع پیشنهادی برای نیاز بررسی‌شده (بدون دریافت فایل)',
+         'Link a candidate source to an open review target (no download)')));
+       candidate.append(elt('p','',T(
+         'آدرس HTTPS صرفاً برای بررسی آینده در دیتابیس خصوصی ثبت می‌شود. مجوز استفاده، اصالت کلید، حق تکثیر و انتشار هنوز تأیید نشده‌اند. آدرس دارای توکن یا اطلاعات خصوصی وارد نکنید.',
+         'HTTPS source location is stored privately for later review only. This does not certify the issuer, answer key, copyright or publication rights. Never enter URL tokens or personal information.')));
+       const sourceForm=document.createElement('form');
+       sourceForm.className='jr-exam-coverage-form';
+       const targetLabel=elt('label','',T('نیاز بررسی که منبع به آن پیوند می‌خورد',
+         'Open review target receiving the candidate'));
+       const targetSelect=document.createElement('select');
+       targetSelect.name='coverageRequirementId';
+       for(const needed of openTargets.slice(0,40)){
+         if(!/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i
+           .test(needed.requirement_id||''))continue;
+         const opt=document.createElement('option');
+         opt.value=needed.requirement_id;
+         opt.textContent=[
+           needed.educational_level,needed.grade||'',
+           needed.examination_year,needed.subject_id,needed.expected_kind
+         ].filter(Boolean).join(' · ').slice(0,220);
+         targetSelect.append(opt);
+       }
+       targetLabel.append(targetSelect);sourceForm.append(targetLabel);
+       const sourceInput=(name,title,{type='text',max=240,required=true}={})=>{
+         const label=elt('label','',title);
+         const inp=document.createElement('input');
+         inp.name=name;inp.type=type;inp.required=required;
+         inp.maxLength=max;
+         label.append(inp);sourceForm.append(label);return inp;
+       };
+       const sourceTitle=sourceInput('sourceTitle',T(
+         'عنوان منبع پیشنهادی','Candidate publication title'));
+       const issuer=sourceInput('issuerId',T(
+         'شناسه نهاد منتشرکننده (نیازمند تأیید)','Claimed issuer identifier'),
+         {max:100});
+       const sourceVersion=sourceInput('sourceVersion',T(
+         'نسخه یا ویرایش اعلام‌شده منبع','Candidate edition/version'),{max:100});
+       const sourceUrl=sourceInput('candidateUrl',T(
+         'نشانی HTTPS بدون پارامتر، رمز یا اطلاعات فردی',
+         'HTTPS URL without query, credentials or personal information'),
+         {type:'url',max:1200});
+       sourceUrl.pattern='https://.*';
+       const date=sourceInput('publicationDate',T(
+         'تاریخ انتشار (اختیاری؛ در صورت اطلاع)','Publication date (optional if known)'),
+         {type:'date',max:10,required:false});
+       const submit=elt('button','',T(
+         'ثبت منبع نامعتبر تا زمان بررسی مستقل',
+         'Register unreviewed source candidate'));
+       submit.type='submit';submit.disabled=!targetSelect.options.length;
+       sourceForm.append(submit);
+       sourceForm.addEventListener('submit',event=>{
+         event.preventDefault();
+         if(!active()||busy||!sourceForm.reportValidity()||
+            !targetSelect.value)return;
+         const url=sourceUrl.value.trim();
+         try{
+           const parsed=new URL(url);
+           if(parsed.protocol!=='https:'||parsed.username||parsed.password||
+             parsed.search||parsed.hash||parsed.port)
+             throw Error('UNSAFE_URL');
+         }catch{
+           say(T('برای حفاظت از اطلاعات، فقط نشانی عمومی HTTPS بدون پارامتر پذیرفته می‌شود.',
+             'Only plain public HTTPS addresses without tokens or query are permitted.'));
+           return;
+         }
+         if(!window.confirm(T(
+           'فقط فراداده منبع ثبت شود؛ هیچ مدرک دانلود یا تأیید علمی نمی‌شود. ادامه؟',
+           'Save source metadata only, without download or scientific approval?')))return;
+         mutate({
+           action:'register_source_candidate',
+           coverageRequirementId:targetSelect.value,
+           sourceTitle:sourceTitle.value.trim(),issuerId:issuer.value.trim(),
+           sourceVersion:sourceVersion.value.trim(),
+           candidateUrl:url,publicationDate:date.value||null,
+           confirmation:'REGISTER_UNREVIEWED_SOURCE_CANDIDATE'
+         });
+       });
+       candidate.append(sourceForm);actions.append(candidate);
+     }else{
+       actions.append(elt('p','',ready?T(
+         'هیچ نیاز بررسیِ بدون منبع ثبت نشده است. ابتدا نیاز بررسی دفترچه یا پاسخ‌نامه را ثبت کنید.',
+         'No unlinked review target exists. Register an exam-paper/answer-key review target first.'):
+         T('تا زمان آماده‌شدن دیتابیس، ثبت منبع ممکن نیست.',
+           'Source candidate registration is unavailable until the schema is ready.')));
+     }
      const sources=Array.isArray(snapshot.sourceQueue)?snapshot.sourceQueue:[];
      if(sources.length){
        const row=elt('div','jr-exam-source-actions');
