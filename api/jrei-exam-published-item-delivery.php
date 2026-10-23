@@ -38,6 +38,19 @@ function jrExamPublishedItemDeliveryReady(PDO $pdo): bool {
     }catch(Throwable $e){return false;}
 }
 /**
+ * Optional SOURCE-STAGED multi-locale map; when absent the original prompt
+ * manifest must itself match the requested locale, or delivery fails closed.
+ */
+function jrExamLocalizedPromptSchemaReady(PDO $pdo): bool {
+    try{
+        $pdo->query('SELECT item_id,locale,object_ref_id,original_item_sha256,
+          localized_manifest_sha256,review_state,prepared_by_account_id,
+          independently_reviewed_by_account_id,reviewed_at
+          FROM jrei_exam_item_prompt_localizations LIMIT 0');
+        return true;
+    }catch(Throwable $e){return false;}
+}
+/**
  * Bounded content verified fresh on every read. All metadata are queried
  * ONLY from the existing mother DB; no candidate-supplied pathname is used.
  */
@@ -46,19 +59,66 @@ function jrExamDeliveredItemSet(PDO $pdo,string $version,string $locale): array 
         throw new InvalidArgumentException('invalid_reviewed_item_version');
     $root=jrExamPrivateItemRoot();
     if($root===null)throw new DomainException('private_exam_items_unavailable');
+    $hasTranslations=jrExamLocalizedPromptSchemaReady($pdo);
+    $extra=$hasTranslations?",loc.object_ref_id AS localized_object_id,
+      loc.original_item_sha256 AS localized_original_sha256,
+      loc.localized_manifest_sha256 AS localized_approved_sha256,
+      loc.review_state AS localized_review_state,
+      loc.prepared_by_account_id AS localized_preparer_id,
+      loc.independently_reviewed_by_account_id AS localized_reviewer_id,
+      loc.reviewed_at AS localized_reviewed_at,
+      lo.storage_provider AS localized_storage_provider,
+      lo.object_reference AS localized_object_reference,
+      lo.content_sha256 AS localized_content_sha256,
+      lo.mime_type AS localized_mime_type,
+      lo.byte_size AS localized_byte_size,
+      lo.data_class AS localized_data_class,
+      lo.malware_scan_status AS localized_malware_scan_status,
+      lo.encryption_key_reference AS localized_encryption_key_reference":"";
+    $joins=$hasTranslations?" LEFT JOIN jrei_exam_item_prompt_localizations loc
+      ON loc.item_id=i.id AND loc.locale=?
+      LEFT JOIN eco_object_refs lo ON lo.id=loc.object_ref_id":"";
     $q=$pdo->prepare("SELECT i.id AS item_id,i.item_type,
       o.storage_provider,o.object_reference,o.content_sha256,o.mime_type,
       o.byte_size,o.data_class,o.malware_scan_status,o.encryption_key_reference
+      $extra
       FROM eco_assessment_items i
       LEFT JOIN eco_object_refs o ON o.id=i.prompt_object_id
+      $joins
       WHERE i.instrument_version_id=?
       ORDER BY i.display_order ASC,i.id ASC LIMIT 121");
-    $q->execute([$version]);$items=$q->fetchAll(PDO::FETCH_ASSOC);
+    $q->execute($hasTranslations?[$locale,$version]:[$version]);
+    $items=$q->fetchAll(PDO::FETCH_ASSOC);
     if(!$items||count($items)>120)
         throw new DomainException('exam_item_count_out_of_bounds');
     $answers=[];$index=[];
     foreach($items as $r){
         $item=(string)$r['item_id'];
+        if($hasTranslations&&$r['localized_object_id']!==null){
+            // A human-reviewed translation can never alter the scored item
+            // identity, option IDs, or the canonical original content hash.
+            $sha='/^[a-f0-9]{64}$/D';
+            if($r['localized_review_state']!=='APPROVED'||
+               $r['localized_preparer_id']===null||
+               $r['localized_reviewer_id']===null||
+               $r['localized_preparer_id']===$r['localized_reviewer_id']||
+               $r['localized_reviewed_at']===null||
+               !preg_match($sha,(string)$r['content_sha256'])||
+               !preg_match($sha,(string)$r['localized_original_sha256'])||
+               !hash_equals((string)$r['content_sha256'],
+                    (string)$r['localized_original_sha256'])||
+               !preg_match($sha,(string)$r['localized_approved_sha256'])||
+               !preg_match($sha,(string)$r['localized_content_sha256'])||
+               !hash_equals((string)$r['localized_content_sha256'],
+                    (string)$r['localized_approved_sha256']))
+                throw new DomainException('exam_localized_prompt_review_not_accepted');
+            foreach([
+              'storage_provider','object_reference','content_sha256',
+              'mime_type','byte_size','data_class','malware_scan_status',
+              'encryption_key_reference'
+            ] as $key)
+                $r[$key]=$r['localized_'.$key];
+        }
         if(!validUuid($item)||isset($index[$item])||
            $r['item_type']!=='SINGLE_CHOICE'||
            $r['storage_provider']!=='JR_EXAM_PUBLISHED_ITEM'||
