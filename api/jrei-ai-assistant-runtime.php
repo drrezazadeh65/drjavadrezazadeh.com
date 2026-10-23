@@ -86,6 +86,7 @@ function jrAiPublicEvidence(string $question,string $lang): array {
 
 function jrAiPublicCanAnswer(PDO $pdo,array $cfg): bool {
     return ($cfg['jrei_public_ai_release_accepted']??false)===true&&
+        ($cfg['jrei_live_ai_enabled']??false)===true&&
         jrAiCloudConfigured($cfg)&&
         jrAiBudgetSourceReady($pdo)&&
         jrAiTelemetrySchemaReady($pdo)&&
