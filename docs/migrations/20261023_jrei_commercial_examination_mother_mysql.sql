@@ -104,6 +104,7 @@ CREATE TABLE IF NOT EXISTS jrei_exam_commercial_attempts (
   deadline_at BIGINT UNSIGNED NULL,
   submitted_at BIGINT UNSIGNED NULL,
   submission_digest CHAR(64) CHARACTER SET ascii COLLATE ascii_bin NULL,
+  score_run_id CHAR(36) NULL,
   -- Exactly one immutable start request maps to one attempt. A retry returns
   -- that same envelope and cannot consume an additional paid attempt.
   start_request_digest CHAR(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
@@ -123,7 +124,9 @@ CREATE TABLE IF NOT EXISTS jrei_exam_commercial_attempts (
   CONSTRAINT fk_jrei_exam_attempt_account FOREIGN KEY(account_id)
     REFERENCES customer_accounts(id) ON DELETE RESTRICT,
   CONSTRAINT fk_jrei_exam_attempt_session FOREIGN KEY(assessment_session_id)
-    REFERENCES eco_assessment_sessions(id) ON DELETE RESTRICT
+    REFERENCES eco_assessment_sessions(id) ON DELETE RESTRICT,
+  CONSTRAINT fk_jrei_exam_attempt_score FOREIGN KEY(score_run_id)
+    REFERENCES eco_score_runs(id) ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- NEVER seed paid products, attempts, entitlements or synthetic transactions.
