@@ -1,6 +1,12 @@
 {
   "schema_version": "1.2",
   "status": "STATIC_GUIDE_ACTIVE_RUNTIME_DEFERRED",
+  "hosting": {
+    "active_target": "BERTINA_LINUX_LITESPEED_PHP83",
+    "canonical_development_branch": "migration/bertina-linux6",
+    "runtime_backend_verified": false,
+    "do_not_replace_existing_store_or_payment": true
+  },
   "display_name": {
     "fa": "دستیار دکتر رضازاده",
     "en": "Dr. Rezazadeh Assistant"
@@ -13,9 +19,13 @@
   "storage": {
     "server_conversation_persistence": false,
     "browser_message_persistence": false,
-    "anonymous_rate_limit_id_local_storage": true,
+    "anonymous_rate_limit_id_local_storage": false,
+    "visitor_correlation_identifier": "EPHEMERAL_PER_PAGE_ONLY_NO_BROWSER_STORAGE",
+    "server_anonymous_rate_limits_live": false,
+    "runtime_personal_data_read_enabled": false,
     "lead_bank": "NONE",
     "lead_retention_unconverted_days": 180,
+    "lead_retention_policy_currently_applied": false,
     "conversation_text_written_to_lead_bank": false
   },
   "visibility": {
@@ -42,6 +52,8 @@
   },
   "abuse_controls": {
     "requests_per_minute_per_anonymous_device": 12,
+    "target_for_future_authorized_backend_only": true,
+    "live_chat_rate_limit_verified": false,
     "max_user_message_chars": 1600,
     "max_history_messages": 8,
     "max_model_output_tokens": 650
