@@ -27,7 +27,7 @@ function jrExamResearchSchemaReady(PDO $pdo): bool {
         foreach([
             'SELECT id,discovery_enabled,extraction_enabled,generation_enabled,participant_enrolment_enabled,research_processing_enabled,policy_revision FROM jrei_exam_controls LIMIT 0',
             'SELECT source_id,source_authority_id,source_title,source_locator_digest,source_locator_uri,educational_level,exam_category,examination_year,subject_id,source_kind,rights_state,review_state,extraction_state,answer_key_state,created_at FROM jrei_exam_sources LIMIT 0',
-            'SELECT requirement_id,educational_level,examination_year,subject_id,expected_kind,requirement_state FROM jrei_exam_coverage_requirements LIMIT 0',
+            'SELECT requirement_id,country_code,curriculum_id,curriculum_version,educational_level,grade,exam_category,examination_year,subject_id,expected_kind,source_id,requirement_state,approved_by_account_id FROM jrei_exam_coverage_requirements LIMIT 0',
             'SELECT discovery_id,result_state,rights_review_state,robots_review_state FROM jrei_exam_discovery_attempts LIMIT 0',
             'SELECT id,item_state,ambiguity_review_state,copyright_review_state,reviewed_by_account_id FROM jrei_exam_item_metadata LIMIT 0',
             'SELECT blueprint_id,status,format_review_state,timing_review_state,scoring_review_state FROM jrei_exam_blueprints LIMIT 0',
