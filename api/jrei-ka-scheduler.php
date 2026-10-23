@@ -123,6 +123,8 @@ function jrKaOwnerSnapshot(PDO $pdo,array $cfg): array {
       'privatePassageProposalsOptIn'=>($cfg['jrei_ka_passage_proposals_enabled']??false)===true,
       'paperKeyProposals'=>function_exists('jrKaPaperKeySnapshot')?
           jrKaPaperKeySnapshot($pdo,$cfg):null,
+      'publicQuoteOwnerReview'=>function_exists('jrKaOwnerPublicQuoteQueue')?
+          jrKaOwnerPublicQuoteQueue($pdo,$cfg):null,
       'passageReviewObservability'=>[
         'schemaReady'=>false,'runs'=>null,
         'incompleteRuns'=>null,'proposedSpans'=>null,
