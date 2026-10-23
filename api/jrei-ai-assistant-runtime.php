@@ -2,6 +2,7 @@
 declare(strict_types=1);
 if(!defined('BERTINA_API_BOOTSTRAPPED')){http_response_code(404);exit;}
 require_once __DIR__.'/jrei-ai-cloud-provider.php';
+require_once __DIR__.'/jrei-ai-answer-guard.php';
 
 /**
  * Real public bilingual assistant coordinator (first narrow approved tool).
@@ -9,6 +10,17 @@ require_once __DIR__.'/jrei-ai-cloud-provider.php';
  * Actual scientific/admission answers, private learner history, autonomous
  * crawling, payments and assessment writes are NOT authorised by this module.
  */
+/**
+ * Conservative first-pass personal-data filter for EVERY turn. It is not an
+ * exhaustive PII classifier and should not be used to infer safe disclosure.
+ * The original public UI states this limitation before external transfer.
+ */
+function jrAiPublicTextSensitive(string $value): bool {
+    return preg_match('/[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}/u',$value)===1||
+        preg_match('/(?:\d[\s-]*){13,19}/u',$value)===1||
+        preg_match('/(?:password|passcode|otp|one.time.password|گذرواژه|رمز عبور|کد ملی|شماره کارت|رمز دوم)/ui',$value)===1||
+        preg_match('/(?:\b(?:IBAN|passport|national id|national identification|bank account)\b|شماره شناسنامه|گذرنامه|شبا|شناسه ملی)/ui',$value)===1;
+}
 function jrAiPublicIndexPath(): string {
     return dirname(__DIR__).'/assets/search-index.json';
 }
@@ -87,10 +99,7 @@ function jrAiPublicChat(PDO $pdo,array $cfg,array $body): array {
         throw new InvalidArgumentException('public_ai_message_or_consent_invalid');
     // PII defences are conservative; they do not constitute guaranteed
     // detection. The UI must explicitly disclose third-party processing.
-    if(filter_var(trim($message),FILTER_VALIDATE_EMAIL)||
-       preg_match('/[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}/u',$message)||
-       preg_match('/(?:\d[\s-]*){13,19}/u',$message)||
-       preg_match('/(?:password|passcode|otp|one.time.password|گذرواژه|رمز عبور|کد ملی|شماره کارت|رمز دوم)/ui',$message))
+    if(jrAiPublicTextSensitive($message))
         throw new DomainException('public_ai_possible_sensitive_information');
     $history=$body['history']??[];
     if(!is_array($history)||!array_is_list($history)||count($history)>8)
@@ -102,6 +111,8 @@ function jrAiPublicChat(PDO $pdo,array $cfg,array $body): array {
            !is_string($entry['content']??null)||
            trim($entry['content'])===''||strlen($entry['content'])>800)
             throw new InvalidArgumentException('public_ai_history_invalid');
+        if(jrAiPublicTextSensitive($entry['content']))
+            throw new DomainException('public_ai_history_contains_sensitive_information');
         $messages[]=['role'=>$entry['role'],'content'=>$entry['content']];
     }
     $messages[]=['role'=>'user','content'=>$message];
@@ -135,8 +146,9 @@ function jrAiPublicChat(PDO $pdo,array $cfg,array $body): array {
         throw new DomainException('public_ai_daily_budget_exhausted');
     $response=jrAiOpenAiResponses($cfg,$messages,$instruction,240);
     $text=$response['text'];
-    if(!preg_match('/\[S[1-4]\]/',$text))
-        throw new DomainException('public_ai_answer_without_evidence_marker');
+    $gate=jrAiPublicAnswerGate($text,$evidence,$lang);
+    if(($gate['publiclyRenderable']??false)!==true)
+        throw new DomainException('public_ai_output_evidence_or_privacy_blocked');
     // These citations are always server-selected, never model-generated
     // hyperlinks. Treat plausible prose as provisional until final QA.
     $links=array_map(static fn($r)=>['url'=>$r['url'],'label'=>$r['title']],$evidence);
@@ -146,6 +158,8 @@ function jrAiPublicChat(PDO $pdo,array $cfg,array $body): array {
       'runtime'=>'CLOUD_MODEL_SOURCE_GUIDED',
       'sourceScope'=>'PUBLIC_SITE_SUMMARY_ONLY',
       'scientificClaimsIndependentlyVerified'=>false,
+      'modelOutputVerification'=>'STRUCTURAL_CITATIONS_ONLY_NOT_SEMANTIC_PROOF',
+      'validatedSourceMarkers'=>$gate['usedSourceIds'],
       'sourceCount'=>count($evidence),
       'modelProvider'=>$response['provider'],
       'usage'=>[
