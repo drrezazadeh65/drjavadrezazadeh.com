@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS jrei_hybrid_public_datasets (
   dataset_sha256 CHAR(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
   evidence_sha256 CHAR(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
   active_policy_sha256 CHAR(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+  active_policy_json VARCHAR(160) NOT NULL,
   source_label VARCHAR(160) NOT NULL,
   source_url VARCHAR(500) NOT NULL,
   licence_code VARCHAR(80) NOT NULL,
