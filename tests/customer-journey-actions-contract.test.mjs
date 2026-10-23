@@ -35,7 +35,7 @@ test('both existing private dashboards preserve authentic roles, protected links
    assert.ok(html.includes('data-command-path="'+action+'"'),locale+' missing filter '+action);
   }
   const cards=[...html.matchAll(/<a class="cd-quick-card"([^>]+)>/g)].map(m=>m[1]);
-  assert.equal(cards.length,12,locale+' complete 12 route-shortcut parity');
+  assert.equal(cards.length,13,locale+' complete 13 route-shortcut parity');
   for(const card of cards)assert.match(card,/data-command-group="(?:learning|shopping|sponsorship)(?: (?:learning|shopping|sponsorship))*"/);
   for(const segment of ['orders/','reports/']){
    const step=html.match(new RegExp('<a class="cd-journey-action"[^>]+href="[^"]*'+segment+'".*?<\\/a>'));
