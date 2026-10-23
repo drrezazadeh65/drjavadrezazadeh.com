@@ -42,6 +42,7 @@ function jrAiOwnerGradeBenchmark(PDO $pdo,string $actor,array $body): array {
            $r['run_state']!=='ANSWER_PENDING_INDEPENDENT_REVIEW'||
            (int)$r['independently_graded']!==0||
            !is_string($r['answer_sha256'])||
+           !hash_equals(strtolower($expectedAnswer),$r['answer_sha256'])||
            $r['independent_reviewer_account_id']===null||
            $r['independent_reviewer_account_id']===$actor||
            $r['author_account_id']===$actor)
