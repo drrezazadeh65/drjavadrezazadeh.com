@@ -750,6 +750,75 @@
        'Private spans do not establish approved retrieval evidence and never publish scholarly claims or copyrighted passages.')));
      root.append(sourcePassages);
    }
+   const quotes=ka.publicQuoteOwnerReview;
+   fact(T('بندهای خصوصی در انتظار تأیید حق نقل‌قول',
+     'Private source passages awaiting public-quote rights review'),
+     quotes?.available?fmt(quotes.pendingCount):T('نامعلوم','Unknown'));
+   if(quotes?.available){
+     const items=Array.isArray(quotes.examples)?quotes.examples.slice(0,8):[];
+     if(items.length){
+       const pane=elt('details','jr-exam-subsection');
+       pane.append(elt('summary','',T(
+         'بازبینی مستقل مجوز نقل‌قول برای هوش مصنوعی',
+         'Independent public-quote licensing review')));
+       pane.append(elt('p','',T(
+         'این صفحه فقط برای مدیر است. تأیید نقل‌قول، صحت علمی پاسخ تولیدشده را تأیید نمی‌کند.',
+         'This owner-only review certifies licensed quotation, NOT model interpretation or scientific truth.')));
+       for(const item of items){
+         const card=elt('article','jr-exam-coverage-row');
+         card.append(elt('strong','',String(item.sourceTitle||'').slice(0,240)));
+         card.append(elt('p','',String(item.excerpt||'').slice(0,650)));
+         card.append(elt('span','',
+           T('هش متن اصلی: ','Original passage SHA: ')+String(item.passageSha256||'')));
+         const form=document.createElement('form');
+         const label=elt('label','',T(
+           'SHA-256 شاهد بازبینی مستقل (۶۴ رقم هگز)',
+           'Independent review evidence SHA-256 (64 hex characters)'));
+         const evidence=document.createElement('input');
+         evidence.type='text';evidence.required=true;
+         evidence.maxLength=64;evidence.minLength=64;
+         evidence.pattern='[a-f0-9]{64}';evidence.autocomplete='off';
+         label.append(evidence);form.append(label);
+         const decision=document.createElement('select');
+         for(const [value,fa,en] of [
+           ['REJECT_PUBLIC_QUOTE','رد درخواست نقل‌قول','Reject public quotation'],
+           ['APPROVE_PUBLIC_QUOTE','تأیید مجوز نقل‌قول، نه ادعای علمی','Approve quote rights, not scientific claims']
+         ]){
+           const option=elt('option','',T(fa,en));
+           option.value=value;decision.append(option);
+         }
+         const decisionLabel=elt('label','',T('تصمیم بازبینی','Review decision'));
+         decisionLabel.append(decision);form.append(decisionLabel);
+         const button=elt('button','jr-btn secondary',T(
+           'ثبت تصمیم مستند','Record reviewed decision'));
+         button.type='submit';form.append(button);
+         form.addEventListener('submit',ev=>{
+           ev.preventDefault();
+           if(!active()||busy||!form.reportValidity())return;
+           if(decision.value==='APPROVE_PUBLIC_QUOTE'&&!item.licensedForPublicQuote){
+             window.alert(T('مجوز تکثیر عمومی موجود نیست.',
+               'Public-reproduction licence is not available.'));
+             return;
+           }
+           if(!window.confirm(T(
+             'فقط حق نشر و اصالت نقل‌قول بررسی شده است؛ صحت علمی تفسیر مدل جداگانه بررسی خواهد شد. ادامه؟',
+             'This reviews quotation provenance and reuse rights only; model interpretation still needs independent validation. Continue?')))return;
+           mutate({action:'ka_review_public_quote',
+             passageId:item.passageId,
+             excerptSha256:item.passageSha256,
+             rightsEvidenceSha256:item.rightsEvidenceSha256,
+             independentReviewEvidenceSha256:evidence.value,
+             decision:decision.value,
+             confirmation:'REVIEW_LICENSED_QUOTE_NOT_SCIENTIFIC_TRUTH'});
+         });
+         card.append(form);pane.append(card);
+       }
+       if(quotes.truncated)pane.append(elt('p','',T(
+         'تنها هشت مورد اول نمایش داده شده است.',
+         'Only the first eight cases are displayed.')));
+       root.append(pane);
+     }
+   }
    const pairing=ka.paperKeyProposals;
    fact(T('تطبیق‌های اولیهٔ دفترچه و پاسخ‌نامه در انتظار داوری',
      'Exam paper and answer key matches awaiting independent review'),
