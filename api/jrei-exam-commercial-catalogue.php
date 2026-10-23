@@ -124,6 +124,8 @@ function jrExamCommercialCatalogue(PDO $pdo,array $cfg,int $at=0): array {
     // and accepted separately. Never expose a purchase button from mere SQL.
     return $out;
 }
+require_once __DIR__.'/jrei-exam-preliminary-grade-owner-audit.php';
+
 function jrExamCommercialOwnerSnapshot(PDO $pdo,array $cfg): array {
     $ready=jrExamCommercialSchemaReady($pdo);
     $base=[
@@ -135,6 +137,7 @@ function jrExamCommercialOwnerSnapshot(PDO $pdo,array $cfg): array {
       'itemReviewCoverage'=>null,'itemReviewCoverageAvailable'=>false,
       'productRegistry'=>null,'offeringRegistry'=>null,
       'productReleaseGates'=>null,
+      'preliminaryGradeEvidence'=>jrExamOwnerPreliminaryGradeEvidence($pdo),
       'entitlementGovernance'=>null,
       'operationalRisks'=>[
         'unknownExpiredAttempts'=>null,'unfinishedDeadlineReviews'=>null,
@@ -252,6 +255,7 @@ function jrExamCommercialOwnerSnapshot(PDO $pdo,array $cfg): array {
         $base['itemReviewCoverage']=null;
     }
     $base['productReleaseGates']=jrExamOwnerProductReadiness($pdo,$cfg);
+    $base['preliminaryGradeEvidence']=jrExamOwnerPreliminaryGradeEvidence($pdo);
     $base['entitlementGovernance']=jrExamOwnerEntitlementExposure($pdo,$cfg);
     return $base;
 }
