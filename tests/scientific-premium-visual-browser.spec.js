@@ -103,7 +103,9 @@ for(const [lang,path] of [['fa','/fa/'],['en','/en/']]){
    const response=await page.goto(origin+path,{waitUntil:'domcontentloaded'});
    expect(response.status()).toBe(200);
    await expect(page.locator('link[href*="jr-ecosystem-design-v2.css"]')).toHaveAttribute('href',/20261019-home-cinematic-v3/);
-   await expect(page.locator('script[src*="/assets/js/site.js"]')).toHaveAttribute('src',/20261019-home-cinematic-v3/);
+   // The unified site JS has a newer, reviewed privacy-guide cache revision;
+   // its cinematic layout/tilt and public UX contracts are checked below.
+   await expect(page.locator('script[src*="/assets/js/site.js"]')).toHaveAttribute('src',/20261022-privacy-guide-v2/);
    await expect(page.locator('main .hero h1')).toBeVisible();
    await expect(page.locator('main .hero .hero-pathway-cta a')).toHaveCount(4);
    await expect(page.locator('main .hero .hero-pathway-cta a[href="./shop/"]')).toHaveCount(1);
