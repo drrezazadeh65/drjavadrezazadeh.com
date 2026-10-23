@@ -90,8 +90,8 @@ function jrExamCommercialOwnerSnapshot(PDO $pdo,array $cfg): array {
       'schema'=>'jr.jrei.exam-commercial-owner.v1',
       'motherDbSchemaReady'=>$ready,
       'privateEnabled'=>($cfg['jrei_exam_commercial_enabled']??false)===true,
-      'productStates'=>[],'offeringStates'=>[],
-      'entitlementStates'=>[],'attemptStates'=>[],
+      'productStates'=>null,'offeringStates'=>null,
+      'entitlementStates'=>null,'attemptStates'=>null,
       'verifiedPaymentIntegration'=>false,
       'secureAttemptDeliveryVerified'=>false,
       'officiallyReviewedItemsVerified'=>false,
@@ -99,6 +99,8 @@ function jrExamCommercialOwnerSnapshot(PDO $pdo,array $cfg): array {
       'reviewRequired'=>true
     ];
     if(!$ready)return $base;
+    foreach(['productStates','offeringStates','entitlementStates','attemptStates'] as $field)
+        $base[$field]=[];
     foreach([
       'productStates'=>"SELECT division,product_state,COUNT(*) AS n FROM jrei_exam_commercial_products GROUP BY division,product_state ORDER BY division,product_state LIMIT 35",
       'offeringStates'=>"SELECT offering_state,COUNT(*) AS n FROM jrei_exam_commercial_offerings GROUP BY offering_state LIMIT 20",
