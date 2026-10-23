@@ -217,3 +217,63 @@ function jrKaOwnerPublicQuoteDecision(PDO $pdo,array $cfg,
         throw $e;
     }
 }
+
+
+/**
+ * Immediate owner-authorised public quotation revocation. The original
+ * source record and private extracted bytes are preserved for audit; a
+ * revoked quotation cannot enter model context in any subsequent query.
+ */
+function jrKaOwnerRevokePublicQuote(PDO $pdo,string $actor,array $body): array {
+    $passage=$body['passageId']??null;
+    $reason=$body['reasonCode']??null;
+    if(!is_string($passage)||!validUuid($passage)||
+       !in_array($reason,[
+          'RIGHTS_PERMISSION_WITHDRAWN','SOURCE_CORRECTION',
+          'REVIEW_ERROR','POTENTIAL_PERSONAL_DATA'
+       ],true)||
+       ($body['confirmation']??null)!=='REVOKE_PUBLIC_QUOTE_IMMEDIATELY')
+        throw new InvalidArgumentException('invalid_quote_revocation');
+    if(!jrKaPublicQuoteReviewSchemaReady($pdo))
+        throw new DomainException('quote_review_schema_unavailable');
+    $pdo->beginTransaction();
+    try{
+        $q=$pdo->prepare("SELECT source_id FROM jrei_ka_private_passages
+           WHERE passage_id=?");
+        $q->execute([$passage]);
+        $source=$q->fetchColumn();
+        if(!is_string($source)||!validUuid($source))
+            throw new DomainException('quote_passage_missing');
+        $q=$pdo->prepare("SELECT source_id FROM jrei_exam_sources
+           WHERE source_id=? FOR UPDATE");
+        $q->execute([$source]);
+        if($q->fetchColumn()===false)
+            throw new DomainException('quote_source_missing');
+        $q=$pdo->prepare("SELECT passage_state,review_rights_state
+          FROM jrei_ka_private_passages WHERE passage_id=? AND source_id=?
+          FOR UPDATE");
+        $q->execute([$passage,$source]);
+        $state=$q->fetch(PDO::FETCH_ASSOC);
+        if(!is_array($state)||
+           $state['passage_state']!=='APPROVED_PUBLIC_AI_EVIDENCE'||
+           $state['review_rights_state']!=='PERMITTED_PUBLIC_QUOTE')
+            throw new DomainException('quote_not_currently_publicly_approved');
+        $q=$pdo->prepare("UPDATE jrei_ka_private_passages SET
+          passage_state='PUBLIC_QUOTE_REVOKED',
+          review_rights_state='PUBLIC_QUOTE_REVOKED',
+          reviewed_at=? WHERE passage_id=?
+          AND passage_state='APPROVED_PUBLIC_AI_EVIDENCE'");
+        $q->execute([time(),$passage]);
+        if($q->rowCount()!==1)
+            throw new DomainException('quote_revocation_conflict');
+        operationsAudit($pdo,$actor,'jrei_ka_quote_revoked_'.$reason,$passage);
+        $pdo->commit();
+        return ['ok'=>true,'quotationPubliclyAvailable'=>false,
+           'privateOriginalTextPreserved'=>true,
+           'modelAccessRevokedForNextRetrieval'=>true,
+           'scientificTruthCertified'=>false];
+    }catch(Throwable $e){
+        if($pdo->inTransaction())$pdo->rollBack();
+        throw $e;
+    }
+}
