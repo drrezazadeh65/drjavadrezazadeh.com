@@ -168,7 +168,7 @@ function jrAiOpenAiResponses(array $cfg,array $messages,string $instructions,
       'inputTokens'=>is_int($usage['input_tokens']??null)?$usage['input_tokens']:null,
       'outputTokens'=>is_int($usage['output_tokens']??null)?$usage['output_tokens']:null,
       'providerOutputUnverified'=>true,
-      'providerStoredConversation'=>false,
+      'providerApplicationStorageRequested'=>false,
       'externalToolsUsed'=>false
     ];
 }
