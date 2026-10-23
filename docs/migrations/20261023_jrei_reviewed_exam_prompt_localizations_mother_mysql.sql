@@ -9,6 +9,8 @@ CREATE TABLE IF NOT EXISTS jrei_exam_item_prompt_localizations (
   object_ref_id CHAR(36) NOT NULL,
   original_item_sha256 CHAR(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
   localized_manifest_sha256 CHAR(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+  translation_rights_evidence_sha256 CHAR(64) CHARACTER SET ascii COLLATE ascii_bin NULL,
+  linguistic_equivalence_evidence_sha256 CHAR(64) CHARACTER SET ascii COLLATE ascii_bin NULL,
   review_state VARCHAR(28) NOT NULL DEFAULT 'DRAFT',
   prepared_by_account_id CHAR(36) NULL,
   independently_reviewed_by_account_id CHAR(36) NULL,
