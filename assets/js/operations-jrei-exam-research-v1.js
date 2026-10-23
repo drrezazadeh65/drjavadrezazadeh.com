@@ -634,8 +634,7 @@
        entry.exam_category,entry.examination_year,entry.subject_id,
        entry.expected_kind].filter(x=>x!==null&&x!==undefined&&x!=='')
        .join(' · ').slice(0,320)));
-     const approved=typeof entry.approved_by_account_id==='string'
-       &&entry.approved_by_account_id.length>0;
+     const approved=entry.owner_scope_approved===1;
      item.append(elt('span','',approved?
        T('دامنه بررسی و تأیید شده؛ صحت منبع همچنان نامعلوم',
          'Scope accepted; source authenticity still unknown'):
