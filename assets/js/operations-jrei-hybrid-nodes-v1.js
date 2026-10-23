@@ -465,6 +465,35 @@
    cell(summary,T('مدل زبانی واقعاً آزموده‌شده','Independently verified LLM'),
      d.modelInferenceVerified?T('نیازمند گزارش پذیرش','See acceptance evidence'):
      T('تأیید نشده؛ فقط بازیابی شواهد','Unverified; evidence retrieval only'));
+   const monitor=d.incidentMonitoring;
+   if(monitor&&monitor.schema==='jr.jrei.incident-monitor-status.v1'){
+     const counts=monitor.incidentCounts||{};
+     cell(summary,T('هشدارهای باز JREI','Open JREI incidents'),number(counts.open));
+     cell(summary,T('هشدارهای بحرانی JREI','Critical JREI incidents'),
+       number(counts.critical));
+     cell(summary,T('مجوز خصوصی حسگر','Private sensor opt-in'),
+       monitor.privateOptIn===true?
+         T('مجاز؛ اجرا مستقل بررسی شود','Permitted; check actual execution'):
+         T('خاموش','OFF'));
+     const sensor=monitor.cronNeedsReview===true?
+       T('نیازمند بازبینی مدیر','Owner review required'):
+       !monitor.cronRegistered?T('در Cron ثبت نشده','Not registered in Cron'):
+       !monitor.cronEnabled?T('Cron غیرفعال','Cron disabled'):
+       !Number.isSafeInteger(monitor.cronLastFinishedAt)?
+         T('اجرای ثبت‌شده ندارد','No recorded execution'):
+         T('آخرین گزارش Cron: ','Last Cron report: ')+date(monitor.cronLastFinishedAt);
+     cell(summary,T('وضعیت حسگر رخداد','Incident observer'),sensor);
+     const emailCandidate=monitor.privateOptIn===true&&
+       monitor.globalEmailEnabled===true&&monitor.featureEmailOptIn===true&&
+       monitor.cronEnabled===true;
+     cell(summary,T('اعلان‌های ایمیلی JREI','JREI incident emails'),
+       emailCandidate?T('بررسی مجوز هر رخداد؛ ارسال تأیید نشده',
+         'Check individual rule; delivery unverified'):
+         T('غیرفعال یا ناقص','Disabled or incomplete'));
+   }else{
+     cell(summary,T('وضعیت هشدارها','Incident status'),
+       T('نامعلوم؛ دادهٔ معتبر دریافت نشده','Unknown; unavailable data'));
+   }
    listing.append(summary);
    if(newNodeId){
      const note=el('p',T('نود جدید غیرفعال ثبت شد؛ شناسه زیر را در پیکربندی خصوصی همان رایانه وارد کنید:',
