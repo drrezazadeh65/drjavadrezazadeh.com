@@ -641,14 +641,38 @@
           [['CLOSE_UNKNOWN',T('بستن نتیجهٔ نامعلوم','Close unknown outcome')]]:
           [['ACKNOWLEDGE',T('ثبت بازبینی بدون انتشار','Acknowledge, do not publish')],
            ['REJECT',T('رد نتیجه','Reject result')]];
-        for(const [decision,label] of decisions)r.append(btn(label,()=>{
-          if(!confirmAction(
-            'بازبینی فقط در سوابق مدیریتی ثبت می‌شود؛ هیچ نتیجه‌ای منتشر یا به‌طور علمی تأیید نخواهد شد. ادامه؟',
-            'Record an audited owner decision only; no publication or scientific validation. Continue?'))return;
-          mutate({action:'record_job_review',jobId:j.jobId,
-            revision:j.revision,decision,
-            confirmation:'REVIEW_AGGREGATE_WITHOUT_PUBLICATION'});
-        }));
+        const reasonOptions={
+          ACKNOWLEDGE:[
+            ['METRICS_INSPECTED_NO_PUBLICATION',T('آمار بررسی شد؛ بدون انتشار','Metrics examined, no publication')],
+            ['RESEARCH_VERIFICATION_OUTSTANDING',T('تأیید پژوهشی همچنان باقی است','Independent research review outstanding')]
+          ],
+          REJECT:[
+            ['UNSUPPORTED_EVALUATION_METRICS',T('آمار ادعاشده پشتیبانی ندارد','Reported metrics unsupported')],
+            ['PROTOCOL_MISMATCH',T('عدم انطباق قرارداد ارزیابی','Evaluation protocol mismatch')],
+            ['CORPUS_APPROVAL_REVOKED',T('مجوز مجموعه‌داده لغو شده','Corpus approval revoked')]
+          ],
+          CLOSE_UNKNOWN:[
+            ['UNKNOWN_OUTCOME_NOT_RETRIED',T('نتیجه نامعلوم؛ اجرای مجدد ممنوع','Unknown execution, no replay')],
+            ['CORPUS_APPROVAL_REVOKED',T('مجوز مجموعه‌داده لغو شده','Corpus approval revoked')]
+          ]
+        };
+        for(const [decision,label] of decisions){
+          const wrap=el('label',T('دلیل تصمیم مدیر','Owner decision reason'));
+          const reasonSelect=document.createElement('select');
+          for(const [code,title] of reasonOptions[decision]||[]){
+            const option=el('option',title);option.value=code;
+            reasonSelect.append(option);
+          }
+          wrap.append(reasonSelect);r.append(wrap);
+          r.append(btn(label,()=>{
+            if(!confirmAction(
+              'بازبینی فقط در سوابق مدیریتی ثبت می‌شود؛ هیچ نتیجه‌ای منتشر یا به‌طور علمی تأیید نخواهد شد. ادامه؟',
+              'Record an audited owner decision only; no publication or scientific validation. Continue?'))return;
+            mutate({action:'record_job_review',jobId:j.jobId,
+              revision:j.revision,decision,rationaleCode:reasonSelect.value,
+              confirmation:'REVIEW_AGGREGATE_WITHOUT_PUBLICATION'});
+          }));
+        }
       }
      if(j.status==='QUEUED'||j.status==='LEASED'){
        r.append(btn(T('لغو کار','Cancel job'),()=>{
