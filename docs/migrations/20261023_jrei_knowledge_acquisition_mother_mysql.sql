@@ -38,6 +38,9 @@ CREATE TABLE IF NOT EXISTS jrei_ka_source_policies (
   revision BIGINT UNSIGNED NOT NULL DEFAULT 1,
   last_scheduled_at BIGINT UNSIGNED NULL,
   last_observed_at BIGINT UNSIGNED NULL,
+  -- Reservation is durable ACROSS UTC midnight; per-day quotas alone
+  -- cannot enforce publisher per-source request spacing.
+  last_network_request_reserved_at BIGINT UNSIGNED NULL,
   next_due_at BIGINT UNSIGNED NOT NULL,
   updated_at BIGINT UNSIGNED NOT NULL,
   approved_by_account_id CHAR(36) NULL,
