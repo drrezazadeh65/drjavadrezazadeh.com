@@ -17,6 +17,7 @@ require_once __DIR__.'/jrei-ai-cloud-provider.php';
 function jrAiPublicModelRoutingDecision(array $cfg): array {
     $configured=jrAiCloudConfigured($cfg);
     $accepted=($cfg['jrei_public_ai_release_accepted']??false)===true;
+    $privateEnabled=($cfg['jrei_live_ai_enabled']??false)===true;
     return [
       'schema'=>'jr.jrei.public-model-route.v1',
       'route'=>$configured&&$accepted?'OPENAI_RESPONSES':'UNAVAILABLE',
