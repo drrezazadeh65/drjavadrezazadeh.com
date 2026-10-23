@@ -226,6 +226,61 @@
    sections.append(box);
  }
 
+
+ function renderCommercialCentre(snapshot){
+   const centre=snapshot.commercialCentre;
+   if(!centre||centre.schema!=='jr.jrei.exam-commercial-owner.v1'){
+     fact(T('مرکز تجاری آزمون‌ها','Commercial exam centre'),
+       T('آمار معتبر دریافت نشده','No authoritative inventory available'));
+     return;
+   }
+   fact(T('جداول تجاری آزمون','Commercial examination schema'),
+     centre.motherDbSchemaReady?
+       T('جداول شناسایی شدند؛ پذیرش عملیاتی لازم است','Tables found; operational acceptance required'):
+       T('مهاجرت افزایشی اجرا نشده یا نامعلوم','Additive migration pending or unknown'));
+   fact(T('مجوز خصوصی بخش تجاری','Commercial feature policy'),
+     centre.privateEnabled?
+       T('مجوز پیکربندی؛ بدون اجازهٔ فروش','Config opted in, NOT permission to sell'):
+       T('خاموش','OFF'));
+   fact(T('آمادگی فروش واقعی آزمون','Verified exam checkout readiness'),
+     T('تأیید نشده؛ فروش باز نیست','Unverified; checkout disabled'));
+   const panel=elt('details','jr-exam-subsection');
+   panel.append(elt('summary','',
+     T('محصولات، نوبت‌ها و تلاش‌های آزمون','Products, scheduled offerings and attempts')));
+   panel.append(elt('p','',T(
+     'این داده‌ها فقط وضعیت‌های واقعی ثبت‌شده در پایگاه مادر هستند. تعداد سفارش پرداخت‌شده، تسویهٔ بانکی یا نتیجهٔ علمی از این جدول‌ها استنتاج نمی‌شود.',
+     'These are only recorded mother-DB states. Bank settlement, authenticated payment, and scientific accuracy cannot be inferred from counts.')));
+   if(!centre.motherDbSchemaReady){
+     panel.append(elt('p','',T(
+       'پس از بررسی نسخهٔ دیتابیس و مجوز انتشار، جداول افزایشی بررسی خواهند شد.',
+       'Additive tables await schema review and owner-authorized migration.')));
+     sections.append(panel);return;
+   }
+   for(const [key,label] of [
+     ['productStates',T('محصولات','Products')],
+     ['offeringStates',T('نوبت‌های برگزاری','Scheduled offerings')],
+     ['entitlementStates',T('مجوزهای دسترسی','Recorded entitlements')],
+     ['attemptStates',T('تلاش‌های داوطلب','Candidate attempts')]
+   ]){
+     const group=elt('div','jr-exam-coverage-row');
+     group.append(elt('strong','',label));
+     const values=centre[key];
+     if(!Array.isArray(values))group.append(elt('span','',T('نامعلوم','Unknown')));
+     else if(!values.length)group.append(elt('span','',T('هیچ ردیفی ثبت نشده','No records')));
+     else for(const value of values.slice(0,35)){
+       const state=String(value.product_state??value.offering_state??
+         value.state??value.attempt_state??'UNKNOWN').slice(0,32);
+       const division=value.division?String(value.division).slice(0,35)+' / ':'';
+       group.append(elt('span','',division+state+' · '+safeCount(value.n)));
+     }
+     panel.append(group);
+   }
+   panel.append(elt('p','',T(
+     'شروع آزمون، دریافت وجه و صدور مجوز باید تنها از مسیر پرداخت و سنجش موردتأیید سرور انجام شوند.',
+     'Exam starts, verified payment and entitlement grants must use the accepted server-owned commerce and assessment flow.')));
+   sections.append(panel);
+ }
+
  function render(snapshot,hybrid=null){
    clearNodes();
    const ready=snapshot.motherDbSchemaReady===true;
@@ -249,6 +304,7 @@
      T('غیرفعال تا احراز اخلاق و سرپرست قانونی',
        'Disabled until ethics and guardian authorization'));
    renderCoverageReadiness(snapshot);
+   renderCommercialCentre(snapshot);
    for(const def of columns)viewGroup(def,snapshot[def.key],ready);
    renderWorker(hybrid);
    if(ready&&c){
