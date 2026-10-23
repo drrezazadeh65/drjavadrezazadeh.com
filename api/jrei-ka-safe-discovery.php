@@ -46,7 +46,11 @@ function jrKaDiscoverSameHostPdfLinks(string $seedUrl,string $html): array {
             if(!str_ends_with($pathname,'.pdf'))continue;
             $label=trim(preg_replace('/\s+/u',' ',
                 (string)$link->textContent));
-            if(strlen($label)>220)$label=substr($label,0,220);
+            if(strlen($label)>220){
+                // Never cut in the middle of a Persian UTF-8 code point.
+                preg_match('/^.{0,50}/us',$label,$prefix);
+                $label=$prefix[0]??'Potential document';
+            }
             if($label==='')$label='Potential PDF from approved seed';
             $key=hash('sha256',$target);
             if(!isset($out[$key]))$out[$key]=[
