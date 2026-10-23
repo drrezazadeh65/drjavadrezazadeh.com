@@ -101,7 +101,8 @@ function robotsPermission(raw,path) {
   for(const line of source.split(/\r?\n/)){
     const rule=line.split('#')[0].trim();
     if(!rule){if(hadRule)flush();continue;}
-    const index=rule.indexOf(':');if(index<1)continue;
+    const index=rule.indexOf(':');
+    if(index<1)continue;
     const key=rule.slice(0,index).trim().toLowerCase();
     const value=rule.slice(index+1).trim();
     if(key==='user-agent'){
@@ -110,6 +111,7 @@ function robotsPermission(raw,path) {
     }else if((key==='allow'||key==='disallow')&&agents.length){
       hadRule=true;
       if(value.length>1000)throw Error('ROBOTS_RULE_TOO_LONG');
+      // An empty Disallow does not ban the website.
       if(value)rules.push({allow:key==='allow',value});
     }else if(key==='crawl-delay'&&agents.length){
       hadRule=true;
@@ -120,18 +122,135 @@ function robotsPermission(raw,path) {
     }
   }
   flush();
-  const named=groups.filter(g=>g.agents.some(x=>x!=='*'&&
-    AGENT.toLowerCase().startsWith(x)));
-  const group=named.length?named:groups.filter(g=>g.agents.includes('*'));
-  if(!group.length)return {allowed:true,delay:0};
-  const all=group.flatMap(g=>g.rules);
+  const bot=AGENT.toLowerCase().split('/')[0];
+  const named=groups.map(g=>({
+    ...g,specificity:Math.max(0,...g.agents
+      .filter(x=>x!=='*'&&bot.startsWith(x)).map(x=>x.length))
+  })).filter(g=>g.specificity>0);
+  const maxSpecificity=Math.max(0,...named.map(g=>g.specificity));
+  const selected=maxSpecificity>0?
+    named.filter(g=>g.specificity===maxSpecificity):
+    groups.filter(g=>g.agents.includes('*'));
+  if(!selected.length)return {allowed:true,delay:0};
+  const all=selected.flatMap(g=>g.rules);
   let best=null;
   for(const r of all){
     if(r.delay!==undefined)continue;
-    const expression=r.value.split('*').map(part=>
-      part.replace(/[^a-zA-Z0-9/_.~-]/g,x=>'\\'+x)).join('.*');
-    if(!new RegExp('^'+expression).test(path))continue;
-    const rank=r.value.replace(/\*/g,'').length;
+    if(!r.value.startsWith('/'))throw Error('ROBOTS_RULE_NOT_SUPPORTED');
+    const end=r.value.endsWith('/**
+ * Network invocation requires explicit owner-confirmed source permissions.
+ * Caller must separately validate publisher, terms, copyright and data rights.
+ * All returned metadata requires another administrative review before use.
+ */
+export async function acquireApprovedPublicSource({
+  approvedSource,ownerConfirmedRights=false,preceding=null,
+  publicationDate=null,originSection=null
+}={}){
+  if(ownerConfirmedRights!==true)
+    throw Error('OWNER_RIGHTS_CONFIRMATION_REQUIRED');
+  const source=normalizeApprovedSource(approvedSource);
+  if(source.acquisitionMethod!=='PUBLIC_HTTPS'||
+     source.usageRights!=='PUBLIC_REUSE_APPROVED')
+    throw Error('SOURCE_AUTOMATED_ACQUISITION_NOT_ALLOWED');
+  const url=new URL(source.canonicalUrl);
+  const ip=await pinnedPublicAddress(url.hostname);
+  // Do not auto-follow robots redirects, even to the same host.
+  const robots=await getPinned('https://'+url.hostname+'/robots.txt',ip,131072);
+  if(robots.mime!=='text/plain')throw Error('ROBOTS_MIME_INVALID');
+  const policy=robotsPermission(robots.bytes,url.pathname+url.search);
+  if(!policy.allowed)throw Error('ROBOTS_DISALLOWED');
+  await pause(Math.max(12000,policy.delay*1000));
+  const [allowedMime,limit]=LIMITS[source.contentType];
+  const response=await getPinned(source.canonicalUrl,ip,limit);
+  if(response.mime!==allowedMime)throw Error('SOURCE_MIME_NOT_ALLOWED');
+  const proposal=stageSourceVersion({approvedSource:source,
+    bytes:response.bytes,declaredMime:response.mime,
+    observedAt:new Date().toISOString(),publicationDate,
+    originSection,preceding});
+  return Object.freeze({...proposal,
+    acquisition:'OWNER_INVOKED_PINNED_PUBLIC_HTTPS',
+    robotsPermissionChecked:true,contentSaved:false,
+    sourceHttpStatus:200});
+}
+);
+    const body=end?r.value.slice(0,-1):r.value;
+    // RFC 9309 supports '*' and a terminal '/**
+ * Network invocation requires explicit owner-confirmed source permissions.
+ * Caller must separately validate publisher, terms, copyright and data rights.
+ * All returned metadata requires another administrative review before use.
+ */
+export async function acquireApprovedPublicSource({
+  approvedSource,ownerConfirmedRights=false,preceding=null,
+  publicationDate=null,originSection=null
+}={}){
+  if(ownerConfirmedRights!==true)
+    throw Error('OWNER_RIGHTS_CONFIRMATION_REQUIRED');
+  const source=normalizeApprovedSource(approvedSource);
+  if(source.acquisitionMethod!=='PUBLIC_HTTPS'||
+     source.usageRights!=='PUBLIC_REUSE_APPROVED')
+    throw Error('SOURCE_AUTOMATED_ACQUISITION_NOT_ALLOWED');
+  const url=new URL(source.canonicalUrl);
+  const ip=await pinnedPublicAddress(url.hostname);
+  // Do not auto-follow robots redirects, even to the same host.
+  const robots=await getPinned('https://'+url.hostname+'/robots.txt',ip,131072);
+  if(robots.mime!=='text/plain')throw Error('ROBOTS_MIME_INVALID');
+  const policy=robotsPermission(robots.bytes,url.pathname+url.search);
+  if(!policy.allowed)throw Error('ROBOTS_DISALLOWED');
+  await pause(Math.max(12000,policy.delay*1000));
+  const [allowedMime,limit]=LIMITS[source.contentType];
+  const response=await getPinned(source.canonicalUrl,ip,limit);
+  if(response.mime!==allowedMime)throw Error('SOURCE_MIME_NOT_ALLOWED');
+  const proposal=stageSourceVersion({approvedSource:source,
+    bytes:response.bytes,declaredMime:response.mime,
+    observedAt:new Date().toISOString(),publicationDate,
+    originSection,preceding});
+  return Object.freeze({...proposal,
+    acquisition:'OWNER_INVOKED_PINNED_PUBLIC_HTTPS',
+    robotsPermissionChecked:true,contentSaved:false,
+    sourceHttpStatus:200});
+}
+. Other metacharacters must
+    // be escaped literally rather than silently weakening Disallow rules.
+    const expression=body.split('*').map(part=>
+      part.replace(/[^A-Za-z0-9/_.~%-]/g,ch=>'\\'+ch)).join('.*');
+    const pattern='^'+expression+(end?'/**
+ * Network invocation requires explicit owner-confirmed source permissions.
+ * Caller must separately validate publisher, terms, copyright and data rights.
+ * All returned metadata requires another administrative review before use.
+ */
+export async function acquireApprovedPublicSource({
+  approvedSource,ownerConfirmedRights=false,preceding=null,
+  publicationDate=null,originSection=null
+}={}){
+  if(ownerConfirmedRights!==true)
+    throw Error('OWNER_RIGHTS_CONFIRMATION_REQUIRED');
+  const source=normalizeApprovedSource(approvedSource);
+  if(source.acquisitionMethod!=='PUBLIC_HTTPS'||
+     source.usageRights!=='PUBLIC_REUSE_APPROVED')
+    throw Error('SOURCE_AUTOMATED_ACQUISITION_NOT_ALLOWED');
+  const url=new URL(source.canonicalUrl);
+  const ip=await pinnedPublicAddress(url.hostname);
+  // Do not auto-follow robots redirects, even to the same host.
+  const robots=await getPinned('https://'+url.hostname+'/robots.txt',ip,131072);
+  if(robots.mime!=='text/plain')throw Error('ROBOTS_MIME_INVALID');
+  const policy=robotsPermission(robots.bytes,url.pathname+url.search);
+  if(!policy.allowed)throw Error('ROBOTS_DISALLOWED');
+  await pause(Math.max(12000,policy.delay*1000));
+  const [allowedMime,limit]=LIMITS[source.contentType];
+  const response=await getPinned(source.canonicalUrl,ip,limit);
+  if(response.mime!==allowedMime)throw Error('SOURCE_MIME_NOT_ALLOWED');
+  const proposal=stageSourceVersion({approvedSource:source,
+    bytes:response.bytes,declaredMime:response.mime,
+    observedAt:new Date().toISOString(),publicationDate,
+    originSection,preceding});
+  return Object.freeze({...proposal,
+    acquisition:'OWNER_INVOKED_PINNED_PUBLIC_HTTPS',
+    robotsPermissionChecked:true,contentSaved:false,
+    sourceHttpStatus:200});
+}
+:'');
+    if(!new RegExp(pattern).test(path))continue;
+    const rank=Buffer.byteLength(body.replace(/\*/g,''),'utf8');
     if(!best||rank>best.rank||rank===best.rank&&r.allow)
       best={rank,allowed:r.allow};
   }
