@@ -79,6 +79,9 @@ function cfg(): array {
         // Independent OFF switches. An owner must approve real immutable
         // question delivery and final security/payment acceptance as well.
         'jrei_exam_runtime_enabled' => getenv('JR_JREI_EXAM_RUNTIME_ENABLED') === 'true',
+        // Owner-controlled safety-only abandoned-session reconciliation.
+        // Never starts, grades, refunds or publishes an examination.
+        'jrei_exam_deadline_reconciliation_enabled' => getenv('JR_JREI_EXAM_DEADLINE_RECONCILIATION_ENABLED') === 'true',
         'jrei_exam_item_delivery_accepted' => getenv('JR_JREI_EXAM_ITEM_DELIVERY_ACCEPTED') === 'true',
         // Local immutable JSON question assets, PRIVATE and outside public_html.
         'jrei_exam_private_item_dir' => (string)(getenv('JR_JREI_EXAM_PRIVATE_ITEM_DIR') ?: ''),
