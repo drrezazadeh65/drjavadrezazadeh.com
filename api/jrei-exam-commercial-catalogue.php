@@ -2,6 +2,7 @@
 declare(strict_types=1);
 if(!defined('BERTINA_API_BOOTSTRAPPED')){http_response_code(404);exit;}
 require_once __DIR__.'/jrei-exam-product-readiness.php';
+require_once __DIR__.'/jrei-exam-source-release-impact.php';
 
 /**
  * Commercial examination catalogue projections from the existing mother DB.
@@ -137,6 +138,7 @@ function jrExamCommercialOwnerSnapshot(PDO $pdo,array $cfg): array {
       'itemReviewCoverage'=>null,'itemReviewCoverageAvailable'=>false,
       'productRegistry'=>null,'offeringRegistry'=>null,
       'productReleaseGates'=>null,
+      'sourceReleaseImpact'=>null,
       'preliminaryGradeEvidence'=>jrExamOwnerPreliminaryGradeEvidence($pdo),
       'entitlementGovernance'=>null,
       'operationalRisks'=>[
@@ -255,6 +257,7 @@ function jrExamCommercialOwnerSnapshot(PDO $pdo,array $cfg): array {
         $base['itemReviewCoverage']=null;
     }
     $base['productReleaseGates']=jrExamOwnerProductReadiness($pdo,$cfg);
+    $base['sourceReleaseImpact']=jrExamOwnerSourceReleaseImpact($pdo);
     $base['preliminaryGradeEvidence']=jrExamOwnerPreliminaryGradeEvidence($pdo);
     $base['entitlementGovernance']=jrExamOwnerEntitlementExposure($pdo,$cfg);
     return $base;
