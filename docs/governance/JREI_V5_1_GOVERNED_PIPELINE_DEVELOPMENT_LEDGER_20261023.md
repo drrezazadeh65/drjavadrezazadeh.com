@@ -74,3 +74,5 @@ The owner explicitly directed continued development of the complete 117-atomic p
 **Trace to the unchanged original 117 ledger:** GOV-05, GOV-06, DB-04, DB-05, AI-03, AID-06, AID-08, DASH-04, REL-01. These improvements address concrete source-level risks and **do not** transition any atomic requirement to a QA pass.
 
 **Deferred acceptance:** Consolidated PHP syntax/load, source-digest predecessor concurrency, duplicate-proposal status, Persian/Arabic numeral screening, local-adapter import and public-assistant fallback regression checks have NOT RUN. Windows Node A/B registration and earlier observed connectivity are preserved by source scope, but ongoing connection has not been newly verified. No host, mother DB, private configuration, model weight, payment route or public URL has been changed.
+
+- `1426f81eb13cbb33d7db782c28d717018c1bbf74`: Source version metadata now refuses a declared official publication time later than the same document's recorded acquisition time. This chronological consistency check does not verify the publisher's true date; human review remains required. No tests or deployment.
