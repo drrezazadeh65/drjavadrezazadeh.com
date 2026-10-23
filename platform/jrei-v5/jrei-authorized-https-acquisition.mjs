@@ -144,118 +144,13 @@ function robotsPermission(raw,path) {
   for(const r of all){
     if(r.delay!==undefined)continue;
     if(!r.value.startsWith('/'))throw Error('ROBOTS_RULE_NOT_SUPPORTED');
-    const end=r.value.endsWith('/**
- * Network invocation requires explicit owner-confirmed source permissions.
- * Caller must separately validate publisher, terms, copyright and data rights.
- * All returned metadata requires another administrative review before use.
- */
-export async function acquireApprovedPublicSource({
-  approvedSource,ownerConfirmedRights=false,preceding=null,
-  publicationDate=null,originSection=null
-}={}){
-  if(ownerConfirmedRights!==true)
-    throw Error('OWNER_RIGHTS_CONFIRMATION_REQUIRED');
-  const source=normalizeApprovedSource(approvedSource);
-  if(source.acquisitionMethod!=='PUBLIC_HTTPS'||
-     source.usageRights!=='PUBLIC_REUSE_APPROVED')
-    throw Error('SOURCE_AUTOMATED_ACQUISITION_NOT_ALLOWED');
-  const url=new URL(source.canonicalUrl);
-  const ip=await pinnedPublicAddress(url.hostname);
-  // Do not auto-follow robots redirects, even to the same host.
-  const robots=await getPinned('https://'+url.hostname+'/robots.txt',ip,131072);
-  if(robots.mime!=='text/plain')throw Error('ROBOTS_MIME_INVALID');
-  const policy=robotsPermission(robots.bytes,url.pathname+url.search);
-  if(!policy.allowed)throw Error('ROBOTS_DISALLOWED');
-  await pause(Math.max(12000,policy.delay*1000));
-  const [allowedMime,limit]=LIMITS[source.contentType];
-  const response=await getPinned(source.canonicalUrl,ip,limit);
-  if(response.mime!==allowedMime)throw Error('SOURCE_MIME_NOT_ALLOWED');
-  const proposal=stageSourceVersion({approvedSource:source,
-    bytes:response.bytes,declaredMime:response.mime,
-    observedAt:new Date().toISOString(),publicationDate,
-    originSection,preceding});
-  return Object.freeze({...proposal,
-    acquisition:'OWNER_INVOKED_PINNED_PUBLIC_HTTPS',
-    robotsPermissionChecked:true,contentSaved:false,
-    sourceHttpStatus:200});
-}
-);
-    const body=end?r.value.slice(0,-1):r.value;
-    // RFC 9309 supports '*' and a terminal '/**
- * Network invocation requires explicit owner-confirmed source permissions.
- * Caller must separately validate publisher, terms, copyright and data rights.
- * All returned metadata requires another administrative review before use.
- */
-export async function acquireApprovedPublicSource({
-  approvedSource,ownerConfirmedRights=false,preceding=null,
-  publicationDate=null,originSection=null
-}={}){
-  if(ownerConfirmedRights!==true)
-    throw Error('OWNER_RIGHTS_CONFIRMATION_REQUIRED');
-  const source=normalizeApprovedSource(approvedSource);
-  if(source.acquisitionMethod!=='PUBLIC_HTTPS'||
-     source.usageRights!=='PUBLIC_REUSE_APPROVED')
-    throw Error('SOURCE_AUTOMATED_ACQUISITION_NOT_ALLOWED');
-  const url=new URL(source.canonicalUrl);
-  const ip=await pinnedPublicAddress(url.hostname);
-  // Do not auto-follow robots redirects, even to the same host.
-  const robots=await getPinned('https://'+url.hostname+'/robots.txt',ip,131072);
-  if(robots.mime!=='text/plain')throw Error('ROBOTS_MIME_INVALID');
-  const policy=robotsPermission(robots.bytes,url.pathname+url.search);
-  if(!policy.allowed)throw Error('ROBOTS_DISALLOWED');
-  await pause(Math.max(12000,policy.delay*1000));
-  const [allowedMime,limit]=LIMITS[source.contentType];
-  const response=await getPinned(source.canonicalUrl,ip,limit);
-  if(response.mime!==allowedMime)throw Error('SOURCE_MIME_NOT_ALLOWED');
-  const proposal=stageSourceVersion({approvedSource:source,
-    bytes:response.bytes,declaredMime:response.mime,
-    observedAt:new Date().toISOString(),publicationDate,
-    originSection,preceding});
-  return Object.freeze({...proposal,
-    acquisition:'OWNER_INVOKED_PINNED_PUBLIC_HTTPS',
-    robotsPermissionChecked:true,contentSaved:false,
-    sourceHttpStatus:200});
-}
-. Other metacharacters must
-    // be escaped literally rather than silently weakening Disallow rules.
+    const endAnchored=r.value.endsWith('$');
+    const body=endAnchored?r.value.slice(0,-1):r.value;
+    // RFC 9309 supports '*' and a terminal '$'. Other metacharacters are
+    // escaped literally; an unrecognized robots rule fails closed.
     const expression=body.split('*').map(part=>
       part.replace(/[^A-Za-z0-9/_.~%-]/g,ch=>'\\'+ch)).join('.*');
-    const pattern='^'+expression+(end?'/**
- * Network invocation requires explicit owner-confirmed source permissions.
- * Caller must separately validate publisher, terms, copyright and data rights.
- * All returned metadata requires another administrative review before use.
- */
-export async function acquireApprovedPublicSource({
-  approvedSource,ownerConfirmedRights=false,preceding=null,
-  publicationDate=null,originSection=null
-}={}){
-  if(ownerConfirmedRights!==true)
-    throw Error('OWNER_RIGHTS_CONFIRMATION_REQUIRED');
-  const source=normalizeApprovedSource(approvedSource);
-  if(source.acquisitionMethod!=='PUBLIC_HTTPS'||
-     source.usageRights!=='PUBLIC_REUSE_APPROVED')
-    throw Error('SOURCE_AUTOMATED_ACQUISITION_NOT_ALLOWED');
-  const url=new URL(source.canonicalUrl);
-  const ip=await pinnedPublicAddress(url.hostname);
-  // Do not auto-follow robots redirects, even to the same host.
-  const robots=await getPinned('https://'+url.hostname+'/robots.txt',ip,131072);
-  if(robots.mime!=='text/plain')throw Error('ROBOTS_MIME_INVALID');
-  const policy=robotsPermission(robots.bytes,url.pathname+url.search);
-  if(!policy.allowed)throw Error('ROBOTS_DISALLOWED');
-  await pause(Math.max(12000,policy.delay*1000));
-  const [allowedMime,limit]=LIMITS[source.contentType];
-  const response=await getPinned(source.canonicalUrl,ip,limit);
-  if(response.mime!==allowedMime)throw Error('SOURCE_MIME_NOT_ALLOWED');
-  const proposal=stageSourceVersion({approvedSource:source,
-    bytes:response.bytes,declaredMime:response.mime,
-    observedAt:new Date().toISOString(),publicationDate,
-    originSection,preceding});
-  return Object.freeze({...proposal,
-    acquisition:'OWNER_INVOKED_PINNED_PUBLIC_HTTPS',
-    robotsPermissionChecked:true,contentSaved:false,
-    sourceHttpStatus:200});
-}
-:'');
+    const pattern='^'+expression+(endAnchored?'$':'');
     if(!new RegExp(pattern).test(path))continue;
     const rank=Buffer.byteLength(body.replace(/\*/g,''),'utf8');
     if(!best||rank>best.rank||rank===best.rank&&r.allow)
