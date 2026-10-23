@@ -64,9 +64,9 @@
  };
  const columns=[
    {key:'sourceCoverage',fa:'پوشش سال، مقطع و نوع آزمون',
-     en:'Source coverage by year, level and examination',fields:['educational_level','exam_category','examination_year','source_count','rights_reviewed_count']},
+     en:'Source coverage by year, level and examination',fields:['educational_level','exam_category','examination_year','subject_id','source_count','rights_reviewed_count']},
    {key:'coverageObligations',fa:'منابع مورد انتظار و پاسخ‌نامه‌های بررسی‌نشده',
-     en:'Expected exam papers and answer-key gaps',fields:['educational_level','examination_year','expected_kind','requirement_state','count']},
+     en:'Expected exam papers and answer-key gaps',fields:['educational_level','examination_year','exam_category','subject_id','expected_kind','requirement_state','count']},
    {key:'sourceReview',fa:'حقوق انتشار و تأیید منابع',
      en:'Source licensing and review status',fields:['review_state','rights_state','count']},
    {key:'intakeStates',fa:'صف گردآوری و پردازش مجاز',
@@ -209,6 +209,108 @@
          confirmation:'PAUSE_JREI_EXAM_RESEARCH'});
      });
      actions.append(pause);
+     // A missing-paper *research intent* is not an authenticated official
+     // source. Each owner entry persists as REQUIRES_SOURCE_REVIEW only.
+     const coverage=elt('details','jr-exam-subsection');
+     coverage.append(elt('summary','',T(
+       'ثبت نیاز بررسی آزمون و پاسخ‌نامه (فقط فراداده)',
+       'Register an examination/answer-key coverage target (metadata only)')));
+     coverage.append(elt('p','',T(
+       'هیچ سؤال، پاسخ‌نامه یا تاریخ رسمی از این فرم تأیید یا منتشر نمی‌شود. فقط نیاز بررسی ثبت خواهد شد.',
+       'This action neither verifies nor publishes any official question, key or date; it only registers a review target.')));
+     const form=document.createElement('form');form.className='jr-exam-coverage-form';
+     const field=(name,title,kind='text')=>{
+       const lbl=elt('label','',title);
+       const input=document.createElement('input');
+       input.name=name;input.type=kind;input.required=true;
+       input.maxLength=100;
+       lbl.append(input);form.append(lbl);return input;
+     };
+     const choose=(name,title,options)=>{
+       const lbl=elt('label','',title);
+       const input=document.createElement('select');
+       input.name=name;
+       for(const [value,label] of options){
+         const opt=document.createElement('option');
+         opt.value=value;opt.textContent=label;input.append(opt);
+       }
+       lbl.append(input);form.append(lbl);return input;
+     };
+     const country=field('country',T('کد کشور (مانند IR)','Country code, e.g. IR'));
+     country.value='IR';country.minLength=2;country.maxLength=2;
+     const curriculum=field('curriculum',T('شناسه برنامه درسی','Curriculum identifier'));
+     const version=field('version',T('نسخه برنامه درسی','Curriculum version'));
+     const level=choose('level',T('مقطع','Education level'),[
+       ['PRIMARY',T('دبستان ۱ تا ۶','Primary 1–6')],
+       ['LOWER_SECONDARY',T('متوسطه اول ۷ تا ۹','Lower secondary 7–9')],
+       ['UPPER_SECONDARY',T('متوسطه دوم ۱۰ تا ۱۲','Upper secondary 10–12')],
+       ['UNDERGRADUATE_ENTRANCE',T('کنکور کارشناسی','Undergraduate entrance')],
+       ['MASTERS_ENTRANCE',T('آزمون کارشناسی ارشد','Master’s entrance')],
+       ['DOCTORAL_ENTRANCE',T('آزمون دکتری','Doctoral entrance')],
+       ['UNIVERSITY_ADVANCED',T('آزمون دانشگاهی','University advanced')]
+     ]);
+     const grade=choose('grade',T('پایه تحصیلی','School grade'),[]);
+     const categories=[
+       ['SCHOOL_INTERNAL',T('امتحان داخلی','School examination')],
+       ['NATIONAL_FINAL',T('امتحان نهایی','National final')],
+       ['NATIONAL_ENTRANCE',T('کنکور کارشناسی','National entrance')],
+       ['MASTERS_ENTRANCE',T('آزمون ارشد','Master’s entrance')],
+       ['DOCTORAL_ENTRANCE',T('آزمون دکتری','Doctoral entrance')],
+       ['UNIVERSITY_COURSE',T('ارزیابی دانشگاهی','University course')],
+       ['ADVANCED_ACADEMIC',T('ارزیابی پیشرفته','Advanced academic')]
+     ];
+     const category=choose('category',T('نوع آزمون','Examination category'),categories);
+     const subject=field('subject',T('شناسه درس یا رشته','Subject/discipline identifier'));
+     const year=field('year',T('سال برگزاری','Examination year'),'number');
+     year.min='1300';year.max='2400';year.step='1';year.value='';
+     const kind=choose('kind',T('نوع منبع مورد انتظار','Expected source kind'),[
+       ['EXAM_PAPER',T('دفترچه سؤال','Examination paper')],
+       ['ANSWER_KEY',T('کلید پاسخ','Answer key')],
+       ['MARKING_SCHEME',T('راهنمای تصحیح','Marking scheme')],
+       ['CURRICULUM_BLUEPRINT',T('جدول مشخصات','Curriculum blueprint')],
+       ['EXAMINATION_GUIDANCE',T('راهنمای آزمون','Examination guidance')]
+     ]);
+     const updateGrade=()=>{
+       grade.replaceChildren();
+       const values=level.value==='PRIMARY'?[1,2,3,4,5,6]
+         :level.value==='LOWER_SECONDARY'?[7,8,9]
+         :level.value==='UPPER_SECONDARY'?[10,11,12]:[];
+       for(const value of values){
+         const option=document.createElement('option');
+         option.value=String(value);option.textContent=fmt.format(value);
+         grade.append(option);
+       }
+       grade.disabled=!values.length;
+       category.value=level.value==='MASTERS_ENTRANCE'
+         ?'MASTERS_ENTRANCE':level.value==='DOCTORAL_ENTRANCE'
+         ?'DOCTORAL_ENTRANCE':level.value==='UNDERGRADUATE_ENTRANCE'
+         ?'NATIONAL_ENTRANCE':level.value==='UNIVERSITY_ADVANCED'
+         ?'UNIVERSITY_COURSE':'SCHOOL_INTERNAL';
+     };
+     level.addEventListener('change',updateGrade);updateGrade();
+     const register=elt('button','',T('ثبت نیاز بررسی (بدون تأیید رسمی)',
+       'Register review target (NOT official approval)'));
+     register.type='submit';form.append(register);
+     form.addEventListener('submit',event=>{
+       event.preventDefault();
+       if(!active()||busy||!form.reportValidity())return;
+       const countryCode=country.value.trim().toUpperCase();
+       const examYear=Number(year.value);
+       const input={
+         action:'register_coverage_target',
+         level:level.value,grade:grade.disabled?null:Number(grade.value),
+         countryCode,curriculumId:curriculum.value.trim(),
+         curriculumVersion:version.value.trim(),
+         examCategory:category.value,examYear,
+         subjectId:subject.value.trim(),expectedKind:kind.value,
+         confirmation:'REGISTER_UNVERIFIED_EXAM_COVERAGE'
+       };
+       if(!window.confirm(T(
+          'این مورد فقط به‌عنوان «نیازمند بررسی منبع» در دیتابیس مادر ثبت شود؟',
+          'Register this metadata-only item as requiring source review?')))return;
+       mutate(input);
+     });
+     coverage.append(form);actions.append(coverage);
      const sources=Array.isArray(snapshot.sourceQueue)?snapshot.sourceQueue:[];
      if(sources.length){
        const row=elt('div','jr-exam-source-actions');
