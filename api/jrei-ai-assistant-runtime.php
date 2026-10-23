@@ -81,7 +81,8 @@ function jrAiPublicEvidence(string $question,string $lang): array {
 }
 
 function jrAiPublicCanAnswer(PDO $pdo,array $cfg): bool {
-    return jrAiCloudConfigured($cfg)&&
+    return ($cfg['jrei_public_ai_release_accepted']??false)===true&&
+        jrAiCloudConfigured($cfg)&&
         jrAiBudgetSourceReady($pdo)&&
         is_file(jrAiPublicIndexPath())&&
         is_readable(jrAiPublicIndexPath());
