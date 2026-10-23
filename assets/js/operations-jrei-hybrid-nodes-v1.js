@@ -48,6 +48,155 @@
    CANCELLED:T('لغو شده','Cancelled'),EXPIRED:T('منقضی','Expired')
  })[s]||String(s||'UNKNOWN').slice(0,80);
  const confirmAction=(fa,e)=>window.confirm(T(fa,e));
+
+ function renderCorpus(d){
+   if(!d.catalogueReady){
+     tasks.append(el('p',T('دفتر ثبت مجموعه‌داده‌ها هنوز در دیتابیس مادر ایجاد نشده است؛ مهاجرت فقط در مرحلهٔ انتشار نهایی و با اجازه مدیر انجام می‌شود.',
+       'The governed corpus tables are not installed in the mother database. Their additive migration awaits owner-authorized release.')));
+     return;
+   }
+   const records=Array.isArray(d.datasets)?d.datasets:[];
+   const approved=records.filter(x=>x.status==='APPROVED');
+   const panel=el('details',undefined,'jr-hybrid-jobs');
+   panel.append(el('summary',T('دفتر داده‌های عمومی، نسخه‌ها و مجوزها','Reviewed-public corpus versions and rights')+
+     ' · '+number(records.length)));
+   panel.append(el('p',T(
+     '«تأیید مدیر» فقط یک مجوز اجرایی ثبت‌شده است؛ تأیید مستقل صحت علمی، کیفیت سؤال‌ها یا حق نشر را اثبات نمی‌کند.',
+     'Owner approval is a recorded operational permission, not independent scientific or licensing verification.')));
+   if(!records.length)panel.append(el('p',T('هنوز هیچ مجموعه‌داده‌ای پیشنهاد نشده است.',
+     'No public holdout dataset has been proposed.')));
+   for(const corpus of records){
+     const item=el('article',undefined,'jr-hybrid-node');
+     item.append(el('h4',String(corpus.sourceLabel||corpus.datasetId).slice(0,160)));
+     cell(item,T('شناسه و نسخه','Dataset and version'),
+       String(corpus.datasetId)+' / '+String(corpus.evaluationVersion));
+     cell(item,T('وضعیت','Status'),statusLabel(corpus.status));
+     cell(item,T('مجوز ثبت‌شده','Recorded licence'),corpus.licenceCode||'—');
+     cell(item,T('تعداد موارد مرورشدهٔ اعلامی','Declared reviewed cases'),
+       number(corpus.reviewedCaseCount));
+     cell(item,'Dataset SHA-256',corpus.datasetSha256||'—');
+     cell(item,'Evidence SHA-256',corpus.evidenceSha256||'—');
+     cell(item,T('هش سیاست پایه','Baseline policy SHA-256'),
+       corpus.activePolicySha256||'—');
+     const link=el('a',T('منبع معرفی‌شده','Declared source'));
+     link.href=String(corpus.sourceUrl||'');
+     link.target='_blank';link.rel='noopener noreferrer';
+     item.append(link);
+     if(corpus.status==='PENDING'){
+       item.append(btn(T('تأیید مستقلِ بررسی و مجوز استفاده','Approve reviewed public version'),()=>{
+         if(!confirmAction(
+           'آیا مجوز استفاده، اصالت داده، برچسب‌های پاسخ مستقل و حداقل ۲۰۰ مورد بازبینی‌شده را خارج از سامانه بررسی کرده‌اید؟ هیچ انتشار خودکاری انجام نمی‌شود.',
+           'Have you independently reviewed reuse rights, provenance and at least 200 human-labelled holdouts? No automatic publication.'))return;
+         mutate({action:'approve_public_dataset',datasetId:corpus.datasetId,
+           evaluationVersion:corpus.evaluationVersion,revision:corpus.revision,
+           confirmation:'APPROVE_REVIEWED_PUBLIC_CORPUS'});
+       }));
+     }
+     if(corpus.status==='PENDING'||corpus.status==='APPROVED'){
+       item.append(btn(T('تعلیق این نسخه و قرنطینهٔ کارهای جاری','Suspend version and quarantine jobs'),()=>{
+         if(!confirmAction(
+           'تمام کارهای در صف این نسخه لغو و نتایج اجراهای نامعلوم برای بررسی نگهداری شوند؟',
+           'Cancel queued jobs and quarantine in-flight outcomes for this version?'))return;
+         mutate({action:'suspend_public_dataset',datasetId:corpus.datasetId,
+           evaluationVersion:corpus.evaluationVersion,revision:corpus.revision,
+           confirmation:'SUSPEND_PUBLIC_CORPUS_VERSION'});
+       }));
+     }
+     panel.append(item);
+   }
+   tasks.append(panel);
+   const proposal=el('form',undefined,'jr-hybrid-form');
+   proposal.append(el('h4',T('پیشنهاد نسخهٔ دادهٔ عمومی برای بررسی','Propose an owner-reviewed public corpus')));
+   const field=(form,title,placeholder,type='text')=>{
+     const label=el('label',title),input=document.createElement('input');
+     input.type=type;input.required=true;input.placeholder=placeholder;
+     if(type==='text'||type==='url')input.maxLength=500;
+     label.append(input);form.append(label);return input;
+   };
+   const id=field(proposal,T('شناسه یکتا','Dataset ID'),'reviewed-public-holdout-v1');
+   id.maxLength=64;
+   const version=field(proposal,T('نسخه ارزیابی','Evaluation version'),'reviewed-bm25-v1');
+   version.maxLength=64;
+   const source=field(proposal,T('صادرکننده و نام منبع','Source issuer and title'),
+     T('منبع رسمی دارای اجازه','Authorised official source'));source.maxLength=160;
+   const sourceUrl=field(proposal,T('نشانی HTTPS منبع','Public HTTPS source'),'https://...','url');
+   const licence=field(proposal,T('مجوز استفاده','Reuse licence / authority'),'CC-BY-4.0');
+   licence.maxLength=80;
+   const datasetHash=field(proposal,'Held-out cases SHA-256','64 hexadecimal characters');
+   const evidenceHash=field(proposal,'Evidence SHA-256','64 hexadecimal characters');
+   for(const e of [datasetHash,evidenceHash]){e.minLength=64;e.maxLength=64;
+     e.pattern='[a-f0-9]{64}';e.dir='ltr';e.spellcheck=false;}
+   const cases=field(proposal,T('موارد بازبینی‌شده','Independently labelled case count'),
+     '200','number');
+   cases.min='200';cases.max='10000';cases.step='1';
+   proposal.append(el('p',T(
+     'سیاست بازیابی پایهٔ این نسخه؛ هش SHA-256 به‌صورت قطعی در سرور محاسبه می‌شود.',
+     'Baseline retrieval policy. The server derives its canonical SHA-256, never trusting a submitted policy digest.')));
+   const k1=field(proposal,'BM25 k1','1.2','number');k1.value='1.2';
+   k1.min='0.8';k1.max='2.2';k1.step='0.001';
+   const b=field(proposal,'BM25 b','0.75','number');b.value='0.75';
+   b.min='0.2';b.max='0.9';b.step='0.001';
+   const maxEvidence=field(proposal,'Maximum evidence','20','number');
+   maxEvidence.value='20';maxEvidence.min='8';maxEvidence.max='40';maxEvidence.step='1';
+   const submit=document.createElement('button');submit.type='submit';
+   submit.textContent=T('ثبت پیشنهاد (در انتظار بررسی)','Propose (pending approval)');
+   proposal.append(submit);
+   proposal.addEventListener('submit',event=>{
+     event.preventDefault();if(!visible()||busy||!proposal.reportValidity())return;
+     if(!confirmAction('آیا فقط اطلاعات کتاب‌شناختی، مجوز و هش دادهٔ عمومی ثبت شوند؟',
+       'Record only public provenance, rights and digest metadata as a pending proposal?'))return;
+     mutate({action:'propose_public_dataset',datasetId:id.value.trim(),
+       evaluationVersion:version.value.trim(),sourceLabel:source.value.trim(),
+       sourceUrl:sourceUrl.value.trim(),licenceCode:licence.value.trim(),
+       datasetSha256:datasetHash.value.trim(),
+       evidenceSha256:evidenceHash.value.trim(),
+       reviewedCaseCount:Number(cases.value),
+       currentPolicy:{k1:Number(k1.value),b:Number(b.value),
+         maxEvidence:Number(maxEvidence.value)},
+       confirmation:'PROPOSE_PUBLIC_HOLDOUT_FOR_REVIEW'});
+   });
+   actions.append(proposal);
+   if(!approved.length){
+     tasks.append(el('p',T('هیچ نسخهٔ تأییدشده‌ای برای تشکیل صف وجود ندارد.',
+       'No approved corpus version is available for queueing.')));
+     return;
+   }
+   const queue=el('form',undefined,'jr-hybrid-form');
+   queue.append(el('h4',T('تشکیل صف ارزیابی با مجوز مدیر','Queue approved retrieval evaluation')));
+   const select=document.createElement('select');
+   for(let i=0;i<approved.length;i++){
+     const r=approved[i],option=el('option',r.datasetId+' / '+r.evaluationVersion);
+     option.value=String(i);select.append(option);
+   }
+   const label=el('label',T('مجموعه‌دادهٔ تأییدشده','Approved corpus version'));
+   label.append(select);queue.append(label);
+   queue.append(el('p',T('سیاست پایه فقط از دفتر نسخه‌ها دریافت می‌شود؛ مقادیر زیر سیاست آزمایشی رقیب هستند.',
+     'The baseline is taken from the approved version; the fields below define the challenger policy.')));
+   const candidateK=field(queue,'Challenger BM25 k1','1.3','number');
+   candidateK.min='0.8';candidateK.max='2.2';candidateK.step='0.001';candidateK.value='1.3';
+   const candidateB=field(queue,'Challenger BM25 b','0.75','number');
+   candidateB.min='0.2';candidateB.max='0.9';candidateB.step='0.001';candidateB.value='0.75';
+   const candidateMax=field(queue,'Challenger maximum evidence','20','number');
+   candidateMax.min='8';candidateMax.max='40';candidateMax.step='1';candidateMax.value='20';
+   const queueSubmit=document.createElement('button');queueSubmit.type='submit';
+   queueSubmit.textContent=T('افزودن کار به صف کنترل‌شده','Queue governed evaluation');
+   queue.append(queueSubmit);
+   queue.addEventListener('submit',event=>{
+     event.preventDefault();if(!visible()||busy||!queue.reportValidity())return;
+     const row=approved[Number(select.value)];
+     if(!row||!row.currentPolicy)return;
+     const candidatePolicy={k1:Number(candidateK.value),b:Number(candidateB.value),
+       maxEvidence:Number(candidateMax.value)};
+     if(!confirmAction('ارزیابی به نود مجاز واگذار می‌شود؛ نتیجه فقط برای بررسی مدیر است. ادامه؟',
+       'An eligible worker may receive this job. Results remain owner-review-only. Continue?'))return;
+     mutate({action:'queue_reviewed_retrieval',datasetId:row.datasetId,
+       evaluationVersion:row.evaluationVersion,
+       currentPolicy:row.currentPolicy,candidatePolicy,
+       confirmation:'QUEUE_PUBLIC_REVIEWED_DATASET'});
+   });
+   tasks.append(queue);
+ }
+
  function render(d){
    blank();
    if(!d.motherDbSchemaReady){
@@ -171,6 +320,7 @@
      detail.append(r);
    }
    tasks.append(detail);
+   renderCorpus(d);
    const form=document.createElement('form');form.className='jr-hybrid-form';
    form.append(el('h4',T('ثبت کلید عمومی مستقل','Register separate public key')));
    const field=(title,widget)=>{const wrap=el('label',title);wrap.append(widget);
