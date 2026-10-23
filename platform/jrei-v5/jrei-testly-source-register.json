@@ -1,0 +1,224 @@
+{
+  "schema": "jr.jrei.testly-source-register.v1",
+  "status": "AUTHOR_PROPOSALS_REVIEWED_FOR_CONCEPTUAL_TRACE_ONLY",
+  "privateOriginals": "Gmail attachments only; not copied into public repository",
+  "sourceDocuments": [
+    {
+      "sourceId": "testly-author-book-proposal",
+      "filename": "TESTLY.docx",
+      "sha256": "7be9d7e369cc314b6c054b5f4cae37c8391ec6c10256ff867ee2fc582aad74a3",
+      "sourceKind": "ORIGINAL_AUTHOR_BOOK_PROPOSAL",
+      "documentVersion": "undated_author_proposal_attachment",
+      "reviewScope": "conceptual headings only",
+      "publicationPermission": "NOT_GRANTED_FOR_FULL_TEXT",
+      "sections": [
+        {
+          "code": "CENTRAL_IDEA",
+          "paragraph": 4
+        },
+        {
+          "code": "TESTLY_DOMAINS",
+          "paragraphs": [
+            92,
+            124
+          ]
+        },
+        {
+          "code": "ASSESSMENT_PROFILE",
+          "paragraph": 287
+        },
+        {
+          "code": "RESEARCH_PROGRAMME",
+          "paragraph": 310
+        },
+        {
+          "code": "CAUTION_NOT_VALIDATED",
+          "paragraph": 346
+        }
+      ]
+    },
+    {
+      "sourceId": "humanability-author-research-proposal",
+      "filename": "Humanability of Language Testing.docx",
+      "sha256": "6e01e8f2f3e05a387dcb3f3fd4ace8fbacc5560834638de182d1ea5645916ac5",
+      "sourceKind": "ORIGINAL_AUTHOR_CONCEPTUAL_PROPOSAL",
+      "documentVersion": "undated_author_proposal_attachment",
+      "reviewScope": "conceptual headings only",
+      "publicationPermission": "NOT_GRANTED_FOR_FULL_TEXT",
+      "sections": [
+        {
+          "code": "DEFINITION_PRELIMINARY",
+          "paragraph": 150
+        },
+        {
+          "code": "TENTATIVE_DIMENSIONS",
+          "paragraph": 168
+        },
+        {
+          "code": "CONCEPTUAL_MODEL",
+          "paragraph": 237
+        },
+        {
+          "code": "RESEARCH_PROGRAMME",
+          "paragraph": 267
+        },
+        {
+          "code": "DISCRIMINANT_VALIDITY_OPEN",
+          "paragraph": 335
+        },
+        {
+          "code": "FUTURE_FRAMEWORK",
+          "paragraph": 385
+        }
+      ]
+    }
+  ],
+  "qualityFramework": {
+    "frameworkCode": "TESTLY",
+    "frameworkStatus": "PROVISIONAL_CONCEPTUAL_PROPOSAL",
+    "primaryDomains": [
+      {
+        "id": "RELIABILITY",
+        "domain": "CORE_TECHNICAL",
+        "status": "EXISTING_ASSESSMENT_CONSTRUCT",
+        "source": {
+          "id": "testly-author-book-proposal",
+          "paragraph": 96
+        }
+      },
+      {
+        "id": "VALIDITY",
+        "domain": "CORE_TECHNICAL",
+        "status": "EXISTING_ASSESSMENT_CONSTRUCT",
+        "source": {
+          "id": "testly-author-book-proposal",
+          "paragraph": 98
+        }
+      },
+      {
+        "id": "FAIRABILITY_FAIRNESS",
+        "domain": "HUMAN_SOCIAL",
+        "status": "WORKING_TERM_FAIRABILITY_NOT_ESTABLISHED",
+        "source": {
+          "id": "testly-author-book-proposal",
+          "paragraph": 102
+        }
+      },
+      {
+        "id": "HUMANABILITY",
+        "domain": "HUMAN_SOCIAL",
+        "status": "EMERGING_UNVALIDATED_CONSTRUCT",
+        "source": {
+          "id": "testly-author-book-proposal",
+          "paragraph": 105
+        }
+      },
+      {
+        "id": "AUTHENTICITY",
+        "domain": "FUNCTIONAL_CONTEXTUAL",
+        "status": "EXISTING_ASSESSMENT_CONSTRUCT",
+        "source": {
+          "id": "testly-author-book-proposal",
+          "paragraph": 109
+        }
+      },
+      {
+        "id": "PRACTICALITY",
+        "domain": "FUNCTIONAL_CONTEXTUAL",
+        "status": "EXISTING_ASSESSMENT_CONSTRUCT",
+        "source": {
+          "id": "testly-author-book-proposal",
+          "paragraph": 111
+        }
+      },
+      {
+        "id": "IMPACT_CONSEQUENTIALITY",
+        "domain": "FUNCTIONAL_CONTEXTUAL",
+        "status": "EXISTING_ASSESSMENT_CONSTRUCT",
+        "source": {
+          "id": "testly-author-book-proposal",
+          "paragraph": 113
+        }
+      }
+    ],
+    "crossCuttingConditions": [
+      {
+        "id": "ACCESSIBILITY",
+        "sourceParagraph": 118
+      },
+      {
+        "id": "TRANSPARENCY",
+        "sourceParagraph": 119
+      },
+      {
+        "id": "ACCOUNTABILITY",
+        "sourceParagraph": 120
+      },
+      {
+        "id": "SECURITY",
+        "sourceParagraph": 121
+      }
+    ],
+    "humanabilityTentativeDimensions": [
+      {
+        "id": "HUMAN_DIGNITY",
+        "sourceParagraph": 170,
+        "sourceId": "humanability-author-research-proposal",
+        "status": "THEORETICAL_PROPOSITION"
+      },
+      {
+        "id": "AGENCY",
+        "sourceParagraph": 179,
+        "sourceId": "humanability-author-research-proposal",
+        "status": "THEORETICAL_PROPOSITION"
+      },
+      {
+        "id": "INDIVIDUALITY_CONTEXT",
+        "sourceParagraph": 188,
+        "sourceId": "humanability-author-research-proposal",
+        "status": "THEORETICAL_PROPOSITION"
+      },
+      {
+        "id": "WELLBEING",
+        "sourceParagraph": 196,
+        "sourceId": "humanability-author-research-proposal",
+        "status": "THEORETICAL_PROPOSITION"
+      },
+      {
+        "id": "MEANINGFULNESS",
+        "sourceParagraph": 205,
+        "sourceId": "humanability-author-research-proposal",
+        "status": "THEORETICAL_PROPOSITION"
+      },
+      {
+        "id": "CULTURAL_LINGUISTIC_RESPONSIVENESS",
+        "sourceParagraph": 213,
+        "sourceId": "humanability-author-research-proposal",
+        "status": "THEORETICAL_PROPOSITION"
+      },
+      {
+        "id": "DEVELOPMENTAL_ORIENTATION",
+        "sourceParagraph": 221,
+        "sourceId": "humanability-author-research-proposal",
+        "status": "THEORETICAL_PROPOSITION"
+      }
+    ],
+    "methodologyStatus": "PROPOSED_NOT_EMPIRICALLY_VALIDATED",
+    "thresholds": null,
+    "norms": null,
+    "weights": null,
+    "compositeScore": null,
+    "scientificClaimsAllowed": false,
+    "notes": "No overall TESTLY pass/fail score; no mandatory Humanability score. Expert review and discriminant validation are not complete."
+  },
+  "researchMilestones": [
+    "CONCEPTUAL_REVIEW",
+    "CONSTRUCT_MAPPING",
+    "STAKEHOLDER_QUALITATIVE_STUDY",
+    "EXPERT_JUDGEMENT",
+    "INSTRUMENT_DEVELOPMENT",
+    "PSYCHOMETRIC_INVESTIGATION",
+    "CROSS_CONTEXT_EVALUATION"
+  ],
+  "disclaimer": "Author-proposed framework. Source markers reference paragraph indices in confidential original Word attachments. Do not use as published/validated instruments or reproduce private manuscripts publicly."
+}
