@@ -67,6 +67,7 @@ function jrExamDeliveredItemSet(PDO $pdo,string $version,string $locale): array 
       loc.prepared_by_account_id AS localized_preparer_id,
       loc.independently_reviewed_by_account_id AS localized_reviewer_id,
       loc.reviewed_at AS localized_reviewed_at,
+      loc.revision AS localized_revision,
       lo.storage_provider AS localized_storage_provider,
       lo.object_reference AS localized_object_reference,
       lo.content_sha256 AS localized_content_sha256,
@@ -91,7 +92,7 @@ function jrExamDeliveredItemSet(PDO $pdo,string $version,string $locale): array 
     $items=$q->fetchAll(PDO::FETCH_ASSOC);
     if(!$items||count($items)>120)
         throw new DomainException('exam_item_count_out_of_bounds');
-    $answers=[];$index=[];
+    $answers=[];$index=[];$localizedReleases=[];
     foreach($items as $r){
         $item=(string)$r['item_id'];
         if($hasTranslations&&$r['localized_object_id']!==null){
@@ -112,6 +113,12 @@ function jrExamDeliveredItemSet(PDO $pdo,string $version,string $locale): array 
                !hash_equals((string)$r['localized_content_sha256'],
                     (string)$r['localized_approved_sha256']))
                 throw new DomainException('exam_localized_prompt_review_not_accepted');
+            $localizedReleases[$item]=[
+              'objectRefId'=>$r['localized_object_id'],
+              'sourceDigest'=>$r['localized_original_sha256'],
+              'localizedDigest'=>$r['localized_approved_sha256'],
+              'revision'=>(int)$r['localized_revision']
+            ];
             foreach([
               'storage_provider','object_reference','content_sha256',
               'mime_type','byte_size','data_class','malware_scan_status',
@@ -185,6 +192,51 @@ function jrExamDeliveredItemSet(PDO $pdo,string $version,string $locale): array 
            array_diff($expected[$id],$provided))
             throw new DomainException('published_option_set_conflict');
         $answers[]=$item;
+    }
+    if($localizedReleases){
+        // A concurrent owner withdrawal or original/translated source
+        // replacement MUST NOT be ignored after private file I/O.
+        $ids=array_keys($localizedReleases);
+        $placeholders=implode(',',array_fill(0,count($ids),'?'));
+        $q=$pdo->prepare("SELECT loc.item_id,loc.object_ref_id,
+          loc.original_item_sha256,loc.localized_manifest_sha256,
+          loc.review_state,loc.revision,
+          loc.prepared_by_account_id,loc.independently_reviewed_by_account_id,
+          loc.reviewed_at,
+          original_ref.content_sha256 AS current_original_sha256,
+          translated_ref.content_sha256 AS current_localized_sha256
+          FROM jrei_exam_item_prompt_localizations loc
+          JOIN eco_assessment_items i ON i.id=loc.item_id
+          JOIN eco_object_refs original_ref ON original_ref.id=i.prompt_object_id
+          JOIN eco_object_refs translated_ref ON translated_ref.id=loc.object_ref_id
+          WHERE loc.locale=? AND loc.item_id IN ($placeholders)");
+        $q->execute(array_merge([$locale],$ids));
+        $seenLocalizations=[];
+        foreach($q as $row){
+            $id=(string)$row['item_id'];
+            $prior=$localizedReleases[$id]??null;
+            if(!$prior||isset($seenLocalizations[$id])||
+               $row['review_state']!=='APPROVED'||
+               $row['reviewed_at']===null||
+               $row['prepared_by_account_id']===null||
+               $row['independently_reviewed_by_account_id']===null||
+               $row['prepared_by_account_id']===
+                  $row['independently_reviewed_by_account_id']||
+               (int)$row['revision']!==$prior['revision']||
+               $row['object_ref_id']!==$prior['objectRefId']||
+               !hash_equals((string)$prior['sourceDigest'],
+                  (string)$row['original_item_sha256'])||
+               !hash_equals((string)$row['original_item_sha256'],
+                  (string)$row['current_original_sha256'])||
+               !hash_equals((string)$prior['localizedDigest'],
+                  (string)$row['localized_manifest_sha256'])||
+               !hash_equals((string)$row['localized_manifest_sha256'],
+                  (string)$row['current_localized_sha256']))
+                throw new DomainException('exam_localized_item_review_changed_during_delivery');
+            $seenLocalizations[$id]=true;
+        }
+        if(count($seenLocalizations)!==count($localizedReleases))
+            throw new DomainException('exam_localized_item_revision_unavailable');
     }
     return $answers;
 }
