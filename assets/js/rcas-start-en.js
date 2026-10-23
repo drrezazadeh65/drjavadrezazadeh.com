@@ -170,7 +170,7 @@ form.querySelector('[data-show-route]').addEventListener('click',()=>{
  add(result,'p','Choose a small, safe activity in this area. Record what you tried, one observable result and one question to revisit at the end of the week. Ask a trusted adult or educator for support where appropriate.');
  add(result,'p','The English wording is an unvalidated translation pilot. No norm, diagnostic score, automatic purchase entitlement or professional report is generated.');
  const link=add(result,'a','Return to the Golden Talent pathway','button primary');link.href='/en/golden-talent/';
- const bahar=add(result,'a','Continue free: seven-day activity log in BAHAR (re-enter notes manually)','button');bahar.href='/en/bahar/';
+ const bahar=add(result,'a','Continue free: seven-day activity log in BAHAR (re-enter notes manually)','button');bahar.href='/en/golden-talent/dashboard/bahar/#baharWorkingPlan';
  const age=Number(form.elements.namedItem('age').value);
  const stage=form.elements.namedItem('edu').value;
  const minor=(Number.isFinite(age)&&age>=10&&age<18)||
