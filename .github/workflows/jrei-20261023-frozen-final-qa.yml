@@ -1,0 +1,149 @@
+name: JREI 23 October Frozen SHA Comprehensive Final QA (NO DEPLOY)
+
+# An immutable owner-requested source snapshot, NOT production deployment.
+# No private secrets, API credentials, host Cron, real money, model downloads,
+# research participants or migrations. The QA branch freezes 1084 commits
+# authored since 2026-10-22 00:00 UTC at source SHA cf74652e27bc...
+on:
+  push:
+    branches:
+      - qa/2026-10-23-final-acceptance-snapshot
+    paths:
+      - .github/workflows/jrei-20261023-frozen-final-qa.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: frozen-jrei-20261023-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  source-science-and-language:
+    name: JREI + TESTLY + both Windows workers + syntax
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Confirm exact pinned candidate parent (no live checkout)
+        run: |
+          test "$(git rev-parse HEAD^)" = cf74652e27bc2facc71d2bf90842b555b1adb2a0
+          echo "Pinned source candidate: cf74652e27bc2facc71d2bf90842b555b1adb2a0" >> "$GITHUB_STEP_SUMMARY"
+      - name: Syntax of ALL APIs and JS source under existing environment
+        run: |
+          set -euo pipefail
+          php -v
+          node --version
+          while IFS= read -r -d '' file; do php -l "$file" >/dev/null; done < <(find api -type f -name '*.php' -print0)
+          while IFS= read -r -d '' file; do node --check "$file" >/dev/null; done < <(find assets/js platform scripts -type f \\( -name '*.js' -o -name '*.mjs' \\) -print0)
+      - name: Fully execute original JREI and TESTLY source cases
+        run: |
+          node --test \
+            tests/jrei-v5-learning-loop.test.mjs \
+            tests/jrei-v5-reviewed-retrieval-evaluator.test.mjs \
+            tests/jrei-v5-two-windows-node-gates.test.mjs \
+            tests/jrei-examination-testly-research.test.mjs
+      - name: Existing nonproduction educational runtime regression
+        run: |
+          node --test \
+            tests/educational-intelligence-v3.test.mjs \
+            tests/educational-intelligence-evidence-answer-v3.test.mjs \
+            tests/educational-intelligence-public-search-guard-v3.test.mjs \
+            platform/assistant-runtime.test.mjs \
+            platform/bahar-engine.test.mjs \
+            platform/rcas-evidence-bridge.test.mjs
+      - name: Signed key and local secrets are never seeded by this QA
+        run: |
+          test ! -f platform/jrei-v5/windows-worker/*.dpapi
+          test ! -f .env
+
+  seo-bilingual-regression:
+    name: Public search, bilingual, navigation, and privacy (offline)
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Core SEO and frozen URL integrity
+        run: |
+          node scripts/seo-regression.mjs
+          node scripts/jr-immutable-url-guard.mjs
+          node scripts/link-integrity-audit.mjs
+          node scripts/url-stability-audit.mjs
+      - name: Private data, public copy and accessibility
+        run: |
+          node scripts/public-secret-audit.mjs
+          node scripts/pwa-private-cache-audit.mjs
+          node scripts/accessibility-source-audit.mjs
+          COPY_HYGIENE_GROUP=implementation node scripts/frontend-copy-hygiene-audit.mjs
+          COPY_HYGIENE_GROUP=persian node scripts/frontend-copy-hygiene-audit.mjs
+      - name: Static public release assembly (NO upload)
+        run: |
+          node scripts/build-public-data.mjs --check
+          node scripts/build-public-site.mjs
+          test -f .public-site/fa/index.html
+          test -f .public-site/en/index.html
+          test ! -e .public-site/tests
+          test ! -e .public-site/platform
+
+  isolated-mother-db-regression:
+    name: Isolated MySQL administrator, consent and release security
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: fixture-password
+          MYSQL_DATABASE: operations_fixture
+        ports: ['3306:3306']
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -pfixture-password"
+          --health-interval=10s --health-timeout=5s --health-retries=10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Original owner session, evidence, TOTP and nonpayment controls
+        env:
+          OPERATIONS_TEST_DSN: mysql:host=127.0.0.1;port=3306;dbname=operations_fixture;charset=utf8mb4
+          OPERATIONS_TEST_USER: root
+          OPERATIONS_TEST_PASSWORD: fixture-password
+        run: |
+          php tests/operations-mysql.php
+          php tests/stage09-mysql.php
+          php tests/operations-supermaster.php
+      - name: Audit no live DB or deployment occurred
+        run: echo 'Only isolated operations_fixture used. No Bertina database or private key accessed.' >> "$GITHUB_STEP_SUMMARY"
+
+  release-and-page-guards:
+    name: Immutable production gates, source consistency and public UX
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Release policies without deployment
+        run: |
+          node --test \
+            tests/bertina-auto-release-policy.test.mjs \
+            tests/bertina-release-eligibility.test.mjs \
+            tests/progressive-release-policy.test.mjs
+      - name: Accessibility and legal boundary regression
+        run: |
+          node --test \
+            tests/analytics-consent-lifecycle.test.mjs \
+            tests/ai-discovery-privacy.test.mjs \
+            tests/admin-intelligence-private.test.mjs \
+            tests/bilingual-typography-contract.test.mjs
+      - name: Publish NO artifacts to website
+        run: echo 'Nondeploying candidate only: not a Bertina production release.' >> "$GITHUB_STEP_SUMMARY"
