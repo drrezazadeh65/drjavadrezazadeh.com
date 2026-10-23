@@ -153,7 +153,17 @@ function jrHybridRecordHeartbeat(PDO $pdo,string $node,array $meta,int $at): voi
     $q->execute([$at,$meta['cpuPercent'],$meta['ramPercent'],
        $meta['gpuPercent'],$meta['latencyMs'],$meta['modelId'],
        $meta['modelVersion'],$meta['status'],$at,$node,'ENABLED']);
-    if($q->rowCount()!==1)throw new RuntimeException('node_revoked');
+    if($q->rowCount()===1)return;
+    // MySQL may report zero CHANGED rows for an idempotent heartbeat sent
+    // within the same second with identical telemetry. That is not revocation.
+    // The signed node must still be registered, enabled and not revoked.
+    $q=$pdo->prepare('SELECT status,revoked_at
+        FROM jrei_hybrid_nodes WHERE node_id=?');
+    $q->execute([$node]);
+    $state=$q->fetch(PDO::FETCH_ASSOC);
+    if(!is_array($state)||$state['status']!=='ENABLED'||
+       $state['revoked_at']!==null)
+        throw new RuntimeException('node_revoked');
 }
 function jrHybridRecoverOrphans(PDO $pdo,int $at): void {
     // No silent replay after a possibly completed but unreported attempt.
