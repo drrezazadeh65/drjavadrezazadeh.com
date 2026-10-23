@@ -289,8 +289,10 @@ async function run(configArg) {
     const overloaded=(base.ramPercent!==null&&
       base.ramPercent>config.limits.maxRamPercent);
     const cpuHeavy=cpu!==null&&cpu>config.limits.maxCpuPercent;
-    return metrics(leaseActive?'BUSY':
-      overloaded?'BUSY':cpuHeavy?'DEGRADED':'ONLINE',cpu,latency);
+    // CPU or RAM pressure must prevent a new lease. DEGRADED denotes
+    // higher network latency, not permission to exceed resource limits.
+    return metrics(leaseActive||overloaded||cpuHeavy?'BUSY':
+      latency!==null&&latency>4000?'DEGRADED':'ONLINE',cpu,latency);
   };
   while(!stop){
     try {
