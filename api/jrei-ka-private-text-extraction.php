@@ -92,7 +92,7 @@ function jrKaTextExtractBytes(string $mime,string $raw): array {
     $mathCharacters=preg_match(
         '/[∑∏∫√∞∂∇≠≈≤≥∝∈∉⊂⊆⊕⊗∴∵∠∥]/u',$text)===1;
     $mathLatex=preg_match(
-        '/\\\\\\\\(?:frac|sqrt|sum|int|lim|begin\\{(?:equation|align)\\})\\b/u',
+        '/\\\\(?:frac|sqrt|sum|int|lim|begin)\b/u',
         $text)===1;
     if($mathMarkup||$mathCharacters||$mathLatex){
         return ['state'=>'MATH_LAYOUT_REVIEW_REQUIRED','text'=>null,
