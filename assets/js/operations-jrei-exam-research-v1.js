@@ -52,6 +52,7 @@
      SOURCE_CANDIDATE_LINKED_UNREVIEWED:T('منبع پیشنهادی پیوند شد؛ بررسی نشده','Candidate linked; review pending'),
      QUARANTINED:T('قرنطینه شده','Quarantined'),
      REQUIRES_SOURCE_REVIEW:T('پوشش هنوز بررسی نشده','Coverage needs source review'),
+     WITHDRAWN_SCOPE_ERROR:T('دامنه به‌عنوان خطا کنار گذاشته شد','Scope withdrawn as erroneous'),
      PERMISSION_UNVERIFIED:T('مجوز تکثیر تأیید نشده','Copy rights unverified'),
      NO_APPROVED_EVALUATION:T('ارزیابی تأییدشده وجود ندارد','No approved evaluation'),
      NOT_EVALUATED:T('ارزیابی انجام نشده','Not evaluated'),
@@ -605,6 +606,80 @@
    sections.append(panel);
  }
 
+
+ function renderCoverageScopeOwnerActions(snapshot){
+   const rows=Array.isArray(snapshot.coverageScopeReviewQueue)
+     ?snapshot.coverageScopeReviewQueue.slice(0,40):[];
+   const panel=elt('details','jr-exam-subsection');
+   panel.append(elt('summary','',T(
+     'تأیید یا اصلاح دامنهٔ پوشش آزمون (فقط مدیر احرازشده)',
+     'Review or withdraw registered examination coverage scopes')));
+   panel.append(elt('p','',T(
+     'تأیید اینجا فقط وجود یک نیازِ بررسی در برنامهٔ کاری را می‌پذیرد؛ هیچ سند، حق نشر، پاسخ‌نامه یا آزمون رسمی تأیید نمی‌شود. تأیید منبع باید توسط بازبین مستقل دیگری ثبت شود.',
+     'Approval confirms only that a registered scope warrants investigation. It does NOT authenticate a document, official paper, licence or answer key. A different independent actor must review the source.')));
+   if(snapshot.motherDbSchemaReady!==true){
+     panel.append(elt('p','',T('وضعیت بررسی نامعلوم؛ مهاجرت مصوب موجود نیست.',
+       'Review state unknown; approved mother-DB migration unavailable.')));
+   }else if(!rows.length){
+     panel.append(elt('p','',T('دامنهٔ فعالی برای بازبینی ثبت نشده است.',
+       'No active registered coverage scopes are currently shown.')));
+   }
+   for(const entry of rows){
+     if(!/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i
+        .test(entry.requirement_id||''))continue;
+     const item=elt('article','jr-exam-coverage-row');
+     item.append(elt('strong','',[
+       entry.country_code,entry.curriculum_id,entry.curriculum_version,
+       entry.educational_level,entry.grade===0?'':entry.grade,
+       entry.exam_category,entry.examination_year,entry.subject_id,
+       entry.expected_kind].filter(x=>x!==null&&x!==undefined&&x!=='')
+       .join(' · ').slice(0,320)));
+     const approved=typeof entry.approved_by_account_id==='string'
+       &&entry.approved_by_account_id.length>0;
+     item.append(elt('span','',approved?
+       T('دامنه بررسی و تأیید شده؛ صحت منبع همچنان نامعلوم',
+         'Scope accepted; source authenticity still unknown'):
+       T('در انتظار بررسی مدیر؛ هنوز مصوب نیست',
+         'Awaiting owner scope review; not approved')));
+     item.append(elt('span','',entry.source_id?
+       T('منبع پیشنهادی پیوند داده شده؛ اصالت نامعلوم',
+         'Candidate linked; authenticity unknown'):
+       T('هنوز منبعی پیوند داده نشده است','No source linked yet')));
+     if(!approved){
+       const approve=elt('button','',T(
+         'تأیید صرفاً دامنهٔ بررسی','Approve investigation scope only'));
+       approve.type='button';
+       approve.addEventListener('click',()=>{
+         if(!active()||busy)return;
+         if(!window.confirm(T(
+           'فقط دامنهٔ نیاز را برای بررسی منابع تصویب می‌کنید، نه پاسخ‌نامه، مجوز یا اصالت سند. تأیید؟',
+           'Approve the investigation scope only, NOT any document, rights or answer key?')))return;
+         mutate({action:'ka_approve_coverage_scope',
+           requirementId:entry.requirement_id,
+           confirmation:'APPROVE_COVERAGE_SCOPE_ONLY'});
+       });
+       item.append(approve);
+     }
+     const withdraw=elt('button','jr-exam-emergency',
+       T('ابطال دامنهٔ نادرست','Withdraw incorrect scope'));
+     withdraw.type='button';
+     withdraw.addEventListener('click',()=>{
+       if(!active()||busy)return;
+       if(!window.confirm(T(
+         'این دامنه از پوشش فعال کنار گذاشته و سابقه آن برای حسابرسی حفظ می‌شود. ادامه؟',
+         'Withdraw this scope from active coverage, retaining its audit trail?')))return;
+       mutate({action:'ka_withdraw_coverage_scope',
+         requirementId:entry.requirement_id,
+         confirmation:'WITHDRAW_COVERAGE_SCOPE_ONLY'});
+     });
+     item.append(withdraw);panel.append(item);
+   }
+   if(rows.length===40)panel.append(elt('p','',T(
+     'این فهرست فقط ۴۰ دامنهٔ اخیر را نمایش می‌دهد.',
+     'This owner review list displays at most 40 recent scopes.')));
+   actions.append(panel);
+ }
+
  function renderCountryExamCoverageMatrix(snapshot){
    const matrix=snapshot.countryExamCoverageMatrix;
    if(!matrix||matrix.schema!=='jr.jrei.coverage-expectation-matrix.v1')return;
@@ -617,6 +692,12 @@
      matrix.available&&matrix.approvedUnresolvedGaps!==null?
        safeCount(matrix.approvedUnresolvedGaps):
        T('نامعلوم؛ نمای کامل هنوز در دسترس نیست','Unknown; full matrix not available'));
+   fact(T('دامنه‌های در انتظار تصمیم مدیر','Coverage scopes awaiting owner decision'),
+     matrix.available?safeCount(matrix.pendingScopeReview):
+       T('نامعلوم','Unknown'));
+   fact(T('دامنه‌های کنارگذاشته‌شده','Withdrawn coverage scopes'),
+     matrix.available?safeCount(matrix.withdrawnExpectations):
+       T('نامعلوم','Unknown'));
    const panel=elt('details','jr-exam-subsection');
    panel.append(elt('summary','',T(
      'پوشش واقعی کشور، برنامهٔ درسی، مقطع، سال و موضوع',
@@ -1369,6 +1450,7 @@
    renderExpiredExamReviews(snapshot);
    renderKnowledgeAcquisition(snapshot);
    renderCountryExamCoverageMatrix(snapshot);
+   renderCoverageScopeOwnerActions(snapshot);
    renderLiveModelReadiness(snapshot);
    for(const def of columns)viewGroup(def,snapshot[def.key],ready);
    renderWorker(hybrid);
