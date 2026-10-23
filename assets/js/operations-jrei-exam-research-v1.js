@@ -767,6 +767,53 @@
        'تطبیق سال و درس، صحت گزینه‌ها را اثبات نمی‌کند. داوری انسانی و بررسی اصلاحیه‌های رسمی الزامی است.',
        'Year/subject matching does not prove key correctness; expert verification and official corrections are required.')));
      root.append(review);
+     const cases=Array.isArray(pairing.exceptionQueue)?
+       pairing.exceptionQueue.slice(0,20):[];
+     if(cases.length){
+       const queue=elt('details','jr-exam-subsection');
+       queue.append(elt('summary','',T(
+         'اختلاف‌های تطبیق دفترچه و پاسخ‌نامه؛ بررسی استثناها',
+         'Paper/key matching exceptions for owner review')));
+       queue.append(elt('p','',T(
+         'تأیید فراداده در این مرحله، صحت گزینه‌ها یا انتشار تجاری را تأیید نمی‌کند.',
+         'Metadata triage does not certify answers or authorize commercial publication.')));
+       for(const entry of cases){
+         const card=elt('article','jr-exam-coverage-row');
+         card.append(elt('strong','',
+           String(entry.paperTitle||'').slice(0,180)));
+         card.append(elt('span','',
+           T('پاسخ‌نامهٔ پیشنهادی: ','Candidate key: ')+
+           String(entry.keyTitle||'').slice(0,180)));
+         card.append(elt('span','',
+           String(entry.country||'')+' · '+fmt(entry.year)+' · '+
+           String(entry.subject||'').slice(0,90)));
+         const controls=elt('div','jr-exam-actions');
+         for(const [decision,fa,en] of [
+           ['META_CONFIRMED_NEEDS_CONTENT_REVIEW',
+             'تطبیق فراداده؛ ادامهٔ بررسی محتوایی',
+             'Metadata matched; require answer-content review'],
+           ['REJECTED_METADATA_MISMATCH',
+             'رد پیشنهاد تطبیق','Reject candidate match']
+         ]){
+           const control=elt('button','jr-btn secondary',T(fa,en));
+           control.type='button';
+           control.addEventListener('click',()=>{
+             if(!active()||busy||!window.confirm(T(
+               'فقط تصمیم اداریِ تطبیق ثبت شود؛ هنوز هیچ کلیدی تأیید علمی نمی‌شود. تأیید؟',
+               'Record metadata triage only; no answer key is scientifically accepted. Continue?')))return;
+             mutate({action:'ka_triage_paper_key',
+               candidateId:entry.candidateId,decision,
+               confirmation:'TRIAGE_KEY_CANDIDATE_WITHOUT_SCIENTIFIC_APPROVAL'});
+           });
+           controls.append(control);
+         }
+         card.append(controls);queue.append(card);
+       }
+       if(pairing.queueTruncated)queue.append(elt('p','',
+         T('فقط ۲۰ پروندهٔ نخست نمایش داده می‌شود.',
+           'Only the first 20 exception cases are shown.')));
+       root.append(queue);
+     }
    }
    root.append(elt('p','',T(
      'مجوز خصوصی تطبیق پاسخ‌نامه: ','Private key matching policy: ')+
