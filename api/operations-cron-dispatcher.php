@@ -59,6 +59,11 @@ function operationsCronRegistry(): array {
         'en'=>'JREI-KA authorised educational source scheduler',
         'relative'=>'internal/jrei-ka-schedule-worker.php',
         'defaultCadence'=>3600,'minimumCadence'=>3600,'sensitive'=>true],
+      'jrei_ka_private_acquisition'=>[
+        'fa'=>'گردآوری مجاز و خصوصی اسناد JREI-KA',
+        'en'=>'JREI-KA lawful private document acquisition',
+        'relative'=>'internal/jrei-ka-private-acquire-worker.php',
+        'defaultCadence'=>3600,'minimumCadence'=>3600,'sensitive'=>true],
       'jrei_exam_deadline_review'=>[
         'fa'=>'بررسی آزمون‌های منقضی‌شدهٔ JREI',
         'en'=>'JREI unfinished exam deadline review',
