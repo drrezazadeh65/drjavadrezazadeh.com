@@ -605,6 +605,51 @@
    sections.append(panel);
  }
 
+ function renderCountryExamCoverageMatrix(snapshot){
+   const matrix=snapshot.countryExamCoverageMatrix;
+   if(!matrix||matrix.schema!=='jr.jrei.coverage-expectation-matrix.v1')return;
+   fact(T('نیازهای مصوب نظام آموزشی در ماتریس پوشش',
+     'Owner-approved curriculum coverage expectations'),
+     matrix.available?safeCount(matrix.approvedExpectations):
+       T('نامعلوم؛ دیتابیس مصوب در دسترس نیست','Unknown; source DB unavailable'));
+   fact(T('خلأ منابع آموزشیِ مصوب و پیوندنیافته',
+     'Approved examination coverage requirements unresolved'),
+     matrix.available&&matrix.approvedUnresolvedGaps!==null?
+       safeCount(matrix.approvedUnresolvedGaps):
+       T('نامعلوم؛ نمای کامل هنوز در دسترس نیست','Unknown; full matrix not available'));
+   const panel=elt('details','jr-exam-subsection');
+   panel.append(elt('summary','',T(
+     'پوشش واقعی کشور، برنامهٔ درسی، مقطع، سال و موضوع',
+     'Source-to-requirement country/curriculum/level/year/subject matrix')));
+   panel.append(elt('p','',T(
+     'این ماتریس فقط منابع متصل و دارای بازبینی اولیه را می‌شمارد؛ نبودِ طبقه‌بندی موضوعات جزئی، صحت پاسخ‌نامه و پوشش کامل را نمی‌توان ادعا کرد.',
+     'Only linked authoritative source metadata counts here. Topic taxonomy, answer accuracy and comprehensive global coverage are not certified.')));
+   if(matrix.available){
+     for(const group of Array.isArray(matrix.groups)?matrix.groups.slice(0,40):[]){
+       const row=elt('div','jr-exam-coverage-row');
+       row.append(elt('strong','',
+         [group.country,group.level,group.curriculum,
+          group.examCategory,group.year,group.subject,group.expectedKind]
+          .filter(x=>x!==null&&x!==undefined).join(' · ').slice(0,290)));
+       row.append(elt('span','',
+         T('انتظار مصوب: ','Approved expected: ')+
+         safeCount(group.ownerApprovedCount)+' / '+
+         T('منبع متصل: ','Linked source: ')+
+         safeCount(group.authoritativeLinkedCount)));
+       if(group.unresolvedApprovedCount>0)
+         row.append(elt('span','',T('خلأ بررسی‌نشده: ','Unresolved gap: ')+
+           safeCount(group.unresolvedApprovedCount)));
+       panel.append(row);
+     }
+     if(matrix.truncated)panel.append(elt('p','',T(
+       'فقط ۸۰ گروه نخست در API موجود است؛ جمع کل منابع دارای پیوند نامعلوم اعلام شده است.',
+       'Source preview is limited to 80 groups; linked totals are unknown while truncated.')));
+   }else panel.append(elt('p','',T(
+     'ماتریس انتظار یا منابع مرجع در دیتابیس مادر پذیرفته نشده‌اند.',
+     'Original expectation/source DB tables are not yet observable.')));
+   sections.append(panel);
+ }
+
  function renderKnowledgeAcquisition(snapshot){
    const ka=snapshot.knowledgeAcquisition;
    if(!ka||ka.schema!=='jr.jrei.ka-owner.v1'){
@@ -1323,6 +1368,7 @@
    renderCommercialCentre(snapshot);
    renderExpiredExamReviews(snapshot);
    renderKnowledgeAcquisition(snapshot);
+   renderCountryExamCoverageMatrix(snapshot);
    renderLiveModelReadiness(snapshot);
    for(const def of columns)viewGroup(def,snapshot[def.key],ready);
    renderWorker(hybrid);
