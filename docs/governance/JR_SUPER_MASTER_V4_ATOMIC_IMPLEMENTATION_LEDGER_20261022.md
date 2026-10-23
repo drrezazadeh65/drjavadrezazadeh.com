@@ -141,3 +141,16 @@ Every row is an indivisible acceptance concern from the original 2026-10-22 v4.0
 6. **Audit output:** the current register is a source-level inventory, NOT a passing score or a permission slip to write to real student data. It must be updated on each meaningful integration; a one-line “done” does not close an atomic requirement.
 
 **Snapshot when created:** 117 separately articulated concerns, with intentionally conservative SOURCE/PARTIAL/GATED statuses. ALL acceptance checks still NOT RUN; NO actual database migrations or production deployment.
+
+## 2026-10-23 — Continued governed JREI implementation crosswalk (source-only)
+
+The 117 original atomic rows and their status categories remain unchanged (43 SOURCE, 46 PARTIAL, 28 GATED at the start of this batch). Owner direction remains **NO INTERIM TESTS, NO MIGRATION, NO DEPLOYMENT**. The following additive code progress is associated with previously existing concern IDs; no PASS designation has been inferred:
+
+| Atomic IDs | Committed source evidence | Remaining acceptance |
+|---|---|---|
+| GOV-05, GOV-06, REL-01, DASH-04 | `e3a6e1d83eaa359c402e600bd22821b54a8deef2` eliminates the duplicate PHP dispatch diagnostic definition, retaining the separate owner diagnostics implementation | Final PHP load/syntax, actual MFA dashboard/API behaviour, unchanged store and worker regressions |
+| AID-06, AID-08, DB-05 | `ac9453b1e49c8abb37f9965cc76387b52f941101` ensures source-version metadata approval requires the exact current predecessor under a registry-first lock | Real migration, competing-review transaction acceptance, lawful original source, independent amendment authority |
+| AID-08, DASH-04 | `e61681310bb5dcac00efdd91ddccd4b032d12081` returns existing status/ID on immutable duplicate source proposals rather than a fabricated pending success | Versioning/read-only admin UX, duplicate and concurrency acceptance |
+| DB-04, DB-05, AI-03 | `2b97dffb885a21966ac6c0ddd5c83d2a7b313c6a`, `79b7494f705a4005b256d109bf744c7f499bf849`, `d2e7fb4f4338b4d990495c631ee624f96d0bdf09`, `a89eda7f786f6b3f6ebc96f2f14a33fa315180af` add a common Persian/Arabic numeral-aware direct-identifier guard to local source prompts and draft claim review | Private-data red-team, false-positive study, authorised local model/runtime, final semantic and public-fallback acceptance |
+
+All functionality remains **SOURCE-ONLY / UNTESTED / UNDEPLOYED**; previously staged migrations stay unapplied. External scientific, licensing, payment, privacy/legal and official-admissions prerequisites remain independently GATED. Do not present the 117 requirements as fully complete based on this additive crosswalk.
