@@ -365,6 +365,57 @@
        T('خاموش','OFF'));
    fact(T('آمادگی فروش واقعی آزمون','Verified exam checkout readiness'),
      T('تأیید نشده؛ فروش باز نیست','Unverified; checkout disabled'));
+   const sourceImpact=centre.sourceReleaseImpact;
+   if(sourceImpact?.schema==='jr.jrei.exam-source-release-impact.v1'){
+     const unknown=T('نامعلوم؛ جداول منابع و مجوزها کامل نیستند',
+       'Unknown; examination/source tables not fully available');
+     fact(T('محصولات منتشرشده با ریسک کنونی منبع یا کلید',
+       'Published exams with current source/key blockers'),
+       sourceImpact.available?
+         safeCount(sourceImpact.publishedProductsWithBlockers):unknown);
+     const impactPanel=elt('details','jr-exam-subsection');
+     impactPanel.append(elt('summary','',T(
+       'آسیب‌پذیری محتوای آزمون‌های منتشرشده و نیاز به مداخلهٔ مدیر',
+       'Published examination content exposure requiring owner action')));
+     impactPanel.append(elt('p','',T(
+       'یک محصول ممکن است بعد از انتشار، به‌دلیل لغو حق نشر، جایگزینی منبع، خطای کلید یا نبود داوری مستقل، دیگر واجد شرایط عرضه نباشد. این بخش فقط وضعیت فراداده‌های جاری را نشان می‌دهد و محصولی را خودکار حذف، تعلیق یا مسترد نمی‌کند. مدیر باید تعلیق و تعهدات خریدار را مستقلاً بررسی کند.',
+       'A previously published examination may lose its release eligibility after source revocation, key withdrawal, rights changes or missing independent review. This view reflects current registry metadata only. It does not automatically suspend products, refund buyers or amend prior results; owner intervention and customer obligations remain separate.')));
+     if(!sourceImpact.available){
+       impactPanel.append(elt('p','',unknown));
+     }else{
+       impactPanel.append(elt('p','',
+         T('کل محصولات منتشرشده: ','All published products: ')+
+         safeCount(sourceImpact.publishedProducts)));
+       const exposures=Array.isArray(sourceImpact.products)?
+         sourceImpact.products.slice(0,30):[];
+       if(!exposures.length)impactPanel.append(elt('p','',T(
+         'در فرادادهٔ قابل‌خواندن، محصول منتشرشدهٔ دارای این نوع مانع یافت نشد؛ این نتیجه تأیید کیفی یا حقوقی نیست.',
+         'No such registered publication blocker in current metadata; this does not certify legal or scientific quality.')));
+       for(const item of exposures){
+         const row=elt('article','jr-exam-coverage-row');
+         row.append(elt('strong','',String(item.code||'').slice(0,75)+
+           ' · '+String(item.division||'').slice(0,35)));
+         row.append(elt('span','',
+           T('سؤال با مانع انتشار: ','Items currently blocked: ')+
+           safeCount(item.blockedItemCount)+' / '+safeCount(item.recordedItemCount)));
+         row.append(elt('span','',
+           T('منبع لغوشده/جایگزین: ','Revoked/superseded: ')+
+           safeCount(item.recalledItemCount)+' · '+
+           T('مجوز ناکافی: ','Insufficient rights: ')+
+           safeCount(item.rightsItemCount)+' · '+
+           T('کلید ناقص: ','Key-review issues: ')+
+           safeCount(item.keyItemCount)));
+         row.append(elt('p','',T(
+           'تصمیم درباره تعلیق از کنترل‌های اصلی محصول و با تأیید مالک اتخاذ می‌شود؛ این هشدار نمره یا بازپرداخت ایجاد نمی‌کند.',
+           'Use the existing owner product controls for suspension decisions; this warning does not change grades or refund payments.')));
+         impactPanel.append(row);
+       }
+       if(sourceImpact.truncated)impactPanel.append(elt('p','',T(
+         'فقط ۳۰ محصول آسیب‌پذیر اول نمایش داده می‌شود؛ شمارش کلی از همهٔ محصولات است.',
+         'Only the first 30 affected products are displayed; the headline counts the full relation.')));
+     }
+     sections.append(impactPanel);
+   }
    const grade=centre.preliminaryGradeEvidence;
    if(grade?.schema==='jr.jrei.preliminary-grade-audit.v1'){
      const unknown=T('نامعلوم؛ اسناد نمره یا دیتابیس نصب نشده',
