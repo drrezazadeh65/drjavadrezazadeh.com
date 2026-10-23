@@ -34,8 +34,13 @@ function jrKaHumanSourceReviewSnapshot(PDO $pdo,string $actor): array {
             AND r.approved_by_account_id IS NOT NULL
             AND r.approved_by_account_id<>?
             AND r.requirement_state<>'WITHDRAWN_SCOPE_ERROR'
+            AND NOT EXISTS (
+              SELECT 1 FROM jrei_exam_coverage_requirements other_scope
+              WHERE other_scope.source_id=s.source_id
+                AND other_scope.approved_by_account_id=?
+                AND other_scope.requirement_state<>'WITHDRAWN_SCOPE_ERROR')
           ORDER BY s.source_id ASC LIMIT 41");
-        $q->execute([$actor]);
+        $q->execute([$actor,$actor]);
         $rows=$q->fetchAll(PDO::FETCH_ASSOC);
         $out['available']=true;
         $out['truncated']=count($rows)>40;
