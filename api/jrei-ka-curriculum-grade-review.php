@@ -33,7 +33,7 @@ function jrKaScopeAlignmentReviewQueue(PDO $pdo,string $actor): array {
               ('PERMITTED_PRIVATE_ANALYSIS','PERMITTED_REPRODUCTION')
             AND s.is_revoked=0 AND s.is_superseded=0
             AND s.verified_at IS NOT NULL
-            AND NOT (a.review_state='ATTESTED_SCOPE_ALIGNMENT'
+            AND NOT COALESCE((a.review_state='ATTESTED_SCOPE_ALIGNMENT'
               AND a.source_id=s.source_id
               AND a.source_version=s.source_version
               AND a.source_updated_at=s.updated_at
@@ -43,7 +43,7 @@ function jrKaScopeAlignmentReviewQueue(PDO $pdo,string $actor): array {
               AND a.evidence_sha256 IS NOT NULL
               AND a.reviewed_by_account_id IS NOT NULL
               AND a.reviewed_by_account_id<>r.approved_by_account_id
-              AND a.reviewed_by_account_id<>s.reviewer_account_id)
+              AND a.reviewed_by_account_id<>s.reviewer_account_id),0)
           ORDER BY r.examination_year DESC,r.created_at DESC,
              r.requirement_id LIMIT 31");
         $q->execute([$actor,$actor]);
