@@ -104,6 +104,8 @@
                 data.resultStatus!=='VERIFIED_RECOMPUTABLE_RAW_GRADE_NOT_VALIDATED'||
                 !data.sourceResponsesVerifiedByDigest||
                 !data.originalScoreRunDigestMatched||
+                !data.immutableSnapshotDigestMatched||
+                !data.rawScorePersistedInMotherDatabase||
                 !data.grade||!Number.isSafeInteger(data.grade.rawScoreMillipoints))
                throw Error('GRADE_UNVERIFIED');
              const summary=element('dl');
