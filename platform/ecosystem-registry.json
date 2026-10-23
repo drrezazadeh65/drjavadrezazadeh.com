@@ -233,6 +233,16 @@
       "id": "fa-gt-checkout",
       "prefix": "/fa/shop/golden-talent/checkout/",
       "policy": "TRANSACTIONAL"
+    },
+    {
+      "id": "fa-exam-candidate",
+      "prefix": "/fa/exams/my/",
+      "policy": "PRIVATE_ASSESSMENT"
+    },
+    {
+      "id": "en-exam-candidate",
+      "prefix": "/en/exams/my/",
+      "policy": "PRIVATE_ASSESSMENT"
     }
   ],
   "module_boundaries": {
