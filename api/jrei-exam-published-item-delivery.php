@@ -45,7 +45,9 @@ function jrExamLocalizedPromptSchemaReady(PDO $pdo): bool {
     try{
         $pdo->query('SELECT item_id,locale,object_ref_id,original_item_sha256,
           localized_manifest_sha256,review_state,prepared_by_account_id,
-          independently_reviewed_by_account_id,reviewed_at
+          independently_reviewed_by_account_id,reviewed_at,
+          translation_rights_evidence_sha256,
+          linguistic_equivalence_evidence_sha256
           FROM jrei_exam_item_prompt_localizations LIMIT 0');
         return true;
     }catch(Throwable $e){return false;}
@@ -68,6 +70,8 @@ function jrExamDeliveredItemSet(PDO $pdo,string $version,string $locale): array 
       loc.independently_reviewed_by_account_id AS localized_reviewer_id,
       loc.reviewed_at AS localized_reviewed_at,
       loc.revision AS localized_revision,
+      loc.translation_rights_evidence_sha256 AS localized_rights_evidence,
+      loc.linguistic_equivalence_evidence_sha256 AS localized_linguistic_evidence,
       lo.storage_provider AS localized_storage_provider,
       lo.object_reference AS localized_object_reference,
       lo.content_sha256 AS localized_content_sha256,
@@ -104,6 +108,10 @@ function jrExamDeliveredItemSet(PDO $pdo,string $version,string $locale): array 
                $r['localized_reviewer_id']===null||
                $r['localized_preparer_id']===$r['localized_reviewer_id']||
                $r['localized_reviewed_at']===null||
+               !preg_match($sha,(string)$r['localized_rights_evidence'])||
+               !preg_match($sha,(string)$r['localized_linguistic_evidence'])||
+               hash_equals((string)$r['localized_rights_evidence'],
+                   (string)$r['localized_linguistic_evidence'])||
                !preg_match($sha,(string)$r['content_sha256'])||
                !preg_match($sha,(string)$r['localized_original_sha256'])||
                !hash_equals((string)$r['content_sha256'],
@@ -117,7 +125,9 @@ function jrExamDeliveredItemSet(PDO $pdo,string $version,string $locale): array 
               'objectRefId'=>$r['localized_object_id'],
               'sourceDigest'=>$r['localized_original_sha256'],
               'localizedDigest'=>$r['localized_approved_sha256'],
-              'revision'=>(int)$r['localized_revision']
+              'revision'=>(int)$r['localized_revision'],
+              'rightsEvidence'=>$r['localized_rights_evidence'],
+              'linguisticEvidence'=>$r['localized_linguistic_evidence']
             ];
             foreach([
               'storage_provider','object_reference','content_sha256',
@@ -202,7 +212,8 @@ function jrExamDeliveredItemSet(PDO $pdo,string $version,string $locale): array 
           loc.original_item_sha256,loc.localized_manifest_sha256,
           loc.review_state,loc.revision,
           loc.prepared_by_account_id,loc.independently_reviewed_by_account_id,
-          loc.reviewed_at,
+          loc.reviewed_at,loc.translation_rights_evidence_sha256,
+          loc.linguistic_equivalence_evidence_sha256,
           original_ref.content_sha256 AS current_original_sha256,
           translated_ref.content_sha256 AS current_localized_sha256
           FROM jrei_exam_item_prompt_localizations loc
@@ -223,6 +234,8 @@ function jrExamDeliveredItemSet(PDO $pdo,string $version,string $locale): array 
                $row['prepared_by_account_id']===
                   $row['independently_reviewed_by_account_id']||
                (int)$row['revision']!==$prior['revision']||
+               $row['translation_rights_evidence_sha256']!==$prior['rightsEvidence']||
+               $row['linguistic_equivalence_evidence_sha256']!==$prior['linguisticEvidence']||
                $row['object_ref_id']!==$prior['objectRefId']||
                !hash_equals((string)$prior['sourceDigest'],
                   (string)$row['original_item_sha256'])||
