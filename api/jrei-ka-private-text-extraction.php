@@ -83,6 +83,25 @@ function jrKaTextExtractBytes(string $mime,string $raw): array {
     preg_match_all('/[A-Za-z]/',$text,$latin);
     $fa=count($persian[0]??[]);$en=count($latin[0]??[]);
     $lang=$fa>$en*2?'fa':($en>$fa*2?'en':'mixed');
+    // Explicit mathematical notation and MathML require specialist source
+    // inspection, not ordinary prose retrieval. We retain the authorised
+    // immutable original but DO NOT index questionable equation text as an
+    // approved passage. This heuristic cannot detect all formulas/diagrams.
+    $mathMarkup=$mime==='text/html'&&
+        preg_match('~<math(?:\\s|>|/)~i',$raw)===1;
+    $mathCharacters=preg_match(
+        '/[∑∏∫√∞∂∇≠≈≤≥∝∈∉⊂⊆⊕⊗∴∵∠∥]/u',$text)===1;
+    $mathLatex=preg_match(
+        '/\\\\\\\\(?:frac|sqrt|sum|int|lim|begin\\{(?:equation|align)\\})\\b/u',
+        $text)===1;
+    if($mathMarkup||$mathCharacters||$mathLatex){
+        return ['state'=>'MATH_LAYOUT_REVIEW_REQUIRED','text'=>null,
+          'method'=>'MATHEMATICAL_NOTATION_SCIENTIFIC_REVIEW_REQUIRED',
+          'language'=>$lang,'requiresOcr'=>false,
+          'requiresMathematicsExpertReview'=>true,
+          'formulaAccuracyVerified'=>false,
+          'diagramAccuracyVerified'=>false];
+    }
     return ['state'=>'TEXT_PENDING_SCIENTIFIC_REVIEW','text'=>$text,
         'method'=>$mime==='text/html'?'DOM_VISIBLE_TEXT':'PLAIN_UTF8',
         'language'=>$lang,'requiresOcr'=>false];
