@@ -203,7 +203,9 @@ function jrHybridOwnerChange(PDO $pdo,array $cfg,string $actor,
            !jrHybridSha($record['activePolicySha256']??null))
             throw new DomainException('independent_public_dataset_not_approved');
         // Match learning-loop's SHA256(JSON.stringify(normalized active policy)).
-        $activeDigest=hash('sha256',json_encode($current,
+        $canonical=['b'=>$current['b'],'k1'=>$current['k1'],
+            'maxEvidence'=>$current['maxEvidence']];
+        $activeDigest=hash('sha256',json_encode($canonical,
             JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR));
         if(!hash_equals($record['activePolicySha256'],$activeDigest))
             throw new DomainException('current_policy_not_approved');
