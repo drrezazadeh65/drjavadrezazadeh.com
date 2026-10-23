@@ -41,10 +41,27 @@ async function run(){
     originSection:review?.originSection??null,
     preceding:review?.lastReviewedVersion??null
   });
+  // Local manifest only: never calls the owner API or promotes a source.
+  // Fields are aligned to the original MFA-only dashboard mutation
+  // contract to avoid error-prone manual timestamp/hash transcription.
+  const mime={HTML:'text/html',PDF:'application/pdf',
+    TEXT:'text/plain',JSON:'application/json'}[source.contentType];
+  const retrievedAt=Math.floor(Date.parse(proposal.retrievedAt)/1000);
+  const publicationAt=proposal.publicationDate===null?null:
+    Math.floor(Date.parse(proposal.publicationDate)/1000);
+  const ownerSubmissionDraft={
+    action:'propose_source_version',
+    sourceId:proposal.sourceId,
+    documentSha256:proposal.documentSha256,
+    byteCount:proposal.byteCount,
+    retrievedAt,publicationAt,declaredMime:mime,
+    confirmation:'STAGE_SOURCE_DIGEST_FOR_REVIEW'
+  };
   process.stdout.write(JSON.stringify({
-    ...proposal,
+    ...proposal,ownerSubmissionDraft,
     ownerReviewStatus:'SOURCE_VERSION_STAGED_ONLY',
-    reviewRequired:true,verifiedOfficialAmendment:false
+    reviewRequired:true,verifiedOfficialAmendment:false,
+    sentToBertina:false,sourceBodyRetained:false
   },null,2)+'\n');
 }
 try{await run();}
