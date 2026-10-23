@@ -10,6 +10,7 @@ if(!defined('BERTINA_API_BOOTSTRAPPED')){http_response_code(404);exit;}
 function jrKaScopeAlignmentReviewQueue(PDO $pdo,string $actor): array {
     $out=['schema'=>'jr.jrei.curriculum-grade-human-review.v1',
       'available'=>false,'queue'=>[],'truncated'=>false,
+      'activeAttestations'=>[],'activeTruncated'=>false,
       'independentCurriculumEvidenceSystemVerified'=>false,
       'examinationContentValidated'=>false];
     try{
@@ -68,6 +69,43 @@ function jrKaScopeAlignmentReviewQueue(PDO $pdo,string $actor): array {
                 null:(int)$row['alignment_revision'],
               'originalSourceVersion'=>$row['source_version'],
               'sourceUpdatedAt'=>(int)$row['updated_at']
+            ];
+        }
+        // A deliberate revocation queue is separate from missing-evidence
+        // intake. Active human attestations must be correctable even when
+        // a source's authority/rights have subsequently been revoked.
+        $q=$pdo->prepare("SELECT a.requirement_id,a.source_id,a.revision,
+            a.review_state,r.curriculum_id,r.curriculum_version,r.grade,
+            r.educational_level,r.country_code,r.exam_category,
+            r.examination_year,r.subject_id,r.expected_kind,s.source_title
+          FROM jrei_ka_scope_alignment_current a
+          JOIN jrei_exam_coverage_requirements r
+            ON r.requirement_id=a.requirement_id
+          JOIN jrei_exam_sources s ON s.source_id=a.source_id
+          WHERE a.review_state='ATTESTED_SCOPE_ALIGNMENT'
+            AND r.source_id=a.source_id
+            AND r.approved_by_account_id IS NOT NULL
+            AND r.requirement_state<>'WITHDRAWN_SCOPE_ERROR'
+          ORDER BY a.reviewed_at DESC,a.requirement_id ASC LIMIT 21");
+        $q->execute();
+        $active=$q->fetchAll(PDO::FETCH_ASSOC);
+        $out['activeTruncated']=count($active)>20;
+        foreach(array_slice($active,0,20) as $row){
+            $out['activeAttestations'][]=[
+              'requirementId'=>$row['requirement_id'],
+              'sourceId'=>$row['source_id'],
+              'revision'=>(int)$row['revision'],
+              'country'=>$row['country_code'],
+              'curriculum'=>$row['curriculum_id'],
+              'curriculumVersion'=>$row['curriculum_version'],
+              'grade'=>(int)$row['grade'],
+              'level'=>$row['educational_level'],
+              'examCategory'=>$row['exam_category'],
+              'year'=>(int)$row['examination_year'],
+              'subject'=>$row['subject_id'],
+              'expectedKind'=>$row['expected_kind'],
+              'sourceTitle'=>$row['source_title'],
+              'currentlyOfficiallyVerified'=>false
             ];
         }
         $out['available']=true;
@@ -130,13 +168,14 @@ function jrKaIndependentScopeAlignmentDecision(PDO $pdo,string $actor,
           curriculum_version,examination_year,subject_id,source_kind
           FROM jrei_exam_sources WHERE source_id=? FOR UPDATE');
         $q->execute([$sourceId]);$source=$q->fetch(PDO::FETCH_ASSOC);
-        if(!is_array($source)||
+        if(!is_array($source))throw new DomainException('curriculum_source_missing');
+        if($decision!=='REVOKED_SCOPE_ALIGNMENT'&&(
            $source['review_state']!=='AUTHORITATIVE_REVIEWED'||
            !in_array($source['rights_state'],[
              'PERMITTED_PRIVATE_ANALYSIS','PERMITTED_REPRODUCTION'],true)||
            $source['verified_at']===null||
            (int)$source['is_revoked']!==0||
-           (int)$source['is_superseded']!==0)
+           (int)$source['is_superseded']!==0))
             throw new DomainException('curriculum_review_source_ineligible');
         $q=$pdo->prepare("SELECT requirement_id,source_id,
           approved_by_account_id,requirement_state,
