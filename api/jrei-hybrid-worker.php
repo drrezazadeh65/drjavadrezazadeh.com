@@ -167,6 +167,16 @@ function jrHybridRecoverOrphans(PDO $pdo,int $at): void {
 function jrHybridLease(PDO $pdo,string $node,int $at): ?array {
     $pdo->beginTransaction();
     try {
+        // Serialize all polls claiming work as this node, including concurrent
+        // HTTP requests signed with the same registered key. A no-row
+        // FOR UPDATE on the jobs table alone cannot lock the absence of a
+        // lease and could assign two different jobs to one machine.
+        $q=$pdo->prepare("SELECT node_id FROM jrei_hybrid_nodes
+          WHERE node_id=? AND status='ENABLED' AND revoked_at IS NULL
+          FOR UPDATE");
+        $q->execute([$node]);
+        if($q->fetchColumn()===false)
+            throw new DomainException('worker_no_longer_enabled');
         jrHybridRecoverOrphans($pdo,$at);
         // One active assignment per registered node; a retrying poll cannot
         // request two concurrent jobs and cannot cause duplicate inference.
