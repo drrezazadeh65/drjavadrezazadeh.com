@@ -120,7 +120,9 @@ function operationsCronOwnerChange(PDO $pdo,array $config,
        !is_string($action)||!in_array($action,['register','configure','reconcile','quarantine'],true))
         throw new InvalidArgumentException('invalid_cron_control');
     $job=operationsCronRegistry()[$jobId];
-    if(operationsCronSourcePath($jobId)===null)
+    // Missing source must prohibit registration and *enablement*, but must
+    // never prevent an owner from quarantining or disabling an existing row.
+    if($action==='register'&&operationsCronSourcePath($jobId)===null)
         throw new DomainException('cron_source_unavailable');
     if($action==='register'){
         $pdo->beginTransaction();
@@ -208,6 +210,8 @@ function operationsCronOwnerChange(PDO $pdo,array $config,
        $revision<1||$cadence<$job['minimumCadence']||
        $cadence>86400||$cadence%60!==0)
         throw new InvalidArgumentException('invalid_cron_schedule');
+    if($enabled&&operationsCronSourcePath($jobId)===null)
+        throw new DomainException('cron_source_unavailable');
     if($enabled&&(!operationsCronMasterEnabled($config)||
       ($body['confirmation']??'')!=='ENABLE_APPROVED_CLI_WORKER'))
         throw new DomainException('explicit_cli_enablement_required');
