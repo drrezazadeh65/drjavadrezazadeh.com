@@ -185,7 +185,8 @@ function jrKaPaperKeySnapshot(PDO $pdo,array $cfg): array {
       'unreviewedPairCount'=>null,'ambiguousPapers'=>null,
       'independentlyValidatedKeyPairs'=>null,
       'ownerProposalPolicy'=>($cfg['jrei_ka_key_match_proposals_enabled']??false)===true,
-      'matchedAnswerContentVerified'=>false,'commerciallyPublishable'=>false
+      'matchedAnswerContentVerified'=>false,'commerciallyPublishable'=>false,
+      'exceptionQueue'=>[],'queueTruncated'=>false
     ];
     try{
         $q=$pdo->query("SELECT review_state,COUNT(*) AS n
@@ -206,6 +207,36 @@ function jrKaPaperKeySnapshot(PDO $pdo,array $cfg): array {
         $out['ambiguousPapers']=(int)$q->fetchColumn();
         // Reviewed metadata does not constitute verified answer correctness.
         $out['independentlyValidatedKeyPairs']=null;
+        $q=$pdo->query("SELECT pair.candidate_id,pair.paper_source_id,
+             pair.key_source_id,pair.review_state,
+             paper.country_code,paper.examination_year,
+             paper.educational_level,paper.exam_category,paper.subject_id,
+             paper.source_authority_id,
+             paper.source_title AS paper_title,
+             ans.source_title AS key_title
+          FROM jrei_ka_paper_key_candidates pair
+          JOIN jrei_exam_sources paper ON paper.source_id=pair.paper_source_id
+          JOIN jrei_exam_sources ans ON ans.source_id=pair.key_source_id
+          WHERE pair.review_state='NEEDS_INDEPENDENT_KEY_MATCH'
+          ORDER BY pair.created_at,pair.candidate_id LIMIT 21");
+        $rows=$q->fetchAll(PDO::FETCH_ASSOC);
+        $out['queueTruncated']=count($rows)>20;
+        foreach(array_slice($rows,0,20) as $row)
+            $out['exceptionQueue'][]=[
+              'candidateId'=>$row['candidate_id'],
+              'paperSourceId'=>$row['paper_source_id'],
+              'keySourceId'=>$row['key_source_id'],
+              'reviewState'=>$row['review_state'],
+              'country'=>$row['country_code'],
+              'year'=>(int)$row['examination_year'],
+              'level'=>$row['educational_level'],
+              'category'=>$row['exam_category'],
+              'subject'=>$row['subject_id'],
+              'authority'=>$row['source_authority_id'],
+              'paperTitle'=>$row['paper_title'],
+              'keyTitle'=>$row['key_title'],
+              'actualKeyContentInspected'=>false
+            ];
     }catch(Throwable $e){
         $out['schemaReady']=false;
     }
