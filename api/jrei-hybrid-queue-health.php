@@ -41,7 +41,8 @@ function jrHybridOwnerQueueHealth(PDO $pdo,array $cfg,int $at): array {
               AND lease_expires_at>=?
               AND lease_started_at+?>=? THEN 1 ELSE 0 END),0) active_leased,
             COALESCE(SUM(CASE WHEN status='LEASED'
-              AND (lease_expires_at<? OR lease_started_at+?<?)
+              AND (lease_expires_at IS NULL OR lease_started_at IS NULL
+                OR lease_expires_at<? OR lease_started_at+?<?)
               THEN 1 ELSE 0 END),0) stale_leased,
             COALESCE(SUM(CASE WHEN status='NEEDS_REVIEW'
               THEN 1 ELSE 0 END),0) unknown_outcomes,
