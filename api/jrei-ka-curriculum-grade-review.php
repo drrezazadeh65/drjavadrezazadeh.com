@@ -106,6 +106,14 @@ function jrKaIndependentScopeAlignmentDecision(PDO $pdo,string $actor,
           'OFFICIAL_CORRECTION_REQUIRED'],true))
             throw new InvalidArgumentException('curriculum_review_reason_required');
     }
+    try{
+        $pdo->query('SELECT requirement_id,source_id,review_state,revision
+            FROM jrei_ka_scope_alignment_current LIMIT 0');
+        $pdo->query('SELECT decision_id,requirement_id,decision
+            FROM jrei_ka_scope_alignment_history LIMIT 0');
+    }catch(Throwable $e){
+        throw new DomainException('curriculum_alignment_migration_required',0,$e);
+    }
     $pdo->beginTransaction();
     try{
         // First resolve expected source without a lock, then acquire it
