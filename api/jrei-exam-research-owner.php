@@ -185,6 +185,79 @@ function jrExamResearchOwnerChange(PDO $pdo,array $cfg,string $actor,array $body
             if($pdo->inTransaction())$pdo->rollBack();
             throw $e;
         }
+    }elseif($action==='register_coverage_target'){
+        // A coverage target records only a missing/unchecked *question* about
+        // an examination. It does NOT certify that a paper exists or that its
+        // exam date/capacity, answer key or copyright is verified.
+        if(($body['confirmation']??'')!=='REGISTER_UNVERIFIED_EXAM_COVERAGE')
+            throw new InvalidArgumentException('coverage_confirmation_required');
+        $levels=[
+          'PRIMARY'=>[1,2,3,4,5,6],
+          'LOWER_SECONDARY'=>[7,8,9],
+          'UPPER_SECONDARY'=>[10,11,12],
+          'UNDERGRADUATE_ENTRANCE'=>[],
+          'MASTERS_ENTRANCE'=>[],
+          'DOCTORAL_ENTRANCE'=>[],
+          'UNIVERSITY_ADVANCED'=>[]
+        ];
+        $types=['SCHOOL_INTERNAL','NATIONAL_FINAL','NATIONAL_ENTRANCE',
+          'MASTERS_ENTRANCE','DOCTORAL_ENTRANCE','UNIVERSITY_COURSE',
+          'ADVANCED_ACADEMIC'];
+        $kinds=['EXAM_PAPER','ANSWER_KEY','MARKING_SCHEME',
+          'CURRICULUM_BLUEPRINT','EXAMINATION_GUIDANCE'];
+        $level=$body['level']??null;
+        $kind=$body['expectedKind']??null;
+        $category=$body['examCategory']??null;
+        $country=$body['countryCode']??null;
+        $year=$body['examYear']??null;
+        $subject=$body['subjectId']??null;
+        $curriculum=$body['curriculumId']??null;
+        $version=$body['curriculumVersion']??null;
+        $grade=$body['grade']??null;
+        if(!is_string($level)||!array_key_exists($level,$levels)||
+          !in_array($kind,$kinds,true)||!in_array($category,$types,true)||
+          !is_string($country)||!preg_match('/^[A-Z]{2}$/D',$country)||
+          !is_int($year)||$year<1300||$year>2400||
+          !is_string($subject)||!preg_match('/^[A-Za-z0-9._:-]{1,100}$/D',$subject)||
+          !is_string($curriculum)||!preg_match('/^[A-Za-z0-9._:-]{1,100}$/D',$curriculum)||
+          !is_string($version)||!preg_match('/^[A-Za-z0-9._:-]{1,100}$/D',$version)||
+          ($levels[$level] && (!is_int($grade)||
+            !in_array($grade,$levels[$level],true)))||
+          (!$levels[$level]&&$grade!==null))
+            throw new InvalidArgumentException('invalid_coverage_scope');
+        if($category==='SCHOOL_INTERNAL'&&!$levels[$level])
+            throw new InvalidArgumentException('invalid_school_scope');
+        if($category==='MASTERS_ENTRANCE'&&$level!=='MASTERS_ENTRANCE'||
+           $category==='DOCTORAL_ENTRANCE'&&$level!=='DOCTORAL_ENTRANCE'||
+           $category==='NATIONAL_ENTRANCE'&&$level!=='UNDERGRADUATE_ENTRANCE')
+            throw new InvalidArgumentException('invalid_entrance_scope');
+        // Registered intent remains REQUIRES_SOURCE_REVIEW; never MISSING or
+        // VERIFIED from owner text alone. The original source still needs
+        // independent authorization before any crawler/OCR job.
+        $bytes=random_bytes(16);
+        $bytes[6]=chr((ord($bytes[6])&15)|64);
+        $bytes[8]=chr((ord($bytes[8])&63)|128);
+        $h=bin2hex($bytes);
+        $id=substr($h,0,8).'-'.substr($h,8,4).'-'.
+          substr($h,12,4).'-'.substr($h,16,4).'-'.substr($h,20);
+        $pdo->beginTransaction();
+        try {
+            $q=$pdo->prepare('INSERT IGNORE INTO jrei_exam_coverage_requirements
+              (requirement_id,educational_level,grade,country_code,
+               curriculum_id,curriculum_version,exam_category,
+               examination_year,subject_id,expected_kind,requirement_state,
+               created_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)');
+            $q->execute([$id,$level,$grade??0,$country,$curriculum,
+                $version,$category,$year,$subject,$kind,
+                'REQUIRES_SOURCE_REVIEW',time()]);
+            if($q->rowCount()!==1)
+                throw new DomainException('coverage_target_exists');
+            operationsAudit($pdo,$actor,'jrei_exam_coverage_registered',$id);
+            $pdo->commit();
+        }catch(Throwable $e){
+            if($pdo->inTransaction())$pdo->rollBack();
+            throw $e;
+        }
     }elseif($action==='quarantine_source'){
         $sourceId=$body['sourceId']??null;
         if(!is_string($sourceId)||!preg_match(
