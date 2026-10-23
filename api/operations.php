@@ -439,6 +439,7 @@ function operationsRoute(string $path, string $verb): never {
             if($verb==='GET'){
                 $snapshot=jrExamResearchOwnerSnapshot($pdo,$configuration);
                 $snapshot['commercialCentre']=jrExamCommercialOwnerSnapshot($pdo,$configuration);
+                $snapshot['examDeadlineReview']=jrExamDeadlineOwnerBacklog($pdo);
                 respond($snapshot);
             }
             if(!operationsMutationAllowed($_SERVER,
@@ -460,6 +461,7 @@ function operationsRoute(string $path, string $verb): never {
             // including KA and commercial draft/suspension operations.
             $snapshot=jrExamResearchOwnerSnapshot($pdo,$configuration);
             $snapshot['commercialCentre']=jrExamCommercialOwnerSnapshot($pdo,$configuration);
+                $snapshot['examDeadlineReview']=jrExamDeadlineOwnerBacklog($pdo);
             $snapshot['mutationRecorded']=($result['ok']??true)===true;
             respond($snapshot);
         }
