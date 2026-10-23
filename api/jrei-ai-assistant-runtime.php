@@ -2,6 +2,7 @@
 declare(strict_types=1);
 if(!defined('BERTINA_API_BOOTSTRAPPED')){http_response_code(404);exit;}
 require_once __DIR__.'/jrei-ai-cloud-provider.php';
+require_once __DIR__.'/jrei-ai-model-routing.php';
 require_once __DIR__.'/jrei-ai-answer-guard.php';
 require_once __DIR__.'/jrei-ai-provider-telemetry.php';
 require_once __DIR__.'/jrei-ai-reviewed-passages.php';
@@ -154,7 +155,7 @@ function jrAiPublicChat(PDO $pdo,array $cfg,array $body): array {
         throw new DomainException('public_ai_daily_budget_exhausted');
     $started=microtime(true);
     try{
-        $response=jrAiOpenAiResponses($cfg,$messages,$instruction,240);
+        $response=jrAiDispatchGovernedPublicInference($cfg,$messages,$instruction,240);
         $duration=(int)round((microtime(true)-$started)*1000);
         jrAiRecordProviderOutcome($pdo,(string)$cfg['jrei_ai_openai_model'],
             true,min(300000,max(0,$duration)),
