@@ -750,6 +750,28 @@
        'Private spans do not establish approved retrieval evidence and never publish scholarly claims or copyrighted passages.')));
      root.append(sourcePassages);
    }
+   const pairing=ka.paperKeyProposals;
+   fact(T('تطبیق‌های اولیهٔ دفترچه و پاسخ‌نامه در انتظار داوری',
+     'Exam paper and answer key matches awaiting independent review'),
+     pairing?.schemaReady?fmt(pairing.unreviewedPairCount):T('نامعلوم','Unknown'));
+   if(pairing?.schemaReady){
+     const review=elt('div','jr-exam-coverage-row');
+     review.append(elt('strong','',T(
+       'تطبیق منبع و پاسخ‌نامه فقط بر اساس فراداده',
+       'Source-only answer-key matching, without grading rights')));
+     review.append(elt('span','',T('پیشنهادها: ','Proposals: ')+
+       fmt(pairing.sourceMatchProposalCount)));
+     review.append(elt('span','',T('دفترچه‌های با چند پاسخ‌نامهٔ محتمل: ',
+       'Papers with competing candidate keys: ')+fmt(pairing.ambiguousPapers)));
+     review.append(elt('p','',T(
+       'تطبیق سال و درس، صحت گزینه‌ها را اثبات نمی‌کند. داوری انسانی و بررسی اصلاحیه‌های رسمی الزامی است.',
+       'Year/subject matching does not prove key correctness; expert verification and official corrections are required.')));
+     root.append(review);
+   }
+   root.append(elt('p','',T(
+     'مجوز خصوصی تطبیق پاسخ‌نامه: ','Private key matching policy: ')+
+     (pairing?.ownerProposalPolicy?T('مجوز تنظیماتی روشن','Owner opt-in ON'):
+       T('خاموش','OFF'))));
    const states=Array.isArray(ka.jobStates)?ka.jobStates:[];
    const snapshotBox=elt('div','jr-exam-coverage-row');
    snapshotBox.append(elt('strong','',T('وضعیت واقعی کارهای ثبت‌شده',
