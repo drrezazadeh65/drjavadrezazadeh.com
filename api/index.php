@@ -93,6 +93,10 @@ function cfg(): array {
         // Separate OFF-by-default licence-gated JREI-KA scheduler consent.
         // Cron registers tasks only; no network fetching or model execution.
         'jrei_ka_schedule_enabled' => getenv('JR_JREI_KA_SCHEDULE_ENABLED') === 'true',
+        // Separate legal autonomous-fetch opt-in, OFF even when scheduling
+        // is enabled; private archived bytes must reside outside public_html.
+        'jrei_ka_autofetch_enabled' => getenv('JR_JREI_KA_AUTOFETCH_ENABLED') === 'true',
+        'jrei_ka_private_archive_dir' => (string)(getenv('JR_JREI_KA_PRIVATE_ARCHIVE_DIR') ?: ''),
         // Real AI inference: independent paid-provider credentials and
         // source-owned budget approval; entirely OFF until final acceptance.
         'jrei_live_ai_enabled' => getenv('JR_JREI_LIVE_AI_ENABLED') === 'true',
