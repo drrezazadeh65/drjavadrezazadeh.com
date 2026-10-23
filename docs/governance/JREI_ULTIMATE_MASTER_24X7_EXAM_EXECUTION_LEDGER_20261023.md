@@ -77,3 +77,14 @@ New source: api/jrei-exam-runtime-gates.php (adult self-owned subject and scoped
 Added existing-dashboard-linked fa/en/exams/my candidate pages, the shared private mobile MCQ client and responsive CSS. UI displays only server-confirmed autosaves and refuses to invent offline responses. All future rich-media items remain gated; they are NOT silently stripped. No new customer login, payment or assessment engine.
 
 IMPORTANT UNFINISHED: an additive private materialized raw-grade report table and owner-reviewed report retrieval were not committed because the GitHub write was rejected by tool safety checks in this continuation. The source-only existing eco_score_runs digest persistence must not be represented as a fully recoverable candidate report. The accepted end-stage QA and release remain NOT RUN. End-to-end item delivery, written-response marking, under-18 guardian workflow, authentic assessment material, validated payment, live schema migrations and real release all remain outstanding.
+
+
+## Source addition - commercial owner drafts and safe expiry review (23 October)
+
+The original MFA SUPER_ADMIN route now supports source-only exam DRAFT product creation, DRAFT offering scheduling and owner emergency SUSPENDED transitions. Operations remain audited and return a fresh mother-DB snapshot. No owner action publishes an exam, charges a customer, approves a science claim or automatically refunds a paid order.
+
+The default-OFF private JREI examination deadline reconciliation Cron marks attempts abandoned beyond the bounded 120-second finalization grace as TIMED_OUT_PENDING_REVIEW without creating scores, deleting student responses or altering orders. The existing bilingual owner console reports overdue in-progress attempts, pending reviews and active entitlements tied to suspended exams. Runtime must still be accepted before either switch may be enabled.
+
+The original scoring model now binds integer coefficients to a deterministic versioned SHA-256 fingerprint. Per-item source licence, independent scientific review, original prompt content, option identity and answer-key digest are rechecked before private question delivery. The original account resume path requires current active offering, purpose consent and entitlement. Uncertain autosaves block further local edits until authoritative server recovery; refresh clears old answers from browser memory.
+
+ALL new source is untested, undeployed and unauthorised for paid or personal-data production use. No database migration or Cron job ran.
