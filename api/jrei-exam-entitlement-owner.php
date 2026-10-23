@@ -108,6 +108,13 @@ function jrExamOwnerRevokeEntitlement(PDO $pdo,string $actor,array $body): array
         throw new InvalidArgumentException('invalid_exam_entitlement_revocation');
     $pdo->beginTransaction();
     try{
+        $find=$pdo->prepare('SELECT offering_id FROM jrei_exam_commercial_entitlements WHERE entitlement_id=?');
+        $find->execute([$id]);
+        $offering=$find->fetchColumn();
+        if(!is_string($offering))throw new DomainException('entitlement_not_found');
+        $lock=$pdo->prepare('SELECT offering_id FROM jrei_exam_commercial_offerings WHERE offering_id=? FOR UPDATE');
+        $lock->execute([$offering]);
+        if($lock->fetchColumn()===false)throw new DomainException('offering_not_found');
         $q=$pdo->prepare("SELECT e.offering_id,e.revision,e.state,
              e.revoked_at,e.grant_reason,e.verified_order_id,
              o.offering_state,p.product_state
