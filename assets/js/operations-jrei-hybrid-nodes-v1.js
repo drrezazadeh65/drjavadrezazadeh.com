@@ -182,7 +182,8 @@
      sourceVersion.addEventListener('submit',event=>{
        event.preventDefault();if(!visible()||busy||!sourceVersion.reportValidity())return;
        const source=approved[Number(sourcePick.value)];
-       if(!source)return;
+       const reportedAt=Date.parse(retrievedAt.value);
+       if(!source||!Number.isFinite(reportedAt)||reportedAt>Date.now()+90000)return;
        const mime={HTML:'text/html',TEXT:'text/plain',PDF:'application/pdf',
          JSON:'application/json'}[source.contentType];
        if(!confirmAction('هش و حجم نسخه را مستقل از سامانه بررسی کرده‌اید؟ این ثبت اثبات دانلود نیست.',
