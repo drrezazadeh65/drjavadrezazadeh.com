@@ -4,6 +4,7 @@ if(!defined('BERTINA_API_BOOTSTRAPPED')){http_response_code(404);exit;}
 require_once __DIR__.'/jrei-exam-source-release-impact.php';
 require_once __DIR__.'/jrei-exam-buyer-risk-exposure.php';
 require_once __DIR__.'/jrei-exam-preliminary-grade-owner-audit.php';
+require_once __DIR__.'/jrei-learning-evidence-accountability.php';
 
 /**
  * Evidence-only self-improvement detection from ACTUAL measured events.
@@ -142,6 +143,23 @@ function jrAiDetectImprovementOpportunities(PDO $pdo,array $cfg): array {
             ];
         }
     }catch(Throwable $e){}
+    // "Approved" is merely a stored human/workflow decision: if the
+    // recorded evaluation itself shows privacy, citation, fairness or
+    // sample-size hazards, require another independent investigation
+    // before any future scientific release. Never auto-rollback or deploy.
+    try{
+        $learning=jrJreiLearningOwnerEvidenceAccountability($pdo);
+        if($learning['available']===true){
+            $count=(int)$learning['acceptedDespiteRecordedHazard'];
+            if($count>0)$candidates[]=[
+                'rule'=>'APPROVED_LEARNING_EVIDENCE_HAZARDS',
+                'sourceKey'=>'JREI|DAILY_BENCHMARK_POLICY_COUNTS',
+                'count'=>$count,'severity'=>'HIGH',
+                'summary'=>'LEARNING_POLICY_EVIDENCE_NEEDS_INDEPENDENT_REVIEW'
+            ];
+        }
+    }catch(Throwable $e){}
+
     $out['realSourceSignalsScanned']=count($candidates);
     $stmt=$pdo->prepare("INSERT INTO jrei_ai_improvement_opportunities
        (opportunity_id,rule_code,rule_version,evidence_window_utc,
