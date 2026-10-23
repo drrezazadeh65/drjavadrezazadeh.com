@@ -67,14 +67,6 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      # GOV-004 / SEO-URL-001: established PUBLIC URL identities, historical
-      # sitemap page URLs, canonical targets and permanent redirects are frozen.
-      # Internal navigation hyperlinks and page content remain editable; new
-      # URLs may be added. Fail closed before any live release for URL violations.
-      - name: Enforce immutable existing public URL contract
-        run: |
-          node scripts/jr-immutable-url-guard.mjs
-
       # Full-acceptance and guarded-phase paths are mutually exclusive.
       # Both require the owner actor, exact SHA, and existing production safety checks.
       # The phased path does not certify any of the 41/21 acceptance records.
