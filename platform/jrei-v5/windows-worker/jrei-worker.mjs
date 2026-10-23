@@ -53,7 +53,14 @@ function protectKey(mode, file, plaintext='') {
     throw Error('WINDOWS_KEY_PATH_REQUIRED');
   // The executable and PowerShell script are fixed by this reviewed source,
   // never received from the job queue, model output or a browser response.
-  const r=spawnSync('powershell.exe',
+  // Use the trusted Windows executable by its absolute OS location, not
+  // PATH lookup, which could select a malicious powershell.exe.
+  const systemRoot=process.env.SystemRoot||process.env.windir;
+  if(typeof systemRoot!=='string'||!isAbsolute(systemRoot))
+    throw Error('WINDOWS_SYSTEM_ROOT_UNAVAILABLE');
+  const powershell=join(resolve(systemRoot),'System32',
+    'WindowsPowerShell','v1.0','powershell.exe');
+  const r=spawnSync(powershell,
     ['-NoProfile','-NonInteractive','-File',DPAPI,
      '-Mode',mode,'-KeyFile',file],
     {input:plaintext,encoding:'utf8',timeout:12000,maxBuffer:16384,
