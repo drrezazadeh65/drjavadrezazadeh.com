@@ -42,7 +42,19 @@
   }
   function render(snapshot){
     observed=snapshot;jobs.replaceChildren();summary.replaceChildren();
+    const registered=Array.isArray(snapshot.jobs)
+      ?snapshot.jobs.filter(j=>j?.registered===true).length:0;
+    const enabledRows=Array.isArray(snapshot.jobs)
+      ?snapshot.jobs.filter(j=>j?.enabled===true).length:0;
+    const reviewNeeded=Array.isArray(snapshot.jobs)
+      ?snapshot.jobs.filter(j=>j?.needsOwnerReview===true).length:0;
     const facts=[
+      [T('موتورهای ثبت‌شده در دیتابیس','Registered workers in mother DB'),
+       fmt.format(registered)+' / '+fmt.format(Array.isArray(snapshot.jobs)?snapshot.jobs.length:0)],
+      [T('سیاست‌های فعال؛ نه اثبات اجرای Cron','Enabled policies; NOT execution proof'),
+       fmt.format(enabledRows)],
+      [T('توقف‌های نیازمند بررسی مدیر','Rows awaiting manual review'),
+       fmt.format(reviewNeeded)],
       [T('وضعیت دیتابیس مادر','Mother-DB scheduling policy'),
        snapshot.schemaReady?T('جدول وجود دارد؛ آزمون نشده','Table present; not tested'):
          T('Migration تکمیلی لازم است','Additive migration required')],
@@ -68,10 +80,27 @@
       const title=el('h3','',en?job.nameEn:job.nameFa);
       const subtitle=el('span','jr-cron-id',job.jobId);
       header.append(title,subtitle);card.append(header);
-      const state=el('p','jr-cron-state',T('وضعیت آخر: ','Last recorded state: ')+
-          String(job.lastState||'unknown')+' · '+
-          T('آخرین پایان: ','Last finish: ')+clock(job.lastFinishedAt));
+      const stateNames={
+        never_run:T('هرگز اجرا نشده','Never run'),
+        not_registered:T('ثبت نشده','Not registered'),
+        running:T('در حال اجرا؛ فقط رکورد دیتابیس','Running; database state only'),
+        completed:T('پردازش پایان یافت؛ نتیجه خارجی تأیید نشده','Process exited; external effect unverified'),
+        failed:T('خطای اجرای فرایند','Process failed'),
+        unknown:T('نتیجه نامعلوم؛ تکرار ممنوع تا بازبینی','Unknown; retry blocked pending review'),
+        blocked:T('متوقف به دلیل محدودیت یا فقدان پیش‌نیاز','Blocked by missing prerequisite'),
+        reviewed:T('بازبینی ثبت‌شده؛ همچنان خاموش','Reviewed; still disabled')
+      };
+      const recorded=Object.prototype.hasOwnProperty.call(stateNames,job.lastState)
+        ?stateNames[job.lastState]:T('وضعیت تعریف‌نشده','Unrecognised state');
+      const state=el('p','jr-cron-state',T('آخرین وضعیت ثبت‌شده: ','Last recorded state: ')+recorded+
+        ' · '+T('آخرین شروع: ','Last start: ')+clock(job.lastStartedAt)+
+        ' · '+T('آخرین پایان: ','Last finish: ')+clock(job.lastFinishedAt));
       card.append(state);
+      const due=el('p','jr-cron-state',T('موعد بعدی در سیاست: ','Next recorded due time: ')+
+         clock(job.nextDueAt)+
+         ' · '+T('کد خروج: ','Exit code: ')+
+         (Number.isInteger(job.lastExitCode)?fmt.format(job.lastExitCode):T('نامعلوم','Unknown')));
+      card.append(due);
       if(job.needsOwnerReview){
         card.append(el('p','jr-cron-warning',
           T('اجرای قبلی ناموفق یا نامطمئن است. صرف ذخیره تنظیمات مجوز تکرار نمی‌دهد؛ باید ابتدا نتیجه خارجی کار مستقل بررسی و ثبت شود.',
