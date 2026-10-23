@@ -85,5 +85,24 @@
       "CLOSED"
     ],
     "admin_status_endpoint": null
+  },
+  "staged_real_model_runtime": {
+    "source_status": "SOURCE_COMMITTED_NOT_TESTED_NOT_DEPLOYED",
+    "actual_provider": "OPENAI_RESPONSES_API_SERVER_SIDE_OPTIONAL",
+    "cloud_provider_api_key_present_verified": false,
+    "api_subscription_is_separate_from_chatgpt_subscription": true,
+    "enabled_in_production": false,
+    "provider_credential_location": "BERTINA_PRIVATE_ENVIRONMENT_ONLY",
+    "budget_mother_sql": "docs/migrations/20261023_jrei_live_ai_budget_mother_mysql.sql",
+    "source_adapter": "api/jrei-ai-cloud-provider.php",
+    "source_coordinator": "api/jrei-ai-assistant-runtime.php",
+    "public_user_consent_required": true,
+    "automated_scientific_answer_certification": false,
+    "initial_public_context": "PUBLIC_SITE_SEARCH_INDEX_SUMMARIES_ONLY",
+    "original_private_learner_data_enabled": false,
+    "longitudinal_memory_enabled": false,
+    "existing_static_fallback_preserved": true,
+    "independent_live_model_quality_acceptance": "NOT_RUN",
+    "ultimate_binding": "docs/governance/JREI_AUTONOMOUS_EDUCATIONAL_INTELLIGENCE_ULTIMATE_VISION_BINDING_20261023.md"
   }
 }
