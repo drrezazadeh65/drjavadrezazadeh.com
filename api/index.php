@@ -110,6 +110,9 @@ function cfg(): array {
         // Credentials/policy alone cannot expose source-only AI to the public.
         // Release approval is independently OFF until the final acceptance.
         'jrei_public_ai_release_accepted' => getenv('JR_JREI_PUBLIC_AI_RELEASE_ACCEPTED') === 'true',
+        // Independently rights/peer-reviewed original passage RAG is
+        // separately OFF until archival source reviews and QA are accepted.
+        'jrei_ai_approved_passage_retrieval_enabled' => getenv('JR_JREI_AI_APPROVED_PASSAGE_RETRIEVAL_ENABLED') === 'true',
         'jrei_ai_openai_key' => (string)(getenv('JR_JREI_OPENAI_API_KEY') ?: ''),
         'jrei_ai_openai_model' => (string)(getenv('JR_JREI_OPENAI_MODEL') ?: ''),
         'jrei_ai_daily_call_limit' => (int)(getenv('JR_JREI_AI_DAILY_CALL_LIMIT') ?: 12),
