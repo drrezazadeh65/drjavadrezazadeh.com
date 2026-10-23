@@ -44,3 +44,8 @@ Official copyrighted paper/key permissions and acquisition; independent expert s
 All source development proceeds forward-only against actual branch files and the unchanged atomic ledger. No source-level feature is automatically accepted as working, scientifically validated or deployed. No tests, data migrations, unauthorized crawler runs, purchases, model downloads, payments or live deployments in the development phase. After source completion, run the ONE owner-approved consolidated end-stage acceptance matrix, remediate failures, then perform the existing authorized Bertina release.
 
 **State: unified programme binding added; implementation remains IN PROGRESS; tests and deployment NOT RUN.**
+
+
+## Additional ultimate owner directive — 24/7 acquisition and commercial examinations
+
+The later 23 October 2026 owner-uploaded ULTIMATE MASTER EXECUTION DIRECTIVE is **additive and binding in full**, not an override that deletes the original 117 atoms, existing bilingual website, security, published URLs, scientific research or hybrid-worker controls. Its 19 sections and 23 deliverables are traced with explicit SOURCE/PARTIAL/GATED states in [JREI Ultimate Master execution ledger](JREI_ULTIMATE_MASTER_24X7_EXAM_EXECUTION_LEDGER_20261023.md). Development is now coordinated across continuous lawful knowledge acquisition (JREI-KA), commercial Konkur/master's/doctoral exam product infrastructure, and the original two outbound Windows processing nodes. No test, real automatic crawl, database migration, payment activation or production deployment follows from this document.
