@@ -673,7 +673,10 @@
      SEPARATE_SOURCE_REVIEWER_REQUIRED:T('تأیید بازبین مستقل دیگری ضروری است','Separate source reviewer required'),
      SOURCE_AUTHORITY_REVIEW_INCOMPLETE:T('بازبینی اصالت منبع ناقص است','Source authority review incomplete'),
      INDEPENDENT_SOURCE_REVIEW_REQUIRED:T('بررسی مستقل منبع همچنان الزامی است',
-       'Independent source review remains necessary')
+       'Independent source review remains necessary'),
+     CURRICULUM_GRADE_ALIGNMENT_EVIDENCE_REQUIRED:T(
+       'مدرک مستقل انطباق پایه و شناسه برنامهٔ درسی ثبت نشده یا با منبع فعلی سازگار نیست',
+       'Independent curriculum-ID/grade evidence missing, revoked or stale')
    };
    const items=Array.isArray(queue.items)?queue.items.slice(0,60):[];
    if(!items.length)panel.append(elt('p','',T(
