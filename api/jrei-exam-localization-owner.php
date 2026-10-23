@@ -17,7 +17,9 @@ function jrExamOwnerLocalizedPromptAction(PDO $pdo,string $actor,array $body): a
     $sha='/^[a-f0-9]{64}$/D';
     try{
         $pdo->query('SELECT item_id,locale,object_ref_id,revision,
-          review_state FROM jrei_exam_item_prompt_localizations LIMIT 0');
+          review_state,translation_rights_evidence_sha256,
+          linguistic_equivalence_evidence_sha256
+          FROM jrei_exam_item_prompt_localizations LIMIT 0');
     }catch(Throwable $e){
         throw new DomainException('exam_localization_migration_required',0,$e);
     }
@@ -79,6 +81,19 @@ function jrExamOwnerLocalizedPromptAction(PDO $pdo,string $actor,array $body): a
         throw new InvalidArgumentException('unknown_exam_localization_action');
     $decision=$body['decision']??null;
     $expected=$body['expectedRevision']??null;
+    // These are human-provided DOCUMENT digests, not proof that the system
+    // inspected a licence. A reproduction licence alone may prohibit creating
+    // or distributing translations: separate documentary evidence is needed.
+    $rightsEvidence=$body['translationRightsEvidenceSha256']??null;
+    $languageEvidence=$body['linguisticEvidenceSha256']??null;
+    if($decision==='APPROVE'){
+        if(!is_string($rightsEvidence)||!preg_match($sha,$rightsEvidence)||
+           !is_string($languageEvidence)||!preg_match($sha,$languageEvidence)||
+           hash_equals($rightsEvidence,$languageEvidence))
+            throw new InvalidArgumentException('separate_translation_rights_and_language_evidence_required');
+    }elseif($rightsEvidence!==null||$languageEvidence!==null){
+        throw new InvalidArgumentException('withdrawal_must_not_introduce_new_evidence');
+    }
     if(!in_array($decision,['APPROVE','WITHDRAW'],true)||
        !is_int($expected)||$expected<1||
        ($body['confirmation']??null)!==
@@ -96,7 +111,9 @@ function jrExamOwnerLocalizedPromptAction(PDO $pdo,string $actor,array $body): a
             throw new DomainException('original_exam_item_missing');
         $q=$pdo->prepare('SELECT item_id,locale,object_ref_id,
           original_item_sha256,localized_manifest_sha256,
-          review_state,prepared_by_account_id,revision
+          review_state,prepared_by_account_id,revision,
+          translation_rights_evidence_sha256,
+          linguistic_equivalence_evidence_sha256
           FROM jrei_exam_item_prompt_localizations
           WHERE item_id=? AND locale=? FOR UPDATE');
         $q->execute([$id,$lang]);$row=$q->fetch(PDO::FETCH_ASSOC);
@@ -161,9 +178,14 @@ function jrExamOwnerLocalizedPromptAction(PDO $pdo,string $actor,array $body): a
         $now=time();$next=$decision==='APPROVE'?'APPROVED':'WITHDRAWN';
         $q=$pdo->prepare('UPDATE jrei_exam_item_prompt_localizations
           SET review_state=?,independently_reviewed_by_account_id=?,
-            reviewed_at=?,updated_at=?,revision=revision+1
+            reviewed_at=?,updated_at=?,revision=revision+1,
+            translation_rights_evidence_sha256=?,
+            linguistic_equivalence_evidence_sha256=?
           WHERE item_id=? AND locale=? AND revision=?');
-        $q->execute([$next,$actor,$now,$now,$id,$lang,$expected]);
+        $q->execute([$next,$actor,$now,$now,
+          $decision==='APPROVE'?$rightsEvidence:null,
+          $decision==='APPROVE'?$languageEvidence:null,
+          $id,$lang,$expected]);
         if($q->rowCount()!==1)
             throw new DomainException('localized_review_concurrency_conflict');
         operationsAudit($pdo,$actor,$decision==='APPROVE'?
