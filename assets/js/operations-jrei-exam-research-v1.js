@@ -1668,6 +1668,31 @@
          'No; independently verified generative permission and execution are absent')));
      sections.append(box);
    }
+   const educational=ai.publicEducationToolRouting;
+   if(educational?.schema==='jr.jrei.educational-tool-routing-readiness.v1'){
+     const panel=elt('details','jr-exam-subsection');
+     panel.append(elt('summary','',T(
+       'هماهنگ‌سازی ابزارهای آموزشی عمومی با گفت‌وگوی مستند',
+       'Public learning-tool navigation within evidence-guided dialogue')));
+     panel.append(elt('p','',T(
+       'راهبری فعلی صرفاً به صفحات واقعی Golden Talent، BAHAR، RCAS و انتخاب مسیر آموزشی انجام می‌شود. هیچ نمره، استعدادیابی تشخیصی، حافظهٔ فردی یا ارزیابی خصوصی به مدل فرستاده نمی‌شود. اتصال مسیر به رابط عمومی هنوز نیازمند آزمایش یکپارچه است.',
+       'Current tool routing selects real public Golden Talent, BAHAR, RCAS and academic-pathway pages only. No scores, diagnoses, longitudinal private learner data or assessment records are sent to a model. Live integration still requires final acceptance.')));
+     for(const route of Array.isArray(educational.routes)?
+        educational.routes.slice(0,4):[]){
+       const row=elt('div','jr-exam-coverage-row');
+       row.append(elt('strong','',String(route.code||'').slice(0,50)));
+       row.append(elt('span','',
+          T('صفحهٔ فارسی: ','Persian page: ')+
+          (route.persianPagePresent?T('موجود در کد','File present'):T('ناموجود','Missing'))+
+          ' · '+T('صفحهٔ انگلیسی: ','English page: ')+
+          (route.englishPagePresent?T('موجود در کد','File present'):T('ناموجود','Missing'))));
+       panel.append(row);
+     }
+     if(!educational.indexPresent)panel.append(elt('p','',T(
+       'فهرست اصلی صفحات عمومی دردسترس نیست و این مسیر نباید فعال شود.',
+       'Public page index unavailable; navigation routing must remain blocked.')));
+     sections.append(panel);
+   }
    const approvedQuotes=ai.independentlyAttestedQuoteCounts;
    fact(T('نقل‌قول‌های دارای مجوز مستقل و منبع معتبر',
      'Independently attested current licensed source excerpts'),
