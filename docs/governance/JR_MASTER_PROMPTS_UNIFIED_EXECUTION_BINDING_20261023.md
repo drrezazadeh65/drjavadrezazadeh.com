@@ -49,3 +49,8 @@ All source development proceeds forward-only against actual branch files and the
 ## Additional ultimate owner directive — 24/7 acquisition and commercial examinations
 
 The later 23 October 2026 owner-uploaded ULTIMATE MASTER EXECUTION DIRECTIVE is **additive and binding in full**, not an override that deletes the original 117 atoms, existing bilingual website, security, published URLs, scientific research or hybrid-worker controls. Its 19 sections and 23 deliverables are traced with explicit SOURCE/PARTIAL/GATED states in [JREI Ultimate Master execution ledger](JREI_ULTIMATE_MASTER_24X7_EXAM_EXECUTION_LEDGER_20261023.md). Development is now coordinated across continuous lawful knowledge acquisition (JREI-KA), commercial Konkur/master's/doctoral exam product infrastructure, and the original two outbound Windows processing nodes. No test, real automatic crawl, database migration, payment activation or production deployment follows from this document.
+
+
+#### Candidate attempt implementation continuation (23 Oct 2026)
+
+Original-account adult-consented, payment-claim-bound exam attempt creation, server-only deadlines, conflict-safe original response persistence, original eco_score_runs submission, SHA-verified private plain-text item delivery, dual-OFF runtime configuration, private /api/exams/attempt, /api/exams/items, /api/exams/result, and bilingual /fa/exams/my/ /en/exams/my/ workspace links are committed as SOURCE. A score is recoverable only while the original source answers, key and scoring-policy hashes still match; no duplicate student/score database. Safe paid rollout, source rights, guardian consent, media transport, real product entitlements, final integrated verification and deployment remain separate GATED tasks.
