@@ -34,7 +34,7 @@ $work=dirname(__DIR__).'/work';if(!is_dir($work))mkdir($work,0700,true);$folder=
 foreach(['index.php','commerce-stage9.php','publishing.php','publishing-onboarding.php','consultation-delivery.php','consultation-availability.php','operations.php','operations-jhela.php','jhela-native-editorial.php','jhela-intake.php','operations-commerce.php','operations-educational-offers.php','operations-education-price-drafts.php',
 'operations-education-release-gates.php','operations-education-source-review.php',
 'operations-education-readiness.php','operations-education-privacy.php',
-'operations-education-workbook-policy.php','operations-education-adult-review.php',
+'operations-education-workbook-policy.php','bahar-private-workbook.php','operations-education-adult-review.php',
 'operations-education-interests.php','education-interest.php',
 'bahar-private-workbook.php','jrei-hybrid-worker.php','konkur-admission.php',
 'operations-cron-dispatcher.php','jrei-learning-operations.php',
