@@ -1190,7 +1190,7 @@
              'این نمره‌ها حاصل ارزیابی واقعی و مستقل شماست و اعتبار جهانی مدل را ثابت نمی‌کند. تأیید؟',
              'These are your own independent observed ratings, not proof of global model validity. Confirm?')))return;
            mutate({action:'ai_expert_grade_benchmark',
-             runId:entry.runId,
+             runId:entry.runId,answerSha256:entry.answerSha256,
              factual:Number(selects[0].value),citations:Number(selects[1].value),
              pedagogy:Number(selects[2].value),safety:Number(selects[3].value),
              expertReviewEvidenceSha256:evidence.value,
