@@ -70,6 +70,7 @@ function jrKaPinnedGet(string $url,int $maximumBytes,
     $handle=curl_init($url);
     if($handle===false)throw new DomainException('ka_curl_unavailable');
     $bytes='';$mime=null;$declared=null;$overflow=false;
+    $encoding='identity';
     $write=static function($ch,string $chunk) use (&$bytes,
        &$overflow,$maximumBytes): int {
         if(strlen($bytes)+strlen($chunk)>$maximumBytes){
@@ -78,12 +79,14 @@ function jrKaPinnedGet(string $url,int $maximumBytes,
         $bytes.=$chunk;
         return strlen($chunk);
     };
-    $headers=static function($ch,string $line) use (&$mime,&$declared): int {
+    $headers=static function($ch,string $line) use (&$mime,&$declared,&$encoding): int {
         $text=trim($line);
         if(stripos($text,'content-type:')===0)
             $mime=strtolower(trim(explode(';',substr($text,13),2)[0]));
         if(stripos($text,'content-length:')===0)
             $declared=trim(substr($text,15));
+        if(stripos($text,'content-encoding:')===0)
+            $encoding=strtolower(trim(substr($text,17));
         return strlen($line);
     };
     curl_setopt_array($handle,[
@@ -113,6 +116,7 @@ function jrKaPinnedGet(string $url,int $maximumBytes,
     }finally{curl_close($handle);}
     if($success===false||$overflow||$status!==200||
        $tls!==$url||$bytes===''||
+       $encoding!=='identity'||
        !in_array($mime,$allowedMime,true)||
        $declared!==null&&(!ctype_digit($declared)||
          (int)$declared!==strlen($bytes)))
