@@ -1046,6 +1046,13 @@
    fact(T('رزرو درخواست مدل در روز جاری','Cloud-model calls reserved today'),
      ai.reservedToday?safeCount(ai.reservedToday.calls):
        T('نامعلوم؛ مهاجرت مصوب لازم است','Unknown; approved migration pending'));
+   const approvedQuotes=ai.independentlyAttestedQuoteCounts;
+   fact(T('نقل‌قول‌های دارای مجوز مستقل و منبع معتبر',
+     'Independently attested current licensed source excerpts'),
+     approvedQuotes?.available?
+       safeCount(approvedQuotes.eligibleCurrentSourceQuotes):
+       T('نامعلوم؛ جداول بازبینی هنوز پذیرفته نشده',
+         'Unknown; quotation-review schema not accepted'));
    const observed=ai.observedProviderOutcomes;
    fact(T('پاسخ‌های تکمیل‌شدهٔ ثبت‌شده (۷ روز)',
        'Recorded completed provider responses (7 days)'),
