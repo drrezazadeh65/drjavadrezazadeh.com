@@ -118,6 +118,15 @@ function jrKaOwnerSnapshot(PDO $pdo,array $cfg): array {
       'schema'=>'jr.jrei.ka-owner.v1',
       'schemaReady'=>$ready,
       'privateScheduleOptIn'=>($cfg['jrei_ka_schedule_enabled']??false)===true,
+      'privateAutoFetchOptIn'=>($cfg['jrei_ka_autofetch_enabled']??false)===true,
+      'acquisitionObservability'=>[
+        'schemaReady'=>false,'observationCount'=>null,
+        'pendingScientificReview'=>null,'recordedBytes'=>null,
+        'candidateCount'=>null,'candidatesPendingRightsReview'=>null,
+        'bytesReservedToday'=>null,'sourceCandidatePreview'=>[],
+        'actualContinuousAcquisitionValidated'=>false,
+        'actualOcrValidated'=>false
+      ],
       'controls'=>null,'jobStates'=>null,'approvedSources'=>null,
       'sourcePolicies'=>null,
       'nextDueAt'=>null,'realCrawlerVerified'=>false,
@@ -176,5 +185,49 @@ function jrKaOwnerSnapshot(PDO $pdo,array $cfg): array {
     $r=$q->fetch(PDO::FETCH_ASSOC);
     $out['approvedSources']=(int)($r['n']??0);
     $out['nextDueAt']=$r['due']===null?null:(int)$r['due'];
+    try{
+        foreach([
+          'SELECT observation_id,state,bytes_total FROM jrei_ka_private_observations LIMIT 0',
+          'SELECT candidate_id,state,candidate_url FROM jrei_ka_discovery_candidates LIMIT 0',
+          'SELECT reservation_day,reserved_bytes FROM jrei_ka_daily_transfer_reservations LIMIT 0'
+        ] as $sql)$pdo->query($sql);
+        $summary=&$out['acquisitionObservability'];
+        $summary['schemaReady']=true;
+        $q=$pdo->query("SELECT COUNT(*) AS total,
+            COALESCE(SUM(bytes_total),0) AS bytes,
+            COALESCE(SUM(CASE WHEN state='PENDING_SCIENTIFIC_REVIEW' THEN 1 ELSE 0 END),0) AS pending
+            FROM jrei_ka_private_observations");
+        $r=$q->fetch(PDO::FETCH_ASSOC);
+        $summary['observationCount']=(int)$r['total'];
+        $summary['recordedBytes']=(int)$r['bytes'];
+        $summary['pendingScientificReview']=(int)$r['pending'];
+        $q=$pdo->query("SELECT COUNT(*) AS total,
+          COALESCE(SUM(CASE WHEN state='DISCOVERED_REQUIRES_RIGHTS_REVIEW'
+            THEN 1 ELSE 0 END),0) AS pending
+          FROM jrei_ka_discovery_candidates");
+        $r=$q->fetch(PDO::FETCH_ASSOC);
+        $summary['candidateCount']=(int)$r['total'];
+        $summary['candidatesPendingRightsReview']=(int)$r['pending'];
+        $q=$pdo->prepare("SELECT COALESCE(SUM(reserved_bytes),0)
+           FROM jrei_ka_daily_transfer_reservations WHERE reservation_day=?");
+        $q->execute([gmdate('Y-m-d')]);
+        $summary['bytesReservedToday']=(int)$q->fetchColumn();
+        $q=$pdo->query("SELECT candidate_id,candidate_url,candidate_label,
+            seed_source_id,state,last_discovered_at
+            FROM jrei_ka_discovery_candidates
+            ORDER BY last_discovered_at DESC,candidate_id DESC LIMIT 20");
+        foreach($q as $row)$summary['sourceCandidatePreview'][]=[
+          'candidateId'=>$row['candidate_id'],
+          'sourceId'=>$row['seed_source_id'],
+          'url'=>$row['candidate_url'],
+          'label'=>$row['candidate_label'],
+          'state'=>$row['state'],
+          'lastDiscoveredAt'=>(int)$row['last_discovered_at']
+        ];
+    }catch(Throwable $e){
+        // Missing migration is UNKNOWN, never a zero-count success.
+        $out['acquisitionObservability']['schemaReady']=false;
+        $out['acquisitionObservability']['sourceCandidatePreview']=[];
+    }
     return $out;
 }
