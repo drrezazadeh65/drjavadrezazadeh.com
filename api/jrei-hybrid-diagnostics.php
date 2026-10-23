@@ -3,82 +3,84 @@ declare(strict_types=1);
 if(!defined('BERTINA_API_BOOTSTRAPPED')){http_response_code(404);exit;}
 
 /**
- * Explain observed dispatch readiness WITHOUT attempting a lease or running
- * an evaluation. This is purely an owner-facing source-owned projection.
- *
- * A matching digest ADVERTISEMENT is never called a verified dataset file.
- * Only real end-to-end acceptance may establish successful processing.
+ * Read-only explanation of signed-node lease eligibility.
+ * Every match is a DECLARATION, not verified local file possession; no
+ * diagnosis can certify scientific validity, model uptime or final acceptance.
  */
-function jrHybridOwnerDispatchDiagnostics(array $snapshot): array {
-    $result=['schema'=>'jr.jrei.dispatch-diagnostics.v1',
-      'scientificallyValidated'=>false,
-      'realProcessingEndToEndVerified'=>false,'nodes'=>[]];
+function jrHybridOwnerDispatchDiagnostics(PDO $pdo,array $snapshot): array {
+    $rows=[];
     $nodes=is_array($snapshot['nodes']??null)?$snapshot['nodes']:[];
-    $offers=is_array($snapshot['nodeOffers']??null)?
-      $snapshot['nodeOffers']:[];
-    $jobs=is_array($snapshot['jobs']??null)?$snapshot['jobs']:[];
-    $records=is_array($snapshot['datasets']??null)?
-      $snapshot['datasets']:[];
-    $active=[];
-    foreach($records as $r)if(($r['status']??null)==='APPROVED')
-        $active[]=$r;
-    foreach($nodes as $node){
-        $id=$node['nodeId']??null;
-        if(!is_string($id))continue;
-        $owned=[];
-        foreach($offers as $offer)
-            if(($offer['nodeId']??null)===$id)
-                $owned[]=$offer;
-        $compatible=[];
-        foreach($owned as $offer)
-            if(($offer['matchesApprovedVersion']??false)===true)
-                $compatible[]=$offer;
-        $reason=null;
-        if(($snapshot['backendEnabled']??null)!==true)
-            $reason='PRIVATE_BACKEND_DISABLED';
-        elseif(($node['revoked']??false)===true)
-            $reason='WORKER_KEY_REVOKED';
-        elseif(($node['ownerEnabled']??false)!==true)
-            $reason='OWNER_NODE_DISABLED';
-        elseif(($node['state']??null)==='OFFLINE')
-            $reason='NO_RECENT_SIGNED_HEARTBEAT';
-        elseif(($node['state']??null)==='MAINTENANCE')
-            $reason='WORKER_MAINTENANCE';
-        elseif(($node['state']??null)==='BUSY')
-            $reason='WORKER_BUSY_OR_RESOURCE_LIMIT';
-        elseif(($node['state']??null)!=='ONLINE'&&
-               ($node['state']??null)!=='DEGRADED')
-            $reason='WORKER_STATE_UNCONFIRMED';
-        elseif(($snapshot['catalogueReady']??false)!==true)
-            $reason='GOVERNED_CORPUS_MIGRATION_NOT_APPLIED';
-        elseif(!$active)
-            $reason='NO_APPROVED_PUBLIC_CORPUS';
-        elseif(($snapshot['nodeOffersAvailable']??false)!==true)
-            $reason='WORKER_OFFER_REGISTRY_UNAVAILABLE';
-        elseif(!$owned)
-            $reason='WORKER_HAS_NO_RECENT_CORPUS_DECLARATION';
-        elseif(!$compatible)
-            $reason='NODE_DATASET_VERSION_OR_HASH_NOT_APPROVED';
+    $offers=is_array($snapshot['nodeOffers']??null)?$snapshot['nodeOffers']:[];
+    $catalogue=($snapshot['catalogueReady']??false)===true;
+    $offersReady=($snapshot['nodeOffersAvailable']??false)===true;
+    $now=time();
+    foreach($nodes as $n){
+        $id=$n['nodeId']??null;
+        if(!jrHybridUuid($id))continue;
+        $state=$n['state']??null;
+        $reason=null;$matching=0;
+        if(($snapshot['backendEnabled']??false)!==true)
+            $reason='BACKEND_DISABLED';
+        elseif(($n['revoked']??false)===true)
+            $reason='NODE_REVOKED';
+        elseif(($n['ownerEnabled']??false)!==true)
+            $reason='OWNER_DISABLED';
+        elseif($state==='OFFLINE')
+            $reason='NODE_OFFLINE';
+        elseif($state==='BUSY')
+            $reason='NODE_REPORTS_BUSY';
+        elseif(!in_array($state,['ONLINE','DEGRADED'],true))
+            $reason='NODE_NOT_ELIGIBLE';
+        elseif(!$catalogue)
+            $reason='CATALOGUE_NOT_MIGRATED';
+        elseif(!$offersReady)
+            $reason='OFFER_RECORDS_NOT_AVAILABLE';
         else{
-            $queueMatched=false;
-            foreach($jobs as $job){
-                if(($job['status']??null)!=='QUEUED')continue;
-                foreach($compatible as $offer){
-                    if(($job['datasetId']??null)===$offer['datasetId']&&
-                       ($job['evaluationVersion']??null)===$offer['evaluationVersion']){
-                        $queueMatched=true;break 2;
+            $q=$pdo->prepare("SELECT COUNT(*) FROM jrei_hybrid_jobs
+                WHERE status='LEASED' AND leased_to_node=?
+                AND lease_expires_at>=?");
+            $q->execute([$id,$now]);
+            if((int)$q->fetchColumn()>0){
+                $reason='WORKER_HAS_ACTIVE_LEASE';
+            }else{
+                $hasMatchedOffer=false;
+                foreach($offers as $offer)
+                    if(($offer['nodeId']??null)===$id&&
+                       ($offer['matchesApprovedVersion']??false)===true){
+                        $hasMatchedOffer=true;break;
                     }
+                if(!$hasMatchedOffer){
+                    $reason='NO_APPROVED_LOCAL_CORPUS';
+                }else{
+                    // Direct mother-DB join avoids false "empty queue" when
+                    // relevant queued jobs fall outside the recent UI list.
+                    $q=$pdo->prepare("SELECT COUNT(*) FROM jrei_hybrid_jobs j
+                        INNER JOIN jrei_hybrid_node_offers o
+                          ON o.dataset_id=j.requested_dataset_id
+                         AND o.dataset_sha256=j.dataset_sha256
+                         AND o.evidence_sha256=j.evidence_sha256
+                         AND o.evaluation_version=j.evaluation_version
+                        INNER JOIN jrei_hybrid_public_datasets d
+                          ON d.dataset_id=o.dataset_id
+                         AND d.evaluation_version=o.evaluation_version
+                         AND d.dataset_sha256=o.dataset_sha256
+                         AND d.evidence_sha256=o.evidence_sha256
+                        WHERE o.node_id=? AND o.last_advertised_at>=?
+                          AND d.status='APPROVED' AND j.status='QUEUED'
+                          AND j.expires_at>=?");
+                    $q->execute([$id,$now-120,$now]);
+                    $matching=(int)$q->fetchColumn();
+                    $reason=$matching>0?'APPROVED_JOB_WAITING_FOR_POLL':
+                       'NO_QUEUED_JOB_FOR_LOCAL_CORPUS';
                 }
             }
-            $reason=$queueMatched?'CAN_ATTEMPT_APPROVED_LEASE':
-              'NO_MATCHING_QUEUED_EVALUATION';
         }
-        $result['nodes'][]=[
-          'nodeId'=>$id,'reason'=>$reason,
-          'matchingDatasetDeclarations'=>count($compatible),
-          'advertisedDatasetDeclarations'=>count($owned),
-          'leaseGuaranteed'=>false,'locallyInstalledCorpusVerified'=>false
+        $rows[]=[
+          'nodeId'=>$id,'reasonCode'=>$reason,
+          'matchingQueuedJobCount'=>$matching,
+          'independentlyVerifiedLocalDataset'=>false,
+          'leaseGuaranteed'=>false,'modelInferenceVerified'=>false
         ];
     }
-    return $result;
+    return $rows;
 }
