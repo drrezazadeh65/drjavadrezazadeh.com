@@ -43,6 +43,7 @@ function jrExamOwnerPreliminaryGradeEvidence(PDO $pdo): array {
             OR s.scoring_model_id<>g.scoring_model_id
             OR s.input_sha256<>g.submission_sha256
             OR s.output_sha256<>g.output_sha256
+            OR s.state<>'UNREVIEWED'
             OR a.submission_digest<>g.submission_sha256
             THEN 1 ELSE 0 END),0) AS inconsistent,
           COALESCE(SUM(CASE WHEN g.status<>'PRELIMINARY_UNREVIEWED'
