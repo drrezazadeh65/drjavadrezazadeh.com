@@ -2,6 +2,7 @@
 declare(strict_types=1);
 if(!defined('BERTINA_API_BOOTSTRAPPED')){http_response_code(404);exit;}
 require_once __DIR__.'/jrei-exam-source-release-impact.php';
+require_once __DIR__.'/jrei-exam-buyer-risk-exposure.php';
 require_once __DIR__.'/jrei-exam-preliminary-grade-owner-audit.php';
 
 /**
@@ -126,6 +127,21 @@ function jrAiDetectImprovementOpportunities(PDO $pdo,array $cfg): array {
         }
     }catch(Throwable $e){}
 
+    // An actual recorded learner-service exposure deserves independent
+    // owner review but is never an automatic refund, identity export or
+    // a claim that a particular paid consumer is legally owed an amount.
+    try{
+        $buyerRisk=jrExamOwnerAtRiskBuyerObligations($pdo);
+        if($buyerRisk['available']===true){
+            $count=(int)$buyerRisk['activeEntitlementsOnAtRiskPublishedProducts'];
+            if($count>0)$candidates[]=[
+              'rule'=>'EXAM_BUYER_SERVICE_OBLIGATIONS',
+              'sourceKey'=>'EXAM|ACTIVE_ACCESS_SOURCE_REVIEW',
+              'count'=>$count,'severity'=>'HIGH',
+              'summary'=>'OWNER_BUYER_REMEDY_WORKFLOW_NEEDS_REVIEW'
+            ];
+        }
+    }catch(Throwable $e){}
     $out['realSourceSignalsScanned']=count($candidates);
     $stmt=$pdo->prepare("INSERT INTO jrei_ai_improvement_opportunities
        (opportunity_id,rule_code,rule_version,evidence_window_utc,
