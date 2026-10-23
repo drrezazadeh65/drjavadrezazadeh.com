@@ -76,6 +76,8 @@ function cfg(): array {
         // Separate, default-OFF switch for reviewed exam catalogue metadata.
         // It NEVER opens checkout or public response/answer delivery by itself.
         'jrei_exam_commercial_enabled' => getenv('JR_JREI_EXAM_COMMERCIAL_ENABLED') === 'true',
+        // Independent default-OFF owner-issued verified order entitlement gate.
+        'jrei_exam_verified_entitlement_grants_enabled' => getenv('JR_JREI_EXAM_VERIFIED_ENTITLEMENT_GRANTS_ENABLED') === 'true',
         // Independent OFF switches. An owner must approve real immutable
         // question delivery and final security/payment acceptance as well.
         'jrei_exam_runtime_enabled' => getenv('JR_JREI_EXAM_RUNTIME_ENABLED') === 'true',
