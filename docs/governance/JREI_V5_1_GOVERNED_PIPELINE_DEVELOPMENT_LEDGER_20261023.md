@@ -116,3 +116,10 @@ A previous failure mode allowed orphaned job leases to remain in LEASED state if
 At final owner-authorized QA only, exercise cross-process lock ordering, lease expiry/null metadata, owner disable/revoke during poll/completion, dataset suspension during completion, zero-worker periods, duplicate idempotency keys, unknown completion after node disconnection, incident alert transitions, exact reasons and append-only review history. Verify that the original commerce, identity, source, SEO/GEO and admin MFA functions remain unaffected.
 
 **Status:** all described source changes are committed to the development branch, but no intermediate tests, new migration, Cron execution, production rollout or scientific evaluation was performed in this continuation.
+
+
+## Full owner master prompt binding and exam coverage bridge
+
+The owner explicitly directed implementation of the **entire** prior 117-atomic integrated master, not only its Hybrid JREI subset. The single source-of-truth binding is docs/governance/JR_MASTER_PROMPTS_UNIFIED_EXECUTION_BINDING_20261023.md. Original monetisation, payment, bilingual mobile UI, Golden Talent, RCAS, BAHAR, Admission Intelligence, Choice Studio, Golden Path, data/privacy and SEO requirements remain in scope, with independent scientific/financial/legal acceptance unchanged.
+
+In source only, api/jrei-exam-coverage-readiness.php now projects actual existing mother-DB examination source metadata grouped by level, year, exam category, rights, answer-key status and review stage. It is mounted through api/jrei-exam-research-owner.php and the existing bilingual operations-jrei-exam-research-v1.js owner panel. The query is bounded and reports unavailable schema as unknown; it cannot independently verify answer correctness, reuse rights or full national exam coverage. The UI is not a public source catalogue or working crawler. No intermediate tests, DB migrations or deploys were executed.
