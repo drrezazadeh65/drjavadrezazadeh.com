@@ -4,6 +4,7 @@ if(!defined('BERTINA_API_BOOTSTRAPPED')){http_response_code(404);exit;}
 require_once __DIR__.'/jrei-ai-cloud-provider.php';
 require_once __DIR__.'/jrei-ai-provider-telemetry.php';
 require_once __DIR__.'/jrei-ai-reviewed-passages.php';
+require_once __DIR__.'/jrei-ai-governed-benchmarks.php';
 
 /**
  * Real-source model readiness for original MFA owner command centre.
