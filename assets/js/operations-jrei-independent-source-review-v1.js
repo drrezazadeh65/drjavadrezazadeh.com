@@ -323,6 +323,63 @@
    if(review.truncated)panel.append(make('p','ops-muted',T(
      'صف ۳۰ رکورد محدود است؛ نمایش به معنی کامل‌بودن فهرست نیست.',
      'The queue shows at most 30 records; it is not a complete inventory.')));
+   const active=Array.isArray(review.activeAttestations)?
+     review.activeAttestations.slice(0,20):[];
+   const revisions=make('details','jr-exam-subsection');
+   revisions.append(make('summary','',T(
+     'لغو آگاهانهٔ گواهی‌های قبلی انطباق (حفظ تاریخچه)',
+     'Explicitly revoke prior curriculum/grade attestations (retain history)')));
+   revisions.append(make('p','ops-muted',T(
+     'حتی گواهی قبلی نیز ممکن است با تغییر منبع یا اصلاح برنامهٔ درسی اعتبار خود را از دست بدهد. لغو این گواهی فقط انطباق فراداده را از پوشش حذف می‌کند.',
+     'Previously accepted metadata can become inaccurate. Revocation removes its coverage eligibility but preserves the source and decision history.')));
+   if(!active.length)revisions.append(make('p','ops-muted',T(
+     'گواهی ثبت‌شده‌ای برای لغو وجود ندارد.',
+     'No current recorded attestation available for revocation.')));
+   for(const item of active){
+     if(!isUuid(item.requirementId)||!isUuid(item.sourceId)||
+        !Number.isSafeInteger(item.revision))continue;
+     const card=make('article','jr-exam-coverage-row');
+     card.append(make('strong','',[
+       item.country,item.curriculum,item.level,
+       item.grade>0?item.grade:null,item.year,item.subject,
+       item.expectedKind
+     ].filter(v=>v!==null&&v!==undefined).join(' · ').slice(0,250)));
+     card.append(make('span','',String(item.sourceTitle||'').slice(0,150)));
+     const form=make('form','jr-exam-coverage-form');
+     const label=make('label','',T('علت لغو گواهی','Reason for revocation'));
+     const reasons=make('select');
+     for(const [value,text] of [
+       ['OFFICIAL_CORRECTION_REQUIRED',T('اصلاحیه رسمی نیازمند بررسی','Official correction required')],
+       ['GRADE_SCOPE_MISMATCH',T('عدم انطباق پایه','Grade mismatch')],
+       ['UNVERIFIED_CURRICULUM_ID',T('شناسه درسی تأیید نشده','Curriculum ID unverified')],
+       ['SOURCE_SUPERSEDED',T('منبع جایگزین شده','Source superseded')],
+       ['ISSUER_EVIDENCE_INCOMPLETE',T('مدرک قبلی ناکافی است','Earlier evidence incomplete')]
+     ]){
+       const option=make('option','',text);option.value=value;reasons.append(option);
+     }
+     label.append(reasons);
+     const btn=make('button','jr-exam-emergency',T(
+       'لغو گواهی با ثبت سابقه','Revoke attestation with audit trail'));
+     btn.type='submit';
+     form.append(label,btn);
+     form.addEventListener('submit',event=>{
+       event.preventDefault();
+       if(!active()||busy||!form.reportValidity())return;
+       if(!window.confirm(T(
+         'این گواهی را لغو و تاریخچه را حفظ می‌کنید؟ هیچ سند اصلی حذف نمی‌شود.',
+         'Revoke this metadata attestation while preserving source and history?')))return;
+       mutate({action:'review_curriculum_grade',
+         requirementId:item.requirementId,sourceId:item.sourceId,
+         revision:item.revision,decision:'REVOKED_SCOPE_ALIGNMENT',
+         reasonCode:reasons.value,evidenceSha256:null,
+         confirmation:'REVIEW_CURRICULUM_GRADE_HUMAN_EVIDENCE'});
+     });
+     card.append(form);revisions.append(card);
+   }
+   if(review.activeTruncated)revisions.append(make('p','ops-muted',T(
+     'فقط ۲۰ گواهی اخیر نمایش داده شده است.',
+     'Only the latest 20 attestations are shown.')));
+   panel.append(revisions);
    entries.append(panel);
  }
  async function load(){
