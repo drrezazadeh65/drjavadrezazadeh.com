@@ -84,7 +84,9 @@ function jrKaReadPassageEvidence(PDO $pdo,array $cfg,string $passageId): array {
 function jrKaOwnerPublicQuoteQueue(PDO $pdo,array $cfg): array {
     $result=['schema'=>'jr.jrei.public-quote-review.v1',
        'available'=>false,'pendingCount'=>null,'examples'=>[],
-       'truncated'=>false,'publicCitationEvidenceValidated'=>false,
+       'truncated'=>false,'approvedQuoteCount'=>null,
+       'approvedQuotes'=>[],'approvedQuotesTruncated'=>false,
+       'publicCitationEvidenceValidated'=>false,
        'scientificClaimsIndependentlyEntailed'=>false];
     if(!jrKaPublicQuoteReviewSchemaReady($pdo))return $result;
     try{
@@ -97,6 +99,24 @@ function jrKaOwnerPublicQuoteQueue(PDO $pdo,array $cfg): array {
         $rows=$q->fetchAll(PDO::FETCH_COLUMN);
         $result['available']=true;
         $result['truncated']=count($rows)>8;
+        $q=$pdo->query("SELECT COUNT(*) FROM jrei_ka_private_passages
+            WHERE passage_state='APPROVED_PUBLIC_AI_EVIDENCE'
+              AND review_rights_state='PERMITTED_PUBLIC_QUOTE'");
+        $result['approvedQuoteCount']=(int)$q->fetchColumn();
+        $q=$pdo->query("SELECT p.passage_id,s.source_title
+           FROM jrei_ka_private_passages p
+           JOIN jrei_exam_sources s ON s.source_id=p.source_id
+           WHERE p.passage_state='APPROVED_PUBLIC_AI_EVIDENCE'
+             AND p.review_rights_state='PERMITTED_PUBLIC_QUOTE'
+           ORDER BY p.reviewed_at DESC,p.passage_id LIMIT 21");
+        $approved=$q->fetchAll(PDO::FETCH_ASSOC);
+        $result['approvedQuotesTruncated']=count($approved)>20;
+        foreach(array_slice($approved,0,20) as $item)
+           $result['approvedQuotes'][]=[
+              'passageId'=>$item['passage_id'],
+              'title'=>$item['source_title'],
+              'revocationNeedsReason'=>true
+           ];
         foreach(array_slice($rows,0,8) as $id) {
             try{
                 $info=jrKaReadPassageEvidence($pdo,$cfg,$id);
