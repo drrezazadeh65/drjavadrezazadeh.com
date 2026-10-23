@@ -50,7 +50,7 @@ function jrJreiLearningOwnerEvidenceAccountability(PDO $pdo): array {
              AND (sample_count<? OR privacy_incident_count>0
               OR challenger_unsupported>baseline_unsupported
               OR challenger_fairness_gap_bps>baseline_fairness_gap_bps
-              OR challenger_correct<=baseline_correct)
+              OR challenger_p95_ms>baseline_p95_ms OR challenger_correct<=baseline_correct)
              THEN 1 ELSE 0 END),0) AS approved_hazards
           FROM jrei_learning_proposals");
         $q->execute([$min,$min]);
