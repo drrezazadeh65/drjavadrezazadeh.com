@@ -71,6 +71,19 @@ function assertReviewedCases(cases,ids){
       expectedEvidenceIds:Object.freeze([...new Set(c.expectedEvidenceIds)])});
   });
 }
+/**
+ * Reproduce the exact aggregate fingerprint of the approved local bundle.
+ * Fingerprints are over validated public evidence only; no personal files.
+ * These hashes must match the trusted Bertina owner-approved dataset mapping.
+ */
+export function fingerprintReviewedRetrievalCorpus({reviewedEvidence,heldOutCases}={}) {
+  const {docs,ids}=assertReviewedEvidence(reviewedEvidence);
+  const cases=assertReviewedCases(heldOutCases,ids);
+  return Object.freeze({
+    datasetSha256:hash(cases),evidenceSha256:hash(docs),
+    caseCount:cases.length,sourceCount:docs.length
+  });
+}
 function createRanker(docs,policy) {
   const entries=docs.map(d=>{
     const tokens=tokenizePublicEducation(d.claimKey+' '+d.excerpt);
