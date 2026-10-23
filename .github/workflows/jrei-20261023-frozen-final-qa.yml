@@ -71,16 +71,23 @@ jobs:
     timeout-minutes: 12
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Core SEO and frozen URL integrity
+      - name: Core SEO regression
+        run: node scripts/seo-regression.mjs
+      - name: Original frozen URL/route ancestry (full Git history)
+        if: always()
+        run: node scripts/jr-immutable-url-guard.mjs
+      - name: Internal link graph and URL stability
+        if: always()
         run: |
-          node scripts/seo-regression.mjs
-          node scripts/jr-immutable-url-guard.mjs
           node scripts/link-integrity-audit.mjs
           node scripts/url-stability-audit.mjs
       - name: Private data, public copy and accessibility
+        if: always()
         run: |
           node scripts/public-secret-audit.mjs
           node scripts/pwa-private-cache-audit.mjs
@@ -88,6 +95,7 @@ jobs:
           COPY_HYGIENE_GROUP=implementation node scripts/frontend-copy-hygiene-audit.mjs
           COPY_HYGIENE_GROUP=persian node scripts/frontend-copy-hygiene-audit.mjs
       - name: Static public release assembly (NO upload)
+        if: always()
         run: |
           node scripts/build-public-data.mjs --check
           node scripts/build-public-site.mjs
