@@ -59,6 +59,13 @@ function jrExamOwnerBuyerServiceLog(PDO $pdo,string $actor,array $body): array {
            !in_array($ent['grant_reason'],
              ['VERIFIED_ORDER','OWNER_APPROVED_FREE'],true))
             throw new DomainException('exam_owner_service_followup_revision_conflict');
+        $q=$pdo->prepare('SELECT review_id
+          FROM jrei_exam_buyer_service_review_log
+          WHERE entitlement_id=? AND entitlement_revision=?
+            AND reason_code=? LIMIT 1 FOR UPDATE');
+        $q->execute([$id,$revision,$reason]);
+        if($q->fetchColumn()!==false)
+            throw new DomainException('exam_service_followup_already_recorded');
         $q=$pdo->prepare('INSERT INTO jrei_exam_buyer_service_review_log
           (review_id,entitlement_id,entitlement_revision,offering_id,
            reason_code,decision,recorded_by_account_id,created_at)
