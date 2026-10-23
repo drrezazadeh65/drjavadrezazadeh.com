@@ -42,6 +42,7 @@ function jrKaOwnerCoverageMatrix(PDO $pdo): array {
            COUNT(*) AS expected,
            SUM(CASE WHEN
                 r.approved_by_account_id IS NOT NULL AND
+                r.requirement_state<>'WITHDRAWN_SCOPE_ERROR' AND
                 r.source_id IS NOT NULL AND
                 s.source_id IS NOT NULL AND
                 s.country_code=r.country_code AND
