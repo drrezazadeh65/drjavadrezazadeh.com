@@ -48,7 +48,12 @@ function operationsCronRegistry(): array {
         'fa'=>'پاک‌سازی محدود فرادادهٔ موقت JREI',
         'en'=>'JREI transient metadata retention',
         'relative'=>'internal/jrei-hybrid-retention-worker.php',
-        'defaultCadence'=>86400,'minimumCadence'=>86400,'sensitive'=>true]
+        'defaultCadence'=>86400,'minimumCadence'=>86400,'sensitive'=>true],
+      'jrei_hybrid_lease_reconciliation'=>[
+        'fa'=>'رسیدگی ایمن به اجاره‌های منقضی‌شدهٔ JREI',
+        'en'=>'JREI expired job lease reconciliation',
+        'relative'=>'internal/jrei-hybrid-lease-reconciler.php',
+        'defaultCadence'=>300,'minimumCadence'=>300,'sensitive'=>true]
     ];
 }
 function operationsCronSourcePath(string $jobId): ?string {
