@@ -128,3 +128,42 @@ function jrExamDeliveredItemSet(PDO $pdo,string $version,string $locale): array 
     }
     return $answers;
 }
+
+
+/**
+ * Authenticated, no-cache, active attempt question delivery. The caller's
+ * original customer session is the only identity authority. Answer-key table
+ * and research materials are never selected here.
+ */
+function jrExamCandidatePublishedItems(PDO $pdo,string $account,string $attempt): array {
+    $id=jrExamAttemptUuid($attempt);
+    $progress=jrExamAttemptProgress($pdo,$account,$id);
+    if(($progress['canResume']??false)!==true)
+        throw new DomainException('exam_not_available_for_question_delivery');
+    $q=$pdo->prepare("SELECT s.instrument_version_id,s.locale,
+        a.offering_id,a.deadline_at,a.attempt_state,
+        o.offering_state,p.product_state
+      FROM jrei_exam_commercial_attempts a
+      JOIN eco_assessment_sessions s ON s.id=a.assessment_session_id
+      JOIN jrei_exam_commercial_offerings o ON o.offering_id=a.offering_id
+      JOIN jrei_exam_commercial_products p ON p.product_id=o.product_id
+      WHERE a.attempt_id=? AND a.account_id=? LIMIT 1");
+    $q->execute([$id,$account]);$row=$q->fetch(PDO::FETCH_ASSOC);
+    if(!is_array($row)||$row['attempt_state']!=='IN_PROGRESS'||
+       $row['offering_state']!=='PUBLISHED'||
+       $row['product_state']!=='PUBLISHED'||
+       (int)$row['deadline_at']<time())
+        throw new DomainException('exam_offering_suspended_or_expired');
+    jrExamTrustedEntitlement($pdo,$account,$row['offering_id'],time());
+    $items=jrExamDeliveredItemSet($pdo,
+      (string)$row['instrument_version_id'],(string)$row['locale']);
+    return [
+      'ok'=>true,'schema'=>'jr.jrei.private-published-items.v1',
+      'attemptId'=>$id,'deadlineAt'=>(int)$row['deadline_at'],
+      'responseRevision'=>(int)$progress['responseRevision'],
+      'items'=>$items,
+      'answerKeysIncluded'=>false,'solutionsIncluded'=>false,
+      'publicationPermissionInferred'=>false,
+      'serverClockAuthority'=>true
+    ];
+}
