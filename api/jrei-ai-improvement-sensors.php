@@ -161,6 +161,20 @@ function jrAiDetectImprovementOpportunities(PDO $pdo,array $cfg): array {
         }
     }catch(Throwable $e){}
 
+    // A historical human review must not be silently rewritten into a
+    // different current decision without an independent owner investigation.
+    try{
+        $audit=jrJreiLearningOwnerHazardQueue($pdo);
+        if($audit['available']===true){
+            $count=(int)$audit['vetoStateConflicts'];
+            if($count>0)$candidates[]=[
+              'rule'=>'SCIENTIFIC_REVIEW_DECISION_DRIFT',
+              'sourceKey'=>'JREI|ORIGINAL_HUMAN_VETO_HISTORY',
+              'count'=>$count,'severity'=>'HIGH',
+              'summary'=>'REVIEW_DECISION_PROVENANCE_NEEDS_OWNER_RECONCILIATION'
+            ];
+        }
+    }catch(Throwable $e){}
     $out['realSourceSignalsScanned']=count($candidates);
     $stmt=$pdo->prepare("INSERT INTO jrei_ai_improvement_opportunities
        (opportunity_id,rule_code,rule_version,evidence_window_utc,
