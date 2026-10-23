@@ -782,6 +782,117 @@
    sections.append(panel);
  }
 
+ function renderPrivateOfflineOcrEvidence(snapshot){
+   const evidence=snapshot.privateLocalOcrIntakeEvidence;
+   if(!evidence||evidence.schema!=='jr.jrei.local-ocr-owner-intake.v1')return;
+   const unknown=T('نامعلوم؛ جدول OCR خصوصی هنوز نصب نشده',
+     'Unknown; private OCR evidence table not installed');
+   fact(T('گزارش‌های OCR محلی ثبت‌شده، هنوز تأییدنشده',
+     'Recorded but scientifically unverified local OCR reports'),
+     evidence.available?safeCount(evidence.recordedObservations):unknown);
+   const panel=elt('details','jr-exam-subsection');
+   panel.append(elt('summary','',T(
+     'تحویل کنترل‌شدهٔ گزارش OCR ویندوز به دفتر شواهد',
+     'Record owner-reviewed Windows OCR metadata without transferring text')));
+   panel.append(elt('p','',T(
+     'این قسمت فقط فرادادهٔ خروجی OCR محلی را می‌پذیرد، نه فایل PDF، متن استخراج‌شده، مسیر خصوصی رایانه یا اسناد فراگیران. اصالت کارگر ویندوز، دقت OCR، متن ریاضی و پوشش همه صفحات هنوز اثبات نشده‌اند. ثبت گزارش هیچ مرحله‌ای را به‌طور خودکار تأیید یا فعال نمی‌کند.',
+     'Submit only selected metadata from the separate local OCR result. No PDFs, recognized source text, private Windows paths or learner documents are sent. Signed worker identity, OCR accuracy, mathematical transcription and full-document coverage remain unverified. Recording a claim enables no automatic use or public release.')));
+   if(evidence.available){
+     for(const [fa,en,v] of [
+       ['گزارش‌های ثبت‌شدهٔ ادعایی','Recorded provisional observations',evidence.recordedObservations],
+       ['گزارش‌های دارای صفحهٔ بدون متن','Reports containing empty OCR pages',evidence.withEmptyPages],
+       ['گزارش‌های دارای نشانهٔ ریاضی','Reports with suspected math notation',evidence.withPotentialMathSymbols]
+     ]){
+       const row=elt('div','jr-exam-coverage-row');
+       row.append(elt('strong','',T(fa,en)),elt('span','',safeCount(v)));
+       panel.append(row);
+     }
+   }else panel.append(elt('p','',unknown));
+   const form=elt('form','jr-exam-coverage-form');
+   const label=elt('label','',T(
+     'خروجی JSON ابزار OCR محلی (فقط در رایانهٔ مجاز اجرا شده باشد)',
+     'JSON from independently authorised local OCR (not executed by this panel)'));
+   const input=elt('textarea');
+   input.rows=7;input.maxLength=5500;input.required=true;
+   input.autocomplete='off';input.spellcheck=false;
+   input.setAttribute('dir','ltr');
+   input.setAttribute('placeholder','{"schema":"jr.jrei.local-ocr-observation.v1",...}');
+   label.append(input);
+   const acknowledgement=elt('label','',T(
+     'تأیید می‌کنم اصل سند دارای مجوز و گزارش واقعی را مستقلاً بررسی کرده‌ام و این فقط ثبت ادعای اولیهٔ OCR است.',
+     'I have independently examined authorised original materials; this records provisional OCR metadata only.'));
+   const box=elt('input');box.type='checkbox';box.required=true;
+   acknowledgement.prepend(box);
+   const submit=elt('button','',T(
+     'ثبت فرادادهٔ محدود OCR با احراز دومرحله‌ای',
+     'Record limited OCR metadata through MFA'));
+   submit.type='submit';
+   form.append(label,acknowledgement,submit);
+   form.addEventListener('submit',event=>{
+     event.preventDefault();
+     if(!active()||busy||!evidence.available||!form.reportValidity())return;
+     let parsed;
+     try{parsed=JSON.parse(input.value);}catch{return;}
+     const sha=/^[a-f0-9]{64}$/;
+     const uuid=/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/;
+     if(!parsed||Array.isArray(parsed)||
+       parsed.schema!=='jr.jrei.local-ocr-observation.v1'||
+       !uuid.test(parsed.sourceId||'')||
+       !uuid.test(parsed.observationId||'')||
+       !sha.test(parsed.originalPdfSha256||'')||
+       !sha.test(parsed.textSha256||'')||
+       !Number.isInteger(parsed.renderedPageCount)||
+       parsed.renderedPageCount<1||parsed.renderedPageCount>8||
+       !Array.isArray(parsed.pageObservations)||
+       parsed.pageObservations.length!==parsed.renderedPageCount||
+       !Number.isSafeInteger(parsed.bytes)||
+       parsed.bytes<1||parsed.bytes>3145728)return;
+     // Extract ONLY known non-sensitive fields. Never transmit the parsed
+     // input object, arbitrary text, filenames or local work-root paths.
+     const pages=[];
+     for(let i=0;i<parsed.pageObservations.length;i++){
+       const p=parsed.pageObservations[i];
+       if(!p||p.pageNumber!==i+1||
+         !sha.test(p.rasterSha256||'')||
+         !sha.test(p.extractedTextSha256||'')||
+         !Number.isSafeInteger(p.extractedBytes)||
+         p.extractedBytes<0||p.extractedBytes>1048576||
+         typeof p.emptyOcrPage!=='boolean'||
+         typeof p.potentialMathSymbols!=='boolean')return;
+       pages.push({
+         pageNumber:p.pageNumber,rasterSha256:p.rasterSha256,
+         extractedTextSha256:p.extractedTextSha256,
+         extractedBytes:p.extractedBytes,
+         emptyOcrPage:p.emptyOcrPage,
+         potentialMathSymbols:p.potentialMathSymbols,
+         allEquationsAndFiguresScientificallyVerified:false
+       });
+     }
+     const limited={
+       schema:'jr.jrei.local-ocr-observation.v1',
+       sourceId:parsed.sourceId,observationId:parsed.observationId,
+       originalPdfSha256:parsed.originalPdfSha256,
+       textSha256:parsed.textSha256,
+       bytes:parsed.bytes,
+       renderedPageCount:parsed.renderedPageCount,
+       pageObservations:pages,
+       textScientificApproval:'REVIEW_REQUIRED',
+       textPubliclyReproducible:false,
+       wholeDocumentPageCountVerified:false,
+       mayHaveOmittedPages:true,
+       handwrittenOrMathematicalAccuracyValidated:false
+     };
+     if(!window.confirm(T(
+       'تنها اثرانگشت‌ها و شمارش صفحه‌ها ثبت می‌شوند. هیچ متن OCR تأیید یا برای عموم منتشر نمی‌شود. ادامه می‌دهید؟',
+       'Record hashes and page counts only; OCR text is not validated or released. Continue?')))return;
+     mutate({action:'ka_record_offline_ocr_metadata',
+       confirmation:'RECORD_UNVERIFIED_LOCAL_OCR_METADATA_ONLY',
+       ocrMetadata:limited});
+     input.value='';
+   });
+   panel.append(form);actions.append(panel);
+ }
+
  function renderRegisteredSourceReuse(snapshot){
    const data=snapshot.registeredSourceReuseSuggestions;
    if(!data||data.schema!=='jr.jrei.registered-source-reuse.v1')return;
@@ -1738,6 +1849,7 @@
    renderCountryExamGapWorklist(snapshot);
    renderRegisteredSourceReuse(snapshot);
    renderIndependentSourceReviewEvidence(snapshot);
+   renderPrivateOfflineOcrEvidence(snapshot);
    renderCoverageScopeOwnerActions(snapshot);
    renderLiveModelReadiness(snapshot);
    for(const def of columns)viewGroup(def,snapshot[def.key],ready);
