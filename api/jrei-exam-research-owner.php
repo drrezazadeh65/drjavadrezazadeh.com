@@ -195,6 +195,8 @@ function jrExamResearchOwnerChange(PDO $pdo,array $cfg,string $actor,array $body
     $action=$body['action']??null;
     if($action==='ka_review_public_quote')
         return jrKaOwnerPublicQuoteDecision($pdo,$cfg,$actor,$body);
+    if($action==='ka_revoke_public_quote')
+        return jrKaOwnerRevokePublicQuote($pdo,$actor,$body);
     if($action==='ka_triage_paper_key')
         return jrKaOwnerTriagePaperKey($pdo,$actor,$body);
     if($action==='exam_revoke_entitlement')
