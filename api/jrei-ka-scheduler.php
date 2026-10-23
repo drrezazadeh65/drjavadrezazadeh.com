@@ -11,7 +11,7 @@ function jrKaSchemaReady(PDO $pdo): bool {
     try{
         foreach([
           'SELECT singleton_id,scheduling_enabled,policy_revision FROM jrei_ka_controls LIMIT 0',
-          'SELECT source_id,scheduling_state,next_due_at FROM jrei_ka_source_policies LIMIT 0',
+          'SELECT source_id,scheduling_state,next_due_at,rights_evidence_sha256,robots_terms_evidence_sha256,transport_evidence_sha256 FROM jrei_ka_source_policies LIMIT 0',
           'SELECT job_id,job_state,next_attempt_at FROM jrei_ka_jobs LIMIT 0'
         ] as $sql)$pdo->query($sql);
         return true;
