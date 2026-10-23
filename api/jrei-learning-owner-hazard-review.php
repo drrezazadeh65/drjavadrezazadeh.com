@@ -144,11 +144,13 @@ function jrJreiLearningOwnerRejectHazard(PDO $pdo,string $actor,
            'challengerCorrect'=>(int)$proposal['challenger_correct']
         ],JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR));
         $at=time();
+        // Preserve the ORIGINAL reviewer and original review timestamp.
+        // The new owner veto actor/date live only in the immutable decision
+        // ledger so the earlier scientific attribution is never destroyed.
         $q=$pdo->prepare("UPDATE jrei_learning_proposals
-          SET review_state='REJECTED',decision='REJECTED_OWNER_HAZARD',
-            reviewer_account_id=?,reviewed_at=?
+          SET review_state='REJECTED',decision='REJECTED_OWNER_HAZARD'
           WHERE proposal_id=? AND review_state=?");
-        $q->execute([$actor,$at,$id,$expected]);
+        $q->execute([$id,$expected]);
         if($q->rowCount()!==1)
             throw new DomainException('learning_hazard_rejection_conflict');
         $q=$pdo->prepare('INSERT INTO jrei_learning_hazard_review_history
