@@ -21,6 +21,8 @@ Disallow: /tests/
 Disallow: /.github/
 Disallow: /api/
 Disallow: /fa/customer-dashboard/
+Disallow: /fa/exams/my/
+Disallow: /en/exams/my/
 Disallow: /app/
 Disallow: /login/
 Disallow: /register/
@@ -63,6 +65,8 @@ Disallow: /tests/
 Disallow: /.github/
 Disallow: /api/
 Disallow: /fa/customer-dashboard/
+Disallow: /fa/exams/my/
+Disallow: /en/exams/my/
 Disallow: /app/
 Disallow: /login/
 Disallow: /register/
@@ -105,6 +109,8 @@ Disallow: /tests/
 Disallow: /.github/
 Disallow: /api/
 Disallow: /fa/customer-dashboard/
+Disallow: /fa/exams/my/
+Disallow: /en/exams/my/
 Disallow: /app/
 Disallow: /login/
 Disallow: /register/
@@ -147,6 +153,8 @@ Disallow: /tests/
 Disallow: /.github/
 Disallow: /api/
 Disallow: /fa/customer-dashboard/
+Disallow: /fa/exams/my/
+Disallow: /en/exams/my/
 Disallow: /app/
 Disallow: /login/
 Disallow: /register/
@@ -189,6 +197,8 @@ Disallow: /tests/
 Disallow: /.github/
 Disallow: /api/
 Disallow: /fa/customer-dashboard/
+Disallow: /fa/exams/my/
+Disallow: /en/exams/my/
 Disallow: /app/
 Disallow: /login/
 Disallow: /register/
