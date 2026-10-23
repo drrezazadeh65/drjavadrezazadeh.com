@@ -97,8 +97,10 @@ function operationsCronOwnerSnapshot(PDO $pdo,array $config): array {
     }
     return ['ok'=>true,'schema'=>'jr.operations-cron-owner.v1',
         'dataState'=>$schema?'SOURCE_POLICY_READ':'MOTHER_DB_MIGRATION_REQUIRED',
-        'masterEnabled'=>$master,'phpCli83SourceCompatible'=>$phpReady,
-        'subprocessAvailable'=>$spawnReady,'serverCronVerified'=>false,
+        'masterEnabled'=>$master,'webRuntimePhp83Observed'=>$phpReady,
+        'webRuntimeProcOpenObserved'=>$spawnReady,
+        'phpCli83SourceCompatible'=>false, 'subprocessAvailable'=>false,
+        'serverCronVerified'=>false,
         'hostExecutionVerified'=>false,'emailDeliveryVerified'=>false,
         'schemaReady'=>$schema,'checkedAt'=>time(),'jobs'=>$rows,
         'limitations'=>'Source presence and policy are not proof of host installation, real execution, SMTP receipt or safe access-log configuration.'];
@@ -115,7 +117,7 @@ function operationsCronOwnerChange(PDO $pdo,array $config,
     $jobId=$body['jobId']??null;
     $action=$body['action']??null;
     if(!is_string($jobId)||!isset(operationsCronRegistry()[$jobId])||
-       !is_string($action)||!in_array($action,['register','configure'],true))
+       !is_string($action)||!in_array($action,['register','configure','reconcile'],true))
         throw new InvalidArgumentException('invalid_cron_control');
     $job=operationsCronRegistry()[$jobId];
     if(operationsCronSourcePath($jobId)===null)
@@ -134,6 +136,42 @@ function operationsCronOwnerChange(PDO $pdo,array $config,
         }catch(Throwable $e){if($pdo->inTransaction())$pdo->rollBack();throw $e;}
         return operationsCronOwnerSnapshot($pdo,$config);
     }
+    // A prior unknown/failed delivery cannot be retried by simply editing
+    // its schedule. Require a separate, explicit owner reconciliation after
+    // independently checking external side effects; never auto-retry SMTP.
+    if($action==='reconcile'){
+        $revision=$body['rowRevision']??null;
+        $outcome=$body['reviewOutcome']??null;
+        if(!is_int($revision)||$revision<1||
+           !is_string($outcome)||
+           !in_array($outcome,['confirmed_no_external_effect','manually_reconciled'],true)||
+           ($body['confirmation']??'')!=='ACKNOWLEDGE_PRIOR_JOB_OUTCOME')
+            throw new InvalidArgumentException('invalid_cron_reconciliation');
+        $pdo->beginTransaction();
+        try{
+            $q=$pdo->prepare('SELECT enabled,needs_owner_review,last_state,row_revision
+              FROM operations_cron_jobs WHERE job_id=? FOR UPDATE');
+            $q->execute([$jobId]);$row=$q->fetch(PDO::FETCH_ASSOC);
+            if(!is_array($row)||(int)$row['row_revision']!==$revision)
+                throw new DomainException('cron_schedule_conflict');
+            if((int)$row['enabled']!==0||(int)$row['needs_owner_review']!==1||
+               !in_array((string)$row['last_state'],['failed','unknown','blocked'],true))
+                throw new DomainException('cron_manual_review_required');
+            $now=time();
+            $q=$pdo->prepare('UPDATE operations_cron_jobs SET
+                needs_owner_review=0,next_due_at=0,row_revision=row_revision+1,
+                updated_at=?,updated_by_account_id=?
+                WHERE job_id=? AND row_revision=? AND enabled=0 AND needs_owner_review=1');
+            $q->execute([$now,$accountId,$jobId,$revision]);
+            if($q->rowCount()!==1)
+                throw new DomainException('cron_schedule_conflict');
+            operationsAudit($pdo,$accountId,
+                $outcome==='confirmed_no_external_effect'
+                    ?'cron_review_no_effect':'cron_review_reconciled',$jobId);
+            $pdo->commit();
+        }catch(Throwable $e){if($pdo->inTransaction())$pdo->rollBack();throw $e;}
+        return operationsCronOwnerSnapshot($pdo,$config);
+    }
     $enabled=$body['enabled']??null;
     $cadence=$body['cadenceSeconds']??null;
     $revision=$body['rowRevision']??null;
@@ -146,15 +184,18 @@ function operationsCronOwnerChange(PDO $pdo,array $config,
         throw new DomainException('explicit_cli_enablement_required');
     $pdo->beginTransaction();
     try{
-        $q=$pdo->prepare('SELECT enabled,row_revision
+        $q=$pdo->prepare('SELECT enabled,row_revision,needs_owner_review,last_state
           FROM operations_cron_jobs WHERE job_id=? FOR UPDATE');
         $q->execute([$jobId]);
         $old=$q->fetch(PDO::FETCH_ASSOC);
         if(!is_array($old)||(int)$old['row_revision']!==$revision)
             throw new DomainException('cron_schedule_conflict');
+        if($enabled&&((int)$old['needs_owner_review']===1||
+            $old['last_state']==='running'))
+            throw new DomainException('cron_manual_review_required');
         $now=time();
         $q=$pdo->prepare('UPDATE operations_cron_jobs SET enabled=?,
-          cadence_seconds=?,next_due_at=?,needs_owner_review=0,
+          cadence_seconds=?,next_due_at=?,
           row_revision=row_revision+1,updated_at=?,updated_by_account_id=?
           WHERE job_id=? AND row_revision=?');
         $q->execute([$enabled?1:0,$cadence,$enabled?$now:0,$now,
