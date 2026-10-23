@@ -445,6 +445,77 @@
  }
 
 
+
+ function renderExpiredExamReviews(snapshot){
+   const review=snapshot.examDeadlineReview;
+   if(!review||review.schema!=='jr.jrei.deadline-owner-review.v1'){
+     fact(T('بازبینی انسانی آزمون‌های منقضی',
+       'Expired-exam owner review'),
+       T('اطلاعات معتبر گزارش نشده','No authoritative snapshot'));
+     return;
+   }
+   fact(T('پرونده‌های پایان‌یافته و نیازمند بررسی',
+     'Expired examination cases awaiting owner disposition'),
+     review.available?safeCount(review.pending):T('نامعلوم','Unknown'));
+   const panel=elt('details','jr-exam-subsection');
+   panel.append(elt('summary','',T(
+     'تصمیم‌های مدیریتی دربارهٔ آزمون‌های منقضی',
+     'Owner decisions for expired candidate attempts')));
+   panel.append(elt('p','',T(
+     'بستن پرونده، تصحیح آزمون، حذف پاسخ، تسویه‌حساب یا بازپرداخت نیست؛ تعهدات مالی و آموزشی باید جداگانه بررسی شوند.',
+     'Closing a case does not grade the exam, erase answers, reimburse a buyer or resolve service obligations.')));
+   if(!review.available){
+     panel.append(elt('p','',T(
+       'وضعیت جدول نامعلوم است؛ تا پذیرش مهاجرت و سرویس، عملیاتی اجرا نمی‌شود.',
+       'Backlog state is unavailable; no action until source and DB acceptance.')));
+     sections.append(panel);return;
+   }
+   const choices=[
+     ['CANDIDATE_DISCONNECTED',T('قطع ارتباط داوطلب','Candidate disconnected')],
+     ['TIME_EXPIRED',T('پایان مهلت پاسخ‌دهی','Server deadline passed')],
+     ['CONTENT_OR_ACCESS_SUSPENDED',T('تعلیق محتوا یا دسترسی','Content/access suspended')],
+     ['SERVICE_REVIEW_RECORDED',T('پیگیری خدمات ثبت شده','Service follow-up recorded')]
+   ];
+   const cases=Array.isArray(review.items)?review.items:[];
+   for(const item of cases.slice(0,40)){
+     const card=elt('article','jr-exam-coverage-row');
+     card.append(elt('strong','',String(item.productCode||'').slice(0,70)));
+     card.append(elt('span','',T('شناسهٔ پرونده: ','Case ID: ')+
+       String(item.attemptId||'').slice(0,36)));
+     card.append(elt('span','',T('زمان پایان: ','Deadline: ')+
+       (Number.isSafeInteger(item.deadlineAt)?
+         new Date(item.deadlineAt*1000).toLocaleString(en?'en-GB':'fa-IR'):'—')));
+     card.append(elt('span','',T('نوع مجوز: ','Grant type: ')+
+       String(item.grantReason||'').slice(0,40)));
+     const form=document.createElement('form');
+     const label=elt('label','',T('دلیل رسیدگی','Recorded disposition reason'));
+     const options=document.createElement('select');options.required=true;
+     for(const [code,title] of choices){
+       const opt=elt('option','',title);opt.value=code;options.append(opt);
+     }
+     label.append(options);form.append(label);
+     const button=elt('button','',T('بستن پرونده بدون نمره‌دهی',
+       'Close review without grading'));
+     button.type='submit';form.append(button);
+     form.addEventListener('submit',event=>{
+       event.preventDefault();
+       if(!active()||busy||!form.reportValidity())return;
+       if(!window.confirm(T(
+         'این پرونده بدون محاسبهٔ نمره بسته می‌شود؛ حقوق خریدار و پیگیری خدمات هنوز پابرجاست. تأیید؟',
+         'This case will close WITHOUT a grade. Buyer rights and service follow-up remain open. Confirm?')))return;
+       mutate({action:'exam_close_expired_review',
+         attemptId:item.attemptId,revision:item.revision,
+         reasonCode:options.value,
+         confirmation:'CLOSE_UNGRADED_EXPIRED_ATTEMPT'});
+     });
+     card.append(form);panel.append(card);
+   }
+   if(review.hasMorePossibly)panel.append(elt('p','',
+     T('فقط ۴۰ مورد نخست نمایش داده شده است.',
+       'Only the first 40 cases are shown.')));
+   sections.append(panel);
+ }
+
  function renderKnowledgeAcquisition(snapshot){
    const ka=snapshot.knowledgeAcquisition;
    if(!ka||ka.schema!=='jr.jrei.ka-owner.v1'){
@@ -597,6 +668,7 @@
        'Disabled until ethics and guardian authorization'));
    renderCoverageReadiness(snapshot);
    renderCommercialCentre(snapshot);
+   renderExpiredExamReviews(snapshot);
    renderKnowledgeAcquisition(snapshot);
    for(const def of columns)viewGroup(def,snapshot[def.key],ready);
    renderWorker(hybrid);
