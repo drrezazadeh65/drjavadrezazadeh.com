@@ -204,3 +204,17 @@ The source-only coverage-scope reviewer, owner queue and revised coverage matrix
 7. Record as an unresolved scientific prerequisite the lack of original-source curriculum-ID and grade attestations and the need for independent expert verification of paper-to-key content, amendments and publication rights.
 
 **Acceptance status: NOT RUN / NOT DEPLOYED.** No existing 117-atomic requirement is promoted to PASS by these source commits.
+
+
+### Final-only independent original-source review and coverage-repair gates — NOT RUN
+
+The separate ADMIN/SUPER_ADMIN human reviewer workflow and newly staged additive mother-DB tables must be inspected and exercised **only in the one owner-approved final acceptance campaign**:
+
+1. Confirm configured ADMIN/SUPER_ADMIN membership, an active authenticated account, fresh MFA, strict same-origin CSRF and audit on both reviewer GET and POST. Public users, ordinary researchers and students must have no access; website users must not infer evidence hashes or private source URLs.
+2. Confirm a source reviewer cannot certify a candidate when the same person approved any active linked coverage scope. Race the owner withdrawal, scope source detachment, source revocation, source review and owner policy changes while verifying transactional serialisation, revision conflicts and no inconsistent rights.
+3. Confirm the underlying human really examined authority evidence, private rights and applicable terms; SHA-256 strings alone are not actual legal proof. Verify exactly which licensed usages are permitted and never allow a private-analysis approval to become reproduction, dissemination, seller entitlement, official examination content or a validated answer key.
+4. Verify source review attestation history is append-only, bound to a digest of the reviewed original-source metadata, contains no uploaded legal files, and records quarantine/deferral without accidental approval. Check missing schema, malformed hashes, duplicate same hash, withdrawn scope, changed metadata and revoked source paths.
+5. Verify approved scopes with invalid/recalled/unreviewed linked sources appear in the complete-count / bounded queue. Correction must preserve prior and new source links, reviewer attestations, audit, source rights, financial records and student records. Reuse only existing unrevoked metadata-matching sources; no downloaded document or auto-permission is created.
+6. Confirm the bilingual reviewer UI on desktop and mobile, independent role access, safe external URL handling, no sensitive persistence, MFA-expiry behaviour, ambiguous mutation recovery and unknown-vs-zero reporting.
+
+**Status: NOT RUN / NOT DEPLOYED / NOT SCIENTIFICALLY ACCEPTED.** No PASS state or 117-atomic closure is implied.
