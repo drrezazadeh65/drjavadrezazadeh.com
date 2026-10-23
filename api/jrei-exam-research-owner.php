@@ -6,6 +6,7 @@ require_once __DIR__.'/jrei-ka-exam-coverage-matrix.php';
 require_once __DIR__.'/jrei-ka-coverage-owner-review.php';
 require_once __DIR__.'/jrei-ka-coverage-gaps.php';
 require_once __DIR__.'/jrei-ka-coverage-link-corrections.php';
+require_once __DIR__.'/jrei-ka-independent-source-review.php';
 require_once __DIR__.'/jrei-ka-scheduler.php';
 require_once __DIR__.'/jrei-ka-owner-controls.php';
 require_once __DIR__.'/jrei-ka-paper-key-proposals.php';
@@ -69,6 +70,7 @@ function jrExamResearchOwnerSnapshot(PDO $pdo,array $cfg): array {
       'controls'=>null,'sourceCoverage'=>[],
       'sourceReview'=>[],'sourceQueue'=>[],'coverageTargets'=>[],
       'coverageScopeReviewQueue'=>[],'intakeStates'=>[],
+      'sourceHumanReviewEvidence'=>jrKaHumanSourceReviewOwnerMetrics($pdo),
       'coverageObligations'=>[],'itemReviews'=>[],
       'blueprints'=>[],'preparationProgrammes'=>[],
       'preparationStages'=>[],'frameworks'=>[],
