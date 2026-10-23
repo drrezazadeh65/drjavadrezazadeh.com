@@ -543,6 +543,43 @@
      }
      actions.append(lpanel);
    }
+   const buyerRisk=centre.buyerSourceRiskObligations;
+   if(buyerRisk?.schema==='jr.jrei.exam-source-buyer-obligations.v1'){
+     const details=elt('details','jr-exam-subsection');
+     details.append(elt('summary','',T(
+       'تعهدات خدماتی خریداران آزمون‌های منتشرشده با منبع نیازمند بازبینی',
+       'Buyer service obligations for published examinations with source-risk')));
+     details.append(elt('p','',T(
+       'این شمارش تجمیعی فقط دسترسی‌های فعال و آزمون‌های درحال اجرا را نشان می‌دهد که محتوای منتشرشدهٔ آن‌ها ممکن است به‌دلیل اصالت، مجوز یا کلید پاسخ نیازمند بررسی مجدد باشد. مبلغ بازپرداخت، نام دانشجو و شمارهٔ سفارش محاسبه یا نمایش داده نمی‌شود.',
+       'Aggregated exposure counts include active grants and ongoing attempts linked to published source/key review risks. No student identity, order reference, refund amount or automatic financial action is generated.')));
+     const measures=[
+       [T('مجوز دسترسی فعال نیازمند بررسی','Active entitlements requiring review'),
+        buyerRisk.activeEntitlementsOnAtRiskPublishedProducts],
+       [T('تعداد حساب‌های متأثر بدون مشخصات فردی',
+          'Distinct affected accounts, without identity'),
+        buyerRisk.distinctBuyerAccountsAffected],
+       [T('دسترسی‌های متصل به سفارش تأییدشده',
+          'Verified-order entitlements requiring review'),
+        buyerRisk.paidEntitlementsNeedingReview],
+       [T('دسترسی‌های رایگان با تأیید مدیر',
+          'Owner-approved free entitlements requiring review'),
+        buyerRisk.ownerFreeEntitlementsNeedingReview],
+       [T('آزمون‌های در حال اجرای دارای خطر منبع',
+          'In-progress attempts affected by source review'),
+        buyerRisk.openAttemptsOnAtRiskProducts]
+     ];
+     for(const [title,n] of measures){
+       const row=elt('div','jr-exam-coverage-row');
+       row.append(elt('strong','',title),elt('span','',
+         buyerRisk.available&&Number.isSafeInteger(n)?
+           safeCount(n):T('نامعلوم','Unknown')));
+       details.append(row);
+     }
+     details.append(elt('p','',T(
+       'تشخیص نهایی حقوق خریدار، تمدید خدمات یا بازپرداخت به بررسی انسانی و سامانهٔ اصلی مالی وابسته است.',
+       'Buyer remedies, service extensions and refunds still require documented human decisions in the original finance workflow.')));
+     sections.append(details);
+   }
    const sourceImpact=centre.sourceReleaseImpact;
    if(sourceImpact?.schema==='jr.jrei.exam-source-release-impact.v1'){
      const unknown=T('نامعلوم؛ جداول منابع و مجوزها کامل نیستند',
