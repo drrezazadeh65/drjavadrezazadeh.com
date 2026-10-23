@@ -494,6 +494,38 @@
      cell(summary,T('وضعیت هشدارها','Incident status'),
        T('نامعلوم؛ دادهٔ معتبر دریافت نشده','Unknown; unavailable data'));
    }
+   const queue=d.queueHealth;
+   if(queue&&queue.schema==='jr.jrei.queue-health.v1'){
+     const q=queue.counts||{};
+     const maybe=n=>Number.isSafeInteger(n)?number(n):
+       T('نامعلوم','Unknown');
+     cell(summary,T('در صف و منقضی نشده','Unexpired queued jobs'),
+       maybe(q.readyQueued));
+     cell(summary,T('اجاره‌های منقضی‌شده و رسیدگی‌نشده',
+       'Expired leases awaiting reconciliation'),maybe(q.staleLeasedUnreconciled));
+     cell(summary,T('کارهای صف منقضی‌شده و رسیدگی‌نشده',
+       'Expired queued jobs awaiting reconciliation'),maybe(q.expiredQueuedUnreconciled));
+     cell(summary,T('نتیجهٔ نامعلوم در انتظار مدیر',
+       'Unknown job outcomes awaiting owner'),maybe(q.unknownOutcomeAwaitingOwner));
+     cell(summary,T('بازبینی نتایج عقب‌افتاده',
+       'Overdue aggregate reviews'),maybe(q.aggregateReviewOverdue));
+     const reconcileStatus=!queue.reconciliationPolicyEnabled?
+       T('اجازهٔ خصوصی خاموش','Private policy OFF'):
+       !queue.reconciliationCronRegistered?
+       T('Cron ثبت نشده','Cron not registered'):
+       !queue.reconciliationCronEnabled?
+       T('Cron غیرفعال','Cron disabled'):
+       queue.reconciliationNeedsOwnerReview?
+       T('نیازمند بازبینی مدیر','Owner review required'):
+       Number.isSafeInteger(queue.reconciliationLastFinishedAt)?
+       T('آخرین گزارش: ','Last reported: ')+date(queue.reconciliationLastFinishedAt):
+       T('اجرا هنوز گزارش نشده','No reported execution');
+     cell(summary,T('رسیدگی ایمن به اجاره‌های منقضی',
+       'Safe lease reconciliation'),reconcileStatus);
+     listing.append(el('p',T(
+       'اجارهٔ منقضی نشان‌دهندهٔ نتیجهٔ نامعلوم است؛ بازیابی خودکار یا تأیید علمی از روی این اعداد انجام نمی‌شود.',
+       'Expired leases indicate unknown execution outcomes; no automatic replay or scientific validation follows from these counts.')));
+   }
    listing.append(summary);
    if(newNodeId){
      const note=el('p',T('نود جدید غیرفعال ثبت شد؛ شناسه زیر را در پیکربندی خصوصی همان رایانه وارد کنید:',
