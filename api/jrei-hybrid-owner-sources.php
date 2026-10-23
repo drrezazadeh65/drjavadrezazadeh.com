@@ -208,27 +208,44 @@ function jrHybridSourceChange(PDO $pdo,string $actor,array $body): array {
             $q->execute([$proposal]);$sourceId=$q->fetchColumn();
             if(!is_string($sourceId)||!jrHybridIdentifier($sourceId))
                 throw new DomainException('source_version_conflict');
-            $q=$pdo->prepare('SELECT status FROM jrei_public_source_registry
+            $q=$pdo->prepare('SELECT status,last_approved_document_sha256
+              FROM jrei_public_source_registry
               WHERE source_id=? FOR UPDATE');
             $q->execute([$sourceId]);
-            if($q->fetchColumn()!=='APPROVED')
+            $registry=$q->fetch(PDO::FETCH_ASSOC);
+            if(!is_array($registry)||$registry['status']!=='APPROVED')
                 throw new DomainException('source_no_longer_approved');
-            $q=$pdo->prepare('SELECT source_id,document_sha256,status,revision
+            $q=$pdo->prepare('SELECT source_id,document_sha256,preceding_sha256,status,revision
               FROM jrei_public_source_proposals WHERE proposal_id=? FOR UPDATE');
             $q->execute([$proposal]);$p=$q->fetch(PDO::FETCH_ASSOC);
             if(!is_array($p)||$p['source_id']!==$sourceId||
                (int)$p['revision']!==$rev||$p['status']!=='PENDING_REVIEW')
                 throw new DomainException('source_version_conflict');
+            // The registry is locked before this proposal. A second proposal
+            // created against an older approved version cannot silently roll
+            // the source fingerprint backward or impersonate a new amendment.
+            // Rejection remains permitted so a stale proposal can be closed.
+            if($decision==='ACCEPT_METADATA' &&
+               ($p['preceding_sha256']===null
+                  ?$registry['last_approved_document_sha256']!==null
+                  :($registry['last_approved_document_sha256']===null||
+                     !hash_equals((string)$p['preceding_sha256'],
+                        (string)$registry['last_approved_document_sha256']))))
+                throw new DomainException('source_predecessor_stale');
             $status=$decision==='ACCEPT_METADATA'?'METADATA_REVIEWED':'REJECTED';
             $q=$pdo->prepare('UPDATE jrei_public_source_proposals
               SET status=?,reviewed_at=?,reviewed_by_account_id=?,
               revision=revision+1 WHERE proposal_id=? AND revision=?');
             $q->execute([$status,$now,$actor,$proposal,$rev]);
+            if($q->rowCount()!==1)
+                throw new DomainException('source_version_conflict');
             if($decision==='ACCEPT_METADATA'){
                 $q=$pdo->prepare('UPDATE jrei_public_source_registry SET
                   last_approved_document_sha256=?,revision=revision+1,
                   updated_at=? WHERE source_id=? AND status=?');
                 $q->execute([$p['document_sha256'],$now,$p['source_id'],'APPROVED']);
+                if($q->rowCount()!==1)
+                    throw new DomainException('source_no_longer_approved');
             }
             operationsAudit($pdo,$actor,'jrei_source_version_'.$status,$proposal);
             $pdo->commit();
