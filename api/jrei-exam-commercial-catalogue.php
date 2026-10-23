@@ -93,6 +93,7 @@ function jrExamCommercialOwnerSnapshot(PDO $pdo,array $cfg): array {
       'productStates'=>null,'offeringStates'=>null,
       'entitlementStates'=>null,'attemptStates'=>null,
       'itemReviewCoverage'=>null,'itemReviewCoverageAvailable'=>false,
+      'productRegistry'=>null,'offeringRegistry'=>null,
       'verifiedPaymentIntegration'=>false,
       'secureAttemptDeliveryVerified'=>false,
       'officiallyReviewedItemsVerified'=>false,
@@ -116,6 +117,41 @@ function jrExamCommercialOwnerSnapshot(PDO $pdo,array $cfg): array {
             $base[$key][]=$row;
         }
     }
+    // Bounded owner metadata only. No learner, payment token, answer content,
+    // email, session answer or bank reference is included here.
+    $q=$pdo->query("SELECT product_id,product_code,division,title_fa,title_en,
+        blueprint_id,instrument_version_id,scoring_model_id,
+        product_state,content_rights_state,question_key_review_state,
+        delivery_review_state,revision,updated_at
+        FROM jrei_exam_commercial_products
+        ORDER BY updated_at DESC,product_id DESC LIMIT 40");
+    $base['productRegistry']=[];
+    foreach($q as $r)$base['productRegistry'][]=[
+      'productId'=>$r['product_id'],'code'=>$r['product_code'],
+      'division'=>$r['division'],'titleFa'=>$r['title_fa'],
+      'titleEn'=>$r['title_en'],'blueprintId'=>$r['blueprint_id'],
+      'instrumentVersionId'=>$r['instrument_version_id'],
+      'scoringModelId'=>$r['scoring_model_id'],
+      'state'=>$r['product_state'],
+      'rightsState'=>$r['content_rights_state'],
+      'keyReviewState'=>$r['question_key_review_state'],
+      'deliveryReviewState'=>$r['delivery_review_state'],
+      'revision'=>(int)$r['revision'],'updatedAt'=>(int)$r['updated_at']
+    ];
+    $q=$pdo->query("SELECT offering_id,product_id,stage_code,opens_at,
+      closes_at,registration_closes_at,duration_seconds,max_attempts,
+      offering_state,revision FROM jrei_exam_commercial_offerings
+      ORDER BY opens_at DESC,offering_id DESC LIMIT 40");
+    $base['offeringRegistry']=[];
+    foreach($q as $r)$base['offeringRegistry'][]=[
+      'offeringId'=>$r['offering_id'],'productId'=>$r['product_id'],
+      'stageCode'=>$r['stage_code'],'opensAt'=>(int)$r['opens_at'],
+      'closesAt'=>(int)$r['closes_at'],
+      'registrationClosesAt'=>(int)$r['registration_closes_at'],
+      'durationSeconds'=>(int)$r['duration_seconds'],
+      'maxAttempts'=>(int)$r['max_attempts'],
+      'state'=>$r['offering_state'],'revision'=>(int)$r['revision']
+    ];
     // Display only aggregated scientific-review METADATA. An approved
     // source/key row is NOT a pass certificate without scientific QA.
     try{
