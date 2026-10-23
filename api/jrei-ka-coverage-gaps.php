@@ -13,7 +13,7 @@ function jrKaOwnerCoverageGapQueue(PDO $pdo): array {
         'schema'=>'jr.jrei.coverage-gap-worklist.v1',
         'available'=>false,'approvedScopeCount'=>null,
         'eligibleMetadataLinkCount'=>null,'unresolvedScopeCount'=>null,
-        'items'=>[],'truncated'=>false,
+        'items'=>[],'truncated'=>false,'fullScopeReasonCounts'=>null,
         'independentGradeCurriculumReviewRequired'=>true,
         'gradeAndCurriculumIdentityVerified'=>false,
         'officialSourceContentVerified'=>false,
@@ -157,6 +157,44 @@ function jrKaOwnerCoverageGapQueue(PDO $pdo): array {
                 'safeForPublicPublication'=>false
             ];
         }
+        // Independent complete-relation counts, NOT a sum of the first 60.
+        // Reuse the same live source/rights/alignment predicates as the
+        // eligible-link aggregate. No model inference or external requests.
+        $reasonSql="CASE
+          WHEN r.source_id IS NULL THEN 'NO_SOURCE_CANDIDATE_LINKED'
+          WHEN s.source_id IS NULL THEN 'SOURCE_LINK_NOT_RESOLVABLE'
+          WHEN s.is_revoked<>0 THEN 'SOURCE_REVOKED'
+          WHEN s.is_superseded<>0 THEN 'SOURCE_SUPERSEDED'
+          WHEN s.country_code<>r.country_code
+            OR s.educational_level<>r.educational_level
+            OR s.curriculum_version<>r.curriculum_version
+            OR s.exam_category<>r.exam_category
+            OR s.examination_year<>r.examination_year
+            OR s.subject_id<>r.subject_id
+            OR s.source_kind<>r.expected_kind
+            THEN 'SOURCE_SCOPE_METADATA_MISMATCH'
+          WHEN s.rights_state NOT IN
+            ('PERMITTED_PRIVATE_ANALYSIS','PERMITTED_REPRODUCTION')
+            THEN 'PRIVATE_ANALYSIS_RIGHTS_NOT_REVIEWED'
+          WHEN s.reviewer_account_id IS NULL
+            OR s.reviewer_account_id=r.approved_by_account_id
+            THEN 'SEPARATE_SOURCE_REVIEWER_REQUIRED'
+          WHEN s.review_state<>'AUTHORITATIVE_REVIEWED'
+            OR s.verified_at IS NULL
+            THEN 'SOURCE_AUTHORITY_REVIEW_INCOMPLETE'
+          WHEN NOT COALESCE(($match),0)
+            THEN 'CURRICULUM_GRADE_ALIGNMENT_EVIDENCE_REQUIRED'
+          ELSE 'METADATA_LINK_ELIGIBLE' END";
+        $q=$pdo->query("SELECT ($reasonSql) AS review_reason,
+          COUNT(*) AS total $from GROUP BY review_reason");
+        $reasonCounts=[];
+        foreach($q as $entry){
+            $code=(string)$entry['review_reason'];
+            if(preg_match('/^[A-Z0-9_]{5,70}$/D',$code))
+                $reasonCounts[$code]=(int)$entry['total'];
+        }
+        ksort($reasonCounts,SORT_STRING);
+        $out['fullScopeReasonCounts']=$reasonCounts;
         $out['available']=true;
     } catch (Throwable $e) {
         // Missing or partially installed migration is UNKNOWN, never zero.
@@ -164,6 +202,7 @@ function jrKaOwnerCoverageGapQueue(PDO $pdo): array {
         $out['eligibleMetadataLinkCount']=null;
         $out['unresolvedScopeCount']=null;
         $out['items']=[];$out['truncated']=false;
+        $out['fullScopeReasonCounts']=null;
     }
     return $out;
 }
