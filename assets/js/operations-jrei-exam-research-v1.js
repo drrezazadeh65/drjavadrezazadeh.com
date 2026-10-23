@@ -1202,6 +1202,47 @@
      }
      sections.append(b);
    }
+   const improvement=ai.evidenceImprovementOpportunities;
+   fact(T('فرصت‌های بهبود مبتنی بر دادهٔ واقعی',
+     'Improvement issues based on observed evidence'),
+     improvement?.available?safeCount(improvement.openCount):
+       T('نامعلوم؛ پایش تأیید نشده','Unknown; monitoring not accepted'));
+   if(improvement?.available){
+     const review=elt('details','jr-exam-subsection');
+     review.append(elt('summary','',T(
+       'ثبت و بررسی مسائل واقعی عملکرد JREI',
+       'Actual JREI performance improvement evidence')));
+     review.append(elt('p','',T(
+       'این داده‌ها فقط علامت نیازمند تحقیق هستند؛ هیچ اصلاح کد، تست، PR یا انتشار خودکاری انجام نمی‌شود.',
+       'These are investigatory signals only. No automatic code patch, test, PR or deployment occurs.')));
+     for(const issue of Array.isArray(improvement.recordedSignals)?
+       improvement.recordedSignals.slice(0,20):[]){
+       const item=elt('div','jr-exam-coverage-row');
+       item.append(elt('strong','',String(issue.rule||'').slice(0,60)));
+       item.append(elt('span','',
+         String(issue.summaryCode||'')+' · '+
+         safeCount(issue.realEvidenceCount)));
+       for(const [choice,fa,en] of [
+         ['ACKNOWLEDGED_FOR_INVESTIGATION',
+           'ثبت برای بررسی فنی','Mark for independent investigation'],
+         ['REJECTED_NOT_REPRODUCIBLE',
+           'رد به دلیل شواهد ناکافی','Dismiss as unverified']
+       ]){
+         const button=elt('button','jr-btn secondary',T(fa,en));
+         button.type='button';button.addEventListener('click',()=>{
+           if(!active()||busy||!window.confirm(T(
+             'فقط وضعیت این مسئله ثبت شود؛ هیچ کدی تغییر نمی‌کند.',
+             'Record this evidence disposition only; code will not change.')))return;
+           mutate({action:'ai_disposition_improvement',
+             opportunityId:issue.id,decision:choice,
+             confirmation:'REVIEW_OBSERVED_SIGNAL_WITHOUT_CODE_CHANGES'});
+         });
+         item.append(button);
+       }
+       review.append(item);
+     }
+     sections.append(review);
+   }
    const observed=ai.observedProviderOutcomes;
    fact(T('پاسخ‌های تکمیل‌شدهٔ ثبت‌شده (۷ روز)',
        'Recorded completed provider responses (7 days)'),
