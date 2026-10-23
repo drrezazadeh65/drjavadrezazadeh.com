@@ -94,7 +94,7 @@ function jrHybridOwnerSnapshot(PDO $pdo,array $cfg): array {
     ];
     $projection=array_merge($base,jrHybridOwnerCorpusSnapshot($pdo),
         jrHybridSourceSnapshot($pdo),jrHybridModelSnapshot($pdo));
-    $projection['dispatchDiagnostics']=jrHybridOwnerDispatchDiagnostics($projection);
+    $projection['dispatchDiagnostics']=jrHybridOwnerDispatchDiagnostics($pdo,$projection);
     return $projection;
 }
 function jrHybridOwnerChange(PDO $pdo,array $cfg,string $actor,
