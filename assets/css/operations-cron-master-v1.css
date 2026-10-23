@@ -22,6 +22,11 @@
 #ops-cron-master .jr-cron-id{direction:ltr;unicode-bidi:isolate;font:600 .8rem ui-monospace,monospace;opacity:.7}
 #ops-cron-master .jr-cron-state,
 #ops-cron-master .jr-cron-warning{font-size:.88rem;line-height:1.8}
+#ops-cron-master .jr-cron-review{display:grid;gap:.7rem;margin-block:.85rem;
+ padding:.75rem;border:1px solid rgba(176,126,55,.6);
+ border-radius:10px;background:rgba(176,126,55,.07)}
+#ops-cron-master .jr-cron-review label{display:grid;gap:.5rem;line-height:1.8}
+#ops-cron-master .jr-cron-review button{width:100%}
 #ops-cron-master .jr-cron-warning{border-inline-start:3px solid #ae8040;padding-inline-start:.65rem}
 #ops-cron-master .jr-cron-controls{display:grid;gap:.75rem;margin-top:.85rem}
 #ops-cron-master .jr-cron-switch,
