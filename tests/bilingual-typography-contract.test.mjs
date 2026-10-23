@@ -17,7 +17,13 @@ test('the preexisting private operations shell follows the same logical directio
  const css=read('assets/css/operations-control.css');
  assert.match(css,/JR ADMIN BILINGUAL TEXT ALIGNMENT CONTRACT 20261021/);
  assert.match(css,/\.ops\) :is\(input/);
- assert.doesNotMatch(css.slice(css.indexOf('/* JR ADMIN BILINGUAL TEXT ALIGNMENT CONTRACT')),/!important/);
+ // Only audit the actual alignment declarations, not pre-existing global
+ // [hidden] visibility and print-only protections, where important is
+ // deliberate for private-panel safety and media correctness.
+ const afterContract=css.slice(css.indexOf('/* JR ADMIN BILINGUAL TEXT ALIGNMENT CONTRACT'));
+ const nextSection=afterContract.indexOf('/*',3);
+ const alignment=nextSection<0?afterContract:afterContract.slice(0,nextSection);
+ assert.doesNotMatch(alignment,/!important/);
  for(const path of ['fa/app/admin/index.html','en/account/admin/index.html']){
   const html=read(path);
   assert.ok(html.includes('operations-control.css'));
