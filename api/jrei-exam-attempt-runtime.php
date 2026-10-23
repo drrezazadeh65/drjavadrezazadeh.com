@@ -385,3 +385,79 @@ function jrExamAttemptProgress(PDO $pdo,string $account,string $id): array {
       'verifiedKeyIncluded'=>false,'correctOptionIncluded'=>false,
       'paymentProofIncluded'=>false,'publishedReportIncluded'=>false];
 }
+
+
+/**
+ * Candidate-private reproducible PRELIMINARY raw grade using ONLY original
+ * eco_assessment_responses and eco_score_runs digests. No score snapshot
+ * table, duplicated sensitive dataset or model inference is required.
+ * Any revoked key/version or changed response triggers an owner-review
+ * blocker, never a revised/unverifiable grade presented as final.
+ */
+function jrExamCandidateResult(PDO $pdo,string $account,string $attempt): array {
+    $id=jrExamAttemptUuid($attempt);
+    $q=$pdo->prepare("SELECT a.attempt_id,a.attempt_state,
+        a.assessment_session_id,a.score_run_id,a.submission_digest,
+        s.subject_id,s.instrument_version_id,s.consent_id,
+        p.scoring_model_id,
+        run.session_id AS scored_session_id,
+        run.scoring_model_id AS scored_model_id,
+        run.input_sha256,run.output_sha256,run.state AS score_state
+      FROM jrei_exam_commercial_attempts a
+      JOIN eco_assessment_sessions s ON s.id=a.assessment_session_id
+      JOIN eco_subjects sub ON sub.id=s.subject_id
+      JOIN jrei_exam_commercial_offerings o ON o.offering_id=a.offering_id
+      JOIN jrei_exam_commercial_products p ON p.product_id=o.product_id
+      JOIN eco_score_runs run ON run.id=a.score_run_id
+      WHERE a.attempt_id=? AND a.account_id=? AND sub.owner_account_id=?
+        AND a.attempt_state IN ('SUBMITTED','TIMED_OUT')
+      LIMIT 1");
+    $q->execute([$id,$account,$account]);$a=$q->fetch(PDO::FETCH_ASSOC);
+    if(!is_array($a)||$a['assessment_session_id']!==$a['scored_session_id']||
+       $a['scoring_model_id']!==$a['scored_model_id']||
+       !is_string($a['submission_digest'])||
+       !preg_match('/^[a-f0-9]{64}$/D',$a['submission_digest']))
+        throw new DomainException('verified_exam_score_run_unavailable');
+    $consent=jrExamAdultSubjectConsent($pdo,$account,$a['subject_id']);
+    if($a['consent_id']!==$consent)
+        throw new DomainException('original_exam_consent_superseded');
+    $context=jrExamVerifiedMcqContext($pdo,
+      $a['instrument_version_id'],$a['scoring_model_id']);
+    $q=$pdo->prepare("SELECT item_id,selected_option_id
+      FROM eco_assessment_responses
+      WHERE session_id=? ORDER BY item_id ASC LIMIT 301");
+    $q->execute([$a['assessment_session_id']]);
+    $answers=[];
+    foreach($q as $row){
+        $key=(string)$row['item_id'];
+        if(isset($answers[$key])||$row['selected_option_id']===null)
+            throw new DomainException('scored_response_history_changed');
+        $answers[$key]=(string)$row['selected_option_id'];
+    }
+    $grade=jrExamDeterministicRawGrade($context,$answers);
+    ksort($answers,SORT_STRING);
+    $payload=json_encode([
+      $a['assessment_session_id'],$context['instrumentVersionId'],
+      $context['scoringModelId'],$context['policySha256'],$answers
+    ],JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);
+    $input=hash('sha256',$payload);
+    $output=hash('sha256',json_encode($grade,
+      JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR));
+    if(!hash_equals($a['submission_digest'],$input)||
+       !hash_equals((string)$a['input_sha256'],$input)||
+       !hash_equals((string)$a['output_sha256'],$output))
+        throw new DomainException('exam_score_evidence_changed_manual_review_required');
+    return [
+      'ok'=>true,'schema'=>'jr.jrei.candidate-preliminary-grade.v1',
+      'attemptId'=>$id,'state'=>$a['attempt_state'],
+      'resultStatus'=>'VERIFIED_RECOMPUTABLE_RAW_GRADE_NOT_VALIDATED',
+      'scoreRunState'=>$a['score_state'],
+      'grade'=>$grade,
+      'sourceResponsesVerifiedByDigest'=>true,
+      'originalScoreRunDigestMatched'=>true,
+      'correctAnswersIncluded'=>false,
+      'psychometricValidityEstablished'=>false,
+      'admissionProbability'=>null,'percentile'=>null,
+      'reportPublished'=>false
+    ];
+}
