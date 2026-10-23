@@ -848,6 +848,53 @@
        }
        monitor.append(record);
      }
+     const service=centre.humanBuyerServiceLedger;
+     if(service?.schema==='jr.jrei.exam-buyer-followup-ledger.v1'){
+       monitor.append(elt('p','',T(
+         'این سوابق صرفاً تعهد پیگیری اداری هستند؛ هیچ اقدامی دربارهٔ پرداخت یا دریافت خریدار را ثابت نمی‌کنند.',
+         'Recorded cases document required administrative follow-up only; no payment or buyer notification is asserted.')));
+       const measures=[
+         [T('مجموع پیگیری‌های ثبت‌شده','All human follow-up records'),
+           service.totalRecordedReviews],
+         [T('پیگیری مجوزهای مبتنی بر سفارش','Paid-order related follow-up records'),
+           service.paidOrderCases],
+         [T('پیگیری مجوزهای رایگان مدیر','Owner-free follow-up records'),
+           service.ownerFreeCases]
+       ];
+       for(const [label,n] of measures){
+         const row=elt('div','jr-exam-coverage-row');
+         row.append(elt('strong','',label),elt('span','',
+           service.available&&Number.isSafeInteger(n)?
+             safeCount(n):T('نامعلوم؛ جدول ثبت نصب نشده',
+               'Unknown; service follow-up ledger unavailable')));
+         monitor.append(row);
+       }
+       if(service.available){
+         const history=elt('details','jr-exam-subsection');
+         history.append(elt('summary','',T(
+           'تاریخچهٔ پیگیری‌های ثبت‌شدهٔ خریداران؛ بدون اطلاعات هویتی',
+           'Recorded human buyer-service follow-up events — no identity data')));
+         const items=Array.isArray(service.cases)?service.cases.slice(0,30):[];
+         if(!items.length)history.append(elt('p','',
+           T('هنوز پیگیری در این دفتر ثبت نشده است.',
+             'No follow-up records are in this ledger.')));
+         for(const record of items){
+           const line=elt('div','jr-exam-coverage-row');
+           line.append(elt('strong','',String(record.reasonCode||'').slice(0,60)));
+           line.append(elt('span','',
+             T('وضعیت مجوز: ','Entitlement state: ')+
+             String(record.entitlementState||'').slice(0,24)));
+           if(Number.isSafeInteger(record.createdAt))
+             line.append(elt('span','',new Date(record.createdAt*1000)
+               .toLocaleString(en?'en-GB':'fa-IR')));
+           history.append(line);
+         }
+         if(service.truncated)history.append(elt('p','',T(
+           'فقط ۳۰ رویداد اخیر نمایش داده شده است؛ شمارش کل مستقل است.',
+           'Only 30 recent events appear; full totals are counted separately.')));
+         monitor.append(history);
+       }
+     }
      panel.append(monitor);
    }
    for(const [key,label] of [
