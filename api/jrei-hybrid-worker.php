@@ -164,7 +164,42 @@ function jrHybridRecoverOrphans(PDO $pdo,int $at): void {
         WHERE status='QUEUED' AND expires_at<?");
     $q->execute([$at]);
 }
-function jrHybridLease(PDO $pdo,string $node,int $at): ?array {
+/**
+ * An authenticated node advertises only PUBLIC, owner-reviewed corpora it
+ * actually has installed. Bertina reconciles each digest against its own
+ * private approved-corpus catalogue. No user content or corpus URL is sent.
+ * A node without matching local evidence receives NO task.
+ */
+function jrHybridEligibleDatasets(mixed $raw,array $cfg): ?array {
+    if(!is_array($raw)||!array_is_list($raw)||count($raw)>15)
+        return null;
+    $catalogue=$cfg['jrei_hybrid_approved_datasets']??[];
+    if(!is_array($catalogue))return null;
+    $seen=[];$approved=[];
+    foreach($raw as $d){
+        if(!is_array($d)||array_keys($d)!==[
+           'id','datasetSha256','evidenceSha256','evaluationVersion'
+        ]||!jrHybridIdentifier($d['id']??null)||
+          !jrHybridSha($d['datasetSha256']??null)||
+          !jrHybridSha($d['evidenceSha256']??null)||
+          !jrHybridIdentifier($d['evaluationVersion']??null)||
+          isset($seen[$d['id']]))
+            return null;
+        $seen[$d['id']]=true;
+        $official=$catalogue[$d['id']]??null;
+        // Ignore unapproved local corpora, even when advertised by a signed
+        // key. They are not dispatch authority, and no raw data is queried.
+        if(!is_array($official)||($official['sourceReviewed']??null)!==true||
+           !jrHybridSha($official['datasetSha256']??null)||
+           !jrHybridSha($official['evidenceSha256']??null)||
+           !hash_equals($official['datasetSha256'],$d['datasetSha256'])||
+           !hash_equals($official['evidenceSha256'],$d['evidenceSha256']))
+            continue;
+        $approved[]=$d;
+    }
+    return $approved;
+}
+function jrHybridLease(PDO $pdo,string $node,int $at,array $datasets): ?array {
     $pdo->beginTransaction();
     try {
         // Serialize all polls claiming work as this node, including concurrent
@@ -185,13 +220,26 @@ function jrHybridLease(PDO $pdo,string $node,int $at): ?array {
             AND lease_expires_at>=? LIMIT 1 FOR UPDATE");
         $q->execute([$node,$at]);
         if($q->fetchColumn()!==false){$pdo->commit();return null;}
-        $q=$pdo->prepare("SELECT job_id,task_type,requested_dataset_id,
+        if(!$datasets){$pdo->commit();return null;}
+        $conditions=[];$params=[$at,JR_HYBRID_TASK];
+        foreach($datasets as $d){
+            $conditions[]='(requested_dataset_id=? AND dataset_sha256=?
+               AND evidence_sha256=? AND evaluation_version=?)';
+            array_push($params,$d['id'],$d['datasetSha256'],
+                $d['evidenceSha256'],$d['evaluationVersion']);
+        }
+        // A second computer must not claim the oldest queued task unless
+        // its own locally installed, signed-and-owner-approved corpus
+        // matches the job's exact evidence/version fingerprint.
+        $sql="SELECT job_id,task_type,requested_dataset_id,
             dataset_sha256,evidence_sha256,policy_current_json,
             policy_candidate_json,evaluation_version
             FROM jrei_hybrid_jobs WHERE status='QUEUED'
-              AND expires_at>=? ORDER BY queued_at ASC,job_id ASC
-              LIMIT 1 FOR UPDATE");
-        $q->execute([$at]);$job=$q->fetch(PDO::FETCH_ASSOC);
+              AND expires_at>=? AND task_type=? AND (".
+              implode(' OR ',$conditions).")
+            ORDER BY queued_at ASC,job_id ASC LIMIT 1 FOR UPDATE";
+        $q=$pdo->prepare($sql);$q->execute($params);
+        $job=$q->fetch(PDO::FETCH_ASSOC);
         if(!is_array($job)){$pdo->commit();return null;}
         if($job['task_type']!==JR_HYBRID_TASK)
             throw new RuntimeException('unsupported_task_queued');
@@ -333,14 +381,16 @@ function jrHybridWorkerRoute(string $path,string $verb): never {
         if($body===null)fail('invalid_worker_request',422);
         $now=time();
         if($path==='/jrei/v1/worker/poll'){
-            if(array_keys($body)!==['metrics']||
+            if(array_keys($body)!==['metrics','datasets']||
                !is_array($body['metrics'])||
-               ($meta=jrHybridMeta($body['metrics']))===null)
+               ($meta=jrHybridMeta($body['metrics']))===null||
+               ($datasets=jrHybridEligibleDatasets(
+                  $body['datasets']??null,$config))===null)
                 fail('invalid_worker_request',422);
             jrHybridRecordHeartbeat($pdo,(string)$node['node_id'],$meta,$now);
             if(!in_array($meta['status'],['ONLINE','DEGRADED'],true))
                 respond(['ok'=>true,'job'=>null,'retryAfterSeconds'=>20]);
-            $job=jrHybridLease($pdo,(string)$node['node_id'],$now);
+            $job=jrHybridLease($pdo,(string)$node['node_id'],$now,$datasets);
             respond(['ok'=>true,'job'=>$job,'retryAfterSeconds'=>$job?0:20]);
         }
         if($path==='/jrei/v1/worker/heartbeat')
