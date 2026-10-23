@@ -23,6 +23,18 @@ jobs:
           $ErrorActionPreference='Stop'
           $env:LOCALAPPDATA=Join-Path $env:RUNNER_TEMP 'jrei-ephemeral-qa'
           New-Item -ItemType Directory -Force -Path $env:LOCALAPPDATA | Out-Null
+          # Harmless fixture reveals exact script failure without risking a
+          # real private key, live credentials or the owner's Windows host.
+          $privateDir=Join-Path $env:LOCALAPPDATA 'JREI'
+          New-Item -ItemType Directory -Force -Path $privateDir | Out-Null
+          $dummyKey=Join-Path $privateDir 'fixture.dpapi'
+          'NON_SECRET_DPAPI_DIAGNOSTIC' | & powershell.exe -NoProfile -NonInteractive -File platform/jrei-v5/windows-worker/jrei-windows-dpapi.ps1 -Mode protect -KeyFile $dummyKey
+          if ($LASTEXITCODE -ne 0) { throw 'DPAPI helper cannot protect a harmless fixture' }
+          $dummyResult=& powershell.exe -NoProfile -NonInteractive -File platform/jrei-v5/windows-worker/jrei-windows-dpapi.ps1 -Mode unprotect -KeyFile $dummyKey
+          if ($LASTEXITCODE -ne 0 -or (-join $dummyResult) -notmatch 'NON_SECRET_DPAPI_DIAGNOSTIC') {
+            throw 'DPAPI helper cannot restore a harmless fixture'
+          }
+          Remove-Item -LiteralPath $dummyKey -Force
           node platform/jrei-v5/windows-worker/jrei-worker.mjs init
           if ($LASTEXITCODE -ne 0) { throw 'Windows worker init failed' }
           $protected=Join-Path $env:LOCALAPPDATA 'JREI\jrei-worker-key.dpapi'
