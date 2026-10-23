@@ -90,7 +90,7 @@ function jrKaOwnerCoverageGapQueue(PDO $pdo): array {
             a.curriculum_id AS alignment_curriculum_id,
             a.grade AS alignment_grade,
             a.evidence_sha256 AS alignment_evidence,
-            CASE WHEN a.reviewed_by_account_id IS NULL THEN 0
+            CASE WHEN a.reviewed_by_account_id IS NULL THEN 1
               WHEN a.reviewed_by_account_id=r.approved_by_account_id
                 OR a.reviewed_by_account_id=s.reviewer_account_id THEN 1
               ELSE 0 END AS alignment_reviewer_conflict,
