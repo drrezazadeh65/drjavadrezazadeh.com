@@ -724,6 +724,32 @@
        'استخراج اولیهٔ متن به معنای OCR، صحت فرمول‌های ریاضی یا داوری علمی نیست.',
        'First-pass text extraction does not establish OCR, mathematical integrity or scientific review.')));
    }
+   const passage=ka.passageReviewObservability;
+   root.append(elt('p','',
+      T('تولید خودکار فرادادهٔ بندهای متن: ','Private passage proposals: ')+
+      (ka.privatePassageProposalsOptIn?T('مجوز تنظیماتی روشن','Owner opt-in ON'):
+      T('خاموش','OFF'))));
+   fact(T('بندهای مستند پیشنهادی منتظر بازبینی مستقل',
+     'Proposed source passages awaiting independent review'),
+     passage?.schemaReady?fmt(passage.unreviewedSpans):T('نامعلوم','Unknown'));
+   if(passage?.schemaReady){
+     const sourcePassages=elt('div','jr-exam-coverage-row');
+     sourcePassages.append(elt('strong','',
+       T('پیشنهادهای مستند؛ بدون انتشار متن','Source passage metadata — private only')));
+     sourcePassages.append(elt('span','',
+       T('مجموع بندهای انگشت‌نگاری‌شده: ','Fingerprint-only passages: ')+
+       fmt(passage.proposedSpans)));
+     sourcePassages.append(elt('span','',
+       T('مجموع اسناد بخش‌بندی‌شده: ','Segmented documents: ')+
+       fmt(passage.runs)));
+     sourcePassages.append(elt('span','',
+       T('تقسیم‌بندی ناقص، نیازمند بازبینی: ','Incomplete segmentation reviews: ')+
+       fmt(passage.incompleteRuns)));
+     sourcePassages.append(elt('p','',T(
+       'بندهای استخراج‌شده هنوز مدرک تأییدشده برای مدل زبانی نیستند؛ متن و پاسخ علمی به‌طور خودکار عمومی نمی‌شوند.',
+       'Private spans do not establish approved retrieval evidence and never publish scholarly claims or copyrighted passages.')));
+     root.append(sourcePassages);
+   }
    const states=Array.isArray(ka.jobStates)?ka.jobStates:[];
    const snapshotBox=elt('div','jr-exam-coverage-row');
    snapshotBox.append(elt('strong','',T('وضعیت واقعی کارهای ثبت‌شده',
