@@ -1,5 +1,5 @@
 /* JR Cache Standard v2.2 — encoded-route safe, response-aware, release-fresh */
-const CACHE_VERSION='jr-site-20261022-home-rcas-choice-ops-v4';
+const CACHE_VERSION='jr-site-20261023-private-jrei-exams-v5';
 const CACHE_FAMILY='jr-site-';
 const SHELL_CACHE=CACHE_VERSION+'-shell';
 const RUNTIME_CACHE=CACHE_VERSION+'-runtime';
@@ -32,6 +32,8 @@ const PRIVATE_PREFIXES=[
   '/api/','/fa/services/checkout/','/fa/shop/golden-talent/checkout/',
   '/fa/app/','/fa/customer-dashboard/','/app/','/fa/login/','/login/','/fa/register/','/register/','/fa/bazyabi-hesab/',
   '/en/login/','/en/register/','/en/recover/','/en/account/',
+  // Private candidate exam pages: no offline cache, precache or PWA replay.
+  '/fa/exams/my/','/en/exams/my/',
   '/fa/assessments/','/assessments/',
   '/fa/shop/cart/','/fa/shop/checkout/','/fa/shop/payment-start/','/fa/shop/payment-return/','/fa/shop/payment-result/',
   '/en/shop/cart/','/en/shop/checkout/',
