@@ -3,6 +3,7 @@ declare(strict_types=1);
 if(!defined('BERTINA_API_BOOTSTRAPPED')){http_response_code(404);exit;}
 require_once __DIR__.'/jrei-exam-product-readiness.php';
 require_once __DIR__.'/jrei-exam-source-release-impact.php';
+require_once __DIR__.'/jrei-exam-buyer-risk-exposure.php';
 require_once __DIR__.'/jrei-exam-localization-owner.php';
 
 /**
@@ -147,6 +148,7 @@ function jrExamCommercialOwnerSnapshot(PDO $pdo,array $cfg): array {
       'productRegistry'=>null,'offeringRegistry'=>null,
       'productReleaseGates'=>null,
       'sourceReleaseImpact'=>null,
+      'buyerSourceRiskObligations'=>null,
       'localizedPromptReview'=>jrExamOwnerLocalizedPromptSnapshot($pdo),
       'preliminaryGradeEvidence'=>jrExamOwnerPreliminaryGradeEvidence($pdo),
       'entitlementGovernance'=>null,
@@ -267,6 +269,7 @@ function jrExamCommercialOwnerSnapshot(PDO $pdo,array $cfg): array {
     }
     $base['productReleaseGates']=jrExamOwnerProductReadiness($pdo,$cfg);
     $base['sourceReleaseImpact']=jrExamOwnerSourceReleaseImpact($pdo);
+    $base['buyerSourceRiskObligations']=jrExamOwnerAtRiskBuyerObligations($pdo);
     $base['preliminaryGradeEvidence']=jrExamOwnerPreliminaryGradeEvidence($pdo);
     $base['entitlementGovernance']=jrExamOwnerEntitlementExposure($pdo,$cfg);
     return $base;
