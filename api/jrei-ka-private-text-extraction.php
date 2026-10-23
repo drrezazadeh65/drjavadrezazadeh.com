@@ -214,6 +214,9 @@ function jrKaExtractOnePrivateObservation(PDO $pdo,array $cfg): array {
             throw new DomainException('ka_observation_content_changed');
         $data=jrKaTextExtractBytes((string)$ob['mime_type'],$raw);
         $raw='';
+        $chars=is_string($data['text']??null)?
+           (function_exists('mb_strlen')?
+             mb_strlen($data['text'],'UTF-8'):strlen($data['text'])):null;
         if(is_string($data['text']??null))
             $new=jrKaStorePrivateText($root,$data['text']);
         $data['text']=null;
@@ -241,10 +244,8 @@ function jrKaExtractOnePrivateObservation(PDO $pdo,array $cfg): array {
                scanned_pdf_needs_ocr=?,updated_at=?
               WHERE observation_id=? AND claim_token=? AND
                 processing_state='EXTRACTING'");
-            $chars=$new===null?null:(function_exists('mb_strlen')?
-               mb_strlen($data['text']??'','UTF-8'):null);
-            // Character count can only be measured from the extracted
-            // plaintext; byte count remains authoritative if unavailable.
+            // The character count is captured before plaintext leaves
+            // memory. Byte count remains authoritative for file storage.
             $q->execute([$data['state'],$data['method'],
                $new['sha256']??null,$new['key']??null,
                $new['bytes']??null,$chars,
