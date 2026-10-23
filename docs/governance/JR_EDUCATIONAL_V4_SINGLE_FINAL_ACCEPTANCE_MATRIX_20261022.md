@@ -218,3 +218,8 @@ The separate ADMIN/SUPER_ADMIN human reviewer workflow and newly staged additive
 6. Confirm the bilingual reviewer UI on desktop and mobile, independent role access, safe external URL handling, no sensitive persistence, MFA-expiry behaviour, ambiguous mutation recovery and unknown-vs-zero reporting.
 
 **Status: NOT RUN / NOT DEPLOYED / NOT SCIENTIFICALLY ACCEPTED.** No PASS state or 117-atomic closure is implied.
+
+
+### Final-only provider-neutral model route and public fallback gates — NOT RUN
+
+Before public activation, verify independently that the owner-approved route cannot invoke OpenAI without the existing prior daily quota reservation and explicit visitor consent; that provider HTTP responses and output guard remain correctly interpreted; and that a rejected/expired credential, exceeded budget, missing migrations, recalled source quote or unavailable provider does not trigger a fake local model answer. Validate the existing static browser fallback remains functional when both Windows computers are offline. Check registered model licences, actual installed-weight fingerprints, worker task allowlists, signed node freshness, real latency, inference output, independent model-quality benchmarks and separate user authorisation before allowing any future generative task type. A signed retrieval-evaluation heartbeat **is not** evidence of local generative inference. Test deployment/rollback only at the independently authorised final acceptance stage. Status: NOT RUN; no original atomic PASS.
