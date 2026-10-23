@@ -330,3 +330,52 @@ function jrExamAttemptSubmit(PDO $pdo,string $account,array $request,int $at): a
         throw $e;
     }
 }
+
+
+/**
+ * Candidate resume projection: only previously selected original option IDs,
+ * never prompt objects, verified answer keys, solutions, source URLs or scores.
+ * An expired/withdrawn exam cannot be continued through this read.
+ */
+function jrExamAttemptProgress(PDO $pdo,string $account,string $id): array {
+    $attemptId=jrExamAttemptUuid($id);
+    $q=$pdo->prepare("SELECT a.attempt_id,a.attempt_state,a.deadline_at,
+      a.response_revision,a.starts_at,a.submitted_at,
+      s.id AS session_id,s.subject_id,s.status AS session_state,
+      s.consent_id
+      FROM jrei_exam_commercial_attempts a
+      JOIN eco_assessment_sessions s ON s.id=a.assessment_session_id
+      JOIN eco_subjects sub ON sub.id=s.subject_id
+      WHERE a.attempt_id=? AND a.account_id=? AND sub.owner_account_id=?
+      LIMIT 1");
+    $q->execute([$attemptId,$account,$account]);$a=$q->fetch(PDO::FETCH_ASSOC);
+    if(!is_array($a))throw new DomainException('exam_attempt_not_owned');
+    $at=time();
+    $canResume=$a['attempt_state']==='IN_PROGRESS'&&
+        $a['session_state']==='IN_PROGRESS'&&
+        (int)$a['deadline_at']>=$at;
+    $responses=[];
+    if($canResume){
+        // Do not serve even the candidate's saved choices after scoped
+        // consent is withdrawn. No sensitive data in exception messages.
+        $consent=jrExamAdultSubjectConsent($pdo,$account,$a['subject_id']);
+        if($consent!==$a['consent_id'])
+            throw new DomainException('original_exam_consent_superseded');
+        $q=$pdo->prepare('SELECT r.item_id,r.selected_option_id
+          FROM eco_assessment_responses r
+          WHERE r.session_id=? ORDER BY r.item_id LIMIT 300');
+        $q->execute([$a['session_id']]);
+        foreach($q as $r)$responses[]=[
+           'itemId'=>$r['item_id'],'selectedOptionId'=>$r['selected_option_id']
+        ];
+    }
+    return ['ok'=>true,'schema'=>'jr.jrei.exam-progress.v1',
+      'attemptId'=>$attemptId,'state'=>$a['attempt_state'],
+      'deadlineAt'=>$a['deadline_at']===null?null:(int)$a['deadline_at'],
+      'startedAt'=>$a['starts_at']===null?null:(int)$a['starts_at'],
+      'submittedAt'=>$a['submitted_at']===null?null:(int)$a['submitted_at'],
+      'responseRevision'=>(int)$a['response_revision'],
+      'canResume'=>$canResume,'savedChoices'=>$responses,
+      'verifiedKeyIncluded'=>false,'correctOptionIncluded'=>false,
+      'paymentProofIncluded'=>false,'publishedReportIncluded'=>false];
+}
