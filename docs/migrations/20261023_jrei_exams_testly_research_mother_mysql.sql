@@ -30,6 +30,9 @@ CREATE TABLE IF NOT EXISTS jrei_exam_sources (
   source_version VARCHAR(100) NOT NULL,
   original_sha256 CHAR(64) CHARACTER SET ascii COLLATE ascii_bin NULL,
   source_locator_digest CHAR(64) CHARACTER SET ascii COLLATE ascii_bin NULL,
+  -- Private manual candidate URI; never sent to learner/model/Cron until
+  -- host, robots, rights and DNS/IP checks independently pass.
+  source_locator_uri VARCHAR(1200) NULL,
   country_code CHAR(2) NOT NULL DEFAULT 'IR',
   educational_level VARCHAR(40) NOT NULL,
   exam_category VARCHAR(50) NOT NULL,
@@ -48,6 +51,7 @@ CREATE TABLE IF NOT EXISTS jrei_exam_sources (
   verified_at BIGINT UNSIGNED NULL,
   created_at BIGINT UNSIGNED NOT NULL,
   updated_at BIGINT UNSIGNED NOT NULL,
+  UNIQUE KEY uq_jrei_candidate_uri_version(source_locator_digest,source_version),
   KEY idx_jrei_exam_source_coverage(examination_year,educational_level,subject_id,source_kind),
   KEY idx_jrei_exam_source_review(rights_state,review_state,extraction_state),
   CONSTRAINT fk_jrei_exam_source_reviewer FOREIGN KEY (reviewer_account_id)
