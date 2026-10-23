@@ -69,6 +69,11 @@ function operationsCronRegistry(): array {
         'en'=>'JREI-KA first-pass private text extraction',
         'relative'=>'internal/jrei-ka-private-extraction-worker.php',
         'defaultCadence'=>3600,'minimumCadence'=>3600,'sensitive'=>true],
+      'jrei_ka_private_passage_proposals'=>[
+        'fa'=>'پیشنهاد بخش‌های مستند خصوصی JREI-KA',
+        'en'=>'JREI-KA private passage review proposals',
+        'relative'=>'internal/jrei-ka-passage-review-worker.php',
+        'defaultCadence'=>3600,'minimumCadence'=>3600,'sensitive'=>true],
       'jrei_exam_deadline_review'=>[
         'fa'=>'بررسی آزمون‌های منقضی‌شدهٔ JREI',
         'en'=>'JREI unfinished exam deadline review',
