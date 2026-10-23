@@ -120,6 +120,20 @@ function jrExamAttemptStart(PDO $pdo,string $account,array $request,int $at): ar
           (string)$o['instrument_version_id'],$lang);
         if(count($published)!==count($score['items']))
             throw new DomainException('reviewed_key_and_prompt_count_conflict');
+        $reviewedOptions=[];
+        foreach($score['items'] as $item){
+            $reviewedOptions[$item['itemId']]=$item['allowedOptionIds'];
+        }
+        foreach($published as $item){
+            $id=$item['itemId'];
+            if(!isset($reviewedOptions[$id]))
+                throw new DomainException('published_question_set_not_reviewed');
+            $actual=array_column($item['options'],'id');
+            if(count($actual)!==count($reviewedOptions[$id])||
+               array_diff($actual,$reviewedOptions[$id])||
+               array_diff($reviewedOptions[$id],$actual))
+                throw new DomainException('published_item_option_lineage_conflict');
+        }
         // A publisher can withdraw approval before the expensive original
         // item checks. Do not start using a stale earlier timestamp.
         $at=time();
