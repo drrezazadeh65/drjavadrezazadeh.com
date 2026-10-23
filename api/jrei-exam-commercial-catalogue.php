@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 if(!defined('BERTINA_API_BOOTSTRAPPED')){http_response_code(404);exit;}
+require_once __DIR__.'/jrei-exam-product-readiness.php';
 
 /**
  * Commercial examination catalogue projections from the existing mother DB.
@@ -133,6 +134,7 @@ function jrExamCommercialOwnerSnapshot(PDO $pdo,array $cfg): array {
       'entitlementStates'=>null,'attemptStates'=>null,
       'itemReviewCoverage'=>null,'itemReviewCoverageAvailable'=>false,
       'productRegistry'=>null,'offeringRegistry'=>null,
+      'productReleaseGates'=>null,
       'operationalRisks'=>[
         'unknownExpiredAttempts'=>null,'unfinishedDeadlineReviews'=>null,
         'activeAccessOnSuspendedExams'=>null,
@@ -248,5 +250,6 @@ function jrExamCommercialOwnerSnapshot(PDO $pdo,array $cfg): array {
     }catch(Throwable $e){
         $base['itemReviewCoverage']=null;
     }
+    $base['productReleaseGates']=jrExamOwnerProductReadiness($pdo,$cfg);
     return $base;
 }
