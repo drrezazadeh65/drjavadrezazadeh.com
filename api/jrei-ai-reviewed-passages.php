@@ -98,9 +98,14 @@ function jrAiApprovedPublicPassages(PDO $pdo,array $cfg,
         if(!preg_match('//u',$excerpt)||
            !hash_equals($passageDigest,hash('sha256',$excerpt))||
            preg_match('/[\x00-\x08\x0b\x0c\x0e-\x1f]/',$excerpt)||
-           preg_match('/[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}/u',$excerpt))
+           preg_match('/[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}/u',$excerpt)||
+           preg_match('/(?:\d[\s-]*){13,19}/u',$excerpt)||
+           preg_match('/(?:کد ملی|شماره کارت|شماره شناسنامه|گذرنامه|national id|passport number|bank account)/iu',$excerpt))
             continue;
         $url=(string)$row['source_locator_uri'];
+        // External citations must not leak private signed query
+        // tokens or personal identifiers embedded in document URLs.
+        if(str_contains($url,'?'))continue;
         try{jrKaApprovedHttpsUrl($url);}
         catch(Throwable $e){continue;}
         $title=(string)$row['source_title'];
