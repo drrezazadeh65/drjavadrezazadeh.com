@@ -58,7 +58,12 @@ function operationsCronRegistry(): array {
         'fa'=>'زمان‌بندی منابع مجاز آموزشی JREI',
         'en'=>'JREI-KA authorised educational source scheduler',
         'relative'=>'internal/jrei-ka-schedule-worker.php',
-        'defaultCadence'=>3600,'minimumCadence'=>3600,'sensitive'=>true]
+        'defaultCadence'=>3600,'minimumCadence'=>3600,'sensitive'=>true],
+      'jrei_exam_deadline_review'=>[
+        'fa'=>'بررسی آزمون‌های منقضی‌شدهٔ JREI',
+        'en'=>'JREI unfinished exam deadline review',
+        'relative'=>'internal/jrei-exam-deadline-worker.php',
+        'defaultCadence'=>300,'minimumCadence'=>300,'sensitive'=>true]
     ];
 }
 function operationsCronSourcePath(string $jobId): ?string {
