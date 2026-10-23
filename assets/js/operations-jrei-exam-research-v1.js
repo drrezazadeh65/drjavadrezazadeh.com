@@ -678,6 +678,30 @@
        'مدرک مستقل انطباق پایه و شناسه برنامهٔ درسی ثبت نشده یا با منبع فعلی سازگار نیست',
        'Independent curriculum-ID/grade evidence missing, revoked or stale')
    };
+   const allCounts=queue.fullScopeReasonCounts;
+   if(allCounts&&typeof allCounts==='object'&&!Array.isArray(allCounts)){
+     const total=elt('details','jr-exam-subsection');
+     total.append(elt('summary','',T(
+       'توزیع کامل علل نقصِ دامنه‌های مصوب',
+       'Complete distribution of approved-scope gap reasons')));
+     total.append(elt('p','',T(
+       'این اعداد از همهٔ رکوردهای مصوب پایگاه داده محاسبه شده‌اند، نه فقط ۶۰ مورد قابل مشاهده. این‌ها معیار سنجش جامعِ جهان یا اثبات علمی بودن منابع نیستند.',
+       'These counts use every owner-approved mother-DB scope, not the 60-row preview; they do not constitute worldwide completeness or scientific evidence quality.')));
+     const names={...labels,METADATA_LINK_ELIGIBLE:T(
+       'پیوند واجد شرایط فراداده برای تحلیل خصوصی؛ نه انتشار',
+       'Metadata link eligible for private analysis, not publication')};
+     const rows=Object.entries(allCounts)
+       .filter(([reason,count])=>Object.prototype.hasOwnProperty.call(names,reason)
+          &&Number.isSafeInteger(count)&&count>=0)
+       .sort((a,b)=>b[1]-a[1]);
+     for(const [reason,count] of rows){
+       const entry=elt('div','jr-exam-coverage-row');
+       entry.append(elt('strong','',names[reason]),
+          elt('span','',safeCount(count)));
+       total.append(entry);
+     }
+     panel.append(total);
+   }
    const items=Array.isArray(queue.items)?queue.items.slice(0,60):[];
    if(!items.length)panel.append(elt('p','',T(
      'در محدودهٔ دامنه‌های مصوب، خلأ فرادادهٔ شناسایی‌شده‌ای ثبت نیست؛ این موضوع اثبات تکمیل علمی آزمون‌ها نیست.',
