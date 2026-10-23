@@ -1,0 +1,70 @@
+name: JREI Hybrid and Scientific Source Acceptance (NONDEPLOYING)
+
+# Run isolated source acceptance after owner's explicit test authorization.
+# This workflow has NO FTP, SSH, SMTP, personal data, payment, AI provider,
+# production database, deploy environment or production secret permissions.
+on:
+  push:
+    branches: [migration/bertina-linux6]
+    paths:
+      - '.github/workflows/jrei-final-source-acceptance.yml'
+      - 'api/jrei-*.php'
+      - 'api/internal/jrei-daily-learning-worker.php'
+      - 'api/operations-cron-dispatcher.php'
+      - 'api/internal/operations-master-dispatcher.php'
+      - 'platform/jrei-v5/**'
+      - 'tests/jrei-*.test.mjs'
+      - 'assets/js/operations-jrei-*.js'
+      - 'docs/migrations/20261023_jrei_*.sql'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: jrei-source-acceptance-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  source-contracts:
+    name: Scientific/worker contracts (no site changes)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax-check JREI modules and Windows worker
+        shell: bash
+        run: |
+          set -euo pipefail
+          for file in platform/jrei-v5/*.mjs platform/jrei-v5/windows-worker/*.mjs; do
+            node --check "$file"
+          done
+          for file in assets/js/operations-jrei-*.js; do
+            node --check "$file"
+          done
+      - name: Independent public-evidence and original TESTLY source contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --test             tests/jrei-v5-learning-loop.test.mjs             tests/jrei-v5-reviewed-retrieval-evaluator.test.mjs             tests/jrei-v5-two-windows-node-gates.test.mjs             tests/jrei-examination-testly-research.test.mjs
+      - name: Confirm absence of production deployment
+        run: echo 'No production deploy, private host, Windows installation, DB change, model download or live learner data used.' >> "$GITHUB_STEP_SUMMARY"
+
+  php-contracts:
+    name: Bertina PHP syntax (no DB or remote host)
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - name: Syntax-check source-only Bertina hybrid and scientific APIs
+        shell: bash
+        run: |
+          set -euo pipefail
+          for file in             api/jrei-hybrid-worker.php             api/jrei-hybrid-owner.php             api/jrei-learning-operations.php             api/jrei-exam-research-owner.php             api/operations-cron-dispatcher.php             api/internal/jrei-daily-learning-worker.php             api/internal/operations-master-dispatcher.php             api/index.php api/operations.php; do
+            php -l "$file"
+          done
+      - name: Report limit
+        run: echo 'Syntax checks only. Neither Bertina MySQL 8.3 runtime nor Windows DPAPI, RX580, SSH or production operations have been tested.' >> "$GITHUB_STEP_SUMMARY"
