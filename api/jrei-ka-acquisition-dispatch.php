@@ -39,7 +39,8 @@ function jrKaPrivateArchiveRoot(array $cfg): ?string {
     $web=realpath(dirname(__DIR__));
     if($web!==false&&($dir===$web||
        str_starts_with($dir,$web.DIRECTORY_SEPARATOR)))return null;
-    if($dir==='/'||$dir===realpath('/tmp'))return null;
+    if($dir==='/'||$dir===realpath('/tmp')||
+       str_starts_with($dir,'/tmp/'))return null;
     return $dir;
 }
 function jrKaClaimOneLicensedJob(PDO $pdo,array $cfg): ?array {
@@ -243,14 +244,38 @@ function jrKaPrivateAcquireOne(PDO $pdo,array $cfg): array {
             $handle=fopen($tmp,'x+b');
             if($handle===false)throw new DomainException('ka_private_write_failed');
             try{
-                chmod($tmp,0600);
-                $written=fwrite($handle,$obtained['bytes']);
-                if($written!==$size||!fflush($handle))
-                    throw new DomainException('ka_private_write_incomplete');
-            }finally{fclose($handle);}
-            if(!rename($tmp,$filePath))
+                if(!chmod($tmp,0600))
+                    throw new DomainException('ka_private_permissions_rejected');
+                $offset=0;
+                while($offset<$size){
+                    $n=fwrite($handle,substr($obtained['bytes'],$offset,262144));
+                    if(!is_int($n)||$n<=0)
+                        throw new DomainException('ka_private_write_incomplete');
+                    $offset+=$n;
+                }
+                if(!fflush($handle))
+                    throw new DomainException('ka_private_flush_failed');
+            }catch(Throwable $writeError){
+                fclose($handle);
+                @unlink($tmp);
+                throw $writeError;
+            }
+            fclose($handle);
+            // POSIX hard link creates the content address WITHOUT ever
+            // replacing an existing digest object written by another job.
+            if(link($tmp,$filePath)){
+                $fileCreated=true;
+                @unlink($tmp);
+            }elseif(file_exists($filePath)){
+                @unlink($tmp);
+                if(!is_file($filePath)||is_link($filePath)||
+                   filesize($filePath)!==$size||
+                   !hash_equals($sha,(string)hash_file('sha256',$filePath)))
+                    throw new DomainException('ka_concurrent_object_conflict');
+            }else{
+                @unlink($tmp);
                 throw new DomainException('ka_atomic_private_archive_failed');
-            $fileCreated=true;
+            }
         }
         // Keep retrieved HTML only in bounded process memory until the
         // reviewed observation and discovery proposals commit together.
