@@ -52,6 +52,7 @@ function jrAiOwnerReadiness(PDO $pdo,array $cfg): array {
       'realInferenceEvidenceAwaitingFinalQA'=>true,
       'governedIndependentBenchmark'=>jrAiBenchmarkOwnerSnapshot($pdo,$cfg),
       'expertBenchmarkQueue'=>jrAiBenchmarkExpertQueue($pdo,$cfg),
+      'evidenceImprovementOpportunities'=>jrAiImprovementOwnerSnapshot($pdo,$cfg),
       'readyForOwnerAcceptance'=>$configured&&$schema&&jrAiTelemetrySchemaReady($pdo),
       'publicApiRouteGateOpen'=>$configured&&$schema&&
           ($cfg['jrei_public_ai_release_accepted']??false)===true,
