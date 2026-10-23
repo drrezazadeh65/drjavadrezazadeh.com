@@ -461,6 +461,29 @@
      panel.append(details);
    }
    renderExamCommercialControls(centre,panel);
+   const access=centre.entitlementGovernance;
+   if(access?.schema==='jr.jrei.exam-entitlement-governance.v1'){
+     fact(T('مجوزهای فعال در نوبت‌های تعلیق‌شده',
+       'Active entitlements on suspended offerings'),
+       safeCount(access.exposureCount));
+     const monitor=elt('details','jr-exam-subsection');
+     monitor.append(elt('summary','',T(
+       'تعهدات خریداران و لغو مستند دسترسی',
+       'Buyer obligations and audited access revocation')));
+     monitor.append(elt('p','',T(
+       'بازپرداخت تنها از فرایند مالی اصلی انجام می‌شود؛ این گزارش هیچ پولی منتقل نمی‌کند.',
+       'Only the original commerce workflow handles refunds. This view moves no money.')));
+     const rows=Array.isArray(access.cases)?access.cases:[];
+     if(!access.schemaReady)monitor.append(elt('p','',T('جداول قابل مشاهده نیستند','Schema unavailable')));
+     for(const entry of rows.slice(0,40)){
+       const record=elt('article','jr-exam-coverage-row');
+       record.append(elt('strong','',String(entry.productCode||'').slice(0,70)));
+       record.append(elt('span','',String(entry.entitlementId||'').slice(0,36)));
+       record.append(elt('span','',String(entry.grantReason||'').slice(0,40)));
+       monitor.append(record);
+     }
+     panel.append(monitor);
+   }
    for(const [key,label] of [
      ['productStates',T('محصولات','Products')],
      ['offeringStates',T('نوبت‌های برگزاری','Scheduled offerings')],
