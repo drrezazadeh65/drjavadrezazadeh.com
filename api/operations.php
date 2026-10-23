@@ -440,20 +440,30 @@ function operationsRoute(string $path, string $verb): never {
                 fail('admin_forbidden',403);
             if(!rateAllowed($pdo,'jrei_source_independent_review',$accountId,15,300))
                 fail('rate_limited',429);
-            if($verb==='GET')respond(
-                jrKaHumanSourceReviewSnapshot($pdo,$accountId));
+            if($verb==='GET'){
+                $review=jrKaHumanSourceReviewSnapshot($pdo,$accountId);
+                $review['curriculumGradeAlignment']=
+                    jrKaScopeAlignmentReviewQueue($pdo,$accountId);
+                respond($review);
+            }
             if(!operationsMutationAllowed($_SERVER,
                 (string)($_SERVER['HTTP_X_CSRF_TOKEN']??''),$csrf))
                 fail('csrf_forbidden',403);
             try{
-                jrKaIndependentHumanSourceReview(
-                    $pdo,$accountId,jsonBody());
+                $reviewBody=jsonBody();
+                if(($reviewBody['action']??null)==='review_curriculum_grade')
+                    jrKaIndependentScopeAlignmentDecision(
+                        $pdo,$accountId,$reviewBody);
+                else jrKaIndependentHumanSourceReview(
+                    $pdo,$accountId,$reviewBody);
             }catch(InvalidArgumentException $e){
                 fail('invalid_independent_source_review',422);
             }catch(DomainException $e){
                 fail('source_review_conflict_or_independence_required',409);
             }
             $state=jrKaHumanSourceReviewSnapshot($pdo,$accountId);
+            $state['curriculumGradeAlignment']=
+                jrKaScopeAlignmentReviewQueue($pdo,$accountId);
             $state['mutationRecorded']=true;
             respond($state);
         }
