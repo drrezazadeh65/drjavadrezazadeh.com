@@ -154,7 +154,7 @@ function jrHybridSourceChange(PDO $pdo,string $actor,array $body): array {
            !is_int($retrieved)||$retrieved<946684800||
            $retrieved>$now+90||
            $publication!==null&&(!is_int($publication)||
-             $publication<946684800||$publication>$now+86400)||
+             $publication<946684800||$publication>$retrieved)||
            !is_int($bytes)||$bytes<1||$bytes>8*1024*1024||
            !is_string($mime)||strlen($mime)>80||
            ($body['confirmation']??null)!=='STAGE_SOURCE_DIGEST_FOR_REVIEW')
