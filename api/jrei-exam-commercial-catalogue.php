@@ -36,6 +36,14 @@ function jrExamCommercialCatalogue(PDO $pdo,array $cfg,int $at=0): array {
       'availableForPurchase'=>false
     ];
     if(!$ready)return $out;
+    // Public merchandising remains closed until independently accepted
+    // immutable item delivery and server runtime are both explicitly on.
+    // An accidentally marked PUBLISHED row never authorizes display alone.
+    if(($cfg['jrei_exam_runtime_enabled']??false)!==true||
+       ($cfg['jrei_exam_item_delivery_accepted']??false)!==true||
+       !function_exists('jrExamPublishedItemDeliveryReady')||
+       !jrExamPublishedItemDeliveryReady($pdo))
+        return $out;
     // Only review- and explicitly published metadata, never an unreviewed
     // offering, its question text, a scoring key or a candidate session.
     $q=$pdo->prepare("SELECT
@@ -57,6 +65,31 @@ function jrExamCommercialCatalogue(PDO $pdo,array $cfg,int $at=0): array {
         AND b.scoring_review_state='APPROVED'
         AND v.status='PUBLISHED'
         AND o.offering_state='PUBLISHED'
+        AND EXISTS (SELECT 1 FROM eco_assessment_items i
+          WHERE i.instrument_version_id=p.instrument_version_id)
+        AND NOT EXISTS (
+          SELECT 1 FROM eco_assessment_items i
+          LEFT JOIN jrei_exam_item_metadata meta
+            ON meta.canonical_assessment_item_id=i.id
+          LEFT JOIN jrei_exam_reviewed_answer_keys k ON k.item_id=i.id
+          LEFT JOIN jrei_exam_sources source ON source.source_id=k.source_id
+          WHERE i.instrument_version_id=p.instrument_version_id
+            AND (
+              meta.id IS NULL OR meta.item_state<>'APPROVED' OR
+              meta.reviewed_by_account_id IS NULL OR
+              meta.authored_by_account_id IS NULL OR
+              meta.reviewed_by_account_id=meta.authored_by_account_id OR
+              meta.ambiguity_review_state<>'APPROVED' OR
+              meta.copyright_review_state<>'APPROVED' OR
+              meta.source_id IS NULL OR meta.source_id<>k.source_id OR
+              k.item_id IS NULL OR k.key_state<>'APPROVED' OR
+              k.rights_review_state<>'APPROVED' OR
+              k.reviewer_account_id IS NULL OR
+              source.review_state<>'AUTHORITATIVE_REVIEWED' OR
+              source.rights_state<>'PERMITTED_REPRODUCTION' OR
+              source.is_revoked<>0 OR source.is_superseded<>0
+            )
+        )
         AND o.registration_closes_at>=?
         AND o.closes_at>=?
       ORDER BY o.opens_at ASC,p.division,p.product_code LIMIT 24");
