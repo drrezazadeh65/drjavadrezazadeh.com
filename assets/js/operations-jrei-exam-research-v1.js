@@ -888,6 +888,61 @@
      'مجوز خصوصی تطبیق پاسخ‌نامه: ','Private key matching policy: ')+
      (pairing?.ownerProposalPolicy?T('مجوز تنظیماتی روشن','Owner opt-in ON'):
        T('خاموش','OFF'))));
+   const quote=ka.publicQuoteOwnerReview;
+   fact(T('بندهای مستندِ منتظر بررسی حق نقل عمومی',
+     'Passage quotations awaiting legal independent review'),
+     quote?.available?fmt(quote.pendingCount):T('نامعلوم','Unknown'));
+   if(quote?.available){
+     const queue=elt('details','jr-exam-subsection');
+     queue.append(elt('summary','',T(
+       'داوری مستقلِ حقوق نقل‌قول مستند',
+       'Independent review of quotation provenance and reuse rights')));
+     queue.append(elt('p','',T(
+       'تأیید در این مرحله فقط اجازهٔ استفادهٔ محدود از نقل‌قول است و صحت پاسخ‌های هوش مصنوعی را اثبات نمی‌کند.',
+       'This decision approves limited quote use only, NOT model correctness or scientific validity.')));
+     for(const source of Array.isArray(quote.examples)?quote.examples.slice(0,8):[]){
+       const item=elt('article','jr-exam-coverage-row');
+       item.append(elt('strong','',String(source.sourceTitle||'').slice(0,220)));
+       item.append(elt('p','',String(source.excerpt||'').slice(0,900)));
+       const form=document.createElement('form');
+       const label=elt('label','',T(
+         'SHA-256 سند بازبینی مستقل حقوق استفاده',
+         'Independent quotation-rights review evidence SHA-256'));
+       const digest=document.createElement('input');
+       digest.type='text';digest.required=true;
+       digest.pattern='[a-f0-9]{64}';digest.maxLength=64;
+       digest.placeholder='64 hex';
+       label.append(digest);form.append(label);
+       for(const [decision,fa,en] of [
+          ['APPROVE_PUBLIC_QUOTE','تأیید محدود نقل‌قول؛ نه صحت علمی',
+           'Approve limited quotation, NOT factual validation'],
+          ['REJECT_PUBLIC_QUOTE','رد استفادهٔ عمومی از بند','Reject public quotation']]){
+         const button=elt('button','jr-btn secondary',T(fa,en));
+         button.type='submit';button.value=decision;
+         button.addEventListener('click',()=>{form.dataset.decision=decision;});
+         form.append(button);
+       }
+       form.addEventListener('submit',event=>{
+         event.preventDefault();
+         if(!active()||busy||!form.reportValidity()||
+            !window.confirm(T(
+              'سند اصلی و حق نقل‌قول بررسی شده است؟ این تصمیم هیچ پاسخ علمی را تأیید نمی‌کند.',
+              'Original rights and quote reviewed? This does not validate any scientific claim.')))return;
+         mutate({action:'ka_review_public_quote',
+           passageId:source.passageId,
+           excerptSha256:source.passageSha256,
+           rightsEvidenceSha256:source.rightsEvidenceSha256,
+           independentReviewEvidenceSha256:digest.value,
+           decision:form.dataset.decision||'REJECT_PUBLIC_QUOTE',
+           confirmation:'REVIEW_LICENSED_QUOTE_NOT_SCIENTIFIC_TRUTH'});
+       });
+       item.append(form);queue.append(item);
+     }
+     if(quote.truncated)queue.append(elt('p','',
+       T('فقط ۸ پروندهٔ نخست نمایش داده شده‌اند.',
+         'Only first eight review cases shown.')));
+     root.append(queue);
+   }
    const states=Array.isArray(ka.jobStates)?ka.jobStates:[];
    const snapshotBox=elt('div','jr-exam-coverage-row');
    snapshotBox.append(elt('strong','',T('وضعیت واقعی کارهای ثبت‌شده',
