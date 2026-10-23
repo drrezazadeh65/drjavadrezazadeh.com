@@ -49,11 +49,9 @@
       [T('کلید خصوصی زمان‌بند','Private scheduler master flag'),
        snapshot.masterEnabled?T('در پیکربندی مجاز شده','Permitted in private config'):
          T('خاموش؛ هیچ موتور خودکار اجرا نمی‌شود','OFF; workers cannot be scheduled')],
-      [T('فرایند PHP CLI','PHP CLI subprocess source capability'),
-       snapshot.phpCli83SourceCompatible&&snapshot.subprocessAvailable
-         ?T('قابلیت سورس موجود؛ هاست هنوز تأیید نشده',
-            'Source capability found; host remains unverified')
-         :T('قابلیت سرور/نسخه نامشخص یا ناکافی','Server capability missing or unavailable')],
+      [T('نسخه PHP CLI و مجوز فرایند فرزند','Host CLI and subprocess entitlement'),
+       T('تأیید نشده؛ وضعیت PHP وب دلیل بر مجوز CLI نیست',
+         'UNVERIFIED: web PHP settings do not establish CLI subprocess permissions')],
       [T('نصب Cron در برتینا','Bertina host schedule'),
        T('تأیید نشده؛ نصب نشده فرض شود','NOT VERIFIED; never assume installed')]
     ];
@@ -76,8 +74,42 @@
       card.append(state);
       if(job.needsOwnerReview){
         card.append(el('p','jr-cron-warning',
-          T('خطا یا اجرای نامطمئن؛ ادامه به تصمیم صریح مدیر نیاز دارد.',
-            'Uncertain or failed run; explicit owner review required before resuming.')));
+          T('اجرای قبلی ناموفق یا نامطمئن است. صرف ذخیره تنظیمات مجوز تکرار نمی‌دهد؛ باید ابتدا نتیجه خارجی کار مستقل بررسی و ثبت شود.',
+            'A previous run was failed or uncertain. Saving schedule settings does not permit retry; reconcile the actual external outcome first.')));
+        if(job.enabled!==true&&
+           ['failed','unknown','blocked'].includes(job.lastState)){
+          const review=el('div','jr-cron-review');
+          const reviewLabel=el('label','',
+            T('نتیجه بررسی مستقل پیش از هر تکرار','Outcome independently verified before retry'));
+          const outcome=document.createElement('select');
+          const opts=[
+            ['',T('انتخاب نتیجه بررسی','Choose review finding')],
+            ['confirmed_no_external_effect',T('تأیید شده: هیچ اثر خارجی رخ نداده','Confirmed: no external side effect occurred')],
+            ['manually_reconciled',T('اثر خارجی دستی تطبیق و رفع مغایرت شد','External effects manually reconciled')]];
+          for(const [value,title] of opts){
+            const option=el('option','',title);option.value=value;
+            outcome.append(option);
+          }
+          const acknowledge=el('button','',
+            T('ثبت بررسی؛ موتور خاموش می‌ماند','Record review; leave worker OFF'));
+          acknowledge.type='button';
+          acknowledge.disabled=true;
+          outcome.addEventListener('change',()=>{
+            acknowledge.disabled=!(outcome.value&&Number.isSafeInteger(job.rowRevision));
+          });
+          acknowledge.addEventListener('click',()=>{
+            if(!open()||busy||!outcome.value)return;
+            const accepted=window.confirm(T(
+              'من نتیجه واقعی اجرای قبلی و پیامدهای احتمالی (از جمله ایمیل ارسال‌شده) را مستقل بررسی کرده‌ام. ثبت این تصمیم موتور را روشن نمی‌کند. تأیید می‌کنید؟',
+              'I independently checked the prior job outcome and potential external side effects, including possible email acceptance. This does not enable the worker. Confirm?'));
+            if(!accepted)return;
+            write({action:'reconcile',jobId:job.jobId,
+              rowRevision:job.rowRevision,reviewOutcome:outcome.value,
+              confirmation:'ACKNOWLEDGE_PRIOR_JOB_OUTCOME'});
+          });
+          reviewLabel.append(outcome);
+          review.append(reviewLabel,acknowledge);card.append(review);
+        }
       }
       if(!job.sourceAvailable){
         card.append(el('p','jr-cron-warning',
@@ -121,14 +153,18 @@
       const save=el('button','',T('ثبت تنظیمات','Save policy'));
       save.type='button';
       const permitted=Boolean(snapshot.schemaReady&&job.sourceAvailable);
-      toggle.disabled=!permitted||!snapshot.masterEnabled;
+      // Do not invite an owner to re-enable an unresolved failed or
+      // unknown attempt. They may still disable an already-running worker.
+      toggle.disabled=!permitted||(!snapshot.masterEnabled&&!job.enabled)||
+        (job.needsOwnerReview&&!job.enabled);
       cadence.disabled=!permitted;
       save.disabled=!permitted;
       save.addEventListener('click',()=>{
         if(!open()||busy)return;
         const enabled=toggle.checked;
         if(enabled){
-          if(!snapshot.masterEnabled)return;
+          if(!snapshot.masterEnabled||job.needsOwnerReview||
+             job.lastState==='running')return;
           const accept=window.confirm(T(
             'این موتور پس از نصب واقعی Cron و فراهم بودن وابستگی‌های اختصاصی ممکن است وظایف زمان‌بندی‌شده اجرا کند. تأیید می‌کنید؟',
             'After actual host Cron activation and worker prerequisites, this schedule may run jobs. Confirm?'));
