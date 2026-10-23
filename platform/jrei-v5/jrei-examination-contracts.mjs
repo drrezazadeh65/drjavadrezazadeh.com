@@ -76,8 +76,11 @@ export function validateExamScope(input={}) {
     return result('HIGHER_EXAM_HAS_NO_SCHOOL_GRADE');
   if(category==='SCHOOL_INTERNAL'&&!school)
     return result('SCHOOL_CATEGORY_LEVEL_MISMATCH');
-  if(category==='NATIONAL_FINAL'&&level!=='UPPER_SECONDARY')
-    return result('NATIONAL_FINAL_REQUIRES_VERIFIED_SCOPE');
+  // Countries differ in which school grades have national finals.
+  // Never embed an Iranian grade-12 assumption in a future country's
+  // curriculum; authoritative blueprint approval remains a separate gate.
+  if(category==='NATIONAL_FINAL'&&levelInfo.scope!=='SCHOOL')
+    return result('NATIONAL_FINAL_REQUIRES_VERIFIED_SCHOOL_SCOPE');
   if(category==='MASTERS_ENTRANCE'&&level!=='MASTERS_ENTRANCE')
     return result('MASTERS_CATEGORY_LEVEL_MISMATCH');
   if(category==='DOCTORAL_ENTRANCE'&&level!=='DOCTORAL_ENTRANCE')
@@ -175,18 +178,24 @@ export function inspectGeneratedItem({
     original.options.length!==candidate.options.length||
     !ident(original.correctOption)||!ident(candidate.correctOption))
     return result('ITEM_GENERATION_INPUT_INVALID');
+  const core=(x)=>norm(x).normalize('NFKC').toLowerCase()
+    .replace(/[يى]/g,'ی').replace(/ك/g,'ک')
+    .replace(/\u200c/g,' ')
+    .replace(/[\u064b-\u065f\u0670]/g,'')
+    .replace(/[^\p{L}\p{N}]+/gu,' ').trim();
   const choicesValid=(item)=>{
-    const ids=new Set();
+    const ids=new Set(),values=new Set();
     for(const x of item.options){
       if(!object(x)||!ident(x.id)||!text(x.text,2000)||ids.has(x.id))
         return false;
-      ids.add(x.id);
+      const canonical=core(x.text);
+      if(!canonical||values.has(canonical))return false;
+      ids.add(x.id);values.add(canonical);
     }
     return ids.has(item.correctOption);
   };
   if(!choicesValid(original)||!choicesValid(candidate))
     return result('CHOICE_CONTRACT_INVALID');
-  const core=(x)=>norm(x).toLocaleLowerCase('en-US');
   const originalCorrect=original.options.find(x=>x.id===original.correctOption);
   const candidateCorrect=candidate.options.find(x=>x.id===candidate.correctOption);
   const oldContent=original.options.map(x=>core(x.text)).sort();
