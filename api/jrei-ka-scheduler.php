@@ -119,6 +119,7 @@ function jrKaOwnerSnapshot(PDO $pdo,array $cfg): array {
       'schemaReady'=>$ready,
       'privateScheduleOptIn'=>($cfg['jrei_ka_schedule_enabled']??false)===true,
       'controls'=>null,'jobStates'=>null,'approvedSources'=>null,
+      'sourcePolicies'=>null,
       'nextDueAt'=>null,'realCrawlerVerified'=>false,
       'retrievedOfficialAnswerKeysVerified'=>false,
       'workerDispatchVerified'=>false,'storageConsumptionVerified'=>false
@@ -136,6 +137,33 @@ function jrKaOwnerSnapshot(PDO $pdo,array $cfg): array {
       'maxDailyBytes'=>(int)$c['max_daily_download_bytes'],
       'maxStorageBytes'=>(int)$c['max_storage_bytes'],
       'policyRevision'=>(int)$c['policy_revision']
+    ];
+    $q=$pdo->query("SELECT p.source_id,s.source_title,p.priority_tier,
+        p.scheduling_state,p.refresh_interval_seconds,
+        p.max_document_bytes,p.min_request_spacing_seconds,
+        p.rights_reviewed,p.robots_terms_reviewed,p.transport_reviewed,
+        p.rights_evidence_sha256,p.robots_terms_evidence_sha256,
+        p.transport_evidence_sha256,p.revision,p.next_due_at
+        FROM jrei_ka_source_policies p
+        JOIN jrei_exam_sources s ON s.source_id=p.source_id
+        ORDER BY p.next_due_at,p.source_id LIMIT 40");
+    $out['sourcePolicies']=[];
+    foreach($q as $policy)$out['sourcePolicies'][]=[
+      'sourceId'=>$policy['source_id'],
+      'sourceTitle'=>$policy['source_title'],
+      'priorityTier'=>$policy['priority_tier'],
+      'state'=>$policy['scheduling_state'],
+      'refreshIntervalSeconds'=>(int)$policy['refresh_interval_seconds'],
+      'maxDocumentBytes'=>(int)$policy['max_document_bytes'],
+      'minRequestSpacingSeconds'=>(int)$policy['min_request_spacing_seconds'],
+      'rightsReviewed'=>(int)$policy['rights_reviewed']===1,
+      'robotsTermsReviewed'=>(int)$policy['robots_terms_reviewed']===1,
+      'transportReviewed'=>(int)$policy['transport_reviewed']===1,
+      'rightsEvidenceSha256'=>$policy['rights_evidence_sha256'],
+      'robotsEvidenceSha256'=>$policy['robots_terms_evidence_sha256'],
+      'transportEvidenceSha256'=>$policy['transport_evidence_sha256'],
+      'revision'=>(int)$policy['revision'],
+      'nextDueAt'=>(int)$policy['next_due_at']
     ];
     $q=$pdo->query("SELECT job_state,COUNT(*) AS n
       FROM jrei_ka_jobs GROUP BY job_state LIMIT 20");
