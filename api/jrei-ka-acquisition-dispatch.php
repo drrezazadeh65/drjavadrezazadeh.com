@@ -74,7 +74,7 @@ function jrKaClaimOneLicensedJob(PDO $pdo,array $cfg): ?array {
               rights_reviewed,robots_terms_reviewed,transport_reviewed,
               rights_evidence_sha256,robots_terms_evidence_sha256,
               transport_evidence_sha256,approved_by_account_id,
-              last_observed_at
+              last_observed_at,last_network_request_reserved_at
               FROM jrei_ka_source_policies WHERE source_id=? FOR UPDATE");
             $q->execute([$candidate['source_id']]);$policy=$q->fetch(PDO::FETCH_ASSOC);
             $q=$pdo->prepare("SELECT job_id,source_id,source_policy_revision,
@@ -114,15 +114,20 @@ function jrKaClaimOneLicensedJob(PDO $pdo,array $cfg): ?array {
             $root=jrKaPrivateArchiveRoot($cfg);
             if($root===null||disk_free_space($root)<$max+10485760)
                 throw new DomainException('ka_private_storage_insufficient');
+            $reserveBytes=$max+131072; // bounded robots.txt + one document
+            $lastNetwork=(int)($policy['last_network_request_reserved_at']??0);
+            if($lastNetwork>0&&$lastNetwork+$spacing>$at){
+                $pdo->commit();continue;
+            }
             $cap=(int)$c['max_daily_download_bytes'];
             $storageCap=(int)$c['max_storage_bytes'];
-            if($cap<$max||$storageCap<$max)
+            if($cap<$reserveBytes||$storageCap<$max)
                 throw new DomainException('ka_owner_quota_too_small');
             $q=$pdo->prepare("SELECT COALESCE(SUM(reserved_bytes),0)
                 FROM jrei_ka_daily_transfer_reservations
                 WHERE reservation_day=?");
             $q->execute([$day]);$total=(int)$q->fetchColumn();
-            if($total>$cap-$max){$pdo->commit();return null;}
+            if($total>$cap-$reserveBytes){$pdo->commit();return null;}
             $q=$pdo->query("SELECT COALESCE(SUM(bytes_total),0)
                 FROM jrei_ka_private_observations");
             if((int)$q->fetchColumn()>$storageCap-$max){
@@ -153,7 +158,14 @@ function jrKaClaimOneLicensedJob(PDO $pdo,array $cfg): ?array {
                SET reserved_requests=reserved_requests+1,
                  reserved_bytes=reserved_bytes+?,updated_at=?
                WHERE reservation_day=? AND source_id=?");
-            $q->execute([$max,$at,$day,$source['source_id']]);
+            $q->execute([$reserveBytes,$at,$day,$source['source_id']]);
+            $q=$pdo->prepare("UPDATE jrei_ka_source_policies
+                SET last_network_request_reserved_at=?,updated_at=?
+                WHERE source_id=? AND revision=?
+                  AND scheduling_state='APPROVED'");
+            $q->execute([$at,$at,$source['source_id'],$policy['revision']]);
+            if($q->rowCount()!==1)
+                throw new DomainException('ka_global_network_cooldown_conflict');
             $pdo->commit();
             return ['jobId'=>$job['job_id'],'leaseId'=>$lease,
                'sourceId'=>$source['source_id'],
@@ -224,7 +236,10 @@ function jrKaPrivateAcquireOne(PDO $pdo,array $cfg): array {
             throw new DomainException('ka_robots_disallows_source');
         // Do not sleep for arbitrary remote crawl delays within a
         // 120-second lease. Reschedule instead for external policy review.
-        if($decision['delaySeconds']>$job['spacingSeconds'])
+        // A robots crawl-delay for the document also constrains the
+        // immediately preceding robots fetch. Two-phase scheduling is
+        // required to honour it; never issue two immediate requests.
+        if($decision['delaySeconds']>0)
             throw new DomainException('ka_robots_delay_exceeds_approved_budget');
         $obtained=jrKaPinnedGet($job['url'],$job['limitBytes']);
         $sha=hash('sha256',$obtained['bytes']);
