@@ -63,13 +63,23 @@ function operationsCronMasterEnabled(array $config): bool {
 function operationsCronOwnerSnapshot(PDO $pdo,array $config): array {
     $registry=operationsCronRegistry();
     $schema=operationsCronSchemaReady($pdo);
-    $byId=[];
+    $byId=[];$unrecognized=null;
     if($schema){
-        $q=$pdo->query('SELECT job_id,enabled,cadence_seconds,next_due_at,
+        $ids=array_keys($registry);
+        if(!$ids)throw new RuntimeException('cron_registry_unavailable');
+        $marks=implode(',',array_fill(0,count($ids),'?'));
+        // Project only source-approved rows; do not load or expose arbitrary
+        // policy-table records as approved executable jobs.
+        $q=$pdo->prepare('SELECT job_id,enabled,cadence_seconds,next_due_at,
             last_started_at,last_finished_at,last_state,last_exit_code,
             needs_owner_review,row_revision,updated_at
-            FROM operations_cron_jobs');
+            FROM operations_cron_jobs WHERE job_id IN ('.$marks.')');
+        $q->execute($ids);
         foreach($q as $r) $byId[(string)$r['job_id']]=$r;
+        $count=$pdo->prepare('SELECT COUNT(*) FROM operations_cron_jobs
+            WHERE job_id NOT IN ('.$marks.')');
+        $count->execute($ids);
+        $unrecognized=(int)$count->fetchColumn();
     }
     $master=operationsCronMasterEnabled($config);
     $phpReady=PHP_VERSION_ID>=80300;
@@ -102,7 +112,8 @@ function operationsCronOwnerSnapshot(PDO $pdo,array $config): array {
         'phpCli83SourceCompatible'=>null, 'subprocessAvailable'=>null,
         'serverCronVerified'=>false,
         'hostExecutionVerified'=>false,'emailDeliveryVerified'=>false,
-        'schemaReady'=>$schema,'checkedAt'=>time(),'jobs'=>$rows,
+        'schemaReady'=>$schema,'unknownRegisteredRows'=>$unrecognized,
+        'checkedAt'=>time(),'jobs'=>$rows,
         'limitations'=>'Source presence and policy are not proof of host installation, real execution, SMTP receipt or safe access-log configuration.'];
 }
 /**
