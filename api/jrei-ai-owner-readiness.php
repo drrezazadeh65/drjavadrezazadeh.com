@@ -14,6 +14,7 @@ function jrAiOwnerReadiness(PDO $pdo,array $cfg): array {
     $out=[
       'schema'=>'jr.jrei.owner-live-model-readiness.v1',
       'privateRuntimeOptIn'=>($cfg['jrei_live_ai_enabled']??false)===true,
+      'separatePublicReleaseAccepted'=>($cfg['jrei_public_ai_release_accepted']??false)===true,
       'serverProviderConfigured'=>$configured,
       'approvedModelLabel'=>preg_match('/^[a-zA-Z0-9._-]{3,90}$/D',
            (string)($cfg['jrei_ai_openai_model']??''))===1?
@@ -35,6 +36,8 @@ function jrAiOwnerReadiness(PDO $pdo,array $cfg): array {
       ],
       'reservedToday'=>null,
       'readyForOwnerAcceptance'=>$configured&&$schema,
+      'publicApiRouteGateOpen'=>$configured&&$schema&&
+          ($cfg['jrei_public_ai_release_accepted']??false)===true,
       'productionModelAccepted'=>false
     ];
     if(!$schema)return $out;
