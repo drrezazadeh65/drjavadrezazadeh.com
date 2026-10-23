@@ -942,6 +942,45 @@
        T('فقط ۸ پروندهٔ نخست نمایش داده شده‌اند.',
          'Only first eight review cases shown.')));
      root.append(queue);
+     const approved=Array.isArray(quote.approvedQuotes)?
+       quote.approvedQuotes.slice(0,20):[];
+     if(approved.length){
+       const revoke=elt('details','jr-exam-subsection');
+       revoke.append(elt('summary','',T(
+         'لغو فوری مجوز نقل‌قول‌های قبلاً تأییدشده',
+         'Revoke formerly approved public source quotations')));
+       revoke.append(elt('p','',T(
+         'لغو مجوز از دسترسی‌های بعدی مدل جلوگیری می‌کند؛ متن اصلی برای بازبینی خصوصی حفظ می‌شود.',
+         'Revocation blocks future model retrieval and preserves the private original for audit.')));
+       for(const item of approved){
+         const row=elt('article','jr-exam-coverage-row');
+         row.append(elt('strong','',String(item.title||'').slice(0,220)));
+         row.append(elt('span','',String(item.passageId||'').slice(0,36)));
+         const select=document.createElement('select');
+         for(const [id,fa,en] of [
+           ['RIGHTS_PERMISSION_WITHDRAWN','لغو حق استفاده','Rights withdrawn'],
+           ['SOURCE_CORRECTION','اصلاحیه منبع','Official source correction'],
+           ['REVIEW_ERROR','خطای بازبینی','Review error'],
+           ['POTENTIAL_PERSONAL_DATA','احتمال اطلاعات خصوصی','Possible private data']
+         ]){
+           const option=elt('option','',T(fa,en));option.value=id;select.append(option);
+         }
+         row.append(select);
+         const button=elt('button','jr-exam-emergency',
+           T('لغو اجازهٔ استفاده در پاسخ مدل','Revoke public AI quotation'));
+         button.type='button';
+         button.addEventListener('click',()=>{
+           if(!active()||busy||!window.confirm(T(
+             'مجوز این نقل‌قول لغو شود؟ پاسخ‌های بعدی مدل دیگر نباید آن را بازیابی کنند.',
+             'Revoke this quote? The model must no longer retrieve it for future replies.')))return;
+           mutate({action:'ka_revoke_public_quote',
+             passageId:item.passageId,reasonCode:select.value,
+             confirmation:'REVOKE_PUBLIC_QUOTE_IMMEDIATELY'});
+         });
+         row.append(button);revoke.append(row);
+       }
+       root.append(revoke);
+     }
    }
    const states=Array.isArray(ka.jobStates)?ka.jobStates:[];
    const snapshotBox=elt('div','jr-exam-coverage-row');
