@@ -533,7 +533,8 @@ require_once __DIR__.'/jrei-exam-candidate-snapshot.php';
 require_once __DIR__.'/jrei-exam-published-item-delivery.php';
 require_once __DIR__.'/jrei-exam-attempt-runtime.php';
 $path=route();$verb=method();
-if($path==='/exams/attempt' && in_array($verb,['GET','POST'],true)){
+if((($path==='/exams/attempt' && in_array($verb,['GET','POST'],true))||
+    ($path==='/exams/items' && $verb==='GET'))){
     header('Cache-Control: private, no-store, max-age=0');
     header('X-Robots-Tag: noindex, nofollow, noarchive');
     $conf=cfg();
@@ -559,10 +560,15 @@ if($path==='/exams/attempt' && in_array($verb,['GET','POST'],true)){
         fail('unauthorized',401);
     $accountId=(string)$account['id'];
     if($verb==='GET'){
-        if(!rateAllowed($pdo,'exam_progress_read',$accountId,45,300))
+        if(!rateAllowed($pdo,$path==='/exams/items'?
+              'exam_item_delivery':'exam_progress_read',$accountId,45,300))
             fail('rate_limited',429);
-        try{respond(jrExamAttemptProgress($pdo,$accountId,
-                (string)($_GET['attemptId']??'')));}
+        try{
+            $id=(string)($_GET['attemptId']??'');
+            if($path==='/exams/items')
+                respond(jrExamCandidatePublishedItems($pdo,$accountId,$id));
+            respond(jrExamAttemptProgress($pdo,$accountId,$id));
+        }
         catch(InvalidArgumentException $e){fail('invalid_exam_reference',422);}
         catch(DomainException $e){fail('exam_progress_not_accessible',403);}
         catch(Throwable $e){fail('exam_progress_unavailable',503);}
