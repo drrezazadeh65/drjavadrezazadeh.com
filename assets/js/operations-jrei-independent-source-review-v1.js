@@ -60,6 +60,9 @@
    if(data?.schema!=='jr.jrei.independent-source-review.v1'||!data.available){
      status.textContent=T('جدول شواهد بازبینی نصب نشده یا اتصال معتبر نیست؛ وضعیت نامعلوم است.',
        'Source-review schema or verified connection unavailable; status UNKNOWN.');
+     // Curriculum review has a separate additive schema. Display its honest
+     // independent availability even if original-source review is absent.
+     renderCurriculumGradeAlignment(data?.curriculumGradeAlignment);
      return;
    }
    const list=Array.isArray(data.queue)?data.queue.slice(0,40):[];
