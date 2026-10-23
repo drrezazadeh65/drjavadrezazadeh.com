@@ -119,6 +119,14 @@ function jrKaOwnerSnapshot(PDO $pdo,array $cfg): array {
       'schemaReady'=>$ready,
       'privateScheduleOptIn'=>($cfg['jrei_ka_schedule_enabled']??false)===true,
       'privateAutoFetchOptIn'=>($cfg['jrei_ka_autofetch_enabled']??false)===true,
+      'privateTextExtractionOptIn'=>($cfg['jrei_ka_text_extraction_enabled']??false)===true,
+      'extractionObservability'=>[
+        'schemaReady'=>false,'totalQueued'=>null,'activeClaimed'=>null,
+        'textPendingReview'=>null,'ocrRequired'=>null,
+        'structuredReviewRequired'=>null,'failedReviewRequired'=>null,
+        'extractedPrivateBytes'=>null,'languages'=>null,
+        'actualOcrQualityVerified'=>false,'scientificPublicationVerified'=>false
+      ],
       'acquisitionObservability'=>[
         'schemaReady'=>false,'observationCount'=>null,
         'pendingScientificReview'=>null,'recordedBytes'=>null,
@@ -228,6 +236,42 @@ function jrKaOwnerSnapshot(PDO $pdo,array $cfg): array {
         // Missing migration is UNKNOWN, never a zero-count success.
         $out['acquisitionObservability']['schemaReady']=false;
         $out['acquisitionObservability']['sourceCandidatePreview']=[];
+    }
+    try{
+        $pdo->query('SELECT observation_id,processing_state,
+          extracted_bytes,detected_language FROM jrei_ka_text_extraction_jobs LIMIT 0');
+        $q=$pdo->query("SELECT processing_state,COUNT(*) AS n,
+           COALESCE(SUM(extracted_bytes),0) AS total_bytes
+           FROM jrei_ka_text_extraction_jobs
+           GROUP BY processing_state LIMIT 25");
+        $counts=[];
+        $bytes=0;
+        foreach($q as $row){
+           $counts[(string)$row['processing_state']]=(int)$row['n'];
+           $bytes+=(int)$row['total_bytes'];
+        }
+        $extract=&$out['extractionObservability'];
+        $extract['schemaReady']=true;
+        $extract['totalQueued']=$counts['QUEUED']??0;
+        $extract['activeClaimed']=$counts['EXTRACTING']??0;
+        $extract['textPendingReview']=$counts['TEXT_PENDING_SCIENTIFIC_REVIEW']??0;
+        $extract['ocrRequired']=($counts['OCR_REQUIRED']??0)+
+           ($counts['OCR_OR_MANUAL_REVIEW_REQUIRED']??0);
+        $extract['structuredReviewRequired']=$counts['STRUCTURED_REVIEW_REQUIRED']??0;
+        $extract['failedReviewRequired']=($counts['EXTRACTION_FAILED_REVIEW']??0)+
+           ($counts['UNKNOWN_EXTRACTION_REVIEW']??0);
+        $extract['extractedPrivateBytes']=$bytes;
+        $q=$pdo->query("SELECT detected_language,COUNT(*) AS n
+          FROM jrei_ka_text_extraction_jobs
+          WHERE processing_state='TEXT_PENDING_SCIENTIFIC_REVIEW'
+          GROUP BY detected_language LIMIT 10");
+        $extract['languages']=[];
+        foreach($q as $r)$extract['languages'][]=[
+           'languageHint'=>$r['detected_language'],
+           'count'=>(int)$r['n']
+        ];
+    }catch(Throwable $e){
+        $out['extractionObservability']['schemaReady']=false;
     }
     return $out;
 }
