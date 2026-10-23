@@ -69,6 +69,10 @@ function jrExamOwnerSourceReleaseImpact(PDO $pdo): array {
        s.source_id IS NULL OR ks.source_id IS NULL OR
        s.review_state<>'AUTHORITATIVE_REVIEWED' OR
        ks.review_state<>'AUTHORITATIVE_REVIEWED' OR
+       s.reviewer_account_id IS NULL OR
+       ks.reviewer_account_id IS NULL OR
+       s.verified_at IS NULL OR ks.verified_at IS NULL OR
+       s.reviewer_account_id=m.authored_by_account_id OR
        s.rights_state<>'PERMITTED_REPRODUCTION' OR
        ks.rights_state<>'PERMITTED_REPRODUCTION' OR
        s.is_revoked<>0 OR ks.is_revoked<>0 OR
