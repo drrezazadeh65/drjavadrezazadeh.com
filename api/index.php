@@ -67,6 +67,9 @@ function cfg(): array {
         // One private CLI scheduler is independently owner-gated. Setting
         // this flag alone never enables an individual disabled DB job.
         'operations_cron_master_enabled' => getenv('JR_OPERATIONS_CRON_MASTER_ENABLED') === 'true',
+        // Daily JREI metadata evaluation is a separate private OFF switch.
+        // No model training, marketing, payment or source authority follows.
+        'jrei_learning_daily_enabled' => getenv('JR_JREI_LEARNING_DAILY_ENABLED') === 'true',
         // Strictly optional BAHAR adult private storage; disabled until owner,
         // scientific/legal review and secret provisioning independently agree.
         'bahar_private_workbooks_enabled' => getenv('JR_BAHAR_PRIVATE_WORKBOOKS_ENABLED') === 'true',
