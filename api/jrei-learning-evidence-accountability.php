@@ -20,6 +20,7 @@ function jrJreiLearningOwnerEvidenceAccountability(PDO $pdo): array {
       'latencyRegressions'=>null,
       'accuracyNotImproved'=>null,
       'acceptedDespiteRecordedHazard'=>null,
+      'humanVetoCount'=>null,
       'approvedProposalsScientificallyValidated'=>false,
       'benchmarkCasesIndependentlyObserved'=>false,
       'codeOrModelAutomaticallyChanged'=>false
