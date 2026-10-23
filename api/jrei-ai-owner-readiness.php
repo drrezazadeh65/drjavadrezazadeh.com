@@ -59,6 +59,7 @@ function jrAiOwnerReadiness(PDO $pdo,array $cfg): array {
       'evidenceImprovementOpportunities'=>jrAiImprovementOwnerSnapshot($pdo,$cfg),
       'readyForOwnerAcceptance'=>$configured&&$schema&&jrAiTelemetrySchemaReady($pdo),
       'publicApiRouteGateOpen'=>$configured&&$schema&&
+          ($cfg['jrei_live_ai_enabled']??false)===true&&
           ($cfg['jrei_public_ai_release_accepted']??false)===true,
       'productionModelAccepted'=>false
     ];
