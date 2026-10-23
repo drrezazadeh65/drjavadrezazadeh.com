@@ -59,3 +59,19 @@ test('only independent source-reviewed fixtures may be ranked',()=>{
   assert.throws(()=>evalOnce({independentSourceReview:false}),
     /INDEPENDENT_SOURCE_REVIEW_REQUIRED/);
 });
+
+test('no candidate can be published without measured Windows latency',()=>{
+  const result=evalOnce();
+  assert.equal(result.measuredWorkerLatency,false);
+  assert.equal(result.latencyEvidenceRequired,true);
+  assert.equal(result.eligibleToPropose,false);
+  assert.equal(result.decision,'BLOCKED');
+  assert.equal(result.reason,'MEASURED_WORKER_LATENCY_REQUIRED');
+  assert.equal(result.proposal.canPublish,false);
+});
+test('two identical candidate policies are never presented as learned',()=>{
+  const result=evalOnce({candidatePolicy:policies.current});
+  assert.equal(result.modelTrained,false);
+  assert.equal(result.learningPublished,false);
+  assert.equal(result.proposal.canPublish,false);
+});
