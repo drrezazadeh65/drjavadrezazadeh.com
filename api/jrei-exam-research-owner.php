@@ -12,7 +12,7 @@ function jrExamResearchSchemaReady(PDO $pdo): bool {
     try{
         foreach([
             'SELECT id,discovery_enabled,extraction_enabled,generation_enabled,participant_enrolment_enabled,research_processing_enabled,policy_revision FROM jrei_exam_controls LIMIT 0',
-            'SELECT source_id,source_authority_id,source_title,educational_level,exam_category,examination_year,subject_id,source_kind,rights_state,review_state,extraction_state,answer_key_state,created_at FROM jrei_exam_sources LIMIT 0',
+            'SELECT source_id,source_authority_id,source_title,source_locator_digest,source_locator_uri,educational_level,exam_category,examination_year,subject_id,source_kind,rights_state,review_state,extraction_state,answer_key_state,created_at FROM jrei_exam_sources LIMIT 0',
             'SELECT requirement_id,educational_level,examination_year,subject_id,expected_kind,requirement_state FROM jrei_exam_coverage_requirements LIMIT 0',
             'SELECT discovery_id,result_state,rights_review_state,robots_review_state FROM jrei_exam_discovery_attempts LIMIT 0',
             'SELECT id,item_state,ambiguity_review_state,copyright_review_state,reviewed_by_account_id FROM jrei_exam_item_metadata LIMIT 0',
@@ -51,7 +51,7 @@ function jrExamResearchOwnerSnapshot(PDO $pdo,array $cfg): array {
       'workerInferenceVerified'=>false,
       'frameworkDefinitionSource'=>'AUTHOR_PROPOSAL_DIGESTS_REVIEWED_20261023',
       'controls'=>null,'sourceCoverage'=>[],
-      'sourceReview'=>[],'sourceQueue'=>[],'intakeStates'=>[],
+      'sourceReview'=>[],'sourceQueue'=>[],'coverageTargets'=>[],'intakeStates'=>[],
       'coverageObligations'=>[],'itemReviews'=>[],
       'blueprints'=>[],'preparationProgrammes'=>[],
       'preparationStages'=>[],'frameworks'=>[],
@@ -99,6 +99,14 @@ function jrExamResearchOwnerSnapshot(PDO $pdo,array $cfg): array {
         extraction_state,examination_year FROM jrei_exam_sources
         WHERE review_state<>'QUARANTINED'
         ORDER BY updated_at DESC LIMIT 20");
+    // Only metadata of still-unlinked research needs is sent to
+    // SUPER_ADMIN after the original MFA gate; not a real missing-paper count.
+    $base['coverageTargets']=jrExamResearchSummaryRows($pdo,
+      "SELECT requirement_id,country_code,curriculum_id,curriculum_version,
+        educational_level,grade,exam_category,examination_year,subject_id,
+        expected_kind,requirement_state FROM jrei_exam_coverage_requirements
+        WHERE source_id IS NULL AND requirement_state='REQUIRES_SOURCE_REVIEW'
+        ORDER BY created_at DESC LIMIT 40");
     $base['intakeStates']=jrExamResearchSummaryRows($pdo,
       'SELECT result_state,rights_review_state,robots_review_state,
         COUNT(*) AS count FROM jrei_exam_discovery_attempts
@@ -258,6 +266,118 @@ function jrExamResearchOwnerChange(PDO $pdo,array $cfg,string $actor,array $body
             if($q->rowCount()!==1)
                 throw new DomainException('coverage_target_exists');
             operationsAudit($pdo,$actor,'jrei_exam_coverage_registered',$id);
+            $pdo->commit();
+        }catch(Throwable $e){
+            if($pdo->inTransaction())$pdo->rollBack();
+            throw $e;
+        }
+    }elseif($action==='register_source_candidate'){
+        // Human-submitted candidate metadata only: NO HTTP request, crawler,
+        // PDF download, OCR, model tool execution, scientific approval or
+        // copyright permission follows from an owner-supplied link.
+        if(($body['confirmation']??'')!=='REGISTER_UNREVIEWED_SOURCE_CANDIDATE')
+            throw new InvalidArgumentException('source_candidate_confirmation_required');
+        $target=$body['coverageRequirementId']??null;
+        $url=$body['candidateUrl']??null;
+        $issuer=$body['issuerId']??null;
+        $title=$body['sourceTitle']??null;
+        $version=$body['sourceVersion']??null;
+        $publicationDate=$body['publicationDate']??null;
+        $uuidPattern='/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/D';
+        $identPattern='/^[A-Za-z0-9._:-]{1,100}$/D';
+        if(!is_string($target)||!preg_match($uuidPattern,$target)||
+           !is_string($issuer)||!preg_match($identPattern,$issuer)||
+           !is_string($version)||!preg_match($identPattern,$version)||
+           !is_string($title)||mb_strlen($title,'UTF-8')<4||
+           mb_strlen($title,'UTF-8')>240||
+           preg_match('/[<>\\x00-\\x1F\\x7F]/u',$title)||
+           !is_string($url)||strlen($url)<12||strlen($url)>1200)
+            throw new InvalidArgumentException('invalid_source_candidate');
+        if($publicationDate!==null) {
+            if(!is_string($publicationDate)||
+               !preg_match('/^(20\\d{2})-(0[1-9]|1[0-2])-([0-2]\\d|3[01])$/D',$publicationDate))
+                throw new InvalidArgumentException('invalid_source_date');
+            $parts=explode('-',$publicationDate);
+            if(!checkdate((int)$parts[1],(int)$parts[2],(int)$parts[0]))
+                throw new InvalidArgumentException('invalid_source_date');
+        }
+        // Prevent stored credential-bearing links, private IP literals,
+        // URL query tokens and disguised/non-HTTPS hosts. This validation
+        // does not replace real DNS+IP/redirect checks before future fetch.
+        $components=parse_url($url);
+        if(!is_array($components)||
+           ($components['scheme']??'')!=='https'||
+           !isset($components['host'])||
+           isset($components['user'])||isset($components['pass'])||
+           isset($components['port'])||isset($components['query'])||
+           isset($components['fragment']))
+            throw new InvalidArgumentException('source_url_not_safe_for_metadata');
+        $host=strtolower($components['host']);
+        if(strlen($host)>253||!preg_match(
+            '/^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\\.)+[a-z]{2,63}$/D',
+            $host)||filter_var($host,FILTER_VALIDATE_IP)!==false||
+            str_ends_with($host,'.local')||
+            str_ends_with($host,'.internal')||
+            str_ends_with($host,'.test')||
+            str_ends_with($host,'.example')||
+            str_ends_with($host,'.invalid'))
+            throw new InvalidArgumentException('source_host_not_approved');
+        $path=$components['path']??'/';
+        if(strlen($path)>950||str_contains($path,'\\')||
+           preg_match('~(?:^|/)(?:\\.\\.|%2e%2e)(?:/|$)~i',$path))
+            throw new InvalidArgumentException('source_path_invalid');
+        $normalizedUrl='https://'.$host.($path===''?'/':$path);
+        $locatorDigest=hash('sha256',$normalizedUrl);
+        $now=time();
+        $pdo->beginTransaction();
+        try {
+            $q=$pdo->prepare("SELECT country_code,curriculum_version,
+                educational_level,exam_category,examination_year,subject_id,
+                expected_kind,requirement_state,source_id
+                FROM jrei_exam_coverage_requirements WHERE requirement_id=?
+                FOR UPDATE");
+            $q->execute([$target]);
+            $coverage=$q->fetch(PDO::FETCH_ASSOC);
+            if(!$coverage||$coverage['source_id']!==null||
+               $coverage['requirement_state']!=='REQUIRES_SOURCE_REVIEW')
+                throw new DomainException('coverage_target_not_open');
+            $bytes=random_bytes(16);
+            $bytes[6]=chr((ord($bytes[6])&15)|64);
+            $bytes[8]=chr((ord($bytes[8])&63)|128);
+            $h=bin2hex($bytes);
+            $id=substr($h,0,8).'-'.substr($h,8,4).'-'.
+              substr($h,12,4).'-'.substr($h,16,4).'-'.substr($h,20);
+            try{
+                $q=$pdo->prepare("INSERT INTO jrei_exam_sources
+                 (source_id,source_authority_id,source_title,publication_date,
+                  source_version,source_locator_digest,source_locator_uri,
+                  country_code,educational_level,exam_category,
+                  curriculum_version,subject_id,examination_year,source_kind,
+                  rights_state,review_state,extraction_state,answer_key_state,
+                  created_at,updated_at)
+                 VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,
+                   'PERMISSION_UNVERIFIED','CANDIDATE_UNREVIEWED',
+                   'NOT_STARTED','UNKNOWN',?,?)");
+                $q->execute([$id,$issuer,trim($title),$publicationDate,$version,
+                    $locatorDigest,$normalizedUrl,$coverage['country_code'],
+                    $coverage['educational_level'],$coverage['exam_category'],
+                    $coverage['curriculum_version'],$coverage['subject_id'],
+                    (int)$coverage['examination_year'],
+                    $coverage['expected_kind'],$now,$now]);
+            }catch(PDOException $e){
+                if((string)$e->getCode()==='23000')
+                    throw new DomainException('source_candidate_already_registered',0,$e);
+                throw $e;
+            }
+            $q=$pdo->prepare("UPDATE jrei_exam_coverage_requirements
+                SET source_id=?,
+                    requirement_state='SOURCE_CANDIDATE_LINKED_UNREVIEWED'
+                WHERE requirement_id=? AND source_id IS NULL AND
+                      requirement_state='REQUIRES_SOURCE_REVIEW'");
+            $q->execute([$id,$target]);
+            if($q->rowCount()!==1)
+                throw new DomainException('coverage_target_conflict');
+            operationsAudit($pdo,$actor,'jrei_exam_source_candidate',$id);
             $pdo->commit();
         }catch(Throwable $e){
             if($pdo->inTransaction())$pdo->rollBack();
