@@ -7,6 +7,8 @@ if(!defined('BERTINA_API_BOOTSTRAPPED')){http_response_code(404);exit;}
  * NO HTTP fetch, document parsing, student records, external task execution,
  * automatic source approval, mail or model invocation occurs in this module.
  */
+require_once __DIR__.'/jrei-nightly-window.php';
+
 function jrKaSchemaReady(PDO $pdo): bool {
     try{
         foreach([
