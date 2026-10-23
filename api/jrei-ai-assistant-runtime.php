@@ -169,13 +169,29 @@ function jrAiPublicChat(PDO $pdo,array $cfg,array $body): array {
         }catch(Throwable $metricsUnavailable){}
         throw $providerError;
     }
+    // Revalidate publisher permission, quote digest and the original
+    // public evidence snapshot AFTER external inference. Revocation or a
+    // concurrent source edit cannot be bypassed using pre-request evidence.
+    $nowEvidence=$usesScholarlyPassages?
+        jrAiApprovedPublicPassages($pdo,$cfg,$query,$lang):
+        jrAiPublicEvidence($query,$lang);
+    $canonical=static fn(array $values): string=>hash('sha256',
+       json_encode($values,
+         JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR));
+    if(!$nowEvidence||!hash_equals($canonical($evidence),
+                                  $canonical($nowEvidence)))
+        throw new DomainException('public_ai_source_changed_during_inference');
     $text=$response['text'];
     $gate=jrAiPublicAnswerGate($text,$evidence,$lang);
     if(($gate['publiclyRenderable']??false)!==true)
         throw new DomainException('public_ai_output_evidence_or_privacy_blocked');
     // These citations are always server-selected, never model-generated
     // hyperlinks. Treat plausible prose as provisional until final QA.
-    $links=array_map(static fn($r)=>['url'=>$r['url'],'label'=>$r['title']],$evidence);
+    $links=[];
+    $ids=array_fill_keys($gate['usedSourceIds'],true);
+    foreach($evidence as $source)
+        if(isset($ids[$source['id']]))
+            $links[]=['url'=>$source['url'],'label'=>$source['title']];
     return [
       'ok'=>true,'answer'=>$text,'links'=>$links,
       'schema'=>'jr.jrei.public-assistant-model-draft.v1',
