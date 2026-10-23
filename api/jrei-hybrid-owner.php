@@ -2,6 +2,7 @@
 declare(strict_types=1);
 if(!defined('BERTINA_API_BOOTSTRAPPED')){http_response_code(404);exit;}
 require_once __DIR__.'/jrei-hybrid-worker.php';
+require_once __DIR__.'/jrei-hybrid-review-ledger.php';
 require_once __DIR__.'/jrei-hybrid-owner-corpus.php';
 require_once __DIR__.'/jrei-hybrid-owner-sources.php';
 require_once __DIR__.'/jrei-hybrid-owner-models.php';
@@ -95,7 +96,8 @@ function jrHybridOwnerSnapshot(PDO $pdo,array $cfg): array {
         json_decode((string)$r['result_json'],true)
     ];
     $projection=array_merge($base,jrHybridOwnerCorpusSnapshot($pdo),
-        jrHybridSourceSnapshot($pdo),jrHybridModelSnapshot($pdo));
+        jrHybridSourceSnapshot($pdo),jrHybridModelSnapshot($pdo),
+        jrHybridReviewLedgerSnapshot($pdo));
     $projection['dispatchDiagnostics']=jrHybridOwnerDispatchDiagnostics($pdo,$projection);
     $projection['incidentMonitoring']=jrHybridOwnerIncidentStatus($pdo,$cfg);
     $projection['queueHealth']=jrHybridOwnerQueueHealth($pdo,$cfg,time());
