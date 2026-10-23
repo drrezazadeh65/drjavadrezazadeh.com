@@ -9,7 +9,7 @@ const en=readFileSync('en/account/index.html','utf8');
 test('next action is backed by the existing authenticated order history, never browser storage',()=>{
  assert.match(dashboard,/async function verifiedCustomerNextAction\(authenticated\)/);
  assert.match(dashboard,/if\(!heading\|\|!description\|\|!action\|\|!authenticated\)return/);
- assert.match(dashboard,/jsonRequest\(API\+'\/commerce\/history',\{method:'GET',credentials:'include',cache:'no-store'\}\)/);
+ assert.match(dashboard,/jsonRequest\(API\+'\/commerce\/history',\{\s*method:'GET',credentials:'include',cache:'no-store',signal:activeController\.signal\s*\}\)/);
  assert.match(dashboard,/response\.data\?\.ok!==true\|\|!Array\.isArray\(response\.data\.orders\)/);
  assert.match(dashboard,/response\.status===401\|\|response\.status===403/);
  assert.match(dashboard,/paymentVerified!==true/);
