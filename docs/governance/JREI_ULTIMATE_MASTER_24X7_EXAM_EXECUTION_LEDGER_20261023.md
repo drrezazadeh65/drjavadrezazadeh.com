@@ -88,3 +88,16 @@ The default-OFF private JREI examination deadline reconciliation Cron marks atte
 The original scoring model now binds integer coefficients to a deterministic versioned SHA-256 fingerprint. Per-item source licence, independent scientific review, original prompt content, option identity and answer-key digest are rechecked before private question delivery. The original account resume path requires current active offering, purpose consent and entitlement. Uncertain autosaves block further local edits until authoritative server recovery; refresh clears old answers from browser memory.
 
 ALL new source is untested, undeployed and unauthorised for paid or personal-data production use. No database migration or Cron job ran.
+
+
+## Source addition — authoritative payment checks and exam disposition (23 October 2026)
+
+An additional set of SOURCE-only commits extends the same 117-atom / 23-deliverable programme. In api/jrei-exam-runtime-gates.php, the paid-exam entitlement check now requires the original authenticated account email, a paid original commerce order, matching original Stage09 BitPay transaction claim and provider amount, verified date/provider identifier, and a correctly summed array of original order item subtotals. The dedicated exam line must be a positive, single-quantity exam SKU; none of these checks invents the as-yet-unintegrated exam checkout SKU or grants a new entitlement. Live paid examinations remain OFF.
+
+The original MFA owner console now has api/jrei-exam-deadline-owner.php with a bounded (40-row) private backlog of TIMED_OUT_PENDING_REVIEW cases, owner reason-code disposition, optimistic revision, matching original EXPIRED session requirement and operations audit. Closing review changes only the attempt state to TIMED_OUT_CLOSED; it does NOT grade or delete answers, refund, or resolve customer entitlements. The original GET and POST owner snapshots now include this authoritative backlog. All data remain in the mother database and no personal student contact or responses are disclosed in the admin projection.
+
+Before creating a paid timed attempt, the exact original item IDs and option IDs in the SHA-verified published question archive now must match the independently reviewed scoring context, not merely the count. Public exam catalogue selection is hidden unless original immutable delivery + runtime release gates are both enabled, and original reviewed item/source/key licence state has not been recalled. This is NOT an authorization to activate those switches.
+
+The new source-backed api/jrei-exam-product-readiness.php provides per-product metadata blockers: original instrument version, blueprint and reviewer, content rights, approved answer keys, delivery state, signed question counts, original source rights and independent review. The same bilingual MFA panel displays these blockers and explicitly states that DB metadata neither proves commercial payment integration nor scientific validity. All acceptance remains final-stage only.
+
+**Actual state remains SOURCE; all tests, new DB migrations, Cron execution, model inference, real payments and live deployment NOT RUN.**
