@@ -89,6 +89,38 @@
   },
   {
     "lang": "en",
+    "title": "Educational and university examination preparation",
+    "path": "en/exams/",
+    "category": "Education",
+    "summary": "Development stage: no examination is offered for purchase or registration without the required scientific and operational approvals. No official outcome or admission probability is promised.",
+    "keywords": "JREI university academic examination entrance preparation undergraduate masters doctoral research"
+  },
+  {
+    "lang": "en",
+    "title": "Undergraduate entrance examination preparation",
+    "path": "en/exams/konkur/",
+    "category": "Education",
+    "summary": "An evidence-led preparation pathway for national undergraduate entrance examinations. Applicable subjects, weightings and conditions must be reviewed against authoritative sources for the specified year.",
+    "keywords": "JREI university academic examination entrance preparation undergraduate masters doctoral research"
+  },
+  {
+    "lang": "en",
+    "title": "Master’s entrance examination preparation",
+    "path": "en/exams/masters/",
+    "category": "Education",
+    "summary": "Subject-specific master’s entrance examination preparation grounded in separately reviewed blueprints and answer keys. Disciplines, years and examination sets are not assumed equivalent.",
+    "keywords": "JREI university academic examination entrance preparation undergraduate masters doctoral research"
+  },
+  {
+    "lang": "en",
+    "title": "Doctoral entrance examination preparation",
+    "path": "en/exams/phd/",
+    "category": "Education",
+    "summary": "A developing doctoral entrance examination centre covering specialist knowledge and research methods, subject to independent source, assessment and solution review.",
+    "keywords": "JREI university academic examination entrance preparation undergraduate masters doctoral research"
+  },
+  {
+    "lang": "en",
     "title": "Golden Talent",
     "path": "en/golden-talent/",
     "category": "Golden Talent",
@@ -758,6 +790,38 @@
     "category": "خدمات",
     "summary": "استعدادیابی علمی، چندمنبعی و رشدگرا.",
     "keywords": "استعدادیابی تحصیلی استعداد دانش آموز"
+  },
+  {
+    "lang": "fa",
+    "title": "مرکز آزمون‌های آموزشی و دانشگاهی",
+    "path": "fa/exams/",
+    "category": "آموزش",
+    "summary": "مرحلهٔ توسعه: آزمون فروشی یا جلسهٔ ثبت‌نامِ تأییدشده تا تکمیل کنترل‌های لازم عرضه نمی‌شود. هیچ احتمال قبولی یا نتیجهٔ رسمی پیش‌بینی نمی‌شود.",
+    "keywords": "مرکز آزمون آموزشی آزمون کارشناسی ارشد دکتری مطالعه آمادگی سنجش JREI"
+  },
+  {
+    "lang": "fa",
+    "title": "آمادگی آزمون سراسری کارشناسی",
+    "path": "fa/exams/konkur/",
+    "category": "آموزش",
+    "summary": "مرکز برنامه‌ریزی و شبیه‌سازی آزمون سراسری، متکی بر دفترچه‌های دارای مجوز و برنامهٔ درسی بررسی‌شده. موضوع‌ها، ضرایب و سهمیه‌ها فقط بر پایهٔ اسناد معتبر همان سال معرفی می‌شوند.",
+    "keywords": "مرکز آزمون آموزشی آزمون کارشناسی ارشد دکتری مطالعه آمادگی سنجش JREI"
+  },
+  {
+    "lang": "fa",
+    "title": "آمادگی آزمون کارشناسی ارشد",
+    "path": "fa/exams/masters/",
+    "category": "آموزش",
+    "summary": "آزمون‌های تخصصی ارشد با طرح آزمون مستقل هر مجموعهٔ امتحانی و پاسخ‌نامهٔ داوری‌شده طراحی می‌شوند. میان رشته‌ها، نسخه‌ها یا سال‌ها بدون شواهد معتبر معادل‌سازی صورت نمی‌گیرد.",
+    "keywords": "مرکز آزمون آموزشی آزمون کارشناسی ارشد دکتری مطالعه آمادگی سنجش JREI"
+  },
+  {
+    "lang": "fa",
+    "title": "آمادگی آزمون دکتری",
+    "path": "fa/exams/phd/",
+    "category": "آموزش",
+    "summary": "مرکز توسعهٔ شبیه‌ساز آزمون دکتری با پوشش تدریجی محتوای تخصصی و روش تحقیق، مشروط به بررسی مستقل مشخصات آزمون و اعتبار علمی سؤال‌ها.",
+    "keywords": "مرکز آزمون آموزشی آزمون کارشناسی ارشد دکتری مطالعه آمادگی سنجش JREI"
   },
   {
     "lang": "fa",
