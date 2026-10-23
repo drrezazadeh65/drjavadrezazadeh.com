@@ -175,6 +175,29 @@ function jrExamCandidatePublishedItems(PDO $pdo,string $account,string $attempt)
            array_diff($actual,$expected[$item['itemId']]))
             throw new DomainException('exam_immutable_option_version_mismatch');
     }
+    // The original source, key or scoring policy may change while the
+    // immutable private JSON files are being read. Repeat the complete
+    // current approval check immediately before preparing HTTP output.
+    // This minimizes the TOCTOU window without creating an answer-key
+    // transport, a new DB authority or a costly Windows worker dependency.
+    $now=jrExamVerifiedMcqContext($pdo,
+      (string)$row['instrument_version_id'],(string)$row['scoring_model_id']);
+    $canonical=static fn(array $value): string=>hash('sha256',
+      json_encode($value,
+        JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR));
+    if(!hash_equals($canonical($reviewed),$canonical($now)))
+        throw new DomainException('exam_reviewed_source_or_policy_changed_during_delivery');
+    // Do not treat a consumer's original prefetch as permission to continue
+    // accessing suspended content, even if the immutable item bytes match.
+    $q=$pdo->prepare("SELECT o.offering_state,p.product_state
+      FROM jrei_exam_commercial_offerings o
+      JOIN jrei_exam_commercial_products p ON p.product_id=o.product_id
+      WHERE o.offering_id=? LIMIT 1");
+    $q->execute([$row['offering_id']]);
+    $release=$q->fetch(PDO::FETCH_ASSOC);
+    if(!is_array($release)||$release['offering_state']!=='PUBLISHED'||
+       $release['product_state']!=='PUBLISHED'||time()>=(int)$row['deadline_at'])
+        throw new DomainException('exam_offering_status_changed_during_delivery');
     return [
       'ok'=>true,'schema'=>'jr.jrei.private-published-items.v1',
       'attemptId'=>$id,'deadlineAt'=>(int)$row['deadline_at'],
