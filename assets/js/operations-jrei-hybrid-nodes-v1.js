@@ -175,6 +175,7 @@
      digest.dir='ltr';digest.spellcheck=false;
      const byteCount=field(sourceVersion,T('حجم فایل، بایت','Retrieved document bytes'),'number','2048');
      byteCount.min='1';byteCount.max=String(8*1024*1024);byteCount.step='1';
+     const retrievedAt=field(sourceVersion,T('زمان واقعی دریافت اعلام‌شده','Declared actual retrieval time'),'datetime-local');
      const submit=document.createElement('button');submit.type='submit';
      submit.textContent=T('ثبت نسخه در صف بررسی','Stage version for human review');
      sourceVersion.append(submit);
