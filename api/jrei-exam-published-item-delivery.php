@@ -141,7 +141,7 @@ function jrExamCandidatePublishedItems(PDO $pdo,string $account,string $attempt)
     if(($progress['canResume']??false)!==true)
         throw new DomainException('exam_not_available_for_question_delivery');
     $q=$pdo->prepare("SELECT s.instrument_version_id,s.locale,
-        a.offering_id,a.deadline_at,a.attempt_state,
+        p.scoring_model_id,a.offering_id,a.deadline_at,a.attempt_state,
         o.offering_state,p.product_state
       FROM jrei_exam_commercial_attempts a
       JOIN eco_assessment_sessions s ON s.id=a.assessment_session_id
@@ -155,8 +155,26 @@ function jrExamCandidatePublishedItems(PDO $pdo,string $account,string $attempt)
        (int)$row['deadline_at']<time())
         throw new DomainException('exam_offering_suspended_or_expired');
     jrExamTrustedEntitlement($pdo,$account,$row['offering_id'],time());
+    // Revalidate the original item/key metadata on each delivery. Consent,
+    // customer entitlement and an earlier reviewed start are not a permanent
+    // reproduction licence if the source is later suspended or revoked.
+    $reviewed=jrExamVerifiedMcqContext($pdo,
+      (string)$row['instrument_version_id'],(string)$row['scoring_model_id']);
     $items=jrExamDeliveredItemSet($pdo,
       (string)$row['instrument_version_id'],(string)$row['locale']);
+    if(count($items)!==count($reviewed['items']))
+        throw new DomainException('exam_source_approval_changed');
+    $expected=[];
+    foreach($reviewed['items'] as $original)
+        $expected[$original['itemId']]=$original['allowedOptionIds'];
+    foreach($items as $item){
+        if(!array_key_exists($item['itemId'],$expected))
+            throw new DomainException('exam_immutable_item_version_mismatch');
+        $actual=array_column($item['options'],'id');
+        if(count($actual)!==count($expected[$item['itemId']])||
+           array_diff($actual,$expected[$item['itemId']]))
+            throw new DomainException('exam_immutable_option_version_mismatch');
+    }
     return [
       'ok'=>true,'schema'=>'jr.jrei.private-published-items.v1',
       'attemptId'=>$id,'deadlineAt'=>(int)$row['deadline_at'],
