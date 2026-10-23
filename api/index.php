@@ -70,6 +70,9 @@ function cfg(): array {
         // Daily JREI metadata evaluation is a separate private OFF switch.
         // No model training, marketing, payment or source authority follows.
         'jrei_learning_daily_enabled' => getenv('JR_JREI_LEARNING_DAILY_ENABLED') === 'true',
+        // New exam coverage / TESTLY research work is OFF until authoritative
+        // source licences, ethics, guardian gates and host schema are accepted.
+        'jrei_exam_research_enabled' => getenv('JR_JREI_EXAM_RESEARCH_ENABLED') === 'true',
         // Outbound Windows worker API: independently OFF, even if owner
         // registers a public key or compiles a local model adapter.
         'jrei_hybrid_enabled' => getenv('JR_JREI_HYBRID_ENABLED') === 'true',
