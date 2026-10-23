@@ -26,6 +26,7 @@ function jrExamOwnerPreliminaryGradeEvidence(PDO $pdo): array {
           COUNT(*) AS total,
           COALESCE(SUM(CASE WHEN
             a.attempt_id IS NOT NULL AND
+            a.attempt_state IN ('SUBMITTED','TIMED_OUT') AND
             a.score_run_id=g.score_run_id AND
             a.assessment_session_id=g.assessment_session_id AND
             s.session_id=g.assessment_session_id AND
@@ -37,14 +38,15 @@ function jrExamOwnerPreliminaryGradeEvidence(PDO $pdo): array {
             g.status='PRELIMINARY_UNREVIEWED'
             THEN 1 ELSE 0 END),0) AS metadata_aligned,
           COALESCE(SUM(CASE WHEN
-            a.attempt_id IS NULL OR a.score_run_id<>g.score_run_id
-            OR a.assessment_session_id<>g.assessment_session_id
-            OR s.session_id IS NULL OR s.session_id<>g.assessment_session_id
-            OR s.scoring_model_id<>g.scoring_model_id
-            OR s.input_sha256<>g.submission_sha256
-            OR s.output_sha256<>g.output_sha256
+            a.attempt_id IS NULL OR a.attempt_state NOT IN ('SUBMITTED','TIMED_OUT')
+            OR NOT (a.score_run_id<=>g.score_run_id)
+            OR NOT (a.assessment_session_id<=>g.assessment_session_id)
+            OR s.session_id IS NULL OR NOT (s.session_id<=>g.assessment_session_id)
+            OR NOT (s.scoring_model_id<=>g.scoring_model_id)
+            OR NOT (s.input_sha256<=>g.submission_sha256)
+            OR NOT (s.output_sha256<=>g.output_sha256)
             OR s.state<>'UNREVIEWED'
-            OR a.submission_digest<>g.submission_sha256
+            OR NOT (a.submission_digest<=>g.submission_sha256)
             THEN 1 ELSE 0 END),0) AS inconsistent,
           COALESCE(SUM(CASE WHEN g.status<>'PRELIMINARY_UNREVIEWED'
             THEN 1 ELSE 0 END),0) AS unexpected_state
