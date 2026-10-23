@@ -607,6 +607,38 @@
  }
 
 
+ function renderIndependentSourceReviewEvidence(snapshot){
+   const data=snapshot.sourceHumanReviewEvidence;
+   if(!data||data.schema!=='jr.jrei.source-human-attestations-owner.v1')return;
+   const unknown=T('نامعلوم؛ مهاجرت بازبینی انجام نشده','Unknown; review migration unavailable');
+   fact(T('تصمیم‌های بازبینی انسانی مستقل منابع','Independent human source-review decisions'),
+     data.available?safeCount(data.recordedHumanDecisions):unknown);
+   fact(T('منابع دارای گواه بررسی خصوصی با وضعیت جاری','Current source records with private-use human attestation'),
+     data.available?safeCount(data.currentPrivatelyReviewedSources):unknown);
+   const panel=elt('details','jr-exam-subsection');
+   panel.append(elt('summary','',T('حسابرسی بازبینی مستقل منابع و مجوزها',
+     'Independent human-source evidence and rights audit')));
+   panel.append(elt('p','',T(
+     'آثار انگشت اسناد حقوقی و اصالت در سوابق خصوصی ثبت می‌شود. شمارش این تصمیم‌ها اثبات محتوای PDF، حق انتشار، صحت کلید پاسخ یا کیفیت علمی نیست.',
+     'Evidence digests and human decisions are recorded privately. These counts do not prove actual PDF authenticity, redistribution rights, correct answer keys or scientific quality.')));
+   if(data.available){
+     const rows=[
+       [T('پذیرش محدود به تحلیل خصوصی','Private-analysis human attestations'),
+         data.privateAnalysisAttestations],
+       [T('قرنطینه براساس تصمیم بازبین','Human quarantine decisions'),
+         data.quarantineDecisions],
+       [T('درخواست مدارک بیشتر','Requests for additional evidence'),
+         data.requestsForFurtherEvidence]
+     ];
+     for(const [label,value] of rows){
+       const cell=elt('div','jr-exam-coverage-row');
+       cell.append(elt('strong','',label),elt('span','',safeCount(value)));
+       panel.append(cell);
+     }
+   }else panel.append(elt('p','',unknown));
+   sections.append(panel);
+ }
+
  function renderCountryExamGapWorklist(snapshot){
    const queue=snapshot.coverageGapWorklist;
    if(!queue||queue.schema!=='jr.jrei.coverage-gap-worklist.v1')return;
@@ -1564,6 +1596,7 @@
    renderKnowledgeAcquisition(snapshot);
    renderCountryExamCoverageMatrix(snapshot);
    renderCountryExamGapWorklist(snapshot);
+   renderIndependentSourceReviewEvidence(snapshot);
    renderCoverageScopeOwnerActions(snapshot);
    renderLiveModelReadiness(snapshot);
    for(const def of columns)viewGroup(def,snapshot[def.key],ready);
