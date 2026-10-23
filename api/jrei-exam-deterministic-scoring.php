@@ -40,15 +40,23 @@ function jrExamVerifiedMcqContext(PDO $pdo,string $instrumentId,
         throw new DomainException('scoring_policy_bounds_invalid');
 
     $q=$pdo->prepare("SELECT
-        i.id,i.item_type,k.correct_option_id,k.key_digest,
+        i.id,i.item_type,i.is_sensitive,k.correct_option_id,k.key_digest,
         k.key_state,k.rights_review_state,k.reviewer_account_id,
         k.reviewed_at,meta.authored_by_account_id,
+        meta.reviewed_by_account_id AS item_reviewer_id,
+        meta.reviewed_at AS item_reviewed_at,
+        meta.item_state,meta.provenance_digest,
+        meta.answer_key_digest,meta.item_content_digest,
+        meta.ambiguity_review_state,meta.copyright_review_state,
+        meta.source_id AS item_source_id,k.source_id AS key_source_id,
+        obj.content_sha256 AS original_prompt_sha256,
         source.review_state AS source_review_state,
         source.rights_state AS source_rights_state,
         source.is_revoked,source.is_superseded
       FROM eco_assessment_items i
       LEFT JOIN jrei_exam_reviewed_answer_keys k ON k.item_id=i.id
       LEFT JOIN jrei_exam_item_metadata meta ON meta.canonical_assessment_item_id=i.id
+      LEFT JOIN eco_object_refs obj ON obj.id=i.prompt_object_id
       LEFT JOIN jrei_exam_sources source ON source.source_id=k.source_id
       WHERE i.instrument_version_id=?
       ORDER BY i.display_order ASC,i.id ASC LIMIT 301");
@@ -62,6 +70,21 @@ function jrExamVerifiedMcqContext(PDO $pdo,string $instrumentId,
         if(isset($seen[$id]))throw new DomainException('ambiguous_item_metadata');
         $seen[$id]=true;
         if($row['item_type']!=='SINGLE_CHOICE'||
+           (int)$row['is_sensitive']!==0||
+           $row['item_state']!=='APPROVED'||
+           $row['item_reviewed_at']===null||
+           $row['item_reviewer_id']===null||
+           $row['authored_by_account_id']===null||
+           $row['item_reviewer_id']===$row['authored_by_account_id']||
+           $row['ambiguity_review_state']!=='APPROVED'||
+           $row['copyright_review_state']!=='APPROVED'||
+           $row['item_source_id']===null||
+           $row['item_source_id']!==$row['key_source_id']||
+           !preg_match('/^[a-f0-9]{64}$/D',(string)$row['provenance_digest'])||
+           !hash_equals((string)$row['answer_key_digest'],(string)$row['key_digest'])||
+           !preg_match('/^[a-f0-9]{64}$/D',(string)$row['original_prompt_sha256'])||
+           !hash_equals((string)$row['original_prompt_sha256'],
+               (string)$row['item_content_digest'])||
            $row['key_state']!=='APPROVED'||
            $row['rights_review_state']!=='APPROVED'||
            $row['reviewer_account_id']===null||
