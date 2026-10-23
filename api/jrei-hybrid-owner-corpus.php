@@ -14,7 +14,7 @@ function jrHybridOwnerCorpusSnapshot(PDO $pdo): array {
         'nodeOffers'=>[]];
     if($ready){
         $q=$pdo->query('SELECT dataset_id,evaluation_version,dataset_sha256,
-            evidence_sha256,active_policy_sha256,source_label,source_url,
+            evidence_sha256,active_policy_sha256,active_policy_json,source_label,source_url,
             licence_code,reviewed_case_count,status,revision,
             proposed_at,approved_at,suspended_at
             FROM jrei_hybrid_public_datasets
@@ -25,6 +25,7 @@ function jrHybridOwnerCorpusSnapshot(PDO $pdo): array {
             'datasetSha256'=>$row['dataset_sha256'],
             'evidenceSha256'=>$row['evidence_sha256'],
             'activePolicySha256'=>$row['active_policy_sha256'],
+            'currentPolicy'=>json_decode((string)$row['active_policy_json'],true),
             'sourceLabel'=>$row['source_label'],
             'sourceUrl'=>$row['source_url'],
             'licenceCode'=>$row['licence_code'],
@@ -70,11 +71,12 @@ function jrHybridOwnerCorpusChange(PDO $pdo,string $actor,array $body): array {
         $url=$body['sourceUrl']??null;
         $licence=$body['licenceCode']??null;
         $cases=$body['reviewedCaseCount']??null;
+        $active=jrHybridPolicy($body['currentPolicy']??null);
         $parts=is_string($url)?parse_url($url):false;
         if(!jrHybridIdentifier($id)||!jrHybridIdentifier($version)||
            !jrHybridSha($body['datasetSha256']??null)||
            !jrHybridSha($body['evidenceSha256']??null)||
-           !jrHybridSha($body['activePolicySha256']??null)||
+           $active===null||
            !is_string($source)||strlen(trim($source))<3||
            strlen($source)>160||preg_match('/[\x00-\x1f<>]/',$source)||
            !is_string($url)||strlen($url)>500||
@@ -87,15 +89,18 @@ function jrHybridOwnerCorpusChange(PDO $pdo,string $actor,array $body): array {
            !is_int($cases)||$cases<200||$cases>10000||
            ($body['confirmation']??null)!=='PROPOSE_PUBLIC_HOLDOUT_FOR_REVIEW')
             throw new InvalidArgumentException('invalid_dataset_proposal');
+        $policyJson=json_encode($active,
+            JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR);
+        $policyHash=hash('sha256',$policyJson);
         $pdo->beginTransaction();
         try{
             $q=$pdo->prepare('INSERT INTO jrei_hybrid_public_datasets
               (dataset_id,evaluation_version,dataset_sha256,evidence_sha256,
-               active_policy_sha256,source_label,source_url,licence_code,
+               active_policy_sha256,active_policy_json,source_label,source_url,licence_code,
                reviewed_case_count,status,proposed_at,proposed_by_account_id,
-               updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)');
+               updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)');
             $q->execute([$id,$version,$body['datasetSha256'],
-                $body['evidenceSha256'],$body['activePolicySha256'],
+                $body['evidenceSha256'],$policyHash,$policyJson,
                 trim($source),$url,$licence,$cases,'PENDING',$now,$actor,$now]);
             operationsAudit($pdo,$actor,'jrei_public_corpus_proposed',$id.':'.$version);
             $pdo->commit();
