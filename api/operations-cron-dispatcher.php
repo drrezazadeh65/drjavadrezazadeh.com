@@ -99,7 +99,7 @@ function operationsCronOwnerSnapshot(PDO $pdo,array $config): array {
         'dataState'=>$schema?'SOURCE_POLICY_READ':'MOTHER_DB_MIGRATION_REQUIRED',
         'masterEnabled'=>$master,'webRuntimePhp83Observed'=>$phpReady,
         'webRuntimeProcOpenObserved'=>$spawnReady,
-        'phpCli83SourceCompatible'=>false, 'subprocessAvailable'=>false,
+        'phpCli83SourceCompatible'=>null, 'subprocessAvailable'=>null,
         'serverCronVerified'=>false,
         'hostExecutionVerified'=>false,'emailDeliveryVerified'=>false,
         'schemaReady'=>$schema,'checkedAt'=>time(),'jobs'=>$rows,
@@ -117,7 +117,7 @@ function operationsCronOwnerChange(PDO $pdo,array $config,
     $jobId=$body['jobId']??null;
     $action=$body['action']??null;
     if(!is_string($jobId)||!isset(operationsCronRegistry()[$jobId])||
-       !is_string($action)||!in_array($action,['register','configure','reconcile'],true))
+       !is_string($action)||!in_array($action,['register','configure','reconcile','quarantine'],true))
         throw new InvalidArgumentException('invalid_cron_control');
     $job=operationsCronRegistry()[$jobId];
     if(operationsCronSourcePath($jobId)===null)
@@ -132,6 +132,35 @@ function operationsCronOwnerChange(PDO $pdo,array $config,
             if($q->rowCount()!==1)
                 throw new DomainException('cron_already_registered');
             operationsAudit($pdo,$accountId,'cron_source_registered',$jobId);
+            $pdo->commit();
+        }catch(Throwable $e){if($pdo->inTransaction())$pdo->rollBack();throw $e;}
+        return operationsCronOwnerSnapshot($pdo,$config);
+    }
+    // Emergency owner quarantine is a future-dispatch stop, NOT a promise
+    // to cancel any child process already running or undo an accepted email.
+    // It works even if the global master flag is switched OFF during a crash.
+    if($action==='quarantine'){
+        $revision=$body['rowRevision']??null;
+        if(!is_int($revision)||$revision<1||
+           ($body['confirmation']??'')!=='STOP_FUTURE_DISPATCH_REVIEW_OUTCOME')
+            throw new InvalidArgumentException('invalid_cron_quarantine');
+        $pdo->beginTransaction();
+        try{
+            $q=$pdo->prepare('SELECT enabled,needs_owner_review,last_state,row_revision
+              FROM operations_cron_jobs WHERE job_id=? FOR UPDATE');
+            $q->execute([$jobId]);$r=$q->fetch(PDO::FETCH_ASSOC);
+            if(!is_array($r)||(int)$r['row_revision']!==$revision)
+                throw new DomainException('cron_schedule_conflict');
+            $now=time();
+            $change=$pdo->prepare("UPDATE operations_cron_jobs SET
+               enabled=0,needs_owner_review=1,next_due_at=0,
+               last_state=IF(last_state='running','unknown',last_state),
+               row_revision=row_revision+1,updated_at=?,updated_by_account_id=?
+               WHERE job_id=? AND row_revision=?");
+            $change->execute([$now,$accountId,$jobId,$revision]);
+            if($change->rowCount()!==1)
+                throw new DomainException('cron_schedule_conflict');
+            operationsAudit($pdo,$accountId,'cron_owner_quarantine',$jobId);
             $pdo->commit();
         }catch(Throwable $e){if($pdo->inTransaction())$pdo->rollBack();throw $e;}
         return operationsCronOwnerSnapshot($pdo,$config);
