@@ -9,7 +9,10 @@ require_once __DIR__.'/jrei-ai-cloud-provider.php';
  * bounded public retrieval EVALUATION ONLY; it MUST NOT be represented as a
  * generative chat provider, or receive public/private user prompts.
  *
- * This contract cannot start nodes, spend tokens, install models or deploy.
+ * The read-only decision cannot start nodes, spend tokens or deploy.
+ * The synchronous dispatch DOES invoke the existing paid cloud adapter and
+ * must only be called after the original atomic daily quota reservation,
+ * explicit visitor consent and independent public owner release gates.
  */
 function jrAiPublicModelRoutingDecision(array $cfg): array {
     $configured=jrAiCloudConfigured($cfg);
