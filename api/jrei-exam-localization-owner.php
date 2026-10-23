@@ -137,6 +137,8 @@ function jrExamOwnerLocalizedPromptAction(PDO $pdo,string $actor,array $body): a
               m.diagram_formula_integrity,m.ambiguity_review_state,
               m.copyright_review_state,
               s.review_state AS source_review,s.rights_state,
+              s.reviewer_account_id AS source_reviewer,
+              s.verified_at AS source_reviewed_at,
               s.is_revoked,s.is_superseded,
               k.key_state,k.rights_review_state,
               k.reviewer_account_id AS key_reviewer
@@ -158,6 +160,8 @@ function jrExamOwnerLocalizedPromptAction(PDO $pdo,string $actor,array $body): a
                $meta['authored_by_account_id']===null||
                $meta['reviewed_by_account_id']===$meta['authored_by_account_id']||
                $meta['source_review']!=='AUTHORITATIVE_REVIEWED'||
+               $meta['source_reviewer']===null||
+               $meta['source_reviewed_at']===null||
                $meta['rights_state']!=='PERMITTED_REPRODUCTION'||
                (int)$meta['is_revoked']!==0||
                (int)$meta['is_superseded']!==0||
@@ -165,6 +169,7 @@ function jrExamOwnerLocalizedPromptAction(PDO $pdo,string $actor,array $body): a
                $meta['rights_review_state']!=='APPROVED'||
                $meta['key_reviewer']===null||
                $actor===$meta['authored_by_account_id']||
+               $actor===$meta['source_reviewer']||
                $actor===$meta['reviewed_by_account_id']||
                $actor===$meta['key_reviewer'])
                 throw new DomainException('original_item_or_source_rights_unreviewed');
