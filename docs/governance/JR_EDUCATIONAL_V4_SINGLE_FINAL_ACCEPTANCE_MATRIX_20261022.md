@@ -1,3 +1,5 @@
+> **Full master scope preservation — 23 October 2026:** The owner's entire original master, Hybrid JREI super-master and TESTLY/Exams addendum must ALL pass through this same final-only acceptance campaign. An extra source-only JREI exam coverage report now distinguishes actual recorded public exam metadata from verified official answer keys, rights and educational validity. Final acceptance must check bounded SQL grouping; unknown-vs-zero states before mother-DB migration; repeated/current/revoked/superseded official sources; source-year/level/topic/rights status and no premature public question or psychometric claim. **None of those tests has been run.** See [single combined scope](JR_MASTER_PROMPTS_UNIFIED_EXECUTION_BINDING_20261023.md).
+
 # JR Integrated Education v4.0 — SINGLE FINAL ACCEPTANCE MATRIX
 
 **Status:** WRITTEN PLAN ONLY — ALL TESTS NOT RUN.  
