@@ -2,6 +2,7 @@
 declare(strict_types=1);
 if(!defined('BERTINA_API_BOOTSTRAPPED')){http_response_code(404);exit;}
 require_once __DIR__.'/jrei-exam-coverage-readiness.php';
+require_once __DIR__.'/jrei-ka-scheduler.php';
 
 /**
  * Owner-only read/write metadata for the existing JREI ecosystem.
@@ -63,6 +64,7 @@ function jrExamResearchOwnerSnapshot(PDO $pdo,array $cfg): array {
          'ready'=>false,'totalRows'=>null,'examCoverage'=>[],
          'truncated'=>false,'answerKeyCorrectnessVerified'=>false,
          'questionBankPublishable'=>false],
+       'knowledgeAcquisition'=>null,
        'notes'=>[
        'Missing migration means UNKNOWN, not zero.',
        'A crawler-discovered source is not necessarily licensed or official.',
@@ -172,6 +174,7 @@ function jrExamResearchOwnerSnapshot(PDO $pdo,array $cfg): array {
         GROUP BY interpretation,results_review_state
         ORDER BY count DESC LIMIT 30');
     $base['coverageReadiness']=jrExamOwnerCoverageReadiness($pdo);
+    $base['knowledgeAcquisition']=jrKaOwnerSnapshot($pdo,$cfg);
     return $base;
 }
 /** Emergency stop across all proposed exam/research background features;
