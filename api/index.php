@@ -76,6 +76,11 @@ function cfg(): array {
         // Outbound Windows worker API: independently OFF, even if owner
         // registers a public key or compiles a local model adapter.
         'jrei_hybrid_enabled' => getenv('JR_JREI_HYBRID_ENABLED') === 'true',
+        // Independent OFF-by-default JREI incident observer switch. Neither
+        // turning this ON nor registering a sensor sends mail: existing
+        // master Cron, event rules, per-feature and global email opt-ins
+        // remain separate SUPER_ADMIN controls.
+        'jrei_hybrid_alerts_enabled' => getenv('JR_JREI_HYBRID_ALERTS_ENABLED') === 'true',
         // Operator-owned mapping of independently source-reviewed PUBLIC
         // evaluation corpora only. No student content or arbitrary paths.
         'jrei_hybrid_approved_datasets' => [],
