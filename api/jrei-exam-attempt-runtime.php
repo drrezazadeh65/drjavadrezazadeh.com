@@ -286,6 +286,8 @@ function jrExamAttemptSubmit(PDO $pdo,string $account,array $request,int $at): a
         }
         if($a['attempt_state']!=='IN_PROGRESS'||
            $a['session_state']!=='IN_PROGRESS'||
+           $a['offering_state']!=='PUBLISHED'||
+           $a['product_state']!=='PUBLISHED'||
            !validUuid((string)$a['scoring_model_id']))
             throw new DomainException('exam_submission_state_conflict');
         if((int)$a['response_revision']!==$revision)
@@ -447,7 +449,7 @@ function jrExamCandidateResult(PDO $pdo,string $account,string $attempt): array 
     $q=$pdo->prepare("SELECT a.attempt_id,a.attempt_state,
         a.assessment_session_id,a.score_run_id,a.submission_digest,
         s.subject_id,s.instrument_version_id,s.consent_id,
-        p.scoring_model_id,
+        p.scoring_model_id,p.product_state,o.offering_state,
         run.session_id AS scored_session_id,
         run.scoring_model_id AS scored_model_id,
         run.input_sha256,run.output_sha256,run.state AS score_state,
@@ -471,7 +473,10 @@ function jrExamCandidateResult(PDO $pdo,string $account,string $attempt): array 
         AND a.attempt_state IN ('SUBMITTED','TIMED_OUT')
       LIMIT 1");
     $q->execute([$id,$account,$account]);$a=$q->fetch(PDO::FETCH_ASSOC);
-    if(!is_array($a)||$a['assessment_session_id']!==$a['scored_session_id']||
+    if(!is_array($a)||
+       $a['product_state']!=='PUBLISHED'||
+       $a['offering_state']!=='PUBLISHED'||
+       $a['assessment_session_id']!==$a['scored_session_id']||
        $a['scoring_model_id']!==$a['scored_model_id']||
        $a['score_run_id']!==$a['snapshot_run_id']||
        $a['assessment_session_id']!==$a['snapshot_session_id']||
