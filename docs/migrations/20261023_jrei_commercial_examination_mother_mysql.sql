@@ -159,6 +159,13 @@ CREATE TABLE IF NOT EXISTS jrei_exam_reviewed_answer_keys (
     REFERENCES customer_accounts(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- A scoring-policy fingerprint must be source-recomputed, not
+-- operator-entered evidence prose. For the canonical lowercase model UUID and
+-- decimal integer coefficients, policy_sha256 equals:
+-- SHA256('jr.jrei.mcq.policy.v1|' + model_id + '|' + correct_millipoints
+--       + '|' + incorrect_penalty_millipoints + '|' + unanswered_millipoints).
+-- Changing any coefficient invalidates previously recorded source digests.
+--
 -- Deterministic single-choice raw scoring. Integer millipoints avoid
 -- client floating-point rounding. Model metadata is the ORIGINAL
 -- eco_scoring_models table; a policy cannot create a new scoring engine.
