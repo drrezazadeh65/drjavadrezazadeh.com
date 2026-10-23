@@ -288,8 +288,13 @@ function jrExamResearchOwnerChange(PDO $pdo,array $cfg,string $actor,array $body
         if(!is_string($target)||!preg_match($uuidPattern,$target)||
            !is_string($issuer)||!preg_match($identPattern,$issuer)||
            !is_string($version)||!preg_match($identPattern,$version)||
-           !is_string($title)||mb_strlen($title,'UTF-8')<4||
-           mb_strlen($title,'UTF-8')>240||
+           !is_string($title)||(!preg_match('//u',$title)||
+             (function_exists('mb_strlen')
+               ?mb_strlen($title,'UTF-8')
+               :preg_match_all('/./us',$title))<4)||
+           (function_exists('mb_strlen')
+             ?mb_strlen($title,'UTF-8')
+             :preg_match_all('/./us',$title))>240||
            preg_match('/[<>\\x00-\\x1F\\x7F]/u',$title)||
            !is_string($url)||strlen($url)<12||strlen($url)>1200)
             throw new InvalidArgumentException('invalid_source_candidate');
@@ -355,7 +360,7 @@ function jrExamResearchOwnerChange(PDO $pdo,array $cfg,string $actor,array $body
                   curriculum_version,subject_id,examination_year,source_kind,
                   rights_state,review_state,extraction_state,answer_key_state,
                   created_at,updated_at)
-                 VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,
+                 VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,
                    'PERMISSION_UNVERIFIED','CANDIDATE_UNREVIEWED',
                    'NOT_STARTED','UNKNOWN',?,?)");
                 $q->execute([$id,$issuer,trim($title),$publicationDate,$version,
