@@ -3,6 +3,7 @@ declare(strict_types=1);
 if(!defined('BERTINA_API_BOOTSTRAPPED')){http_response_code(404);exit;}
 require_once __DIR__.'/jrei-exam-coverage-readiness.php';
 require_once __DIR__.'/jrei-ka-exam-coverage-matrix.php';
+require_once __DIR__.'/jrei-ka-coverage-owner-review.php';
 require_once __DIR__.'/jrei-ka-scheduler.php';
 require_once __DIR__.'/jrei-ka-owner-controls.php';
 require_once __DIR__.'/jrei-ka-paper-key-proposals.php';
@@ -64,7 +65,8 @@ function jrExamResearchOwnerSnapshot(PDO $pdo,array $cfg): array {
       'workerInferenceVerified'=>false,
       'frameworkDefinitionSource'=>'AUTHOR_PROPOSAL_DIGESTS_REVIEWED_20261023',
       'controls'=>null,'sourceCoverage'=>[],
-      'sourceReview'=>[],'sourceQueue'=>[],'coverageTargets'=>[],'intakeStates'=>[],
+      'sourceReview'=>[],'sourceQueue'=>[],'coverageTargets'=>[],
+      'coverageScopeReviewQueue'=>[],'intakeStates'=>[],
       'coverageObligations'=>[],'itemReviews'=>[],
       'blueprints'=>[],'preparationProgrammes'=>[],
       'preparationStages'=>[],'frameworks'=>[],
@@ -125,6 +127,16 @@ function jrExamResearchOwnerSnapshot(PDO $pdo,array $cfg): array {
         educational_level,grade,exam_category,examination_year,subject_id,
         expected_kind,requirement_state FROM jrei_exam_coverage_requirements
         WHERE source_id IS NULL AND requirement_state='REQUIRES_SOURCE_REVIEW'
+        ORDER BY created_at DESC LIMIT 40");
+    // A limited owner review queue. An approved SCOPE does not approve a
+    // source, answer key, document right or candidate examination date.
+    $base['coverageScopeReviewQueue']=jrExamResearchSummaryRows($pdo,
+      "SELECT requirement_id,country_code,curriculum_id,curriculum_version,
+        educational_level,grade,exam_category,examination_year,subject_id,
+        expected_kind,requirement_state,approved_by_account_id,source_id
+        FROM jrei_exam_coverage_requirements
+        WHERE requirement_state IN
+           ('REQUIRES_SOURCE_REVIEW','SOURCE_CANDIDATE_LINKED_UNREVIEWED')
         ORDER BY created_at DESC LIMIT 40");
     $base['intakeStates']=jrExamResearchSummaryRows($pdo,
       'SELECT result_state,rights_review_state,robots_review_state,
@@ -196,6 +208,9 @@ function jrExamResearchOwnerChange(PDO $pdo,array $cfg,string $actor,array $body
     if(!jrExamResearchSchemaReady($pdo))
         throw new DomainException('jrei_exam_research_migration_required');
     $action=$body['action']??null;
+    if(in_array($action,['ka_approve_coverage_scope',
+       'ka_withdraw_coverage_scope'],true))
+        return jrKaOwnerCoverageScopeDecision($pdo,$actor,$body);
     if($action==='ka_review_public_quote')
         return jrKaOwnerPublicQuoteDecision($pdo,$cfg,$actor,$body);
     if($action==='ai_disposition_improvement')
