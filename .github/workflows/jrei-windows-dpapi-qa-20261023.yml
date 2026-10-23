@@ -1,0 +1,47 @@
+name: JREI Windows 11-Compatible DPAPI Worker Acceptance (OFFLINE)
+
+# Runs on ephemeral GitHub-hosted Windows only; never on owner's PCs.
+# No Bertina API calls, no model download or installation, no secrets or money.
+on:
+  push:
+    branches: [qa/2026-10-23-final-acceptance-v2]
+    paths: ['.github/workflows/jrei-windows-dpapi-qa-20261023.yml']
+permissions:
+  contents: read
+jobs:
+  windows-local-keys:
+    runs-on: windows-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Create and protect an independent ephemeral Ed25519 key
+        shell: pwsh
+        run: |
+          $ErrorActionPreference='Stop'
+          $env:LOCALAPPDATA=Join-Path $env:RUNNER_TEMP 'jrei-ephemeral-qa'
+          New-Item -ItemType Directory -Force -Path $env:LOCALAPPDATA | Out-Null
+          node platform/jrei-v5/windows-worker/jrei-worker.mjs init
+          if ($LASTEXITCODE -ne 0) { throw 'Windows worker init failed' }
+          $protected=Join-Path $env:LOCALAPPDATA 'JREI\jrei-worker-key.dpapi'
+          if (-not (Test-Path -LiteralPath $protected)) { throw 'DPAPI key file missing' }
+          $cipher=[IO.File]::ReadAllText($protected)
+          if ($cipher -match 'PRIVATE KEY' -or $cipher.Length -lt 40) {
+            throw 'Key not stored as protected DPAPI material'
+          }
+          $pem=& powershell.exe -NoProfile -NonInteractive -File platform/jrei-v5/windows-worker/jrei-windows-dpapi.ps1 -Mode unprotect -KeyFile $protected
+          if ($LASTEXITCODE -ne 0 -or (-join $pem) -notmatch 'BEGIN PRIVATE KEY') {
+            throw 'Windows DPAPI did not restore the same private key'
+          }
+          Remove-Variable pem -ErrorAction SilentlyContinue
+          # Reinitialization MUST fail rather than silently replace the key.
+          node platform/jrei-v5/windows-worker/jrei-worker.mjs init
+          if ($LASTEXITCODE -eq 0) { throw 'Unsafe worker key overwrite' }
+          Remove-Item -LiteralPath $env:LOCALAPPDATA -Recurse -Force
+          echo 'PASS: independent ephemeral key protected and restored, overwrite denied; NO Bertina request.' >> $env:GITHUB_STEP_SUMMARY
+      - name: Declare acceptance limitations
+        shell: pwsh
+        run: |
+          echo 'Not a test on the two owner PCs. RX580 acceleration, Windows 11 Pro 24H2 drivers, local firewall, mobile internet and actual signed Bertina registration remain unverified.' >> $env:GITHUB_STEP_SUMMARY
