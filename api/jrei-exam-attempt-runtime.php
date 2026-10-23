@@ -439,8 +439,9 @@ function jrExamAttemptProgress(PDO $pdo,string $account,string $id): array {
 
 /**
  * Candidate-private reproducible PRELIMINARY raw grade using ONLY original
- * eco_assessment_responses and eco_score_runs digests. No score snapshot
- * table, duplicated sensitive dataset or model inference is required.
+ * eco_assessment_responses and eco_score_runs digests, plus the additive
+ * original-mother-DB immutable numerical grade snapshot. No duplicated
+ * learner answers, second key bank or model inference is required.
  * Any revoked key/version or changed response triggers an owner-review
  * blocker, never a revised/unverifiable grade presented as final.
  */
