@@ -28,7 +28,7 @@ function jrKaOwnerUnlinkedSourceSuggestions(PDO $pdo): array {
           WHERE source_id IS NULL AND approved_by_account_id IS NOT NULL
             AND requirement_state='REQUIRES_SOURCE_REVIEW'");
         $out['eligibleOwnerScopes']=(int)$q->fetchColumn();
-        $q=$pdo->query("SELECT requirement_id,country_code,curriculum_id,
+        $q=$pdo->query("SELECT requirement_id,approved_by_account_id,country_code,curriculum_id,
           curriculum_version,educational_level,grade,exam_category,
           examination_year,subject_id,expected_kind
           FROM jrei_exam_coverage_requirements
@@ -48,6 +48,9 @@ function jrKaOwnerUnlinkedSourceSuggestions(PDO $pdo): array {
             AND s.source_kind=?
             AND s.is_revoked=0 AND s.is_superseded=0
             AND s.review_state IN ('CANDIDATE_UNREVIEWED','AUTHORITATIVE_REVIEWED')
+            AND (s.review_state='CANDIDATE_UNREVIEWED'
+              OR (s.reviewer_account_id IS NOT NULL
+                AND s.reviewer_account_id<>?))
             AND s.rights_state IN ('PERMISSION_UNVERIFIED',
                  'PERMITTED_PRIVATE_ANALYSIS','PERMITTED_REPRODUCTION')
           ORDER BY CASE WHEN s.review_state='AUTHORITATIVE_REVIEWED'
@@ -59,7 +62,7 @@ function jrKaOwnerUnlinkedSourceSuggestions(PDO $pdo): array {
               $row['country_code'],$row['curriculum_version'],
               $row['educational_level'],$row['exam_category'],
               $row['examination_year'],$row['subject_id'],
-              $row['expected_kind']
+              $row['expected_kind'],$row['approved_by_account_id']
             ]);
             $registered=$candidate->fetchAll(PDO::FETCH_ASSOC);
             if(!$registered)continue;
