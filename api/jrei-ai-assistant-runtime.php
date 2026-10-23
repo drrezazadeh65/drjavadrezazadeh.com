@@ -25,11 +25,11 @@ function jrAiPublicEvidence(string $question,string $lang): array {
     if(!is_array($rows)||!array_is_list($rows)||count($rows)>2200)
         return [];
     $wordSet=static function(string $s): array {
-        $s=mb_strtolower($s,'UTF-8');
+        $s=function_exists('mb_strtolower')?mb_strtolower($s,'UTF-8'):strtolower($s);
         $s=str_replace(['ي','ك','ى'],['ی','ک','ی'],$s);
         $parts=preg_split('/[^\p{L}\p{N}]+/u',$s,-1,PREG_SPLIT_NO_EMPTY);
         $out=[];
-        foreach($parts?:[] as $word)if(mb_strlen($word,'UTF-8')>=3)
+        foreach($parts?:[] as $word)if((function_exists('mb_strlen')?mb_strlen($word,'UTF-8'):strlen($word))>=3)
             $out[$word]=true;
         return $out;
     };
@@ -51,7 +51,7 @@ function jrAiPublicEvidence(string $question,string $lang): array {
         if($matched===0)continue;
         $rank=$matched*10;
         foreach(array_keys($wanted) as $term)
-            if(mb_stripos($title,$term,0,'UTF-8')!==false)$rank+=5;
+            if((function_exists('mb_stripos')?mb_stripos($title,$term,0,'UTF-8'):stripos($title,$term))!==false)$rank+=5;
         $candidates[]=['rank'=>$rank,'title'=>$title,'summary'=>$summary,
            'path'=>$path];
     }
