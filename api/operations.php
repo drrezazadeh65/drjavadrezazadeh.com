@@ -47,6 +47,7 @@ require_once __DIR__.'/operations-github-dispatch.php';
 require_once __DIR__.'/operations-cron-dispatcher.php';
 require_once __DIR__.'/jrei-learning-operations.php';
 require_once __DIR__.'/jrei-hybrid-owner.php';
+require_once __DIR__.'/jrei-exam-research-owner.php';
 
 function operationsRegistry(): array {
     $raw = file_get_contents(__DIR__.'/internal/operations-registry.json');
@@ -424,6 +425,31 @@ function operationsRoute(string $path, string $verb): never {
                 ],true)?'hybrid_state_conflict':
                     'hybrid_owner_approval_required',409);
             }
+        }
+        // Read-only scientific/admin real mother-DB exam and TESTLY evidence.
+        // Destructive emergency STOP/quarantine only, never auto-approve an
+        // official question, humanability metric, dataset or child's consent.
+        if($path==='/admin/operations/jrei-exam-research' &&
+            ($verb==='GET'||$verb==='POST')){
+            if(($configuration['operations_admins'][$accountId]['role']??'')!=='SUPER_ADMIN')
+                fail('super_admin_required',403);
+            if(!rateAllowed($pdo,'jrei_exam_research_owner',$accountId,20,300))
+                fail('rate_limited',429);
+            if($verb==='GET')respond(jrExamResearchOwnerSnapshot($pdo,$configuration));
+            if(!operationsMutationAllowed($_SERVER,
+                (string)($_SERVER['HTTP_X_CSRF_TOKEN']??''),$csrf))
+                fail('csrf_forbidden',403);
+            try{
+                $result=jrExamResearchOwnerChange($pdo,$configuration,
+                    $accountId,jsonBody());
+            }catch(InvalidArgumentException $e){
+                fail('invalid_jrei_exam_research_policy',422);
+            }catch(DomainException $e){
+                fail($e->getMessage()==='jrei_exam_owner_revision_conflict'?
+                    'jrei_exam_owner_revision_conflict':
+                    'jrei_exam_research_action_unavailable',409);
+            }
+            respond($result);
         }
         // Adaptive JREI evaluation metadata is owner-visible only, with
         // the existing SUPER_ADMIN / fresh TOTP / same-origin CSRF guard.
