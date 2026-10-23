@@ -179,7 +179,8 @@ function jrExamOwnerGrantVerifiedOrder(PDO $pdo,array $cfg,
     try{
         $q=$pdo->prepare("SELECT o.offering_state,o.opens_at,o.closes_at,
             p.product_state,p.content_rights_state,
-            p.question_key_review_state,p.delivery_review_state
+            p.question_key_review_state,p.delivery_review_state,
+            p.instrument_version_id,p.scoring_model_id
           FROM jrei_exam_commercial_offerings o
           JOIN jrei_exam_commercial_products p ON p.product_id=o.product_id
           WHERE o.offering_id=? FOR UPDATE");
