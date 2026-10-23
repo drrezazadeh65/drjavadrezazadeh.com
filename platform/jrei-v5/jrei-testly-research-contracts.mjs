@@ -66,6 +66,20 @@ const DIMENSIONS={
   'DEVELOPMENTAL_ORIENTATION'
  ])
 };
+// Exact conceptual source locators from confidential author proposals.
+// Does not certify empirical validity or publish the manuscript.
+const SOURCE_PARAGRAPHS=Object.freeze({
+ TESTLY:Object.freeze({
+  RELIABILITY:96,VALIDITY:98,FAIRABILITY_FAIRNESS:102,HUMANABILITY:105,
+  AUTHENTICITY:109,PRACTICALITY:111,IMPACT_CONSEQUENTIALITY:113,
+  ACCESSIBILITY:118,TRANSPARENCY:119,ACCOUNTABILITY:120,SECURITY:121
+ }),
+ HUMANABILITY:Object.freeze({
+  HUMAN_DIGNITY:170,AGENCY:179,INDIVIDUALITY_CONTEXT:188,
+  WELLBEING:196,MEANINGFULNESS:205,
+  CULTURAL_LINGUISTIC_RESPONSIVENESS:213,DEVELOPMENTAL_ORIENTATION:221
+ })
+});
 const METHOD_EVIDENCE={
  CLASSICAL_TEST_THEORY:['SCORING_RULES','ITEM_RESPONSES','REVIEWED_SAMPLE'],
  ITEM_RESPONSE_THEORY:['SCORING_RULES','ITEM_RESPONSES','REVIEWED_SAMPLE','MODEL_IDENTIFICATION'],
@@ -95,6 +109,8 @@ export function registerConstructProposal({
    :sourceId==='humanability-author-research-proposal';
  if(!permitted||AUTHOR_PROPOSAL_DIGESTS[sourceId]!==sourceSha256)
    return deny('WRONG_AUTHOR_PROPOSAL_OR_DIGEST');
+ if(SOURCE_PARAGRAPHS[framework][dimensionCode]!==sourceParagraph)
+   return deny('CONSTRUCT_DEFINITION_LOCATOR_MISMATCH');
  if(evidenceLevel!=='THEORETICAL_PROPOSITION'&&
     evidenceLevel!=='PROPOSED_OPERATIONAL_INDICATOR')
    return deny('HIGHER_VALIDATION_REQUIRES_EXTERNAL_EVIDENCE');
@@ -155,7 +171,7 @@ export function authorizeResearchDataset({
     dataset.rawIdentityIncluded===true||
     dataset.directIdentifiersIncluded===true||
     dataset.recordCount===undefined||
-    !Number.isSafeInteger(dataset.recordCount)||dataset.recordCount<0)
+    !Number.isSafeInteger(dataset.recordCount)||dataset.recordCount<1)
    return deny('RESEARCH_DATASET_MINIMIZATION_UNVERIFIED');
  if(!isObj(privacyProof)||privacyProof.accountAuthorizationRechecked!==true||
     privacyProof.purposeScopedAccess===true&&privacyProof.withdrawalRechecked!==true||
