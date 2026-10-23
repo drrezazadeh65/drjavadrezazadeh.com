@@ -50,3 +50,25 @@
 @media(prefers-reduced-motion:reduce){
  #ops-jrei-exam-research *{transition:none!important}
 }
+
+#ops-jrei-exam-research .jr-exam-coverage-form{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,235px),1fr));
+  gap:.8rem;padding-block:.8rem
+}
+#ops-jrei-exam-research .jr-exam-coverage-form label{
+  display:grid;gap:.35rem;min-width:0;line-height:1.55;font-size:.94rem
+}
+#ops-jrei-exam-research .jr-exam-coverage-form input,
+#ops-jrei-exam-research .jr-exam-coverage-form select{
+  box-sizing:border-box;width:100%;min-height:44px;padding:.55rem .65rem;
+  border-radius:9px;border:1px solid #b5a074;
+  background:var(--ops-surface,#151b21);color:inherit
+}
+#ops-jrei-exam-research .jr-exam-coverage-form button{
+  align-self:end;min-height:44px
+}
+@media(max-width:540px){
+ #ops-jrei-exam-research .jr-exam-coverage-form{
+   grid-template-columns:minmax(0,1fr)
+ }
+}
