@@ -114,7 +114,7 @@ function jrKaOwnerCoverageMatrix(PDO $pdo): array {
               'unresolvedApprovedCount'=>$missing,
               'allAnswerKeysScientificallyCorrect'=>false,
               'linkedSourceHasVerifiedReproductionRights'=>false,
-              'curriculumGradeEvidenceRecordedForLinkedMetadata'=>true
+              'curriculumGradeEvidenceRecordedForLinkedMetadata'=>$linked>0
             ];
         }
         if(!$result['truncated']){
