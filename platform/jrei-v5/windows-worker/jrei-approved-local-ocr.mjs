@@ -13,7 +13,7 @@
  * Manifests are untrusted until a separate original source-rights approval
  * and observation digest have been independently verified.
  */
-import {createHash} from 'node:crypto';
+import {createHash,randomUUID} from 'node:crypto';
 import {execFile} from 'node:child_process';
 import {promisify} from 'node:util';
 import {
@@ -44,7 +44,10 @@ async function approvedConfig(){
   const rootString=process.env.JR_KA_OCR_PRIVATE_WORK_ROOT;
   if(!safe(rootString)||!isAbsolute(rootString))
     throw Error('PRIVATE_WORK_ROOT_NOT_SET');
-  const root=await realpath(resolve(rootString));
+  const rootInput=resolve(rootString);
+  const inputInfo=await lstat(rootInput);
+  if(inputInfo.isSymbolicLink())throw Error('PRIVATE_OCR_ROOT_SYMLINK');
+  const root=await realpath(rootInput);
   const st=await lstat(root);
   if(!st.isDirectory()||st.isSymbolicLink()||
      root===resolve(tmpdir())||root.length<8)
@@ -71,7 +74,7 @@ async function exclusivePrivateWrite(root,text){
   const hash=digest(bytes);
   const filename=hash+'.txt';
   const destination=join(root,filename);
-  const temporary=join(root,'.jrei-ocr-'+crypto.randomUUID()+'.tmp');
+  const temporary=join(root,'.jrei-ocr-'+randomUUID()+'.tmp');
   await writeFile(temporary,bytes,{flag:'wx',mode:0o600});
   try{
     try{
@@ -107,7 +110,7 @@ async function localOcr(manifestPath){
     throw Error('ORIGINAL_PDF_DIGEST_FAILED');
   // At most eight rasterized pages, bounded resolution/time/bytes.
   // Never claim the full document was extracted without true page count.
-  const subdir=join(root,'.jrei-ocr-'+crypto.randomUUID());
+  const subdir=join(root,'.jrei-ocr-'+randomUUID());
   await mkdir(subdir,{recursive:false,mode:0o700});
   let result;
   try{
