@@ -105,7 +105,9 @@ function jrAiBenchmarkClaim(PDO $pdo,array $cfg,string $batch): ?array {
        ($cfg['jrei_live_ai_enabled']??false)!==true||
        !preg_match('/^[a-f0-9-]{36}$/D',$batch)||
        !jrAiBenchmarkSchemaReady($pdo)||
-       !jrAiCloudConfigured($cfg)||!jrAiBudgetSourceReady($pdo))
+       !jrAiCloudConfigured($cfg)||!jrAiBudgetSourceReady($pdo)||
+       !jrAiTelemetrySchemaReady($pdo)||
+       jrKaPrivateArchiveRoot($cfg)===null)
         return null;
     $q=$pdo->prepare("SELECT c.* FROM jrei_ai_governed_benchmark_cases c
        LEFT JOIN jrei_ai_governed_benchmark_runs r
@@ -171,6 +173,8 @@ function jrAiBenchmarkOneRealInference(PDO $pdo,array $cfg,string $batch): array
       'schema'=>'jr.jrei.independent-benchmark-call.v1',
       'state'=>'OFF','actualProviderCalled'=>false,
       'modelAccuracyIndependentlyVerified'=>false,
+      'providerInvocationAttempted'=>false,
+      'actualProviderCompletionVerified'=>false,
       'publicAiReleaseModified'=>false
     ];
     if(($cfg['jrei_ai_benchmark_enabled']??false)!==true||
@@ -243,7 +247,9 @@ function jrAiBenchmarkOneRealInference(PDO $pdo,array $cfg,string $batch): array
         }catch(Throwable $ignored){}
     }
     return [...$result,'state'=>$state,
-      'actualProviderCalled'=>true,'runId'=>$work['runId'],
+      'providerInvocationAttempted'=>true,
+      'actualProviderCompletionVerified'=>$state==='ANSWER_PENDING_INDEPENDENT_REVIEW',
+      'runId'=>$work['runId'],
       'answerPubliclyReleased'=>false,
       'expertReviewRequired'=>true,
       'automaticModelPromotion'=>false];
