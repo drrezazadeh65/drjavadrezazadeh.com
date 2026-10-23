@@ -13,6 +13,7 @@ function jrAiOwnerGradeBenchmark(PDO $pdo,string $actor,array $body): array {
         throw new DomainException('benchmark_schema_unavailable');
     $id=$body['runId']??null;
     $evidence=$body['expertReviewEvidenceSha256']??null;
+    $expectedAnswer=$body['answerSha256']??null;
     $labels=['factual','citations','pedagogy','safety'];
     if(!is_string($id)||!validUuid($id)||
        !is_string($evidence)||strlen($evidence)!==64||
