@@ -78,6 +78,9 @@ function cfg(): array {
         'jrei_exam_commercial_enabled' => getenv('JR_JREI_EXAM_COMMERCIAL_ENABLED') === 'true',
         // Independent default-OFF owner-issued verified order entitlement gate.
         'jrei_exam_verified_entitlement_grants_enabled' => getenv('JR_JREI_EXAM_VERIFIED_ENTITLEMENT_GRANTS_ENABLED') === 'true',
+        // Separate explicit OFF gate until the REAL verified-exam checkout
+        // SKU/settlement bridge is integrated with original Stage09 commerce.
+        'jrei_exam_checkout_bridge_accepted' => getenv('JR_JREI_EXAM_CHECKOUT_BRIDGE_ACCEPTED') === 'true',
         // Independent OFF switches. An owner must approve real immutable
         // question delivery and final security/payment acceptance as well.
         'jrei_exam_runtime_enabled' => getenv('JR_JREI_EXAM_RUNTIME_ENABLED') === 'true',
