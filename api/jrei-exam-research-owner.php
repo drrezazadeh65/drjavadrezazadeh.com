@@ -51,7 +51,7 @@ function jrExamResearchOwnerSnapshot(PDO $pdo,array $cfg): array {
       'workerInferenceVerified'=>false,
       'frameworkDefinitionSource'=>'AUTHOR_PROPOSAL_DIGESTS_REVIEWED_20261023',
       'controls'=>null,'sourceCoverage'=>[],
-      'sourceReview'=>[],'intakeStates'=>[],
+      'sourceReview'=>[],'sourceQueue'=>[],'intakeStates'=>[],
       'coverageObligations'=>[],'itemReviews'=>[],
       'blueprints'=>[],'preparationProgrammes'=>[],
       'preparationStages'=>[],'frameworks'=>[],
@@ -93,6 +93,11 @@ function jrExamResearchOwnerSnapshot(PDO $pdo,array $cfg): array {
       'SELECT review_state,rights_state,COUNT(*) AS count
         FROM jrei_exam_sources GROUP BY review_state,rights_state
         ORDER BY count DESC LIMIT 40');
+    $base['sourceQueue']=jrExamResearchSummaryRows($pdo,
+      "SELECT source_id,source_title,review_state,rights_state,
+        extraction_state,examination_year FROM jrei_exam_sources
+        WHERE review_state<>'QUARANTINED'
+        ORDER BY updated_at DESC LIMIT 20");
     $base['intakeStates']=jrExamResearchSummaryRows($pdo,
       'SELECT result_state,rights_review_state,robots_review_state,
         COUNT(*) AS count FROM jrei_exam_discovery_attempts
@@ -192,7 +197,8 @@ function jrExamResearchOwnerChange(PDO $pdo,array $cfg,string $actor,array $body
             $q=$pdo->prepare("UPDATE jrei_exam_sources SET
                 review_state='QUARANTINED',
                 extraction_state='HALTED',rights_state='PERMISSION_UNVERIFIED',
-                updated_at=? WHERE source_id=?");
+                updated_at=? WHERE source_id=?
+                AND review_state<>'QUARANTINED'");
             $q->execute([time(),$sourceId]);
             if($q->rowCount()!==1)
                 throw new DomainException('jrei_exam_source_not_found');
