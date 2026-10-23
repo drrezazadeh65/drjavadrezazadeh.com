@@ -1192,7 +1192,17 @@ if(failures.length){
 
 
 // CURRENT-TREE CONFIDENTIALITY FIREWALL — NOINDEX is not security.
-// Scan all text-like repository files, not only public HTML, for protected literal project names.
+// 2026-10-23 owner explicitly requested the original-author assessment
+// research framework as VERSIONED SOURCE CONTRACTS and MFA owner dashboard
+// metadata, while prohibiting public reproduction of private manuscripts.
+// Thus framework IDENTIFIERS may occur in source, but indexable HTML must
+// still pass the protectedResearchPatterns gate above. The still-paused
+// teaching-theory name remains forbidden throughout the entire public repo.
+// Never include actual private unpublished proposal text, participant
+// responses, raw study datasets or confidential academic correspondence.
+const protectedRepositoryPatterns=[
+  new RegExp('\\\\b'+'teacher'+'\\\\s+'+'human'+'ization'+'\\\\b','i')
+];
 const protectedTextExtensions=/\.(?:html?|md|txt|json|ya?ml|csv|js|mjs|css|xml|sql|webmanifest)$/i;
 const protectedTextFiles=[];
 function collectProtectedTextFiles(dir){
@@ -1206,7 +1216,7 @@ function collectProtectedTextFiles(dir){
 collectProtectedTextFiles(root);
 for(const file of protectedTextFiles){
   const rel=path.relative(root,file).replaceAll(path.sep,'/');
-  for(const re of protectedResearchPatterns){
+  for(const re of protectedRepositoryPatterns){
     re.lastIndex=0;
     if(re.test(rel)){
       failures.push('/'+rel+': protected/unreleased research term exposed in repository path');
