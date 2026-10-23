@@ -49,6 +49,7 @@ function jrExamLocalizedPromptSchemaReady(PDO $pdo): bool {
           translation_rights_evidence_sha256,
           linguistic_equivalence_evidence_sha256
           FROM jrei_exam_item_prompt_localizations LIMIT 0');
+        $pdo->query('SELECT review_id,reviewed_revision,decision FROM jrei_exam_prompt_locale_review_history LIMIT 0');
         return true;
     }catch(Throwable $e){return false;}
 }
