@@ -60,3 +60,17 @@ Status: SOURCE IMPLEMENTED IN DEVELOPMENT; NOT TESTED, NOT DEPLOYED, NOT SCIENTI
 The two Windows nodes previously connected with signed telemetry, but their locally approved dataset arrays were last known to be empty. No independently reviewed public corpus has been delivered and no licence-approved GGUF inference runtime has been installed or accepted. Owner-authorized additive migrations, separate local configuration updates, a genuinely reviewed 200+ case evaluation and all final acceptance tests remain outstanding.
 
 **Do not migrate, run tests, activate AI weights or deploy from this development ledger.** The entire final safety, syntax, transport, scientific, UX and regression acceptance is deferred by explicit owner instruction. Record a fresh branch SHA and check all concurrent changes before the eventual release.
+
+## 23 October 2026 — continued source-only protection and integrity work
+
+The owner explicitly directed continued development of the complete 117-atomic programme without any interim tests, builds, runtime checks, migrations or production deployment. Work below is code committed to the canonical development branch only:
+
+- `e3a6e1d83eaa359c402e600bd22821b54a8deef2`: Removed a duplicate global PHP `jrHybridOwnerDispatchDiagnostics` declaration from `api/jrei-hybrid-owner-corpus.php`. The dedicated `api/jrei-hybrid-diagnostics.php` function is retained by the established owner API; duplicate declaration had created a source-level PHP redeclaration risk.
+- `ac9453b1e49c8abb37f9965cc76387b52f941101`: Under the existing registry-first transaction lock, metadata approval now rejects a source-version proposal whose recorded predecessor differs from the currently approved source fingerprint. Manual rejection remains possible; concurrent proposals cannot silently roll an approved digest backward. Successful write row counts are checked.
+- `e61681310bb5dcac00efdd91ddccd4b032d12081`: Immutable duplicate source digests report their actual persisted review status and existing proposal ID, rather than falsely claiming a rejected/reviewed proposal was reopened as PENDING_REVIEW.
+- `2b97dffb885a21966ac6c0ddd5c83d2a7b313c6a` and `79b7494f705a4005b256d109bf744c7f499bf849`: Added and source-corrected a shared Persian/Arabic digit-aware direct-identifier screening helper. It is a conservative detection layer, not anonymization or permission to ingest private records.
+- `d2e7fb4f4338b4d990495c631ee624f96d0bdf09` and `a89eda7f786f6b3f6ebc96f2f14a33fa315180af`: Applied the shared screen to the independent draft claim gate and pre-inference Windows source prompt, without changing the existing public STATIC_BROWSER_FALLBACK or activating local weights.
+
+**Trace to the unchanged original 117 ledger:** GOV-05, GOV-06, DB-04, DB-05, AI-03, AID-06, AID-08, DASH-04, REL-01. These improvements address concrete source-level risks and **do not** transition any atomic requirement to a QA pass.
+
+**Deferred acceptance:** Consolidated PHP syntax/load, source-digest predecessor concurrency, duplicate-proposal status, Persian/Arabic numeral screening, local-adapter import and public-assistant fallback regression checks have NOT RUN. Windows Node A/B registration and earlier observed connectivity are preserved by source scope, but ongoing connection has not been newly verified. No host, mother DB, private configuration, model weight, payment route or public URL has been changed.
