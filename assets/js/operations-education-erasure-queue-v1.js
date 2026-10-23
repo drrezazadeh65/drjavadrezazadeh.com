@@ -26,7 +26,7 @@
   const allowed=new Set(['RECEIVED','PENDING','IN_REVIEW','BLOCKED']);
   let controller=null,generation=0,busy=false,items=[];
   let currentPage=1,totalPages=0;
-  const visible=()=>!workspace.hidden&&parent.open&&!document.hidden;
+  const visible=()=>!workspace.hidden&&parent.open&&!document.hidden&&navigator.onLine;
   const note=s=>{status.textContent=s;};
   const element=(tag,textValue,cls)=>{
     const el=document.createElement(tag);
@@ -45,11 +45,16 @@
     button.disabled=busy||!visible()||!chosen;
     select.disabled=busy||!visible()||items.length===0;
   }
+  function forgetPreviousQueue(){
+    // Inactive or uncertain owner records must never be actionable again
+    // without a fresh, authorized read from the real mother database.
+    items=[];totalPages=0;
+    list.replaceChildren();select.replaceChildren();buttons();
+  }
   function clear(){
     generation++;controller?.abort();controller=null;
-    items=[];busy=false;refresh.disabled=false;
-    currentPage=1;totalPages=0;
-    list.replaceChildren();select.replaceChildren();buttons();
+    busy=false;refresh.disabled=false;currentPage=1;
+    forgetPreviousQueue();
     note(T('درخواست‌های خصوصی فقط با اقدام مدیر خوانده می‌شوند.',
       'Private requests load only when the owner asks.'));
   }
@@ -61,7 +66,8 @@
     const count=Object.values(totals).reduce((n,v)=>
       n+(Number.isSafeInteger(v)&&v>=0?v:0),0);
     note(T('درخواست‌های ثبت‌شده: ','Recorded requests: ')+
-      formatter.format(count)+T(' · در انتظار رفع محدودیت: ',' · on legal hold: ')+
+      formatter.format(count)+T(' · درخواست‌های مسدودشده (علت نیازمند بررسی): ',
+        ' · blocked requests (reason requires review): ')+
       formatter.format(blocked)+(data.hasNextPage
         ?T(' · صفحه‌های بعدی موجودند.',' · more pages available.'):''));
     if(!items.length){
@@ -93,7 +99,10 @@
     if(!visible()||busy)return false;
     const token=++generation;
     controller?.abort();controller=new AbortController();
-    busy=true;refresh.disabled=true;buttons();
+    const activeController=controller;
+    let timedOut=false;
+    const timeout=setTimeout(()=>{timedOut=true;activeController.abort();},15000);
+    busy=true;refresh.disabled=true;forgetPreviousQueue();
     note(T('در حال خواندن صف درخواست‌های ثبت‌شده…',
       'Reading the actual mother-database privacy queue…'));
     try{
@@ -129,13 +138,16 @@
         throw Error('UNTRUSTED_QUEUE');
       present(data);return true;
     }catch(error){
-      if(token!==generation||error?.name==='AbortError')return false;
-      items=[];totalPages=0;select.replaceChildren();list.replaceChildren();
-      buttons();
-      note(T('وضعیت درخواست‌ها قابل دریافت نیست. حذف یا رفع محدودیت انجام نشده است.',
-        'Cannot retrieve this owner queue. No deletion or hold release occurred.'));
+      if(token!==generation||!visible())return false;
+      forgetPreviousQueue();
+      note(timedOut
+        ?T('مهلت ۱۵ثانیه‌ای دریافت صف پایان یافت؛ درخواست‌های قبلی پاک شدند. دوباره تازه‌سازی کنید.',
+          'The 15-second queue read expired. Old requests were cleared; refresh to retry.')
+        :T('دریافت درخواست‌های حذف از سرور تأیید نشد؛ فهرست قبلی پاک شد و هیچ تصمیمی از این خطا نتیجه‌گیری نمی‌شود.',
+          'The owner request queue could not be verified. The previous list was cleared and no erasure outcome is inferred.'));
       return false;
     }finally{
+      clearTimeout(timeout);
       if(token===generation){busy=false;controller=null;
         refresh.disabled=false;buttons();}
     }
@@ -217,6 +229,8 @@
   const observer=new MutationObserver(()=>{if(workspace.hidden)clear();});
   observer.observe(workspace,{attributes:true,attributeFilter:['hidden']});
   document.addEventListener('visibilitychange',()=>{if(document.hidden)clear();});
+  window.addEventListener('offline',clear);
+  window.addEventListener('jr:account-logout',clear);
   window.addEventListener('pagehide',()=>{clear();observer.disconnect();},{once:true});
   clear();
 })();
