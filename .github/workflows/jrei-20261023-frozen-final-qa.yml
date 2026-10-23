@@ -150,4 +150,5 @@ jobs:
             tests/admin-intelligence-private.test.mjs \
             tests/bilingual-typography-contract.test.mjs
       - name: Publish NO artifacts to website
-        run: echo 'Nondeploying candidate only: not a Bertina production release.' >> "$GITHUB_STEP_SUMMARY"
+        run: |
+          echo 'Nondeploying candidate only: not a Bertina production release.' >> "$GITHUB_STEP_SUMMARY"
