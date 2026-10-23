@@ -19,7 +19,10 @@ assert.equal(policy.visibility.checkout_routes,false);
 assert.equal(policy.abuse_controls.max_user_message_chars,1600);
 
 assert(client.includes("const endpoint=document.querySelector('meta[name=\"jr-assistant-endpoint\"]')?.content?.trim()||'';"));
-assert(client.includes('if(!endpoint){'));
+assert(client.includes("if(!chatEndpoint){"));
+assert(client.includes("const chatEndpoint=providerConsent.checked?approvedLiveEndpoint:'';"));
+assert(client.includes("target.origin===location.origin"));
+assert(client.includes("target.pathname==='/api/assistant/v1/chat'"));
 assert(client.includes('const local=fallback(message.trim())'));
 assert(client.includes('if(!endpoint) leadBox.hidden=true'));
 assert(client.includes('PRIVATE_PREFIXES'));
