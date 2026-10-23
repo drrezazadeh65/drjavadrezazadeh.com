@@ -38,7 +38,7 @@ foreach(['index.php','commerce-stage9.php','publishing.php','publishing-onboardi
 'operations-education-interests.php','education-interest.php',
 'bahar-private-workbook.php','jrei-hybrid-worker.php','konkur-admission.php',
 'operations-cron-dispatcher.php','jrei-learning-operations.php',
-'jrei-hybrid-owner.php','jrei-exam-research-owner.php',
+'jrei-hybrid-owner.php','jrei-hybrid-worker.php','jrei-exam-research-owner.php',
 'operations-book-expiration.php','operations-donation-recovery.php','operations-fulfilment.php','operations-schema.php','operations-reporting.php','operations-ai-visibility.php','operations-gsc-direct.php','operations-action-runs.php','operations-social.php','social-review.php','social-queue.php','social-admin-settings.php','operations-github-audits.php','operations-github-dispatch.php','operations-collection.php',
 'operations-provider-inventory.php','admin-resource-inventory-normalizer.php','operations-source-directory.php',
 'operations-source-controls.php','operations-page-quality.php','operations-alerts.php','operations-activation.php',
