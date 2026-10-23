@@ -113,6 +113,7 @@ function cfg(): array {
         // Actual paid model BENCHMARK remains independent of live public AI.
         'jrei_ai_benchmark_enabled' => getenv('JR_JREI_AI_BENCHMARK_ENABLED') === 'true',
         'jrei_ai_benchmark_discovery_enabled' => getenv('JR_JREI_AI_BENCHMARK_DISCOVERY_ENABLED') === 'true',
+        'jrei_ai_improvement_discovery_enabled' => getenv('JR_JREI_AI_IMPROVEMENT_DISCOVERY_ENABLED') === 'true',
         'jrei_ai_benchmark_batch_id' => (string)(getenv('JR_JREI_AI_BENCHMARK_BATCH_ID') ?: ''),
         // Independently rights/peer-reviewed original passage RAG is
         // separately OFF until archival source reviews and QA are accepted.
