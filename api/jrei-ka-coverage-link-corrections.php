@@ -119,3 +119,42 @@ function jrKaOwnerCorrectCoverageLink(PDO $pdo,string $actor,array $body): array
         throw $e;
     }
 }
+
+/** Read-only owner historical correction ledger, not approved source evidence. */
+function jrKaOwnerCoverageLinkCorrectionHistory(PDO $pdo): array {
+    $out=[
+      'schema'=>'jr.jrei.coverage-link-history.v1',
+      'available'=>false,'recordedCorrectionCount'=>null,
+      'corrections'=>[],'truncated'=>false,
+      'originalSourcesDeleted'=>false,
+      'automaticSourceAuthorityApproval'=>false
+    ];
+    try{
+        $q=$pdo->query('SELECT COUNT(*) FROM jrei_ka_coverage_link_history');
+        $out['recordedCorrectionCount']=(int)$q->fetchColumn();
+        $q=$pdo->query('SELECT correction_id,requirement_id,
+          previous_source_id,next_source_id,reason_code,corrected_at
+          FROM jrei_ka_coverage_link_history
+          ORDER BY corrected_at DESC,correction_id DESC LIMIT 31');
+        $rows=$q->fetchAll(PDO::FETCH_ASSOC);
+        $out['truncated']=count($rows)>30;
+        foreach(array_slice($rows,0,30) as $row){
+            $out['corrections'][]=[
+              'correctionId'=>$row['correction_id'],
+              'requirementId'=>$row['requirement_id'],
+              'previousSourceId'=>$row['previous_source_id'],
+              'nextSourceId'=>$row['next_source_id'],
+              'reasonCode'=>$row['reason_code'],
+              'correctedAt'=>(int)$row['corrected_at'],
+              'newSourceApproved'=>false,
+              'originalDocumentDeleted'=>false
+            ];
+        }
+        $out['available']=true;
+    }catch(Throwable $e){
+        // Missing staged migration = unknown, not a zeroed correction record.
+        $out['recordedCorrectionCount']=null;
+        $out['corrections']=[];$out['truncated']=false;
+    }
+    return $out;
+}
