@@ -98,8 +98,8 @@ function jrExamOwnerRevokeEntitlement(PDO $pdo,string $actor,array $body): array
     if(!is_string($id)||!validUuid($id)||
        !is_int($rev)||$rev<1||
        !in_array($reason,[
-         'CUSTOMER_REFUND_VERIFIED',
-         'PAYMENT_REVERSAL_VERIFIED',
+         'CUSTOMER_REFUND_REVIEW_REQUIRED',
+         'PAYMENT_REVERSAL_REVIEW_REQUIRED',
          'SOURCE_RIGHTS_REVOKED',
          'ASSESSMENT_ACCESS_SUSPENDED',
          'OWNER_SECURITY_HOLD'
@@ -126,8 +126,8 @@ function jrExamOwnerRevokeEntitlement(PDO $pdo,string $actor,array $body): array
         if(!is_array($r)||$r['state']!=='ACTIVE'||
            $r['revoked_at']!==null||(int)$r['revision']!==$rev)
             throw new DomainException('exam_entitlement_revision_conflict');
-        if(!in_array($reason,['OWNER_SECURITY_HOLD','CUSTOMER_REFUND_VERIFIED',
-                   'PAYMENT_REVERSAL_VERIFIED'],true)&&
+        if(!in_array($reason,['OWNER_SECURITY_HOLD','CUSTOMER_REFUND_REVIEW_REQUIRED',
+                   'PAYMENT_REVERSAL_REVIEW_REQUIRED'],true)&&
            $r['offering_state']!=='SUSPENDED'&&
            $r['product_state']!=='SUSPENDED')
             throw new DomainException('exam_entitlement_not_under_hold');
