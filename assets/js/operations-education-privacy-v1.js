@@ -18,7 +18,7 @@
   if(!summary||!button||!status||!tables||!requests)return;
   const formatter=new Intl.NumberFormat(fa?'fa-IR':'en-US');
   let current=0,controller=null,busy=false;
-  const visible=()=>host.open&&!workspace.hidden&&!document.hidden;
+  const visible=()=>host.open&&!workspace.hidden&&!document.hidden&&navigator.onLine;
   const el=(tag,cls,value)=>{
     const item=document.createElement(tag);
     if(cls)item.className=cls;
@@ -36,7 +36,13 @@
     if(!visible()||busy)return;
     const token=++current;
     controller?.abort();controller=new AbortController();
+    const activeController=controller;
+    let timedOut=false;
+    const timeout=setTimeout(()=>{timedOut=true;activeController.abort();},15000);
     busy=true;button.disabled=true;
+    // Stale source metadata must not be displayed while a new read is
+    // pending; the next result may have fewer tables or revoked access.
+    summary.textContent='';tables.replaceChildren();requests.replaceChildren();
     status.textContent=T('در حال بررسی محرمانه وضعیت منابع و نگهداری داده…',
       'Reading private privacy-governance metadata…');
     try{
@@ -52,6 +58,8 @@
         data.readOnly!==true||data.canDelete!==false||
         data.safeDeletionAuthorized!==false||
         data.retentionValidated!==false||
+        !(data.activeLegalHolds===null||
+          (Number.isSafeInteger(data.activeLegalHolds)&&data.activeLegalHolds>=0))||
         !Array.isArray(data.dependencyTables)||
         data.dependencyTables.length>25||
         !['UNAVAILABLE','OBSERVED'].includes(data.openRequestsState)||
@@ -59,8 +67,8 @@
            (!Array.isArray(data.openRequestCounts)||data.openRequestCounts.length>40))||
         (data.openRequestsState==='UNAVAILABLE' && data.openRequestCounts!==null))
         throw Error('UNTRUSTED');
-      summary.textContent=T('قفل حذف داده‌ها: فعال · مجوز اجرای حذف: صادر نشده',
-        'Deletion lock: enabled · Erasure authorization: not granted');
+      summary.textContent=T('این نمای مدیریتی فقط خواندنی است؛ هیچ اختیار حذف یا گواهی حقوقی صادر نمی‌کند.',
+        'This owner overview is read-only and does not grant deletion authority or certify legal compliance.');
       tables.replaceChildren();requests.replaceChildren();
       for(const row of data.dependencyTables){
         if(!row||typeof row.table!=='string'||row.table.length>100||
@@ -96,12 +104,16 @@
             'Recorded active legal holds: ')+formatter.format(data.activeLegalHolds)+
             T('؛ هیچ حذفی اجرا نشده است.','; no deletion was performed.');
     }catch(e){
-      if(token!==current||e?.name==='AbortError')return;
+      if(token!==current||!visible())return;
       summary.textContent='';
       tables.replaceChildren();requests.replaceChildren();
-      status.textContent=T('اطلاعات قانونی و نگهداری داده قابل تأیید نیست؛ عملیات حذف همچنان قفل است.',
-        'Privacy and retention evidence is unavailable; deletion remains locked.');
+      status.textContent=timedOut
+        ?T('مهلت ۱۵ثانیه‌ای دریافت وضعیت پایان یافت؛ داده‌های پیشین پاک شدند. دوباره درخواست کنید.',
+          'The 15-second owner read expired. Prior data was cleared; retry explicitly.')
+        :T('شواهد قانونی و نگهداری داده قابل تأیید نیست؛ نمای مدیریتی هیچ اجازه حذفی صادر نمی‌کند.',
+          'Privacy and retention evidence is unavailable. The overview does not authorize erasure.');
     }finally{
+      clearTimeout(timeout);
       if(token===current){controller=null;busy=false;button.disabled=false;}
     }
   }
@@ -110,5 +122,7 @@
   const observer=new MutationObserver(()=>{if(workspace.hidden)clear();});
   observer.observe(workspace,{attributes:true,attributeFilter:['hidden']});
   document.addEventListener('visibilitychange',()=>{if(document.hidden)clear();});
+  window.addEventListener('offline',clear);
+  window.addEventListener('jr:account-logout',clear);
   window.addEventListener('pagehide',()=>{clear();observer.disconnect();},{once:true});
 })();
