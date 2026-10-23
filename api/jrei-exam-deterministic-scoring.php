@@ -44,6 +44,7 @@ function jrExamVerifiedMcqContext(PDO $pdo,string $instrumentId,
        $rule['policy_state']!=='APPROVED'||
        $rule['reviewer_account_id']===null||
        $rule['original_model_reviewer']===null||
+       $rule['original_model_reviewer']===$rule['reviewer_account_id']||
        !preg_match('/^[a-f0-9]{64}$/D',(string)$rule['algorithm_sha256'])||
        !preg_match('/^[a-f0-9]{64}$/D',(string)$rule['policy_sha256']))
         throw new DomainException('scoring_policy_review_required');
@@ -66,6 +67,7 @@ function jrExamVerifiedMcqContext(PDO $pdo,string $instrumentId,
         meta.item_state,meta.provenance_digest,
         meta.answer_key_digest,meta.item_content_digest,
         meta.ambiguity_review_state,meta.copyright_review_state,
+        meta.diagram_formula_integrity,
         meta.source_id AS item_source_id,k.source_id AS key_source_id,
         obj.content_sha256 AS original_prompt_sha256,
         source.review_state AS source_review_state,
@@ -96,6 +98,7 @@ function jrExamVerifiedMcqContext(PDO $pdo,string $instrumentId,
            $row['item_reviewer_id']===$row['authored_by_account_id']||
            $row['ambiguity_review_state']!=='APPROVED'||
            $row['copyright_review_state']!=='APPROVED'||
+           $row['diagram_formula_integrity']!=='APPROVED'||
            $row['item_source_id']===null||
            $row['item_source_id']!==$row['key_source_id']||
            !preg_match('/^[a-f0-9]{64}$/D',(string)$row['provenance_digest'])||
