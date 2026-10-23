@@ -256,6 +256,30 @@
        'Additive tables await schema review and owner-authorized migration.')));
      sections.append(panel);return;
    }
+   const review=centre.itemReviewCoverageAvailable&&
+     Array.isArray(centre.itemReviewCoverage)?centre.itemReviewCoverage:null;
+   const coverage=elt('div','jr-exam-coverage-row');
+   coverage.append(elt('strong','',T('تکمیل داوری سؤال و پاسخ‌نامه به تفکیک حوزه',
+     'Independent item and answer-key review coverage')));
+   if(review===null){
+     coverage.append(elt('span','',T('نامعلوم؛ مسیر بررسی علمی نصب یا آماده نیست',
+       'Unknown: the scientific review source is unavailable')));
+   }else if(!review.length){
+     coverage.append(elt('span','',T('هیچ محصول یا سؤال ثبت نشده است',
+       'No exam product or item recorded')));
+   }else for(const entry of review){
+     const v=String(entry.division||'UNKNOWN').slice(0,32);
+     coverage.append(elt('span','',v+' · '+
+       T('سؤالات ثبت‌شده: ','Recorded items: ')+safeCount(entry.recordedItemCount)+
+       ' · '+T('داوری مستقل: ','Independent reviews: ')+
+       safeCount(entry.independentlyReviewedItemCount)+
+       ' · '+T('کلید بازبینی‌شده: ','Reviewed keys: ')+
+       safeCount(entry.reviewedKeyCount)));
+   }
+   coverage.append(elt('p','',T(
+     'این شمارش فقط بر اساس فرادادهٔ ثبت‌شده است؛ صحت پاسخ، مجوز نشر و روایی آزمون هنوز نیازمند تأیید نهایی‌اند.',
+     'Counts reflect registry metadata only, not confirmed answer correctness, publication rights or scientific validity.')));
+   panel.append(coverage);
    for(const [key,label] of [
      ['productStates',T('محصولات','Products')],
      ['offeringStates',T('نوبت‌های برگزاری','Scheduled offerings')],
