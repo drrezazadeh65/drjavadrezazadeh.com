@@ -37,6 +37,12 @@
    MAINTENANCE:T('غیرفعال','Maintenance'),
    REVOKED:T('کلید لغو شده','Revoked'),
    LEASED:T('در حال اجرا','Leased'),QUEUED:T('در صف','Queued'),
+   PENDING:T('در انتظار تأیید','Pending review'),
+   APPROVED:T('مجاز برای ارزیابی','Approved for evaluation'),
+   SUSPENDED:T('تعلیق‌شده','Suspended'),
+   REVIEWED:T('بازبینی مدیریتی ثبت شد','Owner-reviewed'),
+   REJECTED:T('نتیجه رد شد','Rejected'),
+   CLOSED_UNKNOWN:T('نتیجه نامعلوم بسته شد','Unknown outcome closed'),
    NEEDS_REVIEW:T('نتیجه نامعلوم؛ بررسی مدیر','Unknown outcome; owner review'),
    REVIEW_REQUIRED:T('نیازمند بررسی','Requires review'),
    CANCELLED:T('لغو شده','Cancelled'),EXPIRED:T('منقضی','Expired')
@@ -83,6 +89,21 @@
        fmt.format(n.reportedGpuPercent)+'%':T('نامعلوم؛ RX 580 آزموده نشده','Unknown; RX 580 untested'));
      cell(box,T('مدل','Model'),n.modelId||T('بارگذاری نشده یا تأیید نشده','No verified loaded model'));
      cell(box,T('شناسه برتینا','Node ID'),n.nodeId||'—');
+      if(d.nodeOffersAvailable){
+        const offers=(Array.isArray(d.nodeOffers)?d.nodeOffers:[])
+          .filter(o=>o.nodeId===n.nodeId);
+        const good=offers.filter(o=>o.matchesApprovedVersion===true);
+        cell(box,T('مجموعه‌داده‌های اعلام‌شده','Recently advertised corpora'),
+          offers.length?number(good.length)+' / '+number(offers.length)+
+          T(' نسخه مورد تأیید',' matching approved versions'):
+          T('هیچ نسخهٔ محلی اخیراً اعلام نشده','No recent local corpus advertisement'));
+        if(offers.length&&!good.length)
+          box.append(el('p',T('هیچ‌یک از هش‌ها و نسخه‌های اعلام‌شده مجوز اعزام کار ندارند.',
+            'No advertised digest and version currently match an approved corpus.')));
+      }else{
+        cell(box,T('امکان بررسی مجموعه‌داده','Corpus readiness'),
+          T('نیازمند مهاجرت افزایشی','Additive migration not applied'));
+      }
      if(n.revoked!==true){
        const enable=!n.ownerEnabled;
        const toggle=btn(enable?T('فعال‌سازی پس از پذیرش','Enable after acceptance'):
@@ -116,6 +137,29 @@
      const r=el('div',undefined,'jr-hybrid-job');
      r.append(el('span',statusLabel(j.status)+' · '+String(j.datasetId||'—').slice(0,64)));
      r.append(el('small',date(j.queuedAt)));
+      if(j.failureCode)r.append(el('small',
+        T('علت: ','Reason: ')+String(j.failureCode).slice(0,70)));
+      const aggregate=j.unverifiedAggregate;
+      if(aggregate&&typeof aggregate==='object'){
+        r.append(el('small',T('خلاصهٔ گزارش‌شدهٔ Worker؛ هنوز تأیید علمی مستقل نشده: ',
+            'Worker-reported aggregate, not independently validated: ')+
+          String(aggregate.baselineCorrect)+' → '+String(aggregate.candidateCorrect)+
+          ' / '+String(aggregate.caseCount)+' · '+String(aggregate.reason||'').slice(0,70)));
+      }
+      if(j.status==='REVIEW_REQUIRED'||j.status==='NEEDS_REVIEW'){
+        const decisions=j.status==='NEEDS_REVIEW'?
+          [['CLOSE_UNKNOWN',T('بستن نتیجهٔ نامعلوم','Close unknown outcome')]]:
+          [['ACKNOWLEDGE',T('ثبت بازبینی بدون انتشار','Acknowledge, do not publish')],
+           ['REJECT',T('رد نتیجه','Reject result')]];
+        for(const [decision,label] of decisions)r.append(btn(label,()=>{
+          if(!confirmAction(
+            'بازبینی فقط در سوابق مدیریتی ثبت می‌شود؛ هیچ نتیجه‌ای منتشر یا به‌طور علمی تأیید نخواهد شد. ادامه؟',
+            'Record an audited owner decision only; no publication or scientific validation. Continue?'))return;
+          mutate({action:'record_job_review',jobId:j.jobId,
+            revision:j.revision,decision,
+            confirmation:'REVIEW_AGGREGATE_WITHOUT_PUBLICATION'});
+        }));
+      }
      if(j.status==='QUEUED'||j.status==='LEASED'){
        r.append(btn(T('لغو کار','Cancel job'),()=>{
          if(!confirmAction('ممکن است اجرای محلی کامل شده باشد؛ نتیجه نیازمند بررسی می‌شود. ادامه؟',
