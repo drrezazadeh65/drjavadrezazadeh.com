@@ -62,6 +62,38 @@ function jrMasterWorker(string $script,int $limitSeconds): array {
         ($exit===null?['state'=>'unknown','exit'=>null]:
             ['state'=>'failed','exit'=>$exit]);
 }
+/**
+ * Recover abandoned claims even when the job was disabled after start or
+ * next_due_at has not arrived. Runs ONLY while this dispatcher exclusively
+ * owns the global MySQL advisory lock. An orphaned child may have already
+ * sent mail, so the source must halt that job for manual reconciliation.
+ */
+function jrMasterReconcileStale(PDO $pdo,int $at): int {
+    $threshold=$at-120;
+    $pdo->beginTransaction();
+    try{
+        $q=$pdo->prepare("SELECT job_id FROM operations_cron_jobs
+            WHERE last_state='running' AND last_started_at<=?
+            ORDER BY last_started_at ASC,job_id ASC LIMIT 30 FOR UPDATE");
+        $q->execute([$threshold]);
+        $ids=$q->fetchAll(PDO::FETCH_COLUMN);
+        $count=0;
+        foreach($ids as $id){
+            $change=$pdo->prepare("UPDATE operations_cron_jobs
+              SET enabled=0,needs_owner_review=1,last_state='unknown',
+                  last_finished_at=?,last_exit_code=NULL,
+                  next_due_at=0,row_revision=row_revision+1,updated_at=?
+              WHERE job_id=? AND last_state='running' AND last_started_at<=?");
+            $change->execute([$at,$at,(string)$id,$threshold]);
+            $count+=$change->rowCount();
+        }
+        $pdo->commit();
+        return $count;
+    }catch(Throwable $e){
+        if($pdo->inTransaction())$pdo->rollBack();
+        throw $e;
+    }
+}
 function jrMasterClaim(PDO $pdo,string $id,int $at): ?array {
     $pdo->beginTransaction();
     try{
@@ -79,8 +111,9 @@ function jrMasterClaim(PDO $pdo,string $id,int $at): ?array {
             if((int)$r['last_started_at']<$at-120){
                 $pdo->prepare("UPDATE operations_cron_jobs
                   SET enabled=0,needs_owner_review=1,last_state='unknown',
-                      last_finished_at=?,last_exit_code=NULL
-                  WHERE job_id=?")->execute([$at,$id]);
+                      last_finished_at=?,last_exit_code=NULL,next_due_at=0,
+                      row_revision=row_revision+1,updated_at=?
+                  WHERE job_id=?")->execute([$at,$at,$id]);
                 $pdo->commit();return null;
             }
             $pdo->commit();return null;
@@ -92,17 +125,19 @@ function jrMasterClaim(PDO $pdo,string $id,int $at): ?array {
         if($minimum<60||$seconds<$minimum||
            $seconds>86400||$seconds%60!==0){
             $pdo->prepare("UPDATE operations_cron_jobs
-              SET enabled=0,needs_owner_review=1,last_state='blocked'
-              WHERE job_id=?")->execute([$id]);
+              SET enabled=0,needs_owner_review=1,last_state='blocked',
+                  next_due_at=0,row_revision=row_revision+1,updated_at=?
+              WHERE job_id=?")->execute([$at,$id]);
             $pdo->commit();return null;
         }
         // Persist claim before a potential side effect. A crash after this
         // line leaves RUNNING, which is reconciled to owner review above.
         $q=$pdo->prepare("UPDATE operations_cron_jobs
           SET last_state='running',last_started_at=?,
-              last_finished_at=NULL,last_exit_code=NULL,next_due_at=?
+              last_finished_at=NULL,last_exit_code=NULL,next_due_at=?,
+              row_revision=row_revision+1,updated_at=?
           WHERE job_id=? AND enabled=1 AND needs_owner_review=0");
-        $q->execute([$at,$at+$seconds,$id]);
+        $q->execute([$at,$at+$seconds,$at,$id]);
         if($q->rowCount()!==1)
             throw new RuntimeException('cron_claim_conflict');
         $pdo->commit();
@@ -117,10 +152,12 @@ function jrMasterFinish(PDO $pdo,array $claim,array $result): void {
     $review=$state!=='completed';
     $q=$pdo->prepare('UPDATE operations_cron_jobs
        SET last_state=?,last_finished_at=?,last_exit_code=?,
-           needs_owner_review=?,enabled=IF(?,0,enabled)
+           needs_owner_review=IF(?,1,needs_owner_review),
+           enabled=IF(?,0,enabled),row_revision=row_revision+1,updated_at=?
        WHERE job_id=? AND last_state=? AND last_started_at=?');
-    $q->execute([$state,time(),$result['exit'],$review?1:0,$review?1:0,
-        $claim['jobId'],'running',$claim['startedAt']]);
+    $at=time();
+    $q->execute([$state,$at,$result['exit'],$review?1:0,$review?1:0,
+        $at,$claim['jobId'],'running',$claim['startedAt']]);
     if($q->rowCount()!==1)
         throw new RuntimeException('cron_result_conflict');
 }
@@ -149,6 +186,7 @@ function jrMasterDispatch(): int {
     }
     $started=microtime(true);$attempts=0;$issues=0;
     try{
+        $issues+=jrMasterReconcileStale($pdo,time());
         $registry=operationsCronRegistry();
         $q=$pdo->query('SELECT job_id FROM operations_cron_jobs
             WHERE enabled=1 AND needs_owner_review=0
@@ -161,8 +199,10 @@ function jrMasterDispatch(): int {
             if($script===null){
                 // No approved source code => never execute arbitrary DB data.
                 $pdo->prepare("UPDATE operations_cron_jobs SET enabled=0,
-                  needs_owner_review=1,last_state='blocked' WHERE job_id=?")
-                  ->execute([$id]);
+                  needs_owner_review=1,last_state='blocked',next_due_at=0,
+                  row_revision=row_revision+1,updated_at=?
+                  WHERE job_id=? AND enabled=1")
+                  ->execute([time(),$id]);
                 $issues++;continue;
             }
             $claim=jrMasterClaim($pdo,(string)$id,time());
