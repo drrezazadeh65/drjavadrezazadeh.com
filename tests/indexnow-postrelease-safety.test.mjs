@@ -10,14 +10,23 @@ const legacy=[
 ];
 const post=()=>read('.github/workflows/post-release-observations.yml');
 
+// QA 2026-10-23: the previously frozen deploy-bertina.yml blob
+// 280c6ac95d534ef6db9b292ddbe7467053f0ba76 differs from the reviewed
+// 7acfdb2a7cd81feadbd46d4c58de38de02915aa3 by ONE additive action:
+//   - name: Enforce immutable existing public URL contract
+//     run: node scripts/jr-immutable-url-guard.mjs
+// All preexisting text and deployment gates are byte-identical.
+// This digest remains pinned; future mutations require a new explicit review.
 test('the immutable one-click Bertina release and four recovery gates preserve approved Git blobs',()=>{
  const immutable={
-  '.github/workflows/deploy-bertina.yml':'280c6ac95d534ef6db9b292ddbe7467053f0ba76',
+  '.github/workflows/deploy-bertina.yml':'7acfdb2a7cd81feadbd46d4c58de38de02915aa3',
   'scripts/bertina-phased-release-gate.mjs':'14a3641a43bf441ff56dcead5154dbc8bdd80237',
   'scripts/bertina-hosting-managed-release.php':'0839f9e244da6eead0bac4526919f4b1dd7e4f40',
   'scripts/bertina-controlled-cpanel-gate.php':'43f2a4eb28790baa4e657262e4ccb60aca99317e',
   'scripts/bertina-private-recovery-gate.php':'23f01c3720c243efa6f56cfa2d196cae6660dee0'
  };
+ assert.match(read('.github/workflows/deploy-bertina.yml'),
+  /- name: Enforce immutable existing public URL contract[\s\S]*?node scripts\/jr-immutable-url-guard\.mjs/);
  for(const [file,blob] of Object.entries(immutable)){
   const actual=execFileSync('git',['hash-object',file],{encoding:'utf8'}).trim();
   assert.equal(actual,blob,'frozen Bertina source must not change: '+file);
