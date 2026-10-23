@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 if(!defined('BERTINA_API_BOOTSTRAPPED')){http_response_code(404);exit;}
+require_once __DIR__.'/jrei-exam-coverage-readiness.php';
 
 /**
  * Owner-only read/write metadata for the existing JREI ecosystem.
@@ -57,7 +58,12 @@ function jrExamResearchOwnerSnapshot(PDO $pdo,array $cfg): array {
       'preparationStages'=>[],'frameworks'=>[],
       'indicatorMaturity'=>[],'researchProtocols'=>[],
       'researchDatasets'=>[],'researchAnalyses'=>[],
-      'notes'=>[
+      'coverageReadiness'=>[
+         'schema'=>'jr.jrei.exam-coverage-readiness.v1',
+         'ready'=>false,'totalRows'=>null,'examCoverage'=>[],
+         'truncated'=>false,'answerKeyCorrectnessVerified'=>false,
+         'questionBankPublishable'=>false],
+       'notes'=>[
        'Missing migration means UNKNOWN, not zero.',
        'A crawler-discovered source is not necessarily licensed or official.',
        'TESTLY and Humanability remain preliminary original theoretical proposals.',
@@ -165,6 +171,7 @@ function jrExamResearchOwnerSnapshot(PDO $pdo,array $cfg): array {
         FROM jrei_testly_research_analyses
         GROUP BY interpretation,results_review_state
         ORDER BY count DESC LIMIT 30');
+    $base['coverageReadiness']=jrExamOwnerCoverageReadiness($pdo);
     return $base;
 }
 /** Emergency stop across all proposed exam/research background features;
