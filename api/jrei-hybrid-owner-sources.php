@@ -200,17 +200,25 @@ function jrHybridSourceChange(PDO $pdo,string $actor,array $body): array {
             throw new InvalidArgumentException('invalid_source_version_review');
         $pdo->beginTransaction();
         try{
-            $q=$pdo->prepare('SELECT source_id,document_sha256,status,revision
-              FROM jrei_public_source_proposals WHERE proposal_id=? FOR UPDATE');
-            $q->execute([$proposal]);$p=$q->fetch(PDO::FETCH_ASSOC);
-            if(!is_array($p)||(int)$p['revision']!==$rev||
-               $p['status']!=='PENDING_REVIEW')
+            // Owner suspension and version review share lock order:
+            // registry FIRST, proposal SECOND. The initial lookup selects
+            // only an immutable source_id; its version is rechecked below.
+            $q=$pdo->prepare('SELECT source_id
+              FROM jrei_public_source_proposals WHERE proposal_id=?');
+            $q->execute([$proposal]);$sourceId=$q->fetchColumn();
+            if(!is_string($sourceId)||!jrHybridIdentifier($sourceId))
                 throw new DomainException('source_version_conflict');
             $q=$pdo->prepare('SELECT status FROM jrei_public_source_registry
               WHERE source_id=? FOR UPDATE');
-            $q->execute([$p['source_id']]);
+            $q->execute([$sourceId]);
             if($q->fetchColumn()!=='APPROVED')
                 throw new DomainException('source_no_longer_approved');
+            $q=$pdo->prepare('SELECT source_id,document_sha256,status,revision
+              FROM jrei_public_source_proposals WHERE proposal_id=? FOR UPDATE');
+            $q->execute([$proposal]);$p=$q->fetch(PDO::FETCH_ASSOC);
+            if(!is_array($p)||$p['source_id']!==$sourceId||
+               (int)$p['revision']!==$rev||$p['status']!=='PENDING_REVIEW')
+                throw new DomainException('source_version_conflict');
             $status=$decision==='ACCEPT_METADATA'?'METADATA_REVIEWED':'REJECTED';
             $q=$pdo->prepare('UPDATE jrei_public_source_proposals
               SET status=?,reviewed_at=?,reviewed_by_account_id=?,
