@@ -5,6 +5,7 @@ require_once __DIR__.'/jrei-exam-coverage-readiness.php';
 require_once __DIR__.'/jrei-ka-exam-coverage-matrix.php';
 require_once __DIR__.'/jrei-ka-coverage-owner-review.php';
 require_once __DIR__.'/jrei-ka-coverage-gaps.php';
+require_once __DIR__.'/jrei-ka-registered-source-suggestions.php';
 require_once __DIR__.'/jrei-ka-coverage-link-corrections.php';
 require_once __DIR__.'/jrei-ka-independent-source-review.php';
 require_once __DIR__.'/jrei-ka-curriculum-grade-review.php';
