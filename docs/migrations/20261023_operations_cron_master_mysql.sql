@@ -20,16 +20,20 @@ CREATE TABLE IF NOT EXISTS operations_cron_jobs (
     FOREIGN KEY (updated_by_account_id) REFERENCES customer_accounts(id)
     ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
--- Known source workers are installed DISABLED and without any provider authority.
+-- Seven code-approved workers are registered DISABLED. Bertina support has
+-- confirmed an absolute FIVE-MINUTE minimum Cron invocation interval;
+-- independent job cadence cannot request finer actual host granularity.
+-- This schema is staged, NOT RUN; do not install or change a live Cron here.
 -- Additional future registered job IDs can be staged disabled by the existing
 -- MFA owner API after that job's code-only allowlist definition is published.
 INSERT IGNORE INTO operations_cron_jobs
   (job_id,enabled,cadence_seconds,next_due_at,updated_at)
 VALUES
   ('github_collector',0,600,0,0),
-  ('response_monitor',0,60,0,0),
-  ('private_http_log',0,60,0,0),
-  ('operations_alert_mail',0,60,0,0),
+  ('response_monitor',0,300,0,0),
+  ('private_http_log',0,300,0,0),
+  ('operations_alert_mail',0,300,0,0),
   ('newsletter_outbox',0,300,0,0),
-  ('publishing_outbox',0,300,0,0);
+  ('publishing_outbox',0,300,0,0),
+  ('jrei_daily_learning',0,86400,0,0);
 -- No automated enable/migration, provider send or cron installation.
