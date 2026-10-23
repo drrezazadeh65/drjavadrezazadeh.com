@@ -76,18 +76,18 @@
       "group": "pathways",
       "image": "/assets/images/knowledge/golden-talent-chist-featured.webp",
       "fa": {
-        "eyebrow": "RCAS · BAHAR",
-        "title": "از شناخت تا بازنگری مسیر",
-        "summary": "با مبانی و محدودیت‌های علمی اجزای اکوسیستم استعداد آشنا شوید.",
-        "cta": "مطالعه روش‌شناسی",
+        "eyebrow": "RCAS · شروع رایگان",
+        "title": "از بازاندیشی تا اقدام آموزشی",
+        "summary": "با مرحله رایگان RCAS، شیوه تفسیر شواهد و محدودیت‌های علمی آشنا شوید.",
+        "cta": "آشنایی و شروع رایگان",
         "href": "/fa/rcas/",
         "alt": "تصویر مرتبط با چارچوب علمی استعداد"
       },
       "en": {
-        "eyebrow": "RCAS · BAHAR",
-        "title": "From evidence to growth",
-        "summary": "Read how the research-stage components connect, including their scientific boundaries.",
-        "cta": "Read the methodology",
+        "eyebrow": "RCAS · Free introduction",
+        "title": "From reflection to an educational action",
+        "summary": "Explore the free RCAS starter, evidence boundaries and responsible interpretation.",
+        "cta": "Explore RCAS free",
         "href": "/en/rcas/",
         "alt": "An illustrated developmental talent framework"
       }
