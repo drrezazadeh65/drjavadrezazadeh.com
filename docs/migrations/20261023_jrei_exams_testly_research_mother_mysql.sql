@@ -108,6 +108,7 @@ CREATE TABLE IF NOT EXISTS jrei_exam_item_metadata (
   canonical_assessment_item_id CHAR(36) NULL,
   source_id CHAR(36) NULL,
   item_version VARCHAR(50) NOT NULL,
+  logical_item_code VARCHAR(100) NOT NULL,
   authored_by_account_id CHAR(36) NULL,
   derived_from_metadata_id CHAR(36) NULL,
   curriculum_topic VARCHAR(120) NULL,
@@ -125,7 +126,7 @@ CREATE TABLE IF NOT EXISTS jrei_exam_item_metadata (
   reviewed_by_account_id CHAR(36) NULL,
   reviewed_at BIGINT UNSIGNED NULL,
   created_at BIGINT UNSIGNED NOT NULL,
-  UNIQUE KEY uq_jrei_item_ver(id,item_version),
+  UNIQUE KEY uq_jrei_item_ver(logical_item_code,item_version),
   KEY idx_jrei_item_review(item_state,ambiguity_review_state,copyright_review_state),
   KEY idx_jrei_item_source(source_id),
   CONSTRAINT fk_jrei_item_original FOREIGN KEY(canonical_assessment_item_id)
@@ -223,6 +224,7 @@ CREATE TABLE IF NOT EXISTS jrei_testly_indicator_proposals (
   framework_version_id CHAR(36) NOT NULL,
   dimension_code VARCHAR(90) NOT NULL,
   author_source_paragraph SMALLINT UNSIGNED NOT NULL,
+  indicator_code VARCHAR(80) NOT NULL,
   indicator_version VARCHAR(64) NOT NULL,
   indicator_definition_sha256 CHAR(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
   evidence_maturity VARCHAR(40) NOT NULL DEFAULT 'PROPOSED_OPERATIONAL_INDICATOR',
@@ -230,7 +232,7 @@ CREATE TABLE IF NOT EXISTS jrei_testly_indicator_proposals (
   review_by_account_id CHAR(36) NULL,
   review_at BIGINT UNSIGNED NULL,
   created_at BIGINT UNSIGNED NOT NULL,
-  UNIQUE KEY uq_jrei_indicator_version(framework_version_id,dimension_code,indicator_version),
+  UNIQUE KEY uq_jrei_indicator_version(framework_version_id,indicator_code,indicator_version),
   CONSTRAINT fk_jrei_indicator_framework FOREIGN KEY(framework_version_id)
     REFERENCES jrei_testly_framework_versions(framework_version_id) ON DELETE RESTRICT,
   CONSTRAINT fk_jrei_indicator_reviewer FOREIGN KEY(review_by_account_id)
@@ -239,6 +241,7 @@ CREATE TABLE IF NOT EXISTS jrei_testly_indicator_proposals (
 
 CREATE TABLE IF NOT EXISTS jrei_testly_research_protocols (
   protocol_id CHAR(36) NOT NULL PRIMARY KEY,
+  protocol_code VARCHAR(100) NOT NULL,
   protocol_version VARCHAR(70) NOT NULL,
   framework_version_id CHAR(36) NOT NULL,
   registration_digest CHAR(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
@@ -251,7 +254,7 @@ CREATE TABLE IF NOT EXISTS jrei_testly_research_protocols (
   owner_account_id CHAR(36) NULL,
   created_at BIGINT UNSIGNED NOT NULL,
   revised_at BIGINT UNSIGNED NULL,
-  UNIQUE KEY uq_jrei_protocol_revision(protocol_id,protocol_version),
+  UNIQUE KEY uq_jrei_protocol_revision(protocol_code,protocol_version),
   CONSTRAINT fk_jrei_research_framework FOREIGN KEY(framework_version_id)
     REFERENCES jrei_testly_framework_versions(framework_version_id) ON DELETE RESTRICT,
   CONSTRAINT fk_jrei_research_owner FOREIGN KEY(owner_account_id)
