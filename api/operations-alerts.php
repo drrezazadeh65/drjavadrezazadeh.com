@@ -316,11 +316,38 @@ function operationsAlertSnapshot(PDO $pdo,array $configuration): array {
         $key=(string)$stored['event_code'];
         if(isset($definitions[$key]))$savedRules[$key]=$stored;
     }
+    // A registered Cron job is not evidence the observer is installed,
+    // scheduled on Bertina, or has emitted a recent source observation.
+    $jreiSensor='jrei_hybrid_incident_sensor_not_authorized';
+    if(($configuration['jrei_hybrid_enabled']??false)===true&&
+       ($configuration['jrei_hybrid_alerts_enabled']??false)===true){
+        try{
+            $q=$pdo->prepare('SELECT enabled,last_finished_at,needs_owner_review
+                FROM operations_cron_jobs WHERE job_id=?');
+            $q->execute(['jrei_hybrid_incident_sensor']);
+            $row=$q->fetch(PDO::FETCH_ASSOC);
+            if(!is_array($row))$jreiSensor='jrei_incident_cron_not_registered';
+            elseif((int)$row['needs_owner_review']===1)
+                $jreiSensor='jrei_incident_cron_manual_review_required';
+            elseif((int)$row['enabled']!==1)
+                $jreiSensor='jrei_incident_cron_disabled';
+            elseif($row['last_finished_at']===null)
+                $jreiSensor='jrei_incident_cron_not_yet_observed';
+            elseif(time()-(int)$row['last_finished_at']>900)
+                $jreiSensor='jrei_incident_cron_last_run_stale';
+            else $jreiSensor='jrei_incident_cron_recent_report_not_independently_verified';
+        }catch(Throwable $e){
+            $jreiSensor='jrei_incident_cron_schema_unavailable';
+        }
+    }
     foreach($definitions as $code=>$definition){
         $r=$savedRules[$code]??null;
         $ruleProvisioned=is_array($r);
         $sensor=(string)$definition['sensor'];
-        if(in_array($code,['http_404_surge','http_5xx_surge'],true)){
+        if(in_array($code,['jrei_worker_heartbeat_lost',
+            'jrei_worker_outcome_unknown','jrei_evaluation_review_overdue'],true)){
+            $sensor=$jreiSensor;
+        }elseif(in_array($code,['http_404_surge','http_5xx_surge'],true)){
             $sensor='private_http_log_'.$httpSensor;
         }elseif(in_array($code,['security_headers_regressed','redirects_regressed'],true)){
             $kind=$code==='security_headers_regressed'?'headers':'redirect';
