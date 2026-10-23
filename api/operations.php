@@ -48,6 +48,7 @@ require_once __DIR__.'/operations-cron-dispatcher.php';
 require_once __DIR__.'/jrei-learning-operations.php';
 require_once __DIR__.'/jrei-hybrid-owner.php';
 require_once __DIR__.'/jrei-exam-research-owner.php';
+require_once __DIR__.'/jrei-exam-commercial-catalogue.php';
 
 function operationsRegistry(): array {
     $raw = file_get_contents(__DIR__.'/internal/operations-registry.json');
@@ -435,7 +436,11 @@ function operationsRoute(string $path, string $verb): never {
                 fail('super_admin_required',403);
             if(!rateAllowed($pdo,'jrei_exam_research_owner',$accountId,20,300))
                 fail('rate_limited',429);
-            if($verb==='GET')respond(jrExamResearchOwnerSnapshot($pdo,$configuration));
+            if($verb==='GET'){
+                $snapshot=jrExamResearchOwnerSnapshot($pdo,$configuration);
+                $snapshot['commercialCentre']=jrExamCommercialOwnerSnapshot($pdo,$configuration);
+                respond($snapshot);
+            }
             if(!operationsMutationAllowed($_SERVER,
                 (string)($_SERVER['HTTP_X_CSRF_TOKEN']??''),$csrf))
                 fail('csrf_forbidden',403);
