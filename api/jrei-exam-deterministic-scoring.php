@@ -12,6 +12,21 @@ if(!defined('BERTINA_API_BOOTSTRAPPED')){http_response_code(404);exit;}
  * admission chance, verified examination outcome or validated psychometric
  * measurement.
  */
+/**
+ * Canonical source-owned scoring-policy fingerprint; fixed-version signed
+ * decimal representation avoids JSON key-order and locale-dependent drift.
+ * An approved policy SHA must EXACTLY bind scoring model + all coefficients.
+ */
+function jrExamMcqPolicyFingerprint(string $modelId,
+    int $correct,int $incorrectPenalty,int $unanswered): string {
+    if(!validUuid($modelId)||$correct<1||$correct>1000000||
+       $incorrectPenalty<0||$incorrectPenalty>1000000||
+       $unanswered<0||$unanswered>1000000)
+        throw new InvalidArgumentException('invalid_exam_scoring_policy_fingerprint');
+    return hash('sha256','jr.jrei.mcq.policy.v1|'.
+       strtolower($modelId).'|'.$correct.'|'.$incorrectPenalty.'|'.$unanswered);
+}
+
 function jrExamVerifiedMcqContext(PDO $pdo,string $instrumentId,
     string $scoringModelId): array {
     if(!validUuid($instrumentId)||!validUuid($scoringModelId))
@@ -38,6 +53,9 @@ function jrExamVerifiedMcqContext(PDO $pdo,string $instrumentId,
     if($correct<1||$correct>1000000||$penalty<0||$penalty>1000000||
        $blank<0||$blank>1000000)
         throw new DomainException('scoring_policy_bounds_invalid');
+    $expected=jrExamMcqPolicyFingerprint($scoringModelId,$correct,$penalty,$blank);
+    if(!hash_equals($expected,(string)$rule['policy_sha256']))
+        throw new DomainException('scoring_policy_coefficients_changed');
 
     $q=$pdo->prepare("SELECT
         i.id,i.item_type,i.is_sensitive,k.correct_option_id,k.key_digest,
