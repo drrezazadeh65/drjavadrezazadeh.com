@@ -44,7 +44,8 @@ function jrKaOwnerCorrectCoverageLink(PDO $pdo,string $actor,array $body): array
             // Lock original source before scope, matching independent review.
             $q=$pdo->prepare("SELECT source_id,country_code,educational_level,
               exam_category,curriculum_version,examination_year,subject_id,
-              source_kind,is_revoked,is_superseded,review_state
+              source_kind,is_revoked,is_superseded,review_state,
+              reviewer_account_id
               FROM jrei_exam_sources WHERE source_id=? FOR UPDATE");
             $q->execute([$next]);
             $source=$q->fetch(PDO::FETCH_ASSOC);
@@ -78,6 +79,10 @@ function jrKaOwnerCorrectCoverageLink(PDO $pdo,string $actor,array $body): array
             }
             if($scope['expected_kind']!==$source['source_kind'])
                 throw new DomainException('existing_source_kind_mismatch');
+            if($source['review_state']==='AUTHORITATIVE_REVIEWED' &&
+               ($source['reviewer_account_id']===null ||
+                $source['reviewer_account_id']===$scope['approved_by_account_id']))
+                throw new DomainException('independent_source_reviewer_required');
             // No grade/curriculum-ID source columns exist. This is metadata
             // linkage only, not verified grade/topic curricular alignment.
         }
