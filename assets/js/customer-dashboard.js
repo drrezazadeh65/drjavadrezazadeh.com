@@ -648,10 +648,15 @@ async function verifiedCustomerNextAction(authenticated){
 }
 
 async function refresh(){
- const runtime=await operationalStatus();
- const authenticated=await hydrate(runtime.auth);
+ // Authorization must never wait for an unrelated catalogue or payment
+ // health request. Separate identity hydration from the three-source
+ // operational summary so a verified account is shown promptly even when
+ // the public catalogue endpoint is temporarily slow or unavailable.
+ const statusPromise=operationalStatus();
+ const authenticated=await hydrate();
  authNavigation(authenticated);
  void verifiedCustomerNextAction(authenticated);
+ const runtime=await statusPromise;
  serviceMarketplace(runtime,authenticated);
  await supportEnglishHealth(authenticated);
 }
