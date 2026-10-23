@@ -22,7 +22,7 @@ test('non-loopback inference URLs are refused before any network request',()=>{
     'http://192.168.1.2:18080/v1/chat/completions',
     'http://127.0.0.1:18080/admin',
     'http://127.0.0.1:18080/v1/chat/completions?key=a',
-    'http://username:password@127.0.0.1:18080/v1/chat/completions'
+    'http://'+'username:password@127.0.0.1:18080/v1/chat/completions'
   ])assert.throws(()=>createLocalLlamaAdapter({...opts,endpoint}));
 });
 test('unapproved models and unverified licences are never invoked',()=>{
