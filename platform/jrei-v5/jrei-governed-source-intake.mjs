@@ -39,7 +39,7 @@ function canonicalPublicHttps(raw){
   let url;
   try{url=new URL(raw);}catch{throw Error('SOURCE_URL_INVALID');}
   if(url.protocol!=='https:'||url.username||url.password||url.hash||
-     (url.port&&url.port!=='443')||url.href!==raw)
+     (url.port&&url.port!=='443'))
     throw Error('SOURCE_URL_NOT_CANONICAL_HTTPS');
   const host=url.hostname.toLowerCase().replace(/\.$/,'');
   if(host!==url.hostname||host.length>253||!host.includes('.')||
