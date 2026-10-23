@@ -162,6 +162,9 @@ export function compareReviewedRetrieval({
   // deployed worker p95; use equal neutral figures. Independent Windows
   // latency measurement is required before any live auto-promotion.
   const b=evaluate(active),c=evaluate(candidate);
+  // The learning-loop's latency metric requires a real measured Windows
+  // p95. A zero placeholder could incorrectly make a candidate eligible.
+  // Refuse any promotion signal until a separately reviewed benchmark exists.
   const summary=(m)=>({
     runDay:expectedRunDay,datasetSha256,evidenceSha256,
     evaluationVersion,modelVersion:'bm25-retrieval-v1',
@@ -171,12 +174,20 @@ export function compareReviewedRetrieval({
     privacyIncidentCount,fairnessGapBps:m.fairnessGapBps,
     p95LatencyMs:0
   });
-  const proposal=assessLearningCandidate({
+  const advisory=assessLearningCandidate({
     mode:LEARNING_MODES.RETRIEVAL_TUNING,
     baseline:summary(b),challenger:summary(c),
     currentPolicy:active,candidatePolicy:candidate,
     controls:{...controls,autoPromoteLowRisk:false},
     expectedRunDay,expectedActivePolicySha256
+  });
+  // A pure offline comparison does not supply measured latency or a
+  // independently attested trusted-worker identity. Always fail closed on
+  // promotion; preserve advisory metrics for human review without pretending
+  // that a proposal has passed the deployment acceptance gates.
+  const proposal=Object.freeze({
+    ...advisory,decision:'BLOCKED',reason:'MEASURED_WORKER_LATENCY_REQUIRED',
+    canPublish:false,autoPromote:false
   });
   // Source comparison never independently verifies actual inference,
   // latency, official source freshness or platform runtime.
