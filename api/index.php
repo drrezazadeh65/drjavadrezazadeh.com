@@ -73,6 +73,9 @@ function cfg(): array {
         // Outbound Windows worker API: independently OFF, even if owner
         // registers a public key or compiles a local model adapter.
         'jrei_hybrid_enabled' => getenv('JR_JREI_HYBRID_ENABLED') === 'true',
+        // Operator-owned mapping of independently source-reviewed PUBLIC
+        // evaluation corpora only. No student content or arbitrary paths.
+        'jrei_hybrid_approved_datasets' => [],
         // Strictly optional BAHAR adult private storage; disabled until owner,
         // scientific/legal review and secret provisioning independently agree.
         'bahar_private_workbooks_enabled' => getenv('JR_BAHAR_PRIVATE_WORKBOOKS_ENABLED') === 'true',
