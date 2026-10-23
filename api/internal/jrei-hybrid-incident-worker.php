@@ -53,9 +53,13 @@ try{
     }
     // A possibly completed lease must NEVER be repeated automatically.
     // The unresolved outcome is actionable even with both nodes online.
+    // Never age-out an UNREVIEWED unknown outcome. A stale LEASED job
+    // is also actionable even if the separate reconciliation Cron is OFF.
     $q=$pdo->prepare("SELECT COUNT(*) FROM jrei_hybrid_jobs
-         WHERE status='NEEDS_REVIEW' AND queued_at>=?");
-    $q->execute([$at-14*86400]);
+         WHERE status='NEEDS_REVIEW' OR
+           (status='LEASED' AND (lease_expires_at<?
+             OR lease_started_at+?<?))");
+    $q->execute([$at,JR_HYBRID_MAX_LEASE_AGE,$at]);
     $unknown=(int)$q->fetchColumn();
     if($unknown>0){
         if(operationsAlertRecord($pdo,'jrei_worker_outcome_unknown',
@@ -64,10 +68,12 @@ try{
          'jrei-unknown-outcome',$at))$resolved++;
     // A completed local evaluation remains evidence pending human review.
     // This is an actionable work queue, NOT a verified scientific result.
+    // An owner-review item never ceases to exist merely because its
+    // original queued timestamp falls outside an arbitrary 14-day window.
     $q=$pdo->prepare("SELECT COUNT(*) FROM jrei_hybrid_jobs
         WHERE status='REVIEW_REQUIRED' AND completed_at IS NOT NULL
-          AND completed_at<? AND queued_at>=?");
-    $q->execute([$at-3600,$at-14*86400]);
+          AND completed_at<?");
+    $q->execute([$at-3600]);
     $pending=(int)$q->fetchColumn();
     if($pending>0){
         if(operationsAlertRecord($pdo,'jrei_evaluation_review_overdue',
