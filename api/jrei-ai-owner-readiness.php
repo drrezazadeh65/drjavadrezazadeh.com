@@ -32,6 +32,10 @@ function jrAiOwnerReadiness(PDO $pdo,array $cfg): array {
       'approvedPassageRetrievalOptIn'=>($cfg['jrei_ai_approved_passage_retrieval_enabled']??false)===true,
       'approvedPassageSchemaReadable'=>function_exists('jrAiApprovedPassageSchemaReady')?
          jrAiApprovedPassageSchemaReady($pdo):false,
+      'independentlyAttestedQuoteCounts'=>[
+        'available'=>false,'eligibleCurrentSourceQuotes'=>null,
+        'unverifiedPassagesNeverReleased'=>true
+      ],
       'modelRoutingActive'=>false,
       'sourceGroundedScientificAnswersVerified'=>false,
       'quotas'=>[
@@ -48,6 +52,32 @@ function jrAiOwnerReadiness(PDO $pdo,array $cfg): array {
           ($cfg['jrei_public_ai_release_accepted']??false)===true,
       'productionModelAccepted'=>false
     ];
+    if(($out['approvedPassageSchemaReadable']??false)===true){
+        try{
+            $q=$pdo->query("SELECT COUNT(DISTINCT p.passage_id)
+              FROM jrei_ka_private_passages p
+              JOIN jrei_ka_public_quote_attestations att
+                ON att.passage_id=p.passage_id
+              JOIN jrei_exam_sources s ON s.source_id=p.source_id
+              JOIN jrei_ka_source_policies pol ON pol.source_id=s.source_id
+              WHERE p.passage_state='APPROVED_PUBLIC_AI_EVIDENCE'
+                AND p.review_rights_state='PERMITTED_PUBLIC_QUOTE'
+                AND att.decision='APPROVE_PUBLIC_QUOTE'
+                AND att.reviewer_account_id=p.reviewer_account_id
+                AND att.reviewer_account_id<>s.reviewer_account_id
+                AND att.quoted_passage_sha256=p.passage_sha256
+                AND att.reviewed_source_rights_sha256=pol.rights_evidence_sha256
+                AND s.review_state='AUTHORITATIVE_REVIEWED'
+                AND s.rights_state='PERMITTED_REPRODUCTION'
+                AND s.is_revoked=0 AND s.is_superseded=0
+                AND pol.scheduling_state='APPROVED'
+                AND pol.rights_reviewed=1");
+            $out['independentlyAttestedQuoteCounts']=[
+              'available'=>true,'eligibleCurrentSourceQuotes'=>(int)$q->fetchColumn(),
+              'unverifiedPassagesNeverReleased'=>true
+            ];
+        }catch(Throwable $e){}
+    }
     if(!$schema)return $out;
     try{
         $q=$pdo->prepare("SELECT reserved_calls,reserved_input_tokens,
