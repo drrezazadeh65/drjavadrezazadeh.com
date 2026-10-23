@@ -34,7 +34,8 @@ try{
         // All transitions require the original status: a completion that
         // wins the row lock remains REVIEW_REQUIRED, not overwritten.
         $q=$pdo->prepare("SELECT COUNT(*) FROM jrei_hybrid_jobs
-            WHERE status='LEASED' AND (lease_expires_at<?
+            WHERE status='LEASED' AND (lease_expires_at IS NULL
+              OR lease_started_at IS NULL OR lease_expires_at<?
               OR lease_started_at+?<?)");
         $q->execute([$now,JR_HYBRID_MAX_LEASE_AGE,$now]);
         $staleLeases=(int)$q->fetchColumn();
