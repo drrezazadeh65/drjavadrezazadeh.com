@@ -12,7 +12,7 @@ for (const [name,html,label,href] of [
   ['Persian',fa,'فروشگاه کتاب','./shop/'],
   ['English',en,'Bookstore','./shop/']
 ]) {
-  assert.match(html,/home-experience-v1\.css\?v=20261013-home-v[0-9]+/,name+' homepage must load the responsive experience stylesheet');
+  assert.match(html,/home-experience-v1\.css\?v=20261022-direct-study-actions-v5/,name+' homepage must load the responsive experience stylesheet');
   assert.match(html,new RegExp('href="'+href+'"[^>]*>'+label),name+' homepage must expose the bookstore CTA');
   assert.match(html,/class="actions hero-pathway-cta"/,name+' homepage must group the primary pathways');
 }
