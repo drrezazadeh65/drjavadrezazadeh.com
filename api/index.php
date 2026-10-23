@@ -93,6 +93,8 @@ function cfg(): array {
         // Separate OFF-by-default licence-gated JREI-KA scheduler consent.
         // Cron registers tasks only; no network fetching or model execution.
         'jrei_ka_schedule_enabled' => getenv('JR_JREI_KA_SCHEDULE_ENABLED') === 'true',
+        // Optional Iran-local 02:00–05:00 scheduling/acquisition window.
+        'jrei_ka_night_mode_enabled' => getenv('JR_JREI_KA_NIGHT_MODE_ENABLED') === 'true',
         // Separate legal autonomous-fetch opt-in, OFF even when scheduling
         // is enabled; private archived bytes must reside outside public_html.
         'jrei_ka_autofetch_enabled' => getenv('JR_JREI_KA_AUTOFETCH_ENABLED') === 'true',
