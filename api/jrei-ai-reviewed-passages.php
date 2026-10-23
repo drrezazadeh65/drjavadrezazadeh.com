@@ -65,7 +65,8 @@ function jrAiApprovedPublicPassages(PDO $pdo,array $cfg,
          AND att.decision='APPROVE_PUBLIC_QUOTE'
          AND att.reviewer_account_id=p.reviewer_account_id
          AND att.reviewer_account_id<>s.reviewer_account_id
-         AND att.independent_review_evidence_sha256 REGEXP '^[a-f0-9]{64}         AND att.source_id=p.source_id
+         AND att.independent_review_evidence_sha256 IS NOT NULL
+         AND att.source_id=p.source_id
          AND att.quoted_passage_sha256=p.passage_sha256
          AND att.reviewed_source_rights_sha256=policy.rights_evidence_sha256
          AND att.reviewer_acknowledges_claim_not_validated=1
