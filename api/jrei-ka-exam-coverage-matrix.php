@@ -14,6 +14,7 @@ function jrKaOwnerCoverageMatrix(PDO $pdo): array {
        'approvedExpectations'=>null,'pendingScopeReview'=>null,
        'withdrawnExpectations'=>null,'approvedLinkedSources'=>null,
        'approvedUnresolvedGaps'=>null,'groups'=>[],'truncated'=>false,
+       'curriculumGradeAlignmentEvidenceRequired'=>true,
        'topicTaxonomyReady'=>false,
        'questionCorrectnessVerified'=>false,
        'completeCountryToDoctorateCoverage'=>false
@@ -56,7 +57,18 @@ function jrKaOwnerCoverageMatrix(PDO $pdo): array {
                 s.is_revoked=0 AND s.is_superseded=0 AND
                 s.verified_at IS NOT NULL AND
                  s.reviewer_account_id IS NOT NULL AND
-                s.reviewer_account_id<>r.approved_by_account_id
+                s.reviewer_account_id<>r.approved_by_account_id AND
+                a.source_id=s.source_id AND
+                a.review_state='ATTESTED_SCOPE_ALIGNMENT' AND
+                a.source_version=s.source_version AND
+                a.source_updated_at=s.updated_at AND
+                a.source_locator_digest<=>s.source_locator_digest AND
+                a.curriculum_id=r.curriculum_id AND
+                a.grade=r.grade AND
+                a.evidence_sha256 IS NOT NULL AND
+                a.reviewed_by_account_id IS NOT NULL AND
+                a.reviewed_by_account_id<>r.approved_by_account_id AND
+                a.reviewed_by_account_id<>s.reviewer_account_id
                 THEN 1 ELSE 0 END) AS linked_approved,
            SUM(CASE WHEN r.approved_by_account_id IS NOT NULL
                 AND r.requirement_state<>'WITHDRAWN_SCOPE_ERROR'
@@ -68,6 +80,8 @@ function jrKaOwnerCoverageMatrix(PDO $pdo): array {
                 THEN 1 ELSE 0 END) AS withdrawn_count
            FROM jrei_exam_coverage_requirements r
            LEFT JOIN jrei_exam_sources s ON s.source_id=r.source_id
+           LEFT JOIN jrei_ka_scope_alignment_current a
+             ON a.requirement_id=r.requirement_id
            GROUP BY r.country_code,r.educational_level,r.grade,
               r.curriculum_id,r.curriculum_version,r.exam_category,
               r.examination_year,r.subject_id,r.expected_kind
@@ -99,7 +113,8 @@ function jrKaOwnerCoverageMatrix(PDO $pdo): array {
               'authoritativeLinkedCount'=>$linked,
               'unresolvedApprovedCount'=>$missing,
               'allAnswerKeysScientificallyCorrect'=>false,
-              'linkedSourceHasVerifiedReproductionRights'=>false
+              'linkedSourceHasVerifiedReproductionRights'=>false,
+              'curriculumGradeEvidenceRecordedForLinkedMetadata'=>true
             ];
         }
         if(!$result['truncated']){
