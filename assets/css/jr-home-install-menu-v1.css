@@ -1,0 +1,17 @@
+/* Accessible secondary install control in the existing home More sheet. */
+#mobile-app-menu .jr-home-install-area{display:grid;gap:.6rem;padding:1rem;
+  margin:.5rem .75rem 1rem;border:1px solid rgba(215,184,109,.35);
+  background:rgba(215,184,109,.055);border-radius:14px;max-width:100%}
+#mobile-app-menu .jr-home-install-action{min-width:44px;min-height:48px;
+  width:100%;padding:.7rem 1rem;line-height:1.6;border-radius:12px;
+  border:1px solid #e7c887;background:#1c1b18;color:#f4db9c;
+  font:inherit;font-weight:750;cursor:pointer}
+#mobile-app-menu .jr-home-install-action:focus-visible{
+  outline:3px solid #ffe7a9;outline-offset:3px}
+#mobile-app-menu .jr-home-install-action:disabled{opacity:.6;cursor:wait}
+#mobile-app-menu .jr-home-install-guidance{
+  margin:0;line-height:1.8;overflow-wrap:anywhere;font-size:.92rem}
+#mobile-app-menu .jr-home-install-guidance[hidden]{display:none!important}
+@media(prefers-reduced-motion:reduce){
+ #mobile-app-menu .jr-home-install-area *{transition:none!important}
+}
