@@ -11,6 +11,7 @@ if(!defined('BERTINA_API_BOOTSTRAPPED')){http_response_code(404);exit;}
  * This source defaults OFF via private JR_JREI_HYBRID_ENABLED config; neither
  * installing source nor applying DDL grants worker or model authority.
  */
+require_once __DIR__.'/jrei-hybrid-catalogue.php';
 const JR_HYBRID_TASK = 'REVIEWED_PUBLIC_RETRIEVAL_EVALUATION';
 const JR_HYBRID_LEASE_SECONDS = 180;
 const JR_HYBRID_MAX_LEASE_AGE = 900;
@@ -172,11 +173,9 @@ function jrHybridRecoverOrphans(PDO $pdo,int $at): void {
  * private approved-corpus catalogue. No user content or corpus URL is sent.
  * A node without matching local evidence receives NO task.
  */
-function jrHybridEligibleDatasets(mixed $raw,array $cfg): ?array {
+function jrHybridEligibleDatasets(mixed $raw,array $cfg,PDO $pdo): ?array {
     if(!is_array($raw)||!array_is_list($raw)||count($raw)>15)
         return null;
-    $catalogue=$cfg['jrei_hybrid_approved_datasets']??[];
-    if(!is_array($catalogue))return null;
     $seen=[];$approved=[];
     foreach($raw as $d){
         if(!is_array($d)||array_keys($d)!==[
@@ -188,14 +187,16 @@ function jrHybridEligibleDatasets(mixed $raw,array $cfg): ?array {
           isset($seen[$d['id']]))
             return null;
         $seen[$d['id']]=true;
-        $official=$catalogue[$d['id']]??null;
+        $official=jrHybridApprovedCorpus($pdo,$cfg,
+            $d['id'],$d['evaluationVersion']);
         // Ignore unapproved local corpora, even when advertised by a signed
         // key. They are not dispatch authority, and no raw data is queried.
         if(!is_array($official)||($official['sourceReviewed']??null)!==true||
            !jrHybridSha($official['datasetSha256']??null)||
            !jrHybridSha($official['evidenceSha256']??null)||
            !hash_equals($official['datasetSha256'],$d['datasetSha256'])||
-           !hash_equals($official['evidenceSha256'],$d['evidenceSha256']))
+           !hash_equals($official['evidenceSha256'],$d['evidenceSha256'])||
+           ($official['evaluationVersion']??null)!==$d['evaluationVersion'])
             continue;
         $approved[]=$d;
     }
@@ -387,9 +388,11 @@ function jrHybridWorkerRoute(string $path,string $verb): never {
                !is_array($body['metrics'])||
                ($meta=jrHybridMeta($body['metrics']))===null||
                ($datasets=jrHybridEligibleDatasets(
-                  $body['datasets']??null,$config))===null)
+                  $body['datasets']??null,$config,$pdo))===null)
                 fail('invalid_worker_request',422);
             jrHybridRecordHeartbeat($pdo,(string)$node['node_id'],$meta,$now);
+            jrHybridRecordOffers($pdo,(string)$node['node_id'],
+                $body['datasets'],$now);
             if(!in_array($meta['status'],['ONLINE','DEGRADED'],true))
                 respond(['ok'=>true,'job'=>null,'retryAfterSeconds'=>20]);
             $job=jrHybridLease($pdo,(string)$node['node_id'],$now,$datasets);
