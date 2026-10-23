@@ -73,6 +73,9 @@ function cfg(): array {
         // New exam coverage / TESTLY research work is OFF until authoritative
         // source licences, ethics, guardian gates and host schema are accepted.
         'jrei_exam_research_enabled' => getenv('JR_JREI_EXAM_RESEARCH_ENABLED') === 'true',
+        // Separate, default-OFF switch for reviewed exam catalogue metadata.
+        // It NEVER opens checkout or public response/answer delivery by itself.
+        'jrei_exam_commercial_enabled' => getenv('JR_JREI_EXAM_COMMERCIAL_ENABLED') === 'true',
         // Outbound Windows worker API: independently OFF, even if owner
         // registers a public key or compiles a local model adapter.
         'jrei_hybrid_enabled' => getenv('JR_JREI_HYBRID_ENABLED') === 'true',
@@ -516,7 +519,22 @@ require_once __DIR__.'/service-intake.php';
 require_once __DIR__.'/service-files.php';
 require_once __DIR__.'/service-buyer-receipt.php';
 require_once __DIR__.'/consultation-delivery.php';
+require_once __DIR__.'/jrei-exam-commercial-catalogue.php';
 $path=route();$verb=method();
+if ($path==='/exams/catalog' && $verb==='GET') {
+    header('Cache-Control: no-store, max-age=0');
+    $pdo=db();
+    if(!$pdo)fail('exam_catalogue_unavailable',503);
+    try{
+        $view=jrExamCommercialCatalogue($pdo,cfg());
+        if(!$view['schemaReady'])fail('exam_catalogue_migration_required',503);
+        if((cfg()['jrei_exam_commercial_enabled']??false)!==true)
+            respond(['ok'=>true,'schema'=>'jr.jrei.exam-commercial-catalogue.v1',
+              'enabled'=>false,'items'=>[],'checkoutEnabled'=>false,
+              'availableForPurchase'=>false]);
+        respond(['ok'=>true,'enabled'=>true]+$view);
+    }catch(Throwable $e){fail('exam_catalogue_read_unavailable',503);}
+}
 if (str_starts_with($path, '/admin/operations')) operationsRoute($path, $verb);
 if (str_starts_with($path,'/jrei/v1/worker/')) {
     require_once __DIR__.'/jrei-hybrid-worker.php';
