@@ -365,13 +365,45 @@ function jrHybridComplete(PDO $pdo,string $node,array $body,int $at): array {
         throw new InvalidArgumentException('invalid_result');
     $pdo->beginTransaction();
     try {
-        $q=$pdo->prepare("SELECT status,lease_expires_at,dataset_sha256,
-          evidence_sha256 FROM jrei_hybrid_jobs
+        // Lock order: node -> corpus -> job, consistent with signed leasing
+        // and owner node/corpus revocation. Authentication occurred BEFORE
+        // this transaction: the owner might have revoked the worker since
+        // its signature was accepted.
+        $q=$pdo->prepare("SELECT node_id FROM jrei_hybrid_nodes
+          WHERE node_id=? AND status='ENABLED' AND revoked_at IS NULL
+          FOR UPDATE");
+        $q->execute([$node]);
+        if($q->fetchColumn()===false)
+            throw new DomainException('worker_no_longer_enabled');
+
+        // The first job read is deliberately nonlocking: it supplies only
+        // the immutable identity needed to lock the approval row BEFORE
+        // acquiring a job lock. All mutable fields are checked AGAIN below.
+        $q=$pdo->prepare("SELECT requested_dataset_id,evaluation_version,
+          dataset_sha256,evidence_sha256 FROM jrei_hybrid_jobs
+          WHERE job_id=? AND lease_id=? AND leased_to_node=?");
+        $q->execute([$body['jobId'],$body['leaseId'],$node]);
+        $identity=$q->fetch(PDO::FETCH_ASSOC);
+        if(!is_array($identity))
+            throw new DomainException('lease_or_evidence_conflict');
+        $offer=['id'=>$identity['requested_dataset_id'],
+          'evaluationVersion'=>$identity['evaluation_version'],
+          'datasetSha256'=>$identity['dataset_sha256'],
+          'evidenceSha256'=>$identity['evidence_sha256']];
+        if(!jrHybridLockApprovedCorpus($pdo,cfg(),$offer))
+            throw new DomainException('dataset_no_longer_approved');
+
+        $q=$pdo->prepare("SELECT status,lease_expires_at,
+          lease_started_at,requested_dataset_id,evaluation_version,
+          dataset_sha256,evidence_sha256 FROM jrei_hybrid_jobs
           WHERE job_id=? AND lease_id=? AND leased_to_node=? FOR UPDATE");
         $q->execute([$body['jobId'],$body['leaseId'],$node]);
         $job=$q->fetch(PDO::FETCH_ASSOC);
         if(!is_array($job)||$job['status']!=='LEASED'||
            (int)$job['lease_expires_at']<$at||
+           (int)$job['lease_started_at']+JR_HYBRID_MAX_LEASE_AGE<$at||
+           $job['requested_dataset_id']!==$offer['id']||
+           $job['evaluation_version']!==$offer['evaluationVersion']||
            !hash_equals((string)$job['dataset_sha256'],$summary['datasetSha256'])||
            !hash_equals((string)$job['evidence_sha256'],$summary['evidenceSha256']))
             throw new DomainException('lease_or_evidence_conflict');
