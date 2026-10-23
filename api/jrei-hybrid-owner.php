@@ -3,6 +3,7 @@ declare(strict_types=1);
 if(!defined('BERTINA_API_BOOTSTRAPPED')){http_response_code(404);exit;}
 require_once __DIR__.'/jrei-hybrid-worker.php';
 require_once __DIR__.'/jrei-hybrid-owner-corpus.php';
+require_once __DIR__.'/jrei-hybrid-owner-sources.php';
 
 /**
  * MFA SUPER_ADMIN-only projection and control of the OUTBOUND JREI worker.
@@ -89,7 +90,8 @@ function jrHybridOwnerSnapshot(PDO $pdo,array $cfg): array {
       'unverifiedAggregate'=>$r['result_json']===null?null:
         json_decode((string)$r['result_json'],true)
     ];
-    return array_merge($base,jrHybridOwnerCorpusSnapshot($pdo));
+    return array_merge($base,jrHybridOwnerCorpusSnapshot($pdo),
+        jrHybridSourceSnapshot($pdo));
 }
 function jrHybridOwnerChange(PDO $pdo,array $cfg,string $actor,
     array $body): array {
@@ -99,7 +101,10 @@ function jrHybridOwnerChange(PDO $pdo,array $cfg,string $actor,
     if(!is_string($action)||!in_array($action,[
        'register_node','set_node','revoke_node','queue_reviewed_retrieval',
        'cancel_job','propose_public_dataset','approve_public_dataset',
-       'suspend_public_dataset','record_job_review'],true))
+       'suspend_public_dataset','record_job_review',
+       'propose_public_source','approve_public_source',
+       'suspend_public_source','propose_source_version',
+       'review_source_version'],true))
          throw new InvalidArgumentException('invalid_action');
     $now=time();
     if(in_array($action,['propose_public_dataset',
@@ -107,6 +112,10 @@ function jrHybridOwnerChange(PDO $pdo,array $cfg,string $actor,
         return jrHybridOwnerCorpusChange($pdo,$actor,$body);
     if($action==='record_job_review')
         return jrHybridOwnerReviewJob($pdo,$actor,$body);
+    if(in_array($action,['propose_public_source','approve_public_source',
+       'suspend_public_source','propose_source_version',
+       'review_source_version'],true))
+        return jrHybridSourceChange($pdo,$actor,$body);
     if($action==='register_node'){
         $key=$body['publicKeyB64']??null;
         $label=$body['label']??null;
