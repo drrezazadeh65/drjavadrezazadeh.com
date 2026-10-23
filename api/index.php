@@ -523,7 +523,20 @@ require_once __DIR__.'/service-files.php';
 require_once __DIR__.'/service-buyer-receipt.php';
 require_once __DIR__.'/consultation-delivery.php';
 require_once __DIR__.'/jrei-exam-commercial-catalogue.php';
+require_once __DIR__.'/jrei-exam-candidate-snapshot.php';
 $path=route();$verb=method();
+if($path==='/exams/my' && $verb==='GET'){
+    header('Cache-Control: private, no-store, max-age=0');
+    header('X-Robots-Tag: noindex, nofollow, noarchive');
+    $pdo=db();if(!$pdo)fail('candidate_exam_unavailable',503);
+    $account=sessionAccount($pdo);
+    if(!is_array($account)||!validUuid((string)($account['id']??'')))
+        fail('unauthorized',401);
+    if((cfg()['jrei_exam_commercial_enabled']??false)!==true)
+        fail('candidate_exam_feature_disabled',503);
+    try{respond(jrExamCandidateSnapshot($pdo,(string)$account['id']));}
+    catch(Throwable $e){fail('candidate_exam_unavailable',503);}
+}
 if ($path==='/exams/catalog' && $verb==='GET') {
     header('Cache-Control: no-store, max-age=0');
     $pdo=db();
