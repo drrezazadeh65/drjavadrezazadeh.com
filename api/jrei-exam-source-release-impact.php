@@ -26,6 +26,7 @@ function jrExamOwnerSourceReleaseImpact(PDO $pdo): array {
     $from=" FROM jrei_exam_commercial_products p
        LEFT JOIN eco_assessment_items i
          ON i.instrument_version_id=p.instrument_version_id
+       LEFT JOIN eco_object_refs orig ON orig.id=i.prompt_object_id
        LEFT JOIN jrei_exam_item_metadata m
          ON m.canonical_assessment_item_id=i.id
        LEFT JOIN jrei_exam_reviewed_answer_keys k ON k.item_id=i.id
@@ -33,6 +34,16 @@ function jrExamOwnerSourceReleaseImpact(PDO $pdo): array {
        LEFT JOIN jrei_exam_sources ks ON ks.source_id=k.source_id
        WHERE p.product_state='PUBLISHED'";
     $badItem="i.id IS NULL OR
+       i.item_type<>'SINGLE_CHOICE' OR i.is_sensitive<>0 OR
+       orig.id IS NULL OR
+       orig.storage_provider<>'JR_EXAM_PUBLISHED_ITEM' OR
+       orig.mime_type<>'application/json' OR
+       orig.data_class<>'PRIVATE' OR
+       orig.malware_scan_status<>'CLEAN' OR
+       orig.encryption_key_reference IS NOT NULL OR
+       orig.byte_size<80 OR orig.byte_size>32768 OR
+       orig.object_reference<>CONCAT(orig.content_sha256,'.json') OR
+       orig.content_sha256<>m.item_content_digest OR
        m.canonical_assessment_item_id IS NULL OR
        m.item_state<>'APPROVED' OR
        m.copyright_review_state<>'APPROVED' OR
@@ -46,6 +57,8 @@ function jrExamOwnerSourceReleaseImpact(PDO $pdo): array {
        k.rights_review_state<>'APPROVED' OR
        k.reviewer_account_id IS NULL OR
        k.reviewed_at IS NULL OR
+       k.reviewer_account_id=m.authored_by_account_id OR
+       k.key_digest<>m.answer_key_digest OR
        m.source_id IS NULL OR
        k.source_id IS NULL OR
        NOT (m.source_id<=>k.source_id) OR
