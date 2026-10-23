@@ -211,6 +211,14 @@ function jrHybridOwnerChange(PDO $pdo,array $cfg,string $actor,
             throw new DomainException('current_policy_not_approved');
         $pdo->beginTransaction();
         try{
+            // Re-lock the approved version in the same transaction that
+            // queues work. Owner suspension cannot race with an earlier
+            // nonlocking catalogue read and leave orphan queued jobs.
+            $offer=['id'=>$id,'evaluationVersion'=>$version,
+                'datasetSha256'=>$record['datasetSha256'],
+                'evidenceSha256'=>$record['evidenceSha256']];
+            if(!jrHybridLockApprovedCorpus($pdo,$cfg,$offer))
+                throw new DomainException('dataset_version_no_longer_approved');
             $q=$pdo->query("SELECT COUNT(*) FROM jrei_hybrid_jobs
               WHERE status IN ('QUEUED','LEASED')");
             if((int)$q->fetchColumn()>=20)
