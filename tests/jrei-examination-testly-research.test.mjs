@@ -161,3 +161,19 @@ test('contradictory findings may be staged but not auto certified or published',
  assert.equal(proposeResearchMethod({researchQuestion:'Explain factor structure',
    method:'CONFIRMATORY_FACTOR_ANALYSIS',designReviewed:false}).ok,false);
 });
+
+test('future national-final systems may define different reviewed school levels',()=>{
+  const candidate=validateExamScope({...scope,countryCode:'GB',
+    level:'LOWER_SECONDARY',grade:9,category:'NATIONAL_FINAL'});
+  assert.equal(candidate.ok,true);
+  assert.equal(candidate.publicReady,false);
+});
+test('duplicate Persian/Arabic-normalized option content is not valid MCQ',()=>{
+ const orig={id:'original-1',stem:'کدام پاسخ درست است؟',correctOption:'B',
+  options:[{id:'A',text:'یک'},{id:'B',text:'دو'},{id:'C',text:'سه'}]};
+ const candidate={id:'generated-1',stem:'کدام پاسخ درست است؟',
+  correctOption:'C',options:[
+    {id:'A',text:'یک'},{id:'B',text:'يك'},{id:'C',text:'یک'}]};
+ assert.equal(inspectGeneratedItem({original:orig,candidate,
+   qualityReview:{}}).reason,'CHOICE_CONTRACT_INVALID');
+});
