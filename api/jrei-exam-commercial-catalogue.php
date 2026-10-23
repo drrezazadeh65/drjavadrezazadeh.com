@@ -83,6 +83,7 @@ function jrExamCommercialCatalogue(PDO $pdo,array $cfg,int $at=0): array {
               meta.authored_by_account_id IS NULL OR
               meta.reviewed_by_account_id=meta.authored_by_account_id OR
               meta.ambiguity_review_state<>'APPROVED' OR
+              meta.diagram_formula_integrity<>'APPROVED' OR
               meta.copyright_review_state<>'APPROVED' OR
               meta.source_id IS NULL OR meta.source_id<>k.source_id OR
               k.item_id IS NULL OR k.key_state<>'APPROVED' OR
