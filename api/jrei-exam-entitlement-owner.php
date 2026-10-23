@@ -15,6 +15,7 @@ function jrExamOwnerEntitlementPolicy(array $cfg): array {
         'schema'=>'jr.jrei.exam-entitlement-governance.v1',
         'grantSwitchEnabled'=>($cfg['jrei_exam_verified_entitlement_grants_enabled']??false)===true,
         'commercialSwitchEnabled'=>($cfg['jrei_exam_commercial_enabled']??false)===true,
+        'checkoutBridgeOwnerOptIn'=>($cfg['jrei_exam_checkout_bridge_accepted']??false)===true,
         'liveCheckoutVerified'=>false,
         'paymentProviderIntegrationAccepted'=>false,
         'automaticEntitlementGrantEnabled'=>false,
@@ -160,7 +161,8 @@ function jrExamOwnerRevokeEntitlement(PDO $pdo,string $actor,array $body): array
 function jrExamOwnerGrantVerifiedOrder(PDO $pdo,array $cfg,
     string $actor,array $body): array {
     if(($cfg['jrei_exam_verified_entitlement_grants_enabled']??false)!==true||
-       ($cfg['jrei_exam_commercial_enabled']??false)!==true)
+       ($cfg['jrei_exam_commercial_enabled']??false)!==true||
+       ($cfg['jrei_exam_checkout_bridge_accepted']??false)!==true)
         throw new DomainException('exam_verified_grants_not_authorized');
     if(!jrExamCommercialSchemaReady($pdo))
         throw new DomainException('exam_entitlement_schema_unavailable');
