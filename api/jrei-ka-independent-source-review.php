@@ -104,7 +104,8 @@ function jrKaIndependentHumanSourceReview(PDO $pdo,string $actor,array $body): a
     try{
         // Match the existing source-first lock order used by KA policies.
         $q=$pdo->prepare("SELECT source_id,source_authority_id,source_title,
-          source_locator_digest,source_version,original_sha256,
+          source_locator_digest,source_locator_uri,
+          source_version,original_sha256,
           publication_date,country_code,educational_level,exam_category,
           curriculum_version,examination_year,subject_id,source_kind,
           review_state,rights_state,is_revoked,is_superseded
@@ -114,6 +115,32 @@ function jrKaIndependentHumanSourceReview(PDO $pdo,string $actor,array $body): a
         if(!is_array($source)||$source['review_state']!=='CANDIDATE_UNREVIEWED'||
            (int)$source['is_revoked']!==0||(int)$source['is_superseded']!==0)
             throw new DomainException('source_candidate_review_conflict');
+        // An attested ORIGINAL document must have an intact public
+        // candidate identity; a bare hash or a private/signed URL cannot be
+        // represented as an independently authenticated original source.
+        if($action==='AUTHORIZE_PRIVATE_ANALYSIS'){
+            $url=$source['source_locator_uri']??null;
+            $parts=is_string($url)?parse_url($url):false;
+            $host=is_array($parts)?strtolower((string)($parts['host']??'')):'';
+            $path=is_array($parts)?(string)($parts['path']??'/'):'';
+            if(!is_array($parts)||($parts['scheme']??'')!=='https'||
+               $host===''||strlen($host)>253||
+               !preg_match(
+                  '/^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\\.)+[a-z]{2,63}$/D',
+                  $host)||
+               isset($parts['user'])||isset($parts['pass'])||
+               isset($parts['port'])||isset($parts['query'])||
+               isset($parts['fragment'])||
+               filter_var($host,FILTER_VALIDATE_IP)!==false||
+               strlen($path)>950||str_contains($path,'\\')||
+               preg_match('~(?:^|/)(?:\\.\\.|%2e%2e)(?:/|$)~i',$path))
+                throw new DomainException('source_candidate_public_identity_unverified');
+            $normalized='https://'.$host.($path===''?'/':$path);
+            if(!is_string($source['source_locator_digest'])||
+               !hash_equals($source['source_locator_digest'],
+                   hash('sha256',$normalized)))
+                throw new DomainException('original_source_locator_digest_mismatch');
+        }
         // At least one owner-approved scope must still match this exact
         // original source's recorded examination dimensions.
         $q=$pdo->prepare("SELECT requirement_id,approved_by_account_id,
