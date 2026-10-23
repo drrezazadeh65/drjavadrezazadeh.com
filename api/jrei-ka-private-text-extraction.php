@@ -10,8 +10,11 @@ require_once __DIR__.'/jrei-ka-acquisition-dispatch.php';
  * and specialist diagram/mathematical layout interpretation.
  */
 function jrKaTextSchemaReady(PDO $pdo,array $cfg): bool {
+    // Extraction may continue on already licensed archived observations
+    // while new network acquisition is independently suspended.
     if(($cfg['jrei_ka_text_extraction_enabled']??false)!==true||
-       !jrKaAcquisitionReady($pdo,$cfg))return false;
+       !jrKaSchemaReady($pdo)||
+       jrKaPrivateArchiveRoot($cfg)===null)return false;
     try{
         $pdo->query("SELECT observation_id,processing_state,claim_token,
            extraction_review_required FROM jrei_ka_text_extraction_jobs LIMIT 0");
@@ -85,6 +88,25 @@ function jrKaTextExtractBytes(string $mime,string $raw): array {
         'language'=>$lang,'requiresOcr'=>false];
 }
 function jrKaQueueOneTextExtraction(PDO $pdo,int $at): ?array {
+    // Backfill a bounded batch so an archive obtained before extraction
+    // activation is never lost. An original observation has one job only.
+    $pdo->beginTransaction();
+    try{
+        $q=$pdo->prepare("INSERT IGNORE INTO jrei_ka_text_extraction_jobs
+            (observation_id,source_id,processing_state,created_at,updated_at)
+            SELECT o.observation_id,o.source_id,'QUEUED',o.observed_at,?
+            FROM jrei_ka_private_observations o
+            LEFT JOIN jrei_ka_text_extraction_jobs x
+              ON x.observation_id=o.observation_id
+            WHERE x.observation_id IS NULL
+              AND o.state='PENDING_SCIENTIFIC_REVIEW'
+            ORDER BY o.observed_at ASC,o.observation_id ASC LIMIT 20");
+        $q->execute([$at]);
+        $pdo->commit();
+    }catch(Throwable $e){
+        if($pdo->inTransaction())$pdo->rollBack();
+        throw $e;
+    }
     $q=$pdo->prepare("SELECT x.observation_id,x.source_id
        FROM jrei_ka_text_extraction_jobs x
        WHERE x.processing_state='QUEUED' AND x.attempts<2
@@ -97,6 +119,9 @@ function jrKaQueueOneTextExtraction(PDO $pdo,int $at): ?array {
             $q=$pdo->prepare("SELECT rights_state,review_state,is_revoked,
                is_superseded FROM jrei_exam_sources WHERE source_id=? FOR UPDATE");
             $q->execute([$candidate['source_id']]);$source=$q->fetch(PDO::FETCH_ASSOC);
+            $q=$pdo->prepare("SELECT scheduling_state,rights_reviewed
+              FROM jrei_ka_source_policies WHERE source_id=? FOR UPDATE");
+            $q->execute([$candidate['source_id']]);$policy=$q->fetch(PDO::FETCH_ASSOC);
             $q=$pdo->prepare("SELECT observation_id,source_id,state,
               private_object_key,bytes_total,content_sha256,mime_type,
               rights_state_at_acquisition FROM jrei_ka_private_observations
@@ -106,7 +131,9 @@ function jrKaQueueOneTextExtraction(PDO $pdo,int $at): ?array {
               FROM jrei_ka_text_extraction_jobs
               WHERE observation_id=? FOR UPDATE");
             $q->execute([$candidate['observation_id']]);$job=$q->fetch(PDO::FETCH_ASSOC);
-            if(!is_array($source)||!is_array($ob)||!is_array($job)||
+            if(!is_array($source)||!is_array($policy)||!is_array($ob)||!is_array($job)||
+               $policy['scheduling_state']!=='APPROVED'||
+               (int)$policy['rights_reviewed']!==1||
                $ob['source_id']!==$candidate['source_id']||
                $job['processing_state']!=='QUEUED'||(int)$job['attempts']>=2||
                $ob['state']!=='PENDING_SCIENTIFIC_REVIEW'||
@@ -139,7 +166,8 @@ function jrKaQuarantineUnknownTextClaims(PDO $pdo,int $now): int {
            processing_state='UNKNOWN_EXTRACTION_REVIEW',
            failure_code='EXTRACTION_CLAIM_STALE',
            claim_token=NULL,claimed_at=NULL,updated_at=?
-           WHERE processing_state='EXTRACTING' AND claimed_at<?");
+           WHERE processing_state='EXTRACTING' AND claimed_at<?
+           ORDER BY claimed_at ASC LIMIT 20");
         $q->execute([$now,$now-300]);
         $count=$q->rowCount();
         $pdo->commit();
@@ -205,7 +233,9 @@ function jrKaExtractOnePrivateObservation(PDO $pdo,array $cfg): array {
            (int)$ob['bytes_total']<1||(int)$ob['bytes_total']>8388608)
             throw new DomainException('ka_observation_integrity_invalid');
         $path=realpath($root.DIRECTORY_SEPARATOR.$digest.'.bin');
-        if($path===false||dirname($path)!==$root||!is_file($path)||
+        if($path===false||dirname($path)!==$root||
+           is_link($root.DIRECTORY_SEPARATOR.$digest.'.bin')||
+           !is_file($path)||
            !is_readable($path)||filesize($path)!==(int)$ob['bytes_total'])
             throw new DomainException('ka_private_observation_missing');
         $raw=file_get_contents($path);
@@ -225,10 +255,15 @@ function jrKaExtractOnePrivateObservation(PDO $pdo,array $cfg): array {
             $q=$pdo->prepare("SELECT review_state,rights_state,is_revoked,
                is_superseded FROM jrei_exam_sources WHERE source_id=? FOR UPDATE");
             $q->execute([$ob['source_id']]);$source=$q->fetch(PDO::FETCH_ASSOC);
+            $q=$pdo->prepare("SELECT scheduling_state,rights_reviewed
+              FROM jrei_ka_source_policies WHERE source_id=? FOR UPDATE");
+            $q->execute([$ob['source_id']]);$policy=$q->fetch(PDO::FETCH_ASSOC);
             $q=$pdo->prepare("SELECT processing_state,claim_token FROM
               jrei_ka_text_extraction_jobs WHERE observation_id=? FOR UPDATE");
             $q->execute([$id]);$current=$q->fetch(PDO::FETCH_ASSOC);
-            if(!is_array($source)||!is_array($current)||
+            if(!is_array($source)||!is_array($policy)||!is_array($current)||
+               $policy['scheduling_state']!=='APPROVED'||
+               (int)$policy['rights_reviewed']!==1||
                $source['review_state']!=='AUTHORITATIVE_REVIEWED'||
                (int)$source['is_revoked']!==0||
                (int)$source['is_superseded']!==0||
