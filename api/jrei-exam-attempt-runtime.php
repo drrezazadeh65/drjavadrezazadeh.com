@@ -144,3 +144,189 @@ function jrExamAttemptStart(PDO $pdo,string $account,array $request,int $at): ar
         throw $e;
     }
 }
+
+
+/** Read the original canonical session under an attempt row lock. */
+function jrExamLockedAttempt(PDO $pdo,string $account,string $attemptId): array {
+    $q=$pdo->prepare("SELECT
+      a.attempt_id,a.offering_id,a.entitlement_id,a.account_id,
+      a.assessment_session_id,a.attempt_state,a.deadline_at,
+      a.response_revision,a.submission_digest,a.score_run_id,
+      s.subject_id,s.instrument_version_id,s.consent_id,s.status AS session_state,
+      p.scoring_model_id,o.offering_state,p.product_state
+      FROM jrei_exam_commercial_attempts a
+      JOIN eco_assessment_sessions s ON s.id=a.assessment_session_id
+      JOIN jrei_exam_commercial_offerings o ON o.offering_id=a.offering_id
+      JOIN jrei_exam_commercial_products p ON p.product_id=o.product_id
+      WHERE a.attempt_id=? AND a.account_id=? FOR UPDATE");
+    $q->execute([$attemptId,$account]);$r=$q->fetch(PDO::FETCH_ASSOC);
+    if(!is_array($r))throw new DomainException('exam_attempt_not_owned');
+    return $r;
+}
+
+/**
+ * Optimistic autosave: a version conflict NEVER overwrites the newer answer.
+ * One original assessment item/selected original option per revision.
+ * A null selected option explicitly clears a formerly selected answer.
+ */
+function jrExamAttemptSave(PDO $pdo,string $account,array $request,int $at): array {
+    $attemptId=jrExamAttemptUuid($request['attemptId']??null);
+    $itemId=jrExamAttemptUuid($request['itemId']??null);
+    $selected=$request['selectedOptionId']??null;
+    $revision=$request['expectedResponseRevision']??null;
+    if($selected!==null)$selected=jrExamAttemptUuid($selected);
+    if(!is_int($revision)||$revision<0||$revision>1000000||
+       ($request['confirmation']??null)!=='SAVE_EXAM_RESPONSE')
+        throw new InvalidArgumentException('invalid_autosave_request');
+    $pdo->beginTransaction();
+    try{
+        $attempt=jrExamLockedAttempt($pdo,$account,$attemptId);
+        if($attempt['attempt_state']!=='IN_PROGRESS'||
+           $attempt['session_state']!=='IN_PROGRESS'||
+           $attempt['offering_state']!=='PUBLISHED'||
+           $attempt['product_state']!=='PUBLISHED'||
+           $at>(int)$attempt['deadline_at'])
+            throw new DomainException('exam_not_accepting_responses');
+        jrExamTrustedEntitlement($pdo,$account,$attempt['offering_id'],$at);
+        $latestConsent=jrExamAdultSubjectConsent($pdo,$account,$attempt['subject_id']);
+        if($attempt['consent_id']!==$latestConsent)
+            throw new DomainException('original_exam_consent_superseded');
+        $storedRevision=(int)$attempt['response_revision'];
+        if($storedRevision!==$revision)
+            throw new DomainException('exam_response_revision_conflict');
+        $q=$pdo->prepare('SELECT item_type FROM eco_assessment_items
+          WHERE id=? AND instrument_version_id=? LIMIT 1');
+        $q->execute([$itemId,$attempt['instrument_version_id']]);
+        if($q->fetchColumn()!=='SINGLE_CHOICE')
+            throw new InvalidArgumentException('item_not_in_this_exam');
+        if($selected!==null){
+            $q=$pdo->prepare('SELECT 1 FROM eco_assessment_options
+              WHERE id=? AND item_id=? LIMIT 1');
+            $q->execute([$selected,$itemId]);
+            if($q->fetchColumn()===false)
+                throw new InvalidArgumentException('option_not_in_item');
+            $q=$pdo->prepare('INSERT INTO eco_assessment_responses
+              (id,session_id,item_id,selected_option_id,recorded_at)
+              VALUES (?,?,?,?,FROM_UNIXTIME(?))
+              ON DUPLICATE KEY UPDATE selected_option_id=VALUES(selected_option_id),
+                response_object_id=NULL,response_numeric=NULL,
+                recorded_at=VALUES(recorded_at)');
+            $q->execute([uuidv4(),$attempt['assessment_session_id'],$itemId,
+              $selected,$at]);
+        }else{
+            $q=$pdo->prepare('DELETE FROM eco_assessment_responses
+              WHERE session_id=? AND item_id=?');
+            $q->execute([$attempt['assessment_session_id'],$itemId]);
+        }
+        $q=$pdo->prepare('UPDATE jrei_exam_commercial_attempts
+          SET response_revision=response_revision+1,revision=revision+1,
+            last_saved_at=?,updated_at=?
+          WHERE attempt_id=? AND response_revision=? AND attempt_state=?');
+        $q->execute([$at,$at,$attemptId,$revision,'IN_PROGRESS']);
+        if($q->rowCount()!==1)
+            throw new DomainException('exam_response_revision_conflict');
+        $pdo->commit();
+        return [
+          'ok'=>true,'attemptId'=>$attemptId,'savedItemId'=>$itemId,
+          'responseRevision'=>$revision+1,'savedAt'=>$at,
+          'scoringPerformed'=>false,'answersPublished'=>false
+        ];
+    }catch(Throwable $e){
+        if($pdo->inTransaction())$pdo->rollBack();
+        throw $e;
+    }
+}
+
+/**
+ * Idempotent final submission: submit the entire server-persisted answer
+ * snapshot, not a client-provided score or a last-second uncommitted form.
+ * The actual score run is an original eco_score_runs row, still UNREVIEWED.
+ */
+function jrExamAttemptSubmit(PDO $pdo,string $account,array $request,int $at): array {
+    $attemptId=jrExamAttemptUuid($request['attemptId']??null);
+    $revision=$request['expectedResponseRevision']??null;
+    if(!is_int($revision)||$revision<0||$revision>1000000||
+       ($request['confirmation']??null)!=='FINAL_SUBMIT_EXAM')
+        throw new InvalidArgumentException('invalid_final_submission');
+    $pdo->beginTransaction();
+    try{
+        $a=jrExamLockedAttempt($pdo,$account,$attemptId);
+        if(in_array($a['attempt_state'],['SUBMITTED','TIMED_OUT'],true)){
+            $pdo->commit();
+            return ['ok'=>true,'attemptId'=>$attemptId,
+              'state'=>$a['attempt_state'],'idempotentReplay'=>true,
+              'submissionDigest'=>$a['submission_digest'],
+              'reportPublished'=>false];
+        }
+        if($a['attempt_state']!=='IN_PROGRESS'||
+           $a['session_state']!=='IN_PROGRESS'||
+           !validUuid((string)$a['scoring_model_id']))
+            throw new DomainException('exam_submission_state_conflict');
+        if((int)$a['response_revision']!==$revision)
+            throw new DomainException('exam_response_revision_conflict');
+        // A session that timeouts must still be signed off deterministically,
+        // but a revoked paid entitlement or withdrawn consent cannot be used
+        // to generate a fresh official score.
+        $effectiveAt=min($at,max(1,(int)$a['deadline_at']-1));
+        jrExamTrustedEntitlement($pdo,$account,$a['offering_id'],$effectiveAt);
+        $latestConsent=jrExamAdultSubjectConsent($pdo,$account,$a['subject_id']);
+        if($a['consent_id']!==$latestConsent)
+            throw new DomainException('original_exam_consent_superseded');
+        $context=jrExamVerifiedMcqContext($pdo,$a['instrument_version_id'],
+          $a['scoring_model_id']);
+        $q=$pdo->prepare("SELECT r.item_id,r.selected_option_id
+          FROM eco_assessment_responses r
+          WHERE r.session_id=? ORDER BY r.item_id ASC FOR UPDATE");
+        $q->execute([$a['assessment_session_id']]);
+        $answers=[];
+        foreach($q as $row){
+            $id=(string)$row['item_id'];
+            if(isset($answers[$id])||$row['selected_option_id']===null)
+                throw new DomainException('exam_response_storage_conflict');
+            $answers[$id]=(string)$row['selected_option_id'];
+        }
+        $grade=jrExamDeterministicRawGrade($context,$answers);
+        ksort($answers,SORT_STRING);
+        $source=json_encode([
+          $a['assessment_session_id'],$context['instrumentVersionId'],
+          $context['scoringModelId'],$context['policySha256'],$answers
+        ],JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);
+        $digest=hash('sha256',$source);
+        $output=json_encode($grade,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);
+        $outputDigest=hash('sha256',$output);
+        $scoreId=uuidv4();
+        $q=$pdo->prepare("INSERT INTO eco_score_runs
+          (id,session_id,scoring_model_id,input_sha256,output_sha256,
+            state,executed_at,human_review_required)
+          VALUES (?,?,?,?,?,'UNREVIEWED',FROM_UNIXTIME(?),1)");
+        $q->execute([$scoreId,$a['assessment_session_id'],
+            $a['scoring_model_id'],$digest,$outputDigest,$at]);
+        $timedOut=$at>(int)$a['deadline_at'];
+        $state=$timedOut?'TIMED_OUT':'SUBMITTED';
+        $q=$pdo->prepare('UPDATE jrei_exam_commercial_attempts
+          SET attempt_state=?,submitted_at=?,submission_digest=?,
+            score_run_id=?,updated_at=?,revision=revision+1
+          WHERE attempt_id=? AND attempt_state=? AND response_revision=?');
+        $q->execute([$state,$at,$digest,$scoreId,$at,$attemptId,
+            'IN_PROGRESS',$revision]);
+        if($q->rowCount()!==1)
+            throw new DomainException('exam_submission_race');
+        $q=$pdo->prepare("UPDATE eco_assessment_sessions
+          SET status='SUBMITTED',submitted_at=FROM_UNIXTIME(?)
+          WHERE id=? AND status='IN_PROGRESS'");
+        $q->execute([$at,$a['assessment_session_id']]);
+        if($q->rowCount()!==1)
+            throw new DomainException('exam_assessment_session_race');
+        $pdo->commit();
+        // Results remain private, preliminary, and owner-reviewable;
+        // they are not psychometric ranks, certificates or public scorecards.
+        return [
+          'ok'=>true,'attemptId'=>$attemptId,'state'=>$state,
+          'idempotentReplay'=>false,'submissionDigest'=>$digest,
+          'preliminaryRawGrade'=>$grade,'reportPublished'=>false
+        ];
+    }catch(Throwable $e){
+        if($pdo->inTransaction())$pdo->rollBack();
+        throw $e;
+    }
+}
