@@ -32,6 +32,7 @@ function jrExamOwnerPreliminaryGradeEvidence(PDO $pdo): array {
             s.scoring_model_id=g.scoring_model_id AND
             s.input_sha256=g.submission_sha256 AND
             s.output_sha256=g.output_sha256 AND
+            s.state='UNREVIEWED' AND
             a.submission_digest=g.submission_sha256 AND
             g.status='PRELIMINARY_UNREVIEWED'
             THEN 1 ELSE 0 END),0) AS metadata_aligned,
