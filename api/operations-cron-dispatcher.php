@@ -39,7 +39,11 @@ function operationsCronRegistry(): array {
       'jrei_daily_learning'=>[
         'fa'=>'ارزیابی یادگیری روزانه JREI','en'=>'JREI daily learning evaluator',
         'relative'=>'internal/jrei-daily-learning-worker.php',
-        'defaultCadence'=>86400,'minimumCadence'=>86400,'sensitive'=>true]
+        'defaultCadence'=>86400,'minimumCadence'=>86400,'sensitive'=>true],
+      'jrei_hybrid_incident_sensor'=>[
+        'fa'=>'پایش اختلال دو Worker آموزشی','en'=>'JREI hybrid worker incident sensor',
+        'relative'=>'internal/jrei-hybrid-incident-worker.php',
+        'defaultCadence'=>300,'minimumCadence'=>300,'sensitive'=>true]
     ];
 }
 function operationsCronSourcePath(string $jobId): ?string {
