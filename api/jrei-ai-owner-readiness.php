@@ -2,6 +2,7 @@
 declare(strict_types=1);
 if(!defined('BERTINA_API_BOOTSTRAPPED')){http_response_code(404);exit;}
 require_once __DIR__.'/jrei-ai-cloud-provider.php';
+require_once __DIR__.'/jrei-ai-model-routing.php';
 require_once __DIR__.'/jrei-ai-provider-telemetry.php';
 require_once __DIR__.'/jrei-ai-reviewed-passages.php';
 require_once __DIR__.'/jrei-ai-governed-benchmarks.php';
@@ -40,6 +41,7 @@ function jrAiOwnerReadiness(PDO $pdo,array $cfg): array {
         'unverifiedPassagesNeverReleased'=>true
       ],
       'modelRoutingActive'=>false,
+      'providerRouting'=>jrAiProviderNeutralRoutingReadiness($pdo,$cfg),
       'sourceGroundedScientificAnswersVerified'=>false,
       'quotas'=>[
         'maxCallsPerDay'=>(int)($cfg['jrei_ai_daily_call_limit']??0),
