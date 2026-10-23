@@ -96,6 +96,9 @@ function cfg(): array {
         // Separate legal autonomous-fetch opt-in, OFF even when scheduling
         // is enabled; private archived bytes must reside outside public_html.
         'jrei_ka_autofetch_enabled' => getenv('JR_JREI_KA_AUTOFETCH_ENABLED') === 'true',
+        // Independent first-pass extraction permission; never implies OCR,
+        // autonomous scientific acceptance or public document publishing.
+        'jrei_ka_text_extraction_enabled' => getenv('JR_JREI_KA_TEXT_EXTRACTION_ENABLED') === 'true',
         'jrei_ka_private_archive_dir' => (string)(getenv('JR_JREI_KA_PRIVATE_ARCHIVE_DIR') ?: ''),
         // Real AI inference: independent paid-provider credentials and
         // source-owned budget approval; entirely OFF until final acceptance.
