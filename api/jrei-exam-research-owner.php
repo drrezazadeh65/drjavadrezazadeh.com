@@ -133,7 +133,9 @@ function jrExamResearchOwnerSnapshot(PDO $pdo,array $cfg): array {
     $base['coverageScopeReviewQueue']=jrExamResearchSummaryRows($pdo,
       "SELECT requirement_id,country_code,curriculum_id,curriculum_version,
         educational_level,grade,exam_category,examination_year,subject_id,
-        expected_kind,requirement_state,approved_by_account_id,source_id
+        expected_kind,requirement_state,
+        CASE WHEN approved_by_account_id IS NULL THEN 0 ELSE 1 END
+        AS owner_scope_approved,source_id
         FROM jrei_exam_coverage_requirements
         WHERE requirement_state IN
            ('REQUIRES_SOURCE_REVIEW','SOURCE_CANDIDATE_LINKED_UNREVIEWED')
