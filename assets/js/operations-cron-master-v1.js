@@ -68,6 +68,8 @@
       [T('نسخه PHP CLI و مجوز فرایند فرزند','Host CLI and subprocess entitlement'),
        T('تأیید نشده؛ وضعیت PHP وب دلیل بر مجوز CLI نیست',
          'UNVERIFIED: web PHP settings do not establish CLI subprocess permissions')],
+      [T('کمینه فاصله Cron مجاز برتینا','Bertina minimum allowed host tick'),
+       T('پنج دقیقه؛ نصب هنوز تأیید نشده','FIVE MINUTES; installation not yet verified')],
       [T('نصب Cron در برتینا','Bertina host schedule'),
        T('تأیید نشده؛ نصب نشده فرض شود','NOT VERIFIED; never assume installed')]
     ];
@@ -185,10 +187,10 @@
       const cadenceLabel=el('label','jr-cron-interval-label',
         T('تناوب داخلی','Internal cadence'));
       const cadence=document.createElement('select');
-      const values=new Set([60,300,600,900,1800,3600,21600,43200,86400,
+      const values=new Set([300,600,900,1800,3600,21600,43200,86400,
         job.defaultCadenceSeconds,job.cadenceSeconds]);
       const options=[...values].filter(n=>Number.isSafeInteger(n)&&
-        n>=job.minimumCadenceSeconds&&n<=86400&&n%60===0)
+        n>=Math.max(300,job.minimumCadenceSeconds)&&n<=86400&&n%300===0)
         .sort((a,b)=>a-b);
       for(const seconds of options){
         const choice=document.createElement('option');
