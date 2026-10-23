@@ -16,11 +16,13 @@ CREATE TABLE IF NOT EXISTS jrei_ai_governed_benchmark_cases (
  case_state VARCHAR(34) NOT NULL DEFAULT 'DRAFT',
  author_account_id CHAR(36) NULL,
  generation_kind VARCHAR(34) NOT NULL DEFAULT 'OWNER_AUTHORED',
+ origin_fingerprint_sha256 CHAR(64) CHARACTER SET ascii COLLATE ascii_bin NULL,
  independent_reviewer_account_id CHAR(36) NULL,
  reviewed_at BIGINT UNSIGNED NULL,
  created_at BIGINT UNSIGNED NOT NULL,
  updated_at BIGINT UNSIGNED NOT NULL,
  KEY idx_jrei_bench_case_ready(case_state,domain_code,locale),
+ UNIQUE KEY uq_jrei_bench_origin_fingerprint(origin_fingerprint_sha256),
  CONSTRAINT fk_jrei_bench_case_author FOREIGN KEY(author_account_id)
    REFERENCES customer_accounts(id) ON DELETE SET NULL,
  CONSTRAINT fk_jrei_bench_case_reviewer FOREIGN KEY(independent_reviewer_account_id)
