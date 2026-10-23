@@ -658,6 +658,61 @@
        'برای احراز منبع نیاز به بررسی است','Source requires independent review')));
      card.append(elt('span','',T('دامنه: ','Scope: ')+
        String(issue.requirementId||'').slice(0,36)));
+     const uuid=/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i;
+     if(uuid.test(issue.requirementId||'')){
+       if(uuid.test(issue.registeredSourceId||'')){
+         const detach=elt('button','jr-exam-emergency',T(
+           'اصلاح پیوند اشتباه بدون حذف منبع',
+           'Detach incorrect link; retain original source'));
+         detach.type='button';
+         detach.addEventListener('click',()=>{
+           if(!active()||busy)return;
+           const reasons={
+             SOURCE_REVOKED:'SOURCE_REVOKED',
+             SOURCE_SUPERSEDED:'SOURCE_SUPERSEDED',
+             SOURCE_SCOPE_METADATA_MISMATCH:'EXAM_SCOPE_MISMATCH',
+             PRIVATE_ANALYSIS_RIGHTS_NOT_REVIEWED:'RIGHTS_REVIEW_FAILURE'
+           };
+           if(!window.confirm(T(
+             'پیوند از دامنهٔ مصوب جدا و در دفتر اصلاحات ثبت خواهد شد. اصل منبع و تاریخچه حفظ می‌شوند. تأیید؟',
+             'The link will be removed with an audit record; original source and review history are retained. Continue?')))return;
+           mutate({action:'ka_correct_coverage_link',mode:'DETACH',
+             requirementId:issue.requirementId,
+             expectedSourceId:issue.registeredSourceId,newSourceId:null,
+             reasonCode:reasons[issue.reason]||'WRONG_SOURCE',
+             confirmation:'CORRECT_EXAM_SOURCE_LINK_WITH_HISTORY'});
+         });
+         card.append(detach);
+       }else if(!issue.registeredSourceId){
+         const form=elt('form','jr-exam-coverage-form');
+         const label=elt('label','',T(
+           'اتصال منبع از پیش ثبت‌شده (شناسه UUID معتبر)',
+           'Link an already registered source (existing UUID)'));
+         const input=elt('input');input.type='text';
+         input.required=true;input.maxLength=36;input.minLength=36;
+         input.pattern='[a-fA-F0-9-]{36}';input.autocomplete='off';
+         label.append(input);
+         const link=elt('button','',T(
+           'پیشنهاد پیوند موجود؛ بدون تأیید اصالت',
+           'Link existing source metadata; NOT an approval'));
+         link.type='submit';form.append(label,link);
+         form.addEventListener('submit',event=>{
+           event.preventDefault();
+           const sourceId=input.value.trim().toLowerCase();
+           if(!active()||busy||!form.reportValidity()||
+              !uuid.test(sourceId))return;
+           if(!window.confirm(T(
+             'تنها پیوند فراداده ثبت می‌شود و صحت منبع یا مجوز تکثیر از این اقدام به دست نمی‌آید. تأیید؟',
+             'This records a metadata link only; it does not approve the source or grant reproduction rights. Continue?')))return;
+           mutate({action:'ka_correct_coverage_link',mode:'LINK_EXISTING',
+             requirementId:issue.requirementId,
+             expectedSourceId:null,newSourceId:sourceId,
+             reasonCode:'EXISTING_SOURCE_REUSE',
+             confirmation:'CORRECT_EXAM_SOURCE_LINK_WITH_HISTORY'});
+         });
+         card.append(form);
+       }
+     }
      panel.append(card);
    }
    if(queue.truncated)panel.append(elt('p','',T(
