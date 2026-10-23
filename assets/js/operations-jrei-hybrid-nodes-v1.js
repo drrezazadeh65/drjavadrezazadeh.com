@@ -22,6 +22,11 @@
    if(cls)e.className=cls;if(txt!==undefined)e.textContent=String(txt);return e;};
  const btn=(title,fn)=>{const b=el('button',title);b.type='button';b.addEventListener('click',fn);return b;};
  const say=x=>state.textContent=x;
+ const mountForm=(host,title,form)=>{
+   const details=el('details',undefined,'jr-hybrid-jobs jr-hybrid-form-panel');
+   details.append(el('summary',title),form);
+   host.append(details);
+ };
  const blank=()=>{listing.replaceChildren();tasks.replaceChildren();actions.replaceChildren();};
  const clean=()=>{seq++;controller?.abort();controller=null;busy=false;
    newNodeId=null;refresh.disabled=false;blank();say(T('برای دریافت اطلاعات، این بخش را باز کنید.',
@@ -146,7 +151,7 @@
        requiredRamMb:Number(ram.value),
        confirmation:'PROPOSE_LICENSED_LOCAL_MODEL_METADATA'});
    });
-   actions.append(propose);
+   mountForm(actions,T('پیشنهاد نسخهٔ مدل','Propose model version'),propose);
  }
 
  function renderSources(d){
@@ -261,7 +266,7 @@
        updateIntervalHours:Number(interval.value),
        confirmation:'REGISTER_SOURCE_PENDING_REVIEW'});
    });
-   actions.append(proposal);
+   mountForm(actions,T('ثبت پیشنهاد جدید','Add a new proposal'),proposal);
    if(approved.length){
      const sourceVersion=el('form',undefined,'jr-hybrid-form');
      sourceVersion.append(el('h4',T('ثبت فرادادهٔ نسخهٔ تازه برای بازبینی','Stage version metadata for review')));
@@ -290,7 +295,7 @@
          retrievedAt:Math.floor(reportedAt/1000),publicationAt:null,
          declaredMime:mime,confirmation:'STAGE_SOURCE_DIGEST_FOR_REVIEW'});
      });
-     actions.append(sourceVersion);
+     mountForm(actions,T('ثبت نسخهٔ منبع جدید','Register source version'),sourceVersion);
    }
  }
 
@@ -400,7 +405,7 @@
          maxEvidence:Number(maxEvidence.value)},
        confirmation:'PROPOSE_PUBLIC_HOLDOUT_FOR_REVIEW'});
    });
-   actions.append(proposal);
+   mountForm(actions,T('ثبت پیشنهاد جدید','Add a new proposal'),proposal);
    if(!approved.length){
      tasks.append(el('p',T('هیچ نسخهٔ تأییدشده‌ای برای تشکیل صف وجود ندارد.',
        'No approved corpus version is available for queueing.')));
@@ -439,7 +444,7 @@
        currentPolicy:row.currentPolicy,candidatePolicy,
        confirmation:'QUEUE_PUBLIC_REVIEWED_DATASET'});
    });
-   tasks.append(queue);
+   mountForm(tasks,T('فرم تشکیل صف ارزیابی','Queue an evaluation'),queue);
  }
 
  function render(d){
@@ -629,7 +634,7 @@
        providerType:select.value,publicKeyB64:publicKey.value.trim(),
        confirmation:'REGISTER_PUBLIC_KEY_DISABLED'});
    });
-   actions.append(form);
+   mountForm(actions,T('ثبت نود جدید؛ فقط در صورت نیاز','Register another node only when needed'),form);
    say(T('این‌ها فقط داده‌های سرور هستند. عکس رایانه روشن، اتصال واقعی به برتینا را اثبات نمی‌کند.',
      'These are server records. A powered-on computer is not evidence of a Bertina worker connection.'));
  }
