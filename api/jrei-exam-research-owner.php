@@ -5,6 +5,7 @@ require_once __DIR__.'/jrei-exam-coverage-readiness.php';
 require_once __DIR__.'/jrei-ka-exam-coverage-matrix.php';
 require_once __DIR__.'/jrei-ka-coverage-owner-review.php';
 require_once __DIR__.'/jrei-ka-coverage-gaps.php';
+require_once __DIR__.'/jrei-ka-coverage-link-corrections.php';
 require_once __DIR__.'/jrei-ka-scheduler.php';
 require_once __DIR__.'/jrei-ka-owner-controls.php';
 require_once __DIR__.'/jrei-ka-paper-key-proposals.php';
@@ -211,6 +212,8 @@ function jrExamResearchOwnerChange(PDO $pdo,array $cfg,string $actor,array $body
     if(!jrExamResearchSchemaReady($pdo))
         throw new DomainException('jrei_exam_research_migration_required');
     $action=$body['action']??null;
+    if($action==='ka_correct_coverage_link')
+        return jrKaOwnerCorrectCoverageLink($pdo,$actor,$body);
     if(in_array($action,['ka_approve_coverage_scope',
        'ka_withdraw_coverage_scope'],true))
         return jrKaOwnerCoverageScopeDecision($pdo,$actor,$body);
