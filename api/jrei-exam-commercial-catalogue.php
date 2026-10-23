@@ -94,6 +94,11 @@ function jrExamCommercialOwnerSnapshot(PDO $pdo,array $cfg): array {
       'entitlementStates'=>null,'attemptStates'=>null,
       'itemReviewCoverage'=>null,'itemReviewCoverageAvailable'=>false,
       'productRegistry'=>null,'offeringRegistry'=>null,
+      'operationalRisks'=>[
+        'unknownExpiredAttempts'=>null,'unfinishedDeadlineReviews'=>null,
+        'activeAccessOnSuspendedExams'=>null,
+        'deadlineCronPolicyEnabled'=>($cfg['jrei_exam_deadline_reconciliation_enabled']??false)===true
+      ],
       'verifiedPaymentIntegration'=>false,
       'secureAttemptDeliveryVerified'=>false,
       'officiallyReviewedItemsVerified'=>false,
@@ -152,6 +157,24 @@ function jrExamCommercialOwnerSnapshot(PDO $pdo,array $cfg): array {
       'maxAttempts'=>(int)$r['max_attempts'],
       'state'=>$r['offering_state'],'revision'=>(int)$r['revision']
     ];
+    try{
+        $q=$pdo->prepare("SELECT COUNT(*) FROM jrei_exam_commercial_attempts
+           WHERE attempt_state='IN_PROGRESS' AND deadline_at+120<?");
+        $q->execute([time()]);
+        $base['operationalRisks']['unknownExpiredAttempts']=(int)$q->fetchColumn();
+        $q=$pdo->query("SELECT COUNT(*) FROM jrei_exam_commercial_attempts
+           WHERE attempt_state='TIMED_OUT_PENDING_REVIEW'");
+        $base['operationalRisks']['unfinishedDeadlineReviews']=(int)$q->fetchColumn();
+        $q=$pdo->query("SELECT COUNT(*) FROM jrei_exam_commercial_entitlements e
+           JOIN jrei_exam_commercial_offerings o ON o.offering_id=e.offering_id
+           JOIN jrei_exam_commercial_products p ON p.product_id=o.product_id
+           WHERE e.state='ACTIVE' AND
+             (o.offering_state='SUSPENDED' OR p.product_state='SUSPENDED')");
+        $base['operationalRisks']['activeAccessOnSuspendedExams']=(int)$q->fetchColumn();
+    }catch(Throwable $e){
+        // Unknown is never converted to zero, because zero would conceal
+        // owner financial and educational service duties.
+    }
     // Display only aggregated scientific-review METADATA. An approved
     // source/key row is NOT a pass certificate without scientific QA.
     try{
