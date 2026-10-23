@@ -5,6 +5,7 @@ require_once __DIR__.'/jrei-exam-coverage-readiness.php';
 require_once __DIR__.'/jrei-ka-scheduler.php';
 require_once __DIR__.'/jrei-ka-owner-controls.php';
 require_once __DIR__.'/jrei-ka-paper-key-proposals.php';
+require_once __DIR__.'/jrei-ka-paper-key-owner-review.php';
 require_once __DIR__.'/jrei-exam-commercial-owner-actions.php';
 require_once __DIR__.'/jrei-exam-deadline-owner.php';
 require_once __DIR__.'/jrei-exam-entitlement-owner.php';
@@ -191,6 +192,8 @@ function jrExamResearchOwnerChange(PDO $pdo,array $cfg,string $actor,array $body
     if(!jrExamResearchSchemaReady($pdo))
         throw new DomainException('jrei_exam_research_migration_required');
     $action=$body['action']??null;
+    if($action==='ka_triage_paper_key')
+        return jrKaOwnerTriagePaperKey($pdo,$actor,$body);
     if($action==='exam_revoke_entitlement')
         return jrExamOwnerRevokeEntitlement($pdo,$actor,$body);
     if($action==='exam_grant_verified_order')
