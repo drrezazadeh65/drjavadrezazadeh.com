@@ -1,0 +1,210 @@
+<?php
+declare(strict_types=1);
+if(!defined('BERTINA_API_BOOTSTRAPPED')){http_response_code(404);exit;}
+
+/**
+ * Owner-only read/write metadata for the existing JREI ecosystem.
+ * The existing Bertina PHP mother DB remains system of record. These routes
+ * never fetch exam PDFs, execute Python/Node/model output, read participant
+ * responses, grant research consent, approve sources or release new items.
+ */
+function jrExamResearchSchemaReady(PDO $pdo): bool {
+    try{
+        foreach([
+            'SELECT id,discovery_enabled,extraction_enabled,generation_enabled,participant_enrolment_enabled,research_processing_enabled,policy_revision FROM jrei_exam_controls LIMIT 0',
+            'SELECT source_id,source_authority_id,source_title,educational_level,exam_category,examination_year,subject_id,source_kind,rights_state,review_state,extraction_state,answer_key_state,created_at FROM jrei_exam_sources LIMIT 0',
+            'SELECT requirement_id,educational_level,examination_year,subject_id,expected_kind,requirement_state FROM jrei_exam_coverage_requirements LIMIT 0',
+            'SELECT discovery_id,result_state,rights_review_state,robots_review_state FROM jrei_exam_discovery_attempts LIMIT 0',
+            'SELECT id,item_state,ambiguity_review_state,copyright_review_state,reviewed_by_account_id FROM jrei_exam_item_metadata LIMIT 0',
+            'SELECT blueprint_id,status,format_review_state,timing_review_state,scoring_review_state FROM jrei_exam_blueprints LIMIT 0',
+            'SELECT programme_id,status,exam_date_verified FROM jrei_exam_preparation_programmes LIMIT 0',
+            'SELECT stage_id,stage_code,status FROM jrei_exam_preparation_stages LIMIT 0',
+            'SELECT framework_version_id,framework_code,evidence_maturity,research_status,validated_composite_score FROM jrei_testly_framework_versions LIMIT 0',
+            'SELECT indicator_id,evidence_maturity,operational_definition_state FROM jrei_testly_indicator_proposals LIMIT 0',
+            'SELECT protocol_id,research_state,ethics_review_state,guardian_review_status FROM jrei_testly_research_protocols LIMIT 0',
+            'SELECT dataset_id,dataset_state,external_export_approved FROM jrei_testly_research_datasets LIMIT 0',
+            'SELECT analysis_id,interpretation,results_review_state FROM jrei_testly_research_analyses LIMIT 0'
+        ] as $query)$pdo->query($query);
+        return true;
+    }catch(Throwable $e){return false;}
+}
+function jrExamResearchSummaryRows(PDO $pdo,string $sql): array {
+    $q=$pdo->query($sql);
+    $out=[];
+    foreach($q as $r)$out[]=array_map(
+      static fn($v)=>is_numeric($v)?(int)$v:$v,$r);
+    return $out;
+}
+function jrExamResearchOwnerSnapshot(PDO $pdo,array $cfg): array {
+    $ready=jrExamResearchSchemaReady($pdo);
+    $base=[
+      'ok'=>true,'schema'=>'jr.jrei.exam-research-owner.v1',
+      'checkedAt'=>time(),'motherDbSchemaReady'=>$ready,
+      'sourceOnly'=>true,
+      'privateFeatureEnabled'=>($cfg['jrei_exam_research_enabled']??false)===true,
+      'sourceCrawlVerified'=>false,'examQuestionGenerationVerified'=>false,
+      'humanabilityEmpiricalValidationVerified'=>false,
+      'testlyEmpiricalValidationVerified'=>false,
+      'minorEnrolmentAuthorized'=>false,
+      'realPsychometricAnalysesVerified'=>false,
+      'realExamBlueprintsVerified'=>false,
+      'workerInferenceVerified'=>false,
+      'frameworkDefinitionSource'=>'AUTHOR_PROPOSAL_DIGESTS_REVIEWED_20261023',
+      'controls'=>null,'sourceCoverage'=>[],
+      'sourceReview'=>[],'intakeStates'=>[],
+      'coverageObligations'=>[],'itemReviews'=>[],
+      'blueprints'=>[],'preparationProgrammes'=>[],
+      'preparationStages'=>[],'frameworks'=>[],
+      'indicatorMaturity'=>[],'researchProtocols'=>[],
+      'researchDatasets'=>[],'researchAnalyses'=>[],
+      'notes'=>[
+       'Missing migration means UNKNOWN, not zero.',
+       'A crawler-discovered source is not necessarily licensed or official.',
+       'TESTLY and Humanability remain preliminary original theoretical proposals.',
+       'No score validity, psychometric outcome, official exam date or participant authorization is implied.'
+      ]
+    ];
+    if(!$ready)return $base;
+    $q=$pdo->query('SELECT discovery_enabled,extraction_enabled,generation_enabled,
+         participant_enrolment_enabled,research_processing_enabled,
+         policy_revision,updated_at FROM jrei_exam_controls WHERE id=1 LIMIT 1');
+    $c=$q->fetch(PDO::FETCH_ASSOC);
+    if($c)$base['controls']=[
+       'discoveryEnabled'=>(int)$c['discovery_enabled']===1,
+       'extractionEnabled'=>(int)$c['extraction_enabled']===1,
+       'generationEnabled'=>(int)$c['generation_enabled']===1,
+       'participantEnrolmentEnabled'=>(int)$c['participant_enrolment_enabled']===1,
+       'researchProcessingEnabled'=>(int)$c['research_processing_enabled']===1,
+       'policyRevision'=>(int)$c['policy_revision'],
+       'updatedAt'=>(int)$c['updated_at']
+    ];
+    $base['sourceCoverage']=jrExamResearchSummaryRows($pdo,
+      'SELECT educational_level,exam_category,examination_year,
+          COUNT(*) AS source_count,
+          SUM(CASE WHEN review_state=\'AUTHORITATIVE_REVIEWED\'
+             AND rights_state IN (\'PERMITTED_PRIVATE_ANALYSIS\',
+             \'PERMITTED_PUBLIC_DISPLAY\',\'PERMITTED_REPRODUCTION\')
+             AND is_revoked=0 AND is_superseded=0
+             THEN 1 ELSE 0 END) AS rights_reviewed_count
+        FROM jrei_exam_sources GROUP BY educational_level,exam_category,
+          examination_year ORDER BY examination_year DESC,
+          educational_level ASC LIMIT 70');
+    $base['sourceReview']=jrExamResearchSummaryRows($pdo,
+      'SELECT review_state,rights_state,COUNT(*) AS count
+        FROM jrei_exam_sources GROUP BY review_state,rights_state
+        ORDER BY count DESC LIMIT 40');
+    $base['intakeStates']=jrExamResearchSummaryRows($pdo,
+      'SELECT result_state,rights_review_state,robots_review_state,
+        COUNT(*) AS count FROM jrei_exam_discovery_attempts
+        GROUP BY result_state,rights_review_state,robots_review_state
+        ORDER BY count DESC LIMIT 40');
+    $base['coverageObligations']=jrExamResearchSummaryRows($pdo,
+      'SELECT educational_level,examination_year,expected_kind,
+        requirement_state,COUNT(*) AS count FROM jrei_exam_coverage_requirements
+        GROUP BY educational_level,examination_year,expected_kind,
+        requirement_state ORDER BY examination_year DESC LIMIT 70');
+    $base['itemReviews']=jrExamResearchSummaryRows($pdo,
+      'SELECT item_state,ambiguity_review_state,copyright_review_state,
+        COUNT(*) AS count FROM jrei_exam_item_metadata
+        GROUP BY item_state,ambiguity_review_state,copyright_review_state
+        ORDER BY count DESC LIMIT 50');
+    $base['blueprints']=jrExamResearchSummaryRows($pdo,
+      'SELECT status,format_review_state,timing_review_state,
+        scoring_review_state,COUNT(*) AS count
+        FROM jrei_exam_blueprints
+        GROUP BY status,format_review_state,timing_review_state,
+          scoring_review_state ORDER BY count DESC LIMIT 30');
+    $base['preparationProgrammes']=jrExamResearchSummaryRows($pdo,
+      'SELECT status,exam_date_verified,COUNT(*) AS count
+        FROM jrei_exam_preparation_programmes
+        GROUP BY status,exam_date_verified ORDER BY count DESC LIMIT 20');
+    $base['preparationStages']=jrExamResearchSummaryRows($pdo,
+      'SELECT stage_code,status,COUNT(*) AS count FROM jrei_exam_preparation_stages
+        GROUP BY stage_code,status ORDER BY stage_code LIMIT 25');
+    $base['frameworks']=jrExamResearchSummaryRows($pdo,
+      'SELECT framework_code,evidence_maturity,research_status,
+          validated_composite_score,COUNT(*) AS count
+        FROM jrei_testly_framework_versions
+        GROUP BY framework_code,evidence_maturity,research_status,
+          validated_composite_score ORDER BY framework_code LIMIT 25');
+    $base['indicatorMaturity']=jrExamResearchSummaryRows($pdo,
+      'SELECT evidence_maturity,operational_definition_state,
+        COUNT(*) AS count FROM jrei_testly_indicator_proposals
+        GROUP BY evidence_maturity,operational_definition_state
+        ORDER BY count DESC LIMIT 30');
+    $base['researchProtocols']=jrExamResearchSummaryRows($pdo,
+      'SELECT research_state,ethics_review_state,guardian_review_status,
+        COUNT(*) AS count FROM jrei_testly_research_protocols
+        GROUP BY research_state,ethics_review_state,guardian_review_status
+        ORDER BY count DESC LIMIT 30');
+    $base['researchDatasets']=jrExamResearchSummaryRows($pdo,
+      'SELECT dataset_state,external_export_approved,COUNT(*) AS count
+        FROM jrei_testly_research_datasets
+        GROUP BY dataset_state,external_export_approved
+        ORDER BY count DESC LIMIT 30');
+    $base['researchAnalyses']=jrExamResearchSummaryRows($pdo,
+      'SELECT interpretation,results_review_state,COUNT(*) AS count
+        FROM jrei_testly_research_analyses
+        GROUP BY interpretation,results_review_state
+        ORDER BY count DESC LIMIT 30');
+    return $base;
+}
+/** Emergency stop across all proposed exam/research background features;
+ * never resets legal/guardian consent or discards source history.
+ * No resume API until legal, scientific and worker gating is complete.
+ */
+function jrExamResearchOwnerChange(PDO $pdo,array $cfg,string $actor,array $body): array {
+    if(!jrExamResearchSchemaReady($pdo))
+        throw new DomainException('jrei_exam_research_migration_required');
+    $action=$body['action']??null;
+    if($action==='pause_all'){
+        $revision=$body['policyRevision']??null;
+        if(!is_int($revision)||$revision<1||
+           ($body['confirmation']??'')!=='PAUSE_JREI_EXAM_RESEARCH')
+            throw new InvalidArgumentException('invalid_owner_pause_request');
+        $now=time();
+        $pdo->beginTransaction();
+        try{
+            $q=$pdo->prepare('UPDATE jrei_exam_controls
+                SET discovery_enabled=0,extraction_enabled=0,generation_enabled=0,
+                  participant_enrolment_enabled=0,research_processing_enabled=0,
+                  policy_revision=policy_revision+1,
+                  updated_at=?,updated_by_account_id=?
+                WHERE id=1 AND policy_revision=?');
+            $q->execute([$now,$actor,$revision]);
+            if($q->rowCount()!==1)
+                throw new DomainException('jrei_exam_owner_revision_conflict');
+            operationsAudit($pdo,$actor,'jrei_exam_research_paused','all');
+            $pdo->commit();
+        }catch(Throwable $e){
+            if($pdo->inTransaction())$pdo->rollBack();
+            throw $e;
+        }
+    }elseif($action==='quarantine_source'){
+        $sourceId=$body['sourceId']??null;
+        if(!is_string($sourceId)||!preg_match(
+            '/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/D',
+            $sourceId)||
+            ($body['confirmation']??'')!=='QUARANTINE_UNVERIFIED_EXAM_SOURCE')
+            throw new InvalidArgumentException('invalid_source_quarantine_request');
+        $pdo->beginTransaction();
+        try{
+            $q=$pdo->prepare("UPDATE jrei_exam_sources SET
+                review_state='QUARANTINED',
+                extraction_state='HALTED',rights_state='PERMISSION_UNVERIFIED',
+                updated_at=? WHERE source_id=?");
+            $q->execute([time(),$sourceId]);
+            if($q->rowCount()!==1)
+                throw new DomainException('jrei_exam_source_not_found');
+            operationsAudit($pdo,$actor,'jrei_exam_source_quarantined',
+                substr(hash('sha256',$sourceId),0,64));
+            $pdo->commit();
+        }catch(Throwable $e){
+            if($pdo->inTransaction())$pdo->rollBack();
+            throw $e;
+        }
+    }else{
+        throw new InvalidArgumentException('unimplemented_exam_research_mutation');
+    }
+    return jrExamResearchOwnerSnapshot($pdo,$cfg);
+}
