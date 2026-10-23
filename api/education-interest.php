@@ -319,7 +319,7 @@ function jrInterestSubmit(PDO $pdo,array $body): never {
         // merely because a record was written.
         if(!smtpSend($email,$subject,$mail)){
             // A transport rejection is NOT confirmation of a delivered link.
-            // Release ONLY this newly created invitation's resend cooldown,
+            // Release ONLY this newly created invitation's repeat-request cooldown,
             // conditional on its current token; a concurrent newer request
             // or a previously VERIFIED consent must remain untouched.
             // Retain this token for ambiguous SMTP acceptance (it might
