@@ -121,7 +121,39 @@
        input.pattern='[a-f0-9]{64}';input.maxLength=64;
        input.minLength=64;input.spellcheck=false;input.autocomplete='off';
        input.setAttribute('inputmode','text');
-       holder.append(input);hashes.append(holder);proof.push(input);
+       const fileLabel=make('label','',T(
+         'محاسبه اختیاری SHA-256 از فایل محلی؛ فایل به سرور ارسال نمی‌شود',
+         'Optional SHA-256 from a local evidence file; file is NEVER uploaded'));
+       const file=make('input');file.type='file';
+       file.accept='.pdf,.txt,.html,.htm,.json,.png,.jpg,.jpeg';
+       file.addEventListener('change',async()=>{
+         const chosen=file.files?.[0];
+         if(!chosen)return;
+         // This local convenience is not proof that the reviewer has read,
+         // understood or legally authenticated the evidence document.
+         if(chosen.size<1||chosen.size>8*1024*1024||
+            !globalThis.crypto?.subtle){
+           status.textContent=T(
+             'این فایل قابل محاسبه نیست؛ هش معتبر را دستی وارد کنید.',
+             'File hash unavailable; enter a verified digest manually.');
+           file.value='';return;
+         }
+         try{
+           const digest=await crypto.subtle.digest(
+             'SHA-256',await chosen.arrayBuffer());
+           if(!workspace.hidden&&root.open){
+             input.value=Array.from(new Uint8Array(digest))
+               .map(x=>x.toString(16).padStart(2,'0')).join('');
+           }
+         }catch{
+           input.value='';
+           status.textContent=T('محاسبه محلی شکست خورد؛ مدرکی ارسال نشد.',
+             'Local hashing failed; no evidence document was transmitted.');
+         }finally{file.value='';}
+       });
+       fileLabel.append(file);
+       holder.append(input,fileLabel);
+       hashes.append(holder);proof.push(input);
      }
      const agree=make('label','',T(
        'این تصمیم صرفاً پس از بررسی واقعی مدارک گرفته شده و شامل تأیید متن سؤال یا انتشار نیست.',
