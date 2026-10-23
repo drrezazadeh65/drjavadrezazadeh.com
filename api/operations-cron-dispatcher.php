@@ -79,6 +79,11 @@ function operationsCronRegistry(): array {
         'en'=>'JREI-KA private paper and answer-key pairing proposals',
         'relative'=>'internal/jrei-ka-paper-key-worker.php',
         'defaultCadence'=>3600,'minimumCadence'=>3600,'sensitive'=>true],
+      'jrei_ai_private_quality_benchmark'=>[
+        'fa'=>'ارزیابی مستقلِ واقعی و خصوصی مدل هوش مصنوعی JREI',
+        'en'=>'JREI independently reviewed real-model benchmarks',
+        'relative'=>'internal/jrei-ai-private-benchmark-worker.php',
+        'defaultCadence'=>3600,'minimumCadence'=>3600,'sensitive'=>true],
       'jrei_exam_deadline_review'=>[
         'fa'=>'بررسی آزمون‌های منقضی‌شدهٔ JREI',
         'en'=>'JREI unfinished exam deadline review',
