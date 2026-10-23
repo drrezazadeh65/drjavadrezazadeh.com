@@ -3,9 +3,10 @@ declare(strict_types=1);
 if(!defined('BERTINA_API_BOOTSTRAPPED')){http_response_code(404);exit;}
 
 /**
- * Exact non-AI MCQ scoring for approved source keys. No HTTP route invokes
- * this module yet; candidate submission, payment entitlement, server-clock
- * checks and eco_score_runs persistence require their own final integration.
+ * Exact non-AI MCQ scoring for approved source keys. The staged candidate
+ * submission route invokes this module only after original consent, verified
+ * entitlement, server clock, approved content and independently reviewed keys.
+ * Its production execution and scientific validity remain unaccepted.
  *
  * All calculation uses integer thousandths, deterministic item order and
  * complete answer-key coverage. A reported raw score is NOT a percentile,
