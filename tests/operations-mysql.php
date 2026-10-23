@@ -31,7 +31,14 @@ $fake=$batch;$fake['events'][0]['sectionId']='OP-09';$fake['events'][0]['gateId'
 try{operationsImportRelease($pdo,$fake,$sha,$configuration,$run);throw new RuntimeException('CI certified a real payment');}catch(RuntimeException $e){check($e->getMessage()==='invalid_evidence_event','wrong forged-payment error');}
 $wrong=$batch;$wrong['runId']='654321';try{operationsImportRelease($pdo,$wrong,$sha,$configuration,$run);throw new RuntimeException('wrong run accepted');}catch(RuntimeException $e){check($e->getMessage()==='invalid_release_evidence','wrong run error');}
 $work=dirname(__DIR__).'/work';if(!is_dir($work))mkdir($work,0700,true);$folder=$work.'/operations-http-'.bin2hex(random_bytes(5));mkdir($folder,0700);mkdir($folder.'/api',0700);mkdir($folder.'/api/internal',0700);
-foreach(['index.php','commerce-stage9.php','publishing.php','publishing-onboarding.php','consultation-delivery.php','consultation-availability.php','operations.php','operations-jhela.php','jhela-native-editorial.php','jhela-intake.php','operations-commerce.php','operations-book-expiration.php','operations-donation-recovery.php','operations-fulfilment.php','operations-schema.php','operations-reporting.php','operations-ai-visibility.php','operations-gsc-direct.php','operations-action-runs.php','operations-social.php','social-review.php','social-queue.php','social-admin-settings.php','operations-github-audits.php','operations-github-dispatch.php','operations-collection.php',
+foreach(['index.php','commerce-stage9.php','publishing.php','publishing-onboarding.php','consultation-delivery.php','consultation-availability.php','operations.php','operations-jhela.php','jhela-native-editorial.php','jhela-intake.php','operations-commerce.php','operations-educational-offers.php','operations-education-price-drafts.php',
+'operations-education-release-gates.php','operations-education-source-review.php',
+'operations-education-readiness.php','operations-education-privacy.php',
+'operations-education-workbook-policy.php','operations-education-adult-review.php',
+'operations-education-interests.php','education-interest.php',
+'operations-cron-dispatcher.php','jrei-learning-operations.php',
+'jrei-hybrid-owner.php','jrei-exam-research-owner.php',
+'operations-book-expiration.php','operations-donation-recovery.php','operations-fulfilment.php','operations-schema.php','operations-reporting.php','operations-ai-visibility.php','operations-gsc-direct.php','operations-action-runs.php','operations-social.php','social-review.php','social-queue.php','social-admin-settings.php','operations-github-audits.php','operations-github-dispatch.php','operations-collection.php',
 'operations-provider-inventory.php','admin-resource-inventory-normalizer.php','operations-source-directory.php',
 'operations-source-controls.php','operations-page-quality.php','operations-alerts.php','operations-activation.php',
 'operations-http-log.php','operations-response-monitor.php','operations-database-health.php','operations-existing-features.php','operations-editor.php',
