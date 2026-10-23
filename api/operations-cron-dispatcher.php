@@ -64,6 +64,11 @@ function operationsCronRegistry(): array {
         'en'=>'JREI-KA lawful private document acquisition',
         'relative'=>'internal/jrei-ka-private-acquire-worker.php',
         'defaultCadence'=>3600,'minimumCadence'=>3600,'sensitive'=>true],
+      'jrei_ka_private_text_extraction'=>[
+        'fa'=>'استخراج متنی اولیهٔ خصوصی JREI-KA',
+        'en'=>'JREI-KA first-pass private text extraction',
+        'relative'=>'internal/jrei-ka-private-extraction-worker.php',
+        'defaultCadence'=>3600,'minimumCadence'=>3600,'sensitive'=>true],
       'jrei_exam_deadline_review'=>[
         'fa'=>'بررسی آزمون‌های منقضی‌شدهٔ JREI',
         'en'=>'JREI unfinished exam deadline review',
