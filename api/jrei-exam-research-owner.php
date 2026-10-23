@@ -197,6 +197,8 @@ function jrExamResearchOwnerChange(PDO $pdo,array $cfg,string $actor,array $body
     $action=$body['action']??null;
     if($action==='ka_review_public_quote')
         return jrKaOwnerPublicQuoteDecision($pdo,$cfg,$actor,$body);
+    if($action==='ai_disposition_improvement')
+        return jrAiOwnerDispositionImprovement($pdo,$actor,$body);
     if($action==='ai_expert_grade_benchmark')
         return jrAiOwnerGradeBenchmark($pdo,$actor,$body);
     if($action==='ai_review_benchmark_case')
