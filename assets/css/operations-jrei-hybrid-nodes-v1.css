@@ -1,0 +1,72 @@
+/* Original luxury owner admin / scoped mobile-first two-worker console. */
+#ops-jrei-hybrid-nodes{scroll-margin-top:5rem}
+#ops-jrei-hybrid-nodes>summary{cursor:pointer;min-height:48px;
+  padding:.75rem .5rem;line-height:1.7;font-weight:750}
+#ops-jrei-hybrid-nodes :is(summary,button,input,select):focus-visible{
+  outline:3px solid #c5a86e;outline-offset:3px}
+#ops-jrei-hybrid-nodes p{line-height:1.75}
+#ops-jrei-hybrid-nodes button{
+  min-height:44px;max-width:100%;padding:.55rem .8rem;
+  border:1px solid #b8a071;border-radius:10px;
+  background:transparent;color:inherit;cursor:pointer;
+  font:inherit;font-weight:650
+}
+#ops-jrei-hybrid-nodes button:disabled{opacity:.52;cursor:not-allowed}
+#ops-jrei-hybrid-nodes .jr-hybrid-grid{
+  display:grid;gap:.75rem;margin:1rem 0;
+  grid-template-columns:repeat(auto-fit,minmax(min(100%,235px),1fr))
+}
+#ops-jrei-hybrid-nodes .jr-hybrid-cell{
+  display:grid;gap:.3rem;min-width:0;padding:.7rem .85rem;
+  line-height:1.6;overflow-wrap:anywhere;
+  border:1px solid rgba(183,158,100,.3);border-radius:12px
+}
+#ops-jrei-hybrid-nodes .jr-hybrid-cell strong{font-size:.9rem}
+#ops-jrei-hybrid-nodes .jr-hybrid-cell span{font-size:.9rem}
+#ops-jrei-hybrid-nodes .jr-hybrid-node{
+  margin:.7rem 0;border:1px solid rgba(183,158,100,.4);
+  border-radius:15px;padding:.85rem;display:flex;flex-wrap:wrap;
+  align-items:stretch;gap:.65rem
+}
+#ops-jrei-hybrid-nodes .jr-hybrid-node h4{width:100%;margin:.15rem 0}
+#ops-jrei-hybrid-nodes .jr-hybrid-node .jr-hybrid-cell{
+  flex:1 1 180px;min-width:min(100%,170px)
+}
+#ops-jrei-hybrid-nodes .jr-hybrid-jobs{
+  margin:1rem 0;border:1px solid rgba(183,158,100,.3);
+  border-radius:12px;padding:.5rem .85rem
+}
+#ops-jrei-hybrid-nodes .jr-hybrid-jobs summary{
+  cursor:pointer;min-height:44px;padding:.6rem 0;font-weight:680
+}
+#ops-jrei-hybrid-nodes .jr-hybrid-job{
+  display:flex;flex-wrap:wrap;gap:.5rem 1rem;
+  align-items:center;padding:.65rem;
+  margin:.4rem 0;border-radius:9px;
+  border:1px solid rgba(183,158,100,.18)
+}
+#ops-jrei-hybrid-nodes .jr-hybrid-job small{flex:1}
+#ops-jrei-hybrid-nodes .jr-hybrid-form{
+  display:grid;gap:.75rem;margin:1rem 0;
+  padding:1rem;border:1px solid rgba(183,158,100,.4);
+  border-radius:14px
+}
+#ops-jrei-hybrid-nodes .jr-hybrid-form label{
+  display:grid;gap:.4rem;font-size:.95rem;line-height:1.6}
+#ops-jrei-hybrid-nodes .jr-hybrid-form :is(input,select){
+  box-sizing:border-box;max-width:100%;width:100%;
+  min-height:44px;padding:.55rem .65rem;
+  background:var(--ops-surface,#192025);color:inherit;
+  border:1px solid #b8a071;border-radius:9px
+}
+#ops-jrei-hybrid-nodes [role=status]{min-height:1.7em;line-height:1.8}
+#ops-jrei-hybrid-nodes code{display:inline-block;max-width:100%;
+  overflow-wrap:anywhere;user-select:text;margin-inline:.6rem}
+@media(max-width:550px){
+ #ops-jrei-hybrid-nodes .jr-hybrid-grid{grid-template-columns:minmax(0,1fr)}
+ #ops-jrei-hybrid-nodes .jr-hybrid-node>button{width:100%}
+ #ops-jrei-hybrid-nodes .jr-hybrid-job{display:grid}
+}
+@media(prefers-reduced-motion:reduce){
+ #ops-jrei-hybrid-nodes *{transition:none!important}
+}
