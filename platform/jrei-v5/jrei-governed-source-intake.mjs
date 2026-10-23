@@ -27,8 +27,14 @@ const methods=new Set(['OWNER_MANUAL_INTAKE','PUBLIC_HTTPS']);
 const own=(obj,key)=>Object.prototype.hasOwnProperty.call(obj,key);
 const object=x=>x!==null&&typeof x==='object'&&!Array.isArray(x)&&
   Object.getPrototypeOf(x)===Object.prototype;
-const iso=s=>typeof s==='string'&&TIME.test(s)&&
-  !Number.isNaN(Date.parse(s))&&new Date(s).toISOString()===s;
+// Accept RFC 3339 whole-second timestamps as well as millisecond ISO.
+// The original exact-string comparison mistakenly rejected a valid "...:00Z".
+const iso=s=>{
+  if(typeof s!=='string'||!TIME.test(s)||Number.isNaN(Date.parse(s)))
+    return false;
+  const normalized=new Date(s).toISOString();
+  return normalized===s||normalized.replace('.000Z','Z')===s;
+};
 const digest=b=>createHash('sha256').update(b).digest('hex');
 const safeCode=msg=>typeof msg==='string'&&/^[A-Z0-9_]{3,80}$/.test(msg)
   ?msg:'INTAKE_CONTRACT_INVALID';
