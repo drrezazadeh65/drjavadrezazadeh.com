@@ -733,6 +733,54 @@
    sections.append(root);
  }
 
+
+ function renderLiveModelReadiness(snapshot){
+   const ai=snapshot.liveAiReadiness;
+   if(!ai||ai.schema!=='jr.jrei.owner-live-model-readiness.v1'){
+     fact(T('موتور استنتاج زندهٔ JREI','JREI real-model inference'),
+       T('آمار معتبر دریافت نشد','No authoritative status received'));
+     return;
+   }
+   fact(T('اتصال واقعی مدل ابری','Real cloud model source status'),
+     ai.serverProviderConfigured?
+       T('کلید و تنظیمات شناسایی شدند؛ پذیرش عملیاتی باقی است',
+         'Server credentials and policy configured; operational proof pending'):
+       T('غیرفعال یا بدون مجوز','OFF or not configured'));
+   fact(T('رزرو درخواست مدل در روز جاری','Cloud-model calls reserved today'),
+     ai.reservedToday?safeCount(ai.reservedToday.calls):
+       T('نامعلوم؛ مهاجرت مصوب لازم است','Unknown; approved migration pending'));
+   const box=elt('details','jr-exam-subsection');
+   box.append(elt('summary','',T(
+     'وضعیت حقیقی اتصال مدل و سهمیه‌های JREI',
+     'Real JREI model provider and budget readiness')));
+   box.append(elt('p','',T(
+     'این آمار فقط تنظیمات سرور و رزرو محافظه‌کارانهٔ سهمیه است. صحت مدل، هزینهٔ دلاری و پاسخ‌دهی زنده تا اجرای واقعی و پذیرش پایانی نامعلوم‌اند.',
+     'This is server policy and conservative quota reservation ONLY. Actual quality, USD spend and live inference are unknown until final acceptance.')));
+   const lines=[
+      [T('سوئیچ خصوصی استنتاج','Private inference policy'),ai.privateRuntimeOptIn?'ON':'OFF'],
+      [T('مدل ثبت‌شده در تنظیمات','Configured model'),ai.approvedModelLabel||'—'],
+      [T('جدول بودجهٔ مادر','Mother DB quota schema'),
+        ai.providerBudgetSchemaReady?T('مشاهده شد','Present'):T('نامعلوم/نیازمند مهاجرت','Unknown/pending')],
+      [T('حد درخواست روزانه','Daily request ceiling'),safeCount(ai.quotas?.maxCallsPerDay)],
+      [T('سقف ورودی رزرو‌شده','Reserved daily input token ceiling'),
+        safeCount(ai.quotas?.inputTokenReservationCap)],
+      [T('سقف خروجی رزرو‌شده','Reserved daily output token ceiling'),
+        safeCount(ai.quotas?.outputTokenReservationCap)],
+      [T('استنتاج مستقل اثبات‌شده','Verified provider inference'),
+        ai.actualProviderInferenceProven?T('دارای شاهد','Evidenced'):T('اثبات نشده','Not established')],
+      [T('اعتبارسنجی علمی مدل','Independently accepted quality'),
+        ai.modelQualityIndependentlyAccepted?T('دارای شاهد','Evidenced'):T('اثبات نشده','Not established')],
+      [T('هزینهٔ واقعی و P95','Verified USD cost and P95 latency'),
+        T('نامعلوم تا پذیرش واقعی','Unknown before actual acceptance')]
+   ];
+   for(const [label,value] of lines){
+     const row=elt('div','jr-exam-coverage-row');
+     row.append(elt('strong','',label),elt('span','',String(value)));
+     box.append(row);
+   }
+   sections.append(box);
+ }
+
  function render(snapshot,hybrid=null){
    clearNodes();
    const ready=snapshot.motherDbSchemaReady===true;
@@ -759,6 +807,7 @@
    renderCommercialCentre(snapshot);
    renderExpiredExamReviews(snapshot);
    renderKnowledgeAcquisition(snapshot);
+   renderLiveModelReadiness(snapshot);
    for(const def of columns)viewGroup(def,snapshot[def.key],ready);
    renderWorker(hybrid);
    if(ready&&c){
