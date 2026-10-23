@@ -296,7 +296,18 @@ async function run(configArg) {
     try {
       const health=getTelemetry();
       const pollStart=Date.now();
-      const response=await post(config,key,ENDPOINTS.poll,{metrics:health});
+      // Each PC advertises ONLY hashes of corpora installed on that PC.
+      // Bertina independently checks its approved catalogue before assigning
+      // a task; no private documents, filenames or local filesystem paths
+      // are transmitted in the signed request.
+      const available=config.datasets.map(d=>({
+        id:d.id,datasetSha256:d.datasetSha256,
+        evidenceSha256:d.evidenceSha256,
+        evaluationVersion:d.evaluationVersion
+      }));
+      const response=await post(config,key,ENDPOINTS.poll,{
+        metrics:health,datasets:available
+      });
       latency=Math.min(300000,Math.max(0,Date.now()-pollStart));
       backoff=0;
       if(response.job!==null){
