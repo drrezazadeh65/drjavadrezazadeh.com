@@ -687,6 +687,43 @@
        root.append(proposals);
      }
    }
+   const extraction=ka.extractionObservability;
+   fact(T('متن‌های استخراج‌شدهٔ اولیه منتظر داوری',
+     'First-pass extracted text awaiting review'),
+     extraction?.schemaReady?fmt(extraction.textPendingReview):T('نامعلوم','Unknown'));
+   fact(T('فایل‌های PDF یا تصویر نیازمند OCR',
+     'Documents awaiting a proper OCR pass'),
+     extraction?.schemaReady?fmt(extraction.ocrRequired):T('نامعلوم','Unknown'));
+   root.append(elt('p','',
+     T('سوئیچ خصوصی استخراج متن: ','Private text extraction switch: ')+
+     (ka.privateTextExtractionOptIn?
+       T('مجاز در تنظیمات؛ عملکرد واقعی هنوز تأیید نشده',
+         'Owner opt-in; actual operation not yet verified'):
+       T('خاموش','OFF'))));
+   if(extraction?.schemaReady){
+     const stats=elt('div','jr-exam-coverage-row');
+     stats.append(elt('strong','',T(
+       'وضعیت ثبت‌شدهٔ استخراج خصوصیِ متن',
+       'Source-recorded private text extraction')));
+     for(const [labelFa,labelEn,value] of [
+       ['در صف','Queued',extraction.totalQueued],
+       ['در حال پردازش','Claimed',extraction.activeClaimed],
+       ['نیازمند OCR','Requires OCR',extraction.ocrRequired],
+       ['نیازمند بررسی ساختار JSON','Structured review',extraction.structuredReviewRequired],
+       ['ناموفق یا وضعیت نامعلوم','Failed/unknown',extraction.failedReviewRequired],
+       ['بایت متن خصوصی','Private text bytes',extraction.extractedPrivateBytes]
+     ])stats.append(elt('span','',T(labelFa,labelEn)+': '+fmt(value)));
+     root.append(stats);
+     for(const record of Array.isArray(extraction.languages)?
+           extraction.languages.slice(0,10):[]){
+       root.append(elt('span','',T('نشانهٔ زبان: ','Language hint: ')+
+         String(record.languageHint||'unknown').slice(0,12)+
+         ' · '+fmt(record.count)));
+     }
+     root.append(elt('p','',T(
+       'استخراج اولیهٔ متن به معنای OCR، صحت فرمول‌های ریاضی یا داوری علمی نیست.',
+       'First-pass text extraction does not establish OCR, mathematical integrity or scientific review.')));
+   }
    const states=Array.isArray(ka.jobStates)?ka.jobStates:[];
    const snapshotBox=elt('div','jr-exam-coverage-row');
    snapshotBox.append(elt('strong','',T('وضعیت واقعی کارهای ثبت‌شده',
