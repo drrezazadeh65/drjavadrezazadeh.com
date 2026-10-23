@@ -4,6 +4,7 @@ if(!defined('BERTINA_API_BOOTSTRAPPED')){http_response_code(404);exit;}
 require_once __DIR__.'/jrei-exam-coverage-readiness.php';
 require_once __DIR__.'/jrei-ka-exam-coverage-matrix.php';
 require_once __DIR__.'/jrei-ka-coverage-owner-review.php';
+require_once __DIR__.'/jrei-ka-coverage-gaps.php';
 require_once __DIR__.'/jrei-ka-scheduler.php';
 require_once __DIR__.'/jrei-ka-owner-controls.php';
 require_once __DIR__.'/jrei-ka-paper-key-proposals.php';
