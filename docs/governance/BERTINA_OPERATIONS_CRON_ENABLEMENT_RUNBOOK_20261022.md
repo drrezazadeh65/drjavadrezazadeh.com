@@ -1,5 +1,26 @@
 # Bertina P0 — Operations Cron Activation (owner-gated runbook)
 
+> **BINDING PROVIDER RESPONSE — ticket t975913, received 23 October 2026:** Bertina technical support explicitly confirmed that the **minimum supported host Cron interval is FIVE MINUTES**. The previous one-minute example and the historical seven-or-four isolated Cron templates below are NOT installation instructions. Current preferred source design: a single master Cron entry scheduled `*/5 * * * *`, provided Bertina independently confirms the PHP 8.3 CLI binary and whether `proc_open` is permitted on the specific shared plan. The provider supplied an EXAMPLE of the PHP command beginning `/usr/local/bin/php /home/drjavad1/public_html/path/to/cron/script`; the PHP version and exact working file path remain unconfirmed. The owner requested a grateful follow-up by Gmail, but sending failed; do not represent that reply as delivered. No host task has been installed or executed as part of this source change.
+
+## 23 October 2026 — Five-minute master schedule correction and JREI daily slot
+
+- `api/operations-cron-dispatcher.php` now enforces an exact **300-second minimum**, with every ordinary job cadence an integer multiple of 300 seconds; the original 600-second collector remains unchanged. The existing `api/internal/operations-master-dispatcher.php` enforces this floor again in CLI even if DB values were modified outside the owner dashboard.
+- A seventh allowlisted job `jrei_daily_learning` has been staged with 86,400-second cadence. Its source at `api/internal/jrei-daily-learning-worker.php` is **not** a trainer: it can register an idempotent daily review cycle in the single mother DB only after its independent private OFF switch and the existing owner scheduler controls are authorized. A schedule's child-process exit code 0 never means a model improved or that a scientific source became valid.
+- The fully additive source-only `docs/migrations/20261023_operations_cron_master_mysql.sql` now includes seven disabled jobs with supported intervals. An existing six-row installation, if independently discovered later, would require owner-authorized additive reconciliation before enabling the seventh; **do not execute the DDL or secretly edit production tables now**.
+- The JREI adaptive-learning evaluator and owner metadata are staged separately in `platform/jrei-v5/jrei-learning-loop.mjs`, `platform/jrei-v5/jrei-reviewed-retrieval-evaluator.mjs`, `api/jrei-learning-operations.php`, `api/internal/jrei-daily-learning-worker.php`, and `docs/migrations/20261023_jrei_daily_learning_mother_mysql.sql`. The JREI learning private config `JR_JREI_LEARNING_DAILY_ENABLED` defaults OFF, and the mother-DB owner row also defaults OFF.
+- Mobile bilingual SUPER_ADMIN / fresh-TOTP dashboards show registered policies, genuinely recorded cycles, absent schema, unknown Windows/CLI readiness, explicit proposed changes, and scientific review status. No user-facing /api/assistant chat traffic or shop/customer flow is rerouted.
+- **No guarantee** that the user's Windows computer stays online on a mobile hotspot. A future Windows worker must use outbound HTTPS polling and cannot rely on Bertina's five-minute schedule for interactive latency. Shared host `proc_open` may be disallowed; neither inbound access nor reverse tunneling is authorized.
+
+**Proposed command template ONLY, contingent on host-confirmed PHP and paths, and the single final owner-approved release:**
+
+```text
+*/5 * * * * <BERTINA_VERIFIED_PHP83_CLI_PATH> <BERTINA_VERIFIED_DEPLOY_ROOT>/api/internal/operations-master-dispatcher.php >> <OWNER_VERIFIED_PRIVATE_ROTATED_LOG> 2>&1
+```
+
+Even where scheduling appears supported, the maximum per-run 43-second work budget and seven independent due windows are source contracts, not host proof. Avoid enabling more work than Bertina's confirmed process budget and service policy allow. Protect existing payment, SMTP, privacy and evidence gates. No live host Cron, migration, inference, evaluation tests or deployment were performed by this documentation update.
+
+---
+
 > **2026-10-23 FORWARD-ONLY UPDATE — CENTRAL DISPATCHER IS THE PREFERRED PLAN (SOURCE ONLY).** The older four-entry schedule templates preserved below are historical fallbacks, **not** instructions to install four competing jobs after the new master is approved. The owner has sent Bertina support ticket `t975913` asking about a single private PHP CLI Cron entry every minute. **Bertina has confirmed only that the prior four CLI Cron entries could be configured**, not that the new central dispatcher, `proc_open`, one-minute budget or command paths are authorized. Do not install the four legacy entries or the new master without a final owner/host sign-off, and do not allow them to run simultaneously.
 
 ## One-Cron proposal: staged source architecture, not host activation
