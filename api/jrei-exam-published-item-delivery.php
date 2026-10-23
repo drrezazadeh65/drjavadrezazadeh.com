@@ -71,6 +71,18 @@ function jrExamDeliveredItemSet(PDO $pdo,string $version,string $locale): array 
       loc.independently_reviewed_by_account_id AS localized_reviewer_id,
       loc.reviewed_at AS localized_reviewed_at,
       loc.revision AS localized_revision,
+      CASE WHEN EXISTS (
+        SELECT 1 FROM jrei_exam_prompt_locale_review_history hist
+        WHERE hist.item_id=loc.item_id AND hist.locale=loc.locale
+          AND hist.reviewed_revision=loc.revision AND hist.decision='APPROVED'
+          AND hist.object_ref_id=loc.object_ref_id
+          AND hist.original_item_sha256=loc.original_item_sha256
+          AND hist.localized_manifest_sha256=loc.localized_manifest_sha256
+          AND hist.translation_rights_evidence_sha256=
+              loc.translation_rights_evidence_sha256
+          AND hist.linguistic_equivalence_evidence_sha256=
+              loc.linguistic_equivalence_evidence_sha256
+      ) THEN 1 ELSE 0 END AS localized_history_approved,
       loc.translation_rights_evidence_sha256 AS localized_rights_evidence,
       loc.linguistic_equivalence_evidence_sha256 AS localized_linguistic_evidence,
       lo.storage_provider AS localized_storage_provider,
@@ -104,7 +116,8 @@ function jrExamDeliveredItemSet(PDO $pdo,string $version,string $locale): array 
             // A human-reviewed translation can never alter the scored item
             // identity, option IDs, or the canonical original content hash.
             $sha='/^[a-f0-9]{64}$/D';
-            if($r['localized_review_state']!=='APPROVED'||
+            if((int)$r['localized_history_approved']!==1||
+               $r['localized_review_state']!=='APPROVED'||
                $r['localized_preparer_id']===null||
                $r['localized_reviewer_id']===null||
                $r['localized_preparer_id']===$r['localized_reviewer_id']||
