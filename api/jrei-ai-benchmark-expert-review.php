@@ -68,3 +68,64 @@ function jrAiOwnerGradeBenchmark(PDO $pdo,string $actor,array $body): array {
         throw $e;
     }
 }
+
+
+/**
+ * Private bounded original MFA evidence viewer for external expert review.
+ * A run can be graded only by someone different from case author/approver.
+ * Integrity of the exact original output is checked before showing it.
+ */
+function jrAiBenchmarkExpertQueue(PDO $pdo,array $cfg): array {
+    $out=['available'=>false,'cases'=>[],'pending'=>null,
+          'truncated'=>false,'containsRealLearnerData'=>false];
+    if(!jrAiBenchmarkSchemaReady($pdo))return $out;
+    $root=jrKaPrivateArchiveRoot($cfg);
+    if($root===null)return $out;
+    try{
+        $q=$pdo->query("SELECT COUNT(*) FROM jrei_ai_governed_benchmark_runs
+           WHERE run_state='ANSWER_PENDING_INDEPENDENT_REVIEW'
+             AND independently_graded=0");
+        $out['pending']=(int)$q->fetchColumn();
+        $q=$pdo->query("SELECT r.run_id,r.answer_sha256,
+           r.answer_private_object_key,r.structural_citations_passed,
+           c.question_text,c.locale,c.domain_code,c.task_type,
+           c.independent_reviewer_account_id
+          FROM jrei_ai_governed_benchmark_runs r
+          JOIN jrei_ai_governed_benchmark_cases c ON c.case_id=r.case_id
+          WHERE r.run_state='ANSWER_PENDING_INDEPENDENT_REVIEW'
+             AND r.independently_graded=0
+          ORDER BY r.completed_at,r.run_id LIMIT 9");
+        $rows=$q->fetchAll(PDO::FETCH_ASSOC);
+        $out['truncated']=count($rows)>8;$out['available']=true;
+        foreach(array_slice($rows,0,8) as $r){
+            $hash=(string)$r['answer_sha256'];
+            if(strlen($hash)!==64||!ctype_xdigit($hash)||
+               $r['answer_private_object_key']!==$hash.'.txt')
+                continue;
+            $path=$root.DIRECTORY_SEPARATOR.$hash.'.txt';
+            if(is_link($path))continue;
+            $canonical=realpath($path);
+            if($canonical===false||dirname($canonical)!==$root||
+               !is_file($canonical)||!is_readable($canonical)||
+               filesize($canonical)>10000)continue;
+            $answer=file_get_contents($canonical);
+            if(!is_string($answer)||!hash_equals($hash,hash('sha256',$answer))||
+               jrAiPublicTextSensitive($answer))continue;
+            $out['cases'][]=[
+                'runId'=>$r['run_id'],
+                'language'=>$r['locale'],
+                'domain'=>$r['domain_code'],
+                'taskType'=>$r['task_type'],
+                'originalQuestion'=>$r['question_text'],
+                'modelAnswerUnreviewed'=>$answer,
+                'answerSha256'=>$hash,
+                'structuralMarkersPassed'=>$r['structural_citations_passed']===null?
+                     null:((int)$r['structural_citations_passed']===1),
+                'notFactualValidation'=>true
+            ];
+        }
+    }catch(Throwable $e){
+        $out['available']=false;$out['cases']=[];$out['pending']=null;
+    }
+    return $out;
+}
