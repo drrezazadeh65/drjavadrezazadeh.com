@@ -1,0 +1,70 @@
+# JREI 2026 — Unified 24/7 Knowledge Acquisition and Commercial Examination Directive
+
+Owner's complete 23 October 2026 Ultimate Master Directive is binding alongside the original 117 atomic website/education requirements, the Hybrid JREI Super Master and the original author TESTLY/Humanability addendum. No original requirement is removed or superseded. This file is a traceability ledger, not an acceptance certificate.
+
+- Canonical repository: drrezazadeh65/drjavadrezazadeh.com
+- Branch: migration/bertina-linux6
+- Host and one mother DB: Bertina Linux/PHP/MariaDB, drjavad1_store
+- Existing primary entities: customer_accounts, commerce_orders, commerce_payment_claims, eco_assessment_items, eco_assessment_sessions, eco_assessment_responses, eco_score_runs
+- Release instruction: no iterative tests, migrations, actual source crawls, paid operations, model installation or deployment before final integrated owner-approved acceptance.
+
+## Parallel mandatory workstreams
+
+A — JREI-KA: lawful continuous source discovery and acquisition, versioned provenance, integrity/rights/robots/DNS checks, Persian/English extraction and OCR, independent answer-key review, content addressing, deduplication, priority, quota, storage target planning (1 TB is an eventual target only), interruption recovery and scheduled refresh.
+
+B — Commercial Intelligent Examination Centre: urgent Konkur, master's and doctoral examination catalogues; independent reviewed questions, three-stage preparation, buyer entitlements, account-bound attempts, server clock, idempotent response persistence, accurate deterministic scoring, private reports and refund/financial governance. School and national final examinations extend the same architecture.
+
+C — Dual Windows computing: existing authenticated separate outbound A/B nodes with constrained CPU/RAM/GPU, model/provenance allowlists, optional indexing/processing, host-independent examination timing, model approval and no unauthorised task-type escalation.
+
+## Traceable original 23 deliverables
+
+SOURCE means committed but untested; PARTIAL means only part is implemented; GATED means independent licence, data, host, payment, science or release evidence is required. Never report PASS without real end-stage evidence.
+
+| ID | Original deliverable | Responsible path / database dependency | Source status and deferred verification |
+| --- | --- | --- | --- |
+| UM-01 | Repository commits | migration/bertina-linux6 | SOURCE; immutable release SHA not frozen |
+| UM-02 | Persistent acquisition scheduler | api/jrei-ka-scheduler.php; staged knowledge-acquisition SQL; original Cron | PARTIAL; metadata queue, no live dispatch or retry acceptance |
+| UM-03 | Discovery/ingestion workers | platform/jrei-v5/jrei-authorized-https-acquisition.mjs; jrei-exam-discovery-contracts.mjs | PARTIAL; no approved live crawler/OCR |
+| UM-04 | Exam coverage matrix | api/jrei-exam-coverage-readiness.php; original exam owner dashboard | SOURCE; real completeness and official keys gated |
+| UM-05 | Structured question bank | eco_assessment_items/options, jrei_exam_item_metadata, staged key table | PARTIAL; approved rights and questions missing |
+| UM-06 | Generation/review engine | platform/jrei-v5/jrei-examination-contracts.mjs, assessment-authoring-engine.mjs | PARTIAL; live model/expert verification not established |
+| UM-07 | Commercial examination catalogue | api/jrei-exam-commercial-catalogue.php; /api/exams/catalog | SOURCE; paid checkout disabled |
+| UM-08 | Product/category detail pages | fa/en/exams/ and fa/en/exams/konkur,masters,phd | PARTIAL; category descriptions source-only, per-offering details pending |
+| UM-09 | Candidate exam interface | existing eco_assessment_sessions + staged attempts | OPEN; no operational timed answering yet |
+| UM-10 | Candidate dashboard | api/jrei-exam-candidate-snapshot.php; /api/exams/my | PARTIAL; authenticated no-store own-history read |
+| UM-11 | Scoring/reporting | api/jrei-exam-deterministic-scoring.php; eco_score_runs | PARTIAL; deterministic reviewed-key MCQ logic, no score-run transaction |
+| UM-12 | Verified payment/entitlement | commerce_orders, commerce_payment_claims; staged entitlements | GATED; no live exam SKU/payments/activation |
+| UM-13 | Three-stage bundles | planThreeStagePreparation and commercial offerings | PARTIAL; official exam dates, blueprint review, scoring and delivery pending |
+| UM-14 | Unified MFA owner console | api/operations.php; operations-jrei-exam-research-v1.js | PARTIAL; queue/products/provenance projected; actual control QA pending |
+| UM-15 | Two Windows workers | signed JREI hybrid workers and Windows modules | PARTIAL; historical signed connection, real new task inference unverified |
+| UM-16 | Bertina secure communication | existing signed worker protocol | SOURCE; new acquisition job type deliberately unactivated |
+| UM-17 | Network/resource monitor | hybrid telemetry, new JREI-KA budgets | PARTIAL; daily/monthly measured bytes and operator data allowance missing |
+| UM-18 | TESTLY/Humanability foundation | author source-register; jrei-testly-research-contracts.mjs | SOURCE; concepts provisional, empirical validation absent |
+| UM-19 | Research governance | existing eco_consent; exam/TESTLY owner schema | PARTIAL; no unapproved minors or research exports |
+| UM-20 | Additive mother DB migrations | commercial exam SQL + KA SQL + prior JREI/exam schemas | SOURCE; none of the new migrations executed |
+| UM-21 | Verification reports | JR_EDUCATIONAL_V4_SINGLE_FINAL_ACCEPTANCE_MATRIX_20261022.md | GATED; all final tests NOT RUN |
+| UM-22 | Deploy/rollback | original Bertina deployment + mother-DB masterplan | PARTIAL; backup and rollback proof deferred |
+| UM-23 | Release-readiness decision | 117-atomic ledger and single final matrix | GATED; no current claim of commercial readiness |
+
+## Mapping all 19 directive sections
+
+Sections 1–2 cover cumulative architecture and traceability, not a programme reset. Section 3 governs source discovery, priorities P0–P4, lawful licences, historical coverage, Persian/mathematical OCR and storage. Section 4 governs scientific maturation with no unapproved model-weight changes. Sections 5–6 govern commercial examination delivery and diagnostic/progress/final-mock products. Section 7 governs genuine construct-preserving independently verified new items, never option-position changes alone. Section 8 preserves the original unpublished TESTLY/Humanability conceptual research and permits contradictory evidence. Section 9 governs independent Windows nodes, resource-constrained signed jobs and no public ports. Section 10 requires measured network throughput and explicitly estimated (not fabricated operator-confirmed) package balance with 20/10/5 GB alerts. Section 11 extends the original bilingual MFA master dashboard. Section 12 retains the sole MariaDB mother, identity/commerce/scoring authority and controlled storage/backups. Sections 13–14 govern verifiable payment and a staged initial Konkur/master's/PhD commercial offer. Sections 15–16 define ambitious targets conditional on external evidence, not a fixed unverified delivery promise. Section 17 preserves privacy, immutable URLs, mobile UX and all existing services. Section 18 enumerates the 23 traceable deliverables above. Section 19 requires continued parallel source implementation and owner-authorized release only after acceptance.
+
+## Source progress from this continuation
+
+- Staged transactional catalogues, offerings, entitlements, attempt envelopes, original-item approved keys and integer scoring rules in docs/migrations/20261023_jrei_commercial_examination_mother_mysql.sql; no duplicate scoring or payment authority.
+- Added one read-only, fail-closed public catalogue /api/exams/catalog; independent backend switch defaults OFF and checkout remains disabled. Added /api/exams/my account-owned private noindex/no-store attempt listing. The existing MFA owner console exposes actual source/commercial counts.
+- Created bilingual examination centre hub and Konkur, master's and PhD landing pages; shared CSS and JS render only verified metadata and explicitly do not offer unapproved payments, dates or results. Added new-only sitemap entries without changing historical URLs.
+- Added deterministic reviewed-key MCQ score computation in api/jrei-exam-deterministic-scoring.php; no live scoring writes.
+- Added an independently OFF JREI-KA persistent acquisition scheduler and original Cron job registration, with source review/provenance SHA requirements, priorities, owner stop controls, quotas and row-locked bounded due-job insertion. This does NOT yet fetch files, dispatch KA tasks to either Windows PC or perform OCR. Those are outstanding source tasks.
+
+## Next dependent development steps
+
+1. Legitimate, source-approved Worker acquisition dispatch with state/digest rechecks, backoff, checkpoint resume, disk/traffic quotas, and safe extraction.
+2. Candidate subject/guardian/purpose consent, purchase verification, server-time attempt start, autosave/submit and eco_score_runs result persistence.
+3. Real commerce SKU reconciliation, refund and entitlement activation only on matched provider-verified payment claims.
+4. Correct, licensed source-reviewed exam sets and a scientifically controlled question generation/independent verification lifecycle.
+5. Real dual-worker traffic and disk/resource metering; owner-configured thresholds distinguished from operator-confirmed balance.
+6. The one complete final QA/release campaign for all 117 original requirements plus all Ultimate Master sections.
+
+**This entire batch is SOURCE DEVELOPMENT ONLY: no tests, migrations, downloads, local model runs, production deployments or bank/payment operations were executed.**
