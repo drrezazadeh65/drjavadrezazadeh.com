@@ -86,6 +86,9 @@ function jrExamCommercialCatalogue(PDO $pdo,array $cfg,int $at=0): array {
               meta.ambiguity_review_state<>'APPROVED' OR
               meta.diagram_formula_integrity<>'APPROVED' OR
               meta.copyright_review_state<>'APPROVED' OR
+              i.item_type<>'SINGLE_CHOICE' OR i.is_sensitive<>0 OR
+              orig.id IS NULL OR
+              orig.content_sha256<>meta.item_content_digest OR
               meta.source_id IS NULL OR meta.source_id<>k.source_id OR
               k.item_id IS NULL OR k.key_state<>'APPROVED' OR
               k.rights_review_state<>'APPROVED' OR
