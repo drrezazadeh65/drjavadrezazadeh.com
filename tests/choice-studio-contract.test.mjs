@@ -16,7 +16,7 @@ test('bilingual choice studio remains a working addition to existing verified pu
   assert.ok(html.includes('rel="canonical" href="'+url+'"'),'freeze canonical '+lang);
   assert.ok(html.includes('data-choice-studio data-locale="'+lang+'"'),'mount localised studio '+lang);
   assert.ok(html.includes('jr-choice-studio-v1.css?v=20261020-choice-sensitive-v5'));
-  assert.ok(html.includes('jr-choice-studio-v1.js?v=20261020-choice-sensitive-v5'));
+  assert.ok(html.includes('jr-choice-studio-v1.js?v=20261022-canonical-path-identities-v6'));
   assert.match(html,/<noscript>/,'progressive enhancement for '+lang);
   assert.match(html,/aria-labelledby="jr-choice-studio-(?:fa|en)-title"/);
  }
@@ -34,7 +34,7 @@ test('homepage discoveries are real accessible links to the existing interactive
   const html=read(path);
   assert.match(html,/class="section jr-choice-discovery"/);
   assert.ok(html.includes('href="'+href+'"'),'home feature must link to the real studio '+lang);
-  assert.match(html,/home-experience-v1\.css\?v=20261013-home-v4/);
+  assert.match(html,/home-experience-v1\.css\?v=20261022-direct-study-actions-v5/);
   assert.match(html,/aria-label="(?:مراحل بررسی تعاملی|How the reflection works)"/);
  }
  assert.doesNotMatch(read('en/student-guidance/index.html'),/My approach is different/);

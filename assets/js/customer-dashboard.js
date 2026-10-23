@@ -456,7 +456,7 @@ function authNavigation(authenticated){
 }
 
 function logout(){
- $('[data-dashboard-logout]').forEach(b=>b.addEventListener('click',async()=>{
+ $$('[data-dashboard-logout]').forEach(b=>b.addEventListener('click',async()=>{
   b.disabled=true;
   // Clear on-screen private BAHAR and guardian observations immediately on
   // the user's sign-out intent; the API still independently proves whether
