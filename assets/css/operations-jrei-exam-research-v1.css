@@ -1,0 +1,52 @@
+/* Independent, scope-safe original master-admin exam and TESTLY panel. */
+#ops-jrei-exam-research{scroll-margin-top:5rem}
+#ops-jrei-exam-research>summary{cursor:pointer;min-height:48px;padding:.75rem .5rem;
+  line-height:1.75;font-weight:750;outline-offset:4px}
+#ops-jrei-exam-research .jr-exam-intro{max-width:84ch;line-height:1.85}
+#ops-jrei-exam-research :is(button,select,summary):focus-visible{
+  outline:3px solid #c3a66c;outline-offset:3px}
+#ops-jrei-exam-research button{min-height:44px;max-width:100%;
+  cursor:pointer;background:transparent;color:inherit;border-radius:10px;
+  border:1px solid #b5a074;padding:.6rem 1rem;font-weight:700}
+#ops-jrei-exam-research button:disabled{opacity:.48;cursor:not-allowed}
+#ops-jrei-exam-research .jr-exam-facts{display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));
+  gap:.8rem;margin:1rem 0}
+#ops-jrei-exam-research .jr-exam-fact{display:grid;gap:.55rem;
+  padding:1rem;border-radius:14px;border:1px solid rgba(181,160,116,.38);
+  background:rgba(181,160,116,.06);line-height:1.7;overflow-wrap:anywhere}
+#ops-jrei-exam-research .jr-exam-fact strong{font-size:.95rem}
+#ops-jrei-exam-research .jr-exam-subsection{
+  margin:.65rem 0;border:1px solid rgba(181,160,116,.29);
+  border-radius:12px;padding:.25rem .8rem}
+#ops-jrei-exam-research .jr-exam-subsection>summary{
+  font-weight:650;cursor:pointer;padding:.75rem 0;line-height:1.6;
+  min-height:44px}
+#ops-jrei-exam-research .jr-exam-rows{
+  list-style:none;margin:0 0 .8rem;padding:0;display:grid;gap:.5rem}
+#ops-jrei-exam-research .jr-exam-rows>li{
+  padding:.7rem;border-radius:9px;display:flex;flex-wrap:wrap;
+  gap:.35rem 1rem;background:rgba(181,160,116,.045);line-height:1.6;
+  overflow-wrap:anywhere}
+#ops-jrei-exam-research .jr-exam-rows span{display:inline-flex;gap:.2rem;
+  flex-wrap:wrap;font-size:.89rem}
+#ops-jrei-exam-research .jr-exam-actions{display:grid;gap:.7rem;
+  padding-block:1rem;line-height:1.75}
+#ops-jrei-exam-research .jr-exam-emergency{
+  border-color:#ac795a;font-size:.95rem;justify-self:start}
+#ops-jrei-exam-research .jr-exam-source-actions{
+  display:flex;align-items:end;flex-wrap:wrap;gap:1rem}
+#ops-jrei-exam-research .jr-exam-source-actions label{display:grid;
+  gap:.45rem;flex:1;min-width:min(100%,260px)}
+#ops-jrei-exam-research select{min-height:44px;width:100%;max-width:100%;
+  padding:.5rem;color:inherit;background:var(--ops-surface,#151b21);
+  border-radius:10px;border:1px solid #b5a074}
+#ops-jrei-exam-research [role=status]{line-height:1.85}
+@media(max-width:540px){
+ #ops-jrei-exam-research .jr-exam-facts{grid-template-columns:minmax(0,1fr)}
+ #ops-jrei-exam-research .jr-exam-emergency{width:100%;justify-self:stretch}
+ #ops-jrei-exam-research .jr-exam-rows>li{display:grid}
+}
+@media(prefers-reduced-motion:reduce){
+ #ops-jrei-exam-research *{transition:none!important}
+}
