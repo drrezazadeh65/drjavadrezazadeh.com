@@ -42,6 +42,7 @@
    SUSPENDED:T('تعلیق‌شده','Suspended'),
    PENDING_REVIEW:T('در انتظار بررسی نسخه','Version pending review'),
    METADATA_REVIEWED:T('فراداده بازبینی شد','Metadata reviewed'),
+   RIGHTS_REVIEWED:T('حقوق استفاده بررسی شد','Licence rights reviewed'),
    REVIEWED:T('بازبینی مدیریتی ثبت شد','Owner-reviewed'),
    REJECTED:T('نتیجه رد شد','Rejected'),
    CLOSED_UNKNOWN:T('نتیجه نامعلوم بسته شد','Unknown outcome closed'),
@@ -51,6 +52,102 @@
  })[s]||String(s||'UNKNOWN').slice(0,80);
  const confirmAction=(fa,e)=>window.confirm(T(fa,e));
 
+
+
+ function renderModels(d) {
+   if(!d.modelRegistryReady){
+     tasks.append(el('p',T('ثبت مدل‌های محلی در انتظار مهاجرت افزایشی پایگاه داده است.',
+       'Local model registry awaits the staged additive mother-DB migration.')));
+     return;
+   }
+   const models=Array.isArray(d.registeredModels)?d.registeredModels:[];
+   const wrapper=el('details',undefined,'jr-hybrid-jobs');
+   wrapper.append(el('summary',T('ثبت مدل‌های محلی و مجوزهای استفاده','Local model inventory and licences')+
+     ' · '+number(models.length)));
+   wrapper.append(el('p',T(
+     'ثبت یا تأیید مجوز یک مدل به معنای نصب وزن‌ها، قابلیت استفاده از GPU، اجرای استنتاج یا آماده‌بودن دستیار عمومی نیست.',
+     'A reviewed model licence is not evidence of downloaded weights, GPU compatibility, live inference or public assistant readiness.')));
+   for(const model of models){
+     const item=el('article',undefined,'jr-hybrid-node');
+     item.append(el('h4',String(model.modelId)+' / '+String(model.modelVersion)));
+     cell(item,T('وضعیت مجوز','Rights status'),statusLabel(model.status));
+     cell(item,T('هش فایل وزن‌ها','Model artifact SHA-256'),model.artifactSha256);
+     cell(item,T('نسخه کوانتیزه','Quantization'),model.quantization);
+     cell(item,T('حداقل RAM اعلامی (MB)','Declared minimum RAM (MB)'),
+       number(model.requiredRamMb));
+     cell(item,T('مجوز','Licence'),model.licenceCode);
+     cell(item,T('فایل مدل تأییدشده روی رایانه','Weights installed and verified'),
+       model.weightsInstalledVerified?T('بله؛ نیازمند سند پذیرش','Reported verified; see acceptance'):
+         T('تأیید نشده','Not verified'));
+     cell(item,T('استنتاج واقعی تأییدشده','Runtime verified'),
+       model.runtimeVerified?T('با گزارش پذیرش بررسی شود','Check acceptance evidence'):
+         T('تأیید نشده','Not verified'));
+     cell(item,T('سرعت واقعی (توکن/ثانیه)','Measured tokens per second'),
+       typeof model.measuredTokensPerSecond==='number'?
+         fmt.format(model.measuredTokensPerSecond):T('نامعلوم','Unknown'));
+     cell(item,'p95 latency (ms)',Number.isSafeInteger(model.measuredP95LatencyMs)?
+       number(model.measuredP95LatencyMs):T('نامعلوم','Unknown'));
+     const provenance=el('a',T('صفحهٔ منتشرکنندهٔ مدل','Official model source'));
+     provenance.href=model.sourceUrl;provenance.target='_blank';
+     provenance.rel='noopener noreferrer';item.append(provenance);
+     const licence=el('a',T('شرایط حقوقی مدل','Model licence terms'));
+     licence.href=model.licenceUrl;licence.target='_blank';
+     licence.rel='noopener noreferrer';item.append(licence);
+     if(model.status==='PENDING')item.append(btn(
+       T('ثبت بازبینی مجوز؛ بدون فعال‌سازی','Record licence review only'),()=>{
+         if(!confirmAction(
+           'آیا شرایط صدور مجوز و منشأ مدل را جداگانه بررسی کرده‌اید؟ وزن‌ها بارگیری یا فعال نمی‌شوند.',
+           'Have you reviewed the model issuer and licence? This never installs or activates the model.'))return;
+         mutate({action:'approve_model_rights',modelId:model.modelId,
+           modelVersion:model.modelVersion,revision:model.revision,
+           confirmation:'RIGHTS_REVIEWED_NO_MODEL_ACTIVATION'});
+       }));
+     if(model.status==='PENDING'||model.status==='RIGHTS_REVIEWED')
+       item.append(btn(T('تعلیق نسخهٔ مدل','Suspend model version'),()=>{
+         if(!confirmAction('آیا نسخهٔ مدل از دفتر مجوزهای مجاز تعلیق شود؟',
+           'Suspend this model version from the authorised inventory?'))return;
+         mutate({action:'suspend_model_version',modelId:model.modelId,
+           modelVersion:model.modelVersion,revision:model.revision,
+           confirmation:'SUSPEND_LOCAL_MODEL_METADATA'});
+       }));
+     wrapper.append(item);
+   }
+   tasks.append(wrapper);
+   const propose=el('form',undefined,'jr-hybrid-form');
+   propose.append(el('h4',T('پیشنهاد مدل محلی با مجوز قابل بررسی','Propose an auditable local model')));
+   const field=(title,placeholder,type='text',max=500)=>{
+     const label=el('label',title),input=document.createElement('input');
+     input.type=type;input.placeholder=placeholder;input.required=true;
+     if(type!=='number')input.maxLength=max;
+     label.append(input);propose.append(label);return input;
+   };
+   const id=field('Model ID','multilingual-local-model', 'text',64);
+   const version=field(T('نسخه مدل','Model version'),'gguf-q4-v1','text',64);
+   const hash=field('Model artifact SHA-256','64 lowercase hexadecimal characters','text',64);
+   hash.pattern='[a-f0-9]{64}';hash.minLength=64;hash.dir='ltr';
+   hash.spellcheck=false;
+   const source=field(T('منبع رسمی مدل','Official model source'),'https://...','url');
+   const licence=field(T('کد مجوز','Licence code'),'Apache-2.0','text',80);
+   const licenceUrl=field(T('پیوند متن مجوز','Licence terms URL'),'https://...','url');
+   const quant=field(T('نسخه کم‌حجم‌سازی','Quantization'),'Q4_K_M','text',40);
+   const ram=field(T('حداقل RAM بر حسب مگابایت','Required RAM (MB)'),'8192','number');
+   ram.min='256';ram.max='131072';ram.step='1';
+   const button=document.createElement('button');button.type='submit';
+   button.textContent=T('ثبت پیشنهادی؛ بدون دانلود مدل','Propose metadata; do not download');
+   propose.append(button);
+   propose.addEventListener('submit',event=>{
+     event.preventDefault();if(!visible()||busy||!propose.reportValidity())return;
+     if(!confirmAction('فقط متادیتا و مجوز مدل ثبت شود؟ هیچ مدل اجرایی نصب نخواهد شد.',
+       'Register only model metadata and rights? No runtime will be installed.'))return;
+     mutate({action:'propose_local_model',modelId:id.value.trim(),
+       modelVersion:version.value.trim(),artifactSha256:hash.value.trim(),
+       sourceUrl:source.value.trim(),licenceCode:licence.value.trim(),
+       licenceUrl:licenceUrl.value.trim(),quantization:quant.value.trim(),
+       requiredRamMb:Number(ram.value),
+       confirmation:'PROPOSE_LICENSED_LOCAL_MODEL_METADATA'});
+   });
+   actions.append(propose);
+ }
 
  function renderSources(d){
    if(!d.sourceRegistryReady){
@@ -470,6 +567,7 @@
    tasks.append(detail);
    renderCorpus(d);
    renderSources(d);
+   renderModels(d);
    const form=document.createElement('form');form.className='jr-hybrid-form';
    form.append(el('h4',T('ثبت کلید عمومی مستقل','Register separate public key')));
    const field=(title,widget)=>{const wrap=el('label',title);wrap.append(widget);
