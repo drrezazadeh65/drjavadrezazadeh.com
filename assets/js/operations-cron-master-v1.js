@@ -96,6 +96,23 @@
         ' · '+T('آخرین شروع: ','Last start: ')+clock(job.lastStartedAt)+
         ' · '+T('آخرین پایان: ','Last finish: ')+clock(job.lastFinishedAt));
       card.append(state);
+      if(job.registered===true&&(job.enabled===true||job.lastState==='running')&&
+        Number.isSafeInteger(job.rowRevision)){
+        const quarantine=el('button','jr-cron-quarantine',
+          T('توقف اجراهای بعدی و ارجاع به بررسی مدیر','Stop future dispatch; require owner review'));
+        quarantine.type='button';
+        quarantine.addEventListener('click',()=>{
+          if(!open()||busy)return;
+          const accepted=window.confirm(T(
+            'این اقدام اجرای جدید را متوقف می‌کند، اما اجرای شروع‌شده یا ایمیل پذیرفته‌شده را برنمی‌گرداند. بررسی نتیجه واقعی لازم است. ادامه می‌دهید؟',
+            'This blocks future dispatch, but cannot cancel a child already running or undo an accepted email. You must review the actual outcome. Continue?'));
+          if(!accepted)return;
+          write({action:'quarantine',jobId:job.jobId,
+            rowRevision:job.rowRevision,
+            confirmation:'STOP_FUTURE_DISPATCH_REVIEW_OUTCOME'});
+        });
+        card.append(quarantine);
+      }
       const due=el('p','jr-cron-state',T('موعد بعدی در سیاست: ','Next recorded due time: ')+
          clock(job.nextDueAt)+
          ' · '+T('کد خروج: ','Exit code: ')+
