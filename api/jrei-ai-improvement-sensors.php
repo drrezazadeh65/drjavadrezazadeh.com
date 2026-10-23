@@ -5,6 +5,7 @@ require_once __DIR__.'/jrei-exam-source-release-impact.php';
 require_once __DIR__.'/jrei-exam-buyer-risk-exposure.php';
 require_once __DIR__.'/jrei-exam-preliminary-grade-owner-audit.php';
 require_once __DIR__.'/jrei-learning-evidence-accountability.php';
+require_once __DIR__.'/jrei-learning-owner-hazard-review.php';
 
 /**
  * Evidence-only self-improvement detection from ACTUAL measured events.
