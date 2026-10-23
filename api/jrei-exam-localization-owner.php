@@ -143,7 +143,10 @@ function jrExamOwnerLocalizedPromptAction(PDO $pdo,string $actor,array $body): a
                (int)$meta['is_superseded']!==0||
                $meta['key_state']!=='APPROVED'||
                $meta['rights_review_state']!=='APPROVED'||
-               $meta['key_reviewer']===null)
+               $meta['key_reviewer']===null||
+               $actor===$meta['authored_by_account_id']||
+               $actor===$meta['reviewed_by_account_id']||
+               $actor===$meta['key_reviewer'])
                 throw new DomainException('original_item_or_source_rights_unreviewed');
             $q=$pdo->prepare('SELECT content_sha256
               FROM eco_object_refs WHERE id=? FOR UPDATE');
