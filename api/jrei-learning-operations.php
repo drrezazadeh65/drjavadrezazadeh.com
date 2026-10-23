@@ -2,6 +2,7 @@
 declare(strict_types=1);
 if (!defined('BERTINA_API_BOOTSTRAPPED')) { http_response_code(404); exit; }
 require_once __DIR__.'/jrei-learning-evidence-accountability.php';
+require_once __DIR__.'/jrei-learning-owner-hazard-review.php';
 
 /**
  * Owner-only JREI V5 adaptive learning governance.
@@ -43,6 +44,7 @@ function jrJreiLearningSnapshot(PDO $pdo, array $cfg): array {
       'modelWeightLearningVerified'=>false,
       'autoPromotionActive'=>false,
       'recordedEvaluationAccountability'=>jrJreiLearningOwnerEvidenceAccountability($pdo),
+      'humanHazardReviewQueue'=>jrJreiLearningOwnerHazardQueue($pdo),
       'sourceOnly'=>true,
       'checkedAt'=>time(),
       'controls'=>null,'recentCycles'=>[],'proposalCounts'=>[
@@ -108,6 +110,10 @@ function jrJreiLearningOwnerChange(PDO $pdo,array $cfg,string $actor,array $body
     if(!jrJreiLearningSchemaReady($pdo))
         throw new DomainException('jrei_learning_migration_required');
     $action=$body['action']??null;
+    if($action==='reject_hazard_proposal'){
+        jrJreiLearningOwnerRejectHazard($pdo,$actor,$body);
+        return jrJreiLearningSnapshot($pdo,$cfg);
+    }
     $revision=$body['revision']??null;
     if($action!=='set_enabled'||!is_int($revision)||$revision<1)
         throw new InvalidArgumentException('invalid_jrei_learning_policy');
