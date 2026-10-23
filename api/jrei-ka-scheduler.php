@@ -77,7 +77,7 @@ function jrKaScheduleApprovedSources(PDO $pdo,array $cfg,int $at): array {
             AND s.verified_at IS NOT NULL
             AND s.source_locator_uri LIKE 'https://%'
             AND s.rights_state IN ('PERMITTED_PRIVATE_ANALYSIS',
-              'PERMITTED_PUBLIC_DISPLAY','PERMITTED_REPRODUCTION')
+              'PERMITTED_REPRODUCTION')
           ORDER BY p.priority_tier ASC,p.next_due_at ASC,p.source_id ASC
           LIMIT 10 FOR UPDATE");
         $q->execute([$at]);
