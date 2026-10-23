@@ -17,7 +17,8 @@ function jrExamAttemptRuntimeReady(PDO $pdo): bool {
           'SELECT item_id,key_state FROM jrei_exam_reviewed_answer_keys LIMIT 0',
           'SELECT scoring_model_id,policy_state FROM jrei_exam_scoring_policies LIMIT 0',
           'SELECT id,subject_id,consent_id FROM eco_assessment_sessions LIMIT 0',
-          'SELECT id,session_id,item_id,selected_option_id FROM eco_assessment_responses LIMIT 0'
+          'SELECT id,session_id,item_id,selected_option_id FROM eco_assessment_responses LIMIT 0',
+          'SELECT attempt_id,score_run_id,submission_sha256,output_sha256,raw_score_millipoints FROM jrei_exam_preliminary_grade_snapshots LIMIT 0'
         ] as $sql)$pdo->query($sql);
         return true;
     }catch(Throwable $e){return false;}
@@ -331,6 +332,24 @@ function jrExamAttemptSubmit(PDO $pdo,string $account,array $request,int $at): a
           VALUES (?,?,?,?,?,'UNREVIEWED',FROM_UNIXTIME(?),1)");
         $q->execute([$scoreId,$a['assessment_session_id'],
             $a['scoring_model_id'],$digest,$outputDigest,$at]);
+        // Materialise the exact deterministic output in the same original
+        // mother-DB transaction as the canonical eco_score_runs evidence.
+        // This permits durable private report reconstruction while keeping
+        // option choices, answer keys and identifying learner data ONLY in
+        // their original authoritative tables.
+        $q=$pdo->prepare("INSERT INTO jrei_exam_preliminary_grade_snapshots
+          (attempt_id,score_run_id,assessment_session_id,scoring_model_id,
+            scoring_policy_sha256,submission_sha256,output_sha256,
+            question_count,correct_count,incorrect_count,unanswered_count,
+            raw_score_millipoints,maximum_millipoints,status,recorded_at)
+          VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,'PRELIMINARY_UNREVIEWED',?)");
+        $q->execute([$attemptId,$scoreId,$a['assessment_session_id'],
+          $a['scoring_model_id'],$context['policySha256'],$digest,
+          $outputDigest,$grade['questionCount'],$grade['correctCount'],
+          $grade['incorrectCount'],$grade['unansweredCount'],
+          $grade['rawScoreMillipoints'],$grade['maximumMillipoints'],$at]);
+        if($q->rowCount()!==1)
+            throw new DomainException('preliminary_grade_snapshot_write_failed');
         $timedOut=$at>(int)$a['deadline_at'];
         $state=$timedOut?'TIMED_OUT':'SUBMITTED';
         $q=$pdo->prepare('UPDATE jrei_exam_commercial_attempts
@@ -431,19 +450,33 @@ function jrExamCandidateResult(PDO $pdo,string $account,string $attempt): array 
         p.scoring_model_id,
         run.session_id AS scored_session_id,
         run.scoring_model_id AS scored_model_id,
-        run.input_sha256,run.output_sha256,run.state AS score_state
+        run.input_sha256,run.output_sha256,run.state AS score_state,
+        g.score_run_id AS snapshot_run_id,
+        g.assessment_session_id AS snapshot_session_id,
+        g.scoring_model_id AS snapshot_model_id,
+        g.scoring_policy_sha256,g.submission_sha256,
+        g.output_sha256 AS snapshot_output_sha256,
+        g.question_count,g.correct_count,g.incorrect_count,
+        g.unanswered_count,g.raw_score_millipoints,
+        g.maximum_millipoints,g.status AS snapshot_state
       FROM jrei_exam_commercial_attempts a
       JOIN eco_assessment_sessions s ON s.id=a.assessment_session_id
       JOIN eco_subjects sub ON sub.id=s.subject_id
       JOIN jrei_exam_commercial_offerings o ON o.offering_id=a.offering_id
       JOIN jrei_exam_commercial_products p ON p.product_id=o.product_id
       JOIN eco_score_runs run ON run.id=a.score_run_id
+      JOIN jrei_exam_preliminary_grade_snapshots g
+        ON g.attempt_id=a.attempt_id
       WHERE a.attempt_id=? AND a.account_id=? AND sub.owner_account_id=?
         AND a.attempt_state IN ('SUBMITTED','TIMED_OUT')
       LIMIT 1");
     $q->execute([$id,$account,$account]);$a=$q->fetch(PDO::FETCH_ASSOC);
     if(!is_array($a)||$a['assessment_session_id']!==$a['scored_session_id']||
        $a['scoring_model_id']!==$a['scored_model_id']||
+       $a['score_run_id']!==$a['snapshot_run_id']||
+       $a['assessment_session_id']!==$a['snapshot_session_id']||
+       $a['scoring_model_id']!==$a['snapshot_model_id']||
+       $a['snapshot_state']!=='PRELIMINARY_UNREVIEWED'||
        !is_string($a['submission_digest'])||
        !preg_match('/^[a-f0-9]{64}$/D',$a['submission_digest']))
         throw new DomainException('verified_exam_score_run_unavailable');
@@ -474,7 +507,17 @@ function jrExamCandidateResult(PDO $pdo,string $account,string $attempt): array 
       JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR));
     if(!hash_equals($a['submission_digest'],$input)||
        !hash_equals((string)$a['input_sha256'],$input)||
-       !hash_equals((string)$a['output_sha256'],$output))
+       !hash_equals((string)$a['output_sha256'],$output)||
+       !hash_equals((string)$a['submission_sha256'],$input)||
+       !hash_equals((string)$a['snapshot_output_sha256'],$output)||
+       !hash_equals((string)$a['scoring_policy_sha256'],
+           (string)$context['policySha256'])||
+       (int)$a['question_count']!==$grade['questionCount']||
+       (int)$a['correct_count']!==$grade['correctCount']||
+       (int)$a['incorrect_count']!==$grade['incorrectCount']||
+       (int)$a['unanswered_count']!==$grade['unansweredCount']||
+       (int)$a['raw_score_millipoints']!==$grade['rawScoreMillipoints']||
+       (int)$a['maximum_millipoints']!==$grade['maximumMillipoints'])
         throw new DomainException('exam_score_evidence_changed_manual_review_required');
     return [
       'ok'=>true,'schema'=>'jr.jrei.candidate-preliminary-grade.v1',
@@ -484,6 +527,8 @@ function jrExamCandidateResult(PDO $pdo,string $account,string $attempt): array 
       'grade'=>$grade,
       'sourceResponsesVerifiedByDigest'=>true,
       'originalScoreRunDigestMatched'=>true,
+      'immutableSnapshotDigestMatched'=>true,
+      'rawScorePersistedInMotherDatabase'=>true,
       'correctAnswersIncluded'=>false,
       'psychometricValidityEstablished'=>false,
       'admissionProbability'=>null,'percentile'=>null,
