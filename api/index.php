@@ -110,6 +110,9 @@ function cfg(): array {
         // Credentials/policy alone cannot expose source-only AI to the public.
         // Release approval is independently OFF until the final acceptance.
         'jrei_public_ai_release_accepted' => getenv('JR_JREI_PUBLIC_AI_RELEASE_ACCEPTED') === 'true',
+        // Actual paid model BENCHMARK remains independent of live public AI.
+        'jrei_ai_benchmark_enabled' => getenv('JR_JREI_AI_BENCHMARK_ENABLED') === 'true',
+        'jrei_ai_benchmark_batch_id' => (string)(getenv('JR_JREI_AI_BENCHMARK_BATCH_ID') ?: ''),
         // Independently rights/peer-reviewed original passage RAG is
         // separately OFF until archival source reviews and QA are accepted.
         'jrei_ai_approved_passage_retrieval_enabled' => getenv('JR_JREI_AI_APPROVED_PASSAGE_RETRIEVAL_ENABLED') === 'true',
