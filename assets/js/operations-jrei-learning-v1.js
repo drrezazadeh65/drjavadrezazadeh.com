@@ -69,6 +69,27 @@
     fact(T('وضعیت ارتقای خودکار مدل','Automatic model upgrades'),
       T('غیرفعال؛ انتشار و تغییر وزن مدل مجاز نشده',
         'OFF; no publication or model-weight modifications are authorized'));
+    const evaluation=data.recordedEvaluationAccountability;
+    if(evaluation?.schema==='jr.jrei.learning-comparison-accountability.v1'){
+      const heading=text('p','jr-jrei-learning-note',T(
+        'ممیزی صرفاً آماریِ داده‌های ثبت‌شدهٔ مقایسهٔ مدل پایه و مدل پیشنهادی؛ این اعداد اثبات نمی‌کنند که نمونه‌ها واقعی یا ارزیابی مستقل انجام شده است.',
+        'Recorded baseline-vs-challenger aggregate audit only. Counts do not prove real, independently evaluated benchmarks or model improvement.'));
+      facts.append(heading);
+      const metrics=[
+        [T('مجموع پیشنهادهای ثبت‌شده','Recorded proposed changes'),evaluation.recordedProposals],
+        [T('نمونه کمتر از حداقل سیاست','Below minimum required sample count'),evaluation.sampleBelowPolicyMinimum],
+        [T('گزارش‌های دارای رخداد حریم خصوصی','Proposals reporting privacy incidents'),evaluation.privacyIncidentsReported],
+        [T('بدترشدن استناد یا شواهد','More unsupported evidence claims'),evaluation.unsupportedEvidenceRegressions],
+        [T('افزایش شکاف انصاف','Worsened reported fairness gap'),evaluation.fairnessGapRegressions],
+        [T('بدترشدن تأخیر پاسخ','Reported latency regression'),evaluation.latencyRegressions],
+        [T('نبود بهبود شمار پاسخ درست','No recorded accuracy improvement'),evaluation.accuracyNotImproved],
+        [T('تأییدشده با وجود خطر ثبت‌شده','Approved despite recorded risk'),evaluation.acceptedDespiteRecordedHazard]
+      ];
+      for(const [label,n] of metrics){
+        fact(label,evaluation.available&&Number.isSafeInteger(n)?
+          fmt.format(n):T('نامعلوم؛ ثبت معتبر در دسترس نیست','Unknown; original evidence unavailable'));
+      }
+    }
     if(Array.isArray(data.recentCycles)&&data.recentCycles.length){
       const list=text('ol','jr-jrei-learning-history');
       const labels={
