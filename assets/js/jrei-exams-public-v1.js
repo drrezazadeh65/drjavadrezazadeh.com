@@ -5,6 +5,7 @@
  const status=document.querySelector('[data-jrei-exam-status]');
  if(!root||!status)return;
  const en=document.documentElement.lang==='en';
+ const selectedDivision=root.getAttribute('data-jrei-division');
  const T=(fa,english)=>en?english:fa;
  const fmt=new Intl.NumberFormat(en?'en-US':'fa-IR');
  const date=new Intl.DateTimeFormat(en?'en-GB':'fa-IR',{
@@ -47,7 +48,8 @@
        throw Error('CATALOGUE_UNAVAILABLE');
      const safe=[];
      for(const item of data.items){
-       if(!item||!Object.prototype.hasOwnProperty.call(DIVISIONS,item.division)||
+       if(!item||(selectedDivision&&item.division!==selectedDivision)||
+          !Object.prototype.hasOwnProperty.call(DIVISIONS,item.division)||
           !/^[a-z0-9._-]{1,70}$/i.test(item.code||'')||
           typeof item.titleFa!=='string'||item.titleFa.length>180||
           !Number.isSafeInteger(item.durationSeconds)||
