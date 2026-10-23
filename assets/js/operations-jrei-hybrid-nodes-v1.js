@@ -59,6 +59,43 @@
 
 
 
+ function renderReviewHistory(d){
+   const entries=Array.isArray(d.reviewHistory)?d.reviewHistory:[];
+   if(!d.reviewLedgerReady){
+     tasks.append(el('p',T(
+       'ثبت دلایل کدگذاری‌شده به جدول افزایشی نیاز دارد؛ حسابرسی اصلی مدیریت محفوظ است.',
+       'The coded review ledger awaits its additive table; the original owner audit remains.')));
+     return;
+   }
+   const panel=el('details',undefined,'jr-hybrid-jobs');
+   panel.append(el('summary',T('تاریخچهٔ تصمیم‌های مدیریتی','Owner evaluation review history')+
+     ' · '+number(entries.length)));
+   if(!entries.length)panel.append(el('p',T(
+     'تاکنون بازبینی کدگذاری‌شده‌ای ثبت نشده است.',
+     'No coded owner review has been recorded.')));
+   const reasons={
+     METRICS_INSPECTED_NO_PUBLICATION:T('آمار بررسی شد؛ بدون انتشار','Metrics inspected, no publication'),
+     RESEARCH_VERIFICATION_OUTSTANDING:T('تأیید پژوهشی مستقل باقی است','Independent research review outstanding'),
+     UNSUPPORTED_EVALUATION_METRICS:T('آمار بدون پشتیبانی کافی','Unsupported evaluation metrics'),
+     CORPUS_APPROVAL_REVOKED:T('مجوز داده معلق شد','Corpus approval revoked'),
+     UNKNOWN_OUTCOME_NOT_RETRIED:T('اجرای نامعلوم؛ بدون تکرار','Unknown outcome; never replayed'),
+     PROTOCOL_MISMATCH:T('عدم تطبیق قرارداد ارزیابی','Evaluation protocol mismatch'),
+     LEGACY_REVIEW_NO_REASON:T('ثبت قدیمی؛ بدون دلیل استاندارد','Legacy review; no standardized rationale')
+   };
+   for(const row of entries.slice(0,40)){
+     const entry=el('article',undefined,'jr-hybrid-job');
+     entry.append(el('span',statusLabel(row.decision)));
+     entry.append(el('small',T('کار: ','Job: ')+String(row.jobId||'—')));
+     entry.append(el('small',reasons[row.rationaleCode]||String(row.rationaleCode||'—')));
+     entry.append(el('small',date(row.reviewedAt)));
+     entry.append(el('small',T('هش نتیجه: ','Result digest: ')+
+       (typeof row.resultDigest==='string'?row.resultDigest.slice(0,16)+'…':
+         T('فاقد نتیجهٔ دریافت‌شده','No received aggregate'))));
+     panel.append(entry);
+   }
+   tasks.append(panel);
+ }
+
  function renderModels(d) {
    if(!d.modelRegistryReady){
      tasks.append(el('p',T('ثبت مدل‌های محلی در انتظار مهاجرت افزایشی پایگاه داده است.',
@@ -688,6 +725,7 @@
    renderCorpus(d);
    renderSources(d);
    renderModels(d);
+   renderReviewHistory(d);
    const form=document.createElement('form');form.className='jr-hybrid-form';
    form.append(el('h4',T('ثبت کلید عمومی مستقل','Register separate public key')));
    const field=(title,widget)=>{const wrap=el('label',title);wrap.append(widget);
