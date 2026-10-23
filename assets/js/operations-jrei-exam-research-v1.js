@@ -365,6 +365,24 @@
        T('خاموش','OFF'));
    fact(T('آمادگی فروش واقعی آزمون','Verified exam checkout readiness'),
      T('تأیید نشده؛ فروش باز نیست','Unverified; checkout disabled'));
+   const grade=centre.preliminaryGradeEvidence;
+   if(grade?.schema==='jr.jrei.preliminary-grade-audit.v1'){
+     const unknown=T('نامعلوم؛ اسناد نمره یا دیتابیس نصب نشده',
+       'Unknown; score snapshot schema or canonical records unavailable');
+     fact(T('گزارش‌های نمرهٔ خامِ مقدماتی ذخیره‌شده',
+       'Recorded preliminary deterministic grade snapshots'),
+       grade.available?safeCount(grade.recordedSnapshots):unknown);
+     fact(T('تطبیق اثرانگشت نمره با رکورد اصلی',
+       'Snapshot digests aligned to canonical score-run metadata'),
+       grade.available?safeCount(grade.canonicalDigestAligned):unknown);
+     const issues=grade.available?
+       Number(grade.orphanedOrMismatchedRun)+
+       Number(grade.missingSnapshotAfterSubmission)+
+       Number(grade.unexpectedSnapshotStates):null;
+     fact(T('پرونده‌های گزارش نیازمند بررسی یکپارچگی',
+       'Preliminary score records requiring integrity review'),
+       grade.available?safeCount(issues):unknown);
+   }
    const risk=centre.operationalRisks;
    if(risk){
      fact(T('آزمون‌های منقضی و هنوز تعیین‌تکلیف‌نشده',
