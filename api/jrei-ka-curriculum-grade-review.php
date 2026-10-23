@@ -192,13 +192,18 @@ function jrKaIndependentScopeAlignmentDecision(PDO $pdo,string $actor,
             $actor===$source['reviewer_account_id']||
             $source['reviewer_account_id']===null))
             throw new DomainException('independent_curriculum_reviewer_required');
-        foreach(['country_code','educational_level','exam_category',
-          'curriculum_version','examination_year','subject_id'] as $col){
-            if((string)$scope[$col] !== (string)$source[$col])
-                throw new DomainException('curriculum_original_metadata_mismatch');
+        // Revocation is deliberately allowed after source metadata
+        // changes: otherwise a stale former attestation could not be
+        // explicitly withdrawn by an independent human reviewer.
+        if($decision!=='REVOKED_SCOPE_ALIGNMENT'){
+            foreach(['country_code','educational_level','exam_category',
+              'curriculum_version','examination_year','subject_id'] as $col){
+                if((string)$scope[$col] !== (string)$source[$col])
+                    throw new DomainException('curriculum_original_metadata_mismatch');
+            }
+            if($scope['expected_kind']!==$source['source_kind'])
+                throw new DomainException('curriculum_source_type_mismatch');
         }
-        if($scope['expected_kind']!==$source['source_kind'])
-            throw new DomainException('curriculum_source_type_mismatch');
         $q=$pdo->prepare('SELECT source_id,review_state,revision
           FROM jrei_ka_scope_alignment_current
           WHERE requirement_id=? FOR UPDATE');
