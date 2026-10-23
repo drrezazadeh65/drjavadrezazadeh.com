@@ -2,6 +2,7 @@
 declare(strict_types=1);
 if(!defined('BERTINA_API_BOOTSTRAPPED')){http_response_code(404);exit;}
 require_once __DIR__.'/jrei-hybrid-worker.php';
+require_once __DIR__.'/jrei-hybrid-owner-corpus.php';
 
 /**
  * MFA SUPER_ADMIN-only projection and control of the OUTBOUND JREI worker.
@@ -20,7 +21,8 @@ function jrHybridOwnerSnapshot(PDO $pdo,array $cfg): array {
       'checkedAt'=>time(),
       'nodes'=>[],'jobs'=>[],
       'counts'=>['queued'=>null,'leased'=>null,'reviewRequired'=>null,
-        'completed'=>null,'expired'=>null,'cancelled'=>null],
+        'completed'=>null,'rejected'=>null,'closedUnknown'=>null,
+        'expired'=>null,'cancelled'=>null],
       'limits'=>['activeNodes'=>2,'maxQueue'=>20,
         'leaseSeconds'=>JR_HYBRID_LEASE_SECONDS,
         'maxLeaseAgeSeconds'=>JR_HYBRID_MAX_LEASE_AGE],
@@ -63,7 +65,8 @@ function jrHybridOwnerSnapshot(PDO $pdo,array $cfg): array {
         $key=match($r['status']){
           'QUEUED'=>'queued','LEASED'=>'leased','REVIEW_REQUIRED',
           'NEEDS_REVIEW'=>'reviewRequired','EXPIRED'=>'expired',
-          'CANCELLED'=>'cancelled',default=>'completed'
+          'CANCELLED'=>'cancelled','REJECTED'=>'rejected',
+          'CLOSED_UNKNOWN'=>'closedUnknown',default=>'completed'
         };
         $base['counts'][$key]=($base['counts'][$key]??0)+(int)$r['total_count'];
     }
@@ -71,8 +74,8 @@ function jrHybridOwnerSnapshot(PDO $pdo,array $cfg): array {
         if($count===null)$base['counts'][$key]=0;
     $q=$pdo->query('SELECT job_id,task_type,status,requested_dataset_id,
        evaluation_version,queued_at,expires_at,lease_expires_at,
-       completed_at,leased_to_node,attempts,failure_code,revision
-       FROM jrei_hybrid_jobs ORDER BY queued_at DESC,job_id DESC LIMIT 30');
+       completed_at,leased_to_node,attempts,failure_code,revision,
+       result_digest,result_json FROM jrei_hybrid_jobs ORDER BY queued_at DESC,job_id DESC LIMIT 30');
     foreach($q as $r)$base['jobs'][]=[
       'jobId'=>$r['job_id'],'taskType'=>$r['task_type'],
       'status'=>$r['status'],'datasetId'=>$r['requested_dataset_id'],
@@ -81,9 +84,12 @@ function jrHybridOwnerSnapshot(PDO $pdo,array $cfg): array {
       'leaseExpiresAt'=>$r['lease_expires_at']===null?null:(int)$r['lease_expires_at'],
       'completedAt'=>$r['completed_at']===null?null:(int)$r['completed_at'],
       'leasedToNode'=>$r['leased_to_node'],'attempts'=>(int)$r['attempts'],
-      'failureCode'=>$r['failure_code'],'revision'=>(int)$r['revision']
+      'failureCode'=>$r['failure_code'],'revision'=>(int)$r['revision'],
+      'resultDigest'=>$r['result_digest'],
+      'unverifiedAggregate'=>$r['result_json']===null?null:
+        json_decode((string)$r['result_json'],true)
     ];
-    return $base;
+    return array_merge($base,jrHybridOwnerCorpusSnapshot($pdo));
 }
 function jrHybridOwnerChange(PDO $pdo,array $cfg,string $actor,
     array $body): array {
@@ -92,8 +98,15 @@ function jrHybridOwnerChange(PDO $pdo,array $cfg,string $actor,
     $action=$body['action']??null;
     if(!is_string($action)||!in_array($action,[
        'register_node','set_node','revoke_node','queue_reviewed_retrieval',
-       'cancel_job'],true))throw new InvalidArgumentException('invalid_action');
+       'cancel_job','propose_public_dataset','approve_public_dataset',
+       'suspend_public_dataset','record_job_review'],true))
+         throw new InvalidArgumentException('invalid_action');
     $now=time();
+    if(in_array($action,['propose_public_dataset',
+       'approve_public_dataset','suspend_public_dataset'],true))
+        return jrHybridOwnerCorpusChange($pdo,$actor,$body);
+    if($action==='record_job_review')
+        return jrHybridOwnerReviewJob($pdo,$actor,$body);
     if($action==='register_node'){
         $key=$body['publicKeyB64']??null;
         $label=$body['label']??null;
@@ -183,12 +196,17 @@ function jrHybridOwnerChange(PDO $pdo,array $cfg,string $actor,
         if(!jrHybridIdentifier($id)||!jrHybridIdentifier($version)||
            !$current||!$candidate||$current===$candidate)
             throw new InvalidArgumentException('invalid_evaluation_job');
-        $catalogue=$cfg['jrei_hybrid_approved_datasets']??[];
-        $record=is_array($catalogue)?($catalogue[$id]??null):null;
+        $record=jrHybridApprovedCorpus($pdo,$cfg,$id,$version);
         if(!is_array($record)||($record['sourceReviewed']??null)!==true||
            !jrHybridSha($record['datasetSha256']??null)||
-           !jrHybridSha($record['evidenceSha256']??null))
+           !jrHybridSha($record['evidenceSha256']??null)||
+           !jrHybridSha($record['activePolicySha256']??null))
             throw new DomainException('independent_public_dataset_not_approved');
+        // Match learning-loop's SHA256(JSON.stringify(normalized active policy)).
+        $activeDigest=hash('sha256',json_encode($current,
+            JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR));
+        if(!hash_equals($record['activePolicySha256'],$activeDigest))
+            throw new DomainException('current_policy_not_approved');
         $pdo->beginTransaction();
         try{
             $q=$pdo->query("SELECT COUNT(*) FROM jrei_hybrid_jobs
