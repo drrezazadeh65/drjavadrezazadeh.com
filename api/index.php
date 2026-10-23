@@ -534,7 +534,7 @@ require_once __DIR__.'/jrei-exam-published-item-delivery.php';
 require_once __DIR__.'/jrei-exam-attempt-runtime.php';
 $path=route();$verb=method();
 if((($path==='/exams/attempt' && in_array($verb,['GET','POST'],true))||
-    ($path==='/exams/items' && $verb==='GET'))){
+    (in_array($path,['/exams/items','/exams/result'],true) && $verb==='GET'))){
     header('Cache-Control: private, no-store, max-age=0');
     header('X-Robots-Tag: noindex, nofollow, noarchive');
     $conf=cfg();
@@ -567,6 +567,8 @@ if((($path==='/exams/attempt' && in_array($verb,['GET','POST'],true))||
             $id=(string)($_GET['attemptId']??'');
             if($path==='/exams/items')
                 respond(jrExamCandidatePublishedItems($pdo,$accountId,$id));
+            if($path==='/exams/result')
+                respond(jrExamCandidateResult($pdo,$accountId,$id));
             respond(jrExamAttemptProgress($pdo,$accountId,$id));
         }
         catch(InvalidArgumentException $e){fail('invalid_exam_reference',422);}
