@@ -151,6 +151,9 @@ function jrKaOwnerPublicQuoteDecision(PDO $pdo,array $cfg,
     if($decision==='APPROVE_PUBLIC_QUOTE'&&
        $row['rights_state']!=='PERMITTED_REPRODUCTION')
         throw new DomainException('ka_quote_public_rights_absent');
+    if($decision==='APPROVE_PUBLIC_QUOTE'&&
+       !hash_equals($expected,hash('sha256',$record['excerpt'])))
+        throw new DomainException('ka_quote_digest_not_reconstructed');
     $pdo->beginTransaction();
     try{
         // Lock source + policy before original quote metadata.
