@@ -152,11 +152,11 @@
    card.append(group);paper.append(card);
    const previous=element('button',T('قبلی','Previous'),'jr-btn secondary');
    previous.type='button';previous.disabled=cursor===0||busy;
-   previous.addEventListener('click',()=>{cursor--;renderPaper();});
+   previous.addEventListener('click',()=>{if(busy)return;cursor--;renderPaper();});
    actions.append(previous);
    const next=element('button',T('بعدی','Next'),'jr-btn secondary');
    next.type='button';next.disabled=cursor===items.length-1||busy;
-   next.addEventListener('click',()=>{cursor++;renderPaper();});
+   next.addEventListener('click',()=>{if(busy)return;cursor++;renderPaper();});
    actions.append(next);
    const save=element('button',T('ذخیرهٔ انتخاب در سرور','Save selected choice to server'),'jr-btn');
    save.type='button';save.disabled=busy;
@@ -197,6 +197,7 @@
        setStatus(T(
          'ثبت نهایی توسط سرور تأیید شد. هر نمرهٔ خام اولیه نیازمند سیاست انتشار و بازبینی است.',
          'Server confirmed final submission. Any preliminary raw score remains subject to review and publication policy.'));
+       busy=false;
        await loadAttempts();
      }catch{
        setStatus(T(
