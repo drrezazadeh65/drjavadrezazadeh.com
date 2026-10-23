@@ -110,6 +110,9 @@ function jrExamCommercialCatalogue(PDO $pdo,array $cfg,int $at=0): array {
               k.key_digest IS NULL OR
               meta.answer_key_digest<>k.key_digest OR
               source.review_state<>'AUTHORITATIVE_REVIEWED' OR
+              source.reviewer_account_id IS NULL OR
+              source.verified_at IS NULL OR
+              source.reviewer_account_id=meta.authored_by_account_id OR
               source.rights_state<>'PERMITTED_REPRODUCTION' OR
               source.is_revoked<>0 OR source.is_superseded<>0
             )
