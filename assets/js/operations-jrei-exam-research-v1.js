@@ -1092,6 +1092,38 @@
        safeCount(approvedQuotes.eligibleCurrentSourceQuotes):
        T('نامعلوم؛ جداول بازبینی هنوز پذیرفته نشده',
          'Unknown; quotation-review schema not accepted'));
+   const benchmark=ai.governedIndependentBenchmark;
+   fact(T('نمونه‌های مستقل آمادهٔ سنجش مدل','Independently approved benchmark cases'),
+     benchmark?.available?safeCount(benchmark.readyCases):
+       T('نامعلوم؛ دیتابیس پذیرش نشده','Unknown; benchmark DB not accepted'));
+   fact(T('پاسخ‌های واقعی منتظر داوری علمی','Real model responses pending expert review'),
+     benchmark?.available?safeCount(benchmark.reviewRequiredRuns):
+       T('نامعلوم','Unknown'));
+   if(benchmark?.available){
+     const b=elt('details','jr-exam-subsection');
+     b.append(elt('summary','',T(
+       'ارزیابی مستقلِ واقعی کیفیت مدل؛ محرمانه و بدون انتشار خودکار',
+       'Real independent model evaluation, privately governed')));
+     b.append(elt('p','',T(
+       'تعداد فراخوانی‌ها و کنترل ارجاعات، دقت علمی مدل را اثبات نمی‌کنند. امتیاز کیفیت فقط پس از داوری تخصصی مستقل معتبر است.',
+       'Call counts and structural citations do not establish scientific accuracy. Only independent expert grading may support quality evaluation.')));
+     for(const [fa,en,num] of [
+       ['اجرای تکمیل‌شدهٔ مدل','Observed model completions',benchmark.measuredCompletedRuns],
+       ['نتایج نامعلومِ هزینه‌پذیر','Reserved or unknown provider outcomes',benchmark.measuredUnknownRuns],
+       ['نتایج داوری‌شدهٔ انسانی','Independently expert-reviewed outcomes',benchmark.expertReviewedRuns],
+       ['میانگین کیفیت داوری‌شده (در صورت وجود)','Expert-graded mean, if available',benchmark.expertQualityAverage]
+     ]){
+       const row=elt('div','jr-exam-coverage-row');
+       row.append(elt('strong','',T(fa,en)));
+       row.append(elt('span','',num===null||num===undefined?
+         T('نامعلوم/هنوز داوری نشده','Unknown/not yet reviewed'):String(num)));
+       b.append(row);
+     }
+     b.append(elt('p','',T(
+       'آزمون واقعی مدل مستلزم API مجاز و دارای اعتبار مستقل و تأیید نهایی مالک است؛ این بخش به‌تنهایی مدل را فعال نمی‌کند.',
+       'Executing actual benchmark calls requires separately funded API credentials and final owner authorisation; the panel does not enable the model.')));
+     sections.append(b);
+   }
    const observed=ai.observedProviderOutcomes;
    fact(T('پاسخ‌های تکمیل‌شدهٔ ثبت‌شده (۷ روز)',
        'Recorded completed provider responses (7 days)'),
