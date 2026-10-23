@@ -622,8 +622,8 @@
      'JREI-KA؛ زمان‌بندی، منابع و کنترل‌های مجاز',
      'JREI-KA authorised sources, schedule and controls')));
    root.append(elt('p','',T(
-     'زمان‌بندی تنها فرادادهٔ کار تولید می‌کند؛ دریافت PDF، پردازش OCR، تأیید علمی و انتشار سؤال هنوز از این بخش انجام نمی‌شود.',
-     'Scheduling creates metadata jobs only; it does not fetch PDFs, perform OCR, certify answers or publish examinations.')));
+     'زمان‌بند فرادادهٔ کار را تولید می‌کند. پردازشگر مستقلِ دریافت HTTPS نیز در کد موجود است، اما فقط پس از تأیید مجوز و فعال‌سازی خصوصی کار می‌کند. OCR، صحت علمی و انتشار هنوز جداگانه نیازمند پذیرش‌اند.',
+     'The scheduler queues metadata; a separately gated HTTPS acquirer is staged in source. Real fetching requires lawful approval, private opt-in and final acceptance. OCR, scientific review and publication remain separate.')));
    if(!ka.schemaReady){
      root.append(elt('p','',T('جدول‌های افزایشی هنوز برای استفاده آماده نیستند.',
        'Additive mother-DB tables are not yet available.')));
@@ -645,6 +645,47 @@
      root.append(elt('p','',
        T('سهمیهٔ اعلامی روزانه، بایت: ','Configured daily byte budget: ')+
          fmt(ctrl.maxDailyBytes)));
+   }
+   const acquisition=ka.acquisitionObservability;
+   fact(T('اسناد اخذشده و در صف بازبینی علمی','Acquired documents pending scientific review'),
+     acquisition?.schemaReady?fmt(acquisition.pendingScientificReview):T('نامعلوم','Unknown'));
+   fact(T('پیوندهای PDF کشف‌شده و منتظر بررسی مجوز','PDF links awaiting reuse-rights review'),
+     acquisition?.schemaReady?fmt(acquisition.candidatesPendingRightsReview):T('نامعلوم','Unknown'));
+   root.append(elt('p','',
+     T('سوئیچ خصوصی دریافت خودکار HTTPS: ','Private auto-fetch switch: ')+
+     (ka.privateAutoFetchOptIn?T('در پیکربندی روشن؛ اجرای عملی هنوز اثبات نشده',
+       'Opt-in ON; actual operation unverified'):T('خاموش','OFF'))));
+   if(acquisition?.schemaReady){
+     const stats=elt('div','jr-exam-coverage-row');
+     stats.append(elt('strong','',T('داده‌های ثبت‌شدهٔ دریافت خصوصی',
+       'Actual recorded private acquisition metadata')));
+     stats.append(elt('span','',T('مشاهده‌های ثبت‌شده: ','Recorded observations: ')+
+       fmt(acquisition.observationCount)));
+     stats.append(elt('span','',T('حجم ثبت‌شده به بایت: ','Recorded private bytes: ')+
+       fmt(acquisition.recordedBytes)));
+     stats.append(elt('span','',T('رزرو پهنای باند امروز به بایت: ',
+       'Conservatively reserved bandwidth today, bytes: ')+
+       fmt(acquisition.bytesReservedToday)));
+     root.append(stats);
+     const candidates=Array.isArray(acquisition.sourceCandidatePreview)?
+       acquisition.sourceCandidatePreview:[];
+     if(candidates.length){
+       const proposals=elt('details','jr-exam-subsection');
+       proposals.append(elt('summary','',T(
+         'اسناد پیشنهادیِ کشف‌شده؛ بدون تأیید خودکار مجوز',
+         'Discovered document proposals — rights approval pending')));
+       proposals.append(elt('p','',T(
+         'این پیوندها هنوز مجوز دانلود، بازنشر یا تبدیل‌شدن به سؤال آزمون را ندارند.',
+         'These discoveries do NOT yet authorize retrieval, reproduction or examination use.')));
+       for(const proposed of candidates.slice(0,20)){
+         const item=elt('article','jr-exam-coverage-row');
+         item.append(elt('strong','',String(proposed.label||'').slice(0,220)));
+         item.append(elt('span','',String(proposed.state||'').slice(0,70)));
+         item.append(elt('span','',String(proposed.url||'').slice(0,650)));
+         proposals.append(item);
+       }
+       root.append(proposals);
+     }
    }
    const states=Array.isArray(ka.jobStates)?ka.jobStates:[];
    const snapshotBox=elt('div','jr-exam-coverage-row');
