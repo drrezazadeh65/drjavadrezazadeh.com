@@ -22,6 +22,10 @@
     "/en/collaboration/",
     "/en/contact/",
     "/en/educational-philosophy/",
+    "/en/exams/",
+    "/en/exams/konkur/",
+    "/en/exams/masters/",
+    "/en/exams/phd/",
     "/en/golden-talent/",
     "/en/golden-talent/methodology/",
     "/en/invite/",
@@ -92,6 +96,10 @@
     "/fa/entekhab-reshteh/",
     "/fa/entesharat-elmi/",
     "/fa/estedaadyabi/",
+    "/fa/exams/",
+    "/fa/exams/konkur/",
+    "/fa/exams/masters/",
+    "/fa/exams/phd/",
     "/fa/faaliat-haye-elmi/",
     "/fa/falsafe-amoozeshi/",
     "/fa/golden-talent/",
@@ -265,5 +273,20 @@
       "/fa/rcas/"
     ],
     "rule": "Preserve self-canonicals, reciprocal hreflang, correctly indexable public introductory pages and private student dashboards noindex."
+  },
+  "approved_addition_20261024_exam_pages": {
+    "approved_by": "website_owner",
+    "scope": "Eight educational, non-commercial, bilingual examination-introduction routes; source publishing only.",
+    "routes": [
+      "/en/exams/",
+      "/en/exams/konkur/",
+      "/en/exams/masters/",
+      "/en/exams/phd/",
+      "/fa/exams/",
+      "/fa/exams/konkur/",
+      "/fa/exams/masters/",
+      "/fa/exams/phd/"
+    ],
+    "rule": "No checkout or verified exam claims until independent review. Preserve indexed URL, canonical, hreflang. Private /exams/my remains excluded."
   }
 }
