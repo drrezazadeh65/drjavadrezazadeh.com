@@ -1,0 +1,199 @@
+/* JREI V5 owner-only learning evidence. Source-only until final accepted
+ * Windows worker, host migration and independent scientific evaluation.
+ * Existing SUPER_ADMIN + recent TOTP + exact-origin CSRF apply server-side.
+ * All user-facing assertions distinguish a due tick from genuine learning.
+ */
+(() => {
+  'use strict';
+  const root=document.getElementById('ops-jrei-learning');
+  const workspace=document.getElementById('ops-workspace');
+  if(!root||!workspace)return;
+  const en=document.documentElement.lang==='en';
+  const T=(fa,english)=>en?english:fa;
+  const facts=root.querySelector('[data-jrei-learning-facts]');
+  const cycles=root.querySelector('[data-jrei-learning-cycles]');
+  const state=root.querySelector('[data-jrei-learning-state]');
+  const refresh=root.querySelector('[data-jrei-learning-refresh]');
+  const controls=root.querySelector('[data-jrei-learning-controls]');
+  if(!facts||!cycles||!state||!refresh||!controls)return;
+  const endpoint='/api/admin/operations/jrei-learning';
+  const fmt=new Intl.NumberFormat(en?'en-US':'fa-IR');
+  let serial=0,controller=null,busy=false;
+  const open=()=>root.open&&!workspace.hidden&&!document.hidden&&navigator.onLine;
+  const text=(tag,cls,value)=>{
+    const e=document.createElement(tag);
+    if(cls)e.className=cls;
+    if(value!==undefined)e.textContent=String(value);
+    return e;
+  };
+  const say=t=>{state.textContent=t;};
+  const time=secs=>{
+    if(!Number.isSafeInteger(secs)||secs<=0)return T('نامعلوم','Unknown');
+    const dt=new Date(secs*1000);
+    return Number.isFinite(dt.getTime())?dt.toLocaleString(en?'en-US':'fa-IR'):
+      T('نامعلوم','Unknown');
+  };
+  const wipe=()=>{
+    facts.replaceChildren();cycles.replaceChildren();controls.replaceChildren();
+  };
+  function clear(){
+    serial++;controller?.abort();controller=null;busy=false;
+    refresh.disabled=false;wipe();
+    say(T('داده خصوصی فقط با بازکردن این بخش و احراز دومرحله‌ای خوانده می‌شود.',
+      'Private status is loaded only after opening this section with recent MFA.'));
+  }
+  function fact(label,value){
+    const box=text('div','jr-jrei-learning-fact');
+    box.append(text('strong','',label),text('span','',value));
+    facts.append(box);
+  }
+  function render(data) {
+    wipe();
+    const c=data.controls||null;
+    fact(T('فعال‌سازی خصوصی در سرور','Private server enable flag'),
+      data.privateGlobalFlagEnabled
+        ?T('مجاز در تنظیمات خصوصی؛ به‌تنهایی اجرا نمی‌شود','Permitted by private config; not sufficient to run')
+        :T('خاموش؛ هیچ یادگیری زمان‌بندی‌شده‌ای مجاز نیست','OFF; no scheduled learning authorized'));
+    fact(T('جدول‌های دیتابیس مادر','Mother database tables'),
+      data.motherDbSchemaReady
+        ?T('وجود دارد؛ اجرای واقعی تأیید نشده','Present; runtime not independently verified')
+        :T('Migration نصب نشده یا قابل مشاهده نیست','Migration absent or unavailable'));
+    fact(T('وضعیت مدل روی رایانه ویندوز','Windows model worker'),
+      T('تأیید نشده','Not verified'));
+    fact(T('تعداد پیشنهادهای منتظر بررسی','Proposals awaiting review'),
+      data.motherDbSchemaReady?fmt.format(data.proposalCounts?.pending??0):
+        T('نامعلوم','Unknown'));
+    fact(T('تعداد پیشنهادهای تأییدشده در دیتابیس','DB-approved proposals'),
+      data.motherDbSchemaReady?fmt.format(data.proposalCounts?.approved??0):
+        T('نامعلوم','Unknown'));
+    fact(T('وضعیت ارتقای خودکار مدل','Automatic model upgrades'),
+      T('غیرفعال؛ انتشار و تغییر وزن مدل مجاز نشده',
+        'OFF; no publication or model-weight modifications are authorized'));
+    if(Array.isArray(data.recentCycles)&&data.recentCycles.length){
+      const list=text('ol','jr-jrei-learning-history');
+      const labels={
+        NO_APPROVED_EVALUATION:T('فاقد ارزیابی معتبرِ تأییدشده','No independently approved evaluation'),
+        PROPOSAL_REVIEW_REQUIRED:T('پیشنهاد موجود؛ بازبینی علمی لازم است','Proposal exists; scientific review required'),
+        NOT_EVALUATED:T('ارزیابی انجام نشده','Not evaluated')
+      };
+      for(const cycle of data.recentCycles.slice(0,14)){
+        const li=text('li','');
+        const name=labels[cycle.status]||T('وضعیت نامشخص','Unrecognised state');
+        li.append(text('strong','',String(cycle.day||'—')+' — '+name));
+        li.append(text('span','',
+          T(' پیشنهادها: ',' Proposals: ')+fmt.format(cycle.candidateCount??0)+
+          T(' · آخرین ثبت: ',' · Last recorded: ')+time(cycle.lastFinishedAt)));
+        list.append(li);
+      }
+      cycles.append(list);
+    }else{
+      cycles.append(text('p','',data.motherDbSchemaReady
+        ?T('هنوز چرخه روزانه ثبت نشده؛ صفر به‌معنای یادگیری کامل نیست.',
+          'No daily cycle has been recorded. An empty history is not proof of improvement.')
+        :T('تا نصب مجاز Migration، وضعیت چرخه‌های روزانه نامعلوم است.',
+          'Cycle status remains unknown until the approved additive migration.')));
+    }
+    if(!c){
+      controls.append(text('p','',T('کنترل فعال‌سازی تا وجود جدول معتبر در دسترس نیست.',
+        'Enablement is unavailable until the verified policy row exists.')));
+      say(T('سورس آماده ثبت وضعیت است؛ سرویس فعال یا تأییدشده نیست.',
+        'The source can expose metadata, but no active or verified runtime is established.'));
+      return;
+    }
+    const label=text('label','jr-jrei-learning-toggle');
+    const checkbox=document.createElement('input');
+    checkbox.type='checkbox';checkbox.checked=c.enabled===true;
+    checkbox.disabled=!data.privateGlobalFlagEnabled&&!c.enabled;
+    label.append(checkbox,text('span','',T(
+      'اجازه بررسی روزانه فراداده‌های غیرشخصی (نه آموزش مدل)',
+      'Allow daily nonpersonal metadata review (NOT model training)')));
+    const save=text('button','',T('ثبت سیاست با تأیید دومرحله‌ای','Save policy with fresh MFA'));
+    save.type='button';save.disabled=checkbox.disabled;
+    save.addEventListener('click',()=>{
+      if(!open()||busy)return;
+      const enabled=checkbox.checked;
+      if(enabled){
+        if(!data.privateGlobalFlagEnabled)return;
+        if(!window.confirm(T(
+          'این مجوز فقط بررسی فراداده‌های غیرشخصی را پس از راه‌اندازی واقعی Worker ممکن می‌کند؛ آموزش مدل، تغییر قواعد علمی یا انتشار خودکار مجاز نیست. ادامه می‌دهید؟',
+          'After actual worker setup this authorizes nonpersonal metadata reviews only, not model training, scientific changes or automatic publication. Continue?')))return;
+      }
+      change({action:'set_enabled',enabled,revision:c.revision,
+        confirmation:enabled?'APPROVE_METADATA_ONLY_DAILY_LEARNING':''});
+    });
+    controls.append(label,save,text('p','jr-jrei-learning-note',T(
+      'شواهد علمی، داده رسمی پذیرش، امتیازدهی RCAS/BAHAR و تغییر کد همچنان نیازمند تأیید مستقل هستند.',
+      'Scientific evidence, official admission data, RCAS/BAHAR scoring and code changes still require independent approval.')));
+    say(T('داده نمایش‌داده‌شده فقط گزارش سیاست و چرخه‌های ثبت‌شده است؛ پیشرفت مدل تأیید نشده.',
+      'These are recorded policy and cycle facts only; model improvement is not verified.'));
+  }
+  async function refreshState(){
+    if(!open()||busy)return;
+    const thisRequest=++serial;
+    controller?.abort();controller=new AbortController();
+    const active=controller;busy=true;refresh.disabled=true;wipe();
+    const timeout=setTimeout(()=>active.abort(),15000);
+    say(T('در حال دریافت وضعیت معتبر از دیتابیس مادر…',
+      'Reading authoritative mother-database learning metadata…'));
+    try {
+      const res=await fetch(endpoint,{credentials:'same-origin',cache:'no-store',
+        headers:{Accept:'application/json'},signal:active.signal});
+      if(!res.ok)throw Error(res.status===403?'MFA':'SERVER');
+      const result=await res.json();
+      if(thisRequest!==serial||!open())return;
+      if(result?.ok!==true||result.schema!=='jr.jrei.learning-owner.v1'||
+         !Array.isArray(result.recentCycles))throw Error('CONTRACT');
+      render(result);
+    }catch(e){
+      if(thisRequest!==serial||!open())return;
+      wipe();say(T('دریافت وضعیت یادگیری تأیید نشد؛ اطلاعات قدیمی حذف شدند. پس از تأیید دومرحله‌ای دوباره بخوانید.',
+        'Learning status is unavailable; stale controls were removed. Recheck MFA and retry.'));
+    }finally{
+      clearTimeout(timeout);
+      if(thisRequest===serial){controller=null;busy=false;refresh.disabled=false;}
+    }
+  }
+  async function change(payload){
+    if(!open()||busy)return;
+    const thisRequest=++serial;
+    controller?.abort();controller=new AbortController();
+    const active=controller;busy=true;refresh.disabled=true;wipe();
+    const timeout=setTimeout(()=>active.abort(),18000);
+    say(T('در حال ثبت سیاست مدیر با تأیید دومرحله‌ای…',
+      'Saving owner policy with recent MFA…'));
+    try {
+      const sess=await fetch('/api/admin/operations/session',{
+        credentials:'same-origin',cache:'no-store',headers:{Accept:'application/json'},
+        signal:active.signal});
+      if(!sess.ok)throw Error('MFA');
+      const auth=await sess.json();
+      if(auth?.ok!==true||auth.mfaRequired!==false||
+        !/^[a-f0-9]{64}$/i.test(auth.csrfToken||''))throw Error('MFA');
+      const res=await fetch(endpoint,{method:'POST',credentials:'same-origin',
+        cache:'no-store',headers:{'Content-Type':'application/json',
+          Accept:'application/json','X-CSRF-Token':auth.csrfToken},
+        body:JSON.stringify(payload),signal:active.signal});
+      if(!res.ok)throw Error('WRITE');
+      const result=await res.json();
+      if(thisRequest!==serial||!open())return;
+      if(result?.ok!==true||result.schema!=='jr.jrei.learning-owner.v1')
+        throw Error('CONTRACT');
+      render(result);
+    }catch(e){
+      if(thisRequest!==serial||!open())return;
+      wipe();say(T('نتیجه ذخیره قطعی نیست؛ ممکن است سرور تغییر را ثبت کرده باشد. پیش از اقدام دوباره، وضعیت را تازه بخوانید.',
+        'Save outcome is uncertain and might have committed. Reread the server state before retrying.'));
+    }finally{
+      clearTimeout(timeout);
+      if(thisRequest===serial){controller=null;busy=false;refresh.disabled=false;}
+    }
+  }
+  refresh.addEventListener('click',refreshState);
+  root.addEventListener('toggle',()=>{if(open())refreshState();else clear();});
+  new MutationObserver(()=>{if(workspace.hidden)clear();})
+    .observe(workspace,{attributes:true,attributeFilter:['hidden']});
+  document.addEventListener('visibilitychange',()=>{if(document.hidden)clear();});
+  window.addEventListener('offline',clear);
+  window.addEventListener('jr:account-logout',clear);
+  window.addEventListener('pagehide',clear);
+})();
