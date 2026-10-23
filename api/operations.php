@@ -441,6 +441,7 @@ function operationsRoute(string $path, string $verb): never {
                 $snapshot['commercialCentre']=jrExamCommercialOwnerSnapshot($pdo,$configuration);
                 $snapshot['examDeadlineReview']=jrExamDeadlineOwnerBacklog($pdo);
                 $snapshot['countryExamCoverageMatrix']=jrKaOwnerCoverageMatrix($pdo);
+                $snapshot['coverageGapWorklist']=jrKaOwnerCoverageGapQueue($pdo);
                 $snapshot['liveAiReadiness']=jrAiOwnerReadiness($pdo,$configuration);
                 respond($snapshot);
             }
@@ -465,6 +466,7 @@ function operationsRoute(string $path, string $verb): never {
             $snapshot['commercialCentre']=jrExamCommercialOwnerSnapshot($pdo,$configuration);
                 $snapshot['examDeadlineReview']=jrExamDeadlineOwnerBacklog($pdo);
                 $snapshot['countryExamCoverageMatrix']=jrKaOwnerCoverageMatrix($pdo);
+                $snapshot['coverageGapWorklist']=jrKaOwnerCoverageGapQueue($pdo);
                 $snapshot['liveAiReadiness']=jrAiOwnerReadiness($pdo,$configuration);
             $snapshot['mutationRecorded']=($result['ok']??true)===true;
             respond($snapshot);
