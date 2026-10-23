@@ -12,6 +12,7 @@ require_once __DIR__.'/jrei-exam-deadline-owner.php';
 require_once __DIR__.'/jrei-exam-entitlement-owner.php';
 require_once __DIR__.'/jrei-ai-owner-readiness.php';
 require_once __DIR__.'/jrei-ai-benchmark-owner-actions.php';
+require_once __DIR__.'/jrei-ai-benchmark-expert-review.php';
 
 /**
  * Owner-only read/write metadata for the existing JREI ecosystem.
