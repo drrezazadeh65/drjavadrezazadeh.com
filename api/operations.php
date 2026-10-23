@@ -454,7 +454,14 @@ function operationsRoute(string $path, string $verb): never {
                     'jrei_exam_owner_revision_conflict':
                     'jrei_exam_research_action_unavailable',409);
             }
-            respond($result);
+            // A mutation receipt is not the authenticated dashboard
+            // snapshot expected by the original bilingual owner client.
+            // Read back authoritative committed state after every action,
+            // including KA and commercial draft/suspension operations.
+            $snapshot=jrExamResearchOwnerSnapshot($pdo,$configuration);
+            $snapshot['commercialCentre']=jrExamCommercialOwnerSnapshot($pdo,$configuration);
+            $snapshot['mutationRecorded']=($result['ok']??true)===true;
+            respond($snapshot);
         }
         // Adaptive JREI evaluation metadata is owner-visible only, with
         // the existing SUPER_ADMIN / fresh TOTP / same-origin CSRF guard.
