@@ -13,7 +13,7 @@ import {reviewModelDraft} from '../jrei-claim-publication-gate.mjs';
 const ID=/^[A-Za-z0-9._:-]{1,100}$/;
 const HASH=/^[a-f0-9]{64}$/;
 const safe=x=>typeof x==='string'&&x.length>0&&x.length<=8000&&
-  !/[\u0000-\u001f]/.test(x);
+  !/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/.test(x);
 const PII=/[\w.+-]+@[\w.-]+\.[a-z]{2,}|(?<!\d)(?:\+98|0098|0)9\d{9}(?!\d)|(?<!\d)\d{16}(?!\d)/i;
 
 function sourcePrompt(question,evidence,locale){
