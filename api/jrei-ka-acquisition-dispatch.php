@@ -165,13 +165,50 @@ function jrKaClaimOneLicensedJob(PDO $pdo,array $cfg): ?array {
     }
     return null;
 }
+
+/**
+ * Expired leases have UNKNOWN effects. Do not automatically repeat a
+ * possibly completed download: preserve the reserved quota and the job
+ * for a reviewer to reconcile against private content-addressed files.
+ */
+function jrKaQuarantineUnknownExpiredLeases(PDO $pdo,int $at): int {
+    $pdo->beginTransaction();
+    try{
+        $q=$pdo->prepare("SELECT job_id FROM jrei_ka_jobs
+          WHERE job_state='LEASED' AND lease_expires_at IS NOT NULL
+            AND lease_expires_at<? ORDER BY lease_expires_at,job_id
+          LIMIT 20 FOR UPDATE");
+        $q->execute([$at]);
+        $rows=$q->fetchAll(PDO::FETCH_ASSOC);
+        $update=$pdo->prepare("UPDATE jrei_ka_jobs
+          SET job_state='UNKNOWN_REVIEW_REQUIRED',
+              last_failure_code='LEASE_EXPIRED_RESULT_UNKNOWN',
+              lease_id=NULL,lease_expires_at=NULL,
+              updated_at=?,revision=revision+1
+          WHERE job_id=? AND job_state='LEASED'
+            AND lease_expires_at<?");
+        $count=0;
+        foreach($rows as $r){
+            $update->execute([$at,$r['job_id'],$at]);
+            $count+=$update->rowCount();
+        }
+        $pdo->commit();return $count;
+    }catch(Throwable $e){
+        if($pdo->inTransaction())$pdo->rollBack();
+        throw $e;
+    }
+}
+
 function jrKaPrivateAcquireOne(PDO $pdo,array $cfg): array {
     $result=['schema'=>'jr.jrei.ka-acquisition.v1',
        'status'=>'OFF','sourceReviewedAutomatically'=>false,
        'examContentPublished'=>false,'modelTrained'=>false,
-       'jobsClaimed'=>0,'documentsAwaitingScienceReview'=>0];
+       'jobsClaimed'=>0,'documentsAwaitingScienceReview'=>0,
+       'expiredUnknownLeasesQuarantined'=>0];
     if(!jrKaAcquisitionReady($pdo,$cfg))return $result;
+    $reconciled=jrKaQuarantineUnknownExpiredLeases($pdo,time());
     $job=jrKaClaimOneLicensedJob($pdo,$cfg);
+    $result['expiredUnknownLeasesQuarantined']=$reconciled;
     if($job===null)return [...$result,'status'=>'NO_AUTHORIZED_DUE_JOB'];
     $result['jobsClaimed']=1;
     $obtained=null;$fileCreated=false;$filePath=null;
