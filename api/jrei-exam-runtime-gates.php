@@ -44,7 +44,8 @@ function jrExamVerifiedOrderClaim(PDO $pdo,string $account,
     if(!validUuid($account)||!validUuid($orderId)||!validUuid($offeringId))
         return false;
     $q=$pdo->prepare("SELECT o.state,o.customer_email,o.currency,
-      o.items_json,o.provider_trans_id,o.provider_amount,
+      o.items_json,o.provider_trans_id,o.provider_id_get,o.paid_at,
+      o.provider_amount,o.amount_toman,
       a.email_normalized,c.transaction_id,c.verified_amount
       FROM commerce_orders o
       JOIN customer_accounts a ON a.id=?
@@ -53,24 +54,37 @@ function jrExamVerifiedOrderClaim(PDO $pdo,string $account,
       WHERE o.id=? FOR UPDATE");
     $q->execute([$account,$orderId]);$r=$q->fetch(PDO::FETCH_ASSOC);
     if(!is_array($r)||$r['state']!=='paid'||$r['currency']!=='IRT'||
+       empty($r['paid_at'])||empty($r['provider_id_get'])||
        !is_string($r['provider_trans_id'])||$r['provider_trans_id']===''||
        !hash_equals($r['provider_trans_id'],(string)$r['transaction_id'])||
        (string)$r['provider_amount']!==(string)$r['verified_amount']||
-       (int)$r['verified_amount']<=0||
+       !is_numeric($r['verified_amount'])||(int)$r['verified_amount']<=0||
+       !is_numeric($r['amount_toman'])||(int)$r['amount_toman']<=0||
        !is_string($r['customer_email'])||
        !hash_equals(strtolower(trim($r['customer_email'])),
            (string)$r['email_normalized']))
         return false;
     $items=json_decode((string)$r['items_json'],true);
-    if(!is_array($items)||count($items)<1||count($items)>30)return false;
-    $matches=0;
-    foreach($items as $item) {
-        if(!is_array($item))return false;
-        if(($item['sku']??null)==='exam:'.$offeringId&&
-           ($item['kind']??null)==='exam'&&
-           is_int($item['quantity']??null)&&$item['quantity']===1)$matches++;
+    if(!is_array($items)||!array_is_list($items)||
+       count($items)<1||count($items)>30)return false;
+    $matches=0;$sum=0;
+    foreach($items as $item){
+        if(!is_array($item)||!is_int($item['quantity']??null)||
+           $item['quantity']<1||$item['quantity']>20||
+           !is_int($item['subtotal']??null)||$item['subtotal']<0||
+           !is_string($item['sku']??null)||
+           !is_string($item['kind']??null))
+            return false;
+        // Guard against integer overflow or subtotal under-reporting.
+        if($sum>PHP_INT_MAX-$item['subtotal'])return false;
+        $sum+=$item['subtotal'];
+        if($item['sku']==='exam:'.$offeringId){
+            if($item['kind']!=='exam'||$item['quantity']!==1||
+               $item['subtotal']<=0)return false;
+            $matches++;
+        }
     }
-    return $matches===1;
+    return $matches===1&&$sum===(int)$r['amount_toman'];
 }
 
 function jrExamTrustedEntitlement(PDO $pdo,string $account,
