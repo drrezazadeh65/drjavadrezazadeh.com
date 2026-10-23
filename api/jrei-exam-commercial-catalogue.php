@@ -76,6 +76,7 @@ function jrExamCommercialCatalogue(PDO $pdo,array $cfg,int $at=0): array {
             ON meta.canonical_assessment_item_id=i.id
           LEFT JOIN jrei_exam_reviewed_answer_keys k ON k.item_id=i.id
           LEFT JOIN jrei_exam_sources source ON source.source_id=k.source_id
+          LEFT JOIN eco_object_refs orig ON orig.id=i.prompt_object_id
           WHERE i.instrument_version_id=p.instrument_version_id
             AND (
               meta.id IS NULL OR meta.item_state<>'APPROVED' OR
