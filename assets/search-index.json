@@ -17,6 +17,14 @@
   },
   {
     "lang": "en",
+    "title": "Academic Engagements",
+    "path": "en/academic-engagements/",
+    "category": "Academic",
+    "summary": "Conferences, scholarly service and professional development.",
+    "keywords": "academic engagements conferences webinar service"
+  },
+  {
+    "lang": "en",
     "title": "Academic Profile",
     "path": "en/academic-profile/",
     "category": "Profile",
@@ -25,19 +33,19 @@
   },
   {
     "lang": "en",
-    "title": "Research",
-    "path": "en/research/",
-    "category": "Research",
-    "summary": "Public research programme and themes.",
-    "keywords": "research education applied linguistics assessment materials"
+    "title": "Academic Services",
+    "path": "en/academic-services/",
+    "category": "Services",
+    "summary": "Academic English editing, manuscript diagnostics, research and publication consultation, reviewer-response support and academic career preparation.",
+    "keywords": "academic services editing manuscript diagnostic research consultation publication reviewer response academic cv interview"
   },
   {
     "lang": "en",
-    "title": "Publications",
-    "path": "en/publications/",
-    "category": "Research",
-    "summary": "Verified scholarly publication record.",
-    "keywords": "publications articles orcid semantic scholar"
+    "title": "BAHAR | Study and learning development",
+    "path": "en/bahar/",
+    "category": "Education",
+    "summary": "BAHAR introduction and two free learning modules on retrieval practice, feedback and revisable weekly study plans.",
+    "keywords": "BAHAR free learning study feedback planning"
   },
   {
     "lang": "en",
@@ -57,35 +65,27 @@
   },
   {
     "lang": "en",
-    "title": "University Teaching",
-    "path": "en/teaching/",
-    "category": "Teaching",
-    "summary": "University teaching and academic instruction.",
-    "keywords": "teaching university courses lecturer"
+    "title": "International Collaboration",
+    "path": "en/collaboration/",
+    "category": "Academic",
+    "summary": "Research, publishing and scholarly collaboration.",
+    "keywords": "international collaboration research publishing"
   },
   {
     "lang": "en",
-    "title": "Language Education",
-    "path": "en/language-education/",
+    "title": "Contact",
+    "path": "en/contact/",
+    "category": "Contact",
+    "summary": "Academic, professional and educational enquiries.",
+    "keywords": "contact collaboration email consultation"
+  },
+  {
+    "lang": "en",
+    "title": "Educational Philosophy",
+    "path": "en/educational-philosophy/",
     "category": "Education",
-    "summary": "Applied Linguistics and English language education.",
-    "keywords": "english language education applied linguistics materials assessment"
-  },
-  {
-    "lang": "en",
-    "title": "Teacher Education",
-    "path": "en/teacher-education/",
-    "category": "Education",
-    "summary": "Professional learning and teacher development.",
-    "keywords": "teacher education professional learning assessment literacy"
-  },
-  {
-    "lang": "en",
-    "title": "Student Guidance",
-    "path": "en/student-guidance/",
-    "category": "Services",
-    "summary": "Evidence-informed major and educational pathway exploration.",
-    "keywords": "student guidance major exploration educational pathway career exploration"
+    "summary": "Educational principles behind the work.",
+    "keywords": "educational philosophy human development evidence"
   },
   {
     "lang": "en",
@@ -105,27 +105,27 @@
   },
   {
     "lang": "en",
-    "title": "Educational Philosophy",
-    "path": "en/educational-philosophy/",
+    "title": "Invite Dr. Rezazadeh",
+    "path": "en/invite/",
+    "category": "Services",
+    "summary": "Speaking, training, institutional consulting and research collaboration pathway.",
+    "keywords": "invite keynote webinar panel workshop teacher training institutional consulting speaking"
+  },
+  {
+    "lang": "en",
+    "title": "Language Education",
+    "path": "en/language-education/",
     "category": "Education",
-    "summary": "Educational principles behind the work.",
-    "keywords": "educational philosophy human development evidence"
+    "summary": "Applied Linguistics and English language education.",
+    "keywords": "english language education applied linguistics materials assessment"
   },
   {
     "lang": "en",
-    "title": "Academic Engagements",
-    "path": "en/academic-engagements/",
-    "category": "Academic",
-    "summary": "Conferences, scholarly service and professional development.",
-    "keywords": "academic engagements conferences webinar service"
-  },
-  {
-    "lang": "en",
-    "title": "Public Projects",
-    "path": "en/projects/",
-    "category": "Projects",
-    "summary": "Projects authorised for public release.",
-    "keywords": "projects golden talent jhela publisher"
+    "title": "My Path | Educational direction",
+    "path": "en/my-path/",
+    "category": "Education",
+    "summary": "Find an educational starting point across talents, study strategies, score interpretation and university options, with appropriate uncertainty.",
+    "keywords": "my path learning study university educational direction"
   },
   {
     "lang": "en",
@@ -137,19 +137,435 @@
   },
   {
     "lang": "en",
-    "title": "International Collaboration",
-    "path": "en/collaboration/",
-    "category": "Academic",
-    "summary": "Research, publishing and scholarly collaboration.",
-    "keywords": "international collaboration research publishing"
+    "title": "Public Projects",
+    "path": "en/projects/",
+    "category": "Projects",
+    "summary": "Projects authorised for public release.",
+    "keywords": "projects golden talent jhela publisher"
   },
   {
     "lang": "en",
-    "title": "Contact",
-    "path": "en/contact/",
-    "category": "Contact",
-    "summary": "Academic, professional and educational enquiries.",
-    "keywords": "contact collaboration email consultation"
+    "title": "Publications",
+    "path": "en/publications/",
+    "category": "Research",
+    "summary": "Verified scholarly publication record.",
+    "keywords": "publications articles orcid semantic scholar"
+  },
+  {
+    "lang": "en",
+    "title": "RCAS | Educational reflection",
+    "path": "en/rcas/",
+    "category": "Education",
+    "summary": "Research-stage RCAS introduction, scientific limitations and a free 28-prompt reflective learning activity.",
+    "keywords": "RCAS reflective education research free start"
+  },
+  {
+    "lang": "en",
+    "title": "Research",
+    "path": "en/research/",
+    "category": "Research",
+    "summary": "Public research programme and themes.",
+    "keywords": "research education applied linguistics assessment materials"
+  },
+  {
+    "lang": "en",
+    "title": "Academic, Educational & Professional Services",
+    "path": "en/services/",
+    "category": "Services",
+    "summary": "Researcher support, student guidance, teacher development and institutional professional services.",
+    "keywords": "academic services research consultation manuscript review student guidance teacher development institutional consulting"
+  },
+  {
+    "lang": "en",
+    "title": "Specialist academic consultation",
+    "path": "en/services/academic_consult_60/",
+    "category": "Services",
+    "summary": "For a defined academic decision requiring individual analysis and professional guidance. A 60-minute analytical session to clarify the issue, options and next step.",
+    "keywords": "academic educational specialist services Specialist academic consultation For a defined academic decision requiring individual analysis and professional guidance academic consult 60"
+  },
+  {
+    "lang": "en",
+    "title": "Academic CV and applications strategy",
+    "path": "en/services/academic_cv/",
+    "category": "Services",
+    "summary": "For scholars reviewing their CV and application approach for a specific opportunity. A review of CV structure and presentation of evidence aligned with the target role.",
+    "keywords": "academic educational specialist services Academic CV and applications strategy For scholars reviewing their CV and application approach for a specific opportunity academic cv"
+  },
+  {
+    "lang": "en",
+    "title": "Academic English editing, up to 5,000 words",
+    "path": "en/services/academic_editing/",
+    "category": "Services",
+    "summary": "For developed academic manuscripts of up to 5,000 words that need English-language refinement. An edited version focused on clarity, linguistic accuracy and scholarly expression.",
+    "keywords": "academic educational specialist services Academic English editing, up to 5,000 words For developed academic manuscripts of up to 5000 words that need English-language refinement academic editing"
+  },
+  {
+    "lang": "en",
+    "title": "Academic or faculty interview preparation",
+    "path": "en/services/academic_interview_90/",
+    "category": "Services",
+    "summary": "For candidates preparing for a defined academic or faculty recruitment interview. A structured 90-minute session informed by the role, background and likely questions.",
+    "keywords": "academic educational specialist services Academic or faculty interview preparation For candidates preparing for a defined academic or faculty recruitment interview academic interview 90"
+  },
+  {
+    "lang": "en",
+    "title": "Comprehensive university major selection",
+    "path": "en/services/field_selection_comprehensive/",
+    "category": "Services",
+    "summary": "For applicants navigating competing pathways, constraints or priorities requiring deeper analysis. A more detailed evaluation of alternatives and final preference ordering informed by individual evidence.",
+    "keywords": "academic educational specialist services Comprehensive university major selection For applicants navigating competing pathways constraints or priorities requiring deeper analysis field selection comprehensive"
+  },
+  {
+    "lang": "en",
+    "title": "Standard university major selection",
+    "path": "en/services/field_selection_standard/",
+    "category": "Services",
+    "summary": "For applicants who need systematic, defensible priorities among programme and university choices. A structured development and review of preferences grounded in the applicant’s verified information.",
+    "keywords": "academic educational specialist services Standard university major selection For applicants who need systematic defensible priorities among programme and university choices field selection standard"
+  },
+  {
+    "lang": "en",
+    "title": "Golden Talent — comprehensive assessment and pathway",
+    "path": "en/services/golden_talent_comprehensive/",
+    "category": "Services",
+    "summary": "For families seeking a multi-source, development-oriented approach beyond one test. Synthesis of available Golden Talent evidence and a provisional development pathway.",
+    "keywords": "academic educational specialist services Golden Talent — comprehensive assessment and pathway For families seeking a multi-source development-oriented approach beyond one test golden talent comprehensive"
+  },
+  {
+    "lang": "en",
+    "title": "Golden Talent — assessment, parent session and pathway report",
+    "path": "en/services/golden_talent_premium/",
+    "category": "Services",
+    "summary": "For cases requiring a comprehensive review, a parent consultation and a pathway report. A comprehensive Golden Talent review, parent session and pathway report within verified evidence limits.",
+    "keywords": "academic educational specialist services Golden Talent — assessment, parent session and pathway report For cases requiring a comprehensive review a parent consultation and a pathway report golden talent premium"
+  },
+  {
+    "lang": "en",
+    "title": "Journal selection and publication strategy",
+    "path": "en/services/journal_strategy/",
+    "category": "Services",
+    "summary": "For manuscripts requiring an informed assessment of journal fit and submission strategy. Analysis of suitability and publication options informed by topic, scope and the manuscript’s stage of preparation.",
+    "keywords": "academic educational specialist services Journal selection and publication strategy For manuscripts requiring an informed assessment of journal fit and submission strategy journal strategy"
+  },
+  {
+    "lang": "en",
+    "title": "University entrance examination consultation (Konkur)",
+    "path": "en/services/konkur_consult_60/",
+    "category": "Services",
+    "summary": "For focused decisions about Konkur preparation, study planning or changing course. A 60-minute session focused on the current issue and practical next steps.",
+    "keywords": "academic educational specialist services University entrance examination consultation (Konkur) For focused decisions about Konkur preparation study planning or changing course konkur consult 60"
+  },
+  {
+    "lang": "en",
+    "title": "One-month Konkur guidance programme",
+    "path": "en/services/konkur_month/",
+    "category": "Services",
+    "summary": "For students seeking structured guidance over one month. An individual one-month guidance plan with an approach to reviewing progress.",
+    "keywords": "academic educational specialist services One-month Konkur guidance programme For students seeking structured guidance over one month konkur month"
+  },
+  {
+    "lang": "en",
+    "title": "Manuscript diagnostic review, up to 7,000 words",
+    "path": "en/services/manuscript_diagnostic/",
+    "category": "Services",
+    "summary": "For manuscripts of up to 7,000 words needing a diagnosis of key weaknesses before submission or revision. A diagnostic review accompanied by a prioritised revision report.",
+    "keywords": "academic educational specialist services Manuscript diagnostic review, up to 7,000 words For manuscripts of up to 7000 words needing a diagnosis of key weaknesses before submission or revision manuscript diagnostic"
+  },
+  {
+    "lang": "en",
+    "title": "School and organisational education consultation",
+    "path": "en/services/organization_consult_90/",
+    "category": "Services",
+    "summary": "For a school or organisation needing to define an educational problem and an initial course of action. A 90-minute examination of the challenge, stakeholders and possible actions.",
+    "keywords": "academic educational specialist services School and organisational education consultation For a school or organisation needing to define an educational problem and an initial course of action organization consult 90"
+  },
+  {
+    "lang": "en",
+    "title": "Research consultation",
+    "path": "en/services/research_consult_60/",
+    "category": "Services",
+    "summary": "For researchers with a defined question about design, methods, interpretation or argumentation. A 60-minute analysis of the research issue and the next decision.",
+    "keywords": "academic educational specialist services Research consultation For researchers with a defined question about design methods interpretation or argumentation research consult 60"
+  },
+  {
+    "lang": "en",
+    "title": "Reviewer-response support, up to 20 comments",
+    "path": "en/services/reviewer_response/",
+    "category": "Services",
+    "summary": "For authors responding to up to 20 reviewer comments and seeking a systematic scholarly response. Review of the comments and assistance structuring evidence-based responses.",
+    "keywords": "academic educational specialist services Reviewer-response support, up to 20 comments For authors responding to up to 20 reviewer comments and seeking a systematic scholarly response reviewer response"
+  },
+  {
+    "lang": "en",
+    "title": "Specialist online workshop, up to two hours",
+    "path": "en/services/specialist_workshop_120/",
+    "category": "Services",
+    "summary": "For schools, organisations and professional groups with a defined topic and audience. An online specialist workshop of up to two hours on the agreed topic.",
+    "keywords": "academic educational specialist services Specialist online workshop, up to two hours For schools organisations and professional groups with a defined topic and audience specialist workshop 120"
+  },
+  {
+    "lang": "en",
+    "title": "Student and parent consultation",
+    "path": "en/services/student_parent_90/",
+    "category": "Services",
+    "summary": "For an educational decision that benefits from both the student’s and parent’s participation. A 90-minute joint session to examine evidence, concerns and the decision pathway.",
+    "keywords": "academic educational specialist services Student and parent consultation For an educational decision that benefits from both the student’s and parent’s participation student parent 90"
+  },
+  {
+    "lang": "en",
+    "title": "Initial specialist talent assessment",
+    "path": "en/services/talent_initial/",
+    "category": "Services",
+    "summary": "For beginning a multi-source review of strengths and development potential before major decisions. An initial evidence profile and identification of questions needing further examination.",
+    "keywords": "academic educational specialist services Initial specialist talent assessment For beginning a multi-source review of strengths and development potential before major decisions talent initial"
+  },
+  {
+    "lang": "en",
+    "title": "Teacher consultation: materials, teaching and assessment",
+    "path": "en/services/teacher_consult_60/",
+    "category": "Services",
+    "summary": "For educators with a specific challenge in teaching, learning materials or assessment. A 60-minute problem analysis with viable professional options.",
+    "keywords": "academic educational specialist services Teacher consultation: materials, teaching and assessment For educators with a specific challenge in teaching learning materials or assessment teacher consult 60"
+  },
+  {
+    "lang": "en",
+    "title": "Educator professional development session",
+    "path": "en/services/teacher_dev_90/",
+    "category": "Services",
+    "summary": "For educators seeking deeper analysis of a professional issue and planning for growth. A 90-minute discussion grounded in evidence, professional judgement and next steps.",
+    "keywords": "academic educational specialist services Educator professional development session For educators seeking deeper analysis of a professional issue and planning for growth teacher dev 90"
+  },
+  {
+    "lang": "en",
+    "title": "Academic transcript and pathway analysis",
+    "path": "en/services/transcript_analysis/",
+    "category": "Services",
+    "summary": "For turning academic record evidence into an understandable educational decision. A review of strengths and constraints reflected in the transcript, with potential options.",
+    "keywords": "academic educational specialist services Academic transcript and pathway analysis For turning academic record evidence into an understandable educational decision transcript analysis"
+  },
+  {
+    "lang": "en",
+    "title": "Bookstore",
+    "path": "en/shop/",
+    "category": "Books",
+    "summary": "Official bookstore for published books.",
+    "keywords": "bookstore published books"
+  },
+  {
+    "lang": "en",
+    "title": "Seyyed Mehrab Mirkarimi | 36 Years of English Language Teaching MA Examination Preparation",
+    "path": "en/shop/authors/mehrab-mirkarimi/",
+    "category": "Books and academic publishing",
+    "summary": "The author's 997-page, two-PDF entrance examination questions and explanatory answers collection (1370–1405), with an explanation of its academic preparation, planned digital availability and educational talent-support contributions.",
+    "keywords": "Seyyed Mehrab Mirkarimi English Language Teaching MA entrance questions 36 years explanatory answers 425 572 pages educational talent support rights"
+  },
+  {
+    "lang": "en",
+    "title": "Customer Policy",
+    "path": "en/shop/customer-policy/",
+    "category": "Store",
+    "summary": "Customer and purchase policy information.",
+    "keywords": "customer policy bookstore"
+  },
+  {
+    "lang": "en",
+    "title": "Purchase Guide",
+    "path": "en/shop/purchase-guide/",
+    "category": "Store",
+    "summary": "Guide to selecting and purchasing published books.",
+    "keywords": "purchase guide books"
+  },
+  {
+    "lang": "en",
+    "title": "Student Guidance",
+    "path": "en/student-guidance/",
+    "category": "Services",
+    "summary": "Evidence-informed major and educational pathway exploration.",
+    "keywords": "student guidance major exploration educational pathway career exploration"
+  },
+  {
+    "lang": "en",
+    "title": "Teacher Education",
+    "path": "en/teacher-education/",
+    "category": "Education",
+    "summary": "Professional learning and teacher development.",
+    "keywords": "teacher education professional learning assessment literacy"
+  },
+  {
+    "lang": "en",
+    "title": "University Teaching",
+    "path": "en/teaching/",
+    "category": "Teaching",
+    "summary": "University teaching and academic instruction.",
+    "keywords": "teaching university courses lecturer"
+  },
+  {
+    "lang": "en",
+    "title": "VIP academic and educational advisory | Dr. Javad Rezazadeh Yazdeli",
+    "path": "en/vip/",
+    "category": "Services",
+    "summary": "Six distinctive VIP advisory programmes with proposed written deliverables, price and professional boundaries.",
+    "keywords": "VIP academic consulting educational advisory Javad Rezazadeh"
+  },
+  {
+    "lang": "en",
+    "title": "VIP Academic Direction | Dr. Javad Rezazadeh Yazdeli",
+    "path": "en/vip/academic-direction/",
+    "category": "Services",
+    "summary": "For a student or family facing a consequential educational choice that needs more than a single conversation. Proposed scope and professional limits are disclosed before any booking or payment.",
+    "keywords": "VIP academic consulting educational advisory academic direction Javad Rezazadeh"
+  },
+  {
+    "lang": "en",
+    "title": "VIP Educator Professional Development | Dr. Javad Rezazadeh Yazdeli",
+    "path": "en/vip/educator-development/",
+    "category": "Services",
+    "summary": "For a teacher or lecturer investigating a real pedagogical difficulty using their own instructional experience and evidence. Proposed scope and professional limits are disclosed before any booking or payment.",
+    "keywords": "VIP academic consulting educational advisory educator development Javad Rezazadeh"
+  },
+  {
+    "lang": "en",
+    "title": "Golden Talent Signature: Developmental Evidence Review | Dr. Javad Rezazadeh Yazdeli",
+    "path": "en/vip/golden-talent-signature/",
+    "category": "Services",
+    "summary": "For families seeking a contextual, multi-source exploration of a young person's capacities, interests and opportunities for growth. Proposed scope and professional limits are disclosed before any booking or payment.",
+    "keywords": "VIP academic consulting educational advisory golden talent signature Javad Rezazadeh"
+  },
+  {
+    "lang": "en",
+    "title": "VIP School and Institutional Advisory | Dr. Javad Rezazadeh Yazdeli",
+    "path": "en/vip/institutional-advisory/",
+    "category": "Services",
+    "summary": "For schools or educational organisations seeking to define a specific institutional challenge and weigh practical managerial responses. Proposed scope and professional limits are disclosed before any booking or payment.",
+    "keywords": "VIP academic consulting educational advisory institutional advisory Javad Rezazadeh"
+  },
+  {
+    "lang": "en",
+    "title": "VIP Research and Publication Strategy | Dr. Javad Rezazadeh Yazdeli",
+    "path": "en/vip/research-publication/",
+    "category": "Services",
+    "summary": "For a researcher with a manuscript of up to 7,000 words who needs diagnostic feedback and a responsible publication plan. Proposed scope and professional limits are disclosed before any booking or payment.",
+    "keywords": "VIP academic consulting educational advisory research publication Javad Rezazadeh"
+  },
+  {
+    "lang": "en",
+    "title": "VIP University Selection and Prioritisation | Dr. Javad Rezazadeh Yazdeli",
+    "path": "en/vip/university-selection/",
+    "category": "Services",
+    "summary": "For applicants comparing several university or major options under genuine admission, geographic and personal constraints. Proposed scope and professional limits are disclosed before any booking or payment.",
+    "keywords": "VIP academic consulting educational advisory university selection Javad Rezazadeh"
+  },
+  {
+    "lang": "en",
+    "title": "JHELA — International Scholarly Journal",
+    "path": "journal/",
+    "category": "Journal",
+    "summary": "Founding English-language journal for human-centred education, learning and assessment with open international reviewer and editorial collaboration calls.",
+    "keywords": "JHELA peer review education international scholarly journal human centred assessment"
+  },
+  {
+    "lang": "en",
+    "title": "JHELA — Aims and Scope",
+    "path": "journal/aims-scope/",
+    "category": "Journal",
+    "summary": "Education, learning, assessment and interdisciplinary research focused on the relationship between methodological rigour, context and human development.",
+    "keywords": "JHELA peer review education international scholarly journal human centred assessment"
+  },
+  {
+    "lang": "en",
+    "title": "JHELA — Author Guidelines",
+    "path": "journal/author-guidelines/",
+    "category": "Journal",
+    "summary": "Future publication guidance addressing methodology, literature, data transparency, ethics, scholarly contribution and contextual interpretation.",
+    "keywords": "JHELA peer review education international scholarly journal human centred assessment"
+  },
+  {
+    "lang": "en",
+    "title": "JHELA — Call for Reviewers",
+    "path": "journal/call-for-reviewers/",
+    "category": "Journal",
+    "summary": "Public call for qualified reviewers for the Journal of Human-Centred Education, Learning and Assessment.",
+    "keywords": "JHELA reviewers peer review education journal"
+  },
+  {
+    "lang": "en",
+    "title": "JHELA — Editorial Contact",
+    "path": "journal/contact/",
+    "category": "Journal",
+    "summary": "Contact the independent founding editorial office about peer review or international editorial collaboration.",
+    "keywords": "JHELA peer review education international scholarly journal human centred assessment"
+  },
+  {
+    "lang": "en",
+    "title": "JHELA — International Scholarly Dashboard",
+    "path": "journal/dashboard/",
+    "category": "Journal",
+    "summary": "English-language public hub for JHELA reviewers, founding editorial collaborators, authors and readers, with honest status and scientific editorial policies.",
+    "keywords": "JHELA scholarly dashboard international reviewers journal editorial collaboration aims scope ethical educational assessment"
+  },
+  {
+    "lang": "en",
+    "title": "JHELA — Editorial Leadership",
+    "path": "journal/editorial-board/",
+    "category": "Journal",
+    "summary": "Founding editorial leadership, independent decisions, transparent appointments and international editorial-board formation.",
+    "keywords": "JHELA peer review education international scholarly journal human centred assessment"
+  },
+  {
+    "lang": "en",
+    "title": "JHELA — Publication Ethics",
+    "path": "journal/ethics/",
+    "category": "Journal",
+    "summary": "Scientific integrity, participant protection, AI disclosure, authorship, editorial independence and correction policy.",
+    "keywords": "JHELA peer review education international scholarly journal human centred assessment"
+  },
+  {
+    "lang": "en",
+    "title": "JHELA — Open Access and Fees",
+    "path": "journal/fees/",
+    "category": "Journal",
+    "summary": "Founding access and fee policy: no submission fee, waiver for first issue proposed, independent editorial judgement.",
+    "keywords": "JHELA peer review education international scholarly journal human centred assessment"
+  },
+  {
+    "lang": "en",
+    "title": "JHELA — Founding Collaborators",
+    "path": "journal/founding-collaborators/",
+    "category": "Journal",
+    "summary": "Public invitation for scholarly founding collaboration with JHELA.",
+    "keywords": "JHELA collaboration journal education research"
+  },
+  {
+    "lang": "en",
+    "title": "JHELA — Peer Review",
+    "path": "journal/peer-review/",
+    "category": "Journal",
+    "summary": "Founding policy for double-anonymised external research review, independent handling and evidence-sensitive reviewer feedback.",
+    "keywords": "JHELA peer review education international scholarly journal human centred assessment"
+  },
+  {
+    "lang": "en",
+    "title": "JHELA — Reviewer Network",
+    "path": "journal/reviewer-registration/",
+    "category": "Journal",
+    "summary": "How international scholarly reviewers can express interest, demonstrate expertise and be selected with consent and conflict checks.",
+    "keywords": "JHELA peer review education international scholarly journal human centred assessment"
+  },
+  {
+    "lang": "en",
+    "title": "JHELA International Scholarly Development Roadmap",
+    "path": "journal/roadmap/",
+    "category": "Journal",
+    "summary": "Ten evidence-based milestones: native editorial infrastructure, editorial governance, open access, ISSN, DOI, DOAJ, Scopus, ESCI and long-term SSCI/Q1 ambitions.",
+    "keywords": "JHELA roadmap native-journal DOAJ Scopus Web of Science ESCI SSCI Q1 education scholarly publishing"
+  },
+  {
+    "lang": "en",
+    "title": "Rezazadeh Foundation Press",
+    "path": "publisher/",
+    "category": "Publishing",
+    "summary": "Independent publishing identity, governance and future book-publishing infrastructure.",
+    "keywords": "publisher books publishing imprint rezazadeh foundation press"
   },
   {
     "lang": "fa",
@@ -161,51 +577,131 @@
   },
   {
     "lang": "fa",
-    "title": "درباره من",
-    "path": "fa/darbare-man/",
-    "category": "هویت",
-    "summary": "پروفایل علمی و حرفه‌ای دکتر جواد رضازاده یزدلی.",
-    "keywords": "درباره جواد رضازاده سوابق تحصیلات"
+    "title": "اخبار",
+    "path": "fa/akhbar/",
+    "category": "اخبار",
+    "summary": "اطلاعیه‌ها و مطالب زمان‌محور.",
+    "keywords": "اخبار انتخاب رشته فراخوان"
   },
   {
     "lang": "fa",
-    "title": "پژوهش",
-    "path": "fa/pajouhesh/",
-    "category": "پژوهش",
-    "summary": "حوزه‌ها و برنامه پژوهشی عمومی.",
-    "keywords": "پژوهش آموزش زبان زبانشناسی کاربردی"
+    "title": "پژوهش مسئولانه و خدمات دانشگاهی؛ از صورت‌بندی مسئله تا بازنگری مقاله",
+    "path": "fa/akhbar/academic-research-editing-services-2026/",
+    "category": "News",
+    "summary": "از صورت‌بندی پرسش پژوهش و بازنگری علمی مقاله تا انتخاب مجله و پاسخ به داوران با رعایت اخلاق پژوهش.",
+    "keywords": "خدمات پژوهشی دانشگاهی ویرایش علمی مقاله روش تحقیق انتخاب مجله پاسخ داوران"
   },
   {
     "lang": "fa",
-    "title": "انتشارات علمی",
-    "path": "fa/entesharat-elmi/",
-    "category": "پژوهش",
-    "summary": "مقالات و پروفایل‌های علمی قابل بررسی.",
-    "keywords": "مقالات انتشارات علمی پژوهش"
+    "title": "چگونه دانش و خدمات علمی را برای انسان، گوگل و جست‌وجوی هوش مصنوعی قابل کشف کنیم؟",
+    "path": "fa/akhbar/ai-search-and-scientific-content-2026/",
+    "category": "News",
+    "summary": "چگونه محتوای علمی اصیل، پیوندهای معنایی و داده ساختاریافته به کشف‌پذیری کمک می‌کنند، بدون تضمین رتبه؟",
+    "keywords": "سئو محتوا علمی جستجوی هوش مصنوعی GEO گوگل داده ساختاریافته نقشه سایت"
   },
   {
     "lang": "fa",
-    "title": "کتاب‌ها",
-    "path": "fa/ketab-ha/",
-    "category": "کتاب",
-    "summary": "کتاب‌های آموزشی، علمی و ادبی.",
-    "keywords": "کتاب کشف مسیر طلایی استعداد شعر"
+    "title": "کتاب، دانایی و مسئولیت اجتماعی؛ معرفی تجربه تازه فروشگاه کتاب",
+    "path": "fa/akhbar/bookstore-books-and-student-support-2026/",
+    "category": "News",
+    "summary": "معرفی تجربه خرید کتاب، شرایط ارسال، حقوق نشر و تفاوت خرید تجاری با حمایت مالی داوطلبانه.",
+    "keywords": "فروشگاه کتاب خرید کتاب چاپی نشر علمی نویسندگان ارسال کتاب حمایت از دانش آموز"
   },
   {
     "lang": "fa",
-    "title": "چگونه زبان‌ها آموخته می‌شوند — در دست انتشار",
-    "path": "fa/ketab-ha/how-languages-are-learned/",
-    "category": "کتاب",
-    "summary": "معرفی کتاب در مرحله ویراستاری نهایی؛ ترجمه و بسط تطبیقی پژوهشی بر اساس اثر لایتباون و اسپادا با تمرکز بر اکتساب زبان فارسی در کودکان. هنوز برای فروش عرضه نشده است.",
-    "keywords": "چگونه زبان‌ها آموخته می‌شوند اکتساب زبان فارسی کودک Lightbown Spada کتاب در دست انتشار"
+    "title": "یک حساب و مسیرهای متعدد؛ معرفی منطق داشبورد یکپارچه و موبایل‌فرست کاربران",
+    "path": "fa/akhbar/customer-dashboard-one-account-2026/",
+    "category": "News",
+    "summary": "طراحی داشبورد تب‌محور و موبایل‌فرست برای پیگیری خدمات و پرداخت‌های واقعی با دسترسی خصوصی و مبتنی بر نقش.",
+    "keywords": "داشبورد مشتریان پنل کاربری موبایل فرست پیگیری خدمات سوابق پرداخت فضای شخصی"
   },
   {
     "lang": "fa",
-    "title": "تدریس دانشگاهی",
-    "path": "fa/tadris/",
-    "category": "آموزش",
-    "summary": "سوابق و حوزه‌های تدریس دانشگاهی.",
-    "keywords": "تدریس دانشگاه مدرس"
+    "title": "از پژوهش و آموزش تا پرورش استعداد؛ معرفی نقشه جامع اکوسیستم علمی و آموزشی دکتر جواد رضازاده یزدلی",
+    "path": "fa/akhbar/ecosystem-education-research-2026/",
+    "category": "News",
+    "summary": "معرفی نقشه یکپارچه پژوهش، آموزش، مشاوره، Golden Talent، فروشگاه و حمایت تحصیلی با توضیح مسئولانه وضعیت خدمات.",
+    "keywords": "اکوسیستم علمی آموزشی دکتر رضازاده معرفی خدمات پژوهش مشاوره استعدادیابی آموزش زبان فروشگاه و حمایت تحصیلی"
+  },
+  {
+    "lang": "fa",
+    "title": "مشاوره تحصیلی برای تصمیم مسئولانه؛ فراتر از رتبه، نمره و نسخه‌های آماده",
+    "path": "fa/akhbar/educational-guidance-evidence-based-2026/",
+    "category": "News",
+    "summary": "مشاوره تحصیلی بر پایه شواهد، علاقه و شرایط فرد؛ توضیح محدودیت نمره، رتبه و توصیه‌های آماده.",
+    "keywords": "مشاوره تحصیلی انتخاب رشته تصمیم آموزشی رتبه کنکور علاقه استعداد خانواده"
+  },
+  {
+    "lang": "fa",
+    "title": "انتخاب رشته ۱۴۰۵",
+    "path": "fa/akhbar/entekhab-reshteh-1405/",
+    "category": "اخبار",
+    "summary": "راهنمای زمان‌محور انتخاب رشته ۱۴۰۵ با تأکید بر اطلاعات رسمی و تصمیم مبتنی بر شواهد.",
+    "keywords": "انتخاب رشته ۱۴۰۵ کنکور دانشگاه سازمان سنجش"
+  },
+  {
+    "lang": "fa",
+    "title": "فراخوان همکاری علمی JHELA",
+    "path": "fa/akhbar/farakhvan-jhela/",
+    "category": "اخبار",
+    "summary": "فراخوان عمومی همکاری علمی و داوری برای JHELA.",
+    "keywords": "فراخوان JHELA داوری همکاری علمی مجله"
+  },
+  {
+    "lang": "fa",
+    "title": "Golden Talent؛ معرفی رویکرد چندمنبعی و رشدگرا در شناخت و پرورش استعداد",
+    "path": "fa/akhbar/golden-talent-developmental-framework-2026/",
+    "category": "News",
+    "summary": "آشنایی با Golden Talent و نگاه رشدگرا به استعداد؛ چرا یک آزمون یا نمره برای شناخت ظرفیت فرد کافی نیست؟",
+    "keywords": "Golden Talent استعدادیابی دانش آموزان شناخت استعداد رشد استعداد شواهد چندمنبعی فرصت یادگیری"
+  },
+  {
+    "lang": "fa",
+    "title": "راهنمای عملی استفاده از وب‌سایت؛ از مطالعه و انتخاب خدمت تا خرید و پیگیری",
+    "path": "fa/akhbar/how-to-use-educational-services-2026/",
+    "category": "News",
+    "summary": "راهنمای گام‌به‌گام پیدا کردن خدمت، خواندن شرایط، ثبت‌نام ایمیلی، خرید کتاب و پیگیری پرداخت.",
+    "keywords": "راهنمای خدمات سایت ثبت نام ایمیل خرید کتاب پیگیری سفارش مشاوره آموزشی پرداخت"
+  },
+  {
+    "lang": "fa",
+    "title": "Humanability در سنجش آموزشی؛ طرح یک پرسش انسانی در کنار روایی و پایایی",
+    "path": "fa/akhbar/humanability-language-assessment-framework-2026/",
+    "category": "News",
+    "summary": "معرفی مسئولانه پیشنهاد پژوهشی Humanability و نسبت آن با روایی، پایایی، عدالت و تجربه انسانی آزمون‌دهنده.",
+    "keywords": "Humanability سنجش انسان محور سنجش زبان پایایی روایی عدالت آزمون اخلاق سنجش"
+  },
+  {
+    "lang": "fa",
+    "title": "افق همکاری علمی بین‌المللی؛ پژوهش، نشر مسئولانه و گفت‌وگو میان‌رشته‌ای",
+    "path": "fa/akhbar/international-research-collaboration-2026/",
+    "category": "News",
+    "summary": "چشم‌انداز همکاری بین‌المللی در آموزش و سنجش با تفکیک طرح، دعوت و همکاری رسمی تأییدشده.",
+    "keywords": "همکاری علمی بین المللی پژوهش آموزش زبان نشر مسئولانه همکاری دانشگاهی میان رشته ای"
+  },
+  {
+    "lang": "fa",
+    "title": "معرفی ساختار خدمات تخصصی؛ از نیاز واقعی مخاطب تا انتخاب آگاهانه خدمت",
+    "path": "fa/akhbar/professional-services-public-guide-2026/",
+    "category": "News",
+    "summary": "چگونه میان خدمات مشاوره، پژوهش، استعدادیابی و همکاری سازمانی بر اساس مسئله و خروجی مورد انتظار انتخاب کنیم؟",
+    "keywords": "خدمات آموزشی پژوهشی مشاوره تخصصی انتخاب خدمات علمی دانشگاهی مدرسه و خانواده"
+  },
+  {
+    "lang": "fa",
+    "title": "فرصت برابر برای استعدادها؛ معرفی برنامه حمایت مسئولانه از دانش‌آموزان کم‌برخوردار",
+    "path": "fa/akhbar/support-talented-students-opportunity-2026/",
+    "category": "News",
+    "summary": "معرفی سازوکار کمک داوطلبانه، تأیید نیاز، بورسیه و پیگیری هزینه با حفاظت از هویت دانش‌آموز.",
+    "keywords": "حمایت تحصیلی بورسیه دانش آموز مستعد کم برخوردار حمایت مالی کتاب شهریه حفظ حریم خصوصی"
+  },
+  {
+    "lang": "fa",
+    "title": "از توانمندسازی معلمان تا همکاری با مدارس؛ خدمات آموزشی با محور قضاوت حرفه‌ای",
+    "path": "fa/akhbar/teacher-schools-professional-learning-2026/",
+    "category": "News",
+    "summary": "چرا نیازسنجی مدرسه، قضاوت حرفه‌ای معلم و بازخورد عملی از برگزاری صرف کارگاه مهم‌تر است؟",
+    "keywords": "توسعه حرفه ای معلمان آموزش معلم ارزیابی مواد آموزشی همکاری با مدارس آزمون آموزشی"
   },
   {
     "lang": "fa",
@@ -217,11 +713,43 @@
   },
   {
     "lang": "fa",
-    "title": "فلسفه آموزشی",
-    "path": "fa/falsafe-amoozeshi/",
-    "category": "آموزش",
-    "summary": "فلسفه آموزشی برگرفته از کشف مسیر طلایی استعداد.",
-    "keywords": "فلسفه آموزشی رشد انسان استعداد"
+    "title": "BAHAR | برنامه مطالعه و یادگیری",
+    "path": "fa/bahar/",
+    "category": "Education",
+    "summary": "معرفی BAHAR و دو بخش رایگان درباره تمرین بازیابی، بازخورد و برنامه هفتگی قابل بازبینی؛ بدون نمره تشخیصی.",
+    "keywords": "بهار BAHAR مطالعه یادگیری برنامه هفتگی رایگان"
+  },
+  {
+    "lang": "fa",
+    "title": "دانش‌آموزان",
+    "path": "fa/danesh-amoozan/",
+    "category": "دانش‌آموز",
+    "summary": "ورودی دانش‌آموزان و Golden Talent.",
+    "keywords": "دانش آموز rcas استعداد مسیر رشد"
+  },
+  {
+    "lang": "fa",
+    "title": "درباره من",
+    "path": "fa/darbare-man/",
+    "category": "هویت",
+    "summary": "پروفایل علمی و حرفه‌ای دکتر جواد رضازاده یزدلی.",
+    "keywords": "درباره جواد رضازاده سوابق تحصیلات"
+  },
+  {
+    "lang": "fa",
+    "title": "انتخاب رشته",
+    "path": "fa/entekhab-reshteh/",
+    "category": "خدمات",
+    "summary": "انتخاب رشته تحصیلی و دانشگاهی مبتنی بر شواهد.",
+    "keywords": "انتخاب رشته کنکور دانشگاه"
+  },
+  {
+    "lang": "fa",
+    "title": "انتشارات علمی",
+    "path": "fa/entesharat-elmi/",
+    "category": "پژوهش",
+    "summary": "مقالات و پروفایل‌های علمی قابل بررسی.",
+    "keywords": "مقالات انتشارات علمی پژوهش"
   },
   {
     "lang": "fa",
@@ -230,6 +758,22 @@
     "category": "خدمات",
     "summary": "استعدادیابی علمی، چندمنبعی و رشدگرا.",
     "keywords": "استعدادیابی تحصیلی استعداد دانش آموز"
+  },
+  {
+    "lang": "fa",
+    "title": "فعالیت‌های علمی",
+    "path": "fa/faaliat-haye-elmi/",
+    "category": "علمی",
+    "summary": "همایش‌ها، ارائه‌ها و فعالیت‌های علمی.",
+    "keywords": "فعالیت علمی همایش ارائه"
+  },
+  {
+    "lang": "fa",
+    "title": "فلسفه آموزشی",
+    "path": "fa/falsafe-amoozeshi/",
+    "category": "آموزش",
+    "summary": "فلسفه آموزشی برگرفته از کشف مسیر طلایی استعداد.",
+    "keywords": "فلسفه آموزشی رشد انسان استعداد"
   },
   {
     "lang": "fa",
@@ -249,11 +793,51 @@
   },
   {
     "lang": "fa",
-    "title": "مشاوره تحصیلی",
-    "path": "fa/moshavere-tahsili/",
+    "title": "همکاری سازمانی، آموزش و سخنرانی",
+    "path": "fa/hamkari-sazmani/",
     "category": "خدمات",
-    "summary": "مشاوره تحصیلی برای تصمیم‌های آموزشی.",
-    "keywords": "مشاوره تحصیلی هدایت تحصیلی"
+    "summary": "مسیر همکاری برای سخنرانی، کارگاه، آموزش معلم، مشاوره سازمانی و پژوهش.",
+    "keywords": "همکاری سازمانی سخنرانی کارگاه آموزش معلم مشاوره سازمانی پژوهش"
+  },
+  {
+    "lang": "fa",
+    "title": "کتاب‌ها",
+    "path": "fa/ketab-ha/",
+    "category": "کتاب",
+    "summary": "کتاب‌های آموزشی، علمی و ادبی.",
+    "keywords": "کتاب کشف مسیر طلایی استعداد شعر"
+  },
+  {
+    "lang": "fa",
+    "title": "چگونه زبان‌ها آموخته می‌شوند — در دست انتشار",
+    "path": "fa/ketab-ha/how-languages-are-learned/",
+    "category": "کتاب",
+    "summary": "معرفی کتاب در مرحله ویراستاری نهایی؛ ترجمه و بسط تطبیقی پژوهشی بر اساس اثر لایتباون و اسپادا با تمرکز بر اکتساب زبان فارسی در کودکان. هنوز برای فروش عرضه نشده است.",
+    "keywords": "چگونه زبان‌ها آموخته می‌شوند اکتساب زبان فارسی کودک Lightbown Spada کتاب در دست انتشار"
+  },
+  {
+    "lang": "fa",
+    "title": "خدمات پژوهشی و دانشگاهی",
+    "path": "fa/khadamat-pajouheshi/",
+    "category": "خدمات",
+    "summary": "ویرایش انگلیسی دانشگاهی، بازبینی تشخیصی مقاله، مشاوره پژوهش و انتشار، پاسخ به داوران و مسیر دانشگاهی.",
+    "keywords": "خدمات پژوهشی ویرایش مقاله مشاوره پژوهش انتشار داوران رزومه مصاحبه علمی"
+  },
+  {
+    "lang": "fa",
+    "title": "خدمات آموزشی، پژوهشی و مشاوره",
+    "path": "fa/khadamat/",
+    "category": "خدمات",
+    "summary": "خدمات برای دانش‌آموزان و والدین، پژوهشگران، معلمان و مؤسسات.",
+    "keywords": "خدمات آموزشی پژوهشی مشاوره مقاله پژوهش استعدادیابی انتخاب رشته"
+  },
+  {
+    "lang": "fa",
+    "title": "مسیر من | انتخاب مسیر آموزشی",
+    "path": "fa/masir-man/",
+    "category": "Education",
+    "summary": "راهنمای انتخاب مسیر آموزشی با توجه به استعداد، روش مطالعه، تحلیل کارنامه و تصمیم‌گیری آگاهانه؛ بدون ادعای تشخیص قطعی.",
+    "keywords": "مسیر من استعداد مطالعه انتخاب مسیر تحصیلی راهنمای آموزشی"
   },
   {
     "lang": "fa",
@@ -265,19 +849,19 @@
   },
   {
     "lang": "fa",
-    "title": "انتخاب رشته",
-    "path": "fa/entekhab-reshteh/",
+    "title": "مشاوره تحصیلی",
+    "path": "fa/moshavere-tahsili/",
     "category": "خدمات",
-    "summary": "انتخاب رشته تحصیلی و دانشگاهی مبتنی بر شواهد.",
-    "keywords": "انتخاب رشته کنکور دانشگاه"
+    "summary": "مشاوره تحصیلی برای تصمیم‌های آموزشی.",
+    "keywords": "مشاوره تحصیلی هدایت تحصیلی"
   },
   {
     "lang": "fa",
-    "title": "دانش‌آموزان",
-    "path": "fa/danesh-amoozan/",
-    "category": "دانش‌آموز",
-    "summary": "ورودی دانش‌آموزان و Golden Talent.",
-    "keywords": "دانش آموز rcas استعداد مسیر رشد"
+    "title": "پژوهش",
+    "path": "fa/pajouhesh/",
+    "category": "پژوهش",
+    "summary": "حوزه‌ها و برنامه پژوهشی عمومی.",
+    "keywords": "پژوهش آموزش زبان زبانشناسی کاربردی"
   },
   {
     "lang": "fa",
@@ -286,166 +870,6 @@
     "category": "راهنما",
     "summary": "مرکز دانش برای رشد دانش‌آموز، استعداد، انتخاب مسیر، پژوهش، سنجش و توسعه حرفه‌ای.",
     "keywords": "دانش راهنما آموزش رشد استعداد انتخاب رشته پژوهش سنجش معلم"
-  },
-  {
-    "lang": "fa",
-    "title": "اخبار",
-    "path": "fa/akhbar/",
-    "category": "اخبار",
-    "summary": "اطلاعیه‌ها و مطالب زمان‌محور.",
-    "keywords": "اخبار انتخاب رشته فراخوان"
-  },
-  {
-    "lang": "fa",
-    "title": "فعالیت‌های علمی",
-    "path": "fa/faaliat-haye-elmi/",
-    "category": "علمی",
-    "summary": "همایش‌ها، ارائه‌ها و فعالیت‌های علمی.",
-    "keywords": "فعالیت علمی همایش ارائه"
-  },
-  {
-    "lang": "fa",
-    "title": "تماس",
-    "path": "fa/tamas/",
-    "category": "ارتباط",
-    "summary": "راه‌های ارتباط علمی، حرفه‌ای و مشاوره‌ای.",
-    "keywords": "تماس ایمیل مشاوره"
-  },
-  {
-    "lang": "en",
-    "title": "Academic, Educational & Professional Services",
-    "path": "en/services/",
-    "category": "Services",
-    "summary": "Researcher support, student guidance, teacher development and institutional professional services.",
-    "keywords": "academic services research consultation manuscript review student guidance teacher development institutional consulting"
-  },
-  {
-    "lang": "fa",
-    "title": "خدمات آموزشی، پژوهشی و مشاوره",
-    "path": "fa/khadamat/",
-    "category": "خدمات",
-    "summary": "خدمات برای دانش‌آموزان و والدین، پژوهشگران، معلمان و مؤسسات.",
-    "keywords": "خدمات آموزشی پژوهشی مشاوره مقاله پژوهش استعدادیابی انتخاب رشته"
-  },
-  {
-    "lang": "en",
-    "title": "Rezazadeh Foundation Press",
-    "path": "publisher/",
-    "category": "Publishing",
-    "summary": "Independent publishing identity, governance and future book-publishing infrastructure.",
-    "keywords": "publisher books publishing imprint rezazadeh foundation press"
-  },
-  {
-    "lang": "en",
-    "title": "JHELA — Call for Reviewers",
-    "path": "journal/call-for-reviewers/",
-    "category": "Journal",
-    "summary": "Public call for qualified reviewers for the Journal of Human-Centred Education, Learning and Assessment.",
-    "keywords": "JHELA reviewers peer review education journal"
-  },
-  {
-    "lang": "en",
-    "title": "JHELA — Founding Collaborators",
-    "path": "journal/founding-collaborators/",
-    "category": "Journal",
-    "summary": "Public invitation for scholarly founding collaboration with JHELA.",
-    "keywords": "JHELA collaboration journal education research"
-  },
-  {
-    "lang": "fa",
-    "title": "مشاوره تحصیلی برای تصمیم، نه نسخه آماده",
-    "path": "fa/rahnamaha/moshavere-tahsili-baraye-tasmim/",
-    "category": "راهنما",
-    "summary": "راهنمای مشاوره تحصیلی با تأکید بر تصمیم‌گیری آگاهانه و مسئولانه.",
-    "keywords": "مشاوره تحصیلی تصمیم گیری هدایت تحصیلی راهنما"
-  },
-  {
-    "lang": "fa",
-    "title": "چه رشته‌ای برای من مناسب است؟",
-    "path": "fa/rahnamaha/che-reshteyi-baraye-man-monaseb-ast/",
-    "category": "راهنما",
-    "summary": "راهنمای انتخاب مسیر تحصیلی با توجه به استعداد، علاقه، توانمندی و شرایط واقعی.",
-    "keywords": "رشته مناسب انتخاب رشته استعداد علاقه توانمندی"
-  },
-  {
-    "lang": "fa",
-    "title": "انتخاب رشته ۱۴۰۵",
-    "path": "fa/akhbar/entekhab-reshteh-1405/",
-    "category": "اخبار",
-    "summary": "راهنمای زمان‌محور انتخاب رشته ۱۴۰۵ با تأکید بر اطلاعات رسمی و تصمیم مبتنی بر شواهد.",
-    "keywords": "انتخاب رشته ۱۴۰۵ کنکور دانشگاه سازمان سنجش"
-  },
-  {
-    "lang": "fa",
-    "title": "فراخوان همکاری علمی JHELA",
-    "path": "fa/akhbar/farakhvan-jhela/",
-    "category": "اخبار",
-    "summary": "فراخوان عمومی همکاری علمی و داوری برای JHELA.",
-    "keywords": "فراخوان JHELA داوری همکاری علمی مجله"
-  },
-  {
-    "lang": "en",
-    "title": "Academic Services",
-    "path": "en/academic-services/",
-    "category": "Services",
-    "summary": "Academic English editing, manuscript diagnostics, research and publication consultation, reviewer-response support and academic career preparation.",
-    "keywords": "academic services editing manuscript diagnostic research consultation publication reviewer response academic cv interview"
-  },
-  {
-    "lang": "fa",
-    "title": "خدمات پژوهشی و دانشگاهی",
-    "path": "fa/khadamat-pajouheshi/",
-    "category": "خدمات",
-    "summary": "ویرایش انگلیسی دانشگاهی، بازبینی تشخیصی مقاله، مشاوره پژوهش و انتشار، پاسخ به داوران و مسیر دانشگاهی.",
-    "keywords": "خدمات پژوهشی ویرایش مقاله مشاوره پژوهش انتشار داوران رزومه مصاحبه علمی"
-  },
-  {
-    "lang": "en",
-    "title": "Invite Dr. Rezazadeh",
-    "path": "en/invite/",
-    "category": "Services",
-    "summary": "Speaking, training, institutional consulting and research collaboration pathway.",
-    "keywords": "invite keynote webinar panel workshop teacher training institutional consulting speaking"
-  },
-  {
-    "lang": "fa",
-    "title": "همکاری سازمانی، آموزش و سخنرانی",
-    "path": "fa/hamkari-sazmani/",
-    "category": "خدمات",
-    "summary": "مسیر همکاری برای سخنرانی، کارگاه، آموزش معلم، مشاوره سازمانی و پژوهش.",
-    "keywords": "همکاری سازمانی سخنرانی کارگاه آموزش معلم مشاوره سازمانی پژوهش"
-  },
-  {
-    "lang": "fa",
-    "title": "رتبه و تناسب در انتخاب رشته",
-    "path": "fa/rahnamaha/rotbe-va-tanasob-dar-entekhab-reshteh/",
-    "category": "راهنما",
-    "summary": "راهنمای تحلیلی تفاوت میان امکان قبولی بر اساس رتبه و تناسب واقعی رشته با فرد.",
-    "keywords": "رتبه انتخاب رشته تناسب رشته امکان قبولی علاقه توانمندی مسیر تحصیلی"
-  },
-  {
-    "lang": "fa",
-    "title": "تفاوت استعداد، علاقه، مهارت و عملکرد تحصیلی",
-    "path": "fa/rahnamaha/tafavot-estedaad-alaghe-maharat-amalkard/",
-    "category": "راهنما",
-    "summary": "راهنمای تفکیک و تفسیر رشدگرای استعداد، علاقه، مهارت و عملکرد تحصیلی.",
-    "keywords": "استعداد علاقه مهارت عملکرد تحصیلی رشد دانش آموز استعدادیابی"
-  },
-  {
-    "lang": "fa",
-    "title": "چرا یک تست برای استعدادیابی کافی نیست؟",
-    "path": "fa/rahnamaha/chera-yek-test-baraye-estedaadyabi-kafi-nist/",
-    "category": "راهنما",
-    "summary": "راهنمای محدودیت آزمون منفرد و استفاده از شواهد چندمنبعی در استعدادیابی.",
-    "keywords": "تست استعدادیابی آزمون استعداد چندمنبعی شواهد دانش آموز"
-  },
-  {
-    "lang": "fa",
-    "title": "مقایسه رشته‌ها با ماتریس تصمیم",
-    "path": "fa/rahnamaha/moghayese-reshteha-ba-matris-tasmim/",
-    "category": "راهنما",
-    "summary": "راهنمای عملی مقایسه چند رشته دانشگاهی با تفکیک امکان، شناخت، علاقه، شواهد توان، شرایط، انعطاف مسیر و ابهام‌ها.",
-    "keywords": "مقایسه رشته ها ماتریس تصمیم انتخاب رشته رشته دانشگاهی تناسب علاقه توانایی شرایط"
   },
   {
     "lang": "fa",
@@ -545,6 +969,14 @@
   },
   {
     "lang": "fa",
+    "title": "چه رشته‌ای برای من مناسب است؟",
+    "path": "fa/rahnamaha/che-reshteyi-baraye-man-monaseb-ast/",
+    "category": "راهنما",
+    "summary": "راهنمای انتخاب مسیر تحصیلی با توجه به استعداد، علاقه، توانمندی و شرایط واقعی.",
+    "keywords": "رشته مناسب انتخاب رشته استعداد علاقه توانمندی"
+  },
+  {
+    "lang": "fa",
     "title": "چگونه استعداد واقعی فرزندم را تشخیص بدهم؟ راهنمای والدین",
     "path": "fa/rahnamaha/chegoone-estedaad-vaghei-farzand-ra-beshenasim/",
     "category": "راهنما",
@@ -566,6 +998,14 @@
     "category": "راهنما",
     "summary": "راهنمای تشخیصی قبل از Submit مقاله: استدلال، تناسب روش و سؤال، گزارش‌گری، انسجام، مجله هدف و خطاهایی که پیش از ارسال باید دیده شوند.",
     "keywords": "چرا مقاله من آماده ارسال نیست بازبینی تشخیصی قبل از Submit راهنمای تشخیصی قبل از Submit مقاله استدلال تناسب روش و سؤال گزارش‌گری انسجام مجله هدف و خطاهایی که پیش از ارسال باید دیده شوند"
+  },
+  {
+    "lang": "fa",
+    "title": "چرا یک تست برای استعدادیابی کافی نیست؟",
+    "path": "fa/rahnamaha/chera-yek-test-baraye-estedaadyabi-kafi-nist/",
+    "category": "راهنما",
+    "summary": "راهنمای محدودیت آزمون منفرد و استفاده از شواهد چندمنبعی در استعدادیابی.",
+    "keywords": "تست استعدادیابی آزمون استعداد چندمنبعی شواهد دانش آموز"
   },
   {
     "lang": "fa",
@@ -673,6 +1113,14 @@
   },
   {
     "lang": "fa",
+    "title": "مقایسه رشته‌ها با ماتریس تصمیم",
+    "path": "fa/rahnamaha/moghayese-reshteha-ba-matris-tasmim/",
+    "category": "راهنما",
+    "summary": "راهنمای عملی مقایسه چند رشته دانشگاهی با تفکیک امکان، شناخت، علاقه، شواهد توان، شرایط، انعطاف مسیر و ابهام‌ها.",
+    "keywords": "مقایسه رشته ها ماتریس تصمیم انتخاب رشته رشته دانشگاهی تناسب علاقه توانایی شرایط"
+  },
+  {
+    "lang": "fa",
     "title": "مصاحبه هیئت علمی و دانشگاهی؛ چگونه آماده شویم؟",
     "path": "fa/rahnamaha/mosahabe-heyat-elmi/",
     "category": "راهنما",
@@ -702,6 +1150,14 @@
     "category": "راهنما",
     "summary": "مشاوره پژوهشی زمانی مفید است که یک مسئله مشخص در سؤال، طراحی، تحلیل، تفسیر یا انتشار وجود دارد. راهنمای تشخیص نیاز و مرزهای حرفه‌ای.",
     "keywords": "مشاوره پژوهشی چه زمانی لازم است برای پایان‌نامه و مقاله مشاوره پژوهشی زمانی مفید است که یک مسئله مشخص در سؤال طراحی تحلیل تفسیر یا انتشار وجود دارد راهنمای تشخیص نیاز و مرزهای حرفه‌ای"
+  },
+  {
+    "lang": "fa",
+    "title": "مشاوره تحصیلی برای تصمیم، نه نسخه آماده",
+    "path": "fa/rahnamaha/moshavere-tahsili-baraye-tasmim/",
+    "category": "راهنما",
+    "summary": "راهنمای مشاوره تحصیلی با تأکید بر تصمیم‌گیری آگاهانه و مسئولانه.",
+    "keywords": "مشاوره تحصیلی تصمیم گیری هدایت تحصیلی راهنما"
   },
   {
     "lang": "fa",
@@ -737,6 +1193,22 @@
   },
   {
     "lang": "fa",
+    "title": "رتبه و تناسب در انتخاب رشته",
+    "path": "fa/rahnamaha/rotbe-va-tanasob-dar-entekhab-reshteh/",
+    "category": "راهنما",
+    "summary": "راهنمای تحلیلی تفاوت میان امکان قبولی بر اساس رتبه و تناسب واقعی رشته با فرد.",
+    "keywords": "رتبه انتخاب رشته تناسب رشته امکان قبولی علاقه توانمندی مسیر تحصیلی"
+  },
+  {
+    "lang": "fa",
+    "title": "تفاوت استعداد، علاقه، مهارت و عملکرد تحصیلی",
+    "path": "fa/rahnamaha/tafavot-estedaad-alaghe-maharat-amalkard/",
+    "category": "راهنما",
+    "summary": "راهنمای تفکیک و تفسیر رشدگرای استعداد، علاقه، مهارت و عملکرد تحصیلی.",
+    "keywords": "استعداد علاقه مهارت عملکرد تحصیلی رشد دانش آموز استعدادیابی"
+  },
+  {
+    "lang": "fa",
     "title": "تحلیل کارنامه تحصیلی؛ نمره‌ها درباره مسیر آینده چه می‌گویند؟",
     "path": "fa/rahnamaha/tahlil-karname-tahsili/",
     "category": "راهنما",
@@ -761,6 +1233,14 @@
   },
   {
     "lang": "fa",
+    "title": "RCAS | بازاندیشی آموزشی",
+    "path": "fa/rcas/",
+    "category": "Education",
+    "summary": "آشنایی با چارچوب پژوهشی RCAS و شروع رایگان فعالیت بازاندیشی ۲۸ گزاره‌ای همراه با بیان محدودیت‌های علمی.",
+    "keywords": "RCAS بازاندیشی آموزشی روش مطالعه شروع رایگان پژوهشی"
+  },
+  {
+    "lang": "fa",
     "title": "خدمات تخصصی",
     "path": "fa/services/",
     "category": "خدمات",
@@ -777,43 +1257,27 @@
   },
   {
     "lang": "fa",
-    "title": "جلسه دانش‌آموز و والد",
-    "path": "fa/services/student_parent_90/",
+    "title": "رزومه دانشگاهی و مسیر اپلای/شغلی",
+    "path": "fa/services/academic_cv/",
     "category": "خدمات",
-    "summary": "برای زمانی که تصمیم آموزشی نیازمند حضور هم‌زمان دانش‌آموز و والد است. جلسه مشترک ۹۰ دقیقه‌ای برای هم‌ترازکردن شواهد، نگرانی‌ها و مسیر تصمیم.",
-    "keywords": "جلسه دانش‌آموز و والد شرایط خدمت دکتر جواد رضازاده یزدلی"
+    "summary": "برای دانشگاهی یا پژوهشگری که رزومه و مسیر درخواست خود را برای یک موقعیت واقعی بازبینی می‌کند. بازبینی معماری CV و راهبرد ارائه شواهد حرفه‌ای متناسب با هدف.",
+    "keywords": "رزومه دانشگاهی و مسیر اپلای/شغلی شرایط خدمت دکتر جواد رضازاده یزدلی"
   },
   {
     "lang": "fa",
-    "title": "مشاوره تخصصی کنکور",
-    "path": "fa/services/konkur_consult_60/",
+    "title": "ویرایش انگلیسی دانشگاهی تا ۵۰۰۰ کلمه",
+    "path": "fa/services/academic_editing/",
     "category": "خدمات",
-    "summary": "برای تصمیم‌های مشخص دوره کنکور، برنامه‌ریزی و بازتنظیم مسیر مطالعه. جلسه ۶۰ دقیقه‌ای متمرکز بر مسئله فعلی و اقدامات بعدی کنکور.",
-    "keywords": "مشاوره تخصصی کنکور شرایط خدمت دکتر جواد رضازاده یزدلی"
+    "summary": "برای متن دانشگاهی تا ۵۰۰۰ کلمه که از نظر علمی شکل گرفته و به پالایش انگلیسی نیاز دارد. نسخه ویرایش‌شده با تمرکز بر وضوح، دقت زبانی و بیان دانشگاهی.",
+    "keywords": "ویرایش انگلیسی دانشگاهی تا ۵۰۰۰ کلمه شرایط خدمت دکتر جواد رضازاده یزدلی"
   },
   {
     "lang": "fa",
-    "title": "برنامه مشاوره کنکور یک‌ماهه",
-    "path": "fa/services/konkur_month/",
+    "title": "آمادگی مصاحبه علمی یا هیئت علمی",
+    "path": "fa/services/academic_interview_90/",
     "category": "خدمات",
-    "summary": "برای دانش‌آموزی که به همراهی ساختاریافته در یک بازه یک‌ماهه نیاز دارد. برنامه یک‌ماهه متناسب با وضعیت موجود و چارچوب بازبینی پیشرفت.",
-    "keywords": "برنامه مشاوره کنکور یک‌ماهه شرایط خدمت دکتر جواد رضازاده یزدلی"
-  },
-  {
-    "lang": "fa",
-    "title": "تحلیل کارنامه و تصمیم تحصیلی",
-    "path": "fa/services/transcript_analysis/",
-    "category": "خدمات",
-    "summary": "برای تبدیل داده‌های کارنامه به یک تصمیم تحصیلی قابل‌توضیح. تحلیل نقاط قوت و محدودیت‌های کارنامه و صورت‌بندی گزینه‌های تصمیم.",
-    "keywords": "تحلیل کارنامه و تصمیم تحصیلی شرایط خدمت دکتر جواد رضازاده یزدلی"
-  },
-  {
-    "lang": "fa",
-    "title": "انتخاب رشته دانشگاهی استاندارد",
-    "path": "fa/services/field_selection_standard/",
-    "category": "خدمات",
-    "summary": "برای داوطلبی که به اولویت‌بندی منظم و دفاع‌پذیر رشته‌محل‌ها نیاز دارد. ساخت و بازبینی اولویت‌های انتخاب رشته بر پایه داده‌های معتبر پرونده.",
-    "keywords": "انتخاب رشته دانشگاهی استاندارد شرایط خدمت دکتر جواد رضازاده یزدلی"
+    "summary": "برای فردی که برای مصاحبه علمی یا هیئت علمی مشخص آماده می‌شود. جلسه ۹۰ دقیقه‌ای آمادگی ساختاریافته بر مبنای نقش، سوابق و پرسش‌های محتمل.",
+    "keywords": "آمادگی مصاحبه علمی یا هیئت علمی شرایط خدمت دکتر جواد رضازاده یزدلی"
   },
   {
     "lang": "fa",
@@ -825,11 +1289,11 @@
   },
   {
     "lang": "fa",
-    "title": "استعدادیابی تخصصی اولیه",
-    "path": "fa/services/talent_initial/",
+    "title": "انتخاب رشته دانشگاهی استاندارد",
+    "path": "fa/services/field_selection_standard/",
     "category": "خدمات",
-    "summary": "برای شروع بررسی چندمنبعی استعداد و ظرفیت‌های رشد پیش از تصمیم‌های بزرگ‌تر. پروفایل اولیه شواهد و مشخص‌شدن حوزه‌هایی که نیازمند بررسی بیشترند.",
-    "keywords": "استعدادیابی تخصصی اولیه شرایط خدمت دکتر جواد رضازاده یزدلی"
+    "summary": "برای داوطلبی که به اولویت‌بندی منظم و دفاع‌پذیر رشته‌محل‌ها نیاز دارد. ساخت و بازبینی اولویت‌های انتخاب رشته بر پایه داده‌های معتبر پرونده.",
+    "keywords": "انتخاب رشته دانشگاهی استاندارد شرایط خدمت دکتر جواد رضازاده یزدلی"
   },
   {
     "lang": "fa",
@@ -849,6 +1313,86 @@
   },
   {
     "lang": "fa",
+    "title": "مشاوره انتخاب مجله و راهبرد انتشار",
+    "path": "fa/services/journal_strategy/",
+    "category": "خدمات",
+    "summary": "برای مقاله‌ای که نیاز به تصمیم آگاهانه درباره تناسب مجله و مسیر ارسال دارد. تحلیل تناسب و راهبرد انتشار بر اساس موضوع، دامنه و وضعیت مقاله.",
+    "keywords": "مشاوره انتخاب مجله و راهبرد انتشار شرایط خدمت دکتر جواد رضازاده یزدلی"
+  },
+  {
+    "lang": "fa",
+    "title": "مشاوره تخصصی کنکور",
+    "path": "fa/services/konkur_consult_60/",
+    "category": "خدمات",
+    "summary": "برای تصمیم‌های مشخص دوره کنکور، برنامه‌ریزی و بازتنظیم مسیر مطالعه. جلسه ۶۰ دقیقه‌ای متمرکز بر مسئله فعلی و اقدامات بعدی کنکور.",
+    "keywords": "مشاوره تخصصی کنکور شرایط خدمت دکتر جواد رضازاده یزدلی"
+  },
+  {
+    "lang": "fa",
+    "title": "برنامه مشاوره کنکور یک‌ماهه",
+    "path": "fa/services/konkur_month/",
+    "category": "خدمات",
+    "summary": "برای دانش‌آموزی که به همراهی ساختاریافته در یک بازه یک‌ماهه نیاز دارد. برنامه یک‌ماهه متناسب با وضعیت موجود و چارچوب بازبینی پیشرفت.",
+    "keywords": "برنامه مشاوره کنکور یک‌ماهه شرایط خدمت دکتر جواد رضازاده یزدلی"
+  },
+  {
+    "lang": "fa",
+    "title": "بازبینی تشخیصی مقاله تا ۷۰۰۰ کلمه + گزارش",
+    "path": "fa/services/manuscript_diagnostic/",
+    "category": "خدمات",
+    "summary": "برای مقاله‌ای تا ۷۰۰۰ کلمه که نویسنده می‌خواهد نقاط ضعف اصلی آن پیش از ارسال یا بازنگری روشن شود. بازبینی تشخیصی مقاله همراه با گزارش اولویت‌های اصلاح.",
+    "keywords": "بازبینی تشخیصی مقاله تا ۷۰۰۰ کلمه + گزارش شرایط خدمت دکتر جواد رضازاده یزدلی"
+  },
+  {
+    "lang": "fa",
+    "title": "مشاوره سازمانی یا مدرسه",
+    "path": "fa/services/organization_consult_90/",
+    "category": "خدمات",
+    "summary": "برای مدرسه یا سازمانی که مسئله آموزشی مشخصی نیازمند تعریف دامنه و تصمیم اولیه دارد. جلسه ۹۰ دقیقه‌ای برای تحلیل مسئله، ذی‌نفعان و گزینه‌های اقدام.",
+    "keywords": "مشاوره سازمانی یا مدرسه شرایط خدمت دکتر جواد رضازاده یزدلی"
+  },
+  {
+    "lang": "fa",
+    "title": "مشاوره پژوهش",
+    "path": "fa/services/research_consult_60/",
+    "category": "خدمات",
+    "summary": "برای پژوهشگری که یک پرسش مشخص درباره طراحی، روش، تفسیر یا استدلال پژوهش دارد. جلسه ۶۰ دقیقه‌ای برای تحلیل مسئله پژوهشی و روشن‌کردن مسیر تصمیم.",
+    "keywords": "مشاوره پژوهش شرایط خدمت دکتر جواد رضازاده یزدلی"
+  },
+  {
+    "lang": "fa",
+    "title": "پشتیبانی پاسخ به داوران تا ۲۰ کامنت",
+    "path": "fa/services/reviewer_response/",
+    "category": "خدمات",
+    "summary": "برای مقاله‌ای که تا ۲۰ کامنت داوری دارد و نویسنده به ساخت پاسخ منظم و علمی نیاز دارد. تحلیل کامنت‌ها و پشتیبانی در سازمان‌دهی پاسخ مستدل به داوران.",
+    "keywords": "پشتیبانی پاسخ به داوران تا ۲۰ کامنت شرایط خدمت دکتر جواد رضازاده یزدلی"
+  },
+  {
+    "lang": "fa",
+    "title": "کارگاه تخصصی آنلاین تا ۲ ساعت",
+    "path": "fa/services/specialist_workshop_120/",
+    "category": "خدمات",
+    "summary": "برای مدرسه، مؤسسه یا گروه حرفه‌ای با موضوع آموزشی مشخص و مخاطب تعریف‌شده. کارگاه آنلاین تخصصی تا دو ساعت در دامنه موضوع توافق‌شده.",
+    "keywords": "کارگاه تخصصی آنلاین تا ۲ ساعت شرایط خدمت دکتر جواد رضازاده یزدلی"
+  },
+  {
+    "lang": "fa",
+    "title": "جلسه دانش‌آموز و والد",
+    "path": "fa/services/student_parent_90/",
+    "category": "خدمات",
+    "summary": "برای زمانی که تصمیم آموزشی نیازمند حضور هم‌زمان دانش‌آموز و والد است. جلسه مشترک ۹۰ دقیقه‌ای برای هم‌ترازکردن شواهد، نگرانی‌ها و مسیر تصمیم.",
+    "keywords": "جلسه دانش‌آموز و والد شرایط خدمت دکتر جواد رضازاده یزدلی"
+  },
+  {
+    "lang": "fa",
+    "title": "استعدادیابی تخصصی اولیه",
+    "path": "fa/services/talent_initial/",
+    "category": "خدمات",
+    "summary": "برای شروع بررسی چندمنبعی استعداد و ظرفیت‌های رشد پیش از تصمیم‌های بزرگ‌تر. پروفایل اولیه شواهد و مشخص‌شدن حوزه‌هایی که نیازمند بررسی بیشترند.",
+    "keywords": "استعدادیابی تخصصی اولیه شرایط خدمت دکتر جواد رضازاده یزدلی"
+  },
+  {
+    "lang": "fa",
     "title": "مشاوره تخصصی معلم، مواد آموزشی و سنجش",
     "path": "fa/services/teacher_consult_60/",
     "category": "خدمات",
@@ -865,75 +1409,59 @@
   },
   {
     "lang": "fa",
-    "title": "بازبینی تشخیصی مقاله تا ۷۰۰۰ کلمه + گزارش",
-    "path": "fa/services/manuscript_diagnostic/",
+    "title": "تحلیل کارنامه و تصمیم تحصیلی",
+    "path": "fa/services/transcript_analysis/",
     "category": "خدمات",
-    "summary": "برای مقاله‌ای تا ۷۰۰۰ کلمه که نویسنده می‌خواهد نقاط ضعف اصلی آن پیش از ارسال یا بازنگری روشن شود. بازبینی تشخیصی مقاله همراه با گزارش اولویت‌های اصلاح.",
-    "keywords": "بازبینی تشخیصی مقاله تا ۷۰۰۰ کلمه + گزارش شرایط خدمت دکتر جواد رضازاده یزدلی"
+    "summary": "برای تبدیل داده‌های کارنامه به یک تصمیم تحصیلی قابل‌توضیح. تحلیل نقاط قوت و محدودیت‌های کارنامه و صورت‌بندی گزینه‌های تصمیم.",
+    "keywords": "تحلیل کارنامه و تصمیم تحصیلی شرایط خدمت دکتر جواد رضازاده یزدلی"
   },
   {
     "lang": "fa",
-    "title": "ویرایش انگلیسی دانشگاهی تا ۵۰۰۰ کلمه",
-    "path": "fa/services/academic_editing/",
-    "category": "خدمات",
-    "summary": "برای متن دانشگاهی تا ۵۰۰۰ کلمه که از نظر علمی شکل گرفته و به پالایش انگلیسی نیاز دارد. نسخه ویرایش‌شده با تمرکز بر وضوح، دقت زبانی و بیان دانشگاهی.",
-    "keywords": "ویرایش انگلیسی دانشگاهی تا ۵۰۰۰ کلمه شرایط خدمت دکتر جواد رضازاده یزدلی"
+    "title": "فروشگاه کتاب",
+    "path": "fa/shop/",
+    "category": "کتاب",
+    "summary": "فروشگاه رسمی کتاب‌های منتشرشده.",
+    "keywords": "فروشگاه کتاب سپید تاریکی بن‌بست"
   },
   {
     "lang": "fa",
-    "title": "مشاوره پژوهش",
-    "path": "fa/services/research_consult_60/",
-    "category": "خدمات",
-    "summary": "برای پژوهشگری که یک پرسش مشخص درباره طراحی، روش، تفسیر یا استدلال پژوهش دارد. جلسه ۶۰ دقیقه‌ای برای تحلیل مسئله پژوهشی و روشن‌کردن مسیر تصمیم.",
-    "keywords": "مشاوره پژوهش شرایط خدمت دکتر جواد رضازاده یزدلی"
+    "title": "سید محراب میرکریمی | مجموعه سؤالات کارشناسی ارشد آموزش زبان انگلیسی",
+    "path": "fa/shop/authors/mehrab-mirkarimi/",
+    "category": "کتاب و انتشارات",
+    "summary": "معرفی مؤلف و مجموعه ۳۶ سالهٔ سؤالات و پاسخنامه تشریحی آموزش زبان انگلیسی، مراحل آماده‌سازی انتشار و سهم حمایتی از سود فروش.",
+    "keywords": "سید محراب میرکریمی سوالات ارشد آموزش زبان انگلیسی ۱۳۷۰ ۱۴۰۵ کتاب پاسخنامه تشریحی نشر علمی حمایت از استعداد"
   },
   {
     "lang": "fa",
-    "title": "مشاوره انتخاب مجله و راهبرد انتشار",
-    "path": "fa/services/journal_strategy/",
-    "category": "خدمات",
-    "summary": "برای مقاله‌ای که نیاز به تصمیم آگاهانه درباره تناسب مجله و مسیر ارسال دارد. تحلیل تناسب و راهبرد انتشار بر اساس موضوع، دامنه و وضعیت مقاله.",
-    "keywords": "مشاوره انتخاب مجله و راهبرد انتشار شرایط خدمت دکتر جواد رضازاده یزدلی"
+    "title": "سیاست مشتری",
+    "path": "fa/shop/customer-policy/",
+    "category": "فروشگاه",
+    "summary": "اطلاعات حقوق و شرایط مشتری فروشگاه.",
+    "keywords": "سیاست مشتری خرید کتاب"
   },
   {
     "lang": "fa",
-    "title": "پشتیبانی پاسخ به داوران تا ۲۰ کامنت",
-    "path": "fa/services/reviewer_response/",
-    "category": "خدمات",
-    "summary": "برای مقاله‌ای که تا ۲۰ کامنت داوری دارد و نویسنده به ساخت پاسخ منظم و علمی نیاز دارد. تحلیل کامنت‌ها و پشتیبانی در سازمان‌دهی پاسخ مستدل به داوران.",
-    "keywords": "پشتیبانی پاسخ به داوران تا ۲۰ کامنت شرایط خدمت دکتر جواد رضازاده یزدلی"
+    "title": "راهنمای خرید",
+    "path": "fa/shop/purchase-guide/",
+    "category": "فروشگاه",
+    "summary": "راهنمای انتخاب و خرید کتاب از فروشگاه رسمی.",
+    "keywords": "راهنمای خرید کتاب"
   },
   {
     "lang": "fa",
-    "title": "رزومه دانشگاهی و مسیر اپلای/شغلی",
-    "path": "fa/services/academic_cv/",
-    "category": "خدمات",
-    "summary": "برای دانشگاهی یا پژوهشگری که رزومه و مسیر درخواست خود را برای یک موقعیت واقعی بازبینی می‌کند. بازبینی معماری CV و راهبرد ارائه شواهد حرفه‌ای متناسب با هدف.",
-    "keywords": "رزومه دانشگاهی و مسیر اپلای/شغلی شرایط خدمت دکتر جواد رضازاده یزدلی"
+    "title": "تدریس دانشگاهی",
+    "path": "fa/tadris/",
+    "category": "آموزش",
+    "summary": "سوابق و حوزه‌های تدریس دانشگاهی.",
+    "keywords": "تدریس دانشگاه مدرس"
   },
   {
     "lang": "fa",
-    "title": "آمادگی مصاحبه علمی یا هیئت علمی",
-    "path": "fa/services/academic_interview_90/",
-    "category": "خدمات",
-    "summary": "برای فردی که برای مصاحبه علمی یا هیئت علمی مشخص آماده می‌شود. جلسه ۹۰ دقیقه‌ای آمادگی ساختاریافته بر مبنای نقش، سوابق و پرسش‌های محتمل.",
-    "keywords": "آمادگی مصاحبه علمی یا هیئت علمی شرایط خدمت دکتر جواد رضازاده یزدلی"
-  },
-  {
-    "lang": "fa",
-    "title": "مشاوره سازمانی یا مدرسه",
-    "path": "fa/services/organization_consult_90/",
-    "category": "خدمات",
-    "summary": "برای مدرسه یا سازمانی که مسئله آموزشی مشخصی نیازمند تعریف دامنه و تصمیم اولیه دارد. جلسه ۹۰ دقیقه‌ای برای تحلیل مسئله، ذی‌نفعان و گزینه‌های اقدام.",
-    "keywords": "مشاوره سازمانی یا مدرسه شرایط خدمت دکتر جواد رضازاده یزدلی"
-  },
-  {
-    "lang": "fa",
-    "title": "کارگاه تخصصی آنلاین تا ۲ ساعت",
-    "path": "fa/services/specialist_workshop_120/",
-    "category": "خدمات",
-    "summary": "برای مدرسه، مؤسسه یا گروه حرفه‌ای با موضوع آموزشی مشخص و مخاطب تعریف‌شده. کارگاه آنلاین تخصصی تا دو ساعت در دامنه موضوع توافق‌شده.",
-    "keywords": "کارگاه تخصصی آنلاین تا ۲ ساعت شرایط خدمت دکتر جواد رضازاده یزدلی"
+    "title": "تماس",
+    "path": "fa/tamas/",
+    "category": "ارتباط",
+    "summary": "راه‌های ارتباط علمی، حرفه‌ای و مشاوره‌ای.",
+    "keywords": "تماس ایمیل مشاوره"
   },
   {
     "lang": "fa",
@@ -953,11 +1481,11 @@
   },
   {
     "lang": "fa",
-    "title": "انتخاب رشته اختصاصی VIP",
-    "path": "fa/vip/university-selection/",
+    "title": "توسعه حرفه‌ای اختصاصی مدرس",
+    "path": "fa/vip/educator-development/",
     "category": "خدمات",
-    "summary": "معرفی بسته انتخاب رشته اختصاصی و راهبردی؛ برای بررسی شرایط رزرو و پرداخت با ما تماس بگیرید.",
-    "keywords": "انتخاب رشته اختصاصی VIP خدمت VIP دکتر جواد رضازاده یزدلی"
+    "summary": "معرفی بسته توسعه حرفه‌ای اختصاصی معلم و مدرس؛ برای بررسی شرایط رزرو و پرداخت با ما تماس بگیرید.",
+    "keywords": "توسعه حرفه‌ای اختصاصی مدرس خدمت VIP دکتر جواد رضازاده یزدلی"
   },
   {
     "lang": "fa",
@@ -969,22 +1497,6 @@
   },
   {
     "lang": "fa",
-    "title": "راهبری پژوهش و انتشار علمی",
-    "path": "fa/vip/research-publication/",
-    "category": "خدمات",
-    "summary": "معرفی بسته راهبری مقاله و انتشار علمی؛ برای بررسی شرایط رزرو و پرداخت با ما تماس بگیرید.",
-    "keywords": "راهبری پژوهش و انتشار علمی خدمت VIP دکتر جواد رضازاده یزدلی"
-  },
-  {
-    "lang": "fa",
-    "title": "توسعه حرفه‌ای اختصاصی مدرس",
-    "path": "fa/vip/educator-development/",
-    "category": "خدمات",
-    "summary": "معرفی بسته توسعه حرفه‌ای اختصاصی معلم و مدرس؛ برای بررسی شرایط رزرو و پرداخت با ما تماس بگیرید.",
-    "keywords": "توسعه حرفه‌ای اختصاصی مدرس خدمت VIP دکتر جواد رضازاده یزدلی"
-  },
-  {
-    "lang": "fa",
     "title": "مشاوره راهبردی سازمانی",
     "path": "fa/vip/institutional-advisory/",
     "category": "خدمات",
@@ -993,251 +1505,19 @@
   },
   {
     "lang": "fa",
-    "title": "فروشگاه کتاب",
-    "path": "fa/shop/",
-    "category": "کتاب",
-    "summary": "فروشگاه رسمی کتاب‌های منتشرشده.",
-    "keywords": "فروشگاه کتاب سپید تاریکی بن‌بست"
+    "title": "راهبری پژوهش و انتشار علمی",
+    "path": "fa/vip/research-publication/",
+    "category": "خدمات",
+    "summary": "معرفی بسته راهبری مقاله و انتشار علمی؛ برای بررسی شرایط رزرو و پرداخت با ما تماس بگیرید.",
+    "keywords": "راهبری پژوهش و انتشار علمی خدمت VIP دکتر جواد رضازاده یزدلی"
   },
   {
     "lang": "fa",
-    "title": "سید محراب میرکریمی | مجموعه سؤالات کارشناسی ارشد آموزش زبان انگلیسی",
-    "path": "fa/shop/authors/mehrab-mirkarimi/",
-    "category": "کتاب و انتشارات",
-    "summary": "معرفی مؤلف و مجموعه ۳۶ سالهٔ سؤالات و پاسخنامه تشریحی آموزش زبان انگلیسی، مراحل آماده‌سازی انتشار و سهم حمایتی از سود فروش.",
-    "keywords": "سید محراب میرکریمی سوالات ارشد آموزش زبان انگلیسی ۱۳۷۰ ۱۴۰۵ کتاب پاسخنامه تشریحی نشر علمی حمایت از استعداد"
-  },
-  {
-    "lang": "en",
-    "title": "Seyyed Mehrab Mirkarimi | 36 Years of English Language Teaching MA Examination Preparation",
-    "path": "en/shop/authors/mehrab-mirkarimi/",
-    "category": "Books and academic publishing",
-    "summary": "The author's 997-page, two-PDF entrance examination questions and explanatory answers collection (1370–1405), with an explanation of its academic preparation, planned digital availability and educational talent-support contributions.",
-    "keywords": "Seyyed Mehrab Mirkarimi English Language Teaching MA entrance questions 36 years explanatory answers 425 572 pages educational talent support rights"
-  },
-  {
-    "lang": "fa",
-    "title": "سیاست مشتری",
-    "path": "fa/shop/customer-policy/",
-    "category": "فروشگاه",
-    "summary": "اطلاعات حقوق و شرایط مشتری فروشگاه.",
-    "keywords": "سیاست مشتری خرید کتاب"
-  },
-  {
-    "lang": "fa",
-    "title": "راهنمای خرید",
-    "path": "fa/shop/purchase-guide/",
-    "category": "فروشگاه",
-    "summary": "راهنمای انتخاب و خرید کتاب از فروشگاه رسمی.",
-    "keywords": "راهنمای خرید کتاب"
-  },
-  {
-    "lang": "en",
-    "title": "Bookstore",
-    "path": "en/shop/",
-    "category": "Books",
-    "summary": "Official bookstore for published books.",
-    "keywords": "bookstore published books"
-  },
-  {
-    "lang": "en",
-    "title": "Customer Policy",
-    "path": "en/shop/customer-policy/",
-    "category": "Store",
-    "summary": "Customer and purchase policy information.",
-    "keywords": "customer policy bookstore"
-  },
-  {
-    "lang": "en",
-    "title": "Purchase Guide",
-    "path": "en/shop/purchase-guide/",
-    "category": "Store",
-    "summary": "Guide to selecting and purchasing published books.",
-    "keywords": "purchase guide books"
-  },
-  {
-    "lang": "fa",
-    "title": "از پژوهش و آموزش تا پرورش استعداد؛ معرفی نقشه جامع اکوسیستم علمی و آموزشی دکتر جواد رضازاده یزدلی",
-    "path": "fa/akhbar/ecosystem-education-research-2026/",
-    "category": "News",
-    "summary": "معرفی نقشه یکپارچه پژوهش، آموزش، مشاوره، Golden Talent، فروشگاه و حمایت تحصیلی با توضیح مسئولانه وضعیت خدمات.",
-    "keywords": "اکوسیستم علمی آموزشی دکتر رضازاده معرفی خدمات پژوهش مشاوره استعدادیابی آموزش زبان فروشگاه و حمایت تحصیلی"
-  },
-  {
-    "lang": "fa",
-    "title": "معرفی ساختار خدمات تخصصی؛ از نیاز واقعی مخاطب تا انتخاب آگاهانه خدمت",
-    "path": "fa/akhbar/professional-services-public-guide-2026/",
-    "category": "News",
-    "summary": "چگونه میان خدمات مشاوره، پژوهش، استعدادیابی و همکاری سازمانی بر اساس مسئله و خروجی مورد انتظار انتخاب کنیم؟",
-    "keywords": "خدمات آموزشی پژوهشی مشاوره تخصصی انتخاب خدمات علمی دانشگاهی مدرسه و خانواده"
-  },
-  {
-    "lang": "fa",
-    "title": "Golden Talent؛ معرفی رویکرد چندمنبعی و رشدگرا در شناخت و پرورش استعداد",
-    "path": "fa/akhbar/golden-talent-developmental-framework-2026/",
-    "category": "News",
-    "summary": "آشنایی با Golden Talent و نگاه رشدگرا به استعداد؛ چرا یک آزمون یا نمره برای شناخت ظرفیت فرد کافی نیست؟",
-    "keywords": "Golden Talent استعدادیابی دانش آموزان شناخت استعداد رشد استعداد شواهد چندمنبعی فرصت یادگیری"
-  },
-  {
-    "lang": "fa",
-    "title": "فرصت برابر برای استعدادها؛ معرفی برنامه حمایت مسئولانه از دانش‌آموزان کم‌برخوردار",
-    "path": "fa/akhbar/support-talented-students-opportunity-2026/",
-    "category": "News",
-    "summary": "معرفی سازوکار کمک داوطلبانه، تأیید نیاز، بورسیه و پیگیری هزینه با حفاظت از هویت دانش‌آموز.",
-    "keywords": "حمایت تحصیلی بورسیه دانش آموز مستعد کم برخوردار حمایت مالی کتاب شهریه حفظ حریم خصوصی"
-  },
-  {
-    "lang": "fa",
-    "title": "کتاب، دانایی و مسئولیت اجتماعی؛ معرفی تجربه تازه فروشگاه کتاب",
-    "path": "fa/akhbar/bookstore-books-and-student-support-2026/",
-    "category": "News",
-    "summary": "معرفی تجربه خرید کتاب، شرایط ارسال، حقوق نشر و تفاوت خرید تجاری با حمایت مالی داوطلبانه.",
-    "keywords": "فروشگاه کتاب خرید کتاب چاپی نشر علمی نویسندگان ارسال کتاب حمایت از دانش آموز"
-  },
-  {
-    "lang": "fa",
-    "title": "یک حساب و مسیرهای متعدد؛ معرفی منطق داشبورد یکپارچه و موبایل‌فرست کاربران",
-    "path": "fa/akhbar/customer-dashboard-one-account-2026/",
-    "category": "News",
-    "summary": "طراحی داشبورد تب‌محور و موبایل‌فرست برای پیگیری خدمات و پرداخت‌های واقعی با دسترسی خصوصی و مبتنی بر نقش.",
-    "keywords": "داشبورد مشتریان پنل کاربری موبایل فرست پیگیری خدمات سوابق پرداخت فضای شخصی"
-  },
-  {
-    "lang": "fa",
-    "title": "مشاوره تحصیلی برای تصمیم مسئولانه؛ فراتر از رتبه، نمره و نسخه‌های آماده",
-    "path": "fa/akhbar/educational-guidance-evidence-based-2026/",
-    "category": "News",
-    "summary": "مشاوره تحصیلی بر پایه شواهد، علاقه و شرایط فرد؛ توضیح محدودیت نمره، رتبه و توصیه‌های آماده.",
-    "keywords": "مشاوره تحصیلی انتخاب رشته تصمیم آموزشی رتبه کنکور علاقه استعداد خانواده"
-  },
-  {
-    "lang": "fa",
-    "title": "پژوهش مسئولانه و خدمات دانشگاهی؛ از صورت‌بندی مسئله تا بازنگری مقاله",
-    "path": "fa/akhbar/academic-research-editing-services-2026/",
-    "category": "News",
-    "summary": "از صورت‌بندی پرسش پژوهش و بازنگری علمی مقاله تا انتخاب مجله و پاسخ به داوران با رعایت اخلاق پژوهش.",
-    "keywords": "خدمات پژوهشی دانشگاهی ویرایش علمی مقاله روش تحقیق انتخاب مجله پاسخ داوران"
-  },
-  {
-    "lang": "fa",
-    "title": "از توانمندسازی معلمان تا همکاری با مدارس؛ خدمات آموزشی با محور قضاوت حرفه‌ای",
-    "path": "fa/akhbar/teacher-schools-professional-learning-2026/",
-    "category": "News",
-    "summary": "چرا نیازسنجی مدرسه، قضاوت حرفه‌ای معلم و بازخورد عملی از برگزاری صرف کارگاه مهم‌تر است؟",
-    "keywords": "توسعه حرفه ای معلمان آموزش معلم ارزیابی مواد آموزشی همکاری با مدارس آزمون آموزشی"
-  },
-  {
-    "lang": "fa",
-    "title": "Humanability در سنجش آموزشی؛ طرح یک پرسش انسانی در کنار روایی و پایایی",
-    "path": "fa/akhbar/humanability-language-assessment-framework-2026/",
-    "category": "News",
-    "summary": "معرفی مسئولانه پیشنهاد پژوهشی Humanability و نسبت آن با روایی، پایایی، عدالت و تجربه انسانی آزمون‌دهنده.",
-    "keywords": "Humanability سنجش انسان محور سنجش زبان پایایی روایی عدالت آزمون اخلاق سنجش"
-  },
-  {
-    "lang": "fa",
-    "title": "افق همکاری علمی بین‌المللی؛ پژوهش، نشر مسئولانه و گفت‌وگو میان‌رشته‌ای",
-    "path": "fa/akhbar/international-research-collaboration-2026/",
-    "category": "News",
-    "summary": "چشم‌انداز همکاری بین‌المللی در آموزش و سنجش با تفکیک طرح، دعوت و همکاری رسمی تأییدشده.",
-    "keywords": "همکاری علمی بین المللی پژوهش آموزش زبان نشر مسئولانه همکاری دانشگاهی میان رشته ای"
-  },
-  {
-    "lang": "fa",
-    "title": "راهنمای عملی استفاده از وب‌سایت؛ از مطالعه و انتخاب خدمت تا خرید و پیگیری",
-    "path": "fa/akhbar/how-to-use-educational-services-2026/",
-    "category": "News",
-    "summary": "راهنمای گام‌به‌گام پیدا کردن خدمت، خواندن شرایط، ثبت‌نام ایمیلی، خرید کتاب و پیگیری پرداخت.",
-    "keywords": "راهنمای خدمات سایت ثبت نام ایمیل خرید کتاب پیگیری سفارش مشاوره آموزشی پرداخت"
-  },
-  {
-    "lang": "fa",
-    "title": "چگونه دانش و خدمات علمی را برای انسان، گوگل و جست‌وجوی هوش مصنوعی قابل کشف کنیم؟",
-    "path": "fa/akhbar/ai-search-and-scientific-content-2026/",
-    "category": "News",
-    "summary": "چگونه محتوای علمی اصیل، پیوندهای معنایی و داده ساختاریافته به کشف‌پذیری کمک می‌کنند، بدون تضمین رتبه؟",
-    "keywords": "سئو محتوا علمی جستجوی هوش مصنوعی GEO گوگل داده ساختاریافته نقشه سایت"
-  },
-  {
-    "lang": "en",
-    "title": "JHELA — International Scholarly Journal",
-    "path": "journal/",
-    "category": "Journal",
-    "summary": "Founding English-language journal for human-centred education, learning and assessment with open international reviewer and editorial collaboration calls.",
-    "keywords": "JHELA peer review education international scholarly journal human centred assessment"
-  },
-  {
-    "lang": "en",
-    "title": "JHELA — Aims and Scope",
-    "path": "journal/aims-scope/",
-    "category": "Journal",
-    "summary": "Education, learning, assessment and interdisciplinary research focused on the relationship between methodological rigour, context and human development.",
-    "keywords": "JHELA peer review education international scholarly journal human centred assessment"
-  },
-  {
-    "lang": "en",
-    "title": "JHELA — Author Guidelines",
-    "path": "journal/author-guidelines/",
-    "category": "Journal",
-    "summary": "Future publication guidance addressing methodology, literature, data transparency, ethics, scholarly contribution and contextual interpretation.",
-    "keywords": "JHELA peer review education international scholarly journal human centred assessment"
-  },
-  {
-    "lang": "en",
-    "title": "JHELA — Editorial Contact",
-    "path": "journal/contact/",
-    "category": "Journal",
-    "summary": "Contact the independent founding editorial office about peer review or international editorial collaboration.",
-    "keywords": "JHELA peer review education international scholarly journal human centred assessment"
-  },
-  {
-    "lang": "en",
-    "title": "JHELA — Editorial Leadership",
-    "path": "journal/editorial-board/",
-    "category": "Journal",
-    "summary": "Founding editorial leadership, independent decisions, transparent appointments and international editorial-board formation.",
-    "keywords": "JHELA peer review education international scholarly journal human centred assessment"
-  },
-  {
-    "lang": "en",
-    "title": "JHELA — Publication Ethics",
-    "path": "journal/ethics/",
-    "category": "Journal",
-    "summary": "Scientific integrity, participant protection, AI disclosure, authorship, editorial independence and correction policy.",
-    "keywords": "JHELA peer review education international scholarly journal human centred assessment"
-  },
-  {
-    "lang": "en",
-    "title": "JHELA — Open Access and Fees",
-    "path": "journal/fees/",
-    "category": "Journal",
-    "summary": "Founding access and fee policy: no submission fee, waiver for first issue proposed, independent editorial judgement.",
-    "keywords": "JHELA peer review education international scholarly journal human centred assessment"
-  },
-  {
-    "lang": "en",
-    "title": "JHELA — Peer Review",
-    "path": "journal/peer-review/",
-    "category": "Journal",
-    "summary": "Founding policy for double-anonymised external research review, independent handling and evidence-sensitive reviewer feedback.",
-    "keywords": "JHELA peer review education international scholarly journal human centred assessment"
-  },
-  {
-    "lang": "en",
-    "title": "JHELA — Reviewer Network",
-    "path": "journal/reviewer-registration/",
-    "category": "Journal",
-    "summary": "How international scholarly reviewers can express interest, demonstrate expertise and be selected with consent and conflict checks.",
-    "keywords": "JHELA peer review education international scholarly journal human centred assessment"
-  },
-  {
-    "lang": "en",
-    "title": "JHELA — International Scholarly Dashboard",
-    "path": "journal/dashboard/",
-    "category": "Journal",
-    "summary": "English-language public hub for JHELA reviewers, founding editorial collaborators, authors and readers, with honest status and scientific editorial policies.",
-    "keywords": "JHELA scholarly dashboard international reviewers journal editorial collaboration aims scope ethical educational assessment"
+    "title": "انتخاب رشته اختصاصی VIP",
+    "path": "fa/vip/university-selection/",
+    "category": "خدمات",
+    "summary": "معرفی بسته انتخاب رشته اختصاصی و راهبردی؛ برای بررسی شرایط رزرو و پرداخت با ما تماس بگیرید.",
+    "keywords": "انتخاب رشته اختصاصی VIP خدمت VIP دکتر جواد رضازاده یزدلی"
   },
   {
     "lang": "fa",
@@ -1245,14 +1525,6 @@
     "path": "journal/fa/",
     "category": "مجلهٔ علمی",
     "summary": "درگاه فارسی نشریهٔ انگلیسی‌زبان آموزش، یادگیری و سنجش انسان‌محور برای معرفی اهداف و دعوت از داوران و پژوهشگران ایرانی.",
-    "keywords": "مجله علمی بین‌المللی JHELA داوران ایرانی همکاری علمی داوری آموزش یادگیری سنجش"
-  },
-  {
-    "lang": "fa",
-    "title": "داشبورد فارسی جامعهٔ علمی JHELA",
-    "path": "journal/fa/dashboard/",
-    "category": "مجلهٔ علمی",
-    "summary": "داشبورد اطلاع‌رسانی و مسیرهای مشارکت داوران، همکاران علمی، نویسندگان و خوانندگان مجله در مرحلهٔ تأسیس.",
     "keywords": "مجله علمی بین‌المللی JHELA داوران ایرانی همکاری علمی داوری آموزش یادگیری سنجش"
   },
   {
@@ -1265,6 +1537,14 @@
   },
   {
     "lang": "fa",
+    "title": "راهنمای فارسی نویسندگان مجله JHELA",
+    "path": "journal/fa/author-guidelines/",
+    "category": "مجلهٔ علمی",
+    "summary": "راهنمای فارسی آماده‌سازی مقاله‌های پژوهشی؛ متن مقاله و فرایند انتشار مجله به انگلیسی خواهد بود.",
+    "keywords": "مجله علمی بین‌المللی JHELA داوران ایرانی همکاری علمی داوری آموزش یادگیری سنجش"
+  },
+  {
+    "lang": "fa",
     "title": "فراخوان همکاری داوران ایرانی و بین‌المللی JHELA",
     "path": "journal/fa/call-for-reviewers/",
     "category": "مجلهٔ علمی",
@@ -1273,18 +1553,18 @@
   },
   {
     "lang": "fa",
-    "title": "فراخوان همکاران علمی و تحریریهٔ مؤسس JHELA",
-    "path": "journal/fa/founding-collaborators/",
+    "title": "ارتباط با دفتر تحریریهٔ JHELA",
+    "path": "journal/fa/contact/",
     "category": "مجلهٔ علمی",
-    "summary": "دعوت از پژوهشگران برای مشارکت در شکل‌گیری شبکهٔ تحریریه و همکاری علمی بین‌المللی با تأکید بر استقلال.",
+    "summary": "راهنمای تماس حرفه‌ای با دفتر مؤسس برای همکاری داوری و مشارکت علمی، بدون پذیرش مقاله در این مرحله.",
     "keywords": "مجله علمی بین‌المللی JHELA داوران ایرانی همکاری علمی داوری آموزش یادگیری سنجش"
   },
   {
     "lang": "fa",
-    "title": "راهنمای ثبت درخواست داوری JHELA",
-    "path": "journal/fa/reviewer-registration/",
+    "title": "داشبورد فارسی جامعهٔ علمی JHELA",
+    "path": "journal/fa/dashboard/",
     "category": "مجلهٔ علمی",
-    "summary": "راهنمای احراز صلاحیت، اطلاعات حرفه‌ای و اعلام آمادگی داوران پیش از ایجاد سامانهٔ رسمی مدیریت مقاله.",
+    "summary": "داشبورد اطلاع‌رسانی و مسیرهای مشارکت داوران، همکاران علمی، نویسندگان و خوانندگان مجله در مرحلهٔ تأسیس.",
     "keywords": "مجله علمی بین‌المللی JHELA داوران ایرانی همکاری علمی داوری آموزش یادگیری سنجش"
   },
   {
@@ -1297,26 +1577,10 @@
   },
   {
     "lang": "fa",
-    "title": "سیاست داوری علمی JHELA",
-    "path": "journal/fa/peer-review/",
-    "category": "مجلهٔ علمی",
-    "summary": "سیاست برنامه‌ریزی‌شدهٔ داوری دوسوناشناس، نقد سازنده، انتخاب مستقل داوران و رعایت محرمانگی.",
-    "keywords": "مجله علمی بین‌المللی JHELA داوران ایرانی همکاری علمی داوری آموزش یادگیری سنجش"
-  },
-  {
-    "lang": "fa",
     "title": "اخلاق نشر و سلامت پژوهش در JHELA",
     "path": "journal/fa/ethics/",
     "category": "مجلهٔ علمی",
     "summary": "الزامات سلامت پژوهش، حقوق مشارکت‌کنندگان، تعارض منافع، هوش مصنوعی و رسیدگی به اصلاح مقالات.",
-    "keywords": "مجله علمی بین‌المللی JHELA داوران ایرانی همکاری علمی داوری آموزش یادگیری سنجش"
-  },
-  {
-    "lang": "fa",
-    "title": "راهنمای فارسی نویسندگان مجله JHELA",
-    "path": "journal/fa/author-guidelines/",
-    "category": "مجلهٔ علمی",
-    "summary": "راهنمای فارسی آماده‌سازی مقاله‌های پژوهشی؛ متن مقاله و فرایند انتشار مجله به انگلیسی خواهد بود.",
     "keywords": "مجله علمی بین‌المللی JHELA داوران ایرانی همکاری علمی داوری آموزش یادگیری سنجش"
   },
   {
@@ -1329,19 +1593,27 @@
   },
   {
     "lang": "fa",
-    "title": "ارتباط با دفتر تحریریهٔ JHELA",
-    "path": "journal/fa/contact/",
+    "title": "فراخوان همکاران علمی و تحریریهٔ مؤسس JHELA",
+    "path": "journal/fa/founding-collaborators/",
     "category": "مجلهٔ علمی",
-    "summary": "راهنمای تماس حرفه‌ای با دفتر مؤسس برای همکاری داوری و مشارکت علمی، بدون پذیرش مقاله در این مرحله.",
+    "summary": "دعوت از پژوهشگران برای مشارکت در شکل‌گیری شبکهٔ تحریریه و همکاری علمی بین‌المللی با تأکید بر استقلال.",
     "keywords": "مجله علمی بین‌المللی JHELA داوران ایرانی همکاری علمی داوری آموزش یادگیری سنجش"
   },
   {
-    "lang": "en",
-    "title": "JHELA International Scholarly Development Roadmap",
-    "path": "journal/roadmap/",
-    "category": "Journal",
-    "summary": "Ten evidence-based milestones: native editorial infrastructure, editorial governance, open access, ISSN, DOI, DOAJ, Scopus, ESCI and long-term SSCI/Q1 ambitions.",
-    "keywords": "JHELA roadmap native-journal DOAJ Scopus Web of Science ESCI SSCI Q1 education scholarly publishing"
+    "lang": "fa",
+    "title": "سیاست داوری علمی JHELA",
+    "path": "journal/fa/peer-review/",
+    "category": "مجلهٔ علمی",
+    "summary": "سیاست برنامه‌ریزی‌شدهٔ داوری دوسوناشناس، نقد سازنده، انتخاب مستقل داوران و رعایت محرمانگی.",
+    "keywords": "مجله علمی بین‌المللی JHELA داوران ایرانی همکاری علمی داوری آموزش یادگیری سنجش"
+  },
+  {
+    "lang": "fa",
+    "title": "راهنمای ثبت درخواست داوری JHELA",
+    "path": "journal/fa/reviewer-registration/",
+    "category": "مجلهٔ علمی",
+    "summary": "راهنمای احراز صلاحیت، اطلاعات حرفه‌ای و اعلام آمادگی داوران پیش از ایجاد سامانهٔ رسمی مدیریت مقاله.",
+    "keywords": "مجله علمی بین‌المللی JHELA داوران ایرانی همکاری علمی داوری آموزش یادگیری سنجش"
   },
   {
     "lang": "fa",
@@ -1350,229 +1622,5 @@
     "category": "Journal",
     "summary": "نقشه راه ده مرحله‌ای علمی و بین‌المللی مجله، معیارهای پذیرش DOAJ، Scopus، Web of Science و هدف بلندمدت SSCI و Q1.",
     "keywords": "مجله JHELA نقشه راه داوری مقالات نمایه سازی اعتبار علمی"
-  },
-  {
-    "lang": "en",
-    "title": "Specialist academic consultation",
-    "path": "en/services/academic_consult_60/",
-    "category": "Services",
-    "summary": "For a defined academic decision requiring individual analysis and professional guidance. A 60-minute analytical session to clarify the issue, options and next step.",
-    "keywords": "academic educational specialist services Specialist academic consultation For a defined academic decision requiring individual analysis and professional guidance academic consult 60"
-  },
-  {
-    "lang": "en",
-    "title": "Student and parent consultation",
-    "path": "en/services/student_parent_90/",
-    "category": "Services",
-    "summary": "For an educational decision that benefits from both the student’s and parent’s participation. A 90-minute joint session to examine evidence, concerns and the decision pathway.",
-    "keywords": "academic educational specialist services Student and parent consultation For an educational decision that benefits from both the student’s and parent’s participation student parent 90"
-  },
-  {
-    "lang": "en",
-    "title": "University entrance examination consultation (Konkur)",
-    "path": "en/services/konkur_consult_60/",
-    "category": "Services",
-    "summary": "For focused decisions about Konkur preparation, study planning or changing course. A 60-minute session focused on the current issue and practical next steps.",
-    "keywords": "academic educational specialist services University entrance examination consultation (Konkur) For focused decisions about Konkur preparation study planning or changing course konkur consult 60"
-  },
-  {
-    "lang": "en",
-    "title": "One-month Konkur guidance programme",
-    "path": "en/services/konkur_month/",
-    "category": "Services",
-    "summary": "For students seeking structured guidance over one month. An individual one-month guidance plan with an approach to reviewing progress.",
-    "keywords": "academic educational specialist services One-month Konkur guidance programme For students seeking structured guidance over one month konkur month"
-  },
-  {
-    "lang": "en",
-    "title": "Academic transcript and pathway analysis",
-    "path": "en/services/transcript_analysis/",
-    "category": "Services",
-    "summary": "For turning academic record evidence into an understandable educational decision. A review of strengths and constraints reflected in the transcript, with potential options.",
-    "keywords": "academic educational specialist services Academic transcript and pathway analysis For turning academic record evidence into an understandable educational decision transcript analysis"
-  },
-  {
-    "lang": "en",
-    "title": "Standard university major selection",
-    "path": "en/services/field_selection_standard/",
-    "category": "Services",
-    "summary": "For applicants who need systematic, defensible priorities among programme and university choices. A structured development and review of preferences grounded in the applicant’s verified information.",
-    "keywords": "academic educational specialist services Standard university major selection For applicants who need systematic defensible priorities among programme and university choices field selection standard"
-  },
-  {
-    "lang": "en",
-    "title": "Comprehensive university major selection",
-    "path": "en/services/field_selection_comprehensive/",
-    "category": "Services",
-    "summary": "For applicants navigating competing pathways, constraints or priorities requiring deeper analysis. A more detailed evaluation of alternatives and final preference ordering informed by individual evidence.",
-    "keywords": "academic educational specialist services Comprehensive university major selection For applicants navigating competing pathways constraints or priorities requiring deeper analysis field selection comprehensive"
-  },
-  {
-    "lang": "en",
-    "title": "Initial specialist talent assessment",
-    "path": "en/services/talent_initial/",
-    "category": "Services",
-    "summary": "For beginning a multi-source review of strengths and development potential before major decisions. An initial evidence profile and identification of questions needing further examination.",
-    "keywords": "academic educational specialist services Initial specialist talent assessment For beginning a multi-source review of strengths and development potential before major decisions talent initial"
-  },
-  {
-    "lang": "en",
-    "title": "Golden Talent — comprehensive assessment and pathway",
-    "path": "en/services/golden_talent_comprehensive/",
-    "category": "Services",
-    "summary": "For families seeking a multi-source, development-oriented approach beyond one test. Synthesis of available Golden Talent evidence and a provisional development pathway.",
-    "keywords": "academic educational specialist services Golden Talent — comprehensive assessment and pathway For families seeking a multi-source development-oriented approach beyond one test golden talent comprehensive"
-  },
-  {
-    "lang": "en",
-    "title": "Golden Talent — assessment, parent session and pathway report",
-    "path": "en/services/golden_talent_premium/",
-    "category": "Services",
-    "summary": "For cases requiring a comprehensive review, a parent consultation and a pathway report. A comprehensive Golden Talent review, parent session and pathway report within verified evidence limits.",
-    "keywords": "academic educational specialist services Golden Talent — assessment, parent session and pathway report For cases requiring a comprehensive review a parent consultation and a pathway report golden talent premium"
-  },
-  {
-    "lang": "en",
-    "title": "Teacher consultation: materials, teaching and assessment",
-    "path": "en/services/teacher_consult_60/",
-    "category": "Services",
-    "summary": "For educators with a specific challenge in teaching, learning materials or assessment. A 60-minute problem analysis with viable professional options.",
-    "keywords": "academic educational specialist services Teacher consultation: materials, teaching and assessment For educators with a specific challenge in teaching learning materials or assessment teacher consult 60"
-  },
-  {
-    "lang": "en",
-    "title": "Educator professional development session",
-    "path": "en/services/teacher_dev_90/",
-    "category": "Services",
-    "summary": "For educators seeking deeper analysis of a professional issue and planning for growth. A 90-minute discussion grounded in evidence, professional judgement and next steps.",
-    "keywords": "academic educational specialist services Educator professional development session For educators seeking deeper analysis of a professional issue and planning for growth teacher dev 90"
-  },
-  {
-    "lang": "en",
-    "title": "Manuscript diagnostic review, up to 7,000 words",
-    "path": "en/services/manuscript_diagnostic/",
-    "category": "Services",
-    "summary": "For manuscripts of up to 7,000 words needing a diagnosis of key weaknesses before submission or revision. A diagnostic review accompanied by a prioritised revision report.",
-    "keywords": "academic educational specialist services Manuscript diagnostic review, up to 7,000 words For manuscripts of up to 7000 words needing a diagnosis of key weaknesses before submission or revision manuscript diagnostic"
-  },
-  {
-    "lang": "en",
-    "title": "Academic English editing, up to 5,000 words",
-    "path": "en/services/academic_editing/",
-    "category": "Services",
-    "summary": "For developed academic manuscripts of up to 5,000 words that need English-language refinement. An edited version focused on clarity, linguistic accuracy and scholarly expression.",
-    "keywords": "academic educational specialist services Academic English editing, up to 5,000 words For developed academic manuscripts of up to 5000 words that need English-language refinement academic editing"
-  },
-  {
-    "lang": "en",
-    "title": "Research consultation",
-    "path": "en/services/research_consult_60/",
-    "category": "Services",
-    "summary": "For researchers with a defined question about design, methods, interpretation or argumentation. A 60-minute analysis of the research issue and the next decision.",
-    "keywords": "academic educational specialist services Research consultation For researchers with a defined question about design methods interpretation or argumentation research consult 60"
-  },
-  {
-    "lang": "en",
-    "title": "Journal selection and publication strategy",
-    "path": "en/services/journal_strategy/",
-    "category": "Services",
-    "summary": "For manuscripts requiring an informed assessment of journal fit and submission strategy. Analysis of suitability and publication options informed by topic, scope and the manuscript’s stage of preparation.",
-    "keywords": "academic educational specialist services Journal selection and publication strategy For manuscripts requiring an informed assessment of journal fit and submission strategy journal strategy"
-  },
-  {
-    "lang": "en",
-    "title": "Reviewer-response support, up to 20 comments",
-    "path": "en/services/reviewer_response/",
-    "category": "Services",
-    "summary": "For authors responding to up to 20 reviewer comments and seeking a systematic scholarly response. Review of the comments and assistance structuring evidence-based responses.",
-    "keywords": "academic educational specialist services Reviewer-response support, up to 20 comments For authors responding to up to 20 reviewer comments and seeking a systematic scholarly response reviewer response"
-  },
-  {
-    "lang": "en",
-    "title": "Academic CV and applications strategy",
-    "path": "en/services/academic_cv/",
-    "category": "Services",
-    "summary": "For scholars reviewing their CV and application approach for a specific opportunity. A review of CV structure and presentation of evidence aligned with the target role.",
-    "keywords": "academic educational specialist services Academic CV and applications strategy For scholars reviewing their CV and application approach for a specific opportunity academic cv"
-  },
-  {
-    "lang": "en",
-    "title": "Academic or faculty interview preparation",
-    "path": "en/services/academic_interview_90/",
-    "category": "Services",
-    "summary": "For candidates preparing for a defined academic or faculty recruitment interview. A structured 90-minute session informed by the role, background and likely questions.",
-    "keywords": "academic educational specialist services Academic or faculty interview preparation For candidates preparing for a defined academic or faculty recruitment interview academic interview 90"
-  },
-  {
-    "lang": "en",
-    "title": "School and organisational education consultation",
-    "path": "en/services/organization_consult_90/",
-    "category": "Services",
-    "summary": "For a school or organisation needing to define an educational problem and an initial course of action. A 90-minute examination of the challenge, stakeholders and possible actions.",
-    "keywords": "academic educational specialist services School and organisational education consultation For a school or organisation needing to define an educational problem and an initial course of action organization consult 90"
-  },
-  {
-    "lang": "en",
-    "title": "Specialist online workshop, up to two hours",
-    "path": "en/services/specialist_workshop_120/",
-    "category": "Services",
-    "summary": "For schools, organisations and professional groups with a defined topic and audience. An online specialist workshop of up to two hours on the agreed topic.",
-    "keywords": "academic educational specialist services Specialist online workshop, up to two hours For schools organisations and professional groups with a defined topic and audience specialist workshop 120"
-  },
-  {
-    "lang": "en",
-    "title": "VIP academic and educational advisory | Dr. Javad Rezazadeh Yazdeli",
-    "path": "en/vip/",
-    "category": "Services",
-    "summary": "Six distinctive VIP advisory programmes with proposed written deliverables, price and professional boundaries.",
-    "keywords": "VIP academic consulting educational advisory Javad Rezazadeh"
-  },
-  {
-    "lang": "en",
-    "title": "VIP Academic Direction | Dr. Javad Rezazadeh Yazdeli",
-    "path": "en/vip/academic-direction/",
-    "category": "Services",
-    "summary": "For a student or family facing a consequential educational choice that needs more than a single conversation. Proposed scope and professional limits are disclosed before any booking or payment.",
-    "keywords": "VIP academic consulting educational advisory academic direction Javad Rezazadeh"
-  },
-  {
-    "lang": "en",
-    "title": "VIP University Selection and Prioritisation | Dr. Javad Rezazadeh Yazdeli",
-    "path": "en/vip/university-selection/",
-    "category": "Services",
-    "summary": "For applicants comparing several university or major options under genuine admission, geographic and personal constraints. Proposed scope and professional limits are disclosed before any booking or payment.",
-    "keywords": "VIP academic consulting educational advisory university selection Javad Rezazadeh"
-  },
-  {
-    "lang": "en",
-    "title": "Golden Talent Signature: Developmental Evidence Review | Dr. Javad Rezazadeh Yazdeli",
-    "path": "en/vip/golden-talent-signature/",
-    "category": "Services",
-    "summary": "For families seeking a contextual, multi-source exploration of a young person's capacities, interests and opportunities for growth. Proposed scope and professional limits are disclosed before any booking or payment.",
-    "keywords": "VIP academic consulting educational advisory golden talent signature Javad Rezazadeh"
-  },
-  {
-    "lang": "en",
-    "title": "VIP Research and Publication Strategy | Dr. Javad Rezazadeh Yazdeli",
-    "path": "en/vip/research-publication/",
-    "category": "Services",
-    "summary": "For a researcher with a manuscript of up to 7,000 words who needs diagnostic feedback and a responsible publication plan. Proposed scope and professional limits are disclosed before any booking or payment.",
-    "keywords": "VIP academic consulting educational advisory research publication Javad Rezazadeh"
-  },
-  {
-    "lang": "en",
-    "title": "VIP Educator Professional Development | Dr. Javad Rezazadeh Yazdeli",
-    "path": "en/vip/educator-development/",
-    "category": "Services",
-    "summary": "For a teacher or lecturer investigating a real pedagogical difficulty using their own instructional experience and evidence. Proposed scope and professional limits are disclosed before any booking or payment.",
-    "keywords": "VIP academic consulting educational advisory educator development Javad Rezazadeh"
-  },
-  {
-    "lang": "en",
-    "title": "VIP School and Institutional Advisory | Dr. Javad Rezazadeh Yazdeli",
-    "path": "en/vip/institutional-advisory/",
-    "category": "Services",
-    "summary": "For schools or educational organisations seeking to define a specific institutional challenge and weigh practical managerial responses. Proposed scope and professional limits are disclosed before any booking or payment.",
-    "keywords": "VIP academic consulting educational advisory institutional advisory Javad Rezazadeh"
   }
 ]
