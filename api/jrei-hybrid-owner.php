@@ -7,6 +7,7 @@ require_once __DIR__.'/jrei-hybrid-owner-sources.php';
 require_once __DIR__.'/jrei-hybrid-owner-models.php';
 require_once __DIR__.'/jrei-hybrid-diagnostics.php';
 require_once __DIR__.'/jrei-hybrid-incident-status.php';
+require_once __DIR__.'/jrei-hybrid-queue-health.php';
 
 /**
  * MFA SUPER_ADMIN-only projection and control of the OUTBOUND JREI worker.
@@ -97,6 +98,7 @@ function jrHybridOwnerSnapshot(PDO $pdo,array $cfg): array {
         jrHybridSourceSnapshot($pdo),jrHybridModelSnapshot($pdo));
     $projection['dispatchDiagnostics']=jrHybridOwnerDispatchDiagnostics($pdo,$projection);
     $projection['incidentMonitoring']=jrHybridOwnerIncidentStatus($pdo,$cfg);
+    $projection['queueHealth']=jrHybridOwnerQueueHealth($pdo,$cfg,time());
     return $projection;
 }
 function jrHybridOwnerChange(PDO $pdo,array $cfg,string $actor,
