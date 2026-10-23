@@ -267,10 +267,8 @@ async function run(configArg) {
   const key=createPrivateKey(pem);
   if(key.asymmetricKeyType!=='ed25519')
     throw Error('PRIVATE_KEY_TYPE_UNAPPROVED');
-  const publicRaw=key.asymmetricKeyType==='ed25519'
-    ?key.export({format:'pem',type:'pkcs8'}):null;
-  // We never print, persist or send private key, and ignore remote commands.
-  if(!publicRaw)throw Error('PRIVATE_KEY_TYPE_UNAPPROVED');
+  // Only the local DPAPI-encrypted key is used to sign outbound
+  // requests. Do not export another PEM copy or log key material.
   log('OUTBOUND_WORKER_SOURCE_STARTED_NOT_MODEL_INFERENCE');
   let stop=false,lastCPU=cpuSnapshot(),backoff=0,latency=null;
   let leaseActive=false,heldLeaseExpiresAt=0;
