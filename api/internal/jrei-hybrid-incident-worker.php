@@ -57,7 +57,8 @@ try{
     // is also actionable even if the separate reconciliation Cron is OFF.
     $q=$pdo->prepare("SELECT COUNT(*) FROM jrei_hybrid_jobs
          WHERE status='NEEDS_REVIEW' OR
-           (status='LEASED' AND (lease_expires_at<?
+           (status='LEASED' AND (lease_expires_at IS NULL
+             OR lease_started_at IS NULL OR lease_expires_at<?
              OR lease_started_at+?<?))");
     $q->execute([$at,JR_HYBRID_MAX_LEASE_AGE,$at]);
     $unknown=(int)$q->fetchColumn();
