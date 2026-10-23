@@ -416,7 +416,35 @@ else {
   if(/add-to-cart|buy-now|preorder-now|data-preorder/.test(book))
     failures.push('Unpublished book incorrectly offers checkout or preorder');
 }
-const approvedPublicHtmlRoutes=existingBaseHtmlRoutes+approvedEnglishServices.length+protectedNewRoutes.length+2+approvedEnglishVipRoutes.length+1+1+1; // English author + noindex AI lab + reviewed English academic book
+// 2026-10-23: precisely six publicly indexed bilingual educational introduction
+// routes. Verify EACH immutable approved canonical and two-language reciprocal
+// map before including them in the sanitized artifact route count.
+const approvedBilingualEducationalRoutes=[
+  ['fa/masir-man/index.html','en/my-path/index.html'],
+  ['fa/bahar/index.html','en/bahar/index.html'],
+  ['fa/rcas/index.html','en/rcas/index.html']
+];
+for(const [fa,en] of approvedBilingualEducationalRoutes){
+  const faUrl='https://drjavadrezazadeh.com/'+fa.replace(/index\\.html$/,'');
+  const enUrl='https://drjavadrezazadeh.com/'+en.replace(/index\\.html$/,'');
+  for(const [route,canonical,twin,lang] of [
+    [fa,faUrl,enUrl,'fa'],[en,enUrl,faUrl,'en']
+  ]){
+    const file=path.join(out,route);
+    if(!fs.existsSync(file)){
+      failures.push('Approved bilingual educational route missing: '+route);
+      continue;
+    }
+    const source=fs.readFileSync(file,'utf8');
+    if(!source.includes('<link rel="canonical" href="'+canonical+'">')||
+       !/<meta name="robots" content="index,follow/.test(source)||
+       !source.includes('hreflang="'+lang+'"')||
+       !source.includes('href="'+twin+'"'))
+      failures.push('Approved educational canonical/hreflang/indexability mismatch: '+route);
+  }
+}
+const approvedPublicHtmlRoutes=existingBaseHtmlRoutes+approvedEnglishServices.length+protectedNewRoutes.length+2+approvedEnglishVipRoutes.length+1+1+1+approvedBilingualEducationalRoutes.length*2; // exact explicit bilingual educational scope
+
 const aiLabRoute='fa/konkur-ai-lab/index.html';
 const aiLabPath=path.join(out,aiLabRoute);
 const aiLabJs=path.join(out,'assets/js/jr-konkur-ai-lab-public-v1.mjs');
