@@ -101,3 +101,15 @@ Before creating a paid timed attempt, the exact original item IDs and option IDs
 The new source-backed api/jrei-exam-product-readiness.php provides per-product metadata blockers: original instrument version, blueprint and reviewer, content rights, approved answer keys, delivery state, signed question counts, original source rights and independent review. The same bilingual MFA panel displays these blockers and explicitly states that DB metadata neither proves commercial payment integration nor scientific validity. All acceptance remains final-stage only.
 
 **Actual state remains SOURCE; all tests, new DB migrations, Cron execution, model inference, real payments and live deployment NOT RUN.**
+
+
+## Owner-scoped verified-order access governance (23 October 2026)
+
+Additional SOURCE-only development in the canonical branch now includes `api/jrei-exam-entitlement-owner.php`, called exclusively from the existing MFA/CSRF/rate-limited `/admin/operations/jrei-exam-research` endpoint. This does **not** open live examination checkout.
+
+- A verified-order grant requires the original `commerce_orders` paid record, existing customer account and exact ownership email, matching Stage09 BitPay payment-claim transaction and amount, valid item subtotals with one matching exam SKU, original approved/scheduled product, and serialized one-active-entitlement checks. Both `JR_JREI_EXAM_VERIFIED_ENTITLEMENT_GRANTS_ENABLED` and `JR_JREI_EXAM_CHECKOUT_BRIDGE_ACCEPTED` (plus the original commercial switch) are separately default OFF. The Stage09 storefront **does not yet emit** the required exam SKU; grants are not currently operational.
+- Owner-only revocation is explicit, revision-protected, reason-coded and audit-recorded. It changes access status without automatically refunding a buyer, deleting response data, fabricating a payment reversal or treating the customer service contract as fulfilled. Refund- or reversal-related reasons are labelled review-required rather than verified without underlying proof.
+- The protected bilingual owner console shows source-backed aggregated active entitlements attached to SUSPENDED products/offerings, a bounded private list of opaque case IDs and a guarded access revocation action. The console distinguishes an owner configuration opt-in from independently accepted payment/provider operation.
+- All existing JREI item keys, original account login, BitPay callback, journal, Golden Talent, source provenance and bilingual routes are preserved. No new bank gateway, invoice issuer, customer table or secondary financial ledger was created.
+
+**Not executed:** no bank transaction, entitlement grant/revocation, server Cron, database migration, QA, model inference or production deployment. Stage09 exam SKU integration, refunds and user communication, concurrency/ownership acceptance and the original 117 requirements remain open.
