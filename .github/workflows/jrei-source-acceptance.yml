@@ -1,0 +1,56 @@
+name: JREI source and twin-Windows acceptance (No Deployment)
+on:
+  push:
+    branches: [migration/bertina-linux6]
+    paths:
+      - ".github/workflows/jrei-source-acceptance.yml"
+      - "platform/jrei-v5/**"
+      - "api/jrei-*.php"
+      - "api/operations-cron-dispatcher.php"
+      - "api/internal/jrei-daily-learning-worker.php"
+      - "assets/js/operations-jrei-*.js"
+      - "assets/css/operations-jrei-*.css"
+      - "fa/app/admin/index.html"
+      - "en/account/admin/index.html"
+      - "tests/jrei-*.test.mjs"
+      - "tests/jrei*.test.mjs"
+      - "tests/educational-intelligence-*.test.mjs"
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: jrei-source-acceptance-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  jrei-offline:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify all JREI v3 and v5 source tests; no HTTP or models
+        run: |
+          node --test \
+            tests/educational-intelligence-*.test.mjs \
+            tests/jrei-examination-testly-research.test.mjs \
+            tests/jrei-v5-learning-loop.test.mjs \
+            tests/jrei-v5-reviewed-retrieval-evaluator.test.mjs \
+            tests/jrei-v5-two-windows-node-gates.test.mjs
+      - name: Check JREI model worker syntax and model privacy firewall
+        run: |
+          set -euo pipefail
+          for file in platform/jrei-v5/*.mjs platform/jrei-v5/windows-worker/*.mjs assets/js/operations-jrei-*.js; do
+            node --check "$file"
+          done
+      - name: Check new source PHP and CLI syntax without executing it
+        run: |
+          set -euo pipefail
+          for file in api/jrei-*.php api/internal/jrei-daily-learning-worker.php api/operations-cron-dispatcher.php api/internal/operations-master-dispatcher.php; do
+            php -l "$file"
+          done
+      - name: Assert private worker is outbound and nothing is deployed
+        run: |
+          node -e "const fs=require('fs');const s=fs.readFileSync('platform/jrei-v5/windows-worker/jrei-worker.mjs','utf8');if(!s.includes('redirect:\x27error\x27')||s.includes('createServer('))process.exit(1)"
+          echo "Offline source-only tests. No Bertina, Windows, SMTP, MySQL, provider, model, deployment or live browser actions." >> "$GITHUB_STEP_SUMMARY"
