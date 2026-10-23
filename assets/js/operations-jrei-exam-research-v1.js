@@ -170,6 +170,62 @@
    }
    worker.append(section);
  }
+
+ function renderCoverageReadiness(snapshot){
+   const read=snapshot.coverageReadiness;
+   if(!read||read.schema!=='jr.jrei.exam-coverage-readiness.v1'){
+     fact(T('جزئیات پوشش و کلید پاسخ','Exam/source-key detail'),
+       T('نامعلوم؛ دادهٔ منبع در دسترس نیست','Unknown; source registry not available'));
+     return;
+   }
+   fact(T('منابع ثبت‌شده در دفتر آزمون‌ها','Exam source registry records'),
+     read.ready?safeCount(read.totalRows):T('نامعلوم','Unknown'));
+   fact(T('درستی علمی کلیدهای پاسخ','Independent answer-key correctness'),
+     T('هنوز مستقلاً تأیید نشده','Not independently verified'));
+   fact(T('اجازهٔ انتشار بانک سؤال','Question bank public release'),
+     T('تأیید نشده؛ انتشار غیرفعال','Unverified; publication blocked'));
+   const box=elt('details','jr-exam-subsection');
+   box.append(elt('summary','',T('پوشش آزمون‌ها به تفکیک مقطع، سال و کلید پاسخ',
+     'Exam coverage by education level, year and answer-key status')));
+   box.append(elt('p','',T(
+     'تعداد منابع، گواه تأیید کلید پاسخ یا پوشش کامل سال‌ها نیست. وضعیت‌های زیر تنها سوابق واقعی ثبت‌شده در دیتابیس مادر هستند.',
+     'Record counts do not certify answer correctness or complete annual coverage. These are only recorded source metadata from the mother database.')));
+   if(!read.ready){
+     box.append(elt('p','',T(
+       'مهاجرت مصوب یا جدول لازم موجود نیست؛ هیچ تعداد صفر ساختگی نمایش داده نمی‌شود.',
+       'The approved migration or required table is unavailable; missing values are never treated as zero.')));
+     sections.append(box);return;
+   }
+   const groups=Array.isArray(read.examCoverage)?read.examCoverage:[];
+   if(!groups.length)box.append(elt('p','',T(
+     'هنوز منبع آزمونی در دفتر ثبت نشده است.',
+     'No examination source has yet been registered.')));
+   const aggregate=new Map();
+   for(const entry of groups){
+     const level=String(entry.educationalLevel||'UNKNOWN').slice(0,60);
+     const prev=aggregate.get(level)||{total:0,rights:0,keys:new Set()};
+     prev.total+=Number.isSafeInteger(entry.sourceCount)?entry.sourceCount:0;
+     prev.rights+=Number.isSafeInteger(entry.approvedForPrivateAnalysisCount)?
+       entry.approvedForPrivateAnalysisCount:0;
+     prev.keys.add(String(entry.answerKeyState||'UNKNOWN').slice(0,64));
+     aggregate.set(level,prev);
+   }
+   for(const [level,r] of aggregate){
+     const card=elt('article','jr-exam-coverage-row');
+     card.append(elt('strong','',level),
+       elt('span','',T('کل منابع اعلامی: ','Declared sources: ')+safeCount(r.total)),
+       elt('span','',T('واجد مجوز مطالعهٔ خصوصی طبق رکورد: ',
+         'Metadata records permitting private analysis: ')+safeCount(r.rights)),
+       elt('span','',T('وضعیت‌های ثبت‌شدهٔ کلید پاسخ: ',
+         'Recorded answer-key states: ')+[...r.keys].join(', ')));
+     box.append(card);
+   }
+   if(read.truncated)box.append(elt('p','',T(
+     'بیش از ۱۲۰ گروه وضعیت وجود دارد؛ این نمای محدود اثبات پوشش کامل نیست.',
+     'Over 120 status groups exist; this bounded view is not comprehensive.')));
+   sections.append(box);
+ }
+
  function render(snapshot,hybrid=null){
    clearNodes();
    const ready=snapshot.motherDbSchemaReady===true;
@@ -192,6 +248,7 @@
    fact(T('پژوهش با شرکت‌کنندگان زیر سن قانونی','Research involving minors'),
      T('غیرفعال تا احراز اخلاق و سرپرست قانونی',
        'Disabled until ethics and guardian authorization'));
+   renderCoverageReadiness(snapshot);
    for(const def of columns)viewGroup(def,snapshot[def.key],ready);
    renderWorker(hybrid);
    if(ready&&c){
