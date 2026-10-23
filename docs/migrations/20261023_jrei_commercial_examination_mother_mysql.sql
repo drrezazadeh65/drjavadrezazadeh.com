@@ -123,3 +123,51 @@ CREATE TABLE IF NOT EXISTS jrei_exam_commercial_attempts (
 -- NEVER seed paid products, attempts, entitlements or synthetic transactions.
 -- Existing server-side commerce verification and controlled science signoffs
 -- must be integrated and accepted before any product becomes purchasable.
+
+
+-- A reviewed answer key is bound to the ORIGINAL eco_assessment item and
+-- its actual option, NOT a copied/generated secondary question bank.
+-- Independent human review and key-to-item membership must be checked
+-- transactionally at approval and again before deterministic grading.
+CREATE TABLE IF NOT EXISTS jrei_exam_reviewed_answer_keys (
+  item_id CHAR(36) NOT NULL PRIMARY KEY,
+  correct_option_id CHAR(36) NOT NULL,
+  key_version VARCHAR(50) NOT NULL,
+  key_digest CHAR(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+  source_id CHAR(36) NULL,
+  key_state VARCHAR(28) NOT NULL DEFAULT 'REVIEW_REQUIRED',
+  rights_review_state VARCHAR(28) NOT NULL DEFAULT 'NOT_REVIEWED',
+  reviewer_account_id CHAR(36) NULL,
+  reviewed_at BIGINT UNSIGNED NULL,
+  revision BIGINT UNSIGNED NOT NULL DEFAULT 1,
+  CONSTRAINT fk_jrei_exam_key_item FOREIGN KEY(item_id)
+    REFERENCES eco_assessment_items(id) ON DELETE RESTRICT,
+  CONSTRAINT fk_jrei_exam_key_option FOREIGN KEY(correct_option_id)
+    REFERENCES eco_assessment_options(id) ON DELETE RESTRICT,
+  CONSTRAINT fk_jrei_exam_key_source FOREIGN KEY(source_id)
+    REFERENCES jrei_exam_sources(source_id) ON DELETE SET NULL,
+  CONSTRAINT fk_jrei_exam_key_reviewer FOREIGN KEY(reviewer_account_id)
+    REFERENCES customer_accounts(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Deterministic single-choice raw scoring. Integer millipoints avoid
+-- client floating-point rounding. Model metadata is the ORIGINAL
+-- eco_scoring_models table; a policy cannot create a new scoring engine.
+CREATE TABLE IF NOT EXISTS jrei_exam_scoring_policies (
+  scoring_model_id CHAR(36) NOT NULL PRIMARY KEY,
+  correct_millipoints INT UNSIGNED NOT NULL,
+  incorrect_penalty_millipoints INT UNSIGNED NOT NULL DEFAULT 0,
+  unanswered_millipoints INT UNSIGNED NOT NULL DEFAULT 0,
+  policy_sha256 CHAR(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+  policy_state VARCHAR(28) NOT NULL DEFAULT 'DRAFT',
+  reviewer_account_id CHAR(36) NULL,
+  reviewed_at BIGINT UNSIGNED NULL,
+  revision BIGINT UNSIGNED NOT NULL DEFAULT 1,
+  CONSTRAINT fk_jrei_exam_policy_original FOREIGN KEY(scoring_model_id)
+    REFERENCES eco_scoring_models(id) ON DELETE RESTRICT,
+  CONSTRAINT fk_jrei_exam_policy_reviewer FOREIGN KEY(reviewer_account_id)
+    REFERENCES customer_accounts(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- No correct keys, scoring models, question-bank rows, candidate accounts,
+-- entitlements or sale products are seeded by these migrations.
