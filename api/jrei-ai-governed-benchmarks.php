@@ -37,6 +37,7 @@ function jrAiBenchmarkOwnerSnapshot(PDO $pdo,array $cfg): array {
     $out=[
       'schema'=>'jr.jrei.real-benchmark-owner.v1',
       'available'=>false,'readyCases'=>null,
+      'draftCount'=>null,'draftCases'=>[],'draftCasesTruncated'=>false,
       'reviewRequiredRuns'=>null,'measuredCompletedRuns'=>null,
       'measuredUnknownRuns'=>null,'expertReviewedRuns'=>null,
       'expertQualityAverage'=>null,'recent'=>[],
@@ -48,6 +49,27 @@ function jrAiBenchmarkOwnerSnapshot(PDO $pdo,array $cfg): array {
     if(!jrAiBenchmarkSchemaReady($pdo))return $out;
     try{
         $out['available']=true;
+        $q=$pdo->query("SELECT COUNT(*) FROM jrei_ai_governed_benchmark_cases
+            WHERE case_state='DRAFT'");
+        $out['draftCount']=(int)$q->fetchColumn();
+        $q=$pdo->query("SELECT case_id,locale,domain_code,task_type,
+            question_text,source_evidence_sha256,benchmark_spec_sha256,
+            expected_source_ids_json,created_at,generation_kind
+          FROM jrei_ai_governed_benchmark_cases
+          WHERE case_state='DRAFT'
+          ORDER BY created_at,case_id LIMIT 21");
+        $drafts=$q->fetchAll(PDO::FETCH_ASSOC);
+        $out['draftCasesTruncated']=count($drafts)>20;
+        foreach(array_slice($drafts,0,20) as $d)$out['draftCases'][]=[
+          'caseId'=>$d['case_id'],'language'=>$d['locale'],
+          'domain'=>$d['domain_code'],'taskType'=>$d['task_type'],
+          'question'=>$d['question_text'],'evidenceSha256'=>$d['source_evidence_sha256'],
+          'specSha256'=>$d['benchmark_spec_sha256'],
+          'expectedSourceIds'=>$d['expected_source_ids_json'],
+          'createdAt'=>(int)$d['created_at'],
+          'origin'=>$d['generation_kind'],
+          'noModelAnswerYet'=>true
+        ];
         $q=$pdo->query("SELECT COUNT(*) FROM jrei_ai_governed_benchmark_cases
             WHERE case_state='APPROVED'");
         $out['readyCases']=(int)$q->fetchColumn();
@@ -89,8 +111,8 @@ function jrAiBenchmarkOwnerSnapshot(PDO $pdo,array $cfg): array {
                 null:(int)$r['observed_latency_ms']
         ];
     }catch(Throwable $e){
-        $out['available']=false;$out['recent']=[];
-        foreach(['readyCases','reviewRequiredRuns','measuredCompletedRuns',
+        $out['available']=false;$out['recent']=[];$out['draftCases']=[];
+        foreach(['readyCases','draftCount','reviewRequiredRuns','measuredCompletedRuns',
             'measuredUnknownRuns','expertReviewedRuns',
             'expertQualityAverage'] as $key)$out[$key]=null;
     }
@@ -114,7 +136,8 @@ function jrAiBenchmarkClaim(PDO $pdo,array $cfg,string $batch): ?array {
           ON r.case_id=c.case_id AND r.batch_id=?
        WHERE c.case_state='APPROVED' AND r.run_id IS NULL
          AND c.independent_reviewer_account_id IS NOT NULL
-         AND c.independent_reviewer_account_id<>c.author_account_id
+         AND (c.author_account_id IS NULL OR
+              c.independent_reviewer_account_id<>c.author_account_id)
        ORDER BY c.created_at,c.case_id LIMIT 8");
     $q->execute([$batch]);$candidates=$q->fetchAll(PDO::FETCH_ASSOC);
     foreach($candidates as $case){
