@@ -27,13 +27,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 2
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
       - name: Confirm exact pinned candidate parent (no live checkout)
         run: |
-          test "$(git rev-parse HEAD^)" = cf74652e27bc2facc71d2bf90842b555b1adb2a0
+          git merge-base --is-ancestor cf74652e27bc2facc71d2bf90842b555b1adb2a0 HEAD
+          delta="$(git diff --name-only cf74652e27bc2facc71d2bf90842b555b1adb2a0 HEAD)"
+          test "$delta" = '.github/workflows/jrei-20261023-frozen-final-qa.yml'
           echo "Pinned source candidate: cf74652e27bc2facc71d2bf90842b555b1adb2a0" >> "$GITHUB_STEP_SUMMARY"
       - name: Syntax of ALL APIs and JS source under existing environment
         run: |
