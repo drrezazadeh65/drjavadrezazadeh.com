@@ -758,6 +758,79 @@
    sections.append(panel);
  }
 
+ function renderRegisteredSourceReuse(snapshot){
+   const data=snapshot.registeredSourceReuseSuggestions;
+   if(!data||data.schema!=='jr.jrei.registered-source-reuse.v1')return;
+   fact(T('دامنه‌های مصوب فاقد منبع پیوندخورده',
+     'Approved investigation scopes with no registered link'),
+     data.available?safeCount(data.eligibleOwnerScopes):
+       T('نامعلوم؛ قرارداد جدول اصلی موجود نیست',
+         'Unknown; source registry unavailable'));
+   const panel=elt('details','jr-exam-subsection');
+   panel.append(elt('summary','',T(
+     'پیشنهادهای بازاستفاده از منابع موجود؛ بدون اتصال خودکار',
+     'Re-use existing original source candidates — no automatic links')));
+   panel.append(elt('p','',T(
+     'پیشنهادها فقط از فرادادهٔ منابع ثبت‌شده در پایگاه دادهٔ مادر به دست می‌آیند. تشابه کشور، مقطع، سال و درس نه اثبات برنامهٔ درسی و پایه است و نه اصالت، مجوز یا درستی پاسخ‌نامه. انتخاب و اتصال باید توسط مدیر تأیید شود و پس از آن بازبینی مستقل ادامه یابد.',
+     'Suggestions use only registered mother-DB metadata. Country, level, year, subject and source-type matches do not prove curriculum-ID/grade accuracy, issuer authenticity, licence or correct answers. An owner must explicitly link the source and a distinct expert must subsequently review it.')));
+   if(!data.available){
+     panel.append(elt('p','',T('دادهٔ معتبر دریافت نشد','No authoritative data available')));
+     sections.append(panel);return;
+   }
+   const uid=/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i;
+   const scopes=Array.isArray(data.shownScopes)?data.shownScopes.slice(0,35):[];
+   if(!scopes.length)panel.append(elt('p','',T(
+     'در پنجرهٔ محدود، منبع قابل‌استفادهٔ مجدد برای نیازهای مصوب یافت نشد؛ این به معنای نبود منبع در جهان نیست.',
+     'No reusable registered candidates in the bounded view; this does not establish that official sources do not exist.')));
+   for(const scope of scopes){
+     if(!uid.test(scope.requirementId||''))continue;
+     const group=elt('article','jr-exam-coverage-row');
+     group.append(elt('strong','',[
+       scope.country,scope.curriculum,scope.curriculumVersion,
+       scope.level,scope.grade>0?scope.grade:null,scope.examCategory,
+       scope.year,scope.subject,scope.expectedKind
+     ].filter(v=>v!==null&&v!==undefined).join(' · ').slice(0,330)));
+     for(const source of Array.isArray(scope.registeredCandidates)?
+       scope.registeredCandidates.slice(0,3):[]){
+       if(!uid.test(source.sourceId||''))continue;
+       const item=elt('div','jr-exam-coverage-row');
+       item.append(elt('span','',
+         String(source.title||'').slice(0,200)+' · '+
+         String(source.authorityClaim||'').slice(0,100)));
+       item.append(elt('span','',
+         source.humanSourceReviewRecorded?
+           T('بازبینی منبع در سوابق ثبت‌شده؛ اعتبار فعلی نیازمند تأیید',
+             'Previous source review recorded; current eligibility requires recheck'):
+           T('نامزد هنوز مستقلاً بررسی نشده','Candidate not independently reviewed')));
+       item.append(elt('span','',T(
+         'انطباق پایه و برنامهٔ درسی تأیید نشده',
+         'Grade and curriculum-ID alignment unverified')));
+       const button=elt('button','',T('اتصال صرفاً فرادادهٔ این منبع',
+         'Link only this registered source metadata'));
+       button.type='button';
+       button.addEventListener('click',()=>{
+         if(!active()||busy)return;
+         if(!window.confirm(T(
+           'آیا این منبع موجود را به عنوان نامزدِ نیاز مصوب پیوند می‌دهید؟ این کار مدرک، مجوز، پاسخ‌نامه یا صحت علمی را تأیید نمی‌کند.',
+           'Link this pre-registered source as a candidate? This cannot approve documentation, rights, correct answers or scientific quality.')))return;
+         mutate({action:'ka_correct_coverage_link',mode:'LINK_EXISTING',
+           requirementId:scope.requirementId,expectedSourceId:null,
+           newSourceId:source.sourceId,reasonCode:'EXISTING_SOURCE_REUSE',
+           confirmation:'CORRECT_EXAM_SOURCE_LINK_WITH_HISTORY'});
+       });
+       item.append(button);group.append(item);
+     }
+     if(scope.candidatePreviewTruncated)group.append(elt('span','',
+       T('حداکثر سه نامزد نشان داده شده است',
+         'Only the first three suggestions are shown')));
+     panel.append(group);
+   }
+   if(data.truncated)panel.append(elt('p','',T(
+     'پنجرهٔ جستجو حداکثر ۳۵ دامنهٔ اخیر را بررسی می‌کند؛ آمار کلی مستقل است.',
+     'The bounded suggestion window examines at most 35 scopes; the total is counted independently.')));
+   sections.append(panel);
+ }
+
  function renderCoverageScopeOwnerActions(snapshot){
    const rows=Array.isArray(snapshot.coverageScopeReviewQueue)
      ?snapshot.coverageScopeReviewQueue.slice(0,40):[];
@@ -1639,6 +1712,7 @@
    renderKnowledgeAcquisition(snapshot);
    renderCountryExamCoverageMatrix(snapshot);
    renderCountryExamGapWorklist(snapshot);
+   renderRegisteredSourceReuse(snapshot);
    renderIndependentSourceReviewEvidence(snapshot);
    renderCoverageScopeOwnerActions(snapshot);
    renderLiveModelReadiness(snapshot);
