@@ -1,0 +1,12 @@
+{
+  "protocol": "jr.jrei.windows-worker.v1",
+  "nodeId": "REPLACE_WITH_DISABLED_REGISTERED_NODE_UUID",
+  "origin": "https://drjavadrezazadeh.com",
+  "limits": {
+    "pollSeconds": 30,
+    "maxJobSeconds": 360,
+    "maxRamPercent": 85,
+    "maxCpuPercent": 90
+  },
+  "datasets": []
+}
