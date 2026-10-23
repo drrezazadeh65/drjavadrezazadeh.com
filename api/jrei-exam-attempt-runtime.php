@@ -114,6 +114,12 @@ function jrExamAttemptStart(PDO $pdo,string $account,array $request,int $at): ar
           (string)$o['instrument_version_id'],(string)$o['scoring_model_id']);
         if(count($score['items'])<1)
             throw new DomainException('exam_items_not_released');
+        // Never create a timed session unless every original prompt and
+        // option can actually be served from the verified private archive.
+        $published=jrExamDeliveredItemSet($pdo,
+          (string)$o['instrument_version_id'],$lang);
+        if(count($published)!==count($score['items']))
+            throw new DomainException('reviewed_key_and_prompt_count_conflict');
         $sessionId=uuidv4();$attemptId=uuidv4();
         $deadline=min($closes,$at+$duration,
           (int)$entitlement['expires_at']);
