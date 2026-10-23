@@ -70,5 +70,9 @@ function jrJreiLearningOwnerEvidenceAccountability(PDO $pdo): array {
     }catch(Throwable $e){
         // Broken/staged schema is UNKNOWN, not "no risks".
     }
+    try{
+        $q=$pdo->query('SELECT COUNT(*) FROM jrei_learning_hazard_review_history');
+        $out['humanVetoCount']=(int)$q->fetchColumn();
+    }catch(Throwable $e){}
     return $out;
 }
