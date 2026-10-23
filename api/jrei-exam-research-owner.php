@@ -5,6 +5,7 @@ require_once __DIR__.'/jrei-exam-coverage-readiness.php';
 require_once __DIR__.'/jrei-ka-scheduler.php';
 require_once __DIR__.'/jrei-ka-owner-controls.php';
 require_once __DIR__.'/jrei-exam-commercial-owner-actions.php';
+require_once __DIR__.'/jrei-exam-deadline-owner.php';
 
 /**
  * Owner-only read/write metadata for the existing JREI ecosystem.
@@ -187,6 +188,8 @@ function jrExamResearchOwnerChange(PDO $pdo,array $cfg,string $actor,array $body
     if(!jrExamResearchSchemaReady($pdo))
         throw new DomainException('jrei_exam_research_migration_required');
     $action=$body['action']??null;
+    if($action==='exam_close_expired_review')
+        return jrExamDeadlineOwnerClose($pdo,$actor,$body);
     if(in_array($action,['exam_product_draft','exam_offering_draft',
         'exam_suspend_product','exam_suspend_offering'],true))
         return jrExamCommercialOwnerAction($pdo,$actor,$body);
