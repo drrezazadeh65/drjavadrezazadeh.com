@@ -67,7 +67,7 @@ test('Bertina unified dashboard preserves all modules and makes path switching p
  for(const id of ['overview','journey','command-center','student-support','ecosystem','academic-profile','progress','consultations','records','account']){
   await expect(page.locator('#'+id)).toHaveCount(1);
  }
- await expect(page.locator('[data-command-item]')).toHaveCount(12);
+ await expect(page.locator('[data-command-item]')).toHaveCount(13);
  await expect(page.locator('[data-command-path]')).toHaveCount(4);
  await page.locator('[data-command-path="sponsorship"]').click();
  await expect(page.locator('[data-command-path="sponsorship"]')).toHaveAttribute('aria-pressed','true');
@@ -76,7 +76,7 @@ test('Bertina unified dashboard preserves all modules and makes path switching p
  await expect(page.locator('#ecosystem')).toBeHidden();
  await expect(page.locator('[data-live-dot].ready')).toHaveCount(0);
  await page.locator('[data-command-path="all"]').click();
- await expect(page.locator('[data-command-item]:visible')).toHaveCount(12);
+ await expect(page.locator('[data-command-item]:visible')).toHaveCount(13);
  await page.locator('[data-dashboard-more]').click();
  await expect(page.locator('[data-dashboard-sheet]')).toHaveClass(/is-open/);
  await page.locator('[data-dashboard-sheet] a[href="#command-center"]').click();
@@ -978,7 +978,7 @@ for(const [language,route] of [['fa','/fa/app/admin/'],['en','/en/account/admin/
   const nav=page.locator('#ops-workspace nav.ops-jump');
   await expect(nav).toBeVisible();
   const links=nav.locator('a');
-  await expect(links).toHaveCount(9);
+  await expect(links).toHaveCount(16);
   for(const target of ['ops-executive-stats','ops-queue','ops-commerce',
     'ops-social','ops-scientific-readiness','ops-jhela-maturity']){
     await expect(nav.locator('a[href="#'+target+'"]:not([data-ops-target])')).toHaveCount(1);
