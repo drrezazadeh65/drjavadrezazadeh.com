@@ -85,6 +85,12 @@ function jrExamCommercialCatalogue(PDO $pdo,array $cfg,int $at=0): array {
               k.item_id IS NULL OR k.key_state<>'APPROVED' OR
               k.rights_review_state<>'APPROVED' OR
               k.reviewer_account_id IS NULL OR
+              source.source_id IS NULL OR
+              meta.provenance_digest IS NULL OR
+              meta.item_content_digest IS NULL OR
+              meta.answer_key_digest IS NULL OR
+              k.key_digest IS NULL OR
+              meta.answer_key_digest<>k.key_digest OR
               source.review_state<>'AUTHORITATIVE_REVIEWED' OR
               source.rights_state<>'PERMITTED_REPRODUCTION' OR
               source.is_revoked<>0 OR source.is_superseded<>0
