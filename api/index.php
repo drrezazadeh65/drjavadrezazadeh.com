@@ -80,6 +80,8 @@ function cfg(): array {
         // question delivery and final security/payment acceptance as well.
         'jrei_exam_runtime_enabled' => getenv('JR_JREI_EXAM_RUNTIME_ENABLED') === 'true',
         'jrei_exam_item_delivery_accepted' => getenv('JR_JREI_EXAM_ITEM_DELIVERY_ACCEPTED') === 'true',
+        // Local immutable JSON question assets, PRIVATE and outside public_html.
+        'jrei_exam_private_item_dir' => (string)(getenv('JR_JREI_EXAM_PRIVATE_ITEM_DIR') ?: ''),
         // Separate OFF-by-default licence-gated JREI-KA scheduler consent.
         // Cron registers tasks only; no network fetching or model execution.
         'jrei_ka_schedule_enabled' => getenv('JR_JREI_KA_SCHEDULE_ENABLED') === 'true',
@@ -528,6 +530,7 @@ require_once __DIR__.'/service-buyer-receipt.php';
 require_once __DIR__.'/consultation-delivery.php';
 require_once __DIR__.'/jrei-exam-commercial-catalogue.php';
 require_once __DIR__.'/jrei-exam-candidate-snapshot.php';
+require_once __DIR__.'/jrei-exam-published-item-delivery.php';
 require_once __DIR__.'/jrei-exam-attempt-runtime.php';
 $path=route();$verb=method();
 if($path==='/exams/attempt' && in_array($verb,['GET','POST'],true)){
