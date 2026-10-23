@@ -99,3 +99,20 @@ The original operations Cron registry now includes a separate, sensitive, **unre
 The job prunes at most 500 Ed25519 replay nonces older than two hours and, when the new optional offers table exists, up to 500 stale signed dataset advertisements older than seven days per authorized scheduled run. The nonce security check still independently rejects timestamps more than 90 seconds old. It **never deletes jobs, unknown outcomes, owner approvals, source versions, customer records, results, node keys or audit trails**. Real periodic execution, permissions, bounded SQL performance and every release-stage retention assertion remain deferred to consolidated owner-authorized QA.
 
 **State: code and governance only, no migrations, Cron executions, deletions, tests or deployment.**
+
+
+## Forward-only addition — safe lease reconciliation and review rationale
+
+A previous failure mode allowed orphaned job leases to remain in LEASED state if all Windows workers disconnected and no further signed poll occurred. The source now includes:
+
+- An independently enabled Bertina CLI job, `jrei_hybrid_lease_reconciliation`, handled by `api/internal/jrei-hybrid-lease-reconciler.php`. Two separate controls are required: the original owner-managed Cron policy and private `JR_JREI_HYBRID_RECONCILIATION_ENABLED=true`; original `JR_JREI_HYBRID_ENABLED` is also required. The job performs no model work and no automatic retries.
+- Expired or incomplete leases are transitioned monotonically to NEEDS_REVIEW; expired pending jobs are marked EXPIRED. A signed completion and an owner suspension/revocation are serialized by node/corpus/job InnoDB row locks. The evaluation-completion path now rechecks the authenticated node, exact approved corpus version and absolute maximum lease age inside its final transaction. This source still requires deferred concurrent acceptance.
+- The source-only incident sensor now detects stale LEASED outcomes even when reconciliation is OFF. UNKNOWN/REVIEW_REQUIRED jobs do not disappear from alerts merely because they are older than 14 days.
+- The existing SUPER_ADMIN dashboard receives a read-only `queueHealth` inventory, separating active leased work, expired queued work, expired/incomplete lease metadata, pending manual reviews and overdue reviews. It also exposes policy, Cron registration and last reported reconciliation status, never treating a recent timestamp as independently verified host execution.
+- The owner may now select a fixed `rationaleCode` for an aggregate acknowledgement, rejection or UNKNOWN closure. An optional additive table `jrei_hybrid_job_reviews`, appended to `docs/migrations/20261023_jrei_governed_corpus_mother_mysql.sql`, records job ID, pre-decision revision, decision, allowed reason, result digest and actor identity in a private append-only ledger. Old clients may continue to record the original `operationsAudit` decision with an explicit LEGACY_REVIEW_NO_REASON marker if the additive review table does not yet exist. The bilingual dashboard shows coded review history only in protected administration. No free-text private learner data or source excerpts enter the ledger.
+
+### Additional consolidated acceptance gates (DEFERRED)
+
+At final owner-authorized QA only, exercise cross-process lock ordering, lease expiry/null metadata, owner disable/revoke during poll/completion, dataset suspension during completion, zero-worker periods, duplicate idempotency keys, unknown completion after node disconnection, incident alert transitions, exact reasons and append-only review history. Verify that the original commerce, identity, source, SEO/GEO and admin MFA functions remain unaffected.
+
+**Status:** all described source changes are committed to the development branch, but no intermediate tests, new migration, Cron execution, production rollout or scientific evaluation was performed in this continuation.
