@@ -791,6 +791,45 @@
        record.append(elt('strong','',String(entry.productCode||'').slice(0,70)));
        record.append(elt('span','',String(entry.entitlementId||'').slice(0,36)));
        record.append(elt('span','',String(entry.grantReason||'').slice(0,40)));
+       const ledger=centre.humanBuyerServiceLedger;
+       if(ledger?.available===true&&
+          /^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i.test(
+             String(entry.entitlementId||''))&&
+          Number.isSafeInteger(entry.revision)&&entry.revision>=1){
+         const reasons=[
+           ['SOURCE_RIGHTS_RECHECK_REQUIRED',
+             T('بازبینی مجوز منبع','Review source rights')],
+           ['BUYER_COMMUNICATION_REVIEW_REQUIRED',
+             T('بررسی اطلاع‌رسانی به خریدار','Review buyer communication')],
+           ['FINANCE_TEAM_REMEDY_REVIEW_REQUIRED',
+             T('ارجاع برای بررسی مالی','Refer for financial review')],
+           ['EDUCATIONAL_ACCESS_REMEDY_REVIEW_REQUIRED',
+             T('بررسی جایگزینی خدمت آموزشی','Review educational service remedy')]
+         ];
+         const form=elt('form','jr-exam-coverage-form');
+         const label=elt('label','',T('نوع پیگیری غیرمالی','Non-financial follow-up category'));
+         const select=elt('select');select.required=true;
+         for(const [code,name] of reasons){
+           const option=elt('option','',name);option.value=code;
+           select.append(option);
+         }
+         label.append(select);form.append(label);
+         const button=elt('button','',T('ثبت نیاز به پیگیری در دفتر مدیریت',
+           'Record owner follow-up requirement'));
+         button.type='submit';form.append(button);
+         form.addEventListener('submit',event=>{
+           event.preventDefault();
+           if(!active()||busy||!form.reportValidity())return;
+           if(!window.confirm(T(
+             'فقط نیاز به بررسی ثبت می‌شود. هیچ وجهی بازپرداخت یا پیام خودکاری ارسال نمی‌شود. ثبت شود؟',
+             'Record a review obligation only? No refund or buyer notification will be sent.')))return;
+           mutate({action:'exam_record_buyer_followup',
+             entitlementId:entry.entitlementId,revision:entry.revision,
+             reasonCode:select.value,
+             confirmation:'RECORD_OWNER_REVIEW_NO_REFUND_OR_BUYER_NOTIFICATION'});
+         });
+         record.append(form);
+       }
        if(entry.entitlementState==='ACTIVE'){
          const stop=elt('button','jr-exam-emergency',
            T('تعلیق دسترسی؛ بدون بازپرداخت خودکار',
