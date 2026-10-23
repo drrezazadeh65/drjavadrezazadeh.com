@@ -13,6 +13,7 @@
  if(!status||!list||!paper||!actions||!clock)return;
  const fmt=new Intl.NumberFormat(lang==='fa'?'fa-IR':'en-US');
  let active=null,revision=0,items=[],selected={},cursor=0,busy=false;
+ let recoveryRequired=false;
  let expireAt=0;
  const element=(tag,value,cls)=>{
    const node=document.createElement(tag);
@@ -154,6 +155,7 @@
         !Number.isSafeInteger(progress.deadlineAt))
        throw Error('SESSION_REVISION_CHANGED');
      active=id;revision=progress.responseRevision;expireAt=progress.deadlineAt;
+     recoveryRequired=false;
      items=published.items;cursor=0;selected={};
      for(const row of progress.savedChoices||[])
        if(row&&typeof row.itemId==='string')selected[row.itemId]=row.selectedOptionId;
@@ -161,6 +163,7 @@
      setStatus(T('فقط پاسخ‌های ذخیره‌شدهٔ سرور بازگردانده شدند.',
        'Only server-saved choices were restored.'));
    }catch{
+     recoveryRequired=true;
      active=null;items=[];expireAt=0;paper.replaceChildren();
      actions.replaceChildren();refreshClock();
      setStatus(T('بازیابی آزمون ممکن نشد. بدون تأیید سرور، پاسخ یا وضعیت ذخیره‌شده‌ای ادعا نمی‌شود.',
@@ -190,18 +193,18 @@
    }
    card.append(group);paper.append(card);
    const previous=element('button',T('قبلی','Previous'),'jr-btn secondary');
-   previous.type='button';previous.disabled=cursor===0||busy;
+   previous.type='button';previous.disabled=cursor===0||busy||recoveryRequired;
    previous.addEventListener('click',()=>{if(busy)return;cursor--;renderPaper();});
    actions.append(previous);
    const next=element('button',T('بعدی','Next'),'jr-btn secondary');
-   next.type='button';next.disabled=cursor===items.length-1||busy;
+   next.type='button';next.disabled=cursor===items.length-1||busy||recoveryRequired;
    next.addEventListener('click',()=>{if(busy)return;cursor++;renderPaper();});
    actions.append(next);
    const save=element('button',T('ذخیرهٔ انتخاب در سرور','Save selected choice to server'),'jr-btn');
-   save.type='button';save.disabled=busy;
+   save.type='button';save.disabled=busy||recoveryRequired;
    save.addEventListener('click',async()=>{
      const option=radios.find(x=>x.checked)?.value??null;
-     if(busy)return;
+     if(busy||recoveryRequired)return;
      busy=true;save.disabled=true;setStatus(T('در حال ذخیرهٔ امن…','Saving on server…'));
      try{
        const result=await post('save',{attemptId:active,
@@ -213,16 +216,17 @@
        revision=result.responseRevision;selected[item.itemId]=option;
        setStatus(T('ذخیره در سرور تأیید شد.','Server confirmed your saved response.'));
      }catch{
+       recoveryRequired=true;
        setStatus(T(
          'ذخیره تأیید نشد؛ انتخاب فعلی را ذخیره‌شده فرض نکنید. برای بازیابی وضعیت معتبر، صفحه را دوباره باز کنید.',
          'Save was not confirmed. Do not assume this answer was stored; reopen the examination to recover the server state.'));
-     }finally{busy=false;save.disabled=false;}
+     }finally{busy=false;renderPaper();}
    });
    actions.append(save);
    const submit=element('button',T('ثبت نهایی پاسخ‌ها','Final submission'),'jr-btn');
-   submit.type='button';submit.disabled=busy;
+   submit.type='button';submit.disabled=busy||recoveryRequired;
    submit.addEventListener('click',async()=>{
-     if(busy||!window.confirm(T(
+     if(busy||recoveryRequired||!window.confirm(T(
        'فقط پاسخ‌های ذخیره‌شده در سرور ثبت نهایی می‌شوند. ادامه؟',
        'Only previously server-saved answers will be submitted. Continue?')))return;
      busy=true;submit.disabled=true;
@@ -231,6 +235,7 @@
          expectedResponseRevision:revision,confirmation:'FINAL_SUBMIT_EXAM'});
        if(!['SUBMITTED','TIMED_OUT'].includes(result.state))
          throw Error('SUBMISSION_UNCONFIRMED');
+       recoveryRequired=false;
        active=null;expireAt=0;items=[];paper.replaceChildren();
        actions.replaceChildren();refreshClock();
        setStatus(T(
@@ -239,10 +244,11 @@
        busy=false;
        await loadAttempts();
      }catch{
+       recoveryRequired=true;
        setStatus(T(
          'ثبت نهایی تأیید نشد؛ برای بررسی وضعیت واقعی، سوابق سرور را تازه‌سازی کنید.',
          'Submission was not confirmed. Refresh server records before retrying.'));
-     }finally{busy=false;submit.disabled=false;}
+     }finally{busy=false;renderPaper();}
    });
    actions.append(submit);
    refreshClock();
