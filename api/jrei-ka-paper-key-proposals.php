@@ -22,15 +22,12 @@ function jrKaPaperKeyProposalsReady(PDO $pdo,array $cfg): bool {
  * No student response, answer key or original source is erased.
  */
 function jrKaQuarantineRecalledPaperKeyPairs(PDO $pdo): int {
-    $q=$pdo->prepare("UPDATE jrei_ka_paper_key_candidates pair
+    // A multi-table UPDATE must not use LIMIT on MySQL/MariaDB. Select a
+    // bounded list of opaque IDs, then apply each guarded transition.
+    $q=$pdo->query("SELECT pair.candidate_id
+      FROM jrei_ka_paper_key_candidates pair
       JOIN jrei_exam_sources paper ON paper.source_id=pair.paper_source_id
       JOIN jrei_exam_sources ans ON ans.source_id=pair.key_source_id
-      SET pair.review_state='SOURCE_RECALLED_REVIEW',
-          pair.provenance_state='ORIGINAL_SOURCE_CHANGED',
-          pair.source_content_verified=0,
-          pair.key_correctness_verified=0,
-          pair.official_correction_checked=0,
-          pair.updated_at=?
       WHERE pair.review_state<>'SOURCE_RECALLED_REVIEW'
         AND (
           paper.is_revoked<>0 OR ans.is_revoked<>0 OR
@@ -41,9 +38,37 @@ function jrKaQuarantineRecalledPaperKeyPairs(PDO $pdo): int {
             'PERMITTED_PRIVATE_ANALYSIS','PERMITTED_REPRODUCTION') OR
           ans.rights_state NOT IN (
             'PERMITTED_PRIVATE_ANALYSIS','PERMITTED_REPRODUCTION')
-        ) LIMIT 50");
-    $q->execute([time()]);
-    return $q->rowCount();
+        )
+      ORDER BY pair.created_at,pair.candidate_id LIMIT 50");
+    $ids=$q->fetchAll(PDO::FETCH_COLUMN);
+    $update=$pdo->prepare("UPDATE jrei_ka_paper_key_candidates pair
+      JOIN jrei_exam_sources paper ON paper.source_id=pair.paper_source_id
+      JOIN jrei_exam_sources ans ON ans.source_id=pair.key_source_id
+      SET pair.review_state='SOURCE_RECALLED_REVIEW',
+          pair.provenance_state='ORIGINAL_SOURCE_CHANGED',
+          pair.source_content_verified=0,
+          pair.key_correctness_verified=0,
+          pair.official_correction_checked=0,
+          pair.updated_at=?
+      WHERE pair.candidate_id=?
+        AND pair.review_state<>'SOURCE_RECALLED_REVIEW'
+        AND (
+          paper.is_revoked<>0 OR ans.is_revoked<>0 OR
+          paper.is_superseded<>0 OR ans.is_superseded<>0 OR
+          paper.review_state<>'AUTHORITATIVE_REVIEWED' OR
+          ans.review_state<>'AUTHORITATIVE_REVIEWED' OR
+          paper.rights_state NOT IN (
+            'PERMITTED_PRIVATE_ANALYSIS','PERMITTED_REPRODUCTION') OR
+          ans.rights_state NOT IN (
+            'PERMITTED_PRIVATE_ANALYSIS','PERMITTED_REPRODUCTION')
+        )");
+    $updated=0;
+    foreach($ids as $id){
+        if(!is_string($id)||!validUuid($id))continue;
+        $update->execute([time(),$id]);
+        $updated+=$update->rowCount();
+    }
+    return $updated;
 }
 
 function jrKaProposeExactPaperKeyMatches(PDO $pdo,array $cfg): array {
