@@ -790,6 +790,16 @@
    fact(T('رزرو درخواست مدل در روز جاری','Cloud-model calls reserved today'),
      ai.reservedToday?safeCount(ai.reservedToday.calls):
        T('نامعلوم؛ مهاجرت مصوب لازم است','Unknown; approved migration pending'));
+   const observed=ai.observedProviderOutcomes;
+   fact(T('پاسخ‌های تکمیل‌شدهٔ ثبت‌شده (۷ روز)',
+       'Recorded completed provider responses (7 days)'),
+     observed?.schemaReady?safeCount(observed.providerReportedCompleted):
+       T('نامعلوم؛ جدول پایش هنوز آماده نیست','Unknown; telemetry schema missing'));
+   fact(T('میانگین زمان پاسخ ثبت‌شده (میلی‌ثانیه)',
+       'Recorded mean response time, milliseconds'),
+     observed?.schemaReady&&Number.isSafeInteger(observed.meanObservedLatencyMs)?
+       safeCount(observed.meanObservedLatencyMs):
+       T('نامعلوم؛ هنوز دادهٔ معتبر نداریم','Unknown; no measured outcome'));
    const box=elt('details','jr-exam-subsection');
    box.append(elt('summary','',T(
      'وضعیت حقیقی اتصال مدل و سهمیه‌های JREI',
@@ -800,6 +810,18 @@
    const lines=[
       [T('سوئیچ خصوصی استنتاج','Private inference policy'),ai.privateRuntimeOptIn?'ON':'OFF'],
       [T('مدل ثبت‌شده در تنظیمات','Configured model'),ai.approvedModelLabel||'—'],
+      [T('پذیرش مستقلِ انتشار دستیار عمومی','Independent public AI release gate'),
+        ai.separatePublicReleaseAccepted?
+          T('تنظیم روشن؛ آزمون نهایی باید تأیید شده باشد','Owner configuration ON; requires accepted final QA'):
+          T('خاموش؛ دستیار ثابت حفظ می‌شود','OFF; static guide preserved')],
+      [T('فراخوانی‌های ناموفق ثبت‌شده','Recorded failed provider calls'),
+        observed?.schemaReady?safeCount(observed.providerReportedFailed):T('نامعلوم','Unknown')],
+      [T('توکن ورودی گزارش‌شدهٔ ارائه‌دهنده','Provider-reported input tokens'),
+        observed?.schemaReady?safeCount(observed.providerReportedInputTokens):T('نامعلوم','Unknown')],
+      [T('توکن خروجی گزارش‌شدهٔ ارائه‌دهنده','Provider-reported output tokens'),
+        observed?.schemaReady?safeCount(observed.providerReportedOutputTokens):T('نامعلوم','Unknown')],
+      [T('استفاده‌های بدون گزارش توکن','Calls without reported usage'),
+        observed?.schemaReady?safeCount(observed.usageUnknownCount):T('نامعلوم','Unknown')],
       [T('جدول بودجهٔ مادر','Mother DB quota schema'),
         ai.providerBudgetSchemaReady?T('مشاهده شد','Present'):T('نامعلوم/نیازمند مهاجرت','Unknown/pending')],
       [T('حد درخواست روزانه','Daily request ceiling'),safeCount(ai.quotas?.maxCallsPerDay)],
