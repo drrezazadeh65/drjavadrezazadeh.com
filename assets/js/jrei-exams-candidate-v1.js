@@ -82,6 +82,45 @@
          button.type='button';
          button.addEventListener('click',()=>openAttempt(entry.attemptId));
          article.append(button);
+       }else if(['SUBMITTED','TIMED_OUT'].includes(entry.attemptState)){
+         const button=element('button',
+           T('بازنمایی نمرهٔ خام اولیه','View preliminary raw grade'),
+           'jr-btn secondary');
+         button.type='button';
+         button.addEventListener('click',async()=>{
+           if(busy)return;
+           busy=true;button.disabled=true;
+           try{
+             const data=await request('/api/exams/result?attemptId='+
+               encodeURIComponent(entry.attemptId));
+             if(data.schema!=='jr.jrei.candidate-preliminary-grade.v1'||
+                data.resultStatus!=='VERIFIED_RECOMPUTABLE_RAW_GRADE_NOT_VALIDATED'||
+                !data.sourceResponsesVerifiedByDigest||
+                !data.originalScoreRunDigestMatched||
+                !data.grade||!Number.isSafeInteger(data.grade.rawScoreMillipoints))
+               throw Error('GRADE_UNVERIFIED');
+             const summary=element('dl');
+             for(const [fa,en,value] of [
+               ['پاسخ صحیح','Correct',data.grade.correctCount],
+               ['پاسخ نادرست','Incorrect',data.grade.incorrectCount],
+               ['بی‌پاسخ','Unanswered',data.grade.unansweredCount],
+               ['امتیاز خام (هزارم)','Raw millipoints',data.grade.rawScoreMillipoints]
+             ]){
+               summary.append(element('dt',T(fa,en)),
+                 element('dd',fmt.format(value)));
+             }
+             summary.append(element('p',T(
+               'این گزارش فقط جمع‌بندی پاسخ‌هاست؛ رتبه، درصدک یا احتمال قبولی علمی نیست.',
+               'This is a raw-response summary, not a percentile, ranking or admission prediction.')));
+             article.querySelector('dl')?.remove();
+             article.append(summary);
+           }catch{
+             setStatus(T(
+               'کارنامه قابل بازسازی و تأیید نبود؛ دادهٔ حدسی نمایش داده نشد.',
+               'The stored score could not be independently reconstructed; no inferred score was shown.'));
+           }finally{busy=false;button.disabled=false;}
+         });
+         article.append(button);
        }else{
          article.append(element('p',T(
            'این آزمون پایان یافته یا در وضعیت غیرقابل ادامه است.',
