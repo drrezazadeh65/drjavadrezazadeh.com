@@ -1,0 +1,41 @@
+/* Scoped mobile-first owner JREI daily adaptive-learning controls.
+ * No effect on shopper, learner, payment or public assistant layouts.
+ */
+#ops-jrei-learning{scroll-margin-top:5rem}
+#ops-jrei-learning>summary{cursor:pointer;line-height:1.65;font-weight:750;
+  padding:.75rem .5rem;min-height:48px;outline-offset:4px}
+#ops-jrei-learning>summary:focus-visible,
+#ops-jrei-learning button:focus-visible,
+#ops-jrei-learning input:focus-visible{outline:3px solid #d6b66c;outline-offset:3px}
+#ops-jrei-learning .jr-jrei-learning-intro{line-height:1.85;max-width:76ch}
+#ops-jrei-learning .jr-jrei-learning-facts{display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));
+  gap:.75rem;margin-block:1rem}
+#ops-jrei-learning .jr-jrei-learning-fact{min-width:0;padding:1rem;display:grid;
+  gap:.45rem;border:1px solid rgba(176,145,85,.38);border-radius:14px;
+  background:rgba(145,121,67,.055);overflow-wrap:anywhere;line-height:1.7}
+#ops-jrei-learning .jr-jrei-learning-fact strong{font-size:.95em}
+#ops-jrei-learning .jr-jrei-learning-fact span{font-size:.9em}
+#ops-jrei-learning .jr-jrei-learning-history{list-style:decimal inside;display:grid;
+  gap:.6rem;margin:1rem 0;padding:0}
+#ops-jrei-learning .jr-jrei-learning-history li{line-height:1.7;padding:.75rem;
+  border:1px solid rgba(176,145,85,.25);border-radius:10px;
+  overflow-wrap:anywhere}
+#ops-jrei-learning .jr-jrei-learning-history span{display:block;font-size:.88rem}
+#ops-jrei-learning .jr-jrei-learning-controls{display:grid;gap:.8rem;max-width:740px}
+#ops-jrei-learning .jr-jrei-learning-toggle{display:flex;align-items:center;
+  gap:.7rem;line-height:1.7}
+#ops-jrei-learning input[type=checkbox]{accent-color:#b89b60;width:20px;height:20px}
+#ops-jrei-learning button{min-height:44px;padding:.55rem .95rem;max-width:100%;
+  background:transparent;color:inherit;cursor:pointer;font-weight:650;
+  border:1px solid #b89b60;border-radius:10px}
+#ops-jrei-learning button:disabled{cursor:not-allowed;opacity:.55}
+#ops-jrei-learning [role=status]{min-height:1.8em;line-height:1.8}
+#ops-jrei-learning .jr-jrei-learning-note{line-height:1.75;font-size:.9rem}
+@media(max-width:540px){
+ #ops-jrei-learning .jr-jrei-learning-facts{grid-template-columns:minmax(0,1fr)}
+ #ops-jrei-learning .jr-jrei-learning-controls button{width:100%}
+}
+@media(prefers-reduced-motion:reduce){
+ #ops-jrei-learning *{transition:none!important}
+}
