@@ -81,6 +81,9 @@ function cfg(): array {
         // master Cron, event rules, per-feature and global email opt-ins
         // remain separate SUPER_ADMIN controls.
         'jrei_hybrid_alerts_enabled' => getenv('JR_JREI_HYBRID_ALERTS_ENABLED') === 'true',
+        // Separate OFF-by-default bounded cleanup of expired crypto nonce
+        // and stale dataset-advertisement rows. Never purge job/audit records.
+        'jrei_hybrid_retention_enabled' => getenv('JR_JREI_HYBRID_RETENTION_ENABLED') === 'true',
         // Operator-owned mapping of independently source-reviewed PUBLIC
         // evaluation corpora only. No student content or arbitrary paths.
         'jrei_hybrid_approved_datasets' => [],
