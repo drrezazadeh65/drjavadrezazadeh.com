@@ -16,6 +16,7 @@
     "/en/academic-engagements/",
     "/en/academic-profile/",
     "/en/academic-services/",
+    "/en/bahar/",
     "/en/books/",
     "/en/books/how-languages-are-learned/",
     "/en/collaboration/",
@@ -25,9 +26,11 @@
     "/en/golden-talent/methodology/",
     "/en/invite/",
     "/en/language-education/",
+    "/en/my-path/",
     "/en/news-insights/",
     "/en/projects/",
     "/en/publications/",
+    "/en/rcas/",
     "/en/research/",
     "/en/services/",
     "/en/services/academic_consult_60/",
@@ -83,6 +86,7 @@
     "/fa/akhbar/support-talented-students-opportunity-2026/",
     "/fa/akhbar/teacher-schools-professional-learning-2026/",
     "/fa/amoozesh-zaban/",
+    "/fa/bahar/",
     "/fa/danesh-amoozan/",
     "/fa/darbare-man/",
     "/fa/entekhab-reshteh/",
@@ -97,6 +101,7 @@
     "/fa/ketab-ha/how-languages-are-learned/",
     "/fa/khadamat-pajouheshi/",
     "/fa/khadamat/",
+    "/fa/masir-man/",
     "/fa/moshavere-konkur/",
     "/fa/moshavere-tahsili/",
     "/fa/pajouhesh/",
@@ -146,6 +151,7 @@
     "/fa/rahnamaha/tahlil-karname-tahsili/",
     "/fa/rahnamaha/tosee-herfei-moalleman/",
     "/fa/rahnamaha/valedein-dar-entekhab-reshteh-cheghadr-dakhalat-konand/",
+    "/fa/rcas/",
     "/fa/shop/",
     "/fa/shop/authors/mehrab-mirkarimi/",
     "/fa/shop/customer-policy/",
@@ -246,5 +252,18 @@
       "/en/books/how-languages-are-learned/"
     ],
     "rule": "Keep unchanged canonical and reciprocal hreflang. Do not enable preorders or unverified publication claims."
+  },
+  "approved_addition_20261023_six_educational_introductions": {
+    "approved_by": "website_owner",
+    "scope": "Add six owner-authorized bilingual first-step introductory routes to existing URL identity contract, without changing or deleting frozen identities.",
+    "routes": [
+      "/en/my-path/",
+      "/en/bahar/",
+      "/en/rcas/",
+      "/fa/masir-man/",
+      "/fa/bahar/",
+      "/fa/rcas/"
+    ],
+    "rule": "Preserve self-canonicals, reciprocal hreflang, correctly indexable public introductory pages and private student dashboards noindex."
   }
 }
