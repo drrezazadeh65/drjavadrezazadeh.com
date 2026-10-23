@@ -99,6 +99,8 @@ function cfg(): array {
         // Independent first-pass extraction permission; never implies OCR,
         // autonomous scientific acceptance or public document publishing.
         'jrei_ka_text_extraction_enabled' => getenv('JR_JREI_KA_TEXT_EXTRACTION_ENABLED') === 'true',
+        // Draft paragraph metadata cannot become public research evidence.
+        'jrei_ka_passage_proposals_enabled' => getenv('JR_JREI_KA_PASSAGE_PROPOSALS_ENABLED') === 'true',
         'jrei_ka_private_archive_dir' => (string)(getenv('JR_JREI_KA_PRIVATE_ARCHIVE_DIR') ?: ''),
         // Real AI inference: independent paid-provider credentials and
         // source-owned budget approval; entirely OFF until final acceptance.
