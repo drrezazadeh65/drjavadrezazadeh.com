@@ -20,6 +20,9 @@ function jrExamOwnerLocalizedPromptAction(PDO $pdo,string $actor,array $body): a
           review_state,translation_rights_evidence_sha256,
           linguistic_equivalence_evidence_sha256
           FROM jrei_exam_item_prompt_localizations LIMIT 0');
+        $pdo->query('SELECT review_id,item_id,locale,reviewed_revision,
+          translation_rights_evidence_sha256,decision
+          FROM jrei_exam_prompt_locale_review_history LIMIT 0');
     }catch(Throwable $e){
         throw new DomainException('exam_localization_migration_required',0,$e);
     }
@@ -188,6 +191,25 @@ function jrExamOwnerLocalizedPromptAction(PDO $pdo,string $actor,array $body): a
           $id,$lang,$expected]);
         if($q->rowCount()!==1)
             throw new DomainException('localized_review_concurrency_conflict');
+        $newRevision=$expected+1;
+        $q=$pdo->prepare('INSERT INTO jrei_exam_prompt_locale_review_history
+          (review_id,item_id,locale,reviewed_revision,object_ref_id,
+           original_item_sha256,localized_manifest_sha256,
+           translation_rights_evidence_sha256,
+           linguistic_equivalence_evidence_sha256,
+           decision,reviewer_account_id,created_at)
+          VALUES(?,?,?,?,?,?,?,?,?,?,?,?)');
+        $q->execute([
+          uuidv4(),$id,$lang,$newRevision,$row['object_ref_id'],
+          $row['original_item_sha256'],$row['localized_manifest_sha256'],
+          $decision==='APPROVE'?$rightsEvidence:
+             $row['translation_rights_evidence_sha256'],
+          $decision==='APPROVE'?$languageEvidence:
+             $row['linguistic_equivalence_evidence_sha256'],
+          $next,$actor,$now
+        ]);
+        if($q->rowCount()!==1)
+            throw new DomainException('localized_review_history_unavailable');
         operationsAudit($pdo,$actor,$decision==='APPROVE'?
           'jrei_exam_localization_independently_attested':
           'jrei_exam_localization_withdrawn',$id);
