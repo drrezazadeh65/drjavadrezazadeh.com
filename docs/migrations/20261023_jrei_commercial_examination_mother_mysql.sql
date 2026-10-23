@@ -104,10 +104,16 @@ CREATE TABLE IF NOT EXISTS jrei_exam_commercial_attempts (
   deadline_at BIGINT UNSIGNED NULL,
   submitted_at BIGINT UNSIGNED NULL,
   submission_digest CHAR(64) CHARACTER SET ascii COLLATE ascii_bin NULL,
+  -- Exactly one immutable start request maps to one attempt. A retry returns
+  -- that same envelope and cannot consume an additional paid attempt.
+  start_request_digest CHAR(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+  response_revision BIGINT UNSIGNED NOT NULL DEFAULT 0,
+  last_saved_at BIGINT UNSIGNED NULL,
   revision BIGINT UNSIGNED NOT NULL DEFAULT 1,
   created_at BIGINT UNSIGNED NOT NULL,
   updated_at BIGINT UNSIGNED NOT NULL,
   UNIQUE KEY uq_jrei_exam_attempt_number(offering_id,account_id,attempt_number),
+  UNIQUE KEY uq_jrei_exam_start_request(offering_id,account_id,start_request_digest),
   UNIQUE KEY uq_jrei_exam_assessment_session(assessment_session_id),
   KEY idx_jrei_exam_attempt_owner(account_id,attempt_state,updated_at),
   CONSTRAINT fk_jrei_exam_attempt_offering FOREIGN KEY(offering_id)
