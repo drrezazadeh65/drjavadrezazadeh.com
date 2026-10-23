@@ -127,8 +127,8 @@ function jrKaClaimOneLicensedJob(PDO $pdo,array $cfg): ?array {
             }
             $q=$pdo->prepare("INSERT IGNORE INTO
                jrei_ka_daily_transfer_reservations
-              (reservation_day,source_id,updated_at) VALUES (?,?,?)");
-            $q->execute([$day,$source['source_id'],$at]);
+              (reservation_day,source_id,updated_at) VALUES (?,?,0)");
+            $q->execute([$day,$source['source_id']]);
             $q=$pdo->prepare("SELECT reserved_requests,reserved_bytes,
               updated_at FROM jrei_ka_daily_transfer_reservations
               WHERE reservation_day=? AND source_id=? FOR UPDATE");
