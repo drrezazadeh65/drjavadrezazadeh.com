@@ -121,6 +121,18 @@ if (process.argv[1] && import.meta.url===pathToFileURL(process.argv[1]).href) {
     const scope=process.env.BERTINA_AUTO_DEPLOY_SCOPE||'full';
     const delta=classifyGitDelta(base,head);
     const decision=decideAutomaticRelease(delta,scope,getOneTimeBootstrapEvidence(base,head));
+    // Preserve the permanently frozen successful deployment workflow blob.
+    // Public-URL immutability remains independently ENFORCED at the existing
+    // mandatory eligibility preflight step; a guarded release never bypasses
+    // the owner's newer frozen URL permanence law.
+    if(decision.allowed){
+      const urlGuard=spawnSync(process.execPath,
+        ['scripts/jr-immutable-url-guard.mjs'],
+        {encoding:'utf8',maxBuffer:128*1024,timeout:180000});
+      if(urlGuard.error || urlGuard.status!==0)
+        throw new Error('Immutable public URL guard blocked release');
+      console.log('Immutable public URL guard accepted reviewed source routes.');
+    }
     const lines=[
       'Automatic release scope: '+scope,
       'Live release SHA: '+base,
