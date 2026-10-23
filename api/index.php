@@ -76,6 +76,9 @@ function cfg(): array {
         // Separate, default-OFF switch for reviewed exam catalogue metadata.
         // It NEVER opens checkout or public response/answer delivery by itself.
         'jrei_exam_commercial_enabled' => getenv('JR_JREI_EXAM_COMMERCIAL_ENABLED') === 'true',
+        // Separate OFF-by-default licence-gated JREI-KA scheduler consent.
+        // Cron registers tasks only; no network fetching or model execution.
+        'jrei_ka_schedule_enabled' => getenv('JR_JREI_KA_SCHEDULE_ENABLED') === 'true',
         // Outbound Windows worker API: independently OFF, even if owner
         // registers a public key or compiles a local model adapter.
         'jrei_hybrid_enabled' => getenv('JR_JREI_HYBRID_ENABLED') === 'true',
