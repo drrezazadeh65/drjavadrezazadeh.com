@@ -15,8 +15,9 @@
  const stats=root.querySelector('[data-jrei-exam-facts]');
  const sections=root.querySelector('[data-jrei-exam-sections]');
  const actions=root.querySelector('[data-jrei-exam-actions]');
+ const worker=root.querySelector('[data-jrei-exam-worker]');
  const refresh=root.querySelector('[data-jrei-exam-refresh]');
- if(!state||!stats||!sections||!actions||!refresh)return;
+ if(!state||!stats||!sections||!actions||!refresh||!worker)return;
  let generation=0,ctl=null,busy=false;
  const active=()=>root.open&&!workspace.hidden&&!document.hidden&&navigator.onLine;
  const elt=(tag,cls,value)=>{
@@ -28,6 +29,7 @@
  const say=x=>state.textContent=x;
  const clearNodes=()=>{
    stats.replaceChildren();sections.replaceChildren();actions.replaceChildren();
+   worker.replaceChildren();
  };
  function clear(){
    generation++;ctl?.abort();ctl=null;busy=false;refresh.disabled=false;
@@ -115,7 +117,57 @@
    }
    sections.append(detail);
  }
- function render(snapshot){
+ function renderWorker(snapshot){
+   worker.replaceChildren();
+   const section=elt('details','jr-exam-subsection');
+   section.append(elt('summary','',T(
+     'وضعیت نودهای محاسباتی و صف پردازش',
+     'Hybrid computing nodes and processing queue')));
+   if(!snapshot||snapshot.ok!==true||
+      snapshot.schema!=='jr.jrei.hybrid-owner.v1'||
+      snapshot.motherDbSchemaReady!==true){
+     section.append(elt('p','',T(
+       'وضعیت نودها قابل‌تأیید نیست؛ اتصال رایانه ویندوز و توان GPU ادعا نمی‌شود.',
+       'Node status is unavailable. No Windows connectivity or GPU performance is claimed.')));
+   }else{
+     const counts=snapshot.counts||{};
+     section.append(elt('p','',T('در صف: ','Queued: ')+safeCount(counts.queued)+
+       T(' · در اختیار Worker: ',' · Leased: ')+safeCount(counts.leased)+
+       T(' · نیازمند بررسی: ',' · Review required: ')+safeCount(counts.reviewRequired)));
+     const nodes=Array.isArray(snapshot.nodes)?snapshot.nodes:[];
+     if(!nodes.length){
+       section.append(elt('p','',T('نود محاسباتی ثبت نشده است.',
+         'No computing node has been registered.')));
+     }else{
+       const ul=elt('ul','jr-exam-rows');
+       for(const node of nodes.slice(0,20)){
+         const li=elt('li','');
+         const measurements=[
+           node.reportedCpuPercent===null?T('CPU نامعلوم','CPU unknown'):
+             'CPU '+displayValue('cpu',node.reportedCpuPercent)+'%',
+           node.reportedRamPercent===null?T('RAM نامعلوم','RAM unknown'):
+             'RAM '+displayValue('ram',node.reportedRamPercent)+'%',
+           node.reportedGpuPercent===null?T('GPU نامعلوم','GPU unknown'):
+             'GPU '+displayValue('gpu',node.reportedGpuPercent)+'%',
+           node.reportedLatencyMs===null?T('تأخیر نامعلوم','latency unknown'):
+             T('تأخیر گزارش‌شده: ','reported latency: ')+
+             displayValue('latency',node.reportedLatencyMs)+' ms'
+         ];
+         li.append(elt('strong','',String(node.name||node.providerType||'Node').slice(0,80)),
+           elt('span','',T('وضعیت ثبت‌شده: ','Recorded state: ')+
+             displayValue('state',node.state)),
+           elt('span','',measurements.join(' · ')));
+         ul.append(li);
+       }
+       section.append(ul);
+     }
+     section.append(elt('p','',T(
+       'مصرف CPU/RAM/GPU خوداظهاری Worker است؛ اندازه‌گیری مستقل و پایداری ۲۴ساعته هنوز تأیید نشده.',
+       'CPU/RAM/GPU are worker-reported, not independently measured or proof of 24/7 reliability.')));
+   }
+   worker.append(section);
+ }
+ function render(snapshot,hybrid=null){
    clearNodes();
    const ready=snapshot.motherDbSchemaReady===true;
    const c=snapshot.controls;
@@ -138,6 +190,7 @@
      T('غیرفعال تا احراز اخلاق و سرپرست قانونی',
        'Disabled until ethics and guardian authorization'));
    for(const def of columns)viewGroup(def,snapshot[def.key],ready);
+   renderWorker(hybrid);
    if(ready&&c){
      const explain=elt('p','jr-exam-action-explain',T(
        'توقف اضطراری فقط وظایف آینده را غیرفعال می‌کند؛ پردازش درحال اجرا، داده‌های قبلی یا مجوزهای قانونی را حذف نمی‌کند.',
@@ -208,7 +261,15 @@
      if(data?.ok!==true||data.schema!=='jr.jrei.exam-research-owner.v1'||
         !Array.isArray(data.sourceCoverage)||!Array.isArray(data.researchAnalyses))
        throw Error('CONTRACT');
-     render(data);
+     let hybrid=null;
+     try{
+       const r=await fetch('/api/admin/operations/jrei-hybrid',{
+         credentials:'same-origin',cache:'no-store',
+         headers:{Accept:'application/json'},signal:request.signal});
+       if(r.ok)hybrid=await r.json();
+     }catch{ /* Worker metadata is optional; never fabricate status. */ }
+     if(seq!==generation||!active())return;
+     render(data,hybrid);
    }catch(error){
      if(seq!==generation||!active())return;
      clearNodes();say(timeout
