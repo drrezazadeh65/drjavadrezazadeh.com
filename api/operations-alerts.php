@@ -516,7 +516,7 @@ function operationsAlertSendBatch(PDO $pdo,array $configuration,callable $transp
         $pdo->beginTransaction();
         try{
             $q=$pdo->query("SELECT o.message_id,o.created_at,i.event_code,i.scope_key,i.severity,i.last_seen_at,i.occurrence_count,
-                  r.enabled AS rule_enabled
+                  i.state AS incident_state,r.enabled AS rule_enabled
                 FROM operations_alert_outbox o JOIN operations_alert_incidents i ON i.fingerprint=o.fingerprint
                 JOIN operations_alert_rules r ON r.event_code=i.event_code
                 JOIN operations_alert_settings a ON a.singleton_id=1
@@ -526,7 +526,14 @@ function operationsAlertSendBatch(PDO $pdo,array $configuration,callable $transp
             if(!$row){$pdo->commit();break;}
             // Send-time check is required: the owner may disable a motor,
             // feature, source or event AFTER an incident was queued.
-            if(!(bool)$row['rule_enabled'] ||
+            // JREI recovery/disabling may resolve an event before its mail
+            // window. Avoid sending a stale "lost worker" notification after
+            // the original sensor has explicitly observed a safe recovery.
+            $jreiResolved=($row['incident_state']??null)==='resolved'&&
+                in_array((string)$row['event_code'],[
+                  'jrei_worker_heartbeat_lost','jrei_worker_outcome_unknown',
+                  'jrei_evaluation_review_overdue'],true);
+            if($jreiResolved||!(bool)$row['rule_enabled'] ||
                 !operationsAlertScopeEnabled($pdo,(string)$row['event_code'],(string)$row['scope_key']) ||
                 !operationsAlertSensorPermitted($pdo,$configuration,(string)$row['event_code'])){
                 $pdo->prepare("UPDATE operations_alert_outbox SET status='suppressed'
