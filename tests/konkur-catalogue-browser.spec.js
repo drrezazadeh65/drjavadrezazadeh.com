@@ -25,7 +25,7 @@ for(const [locale,url] of [['fa','/fa/entekhab-reshteh/'],['en','/en/student-gui
   await expect(block.locator('.jr-kc-catalogue-results li')).toHaveCount(1);
   await expect(block.locator('.jr-kc-catalogue-results li')).toContainText('SYNTHETIC_DOCUMENT');
   await expect(block.locator('.jr-kc-catalogue-results li')).toContainText('12');
-  await block.locator('.jr-kc-catalogue-results li button').click();
+  await block.locator('.jr-kc-catalogue-results li button').first().click();
   await expect(page.locator('[data-konkur-selection] .jr-kc-form input').first()).toHaveValue('00123');
   await expect(page.locator('[data-konkur-selection] .jr-kc-list li')).toHaveCount(0);
   expect(requests.length).toBe(3);

@@ -61,7 +61,7 @@ for(const locale of ['fa','en']){
   const status=page.locator('[data-jr-app-update-status]');
   await expect(status).not.toContainText(locale==='fa'?'در حال بررسی نسخه جدید':'Checking for updates');
   expect(navigations,'update check must never force a reload').toBe(0);
-  await expect(dock.locator('a')).toHaveCount(5);
+  await expect(dock.locator('a')).toHaveCount(4);
  });
 }
 
