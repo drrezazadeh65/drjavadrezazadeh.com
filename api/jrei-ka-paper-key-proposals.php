@@ -16,6 +16,36 @@ function jrKaPaperKeyProposalsReady(PDO $pdo,array $cfg): bool {
         return true;
     }catch(Throwable $e){return false;}
 }
+/**
+ * Source recall invalidates every provisional paper/key relationship.
+ * A former review stamp never overrides present rights or supersession.
+ * No student response, answer key or original source is erased.
+ */
+function jrKaQuarantineRecalledPaperKeyPairs(PDO $pdo): int {
+    $q=$pdo->prepare("UPDATE jrei_ka_paper_key_candidates pair
+      JOIN jrei_exam_sources paper ON paper.source_id=pair.paper_source_id
+      JOIN jrei_exam_sources ans ON ans.source_id=pair.key_source_id
+      SET pair.review_state='SOURCE_RECALLED_REVIEW',
+          pair.provenance_state='ORIGINAL_SOURCE_CHANGED',
+          pair.source_content_verified=0,
+          pair.key_correctness_verified=0,
+          pair.official_correction_checked=0,
+          pair.updated_at=?
+      WHERE pair.review_state<>'SOURCE_RECALLED_REVIEW'
+        AND (
+          paper.is_revoked<>0 OR ans.is_revoked<>0 OR
+          paper.is_superseded<>0 OR ans.is_superseded<>0 OR
+          paper.review_state<>'AUTHORITATIVE_REVIEWED' OR
+          ans.review_state<>'AUTHORITATIVE_REVIEWED' OR
+          paper.rights_state NOT IN (
+            'PERMITTED_PRIVATE_ANALYSIS','PERMITTED_REPRODUCTION') OR
+          ans.rights_state NOT IN (
+            'PERMITTED_PRIVATE_ANALYSIS','PERMITTED_REPRODUCTION')
+        ) LIMIT 50");
+    $q->execute([time()]);
+    return $q->rowCount();
+}
+
 function jrKaProposeExactPaperKeyMatches(PDO $pdo,array $cfg): array {
     $result=[
        'schema'=>'jr.jrei.paper-key-match.v1','status'=>'OFF',
@@ -23,6 +53,7 @@ function jrKaProposeExactPaperKeyMatches(PDO $pdo,array $cfg): array {
        'questionTextRead'=>false,'correctAnswersPublished'=>false
     ];
     if(!jrKaPaperKeyProposalsReady($pdo,$cfg))return $result;
+    $recalled=jrKaQuarantineRecalledPaperKeyPairs($pdo);
     $q=$pdo->query("SELECT
        paper.source_id AS paper_id,
        ans.source_id AS key_id,
@@ -118,7 +149,8 @@ function jrKaProposeExactPaperKeyMatches(PDO $pdo,array $cfg): array {
         }
     }
     return [...$result,'status'=>'MATCH_PROPOSALS_UNREVIEWED',
-        'proposalsAdded'=>$added];
+        'proposalsAdded'=>$added,
+        'recalledPairsQuarantined'=>$recalled];
 }
 /** Owner-only aggregate; never exposes key content or customer records. */
 function jrKaPaperKeySnapshot(PDO $pdo,array $cfg): array {
