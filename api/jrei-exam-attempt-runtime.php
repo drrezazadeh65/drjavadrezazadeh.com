@@ -477,6 +477,7 @@ function jrExamCandidateResult(PDO $pdo,string $account,string $attempt): array 
        $a['assessment_session_id']!==$a['snapshot_session_id']||
        $a['scoring_model_id']!==$a['snapshot_model_id']||
        $a['snapshot_state']!=='PRELIMINARY_UNREVIEWED'||
+       $a['score_state']!=='UNREVIEWED'||
        !is_string($a['submission_digest'])||
        !preg_match('/^[a-f0-9]{64}$/D',$a['submission_digest']))
         throw new DomainException('verified_exam_score_run_unavailable');
