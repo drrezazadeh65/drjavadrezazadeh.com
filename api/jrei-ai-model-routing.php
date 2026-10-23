@@ -20,7 +20,9 @@ function jrAiPublicModelRoutingDecision(array $cfg): array {
     $privateEnabled=($cfg['jrei_live_ai_enabled']??false)===true;
     return [
       'schema'=>'jr.jrei.public-model-route.v1',
-      'route'=>$configured&&$accepted?'OPENAI_RESPONSES':'UNAVAILABLE',
+      'route'=>$configured&&$accepted&&$privateEnabled?
+          'OPENAI_RESPONSES':'UNAVAILABLE',
+      'privateRuntimeEnabled'=>$privateEnabled,
       'providerCredentialConfigured'=>$configured,
       'publicOwnerReleaseAccepted'=>$accepted,
       'localWindowsGenerativeRouteSupported'=>false,
