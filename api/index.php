@@ -101,6 +101,8 @@ function cfg(): array {
         'jrei_ka_text_extraction_enabled' => getenv('JR_JREI_KA_TEXT_EXTRACTION_ENABLED') === 'true',
         // Draft paragraph metadata cannot become public research evidence.
         'jrei_ka_passage_proposals_enabled' => getenv('JR_JREI_KA_PASSAGE_PROPOSALS_ENABLED') === 'true',
+        // Propose source-metadata paper/key matches only. Never approve keys.
+        'jrei_ka_key_match_proposals_enabled' => getenv('JR_JREI_KA_KEY_MATCH_PROPOSALS_ENABLED') === 'true',
         'jrei_ka_private_archive_dir' => (string)(getenv('JR_JREI_KA_PRIVATE_ARCHIVE_DIR') ?: ''),
         // Real AI inference: independent paid-provider credentials and
         // source-owned budget approval; entirely OFF until final acceptance.
