@@ -30,21 +30,22 @@ try{
     }
     $at=time();
     $observed=0;$alerted=0;$resolved=0;
-    // Never label a never-connected, newly registered node as an outage.
-    // Treat nodes enabled but silent for >6m as unavailable only when they
-    // have a previous SIGNED heartbeat within the past 14 days.
-    $q=$pdo->prepare("SELECT node_id,last_seen_at
+    // Never label a never-connected node as an outage. Read disabled and
+    // revoked nodes too, so an owner STOP can resolve an old offline alert.
+    // Enabled nodes with stale signed heartbeat remain actionable regardless
+    // of the outage duration; do not silently hide an old outage after 14d.
+    $q=$pdo->prepare("SELECT node_id,status,revoked_at,last_seen_at
         FROM jrei_hybrid_nodes
-        WHERE status='ENABLED' AND revoked_at IS NULL
-          AND last_seen_at IS NOT NULL AND last_seen_at>=?
-        ORDER BY node_id ASC LIMIT 20");
-    $q->execute([$at-14*86400]);
+        WHERE last_seen_at IS NOT NULL
+        ORDER BY created_at DESC,node_id ASC LIMIT 20");
+    $q->execute();
     foreach($q as $node){
         $id=(string)$node['node_id'];
         $last=(int)$node['last_seen_at'];
         $scope='jrei-node-'.substr(hash('sha256',$id),0,32);
         $observed++;
-        if($last<$at-360){
+        if($node['status']==='ENABLED'&&$node['revoked_at']===null&&
+           $last<$at-360){
             if(operationsAlertRecord($pdo,'jrei_worker_heartbeat_lost',
                 $scope,$at))$alerted++;
         }elseif(operationsAlertResolve($pdo,'jrei_worker_heartbeat_lost',
