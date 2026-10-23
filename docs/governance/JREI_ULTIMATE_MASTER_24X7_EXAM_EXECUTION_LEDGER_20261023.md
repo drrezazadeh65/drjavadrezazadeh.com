@@ -113,3 +113,8 @@ Additional SOURCE-only development in the canonical branch now includes `api/jre
 - All existing JREI item keys, original account login, BitPay callback, journal, Golden Talent, source provenance and bilingual routes are preserved. No new bank gateway, invoice issuer, customer table or secondary financial ledger was created.
 
 **Not executed:** no bank transaction, entitlement grant/revocation, server Cron, database migration, QA, model inference or production deployment. Stage09 exam SKU integration, refunds and user communication, concurrency/ownership acceptance and the original 117 requirements remain open.
+
+
+## Added ultimate real-AI vision as final cross-programme constraint
+
+The newer owner's 11-section autonomous educational-intelligence vision is now **binding in full**, in addition to this document's original 23 deliverables. See [JREI_AUTONOMOUS_EDUCATIONAL_INTELLIGENCE_ULTIMATE_VISION_BINDING_20261023.md](JREI_AUTONOMOUS_EDUCATIONAL_INTELLIGENCE_ULTIMATE_VISION_BINDING_20261023.md). Acceptance requires a **real** continuously running licensed discovery/extraction/coverage pipeline, approved actual cloud or local model inference and independent quality/cost evidence, real bilingual multi-turn assistant/tool routing, accurately consented learner memory, reviewed timed exams and recoverable scores, and gated self-improvement pull requests. Independent access to API keys, credits, licensed data, consented datasets and final verification is not yet demonstrated. No claim of LIVE maturity follows from committed code.
