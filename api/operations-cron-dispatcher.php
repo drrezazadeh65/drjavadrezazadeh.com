@@ -74,6 +74,11 @@ function operationsCronRegistry(): array {
         'en'=>'JREI-KA private passage review proposals',
         'relative'=>'internal/jrei-ka-passage-review-worker.php',
         'defaultCadence'=>3600,'minimumCadence'=>3600,'sensitive'=>true],
+      'jrei_ka_paper_key_proposals'=>[
+        'fa'=>'تطبیق اولیهٔ خصوصی پاسخ‌نامه و دفترچه JREI-KA',
+        'en'=>'JREI-KA private paper and answer-key pairing proposals',
+        'relative'=>'internal/jrei-ka-paper-key-worker.php',
+        'defaultCadence'=>3600,'minimumCadence'=>3600,'sensitive'=>true],
       'jrei_exam_deadline_review'=>[
         'fa'=>'بررسی آزمون‌های منقضی‌شدهٔ JREI',
         'en'=>'JREI unfinished exam deadline review',
