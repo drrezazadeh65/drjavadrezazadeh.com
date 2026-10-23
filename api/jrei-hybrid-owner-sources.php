@@ -68,14 +68,19 @@ function jrHybridSourceChange(PDO $pdo,string $actor,array $body): array {
         $method=$body['acquisitionMethod']??null;
         $interval=$body['updateIntervalHours']??null;
         $parsed=is_string($url)?parse_url($url):false;
+        $host=is_array($parsed)?strtolower((string)($parsed['host']??'')):'';
+        $nonPublicHost=$host===''||!str_contains($host,'.')||
+            filter_var($host,FILTER_VALIDATE_IP)!==false||
+            preg_match('/(?:^|\\.)(?:localhost|local|internal|test|invalid|example)$/D',$host)===1;
         if(!jrHybridIdentifier($id)||!is_string($issuer)||
            strlen(trim($issuer))<3||strlen($issuer)>160||
            preg_match('/[<>\x00-\x1f]/',$issuer)||
            !is_string($url)||strlen($url)>600||
            filter_var($url,FILTER_VALIDATE_URL)===false||
            !is_array($parsed)||($parsed['scheme']??null)!=='https'||
-           empty($parsed['host'])||isset($parsed['user'])||
+           $nonPublicHost||isset($parsed['user'])||
            isset($parsed['pass'])||isset($parsed['fragment'])||
+           (isset($parsed['port'])&&(int)$parsed['port']!==443)||
            !is_string($licence)||
            !preg_match('/^[A-Za-z0-9._:+\/-]{3,80}$/D',$licence)||
            !in_array($type,['HTML','TEXT','PDF','JSON'],true)||
