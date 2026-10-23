@@ -38,6 +38,40 @@ test('MFA code uses session CSRF and unlocks only after server confirmation',asy
  await authorized(page,{mfa:true});await page.goto(base+'/fa/app/admin/');await expect(page.locator('#ops-mfa-form')).toBeVisible();await expect(page.locator('#ops-workspace')).toBeHidden();
  await page.locator('#ops-mfa-code').fill('123456');await page.locator('#ops-mfa-form button').click();await expect(page.locator('#ops-workspace')).toBeVisible();await expect(page.locator('#ops-mfa-code')).toHaveValue('');
 });
+test('returning to an existing browser tab revalidates administrator access automatically',async({page})=>{
+ await authorized(page);
+ await page.goto(base+'/fa/app/admin/');
+ await expect(page.locator('#ops-workspace')).toBeVisible();
+ await page.evaluate(()=>{
+   Object.defineProperty(document,'hidden',{configurable:true,value:true});
+   document.dispatchEvent(new Event('visibilitychange'));
+ });
+ await expect(page.locator('#ops-workspace')).toBeHidden();
+ await expect(page.locator('#ops-cards article')).toHaveCount(0);
+ await page.evaluate(()=>{
+   Object.defineProperty(document,'hidden',{configurable:true,value:false});
+   document.dispatchEvent(new Event('visibilitychange'));
+   delete document.hidden;
+ });
+ await expect(page.locator('#ops-workspace')).toBeVisible();
+ await expect(page.locator('#ops-verified')).toHaveText('0');
+ await expect(page.locator('#ops-mfa-form')).toBeHidden();
+ expect(await page.evaluate(()=>localStorage.length)).toBe(0);
+});
+
+test('worker registration clearly distinguishes active submit from disabled worker state',async({page})=>{
+ await authorized(page,{data:fixture()});
+ await page.goto(base+'/fa/app/admin/');
+ const nodes=page.locator('#ops-jrei-hybrid-nodes');
+ await nodes.evaluate(el=>{el.open=true;el.dispatchEvent(new Event('toggle'));});
+ // Owner snapshot depends on DB and must not be faked as live connectivity.
+ await expect(page.locator('#ops-workspace')).toBeVisible();
+ const file=await page.evaluate(async()=>await (await fetch('/assets/js/operations-jrei-hybrid-nodes-v1.js')).text());
+ expect(file).toContain("save.type='submit'");
+ expect(file).toContain("publicKey.dir='ltr'");
+ expect(file).toContain('worker stays OFF');
+});
+
 test('Expired MFA clears previously loaded reports',async({page})=>{
  // One second can expire before a loaded CI browser paints the authenticated workspace.
  await authorized(page,{expiry:3});await page.goto(base+'/fa/app/admin/');await expect(page.locator('#ops-workspace')).toBeVisible();await expect(page.locator('#ops-workspace')).toBeHidden({timeout:5500});await expect(page.locator('#ops-cards article')).toHaveCount(0);

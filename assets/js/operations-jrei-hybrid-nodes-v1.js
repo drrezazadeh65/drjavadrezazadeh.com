@@ -142,11 +142,12 @@
    const publicKey=field(T('فقط کلید عمومی Ed25519','Ed25519 PUBLIC key only'),
      document.createElement('input'));
    publicKey.required=true;publicKey.autocomplete='off';publicKey.maxLength=44;
+   publicKey.dir='ltr';publicKey.spellcheck=false;publicKey.placeholder='44-character Ed25519 public key';
    form.append(el('p',T('کلید خصوصی همیشه روی همان رایانه و رمزگذاری‌شده باقی می‌ماند.',
      'The encrypted private key stays exclusively on its own PC.')));
    const save=document.createElement('button');
-   save.type='submit';save.textContent=T('ثبت اولیه غیرفعال','Register disabled');
-   form.append(save);
+   save.type='submit';save.textContent=T('ثبت کلید عمومی (نود خاموش می‌ماند)','Register public key (worker stays OFF)');
+   form.append(save,el('p',T('این دکمه فعال است. ثبت کلید فقط هویت رایانه را ذخیره می‌کند و اجرای آن را روشن نمی‌کند.','This button is active. Registering the public key does not enable the worker.')));
    form.addEventListener('submit',ev=>{
      ev.preventDefault();
      if(!visible()||busy||!form.reportValidity()||
@@ -225,6 +226,7 @@
  }
  refresh.addEventListener('click',load);
  root.addEventListener('toggle',()=>{if(visible())load();else clean();});
+ ws.addEventListener('jr:operations-ready',()=>{if(visible())load();});
  new MutationObserver(()=>{if(ws.hidden)clean();})
    .observe(ws,{attributes:true,attributeFilter:['hidden']});
  document.addEventListener('visibilitychange',()=>{if(document.hidden)clean();});
