@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 if (!defined('BERTINA_API_BOOTSTRAPPED')) { http_response_code(404); exit; }
+require_once __DIR__.'/jrei-learning-evidence-accountability.php';
 
 /**
  * Owner-only JREI V5 adaptive learning governance.
@@ -41,6 +42,7 @@ function jrJreiLearningSnapshot(PDO $pdo, array $cfg): array {
       'scientificValidationVerified'=>false,
       'modelWeightLearningVerified'=>false,
       'autoPromotionActive'=>false,
+      'recordedEvaluationAccountability'=>jrJreiLearningOwnerEvidenceAccountability($pdo),
       'sourceOnly'=>true,
       'checkedAt'=>time(),
       'controls'=>null,'recentCycles'=>[],'proposalCounts'=>[
