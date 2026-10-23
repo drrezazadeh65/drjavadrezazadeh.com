@@ -1,0 +1,130 @@
+<?php
+declare(strict_types=1);
+if(!defined('BERTINA_API_BOOTSTRAPPED')){http_response_code(404);exit;}
+
+/**
+ * Source-only immutable exam question transport, without any answer key.
+ *
+ * Original eco_assessment_items.prompt_object_id -> original eco_object_refs
+ * -> content-addressed verified JSON inside a Bertina private directory.
+ * No public file paths, HTTP proxies, arbitrary URLs or AI worker retrieval.
+ * The first rollout permits PLAIN-TEXT single-choice items only; equations,
+ * images, charts and complex written responses require a separately reviewed
+ * media transport. Missing media is a hard BLOCK, never silently discarded.
+ */
+function jrExamPrivateItemRoot(): ?string {
+    $configured=(string)(cfg()['jrei_exam_private_item_dir']??'');
+    if($configured===''||$configured[0]!=='/')return null;
+    $root=realpath($configured);
+    if($root===false||!is_dir($root)||!is_readable($root))return null;
+    $public=realpath((string)($_SERVER['DOCUMENT_ROOT']??''));
+    $api=realpath(__DIR__);
+    foreach([$public,$api] as $forbidden){
+        if($forbidden!==false&&($root===$forbidden||
+            str_starts_with($root,$forbidden.DIRECTORY_SEPARATOR)))
+            return null;
+    }
+    return $root;
+}
+function jrExamPublishedItemDeliveryReady(PDO $pdo): bool {
+    if(jrExamPrivateItemRoot()===null)return false;
+    try{
+        foreach([
+          'SELECT id,prompt_object_id,instrument_version_id FROM eco_assessment_items LIMIT 0',
+          'SELECT id,storage_provider,object_reference,content_sha256,mime_type,byte_size,data_class,malware_scan_status FROM eco_object_refs LIMIT 0',
+          'SELECT id,item_id,option_code FROM eco_assessment_options LIMIT 0'
+        ] as $sql)$pdo->query($sql);
+        return true;
+    }catch(Throwable $e){return false;}
+}
+/**
+ * Bounded content verified fresh on every read. All metadata are queried
+ * ONLY from the existing mother DB; no candidate-supplied pathname is used.
+ */
+function jrExamDeliveredItemSet(PDO $pdo,string $version,string $locale): array {
+    if(!validUuid($version)||!in_array($locale,['fa','en'],true))
+        throw new InvalidArgumentException('invalid_reviewed_item_version');
+    $root=jrExamPrivateItemRoot();
+    if($root===null)throw new DomainException('private_exam_items_unavailable');
+    $q=$pdo->prepare("SELECT i.id AS item_id,i.item_type,
+      o.storage_provider,o.object_reference,o.content_sha256,o.mime_type,
+      o.byte_size,o.data_class,o.malware_scan_status,o.encryption_key_reference
+      FROM eco_assessment_items i
+      LEFT JOIN eco_object_refs o ON o.id=i.prompt_object_id
+      WHERE i.instrument_version_id=?
+      ORDER BY i.display_order ASC,i.id ASC LIMIT 121");
+    $q->execute([$version]);$items=$q->fetchAll(PDO::FETCH_ASSOC);
+    if(!$items||count($items)>120)
+        throw new DomainException('exam_item_count_out_of_bounds');
+    $answers=[];$index=[];
+    foreach($items as $r){
+        $item=(string)$r['item_id'];
+        if(!validUuid($item)||isset($index[$item])||
+           $r['item_type']!=='SINGLE_CHOICE'||
+           $r['storage_provider']!=='JR_EXAM_PUBLISHED_ITEM'||
+           $r['mime_type']!=='application/json'||
+           $r['data_class']!=='PRIVATE'||
+           $r['malware_scan_status']!=='CLEAN'||
+           $r['encryption_key_reference']!==null||
+           !is_string($r['content_sha256'])||
+           !preg_match('/^[a-f0-9]{64}$/D',$r['content_sha256'])||
+           !is_string($r['object_reference'])||
+           !hash_equals($r['content_sha256'].'.json',$r['object_reference'])||
+           (int)$r['byte_size']<80||(int)$r['byte_size']>32768)
+            throw new DomainException('unreleased_or_unscanned_question_content');
+        $filename=$root.DIRECTORY_SEPARATOR.$r['object_reference'];
+        $real=realpath($filename);
+        if($real===false||
+           dirname($real)!==$root||
+           !is_file($real)||!is_readable($real)||
+           filesize($real)!==(int)$r['byte_size'])
+            throw new DomainException('private_question_file_missing');
+        $bytes=file_get_contents($real);
+        if(!is_string($bytes)||strlen($bytes)>32768||
+           strlen($bytes)!==(int)$r['byte_size']||
+           !hash_equals($r['content_sha256'],hash('sha256',$bytes)))
+            throw new DomainException('immutable_question_digest_mismatch');
+        try{$document=json_decode($bytes,true,16,JSON_THROW_ON_ERROR);}
+        catch(Throwable $e){throw new DomainException('invalid_published_item_manifest');}
+        if(!is_array($document)||
+           array_keys($document)!==['itemId','locale','stem','options','media']||
+           $document['itemId']!==$item||
+           $document['locale']!==$locale||
+           !is_string($document['stem'])||
+           trim($document['stem'])===''||
+           strlen($document['stem'])>12000||
+           $document['media']!==null||
+           !is_array($document['options'])||
+           count($document['options'])<2||count($document['options'])>8)
+            throw new DomainException('published_item_metadata_mismatch');
+        $options=[];$seen=[];
+        foreach($document['options'] as $choice){
+            if(!is_array($choice)||array_keys($choice)!==['id','text']||
+               !is_string($choice['id'])||!validUuid($choice['id'])||
+               isset($seen[$choice['id']])||
+               !is_string($choice['text'])||trim($choice['text'])===''||
+               strlen($choice['text'])>3000)
+                throw new DomainException('invalid_published_option_content');
+            $seen[$choice['id']]=true;
+            $options[]=['id'=>$choice['id'],'text'=>$choice['text']];
+        }
+        $index[$item]=['itemId'=>$item,'stem'=>$document['stem'],
+           'options'=>$options,'media'=>null];
+    }
+    // Exact option-set consistency; contents can never smuggle a new
+    // answer ID that is not an original authorised assessment option.
+    $q=$pdo->prepare('SELECT x.item_id,x.id FROM eco_assessment_options x
+      JOIN eco_assessment_items i ON i.id=x.item_id
+      WHERE i.instrument_version_id=? ORDER BY x.item_id,x.display_order,x.id');
+    $q->execute([$version]);$expected=[];
+    foreach($q as $option)$expected[$option['item_id']][]=$option['id'];
+    foreach($index as $id=>$item){
+        $provided=array_column($item['options'],'id');
+        if(count($provided)!==count($expected[$id]??[])||
+           array_diff($provided,$expected[$id])||
+           array_diff($expected[$id],$provided))
+            throw new DomainException('published_option_set_conflict');
+        $answers[]=$item;
+    }
+    return $answers;
+}
