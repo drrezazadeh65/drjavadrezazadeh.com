@@ -11,7 +11,8 @@ function jrKaOwnerCoverageMatrix(PDO $pdo): array {
     $result=[
        'schema'=>'jr.jrei.coverage-expectation-matrix.v1',
        'available'=>false,'registeredExpectations'=>null,
-       'approvedExpectations'=>null,'approvedLinkedSources'=>null,
+       'approvedExpectations'=>null,'pendingScopeReview'=>null,
+       'withdrawnExpectations'=>null,'approvedLinkedSources'=>null,
        'approvedUnresolvedGaps'=>null,'groups'=>[],'truncated'=>false,
        'topicTaxonomyReady'=>false,
        'questionCorrectnessVerified'=>false,
@@ -20,11 +21,19 @@ function jrKaOwnerCoverageMatrix(PDO $pdo): array {
     try{
         $q=$pdo->query("SELECT COUNT(*),
              COALESCE(SUM(CASE WHEN approved_by_account_id IS NOT NULL
+               AND requirement_state<>'WITHDRAWN_SCOPE_ERROR'
+               THEN 1 ELSE 0 END),0),
+             COALESCE(SUM(CASE WHEN approved_by_account_id IS NULL
+               AND requirement_state<>'WITHDRAWN_SCOPE_ERROR'
+               THEN 1 ELSE 0 END),0),
+             COALESCE(SUM(CASE WHEN requirement_state='WITHDRAWN_SCOPE_ERROR'
                THEN 1 ELSE 0 END),0)
            FROM jrei_exam_coverage_requirements");
         $counts=$q->fetch(PDO::FETCH_NUM);
         $result['registeredExpectations']=(int)$counts[0];
         $result['approvedExpectations']=(int)$counts[1];
+        $result['pendingScopeReview']=(int)$counts[2];
+        $result['withdrawnExpectations']=(int)$counts[3];
         $q=$pdo->query("SELECT
            r.country_code,r.educational_level,r.grade,r.curriculum_id,
            r.curriculum_version,r.exam_category,r.examination_year,
@@ -46,10 +55,17 @@ function jrKaOwnerCoverageMatrix(PDO $pdo): array {
                    ('PERMITTED_PRIVATE_ANALYSIS','PERMITTED_REPRODUCTION') AND
                 s.is_revoked=0 AND s.is_superseded=0 AND
                 s.verified_at IS NOT NULL AND
-                s.reviewer_account_id IS NOT NULL
+                 s.reviewer_account_id IS NOT NULL AND
+                s.reviewer_account_id<>r.approved_by_account_id
                 THEN 1 ELSE 0 END) AS linked_approved,
            SUM(CASE WHEN r.approved_by_account_id IS NOT NULL
-                THEN 1 ELSE 0 END) AS approved_expected
+                AND r.requirement_state<>'WITHDRAWN_SCOPE_ERROR'
+                THEN 1 ELSE 0 END) AS approved_expected,
+           SUM(CASE WHEN r.approved_by_account_id IS NULL
+                AND r.requirement_state<>'WITHDRAWN_SCOPE_ERROR'
+                THEN 1 ELSE 0 END) AS owner_unapproved,
+           SUM(CASE WHEN r.requirement_state='WITHDRAWN_SCOPE_ERROR'
+                THEN 1 ELSE 0 END) AS withdrawn_count
            FROM jrei_exam_coverage_requirements r
            LEFT JOIN jrei_exam_sources s ON s.source_id=r.source_id
            GROUP BY r.country_code,r.educational_level,r.grade,
@@ -78,6 +94,8 @@ function jrKaOwnerCoverageMatrix(PDO $pdo): array {
               'expectedKind'=>(string)$row['expected_kind'],
               'expectationCount'=>(int)$row['expected'],
               'ownerApprovedCount'=>$approved,
+              'ownerUnapprovedCount'=>(int)$row['owner_unapproved'],
+              'withdrawnCount'=>(int)$row['withdrawn_count'],
               'authoritativeLinkedCount'=>$linked,
               'unresolvedApprovedCount'=>$missing,
               'allAnswerKeysScientificallyCorrect'=>false,
@@ -93,6 +111,8 @@ function jrKaOwnerCoverageMatrix(PDO $pdo): array {
     }catch(Throwable $e){
         $result['registeredExpectations']=null;
         $result['approvedExpectations']=null;
+        $result['pendingScopeReview']=null;
+        $result['withdrawnExpectations']=null;
         $result['approvedLinkedSources']=null;
         $result['approvedUnresolvedGaps']=null;
         $result['groups']=[];$result['available']=false;
