@@ -364,6 +364,24 @@
        T('خاموش','OFF'));
    fact(T('آمادگی فروش واقعی آزمون','Verified exam checkout readiness'),
      T('تأیید نشده؛ فروش باز نیست','Unverified; checkout disabled'));
+   const risk=centre.operationalRisks;
+   if(risk){
+     fact(T('آزمون‌های منقضی و هنوز تعیین‌تکلیف‌نشده',
+       'Expired examinations not yet reconciled'),
+       safeCount(risk.unknownExpiredAttempts));
+     fact(T('نشست‌های منقضی در انتظار بازبینی انسانی',
+       'Expired attempts awaiting human review'),
+       safeCount(risk.unfinishedDeadlineReviews));
+     fact(T('مجوزهای فعالِ مرتبط با نوبت تعلیق‌شده',
+       'Active entitlements tied to suspended examinations'),
+       safeCount(risk.activeAccessOnSuspendedExams));
+     fact(T('سیاست خصوصی رسیدگی به نشست‌های منقضی',
+       'Private unfinished-exam reconciliation policy'),
+       risk.deadlineCronPolicyEnabled?
+         T('مجوز پیکربندی روشن؛ اجرای Cron هنوز اثبات نشده',
+           'Private opt-in ON; actual cron execution unverified'):
+         T('خاموش (پیش‌فرض)','OFF by default'));
+   }
    const panel=elt('details','jr-exam-subsection');
    panel.append(elt('summary','',
      T('محصولات، نوبت‌ها و تلاش‌های آزمون','Products, scheduled offerings and attempts')));
