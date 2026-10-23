@@ -72,6 +72,13 @@ function jrExamCommercialCatalogue(PDO $pdo,array $cfg,int $at=0): array {
         AND EXISTS (SELECT 1 FROM eco_assessment_items i
           WHERE i.instrument_version_id=p.instrument_version_id)
         AND NOT EXISTS (
+          SELECT 1 FROM jrei_exam_item_metadata duplicate_meta
+          JOIN eco_assessment_items duplicate_item
+            ON duplicate_item.id=duplicate_meta.canonical_assessment_item_id
+          WHERE duplicate_item.instrument_version_id=p.instrument_version_id
+          GROUP BY duplicate_item.id HAVING COUNT(*)>1
+        )
+        AND NOT EXISTS (
           SELECT 1 FROM eco_assessment_items i
           LEFT JOIN jrei_exam_item_metadata meta
             ON meta.canonical_assessment_item_id=i.id
