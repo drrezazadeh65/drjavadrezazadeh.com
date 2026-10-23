@@ -21,7 +21,13 @@ function operationsAlertDefinitions(): array {
         'bahar_eligibility_queue_failure'=>['severity'=>'warning','threshold'=>1,'cooldown'=>120,
           'name'=>'Verified adult review queue failed unexpectedly','sensor'=>'on_admin_error_after_owner_opt_in'],
         'bahar_private_erasure_requested'=>['severity'=>'warning','threshold'=>1,'cooldown'=>60,
-          'name'=>'A BAHAR privacy erasure request was recorded','sensor'=>'new_request_post_commit_source_unverified']
+          'name'=>'A BAHAR privacy erasure request was recorded','sensor'=>'new_request_post_commit_source_unverified'],
+        'jrei_worker_heartbeat_lost'=>['severity'=>'warning','threshold'=>1,'cooldown'=>45,
+          'name'=>'Enabled JREI worker lost signed heartbeats','sensor'=>'jrei_hybrid_incident_sensor_owner_opt_in'],
+        'jrei_worker_outcome_unknown'=>['severity'=>'critical','threshold'=>1,'cooldown'=>60,
+          'name'=>'JREI worker job with unknown final outcome','sensor'=>'jrei_hybrid_incident_sensor_owner_opt_in'],
+        'jrei_evaluation_review_overdue'=>['severity'=>'warning','threshold'=>1,'cooldown'=>180,
+          'name'=>'JREI aggregate awaits owner review','sensor'=>'jrei_hybrid_incident_sensor_owner_opt_in']
     ];
 }
 /**
@@ -39,7 +45,10 @@ function operationsAlertIncidentScopes(string $code,string $component): array {
         'payment_runtime_unavailable'=>['ENG-05','commerce-settlement'],
         'bahar_private_storage_failure'=>['ENG-04','bahar-private-storage-alerts'],
         'bahar_eligibility_queue_failure'=>['ENG-04','bahar-adult-review-alerts'],
-        'bahar_private_erasure_requested'=>['ENG-04','bahar-privacy-erasure-alerts']
+        'bahar_private_erasure_requested'=>['ENG-04','bahar-privacy-erasure-alerts'],
+        'jrei_worker_heartbeat_lost'=>['ENG-13','jrei-hybrid-worker-alerts'],
+        'jrei_worker_outcome_unknown'=>['ENG-13','jrei-hybrid-worker-alerts'],
+        'jrei_evaluation_review_overdue'=>['ENG-13','jrei-hybrid-worker-alerts']
     ];
     if($code==='collector_unavailable'){
         $catalogue=function_exists('operationsCollectorCatalogue')
@@ -91,13 +100,20 @@ function operationsAlertScopesAllowed(PDO $pdo,int $at): array {
       ],
       'bahar-privacy-erasure-alerts'=>[
         'fa'=>'درخواست‌های حذف خصوصی BAHAR','en'=>'New BAHAR privacy erasure requests'
+      ],
+      'jrei-hybrid-worker-alerts'=>[
+        'fa'=>'هشدارهای اختلال و بررسی دو نود JREI',
+        'en'=>'JREI worker outages and review alerts'
       ]
     ] as $key=>$title){
         $id='feature:'.$key;
         $scopes[$id]=[
-          'id'=>$id,'kind'=>'feature','parent'=>'engine:ENG-04',
+          'id'=>$id,'kind'=>'feature',
+          'parent'=>$key==='jrei-hybrid-worker-alerts'?'engine:ENG-13':'engine:ENG-04',
           'nameFa'=>$title['fa'],'nameEn'=>$title['en'],
-          'available'=>function_exists('operationsBaharPrivatePolicy')
+          'available'=>$key==='jrei-hybrid-worker-alerts'
+            ?is_file(__DIR__.'/internal/jrei-hybrid-incident-worker.php')
+            :function_exists('operationsBaharPrivatePolicy')
         ];
     }
     if(function_exists('operationsSourceDirectory')){
@@ -126,7 +142,8 @@ function operationsAlertScopeSnapshot(PDO $pdo,int $at): array {
         $baharOptIn= in_array($id,[
           'feature:bahar-private-storage-alerts',
           'feature:bahar-adult-review-alerts',
-          'feature:bahar-privacy-erasure-alerts'
+          'feature:bahar-privacy-erasure-alerts',
+          'feature:jrei-hybrid-worker-alerts'
         ],true);
         $rows[]=$value+[
             'emailEnabled'=>$explicit===null?!$baharOptIn:$explicit['enabled'],
@@ -146,7 +163,10 @@ function operationsAlertScopeEnabled(PDO $pdo,string $code,string $component): b
     $educationAlerts=[
       'bahar_private_storage_failure'=>'feature:bahar-private-storage-alerts',
       'bahar_eligibility_queue_failure'=>'feature:bahar-adult-review-alerts',
-      'bahar_private_erasure_requested'=>'feature:bahar-privacy-erasure-alerts'
+      'bahar_private_erasure_requested'=>'feature:bahar-privacy-erasure-alerts',
+      'jrei_worker_heartbeat_lost'=>'feature:jrei-hybrid-worker-alerts',
+      'jrei_worker_outcome_unknown'=>'feature:jrei-hybrid-worker-alerts',
+      'jrei_evaluation_review_overdue'=>'feature:jrei-hybrid-worker-alerts'
     ];
     if(isset($educationAlerts[$code])&&
       ($settings[$educationAlerts[$code]]['enabled']??false)!==true)
@@ -424,6 +444,18 @@ function operationsAlertUpdate(PDO $pdo,array $input,string $actor): void {
  * Fail closed if the governed private config or mother-DB policy is absent.
  */
 function operationsAlertSensorPermitted(PDO $pdo,array $configuration,string $code): bool {
+    if(in_array($code,['jrei_worker_heartbeat_lost',
+       'jrei_worker_outcome_unknown','jrei_evaluation_review_overdue'],true)){
+        if(($configuration['jrei_hybrid_enabled']??false)!==true||
+           ($configuration['jrei_hybrid_alerts_enabled']??false)!==true)
+            return false;
+        try{
+            $q=$pdo->prepare('SELECT enabled FROM operations_cron_jobs
+                WHERE job_id=?');
+            $q->execute(['jrei_hybrid_incident_sensor']);
+            return (int)$q->fetchColumn()===1;
+        }catch(Throwable $e){return false;}
+    }
     if(in_array($code,['security_headers_regressed','redirects_regressed'],true)){
         try{
             $enabled=$pdo->query('SELECT enabled FROM operations_response_probe_settings
