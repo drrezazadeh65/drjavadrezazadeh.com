@@ -234,6 +234,17 @@ function jrExamDeliveredItemSet(PDO $pdo,string $version,string $locale): array 
           JOIN eco_assessment_items i ON i.id=loc.item_id
           JOIN eco_object_refs original_ref ON original_ref.id=i.prompt_object_id
           JOIN eco_object_refs translated_ref ON translated_ref.id=loc.object_ref_id
+          JOIN jrei_exam_prompt_locale_review_history hist
+            ON hist.item_id=loc.item_id AND hist.locale=loc.locale
+             AND hist.reviewed_revision=loc.revision
+             AND hist.decision='APPROVED'
+             AND hist.object_ref_id=loc.object_ref_id
+             AND hist.original_item_sha256=loc.original_item_sha256
+             AND hist.localized_manifest_sha256=loc.localized_manifest_sha256
+             AND hist.translation_rights_evidence_sha256=
+                 loc.translation_rights_evidence_sha256
+             AND hist.linguistic_equivalence_evidence_sha256=
+                 loc.linguistic_equivalence_evidence_sha256
           WHERE loc.locale=? AND loc.item_id IN ($placeholders)");
         $q->execute(array_merge([$locale],$ids));
         $seenLocalizations=[];
