@@ -89,6 +89,11 @@ function operationsCronRegistry(): array {
         'en'=>'JREI source-backed AI benchmark case discovery',
         'relative'=>'internal/jrei-ai-benchmark-intake-worker.php',
         'defaultCadence'=>3600,'minimumCadence'=>3600,'sensitive'=>true],
+      'jrei_ai_improvement_discovery'=>[
+        'fa'=>'پایش واقعی و ثبت مسائل بهبود هوش مصنوعی JREI',
+        'en'=>'JREI real evidence-based improvement opportunities',
+        'relative'=>'internal/jrei-ai-improvement-worker.php',
+        'defaultCadence'=>86400,'minimumCadence'=>86400,'sensitive'=>true],
       'jrei_exam_deadline_review'=>[
         'fa'=>'بررسی آزمون‌های منقضی‌شدهٔ JREI',
         'en'=>'JREI unfinished exam deadline review',
