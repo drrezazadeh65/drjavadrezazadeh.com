@@ -343,3 +343,53 @@ The next real step after isolated coding is safe shared-file integration
 with the already-running developers; only once ALL code and mandatory
 original-JREI/CMS/eco bindings are finished should the owner authorize the
 single final test campaign, followed by an independently approved release.
+
+
+## Original Bertina runtime-contract reconciliation — 24 October continuation
+
+Read-only examination of the existing actual PHP sources identified
+integration constraints before the deferred final test campaign:
+
+- \`jrei_news_editorial_versions.approved_image_ref\` (not
+  \`image_asset_ref\`) is the SQL column, and owner preview now verifies exact
+  persisted bilingual SHA256 before displaying author approval controls.
+- RSS publisher feed and linked individual article are different assets:
+  the signed article-specific JREI source receipt must match the discovered
+  article URL and original registered article ID, not RSS feed bytes.
+- Topic newsletter preferences now use one unique record per
+  account/topic/channel, including the selected digest cadence.
+- The existing first-party newsletter consent purpose is **ARTICLES**,
+  not NEWSLETTER. JREI News categories are subordinate subdivisions of a
+  user's existing, voluntarily approved ARTICLES subscription. Any current
+  provider opt-out supersedes and suppresses news dispatch.
+- Existing \`api/newsletter-worker.php\` currently supports one verified
+  published **Persian** \`/fa/akhbar/\` article and a matching news sitemap
+  entry. Bilingual 20-item digests, subject grouping, and EXAM_REMINDERS
+  emails are **NOT** supplied by that legacy worker. The source-only
+  \`original-eco-compatibility.php\`, \`eco-digest-composer.php\` and
+  \`eco-reminder-composer.php\` define the necessary original-worker extension
+  interfaces without falsely claiming email delivery.
+- The new private account routes read existing selected topics and verified
+  upcoming exam reminder follows; individual reminder cancellations
+  require same-transaction suppression in the original eco outbox.
+- \`original-api-http-adapter.php\` reconciles GET query parameters and POST
+  JSON with the original same-origin, owner MFA, session, source and release
+  controls, but is intentionally **not mounted** in active \`api/index.php\`.
+- \`original-cron-adapter.php\` defines private original-worker callbacks for
+  digest and reminder runs, with no independent host Cron or SMTP.
+- Global news country defaults to ISO unknown \`ZZ\`, and indexing requires
+  trusted original JREI source country evidence to avoid falsely assigning
+  overseas news to Iran.
+- \`ui/news-preferences.js\` loads existing selections before allowing
+  replacement. \`ui/news-reminders.js\` displays and withdraws previously
+  opted-in exam reminders only; neither file is installed on live account
+  pages yet.
+- \`asset-publishing-plan.mjs\` now includes the private account reminder UI
+  in the future accepted asset bundle.
+
+No test, build, SQL migration, live acquisition, model inference, real
+notification submission, Cron activation or production deployment is
+authorized by these source commits. A code commit is not an operational or
+acceptance receipt. Shared files should be integrated only after coordination
+with their current developers; avoid publishing stale copies that overwrite
+their ongoing changes.
