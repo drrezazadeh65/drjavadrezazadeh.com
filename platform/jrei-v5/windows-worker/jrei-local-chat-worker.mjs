@@ -168,6 +168,8 @@ export async function runLocalChatWorker(config,key,{post,log,signal,fetchImpl}=
           const stopJob=()=>jobController.abort();
           signal?.addEventListener?.('abort',stopJob,{once:true});
           if(stopping||signal?.aborted)stopJob();
+          const leaseDeadline=setTimeout(stopJob,
+            Math.max(0,job.expiresAt*1000-Date.now()-1500));
           let heartbeatInFlight=false;
           const heartbeat=async()=>{
             if(stopping||heartbeatInFlight)return;
