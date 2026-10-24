@@ -1,0 +1,31 @@
+/* JREI News private owner-MFA editorial console — source only.
+ * Integrated dashboard controls and existing authentication still govern. */
+.ni-admin-heading{border-block-end:1px solid #6f5d3d;padding:1rem 0}
+.ni-admin-heading h2{font-size:clamp(1.35rem,3vw,2rem);margin:.35rem 0}
+.ni-admin-heading p{opacity:.8}
+.ni-admin-refresh{padding:.7rem 1.2rem;border:1px solid #bca16e;
+ border-radius:.65rem;background:#23272a;color:#f7f3e8;margin:1rem 0;
+ font:inherit;cursor:pointer}
+.ni-admin-queue{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,320px),1fr));gap:1rem}
+.ni-admin-card{border:1px solid #685636;border-radius:1rem;
+ background:#191e20;color:#f6f3ed;padding:clamp(1rem,2vw,1.4rem);
+ overflow-wrap:anywhere}
+.ni-admin-card h3{font-size:clamp(1.08rem,2vw,1.3rem);line-height:1.6}
+.ni-admin-card>p{color:#c4b8a7;font-size:.85rem}
+.ni-admin-card button{font:inherit;background:#2e3437;color:#f4e8d0;
+ border:1px solid #8f7854;border-radius:.5rem;padding:.6rem .9rem;
+ cursor:pointer}
+.ni-admin-card button:hover:not(:disabled){background:#4b4030}
+.ni-admin-card button:disabled{opacity:.52;cursor:not-allowed}
+.ni-admin-actions{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.9rem}
+.ni-admin-full-preview{padding:.7rem .3rem;max-height:500px;overflow-y:auto;
+ border-block:1px solid #544b39;margin:1rem 0;white-space:pre-wrap}
+.ni-admin-full-preview [lang]{padding:.7rem 0}
+.ni-admin-full-preview p{line-height:1.85;white-space:pre-wrap}
+.ni-admin-image{display:block;width:100%;height:auto;max-height:300px;
+ object-fit:contain;border-radius:.6rem;border:1px solid #65583b}
+.ni-admin-card:focus-within{outline:2px solid #ba9c61;outline-offset:2px}
+@media(max-width:560px){.ni-admin-queue{grid-template-columns:1fr}
+ .ni-admin-actions{display:grid;grid-template-columns:1fr}
+ .ni-admin-card button{min-height:44px}}
+@media(prefers-reduced-motion:reduce){.ni-admin-card *{transition:none!important}}
