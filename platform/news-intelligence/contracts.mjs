@@ -61,6 +61,8 @@ export function stageNewsCandidate({approvedSource,sourceUrl,title,observedAt,
   const source=normalizeNewsSource(approvedSource),url=publicHttps(sourceUrl);
   assert(new URL(url).hostname===new URL(source.canonicalUrl).hostname,
     'NEWS_SOURCE_ORIGIN_MISMATCH');
+  assert(['school','examinations','universities','employment','language',
+    'international','research'].includes(category),'NEWS_CATEGORY_INVALID');
   assert(Array.isArray(topics)&&topics.length<=20&&topics.every(t=>safeText(t,2,80)),
     'NEWS_CANDIDATE_TOPICS_INVALID');
   assert(safeText(title,8,240)&&isHash(evidenceSha256)&&utcInstant(observedAt)&&
