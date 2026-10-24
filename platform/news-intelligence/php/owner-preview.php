@@ -122,7 +122,7 @@ function jrNewsPrivateOwnerPreview(PDO $pdo,array $session,
         $asset='/'.$asset;
     }
     $safeImageUrl=is_string($asset) &&
-      preg_match('#^/assets/images/[a-zA-Z0-9_./-]+\.(?:webp|png|jpg|jpeg|avif|svg)$#D',$asset) &&
+      preg_match('#^/assets/images/[a-zA-Z0-9_./-]+\.(?:webp|png|jpg|jpeg|avif)$#D',$asset) &&
       !str_contains($asset,'..') ? $asset : null;
     $related=[];
     if (is_array($draft['internalLinks']??null)) {
@@ -131,8 +131,9 @@ function jrNewsPrivateOwnerPreview(PDO $pdo,array $session,
             $path=$link['path']??null;
             $anchor=$link['anchor']??null;
             if (is_string($path) &&
-                preg_match('#^/(?:fa|en)/[a-z0-9/-]+/$#D',$path) &&
-                is_string($anchor) && strlen($anchor)<=240) {
+                preg_match('#^/(?:fa/akhbar|en/news-insights)/[a-z0-9-]+/$#D',$path) &&
+                is_string($anchor) && trim($anchor)!=='' &&
+                strlen($anchor)<=240 && preg_match('//u',$anchor)===1) {
                 $related[]=['path'=>$path,'anchor'=>$anchor];
             }
         }
