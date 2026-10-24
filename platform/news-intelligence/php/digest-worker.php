@@ -138,7 +138,8 @@ function jrNewsQueueTopicDigests(PDO $pdo,string $mode,int $nowEpoch,
             gmdate($mode==='WEEKLY'?'o-W':'Y-m-d',$nowEpoch).'|'.
             $subscriber['accountId'].'|'.implode('|',
                 array_column($selected,'url')));
-        $message=['purpose'=>'NEWSLETTER','accountId'=>$subscriber['accountId'],
+        $message=['schema'=>'jr.jrei.news-articles-digest-intent.v1',
+            'purpose'=>'ARTICLES','accountId'=>$subscriber['accountId'],
             'locale'=>$subscriber['locale'],'channel'=>$subscriber['channel'],
             'digestMode'=>$mode,'items'=>$selected,
             'idempotencyKey'=>$digestKey,
