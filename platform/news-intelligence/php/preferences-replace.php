@@ -42,7 +42,7 @@ function jrNewsReplaceTopicPreferences(
             throw new RuntimeException('news_account_not_verified');
         }
         $consent=$currentEcoConsentResolver($verifiedAccountId,
-            'NEWSLETTER',$channel);
+            'ARTICLES',$channel);
         if (!is_array($consent)||
             ($consent['source']??null)!=='EXISTING_ECO_CONSENT'||
             ($consent['granted']??null)!==true||
