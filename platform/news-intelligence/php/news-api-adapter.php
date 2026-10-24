@@ -198,6 +198,23 @@ function jrNewsDispatchApi(PDO $pdo,string $method,string $route,
             ];
         }
     }
+    if ($method==='GET' && $route==='/news/v1/preferences/current') {
+        $accountId=jrNewsActiveCustomerSession($serverCtx);
+        return jrNewsCurrentTopicPreferences($pdo,$accountId);
+    }
+    if ($method==='GET' && $route==='/news/v1/exam/follows') {
+        $accountId=jrNewsActiveCustomerSession($serverCtx);
+        return jrNewsCurrentExamReminders($pdo,$accountId,time());
+    }
+    if ($method==='POST' && $route==='/news/v1/exam/withdraw') {
+        $accountId=jrNewsActiveCustomerSession($serverCtx);
+        $suppressor=$ownerIntegrationPorts['originalEcoReminderSuppressor']??null;
+        if (!is_callable($suppressor)) {
+            throw new RuntimeException('news_original_exam_outbox_suppressor_missing');
+        }
+        return jrNewsWithdrawExamReminder($pdo,$accountId,
+            jrNewsRouteBody($body,'followId',36),$suppressor,time());
+    }
     if ($method==='POST' && $route==='/news/v1/preferences/replace') {
         $accountId=jrNewsActiveCustomerSession($serverCtx);
         $topics=$body['topics']??null;
