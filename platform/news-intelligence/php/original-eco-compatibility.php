@@ -28,9 +28,14 @@ function jrNewsReadOriginalArticlesConsent(
                 c.decision,c.withdrawn_at
          FROM eco_notification_preferences p
          JOIN eco_consent_records c ON c.id=p.consent_record_id
+              AND c.account_id=p.account_id
+         JOIN eco_consent_notices n ON n.id=c.notice_id
          JOIN customer_accounts a ON a.id=p.account_id
          WHERE p.account_id=? AND p.channel_code='EMAIL'
            AND p.purpose_code='ARTICLES'
+           AND n.purpose_code='NEWSLETTER'
+           AND n.version_label='newsletter-v1'
+           AND c.source_code='NEWSLETTER_SETTINGS'
            AND a.status='active' AND a.email_verified_at IS NOT NULL
          LIMIT 1"
     );
@@ -47,6 +52,7 @@ function jrNewsReadOriginalArticlesConsent(
         'withdrawn'=>!$granted,
         'reference'=>$granted?$reference:null,
         'supported'=>true,
+        'originalConsentNoticePurpose'=>'NEWSLETTER',
         'newNewsDigestMailerActive'=>false,
         'noSecondaryConsentDatabase'=>true
     ];
