@@ -27,7 +27,7 @@
       var show=matchTopic&&matchText;
       card.hidden=!show;if(show)visible++;
     });
-    if(empty)empty.hidden=visible!==0;
+    if(empty)empty.hidden=visible!==0 || cards.length===0;
     root.setAttribute('aria-live','polite');
   };
   for(var i=0;i<tabs.length;i++){
