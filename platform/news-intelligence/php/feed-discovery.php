@@ -24,6 +24,7 @@ function jrNewsStageVerifiedFeedLinkSuggestions(
     }
     $q=$pdo->prepare(
         "SELECT n.monitor_id,n.jrei_source_reference,n.policy_revision,
+                n.source_url_sha256,
                 s.source_locator_uri,s.review_state,s.rights_state,
                 s.verified_at,s.reviewer_account_id,s.is_revoked,
                 s.is_superseded,p.revision,p.scheduling_state,
@@ -53,6 +54,9 @@ function jrNewsStageVerifiedFeedLinkSuggestions(
         throw new RuntimeException('news_feed_monitor_policy_no_longer_valid');
     }
     $sourceUrl=(string)$monitor['source_locator_uri'];
+    if(!hash_equals((string)$monitor['source_url_sha256'],
+        hash('sha256',$sourceUrl)))
+        throw new RuntimeException('news_feed_source_registry_url_changed');
     $sourceHost=parse_url($sourceUrl,PHP_URL_HOST);
     if(!is_string($sourceHost)||$sourceHost==='') {
         throw new RuntimeException('news_feed_source_host_missing');
