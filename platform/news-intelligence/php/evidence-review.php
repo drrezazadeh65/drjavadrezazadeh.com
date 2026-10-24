@@ -32,7 +32,7 @@ function jrNewsApproveIndependentSourceEvidence(
                ON m.monitor_id=c.monitor_id
              JOIN jrei_news_discovered_urls d
                ON d.monitor_id=c.monitor_id
-              AND d.canonical_url_sha256=SHA2(c.source_url,256)
+              AND BINARY d.canonical_url_sha256=BINARY SHA2(c.source_url,256)
               AND d.review_state=\'ORIGINAL_JREI_ARTICLE_APPROVED\'
              WHERE c.candidate_id=? FOR UPDATE'
         );
