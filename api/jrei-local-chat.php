@@ -569,9 +569,12 @@ function jrLocalChatOwnerSnapshot(PDO $pdo,array $cfg): array {
             AND n.status='ENABLED' AND n.revoked_at IS NULL");
         $recent->execute([time()-45]);
         $result['recentlySignedGenerativeWorkers']=(int)$recent->fetchColumn();
-        $result['pendingOrLeasedJobs']=(int)$pdo->query(
-          "SELECT COUNT(*) FROM jrei_local_chat_jobs WHERE status IN ('QUEUED','LEASED')"
-        )->fetchColumn();
+        $pending=$pdo->prepare(
+          "SELECT COUNT(*) FROM jrei_local_chat_jobs
+           WHERE status IN ('QUEUED','LEASED') AND expires_at>?"
+        );
+        $pending->execute([time()]);
+        $result['pendingOrLeasedJobs']=(int)$pending->fetchColumn();
         $result['live']=jrLocalChatReady($pdo,$cfg);
     }catch(Throwable $e){}
     return $result;
