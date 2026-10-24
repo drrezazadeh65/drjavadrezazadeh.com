@@ -74,7 +74,8 @@
   "stagedMigrations": [
     "docs/migrations/20261024_jrei_news_intelligence_mother_mysql.sql",
     "docs/migrations/20261024_jrei_news_topic_preferences_mother_mysql.sql",
-    "docs/migrations/20261024_jrei_news_public_search_mother_mysql.sql"
+    "docs/migrations/20261024_jrei_news_public_search_mother_mysql.sql",
+    "docs/migrations/20261024_jrei_news_feed_discovery_mother_mysql.sql"
   ],
   "finalAcceptanceDeferred": [
     "source legality publisher permissions and robots policy",
@@ -110,7 +111,10 @@
     "scheduler-integration.mjs",
     "editorial-coverage-planner.mjs",
     "asset-publishing-plan.mjs",
-    "slug-routes.mjs"
+    "slug-routes.mjs",
+    "php/feed-discovery.php",
+    "php/approved-feed-item-link.php",
+    "delegated-source-scopes.mjs"
   ],
   "criticalInteroperabilityNotes": [
     "Original JREI-KA approved source policy currently requires at least 3600-second refresh intervals; faster official P0 radar needs separately authorized original-scheduler extension",
@@ -121,6 +125,10 @@
     "Official exam changes supersede prior milestone; original notification outbox must enforce idempotency and current consent",
     "300 GB is the original JREI decimal upper allowance, not a traffic target",
     "Full bilingual artifact generation is source-only; original CMS receipt is mandatory before search indexing, syndication, social distribution or publication claims",
-    "Current repository source is not acceptance-tested; no final schema migration, build, runtime or deploy was initiated"
+    "Current repository source is not acceptance-tested; no final schema migration, build, runtime or deploy was initiated",
+    "RSS observations are metadata only: individual article-body hashes must originate from independently authorized original JREI article-source observations, never the feed hash",
+    "One-time owner-delegated bounded official-source scopes are proposals; the original JREI source registrar must validate and materialize article-specific rights and receipts before automatic article acquisition",
+    "A full draft's exact PHP JSON hash includes auto-generated bilingual path proposals; never trust client-supplied path proposals",
+    "The original JREI source refresh policy at 3600 seconds is not silently bypassed for urgent P0 announcements"
   ]
 }
