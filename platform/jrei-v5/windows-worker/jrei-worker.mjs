@@ -12,7 +12,7 @@
  * Source only: no hosting, licence, hardware, model or connection is
  * validated until the single owner-authorized final acceptance.
  */
-import { createHash, createPrivateKey, generateKeyPairSync, randomBytes, sign } from 'node:crypto';
+import { createHash, createPrivateKey, createPublicKey, generateKeyPairSync, randomBytes, sign } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import { readFile, mkdir, lstat } from 'node:fs/promises';
 import { createReadStream } from 'node:fs';
@@ -105,6 +105,32 @@ async function init() {
   log('PASTE_ONLY_PUBLIC_KEY_IN_SUPER_ADMIN_REGISTER_NODE');
   log('AFTER_REGISTRATION_USE_RETURNED_NODE_ID_IN_PRIVATE_CONFIG');
   log('NEVER_SHARE_PRIVATE_KEY_FILE_OR_DEVICE_IDENTIFIERS');
+}
+
+/**
+ * Recover the PUBLIC identity for an already initialized Windows computer.
+ * Never decrypt or print the private PEM to stdout, never replace an
+ * existing DPAPI file, and never export identity to a network endpoint.
+ */
+async function showPublic() {
+  const file=keyPath();
+  const st=await lstat(file);
+  if(!st.isFile()||st.isSymbolicLink()||st.size<32||st.size>16384)
+    throw Error('WINDOWS_DPAPI_KEY_FILE_INVALID');
+  const pem=protectKey('unprotect',file);
+  if(!pem)throw Error('WINDOWS_DPAPI_KEY_UNAVAILABLE');
+  const key=createPrivateKey(pem);
+  if(key.asymmetricKeyType!=='ed25519')
+    throw Error('PRIVATE_KEY_TYPE_UNAPPROVED');
+  const pubDer=createPublicKey(key).export({format:'der',type:'spki'});
+  if(!Buffer.isBuffer(pubDer)||pubDer.length<32)
+    throw Error('ED25519_PUBLIC_KEY_INVALID');
+  const publicKeyB64=pubDer.subarray(-32).toString('base64');
+  if(!/^[A-Za-z0-9+/]{43}=$/.test(publicKeyB64))
+    throw Error('ED25519_PUBLIC_KEY_INVALID');
+  log('EXISTING_INDEPENDENT_NODE_KEY_VERIFIED');
+  process.stdout.write('PUBLIC_KEY_B64='+publicKeyB64+'\\n');
+  log('ONLY_THE_PUBLIC_KEY_MAY_BE_USED_FOR_OWNER_REGISTRATION');
 }
 
 function validateConfig(config) {
@@ -511,6 +537,7 @@ async function runLocalChat(configArg){
 const cmd=process.argv[2];
 try {
   if(cmd==='init'&&process.argv.length===3)await init();
+  else if(cmd==='show-public'&&process.argv.length===3)await showPublic();
   else if(cmd==='start'&&process.argv.length===4)await run(process.argv[3]);
   else if(cmd==='start-chat'&&process.argv.length===4){
     const config=await loadConfig(process.argv[3]);
