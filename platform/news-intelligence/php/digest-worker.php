@@ -33,7 +33,7 @@ function jrNewsQueueTopicDigests(PDO $pdo,string $mode,int $nowEpoch,
     $since=jrNewsDigestWindow($mode,$nowEpoch);
     $stmt=$pdo->prepare(
         "SELECT p.fa_route,p.en_route,p.published_at,
-                v.bilingual_editorial_json,
+                v.bilingual_editorial_json,v.approval_digest,
                 c.priority_code,c.event_type,
                 m.category_code
          FROM jrei_news_publications p
@@ -49,12 +49,19 @@ function jrNewsQueueTopicDigests(PDO $pdo,string $mode,int $nowEpoch,
            AND p.published_at>=? AND p.published_at<=?
            AND d.action_code='APPROVE'
            AND d.revision_id=v.revision_id
+           AND d.approval_digest=v.approval_digest
+           AND p.publisher_receipt_reference IS NOT NULL
            AND p.fa_content_sha256 IS NOT NULL
            AND p.en_content_sha256 IS NOT NULL
          ORDER BY p.published_at DESC LIMIT 500"
     );
     $stmt->execute([$since,$nowEpoch]);
-    $articles=$stmt->fetchAll(PDO::FETCH_ASSOC);
+    $articles=array_values(array_filter(
+        $stmt->fetchAll(PDO::FETCH_ASSOC),
+        static fn(array $row): bool =>
+            hash_equals((string)$row['approval_digest'],
+                hash('sha256',(string)$row['bilingual_editorial_json']))
+    ));
     // Page account IDs rather than preference rows: every selected account
     // must have ALL topic subscriptions considered in the same digest.
     $idsQuery=$pdo->prepare(
@@ -91,10 +98,12 @@ function jrNewsQueueTopicDigests(PDO $pdo,string $mode,int $nowEpoch,
         $key=$row['account_id'].'|'.$row['locale_code'].'|'.$row['channel_code'];
         if (!isset($grouped[$key])) $grouped[$key]=[
             'accountId'=>$row['account_id'],'locale'=>$row['locale_code'],
-            'channel'=>$row['channel_code'],'consentReferences'=>[],
-            'topics'=>[]];
-        $grouped[$key]['topics'][]=$row['topic_code'];
-        $grouped[$key]['consentReferences'][]=$row['consent_reference'];
+            'channel'=>$row['channel_code'],'topicsByConsent'=>[]];
+        // Do not merge topics from expired/replaced notices with the
+        // subscriber's currently granted original ARTICLES consent.
+        $reference=(string)$row['consent_reference'];
+        if(!preg_match('/^[a-f0-9-]{36}$/iD',$reference))continue;
+        $grouped[$key]['topicsByConsent'][$reference][]=$row['topic_code'];
     }
     $queued=0;$skipped=0;
     $lastAccount=$pageIds?end($pageIds):$afterAccountId;
@@ -104,17 +113,20 @@ function jrNewsQueueTopicDigests(PDO $pdo,string $mode,int $nowEpoch,
         if (!is_array($consent) ||
             ($consent['granted']??null)!==true ||
             ($consent['withdrawn']??null)!==false ||
-            !in_array($consent['reference']??'',
-                $subscriber['consentReferences'],true)) {
+            !is_string($consent['reference']??null) ||
+            !isset($subscriber['topicsByConsent'][$consent['reference']])) {
             $skipped++;continue;
         }
+        $topics=array_values(array_unique(
+            $subscriber['topicsByConsent'][$consent['reference']]
+        ));
         $selected=[];
         foreach ($articles as $a) {
             $topic=strtoupper((string)$a['category_code']);
-            $match=in_array('ARTICLES',$subscriber['topics'],true) ||
-                in_array($topic,$subscriber['topics'],true) ||
+            $match=in_array('ARTICLES',$topics,true) ||
+                in_array($topic,$topics,true) ||
                 ($a['event_type']==='RESULTS_RELEASED' &&
-                    in_array('RESULTS',$subscriber['topics'],true));
+                    in_array('RESULTS',$topics,true));
             if (!$match)continue;
             if ($mode==='URGENT' && $a['priority_code']!=='P0')continue;
             if ($mode==='EXAM_ONLY' && !in_array($topic,
