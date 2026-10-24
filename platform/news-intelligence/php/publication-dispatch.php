@@ -133,9 +133,10 @@ function jrNewsConfirmOriginalCmsPublication(
         ($serverOwnerPolicy['ownerAuthorizedActivation']??null)!==true) {
         throw new RuntimeException('news_publication_confirmation_disabled');
     }
-    $pdo->beginTransaction();
+    // CMS verification can involve slow live canonical/TLS lookups. Never
+    // hold source/owner InnoDB locks during that independent I/O.
     try {
-        $q=$pdo->prepare(
+        $publicationSql=
             'SELECT p.publication_id,p.fa_route,p.en_route,p.publisher_state,
                     p.publisher_receipt_reference,p.fa_content_sha256,
                     p.en_content_sha256,p.revision_id,
@@ -145,8 +146,8 @@ function jrNewsConfirmOriginalCmsPublication(
              FROM jrei_news_publications p
              JOIN jrei_news_editorial_versions v ON v.revision_id=p.revision_id
              JOIN jrei_news_owner_decisions d ON d.decision_id=p.approved_decision_id
-             WHERE p.publication_id=? FOR UPDATE'
-        );
+             WHERE p.publication_id=?';
+        $q=$pdo->prepare($publicationSql);
         $q->execute([$publicationId]);
         $row=$q->fetch(PDO::FETCH_ASSOC);
         if (!$row ||
@@ -182,6 +183,15 @@ function jrNewsConfirmOriginalCmsPublication(
             strlen($receipt['receiptReference'])<8) {
             throw new RuntimeException('news_original_cms_receipt_not_verified');
         }
+        // Reacquire row locks only for the brief, guarded publication
+        // receipt write. Any concurrent retraction, approval change or
+        // previous receipt invalidates the provisional CMS evidence.
+        $pdo->beginTransaction();
+        $fresh=$pdo->prepare($publicationSql.' FOR UPDATE');
+        $fresh->execute([$publicationId]);
+        $latest=$fresh->fetch(PDO::FETCH_ASSOC);
+        if(!is_array($latest)||$latest!==$row)
+            throw new RuntimeException('news_publication_changed_during_receipt_review');
         if ($row['publisher_state']==='PUBLISHED') {
             if ($row['fa_content_sha256']!==$receipt['faContentSha256'] ||
                 $row['en_content_sha256']!==$receipt['enContentSha256'] ||
