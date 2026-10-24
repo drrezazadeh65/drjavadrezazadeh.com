@@ -21,9 +21,17 @@ function linkList(items){
 }
 export function renderPublicNewsPage({article,language,route,otherLanguageRoute,
   featuredImage,sourceTitle,publicationDate,modifiedDate,
-  relatedLinks=[],organization='JREI Education News & Intelligence'}={}){
-  assert(plain(article)&&article.publicationState==='PUBLISHED'&&
+  relatedLinks=[],publisherAuthorization=null,
+  organization='JREI Education News & Intelligence'}={}){
+  assert(plain(article)&&
+    ['PUBLISHED','OWNER_APPROVED_FOR_PUBLICATION'].includes(article.publicationState)&&
     article.ownerApproved===true&&
+    plain(publisherAuthorization)&&
+    publisherAuthorization.source==='ORIGINAL_AUTHENTICATED_CMS'&&
+    publisherAuthorization.exactStoredApprovalDigest===article.approvalDigest&&
+    publisherAuthorization.sourceAndRightsRechecked===true&&
+    publisherAuthorization.bilingualRouteReservationsVerified===true&&
+    publisherAuthorization.publicActivationApproved===true&&
     ['fa','en'].includes(language)&&validRoute(route)&&
     validRoute(otherLanguageRoute)&&route.startsWith('/'+language+'/')&&
     otherLanguageRoute.startsWith('/'+(language==='fa'?'en':'fa')+'/')&&
@@ -110,5 +118,6 @@ export function renderPublicNewsPage({article,language,route,otherLanguageRoute,
     html:'<!doctype html><html lang="'+language+'" dir="'+(isFa?'rtl':'ltr')+
       '"><head>'+meta+'</head><body class="ni-newsroom">'+body+'</body></html>',
     publicationNotPerformed:true,ownerApproved:true,
+    onlySourceHtmlGenerated:true,
     requiresApprovedExistingSitePublisher:true});
 }
