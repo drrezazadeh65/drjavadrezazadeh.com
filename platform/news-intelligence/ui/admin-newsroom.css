@@ -29,3 +29,13 @@
  .ni-admin-actions{display:grid;grid-template-columns:1fr}
  .ni-admin-card button{min-height:44px}}
 @media(prefers-reduced-motion:reduce){.ni-admin-card *{transition:none!important}}
+
+
+.ni-admin-metrics{display:grid;grid-template-columns:repeat(auto-fit,
+ minmax(min(100%,185px),1fr));gap:.65rem;margin:1rem 0 1.5rem}
+.ni-admin-metric{border:1px solid #78613e;background:#242a2c;
+ border-radius:.7rem;display:flex;flex-direction:column;gap:.4rem;
+ padding:1rem;min-height:100px}
+.ni-admin-metric span{font-size:.84rem;color:#d0c1ab}
+.ni-admin-metric strong{font-size:1.5rem;color:#edcf97;
+ font-variant-numeric:tabular-nums}
