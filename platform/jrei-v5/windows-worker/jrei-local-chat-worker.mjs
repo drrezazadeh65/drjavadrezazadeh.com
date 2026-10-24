@@ -187,7 +187,13 @@ export async function runLocalChatWorker(config,key,{post,log,signal,fetchImpl}=
             });
             if(stopping||Date.now()/1000>=job.expiresAt)
               throw Error('LOCAL_CHAT_RESULT_OUTSIDE_LEASE');
-            if(draft.requiresEvidenceVerification!==true||
+            // Truncated generations or visible internal reasoning are
+            // not safe educational answers, even when they mention
+            // plausible source labels. The Bertina evidence gate remains
+            // the independent final judge of a COMPLETE public draft.
+            if(draft.stopReason!=='stop'||
+               /<\/?think(?:\s|>)/i.test(draft.text??'')||
+               draft.requiresEvidenceVerification!==true||
                typeof draft.text!=='string'||draft.text.length<12||
                draft.text.length>4000)
               throw Error('LOCAL_CHAT_MODEL_OUTPUT_NOT_ACCEPTABLE');
