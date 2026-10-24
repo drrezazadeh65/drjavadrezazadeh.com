@@ -19,5 +19,6 @@ export function normalizeNewsTags({category,subtopic,country='IR',level='all',in
     'NEWS_TAGS_INVALID');
   return Object.freeze({category,subtopic,country,level,institution,tags:[...new Set(tags)]});
 }
-export const CHANNEL_TOPICS=Object.freeze(['ARTICLES','EXAMINATIONS','RESULTS',
-  'UNIVERSITIES','EMPLOYMENT','LANGUAGE','SCHOLARSHIPS','RESEARCH','EDTECH','EVENTS']);
+export const CHANNEL_TOPICS=Object.freeze(['ARTICLES','SCHOOL','EXAMINATIONS','RESULTS',
+  'UNIVERSITIES','EMPLOYMENT','LANGUAGE','SCHOLARSHIPS','INTERNATIONAL',
+  'RESEARCH','EDTECH','TALENT','TEACHER_EDUCATION','EVENTS']);
