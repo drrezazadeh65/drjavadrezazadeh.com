@@ -120,15 +120,22 @@ function jrKaClaimOneLicensedJob(PDO $pdo,array $cfg): ?array {
             if($lastNetwork>0&&$lastNetwork+$spacing>$at){
                 $pdo->commit();continue;
             }
-            $cap=jrJreiIranNightTransferCap((int)$c['max_daily_download_bytes']);
+            // Continuous volume policy is an independent private owner
+            // opt-in, never enabled by scheduling alone. Keep accounting
+            // even without a fixed daily volume ceiling.
+            $uncapped=jrJreiKaUncappedDailyAuthorized($cfg);
+            $cap=$uncapped?null:
+                jrJreiIranNightTransferCap((int)$c['max_daily_download_bytes']);
             $storageCap=(int)$c['max_storage_bytes'];
-            if($cap<$reserveBytes||$storageCap<$max)
+            if(($cap!==null&&$cap<$reserveBytes)||$storageCap<$max)
                 throw new DomainException('ka_owner_quota_too_small');
             $q=$pdo->prepare("SELECT COALESCE(SUM(reserved_bytes),0)
                 FROM jrei_ka_daily_transfer_reservations
                 WHERE reservation_day=?");
             $q->execute([$day]);$total=(int)$q->fetchColumn();
-            if($total>$cap-$reserveBytes){$pdo->commit();return null;}
+            if($cap!==null&&$total>$cap-$reserveBytes){
+                $pdo->commit();return null;
+            }
             $q=$pdo->query("SELECT COALESCE(SUM(bytes_total),0)
                 FROM jrei_ka_private_observations");
             if((int)$q->fetchColumn()>$storageCap-$max){
