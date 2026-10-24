@@ -14,17 +14,27 @@ require_once __DIR__.'/slug-routes.php';
 function jrNewsCleanEditorialLanguage(array $input,string $language): array {
     if (($input['language']??null)!==$language)
         throw new InvalidArgumentException('news_draft_language_mismatch');
+    // Character bounds match render-public.mjs, with independent byte caps.
     $fields=[
-        'headline'=>720,'summary'=>4000,
-        'body'=>100000,'nextSteps'=>16000,
-        'description'=>1800,'sourceUrl'=>1000
+        'headline'=>[8,180,720],
+        'summary'=>[20,1000,4000],
+        'body'=>[40,30000,120000],
+        'nextSteps'=>[10,3000,12000],
+        'description'=>[40,320,1280],
+        'sourceUrl'=>[12,1000,1000]
     ];
     $clean=['language'=>$language];
-    foreach ($fields as $key=>$limit) {
+    foreach ($fields as $key=>$bounds) {
         $v=$input[$key]??null;
-        if (!is_string($v)||trim($v)===''||strlen($v)>$limit||
-            str_contains($v,"\0")) {
+        if (!is_string($v)||trim($v)===''||
+            strlen($v)>$bounds[2]||str_contains($v,"\0")) {
             throw new InvalidArgumentException('news_draft_missing_'.$key);
+        }
+        $characters=preg_match_all('/./us',$v);
+        if($characters===false||$characters<$bounds[0]||
+            $characters>$bounds[1]||
+            preg_match('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/',$v)) {
+            throw new InvalidArgumentException('news_draft_character_bounds_'.$key);
         }
         $clean[$key]=trim($v);
     }
