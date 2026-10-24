@@ -18,6 +18,7 @@ function jrNewsExistingJreiApprovedSources(PDO $pdo,int $limit=200): array {
     $q=$pdo->prepare(
         "SELECT n.monitor_id,n.jrei_source_reference,n.category_code,
                 n.priority_code,n.interval_minutes,n.policy_revision,
+                n.source_url_sha256,
                 s.source_id,s.source_title,s.source_locator_uri,
                 s.review_state,s.rights_state,s.reviewer_account_id,
                 s.verified_at,s.is_revoked,s.is_superseded,
@@ -43,7 +44,14 @@ function jrNewsExistingJreiApprovedSources(PDO $pdo,int $limit=200): array {
     $eligible=[];$skipped=0;
     foreach($q->fetchAll(PDO::FETCH_ASSOC) as $row) {
         $uri=$row['source_locator_uri'];
-        $parts=is_string($uri)?parse_url($uri):false;
+        // The monitor is scoped to the exact ORIGINAL source URL and
+        // independently reviewed source-policy revision. A later registry
+        // URL change must not inherit permission to crawl its new host.
+        if(!is_string($uri)||!hash_equals(
+            (string)$row['source_url_sha256'],hash('sha256',$uri))){
+            $skipped++;continue;
+        }
+        $parts=parse_url($uri);
         if(!is_array($parts)||($parts['scheme']??null)!=='https'||
            empty($parts['host'])||isset($parts['user'])||
            isset($parts['pass'])||isset($parts['fragment'])||
@@ -56,7 +64,10 @@ function jrNewsExistingJreiApprovedSources(PDO $pdo,int $limit=200): array {
             'PERMITTED_PRIVATE_ANALYSIS','PERMITTED_PUBLIC_DISPLAY',
             'PERMITTED_REPRODUCTION'
         ],true)){$skipped++;continue;}
-        $minutes=(int)ceil((int)$row['refresh_interval_seconds']/60);
+        $minutes=max(
+            (int)ceil((int)$row['refresh_interval_seconds']/60),
+            (int)$row['interval_minutes']
+        );
         if($minutes<60||$minutes>1440){
             $skipped++;continue;
         }
