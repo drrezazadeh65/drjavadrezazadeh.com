@@ -24,8 +24,10 @@ export function mountNewsOwnerPanel({root,csrfResolver,
   status.setAttribute('aria-live','polite');
   const metrics=document.createElement('div');metrics.className='ni-admin-metrics';
   const sources=document.createElement('section');sources.className='ni-admin-sources';
+  const acquisition=document.createElement('section');
+  acquisition.className='ni-admin-acquisition';
   const list=document.createElement('div');list.className='ni-admin-queue';
-  root.replaceChildren(header,refresh,status,metrics,sources,list);
+  root.replaceChildren(header,refresh,status,metrics,sources,acquisition,list);
   const show=s=>{status.textContent=s;};
   const request=async (path,options)=>{
     const token=csrfResolver();
@@ -76,6 +78,7 @@ export function mountNewsOwnerPanel({root,csrfResolver,
     list.replaceChildren();
     metrics.replaceChildren();
     sources.replaceChildren();
+    acquisition.replaceChildren();
     show(say('در حال دریافت صف خصوصی…','Loading private owner queue…'));
     try{
       const data=await request('/owner/queue',{method:'GET'});
@@ -298,6 +301,50 @@ export function mountNewsOwnerPanel({root,csrfResolver,
         unavailable.textContent=say('منابع واجد شرایط برای ثبت قابل دریافت نیستند.',
           'Eligible original sources are currently unavailable.');
         sources.append(unavailable);
+      }
+      // These receipts come only from the ORIGINAL JREI-KA tables. They
+      // distinguish a queued download from an actual verified observation.
+      // The panel does not start or repeat an acquisition job.
+      try{
+        const jobs=await request('/owner/original-jobs',{method:'GET'});
+        if(readVersion!==loadRevision)return;
+        if(jobs.schema!=='jr.jrei.news-original-jrei-queue-observability.v1'||
+           !Array.isArray(jobs.items))
+          throw Error('NEWS_ORIGINAL_JREI_QUEUE_UNAVAILABLE');
+        const heading=document.createElement('h3');
+        heading.textContent=say('صف اصلی جمع‌آوری JREI-KA',
+          'Original JREI-KA acquisition activity');
+        acquisition.append(heading);
+        for(const job of jobs.items.slice(0,30)){
+          if(typeof job.jobId!=='string')continue;
+          const line=document.createElement('div');
+          line.className='ni-admin-acquisition-row';
+          const source=document.createElement('strong');
+          source.textContent=String(job.sourceTitle??'');
+          const state=document.createElement('span');
+          state.textContent=say('وضعیت صف اصلی: ','Original queue state: ')+
+            String(job.originalJobState??'UNKNOWN');
+          const receipt=document.createElement('span');
+          receipt.textContent=job.privateObservationReceiptMatches===true?
+            say('رسید فایل خصوصی تأیید شد؛ بررسی علمی جداگانه است',
+              'Private acquisition digest matched; science review pending'):
+            say('دریافت واقعی هنوز با رسید مستقل تأیید نشده',
+              'No matching independent acquisition receipt');
+          line.append(source,state,receipt);
+          acquisition.append(line);
+        }
+        if(jobs.items.length===0){
+          const empty=document.createElement('p');
+          empty.textContent=say('کاری از زمان‌بند اصلی ثبت نشده است.',
+            'No original acquisition jobs are recorded for these sources.');
+          acquisition.append(empty);
+        }
+      }catch{
+        if(readVersion!==loadRevision)return;
+        const unknown=document.createElement('p');
+        unknown.textContent=say('وضعیت واقعی صف اصلی در دسترس نیست.',
+          'Authoritative original JREI queue status is unavailable.');
+        acquisition.append(unknown);
       }
       for(const item of data.items){
         const card=document.createElement('article');
