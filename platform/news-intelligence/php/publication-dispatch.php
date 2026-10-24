@@ -282,7 +282,7 @@ function jrNewsStageFromApprovedStoredRouteProposal(
         throw new RuntimeException('news_staged_approved_draft_tampered');
     }
     $draft=json_decode((string)$row['bilingual_editorial_json'],true,24,
-        JSON_INVALID_UTF8_SUBSTITUTE);
+        JSON_THROW_ON_ERROR);
     $proposal=is_array($draft)?($draft['routeProposal']??null):null;
     if(!is_array($proposal)||
         ($proposal['schema']??null)!=='jr.jrei.news-bilingual-proposed-routes.v1'||
