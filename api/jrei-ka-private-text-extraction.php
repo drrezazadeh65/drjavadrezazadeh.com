@@ -2,6 +2,7 @@
 declare(strict_types=1);
 if(!defined('BERTINA_API_BOOTSTRAPPED')){http_response_code(404);exit;}
 require_once __DIR__.'/jrei-ka-acquisition-dispatch.php';
+require_once __DIR__.'/jrei-ka-docx-extraction.php';
 
 /**
  * Private first-pass educational document text extraction.
@@ -21,7 +22,7 @@ function jrKaTextSchemaReady(PDO $pdo,array $cfg): bool {
         return true;
     }catch(Throwable $e){return false;}
 }
-function jrKaTextExtractBytes(string $mime,string $raw): array {
+function jrKaTextExtractBytes(string $mime,string $raw,?string $privatePath=null): array {
     if(strlen($raw)<1||strlen($raw)>8388608)
         throw new DomainException('ka_extraction_input_out_of_bounds');
     if($mime==='application/pdf'){
@@ -31,11 +32,21 @@ function jrKaTextExtractBytes(string $mime,string $raw): array {
            'method'=>'PDF_SIGNATURE_ONLY',
            'language'=>null,'requiresOcr'=>true];
     }
-    if(!in_array($mime,['text/html','text/plain','application/json'],true))
+    $docxMime='application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+    $isDocx=$mime===$docxMime;
+    if(!$isDocx&&!in_array($mime,['text/html','text/plain','application/json'],true))
         throw new DomainException('ka_extraction_mime_unhandled');
-    if(!preg_match('//u',$raw))
+    if(!$isDocx&&!preg_match('//u',$raw))
         throw new DomainException('ka_extraction_utf8_review_required');
-    $text=$raw;
+    $docx=null;
+    if($isDocx){
+        if($privatePath===null)
+            throw new DomainException('ka_docx_private_archive_path_required');
+        $docx=jrKaDocxTextFromPrivateFile($privatePath,hash('sha256',$raw));
+        if($docx['state']!=='TEXT_PENDING_SCIENTIFIC_REVIEW')
+            return [...$docx,'language'=>null];
+    }
+    $text=$isDocx?(string)$docx['text']:$raw;
     if($mime==='text/html'){
         if(!class_exists('DOMDocument')||!class_exists('DOMXPath'))
             throw new DomainException('ka_html_dom_unavailable');
@@ -75,7 +86,7 @@ function jrKaTextExtractBytes(string $mime,string $raw): array {
     $text=trim($text);
     if(strlen($text)<20)
         return ['state'=>'OCR_OR_MANUAL_REVIEW_REQUIRED','text'=>null,
-            'method'=>$mime==='text/html'?'DOM_VISIBLE_TEXT':'PLAIN_UTF8',
+            'method'=>$isDocx?'DOCX_PARTIAL_VISIBLE_TEXT':($mime==='text/html'?'DOM_VISIBLE_TEXT':'PLAIN_UTF8'),
             'language'=>null,'requiresOcr'=>$mime==='text/html'];
     if(strlen($text)>524288)
         throw new DomainException('ka_extraction_text_over_limit');
@@ -103,8 +114,9 @@ function jrKaTextExtractBytes(string $mime,string $raw): array {
           'diagramAccuracyVerified'=>false];
     }
     return ['state'=>'TEXT_PENDING_SCIENTIFIC_REVIEW','text'=>$text,
-        'method'=>$mime==='text/html'?'DOM_VISIBLE_TEXT':'PLAIN_UTF8',
-        'language'=>$lang,'requiresOcr'=>false];
+        'method'=>$isDocx?'DOCX_PARTIAL_VISIBLE_TEXT':($mime==='text/html'?'DOM_VISIBLE_TEXT':'PLAIN_UTF8'),
+        'language'=>$lang,'requiresOcr'=>false,
+        'requiresLayoutReview'=>$isDocx?(bool)$docx['requiresLayoutReview']:false];
 }
 function jrKaQueueOneTextExtraction(PDO $pdo,int $at): ?array {
     // Backfill a bounded batch so an archive obtained before extraction
@@ -269,7 +281,7 @@ function jrKaExtractOnePrivateObservation(PDO $pdo,array $cfg): array {
         if(!is_string($raw)||strlen($raw)!==(int)$ob['bytes_total']||
            !hash_equals($digest,hash('sha256',$raw)))
             throw new DomainException('ka_observation_content_changed');
-        $data=jrKaTextExtractBytes((string)$ob['mime_type'],$raw);
+        $data=jrKaTextExtractBytes((string)$ob['mime_type'],$raw,$path);
         $raw='';
         $chars=is_string($data['text']??null)?
            (function_exists('mb_strlen')?
