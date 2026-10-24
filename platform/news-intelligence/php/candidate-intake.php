@@ -49,6 +49,13 @@ function jrNewsPersistObservedCandidate(
     }
     $url=jrNewsFeedPublicUrl($candidate['url'],strtolower($approvedOrigin));
     if ($url===null)throw new RuntimeException('news_source_url_outside_registry');
+    // This is a deterministic feed-discovery fingerprint, not authority.
+    // Recompute it from the exact original source and canonical URL before
+    // asking the independent JREI observation reader for stored evidence.
+    $fingerprintFromFeed=hash('sha256',$candidate['sourceId'].'|'.$url);
+    if(!is_string($candidate['sourceFingerprint']??null)||
+       !hash_equals($fingerprintFromFeed,$candidate['sourceFingerprint']))
+        throw new RuntimeException('news_feed_candidate_fingerprint_changed');
     $existingReceipt=$independentJreiObservationReader(
         $candidate['url'],$candidate['sourceId'],
         $candidate['sourceFingerprint']);
