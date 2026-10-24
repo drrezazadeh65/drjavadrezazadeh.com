@@ -47,6 +47,9 @@ function jrNewsBindOriginalApprovedArticleSource(
                AND p.scheduling_state='APPROVED'
                AND p.rights_reviewed=1 AND p.robots_terms_reviewed=1
                AND p.transport_reviewed=1
+               AND p.rights_evidence_sha256 REGEXP '^[a-f0-9]{64}$'
+               AND p.robots_terms_evidence_sha256 REGEXP '^[a-f0-9]{64}$'
+               AND p.transport_evidence_sha256 REGEXP '^[a-f0-9]{64}$'
              LIMIT 1 FOR UPDATE"
         );
         $q->execute([$candidate['monitor_id'],$candidate['source_registry_id']]);
@@ -57,7 +60,9 @@ function jrNewsBindOriginalApprovedArticleSource(
                     s.rights_state,s.is_revoked,s.is_superseded,
                     s.verified_at,s.reviewer_account_id,
                     p.scheduling_state,p.revision,p.rights_reviewed,
-                    p.robots_terms_reviewed,p.transport_reviewed
+                    p.robots_terms_reviewed,p.transport_reviewed,
+                    p.rights_evidence_sha256,p.robots_terms_evidence_sha256,
+                    p.transport_evidence_sha256
              FROM jrei_exam_sources s
              JOIN jrei_ka_source_policies p ON p.source_id=s.source_id
              WHERE s.source_id=? FOR UPDATE'
@@ -77,7 +82,13 @@ function jrNewsBindOriginalApprovedArticleSource(
             $registered['scheduling_state']!=='APPROVED'||
             (int)$registered['rights_reviewed']!==1||
             (int)$registered['robots_terms_reviewed']!==1||
-            (int)$registered['transport_reviewed']!==1) {
+            (int)$registered['transport_reviewed']!==1||
+            preg_match('/^[a-f0-9]{64}$/D',
+                (string)$registered['rights_evidence_sha256'])!==1||
+            preg_match('/^[a-f0-9]{64}$/D',
+                (string)$registered['robots_terms_evidence_sha256'])!==1||
+            preg_match('/^[a-f0-9]{64}$/D',
+                (string)$registered['transport_evidence_sha256'])!==1) {
             throw new RuntimeException('news_article_original_jrei_source_not_approved');
         }
         if ($candidate['review_state']==='ORIGINAL_JREI_ARTICLE_APPROVED') {
