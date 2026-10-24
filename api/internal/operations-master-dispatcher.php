@@ -161,6 +161,36 @@ function jrMasterFinish(PDO $pdo,array $claim,array $result): void {
     if($q->rowCount()!==1)
         throw new RuntimeException('cron_result_conflict');
 }
+/**
+ * Optional, measured protection for customer-facing Bertina requests.
+ * Linux load average is host-level (possibly shared); it is NOT a direct
+ * measurement of website latency and is intentionally not used until a
+ * private owner-configured threshold has been established.
+ *
+ * This applies ONLY to deferrable AI acquisition/benchmark work. Never
+ * defer private retention, payment-related mail, recovery or alerts here.
+ * Delayed jobs keep their original next_due_at and can run on the next tick.
+ */
+function jrMasterDeferrableAiJob(string $id): bool {
+    return str_starts_with($id,'jrei_ka_') ||
+        in_array($id,[
+          'jrei_ai_private_quality_benchmark',
+          'jrei_ai_benchmark_case_discovery',
+          'jrei_ai_improvement_discovery',
+          'jrei_daily_learning'
+        ],true);
+}
+function jrMasterHostLoadTooHigh(array $config): bool {
+    $threshold=$config['operations_cron_ai_max_load1']??null;
+    if((!is_int($threshold)&&!is_float($threshold))||
+       !is_finite((float)$threshold)||
+       $threshold<0.5||$threshold>256||
+       !function_exists('sys_getloadavg'))return false;
+    $loads=@sys_getloadavg();
+    return is_array($loads)&&isset($loads[0])&&
+        is_numeric($loads[0])&&(float)$loads[0]>=(float)$threshold;
+}
+
 function jrMasterDispatch(): int {
     $config=cfg();
     // Both the master private flag and each mother-DB row default OFF.
@@ -201,6 +231,12 @@ function jrMasterDispatch(): int {
         foreach($q->fetchAll(PDO::FETCH_COLUMN) as $id){
             if($attempts>=4||microtime(true)-$started>35)break;
             if(!isset($registry[$id]))continue;
+            // Recheck after each prior child. A busy shared host must not
+            // launch more discretionary JREI AI/collection subprocesses.
+            // This is a pure defer: no claim, no state change, no retry
+            // ambiguity, no loss of the scheduled job.
+            if(jrMasterDeferrableAiJob((string)$id)&&
+               jrMasterHostLoadTooHigh($config))continue;
             $script=operationsCronSourcePath((string)$id);
             if($script===null){
                 // No approved source code => never execute arbitrary DB data.
