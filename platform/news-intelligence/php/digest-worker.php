@@ -174,11 +174,17 @@ function jrNewsQueueTopicDigests(PDO $pdo,string $mode,int $nowEpoch,
             if (count($selected)>=20)break;
         }
         if (!$selected)continue;
+        // Bind the original eco outbox's idempotency to immutable CMS
+        // content receipts as well as routes. An independently approved
+        // correction on an existing frozen URL is a *different* edition;
+        // a repeated delivery request for the SAME edition stays deduped.
+        $editions=array_map(static fn(array $item): string=>
+            $item['publicationId'].':'.$item['contentSha256'].':'.
+            $item['ownerApprovalDigest'], $selected);
         $digestKey=hash('sha256','JREI_NEWS_DIGEST|'.$mode.'|'.
             gmdate($mode==='WEEKLY'?'o-W':'Y-m-d',$nowEpoch).'|'.
             $subscriber['accountId'].'|'.$subscriber['locale'].'|'.
-            $subscriber['channel'].'|'.implode('|',
-                array_column($selected,'url')));
+            $subscriber['channel'].'|'.implode('|',$editions));
         $message=['schema'=>'jr.jrei.news-articles-digest-intent.v1',
             'purpose'=>'ARTICLES','accountId'=>$subscriber['accountId'],
             'locale'=>$subscriber['locale'],'channel'=>$subscriber['channel'],
