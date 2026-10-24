@@ -67,6 +67,12 @@ function cfg(): array {
         // One private CLI scheduler is independently owner-gated. Setting
         // this flag alone never enables an individual disabled DB job.
         'operations_cron_master_enabled' => getenv('JR_OPERATIONS_CRON_MASTER_ENABLED') === 'true',
+        // Optional measured host-load ceiling for deferrable AI/collection
+        // subprocesses only. Default NULL is inert until the owner sets a
+        // host-specific threshold. Payments, email and privacy jobs unaffected.
+        'operations_cron_ai_max_load1' =>
+            is_numeric(getenv('JR_OPERATIONS_CRON_AI_MAX_LOAD1')) ?
+            (float)getenv('JR_OPERATIONS_CRON_AI_MAX_LOAD1') : null,
         // Daily JREI metadata evaluation is a separate private OFF switch.
         // No model training, marketing, payment or source authority follows.
         'jrei_learning_daily_enabled' => getenv('JR_JREI_LEARNING_DAILY_ENABLED') === 'true',
