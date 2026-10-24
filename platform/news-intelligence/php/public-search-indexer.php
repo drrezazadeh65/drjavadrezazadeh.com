@@ -17,10 +17,11 @@ function jrNewsIndexApprovedPublication(
         !in_array($language,['fa','en'],true)||$indexedAt<=0) {
         throw new InvalidArgumentException('news_search_index_id_invalid');
     }
-    $pdo->beginTransaction();
+    // Read provisional immutable publication state without locking the
+    // public site's mother DB while checking external CMS/source receipts.
+    // The same row is re-read and locked after expensive verification.
     try {
-        $stmt=$pdo->prepare(
-            "SELECT p.publication_id,p.publisher_state,p.published_at,
+        $sourceSql="SELECT p.publication_id,p.publisher_state,p.published_at,
                     p.fa_route,p.en_route,p.fa_content_sha256,
                     p.en_content_sha256,p.publisher_receipt_reference,
                     v.bilingual_editorial_json,v.approval_digest,
@@ -35,8 +36,8 @@ function jrNewsIndexApprovedPublication(
              JOIN jrei_news_candidates c ON c.candidate_id=v.candidate_id
              JOIN jrei_news_monitors m ON m.monitor_id=c.monitor_id
              JOIN jrei_news_owner_decisions d ON d.decision_id=p.approved_decision_id
-             WHERE p.publication_id=? FOR UPDATE"
-        );
+             WHERE p.publication_id=?";
+        $stmt=$pdo->prepare($sourceSql);
         $stmt->execute([$publicationId]);
         $row=$stmt->fetch(PDO::FETCH_ASSOC);
         if (!$row||$row['publisher_state']!=='PUBLISHED'||
@@ -102,6 +103,17 @@ function jrNewsIndexApprovedPublication(
             strlen($copy['body'])>180000) {
             throw new RuntimeException('news_search_language_payload_invalid');
         }
+        // The receipt resolvers above may need HTTP or private CMS reads;
+        // never hold InnoDB row locks while they run. Now lock and ensure
+        // every public, editorial and source field is still identical to
+        // the verified snapshot. A concurrent retraction or new approval
+        // must restart the complete, owner-governed indexing workflow.
+        $pdo->beginTransaction();
+        $locked=$pdo->prepare($sourceSql.' FOR UPDATE');
+        $locked->execute([$publicationId]);
+        $current=$locked->fetch(PDO::FETCH_ASSOC);
+        if(!is_array($current)||$current!==$row)
+            throw new RuntimeException('news_index_state_changed_during_source_verification');
         $query=$pdo->prepare(
             'SELECT document_id,publication_id
              FROM jrei_news_search_documents WHERE public_route=? FOR UPDATE'
