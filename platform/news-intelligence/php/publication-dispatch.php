@@ -142,7 +142,8 @@ function jrNewsConfirmOriginalCmsPublication(
                     p.en_content_sha256,p.revision_id,
                     v.approval_digest,v.editorial_state,
                     v.bilingual_editorial_json,
-                    d.action_code,d.approval_digest AS decision_digest
+                    d.action_code,d.revision_id AS decision_revision_id,
+                    d.approval_digest AS decision_digest
              FROM jrei_news_publications p
              JOIN jrei_news_editorial_versions v ON v.revision_id=p.revision_id
              JOIN jrei_news_owner_decisions d ON d.decision_id=p.approved_decision_id
@@ -155,6 +156,7 @@ function jrNewsConfirmOriginalCmsPublication(
                 ['WAITING_FOR_PUBLISHER','PUBLISHED'],true) ||
             $row['editorial_state']!=='OWNER_APPROVED' ||
             $row['action_code']!=='APPROVE' ||
+            $row['decision_revision_id']!==$row['revision_id'] ||
             !hash_equals((string)$row['approval_digest'],
                 (string)$row['decision_digest']) ||
             !hash_equals((string)$row['approval_digest'],
