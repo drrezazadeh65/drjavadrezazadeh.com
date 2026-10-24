@@ -122,6 +122,7 @@ function cfg(): array {
         // approved JREI-KA feed receipts. Both permissions default OFF;
         // neither switch starts a new crawler or authorizes publication.
         'jrei_news_feed_discovery_enabled' => getenv('JR_JREI_NEWS_FEED_DISCOVERY_ENABLED') === 'true',
+        'jrei_news_article_intake_enabled' => getenv('JR_JREI_NEWS_ARTICLE_INTAKE_ENABLED') === 'true',
         'jrei_news_integrated_release_accepted' => getenv('JR_JREI_NEWS_INTEGRATED_RELEASE_ACCEPTED') === 'true',
         // Real AI inference: independent paid-provider credentials and
         // source-owned budget approval; entirely OFF until final acceptance.
