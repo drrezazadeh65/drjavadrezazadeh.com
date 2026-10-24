@@ -88,6 +88,81 @@ function jrHybridModelOwnerChange(PDO $pdo,string $actor,array $body): array {
         return ['ok'=>true,'modelId'=>$id,'status'=>'PENDING',
            'weightsInstalled'=>false,'runtimeVerified'=>false];
     }
+    if($action==='attest_local_model_runtime'){
+        // A model's metadata and a signed worker heartbeat alone do NOT
+        // establish an installed GGUF or model quality. The MFA owner must
+        // inspect the actual file digest and independent local evaluation
+        // evidence. This records an owner acceptance, not an automated
+        // independent laboratory verification.
+        $id=$body['modelId']??null;
+        $version=$body['modelVersion']??null;
+        $node=$body['nodeId']??null;
+        $sha=$body['artifactSha256']??null;
+        $fixture=$body['evaluationFixtureSha256']??null;
+        $evidence=$body['runEvidenceSha256']??null;
+        $revision=$body['revision']??null;
+        $tokens=$body['measuredTokensPerSecond']??null;
+        $latency=$body['measuredP95LatencyMs']??null;
+        $ram=$body['measuredPeakRamMb']??null;
+        if(!jrHybridIdentifier($id)||!jrHybridIdentifier($version)||
+           !jrHybridUuid($node)||!jrHybridSha($sha)||
+           !jrHybridSha($fixture)||!jrHybridSha($evidence)||
+           $sha===$fixture||$sha===$evidence||$fixture===$evidence||
+           !is_int($revision)||$revision<1||
+           !is_numeric($tokens)||!is_finite((float)$tokens)||
+           (float)$tokens<0.1||(float)$tokens>1000||
+           !is_int($latency)||$latency<100||$latency>120000||
+           !is_int($ram)||$ram<256||$ram>131072||
+           ($body['realLocalGGUFHashChecked']??null)!==true||
+           ($body['independentLanguageQualityReviewed']??null)!==true||
+           ($body['ownerReviewedNoCloudExecution']??null)!==true||
+           ($body['confirmation']??null)!==
+             'OWNER_ACCEPTS_MEASURED_LOCAL_MODEL_NOT_CLOUD')
+            throw new InvalidArgumentException('local_model_acceptance_evidence_invalid');
+        $pdo->beginTransaction();
+        try{
+            $n=$pdo->prepare("SELECT node_id FROM jrei_hybrid_nodes
+                WHERE node_id=? AND status='ENABLED' AND revoked_at IS NULL
+                  AND permitted_task='REVIEWED_PUBLIC_RETRIEVAL_EVALUATION'
+                FOR UPDATE");
+            $n->execute([$node]);
+            if($n->fetchColumn()===false)
+                throw new DomainException('registered_windows_node_not_enabled');
+            $q=$pdo->prepare('SELECT model_artifact_sha256,status,revision,
+                required_ram_mb,suspended_at FROM jrei_local_model_registry
+                WHERE model_id=? AND model_version=? FOR UPDATE');
+            $q->execute([$id,$version]);$row=$q->fetch(PDO::FETCH_ASSOC);
+            if(!is_array($row)||$row['status']!=='RIGHTS_REVIEWED'||
+               $row['suspended_at']!==null||
+               (int)$row['revision']!==$revision||
+               !hash_equals((string)$row['model_artifact_sha256'],$sha)||
+               (int)$ram>(int)$row['required_ram_mb']*4)
+                throw new DomainException('local_model_acceptance_conflict');
+            $update=$pdo->prepare('UPDATE jrei_local_model_registry SET
+              weights_installed_verified=1,runtime_verified=1,
+              independent_quality_accepted=1,
+              measured_tokens_per_second=?,measured_p95_latency_ms=?,
+              measured_peak_ram_mb=?,updated_at=?,revision=revision+1
+              WHERE model_id=? AND model_version=? AND revision=?');
+            $update->execute([round((float)$tokens,3),$latency,$ram,$now,
+                $id,$version,$revision]);
+            if($update->rowCount()!==1)
+                throw new DomainException('local_model_acceptance_conflict');
+            // Hash-only audit; does not copy benchmark data or private model
+            // weights to Bertina. The owner retains the original evidence.
+            operationsAudit($pdo,$actor,'jrei_local_model_owner_verified',
+               $id.':'.$version.':'.$node.':'.$fixture.':'.$evidence);
+            $pdo->commit();
+        }catch(Throwable $e){
+            if($pdo->inTransaction())$pdo->rollBack();
+            throw $e;
+        }
+        return ['ok'=>true,'modelId'=>$id,'modelVersion'=>$version,
+          'ownerAttestedActualRuntime'=>true,
+          'independentLabVerificationNotClaimed'=>true,
+          'modelAutomaticallyStarted'=>false,'publicAssistantActivated'=>false,
+          'evidenceSha256'=>$evidence];
+    }
     if(in_array($action,['approve_model_rights','suspend_model_version'],true)){
         $id=$body['modelId']??null;$version=$body['modelVersion']??null;
         $revision=$body['revision']??null;
