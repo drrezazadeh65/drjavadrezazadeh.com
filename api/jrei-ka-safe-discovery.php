@@ -8,10 +8,52 @@ require_once __DIR__.'/jrei-ka-private-https.php';
  * which has already been lawfully acquired from an approved original source.
  * Never fetch a newly found URL or assume reuse rights on a linked PDF.
  */
+/**
+ * Normalize only same-host HTTPS PDF candidates found in approved HTML.
+ * No candidate is fetched or automatically approved by this resolver.
+ */
+function jrKaResolvePdfCandidate(string $seedUrl,string $href): ?string {
+    if($href===''||strlen($href)>620||
+       preg_match('/[\x00-\x20\x7f\\\\]/',$href)||
+       str_contains($href,'#')||str_starts_with($href,'//'))
+        return null;
+    try{
+        [$host,$seedPath]=jrKaApprovedHttpsUrl($seedUrl);
+        if(preg_match('~^[a-z][a-z0-9+.-]*:~i',$href)){
+            if(!str_starts_with($href,'https://'))return null;
+            $target=$href;
+        }else{
+            $pathOnly=explode('?', $href,2)[0];
+            if($pathOnly===''||str_contains($pathOnly,'\\'))return null;
+            $seedDirectory=substr(explode('?', $seedPath,2)[0],
+              0,strrpos(explode('?', $seedPath,2)[0],'/')+1);
+            $path=str_starts_with($href,'/')?$href:$seedDirectory.$href;
+            [$rawPath,$query]=array_pad(explode('?',$path,2),2,null);
+            $parts=[];
+            foreach(explode('/',$rawPath) as $part){
+                if($part===''||$part==='.')continue;
+                if($part==='..'){
+                    if(!$parts)return null;
+                    array_pop($parts);
+                    continue;
+                }
+                if(preg_match('/%(?:2e|2f|5c|00)/i',$part))return null;
+                $parts[]=$part;
+            }
+            $target='https://'.$host.'/'.implode('/',$parts).
+              ($query!==null?'?'.$query:'');
+        }
+        [$targetHost,$targetPath]=jrKaApprovedHttpsUrl($target);
+        if($targetHost!==$host)return null;
+        if(!preg_match('~\.pdf(?:\?|$)~i',$targetPath))return null;
+        return $target;
+    }catch(Throwable $e){return null;}
+}
 function jrKaDiscoverSameHostPdfLinks(string $seedUrl,string $html): array {
     if(strlen($html)<1||strlen($html)>2097152||
        !class_exists('DOMDocument'))return [];
-    [$seedHost,$seedPath]=jrKaApprovedHttpsUrl($seedUrl);
+    try{jrKaApprovedHttpsUrl($seedUrl);}
+    catch(Throwable $e){return [];}
     $dom=new DOMDocument();
     $old=libxml_use_internal_errors(true);
     try{
@@ -22,32 +64,12 @@ function jrKaDiscoverSameHostPdfLinks(string $seedUrl,string $html): array {
         $out=[];$max=40;
         foreach($links as $link){
             if(count($out)>=$max)break;
-            $href=trim((string)$link->getAttribute('href'));
-            if($href===''||strlen($href)>620||
-               preg_match('/[\x00-\x20\x7f\\\\]/',$href)||
-               str_contains($href,'#')||
-               preg_match('~(?:^|/)\.\.(?:/|$)~',$href))
-                continue;
-            if(str_starts_with($href,'/')){
-                if(str_starts_with($href,'//'))continue;
-                $target='https://'.$seedHost.$href;
-            }elseif(str_starts_with($href,'https://')){
-                $target=$href;
-            }else{
-                // Do not resolve arbitrary relative or protocol-relative
-                // paths; owner-approved root and absolute URLs are enough
-                // for the first safe autonomous discovery phase.
-                continue;
-            }
-            try{[$host,$path]=jrKaApprovedHttpsUrl($target);}
-            catch(Throwable $e){continue;}
-            if($host!==$seedHost)continue;
-            $pathname=explode('?',strtolower($path),2)[0];
-            if(!str_ends_with($pathname,'.pdf'))continue;
+            $target=jrKaResolvePdfCandidate($seedUrl,
+              trim((string)$link->getAttribute('href')));
+            if($target===null)continue;
             $label=trim(preg_replace('/\s+/u',' ',
                 (string)$link->textContent));
             if(strlen($label)>220){
-                // Never cut in the middle of a Persian UTF-8 code point.
                 preg_match('/^.{0,50}/us',$label,$prefix);
                 $label=$prefix[0]??'Potential document';
             }
