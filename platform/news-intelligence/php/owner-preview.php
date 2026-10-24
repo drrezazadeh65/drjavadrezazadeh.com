@@ -16,7 +16,7 @@ function jrNewsPrivateOwnerPreview(PDO $pdo,array $session,
     }
     $stmt=$pdo->prepare(
         "SELECT v.revision_id,v.revision_number,v.bilingual_editorial_json,
-                v.approval_digest,v.image_asset_ref,v.editorial_state,
+                v.approval_digest,v.approved_image_ref,v.editorial_state,
                 c.source_url,c.headline,c.priority_code,c.content_sha256
          FROM jrei_news_editorial_versions v
          JOIN jrei_news_candidates c ON c.candidate_id=v.candidate_id
@@ -30,6 +30,10 @@ function jrNewsPrivateOwnerPreview(PDO $pdo,array $session,
         strlen($row['bilingual_editorial_json'])>250000 ||
         !preg_match('/^[a-f0-9]{64}$/D',(string)$row['approval_digest'])) {
         throw new RuntimeException('news_owner_preview_not_available');
+    }
+    if (!hash_equals((string)$row['approval_digest'],
+            hash('sha256',(string)$row['bilingual_editorial_json']))) {
+        throw new RuntimeException('news_owner_preview_exact_digest_mismatch');
     }
     $draft=json_decode($row['bilingual_editorial_json'],true,24,
         JSON_INVALID_UTF8_SUBSTITUTE);
@@ -60,7 +64,7 @@ function jrNewsPrivateOwnerPreview(PDO $pdo,array $session,
         !preg_match('#^/en/news/[a-z0-9-]+/$#D',$paths['enPath'])) {
         throw new RuntimeException('news_owner_draft_route_proposal_not_reviewed');
     }
-    $asset=$row['image_asset_ref']??null;
+    $asset=$row['approved_image_ref']??null;
     if (is_string($asset) && str_starts_with($asset,'assets/images/')) {
         $asset='/'.$asset;
     }
@@ -88,7 +92,7 @@ function jrNewsPrivateOwnerPreview(PDO $pdo,array $session,
         'priority'=>$row['priority_code'],
         'sourceUrl'=>$row['source_url'],
         'evidenceSha256'=>$row['content_sha256'],
-        'imageAssetReference'=>$row['image_asset_ref'],
+        'imageAssetReference'=>$row['approved_image_ref'],
         'proposedBilingualRoutes'=>[
             'fa'=>$paths['faPath'],'en'=>$paths['enPath']],
         'safeImagePreviewUrl'=>$safeImageUrl,
