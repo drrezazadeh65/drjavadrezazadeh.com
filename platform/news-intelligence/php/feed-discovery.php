@@ -96,7 +96,8 @@ function jrNewsStageVerifiedFeedLinkSuggestions(
         foreach($feed['candidates'] as $entry){
             if(!is_string($entry['url']??null)||
                 !is_string($entry['title']??null)||
-                strlen($entry['title'])>960){
+                strlen($entry['title'])>720 ||
+                preg_match_all('/./us',$entry['title'])>240){
                 $skipped++;continue;
             }
             $publishedTs=null;
