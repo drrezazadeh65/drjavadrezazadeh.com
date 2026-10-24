@@ -7,6 +7,7 @@ on:
       - ".github/workflows/v5-release-candidate.yml"
       - "platform/jrei-v5/**"
       - "assets/js/assistant.js"
+      - "assets/js/site-extras.js"
       - "platform/assistant-runtime-policy.json"
       - "assets/css/assistant.css"
       - "docs/governance/JREI_CHATGPT_CLASS_FUTURE_EXPERIENCE_STANDARD_20261024.md"
@@ -62,6 +63,7 @@ jobs:
           php tests/jrei-universal-discovery-offline.php
           php tests/jrei-universal-staging-offline.php
           php tests/jrei-self-improvement-offline.php
+          php tests/jrei-public-service-route-offline.php
       - name: Assert private worker is outbound and nothing is deployed
         run: |
           node -e "const fs=require('fs');const s=fs.readFileSync('platform/jrei-v5/windows-worker/jrei-worker.mjs','utf8');if(!s.includes('redirect:\x27error\x27')||s.includes('createServer('))process.exit(1)"
