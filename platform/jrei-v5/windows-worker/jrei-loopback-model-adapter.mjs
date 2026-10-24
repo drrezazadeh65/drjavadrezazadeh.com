@@ -107,6 +107,8 @@ export function createLocalLlamaAdapter({
      * until its previously hash-pinned llama.cpp backend is responsive.
      */
     async probe({signal}={}) {
+      if(signal?.aborted)
+        throw failure('LOCAL_MODEL_REQUEST_CANCELLED');
       const ctl=new AbortController();
       const cancel=()=>ctl.abort();
       signal?.addEventListener?.('abort',cancel,{once:true});
@@ -118,6 +120,8 @@ export function createLocalLlamaAdapter({
           headers:{'Accept':'application/json'},signal:ctl.signal
         });
         const health=await boundedJson(response);
+        if(ctl.signal.aborted||signal?.aborted)
+          throw failure('LOCAL_MODEL_REQUEST_CANCELLED');
         if(health.status!=='ok')
           throw failure('LOCAL_MODEL_BACKEND_NOT_READY');
         return {reachable:true,loopbackOnly:true,
@@ -128,6 +132,8 @@ export function createLocalLlamaAdapter({
       }
     },
     async complete(request={}) {
+      if(request.signal?.aborted)
+        throw failure('LOCAL_MODEL_REQUEST_CANCELLED');
       if(request.model!==model)
         throw failure('UNAPPROVED_MODEL_SELECTION');
       if(request.tools?.length)
@@ -156,6 +162,10 @@ export function createLocalLlamaAdapter({
           }),signal:ctl.signal
         });
         const payload=await boundedJson(response);
+        // Even a test/custom HTTP adapter may resolve after an AbortSignal.
+        // Never forward a response produced after owner revoke or timeout.
+        if(ctl.signal.aborted||request.signal?.aborted)
+          throw failure('LOCAL_MODEL_REQUEST_CANCELLED');
         const text=payload.choices?.[0]?.message?.content;
         if(typeof text!=='string'||text.length>16000)
           throw failure('LOCAL_MODEL_OUTPUT_INVALID');
