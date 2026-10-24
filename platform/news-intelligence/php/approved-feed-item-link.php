@@ -38,7 +38,7 @@ function jrNewsBindOriginalApprovedArticleSource(
              JOIN jrei_ka_source_policies p ON p.source_id=s.source_id
              WHERE n.monitor_id=? AND n.jrei_source_reference=?
                AND n.enabled=1 AND n.policy_revision=p.revision
-               AND n.source_url_sha256=SHA2(s.source_locator_uri,256)
+               AND BINARY n.source_url_sha256=BINARY SHA2(s.source_locator_uri,256)
                AND s.review_state='AUTHORITATIVE_REVIEWED'
                AND s.rights_state IN
                  ('PERMITTED_PRIVATE_ANALYSIS','PERMITTED_REPRODUCTION')
@@ -148,7 +148,7 @@ function jrNewsOwnerUnboundArticleSuggestions(
          JOIN jrei_ka_source_policies p ON p.source_id=s.source_id
          WHERE d.review_state='REQUIRES_ARTICLE_SOURCE_APPROVAL'
            AND n.enabled=1 AND n.policy_revision=p.revision
-           AND n.source_url_sha256=SHA2(s.source_locator_uri,256)
+           AND BINARY n.source_url_sha256=BINARY SHA2(s.source_locator_uri,256)
            AND s.review_state='AUTHORITATIVE_REVIEWED'
            AND s.rights_state IN
              ('PERMITTED_PRIVATE_ANALYSIS','PERMITTED_REPRODUCTION')
