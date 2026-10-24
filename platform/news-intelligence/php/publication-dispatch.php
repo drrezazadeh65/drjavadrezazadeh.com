@@ -204,3 +204,47 @@ function jrNewsConfirmOriginalCmsPublication(
         throw $e;
     }
 }
+
+
+/**
+ * Resolve exact approved bilingual routes from the original immutable
+ * owner-reviewed JSON, never from POST body or a model response.
+ * This creates a private publication queue entry only, no website write.
+ */
+function jrNewsStageFromApprovedStoredRouteProposal(
+    PDO $pdo,array $ownerSession,string $revisionId,
+    callable $currentPublisherPolicy,int $nowEpoch
+): array {
+    jrNewsOwnerAuthority($ownerSession);
+    if(!preg_match('/^[a-f0-9-]{36}$/iD',$revisionId)) {
+        throw new InvalidArgumentException('news_owner_staged_route_id_invalid');
+    }
+    $q=$pdo->prepare(
+        "SELECT approval_digest,bilingual_editorial_json,editorial_state
+         FROM jrei_news_editorial_versions
+         WHERE revision_id=? AND editorial_state='OWNER_APPROVED' LIMIT 1"
+    );
+    $q->execute([$revisionId]);
+    $row=$q->fetch(PDO::FETCH_ASSOC);
+    if(!$row ||
+        !hash_equals((string)$row['approval_digest'],
+            hash('sha256',(string)$row['bilingual_editorial_json']))) {
+        throw new RuntimeException('news_staged_approved_draft_tampered');
+    }
+    $draft=json_decode((string)$row['bilingual_editorial_json'],true,24,
+        JSON_INVALID_UTF8_SUBSTITUTE);
+    $proposal=is_array($draft)?($draft['routeProposal']??null):null;
+    if(!is_array($proposal)||
+        ($proposal['schema']??null)!=='jr.jrei.news-bilingual-proposed-routes.v1'||
+        !is_string($proposal['faPath']??null)||
+        !is_string($proposal['enPath']??null)||
+        !preg_match('#^/fa/akhbar/[a-z0-9-]+/$#D',$proposal['faPath'])||
+        !preg_match('#^/en/news/[a-z0-9-]+/$#D',$proposal['enPath'])) {
+        throw new RuntimeException('news_stored_approved_routes_invalid');
+    }
+    return jrNewsStageApprovedPublication(
+        $pdo,$ownerSession,$revisionId,
+        $proposal['faPath'],$proposal['enPath'],
+        $currentPublisherPolicy,$nowEpoch
+    );
+}
