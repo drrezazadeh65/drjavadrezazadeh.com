@@ -502,6 +502,33 @@
    cell(summary,T('مدل زبانی واقعاً آزموده‌شده','Independently verified LLM'),
      d.modelInferenceVerified?T('نیازمند گزارش پذیرش','See acceptance evidence'):
      T('تأیید نشده؛ فقط بازیابی شواهد','Unverified; evidence retrieval only'));
+   const lm=d.jreiLocalGenerative;
+   if(lm&&lm.schema==='jr.jrei.local-generative-owner.v1'){
+     cell(summary,T('جداول صف مکالمه JREI-LM','JREI-LM chat queue tables'),
+       lm.motherDatabaseSchemaReady?T('در دیتابیس مادر موجود','Available in mother database'):
+         T('مهاجرت هنوز اجرا نشده','Pending additive migration'));
+     cell(summary,T('اتصال مدل محلی','Local model pathway'),
+       lm.live===true?T('آمادهٔ دریافت کار؛ آزمون مکالمه ضروری است',
+         'Eligible for jobs; real dialogue test still required'):
+         T('غیرفعال یا بدون Worker تأییدشده','Offline or not approved'));
+     cell(summary,T('مجوزهای Worker گفت‌وگو','Approved generative nodes'),
+       number(lm.authorizedNodes));
+     cell(summary,T('پیام‌های در صف JREI-LM','JREI-LM queued and leased requests'),
+       number(lm.pendingOrLeasedJobs));
+     cell(summary,T('کلید رمزگذاری خصوصی','Private message encryption key'),
+       lm.privateEncryptionKeyConfigured===true?
+         T('پیکربندی شده؛ اعتبارسنجی محیط هنوز مستقل است',
+           'Configured; deployment verification remains separate'):
+         T('نصب نشده','Not provisioned'));
+     if(lm.motherDatabaseSchemaReady!==true){
+       listing.append(el('p',T(
+         'پردازش گفت‌وگوی اختصاصی تا اجرای مهاجرت افزایشی، اتصال مدل واقعی و پذیرش مجزا غیرفعال می‌ماند.',
+         'JREI-LM chat stays OFF until its additive migration, measured local model runtime and separate approval are complete.')));
+     }
+   }else{
+     cell(summary,T('وضعیت هوش مصنوعی اختصاصی','Owned JREI-LM status'),
+       T('نامعلوم؛ هنوز دادهٔ معتبر دریافت نشده','Unknown; no verified state received'));
+   }
    const monitor=d.incidentMonitoring;
    if(monitor&&monitor.schema==='jr.jrei.incident-monitor-status.v1'){
      const counts=monitor.incidentCounts||{};
@@ -632,6 +659,34 @@
        fmt.format(n.reportedGpuPercent)+'%':T('نامعلوم؛ RX 580 آزموده نشده','Unknown; RX 580 untested'));
      cell(box,T('مدل','Model'),n.modelId||T('بارگذاری نشده یا تأیید نشده','No verified loaded model'));
      cell(box,T('شناسه برتینا','Node ID'),n.nodeId||'—');
+     if(lm?.motherDatabaseSchemaReady===true&&n.ownerEnabled===true&&!n.revoked){
+       const verified=Array.isArray(d.registeredModels)?
+         d.registeredModels.find(m=>m.modelId===n.modelId&&
+           m.modelVersion===n.modelVersion&&m.status==='RIGHTS_REVIEWED'&&
+           m.weightsInstalledVerified===true&&m.runtimeVerified===true&&
+           m.independentQualityAccepted===true):null;
+       if(verified&&lm.privateSwitchEnabled===true){
+         box.append(btn(T('تأیید جداگانهٔ Worker مکالمه JREI-LM',
+           'Authorize this verified JREI-LM conversational worker'),()=>{
+           if(!confirmAction(
+             'آیا وزن مدل، کیفیت مستقل، حقوق استفاده و ارتباط واقعی رایانهٔ خودتان را بررسی کرده‌اید؟ این تصمیم فقط مجوز این نود است، نه انتشار عمومی.',
+             'Have you independently verified the model, quality, licence and your owned worker? This only grants this node a separate permission.'))return;
+           mutate({action:'set_local_chat_node',nodeId:n.nodeId,revision:n.revision,
+             enabled:true,modelId:verified.modelId,modelVersion:verified.modelVersion,
+             modelSha256:verified.artifactSha256,
+             confirmation:'OWNER_APPROVE_JREI_LOCAL_INFERENCE'});
+         }));
+       }
+       box.append(btn(T('لغو مجوز مکالمه محلی این Worker',
+         'Disable this worker\'s local chat permission'),()=>{
+         if(!confirmAction(
+           'مجوز استفاده از این رایانه برای پاسخ‌گویی محلی لغو شود؟ درخواست‌های فعال ممکن است نامعلوم بمانند.',
+           'Disable local conversation permission on this computer? In-flight work may be uncertain.'))return;
+         mutate({action:'set_local_chat_node',nodeId:n.nodeId,
+           revision:n.revision,enabled:false,
+           confirmation:'OWNER_DISABLE_JREI_LOCAL_INFERENCE'});
+       }));
+     }
       // Eligibility comes from the signed offers and actual Bertina queue.
       const report=(Array.isArray(d.dispatchDiagnostics)?
         d.dispatchDiagnostics:[]).find(item=>item.nodeId===n.nodeId);
