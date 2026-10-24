@@ -170,6 +170,12 @@ function jrNewsDispatchApi(PDO $pdo,string $method,string $route,
         return jrNewsApproveOfficialExamMilestone($pdo,$owner,
             jrNewsRouteBody($body,'milestoneId',36),$resolver,time());
     }
+    if ($method==='GET' && $route==='/news/v1/owner/publication/backlog') {
+        $owner=$serverCtx['existingOwnerMfaSession']??null;
+        if(!is_array($owner))
+            throw new RuntimeException('news_publication_owner_session_required');
+        return jrNewsOwnerPublicationBacklog($pdo,$owner,40);
+    }
     if ($method==='POST' && $route==='/news/v1/owner/publication/stage') {
         $owner=$serverCtx['existingOwnerMfaSession']??null;
         $resolver=$ownerIntegrationPorts['originalCmsAndSourcePolicy']??null;
