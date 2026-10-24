@@ -19,10 +19,18 @@ function jrNewsApprovedExamCalendarSnapshot(
         "SELECT milestone_id,external_exam_key,milestone_type,title_fa,
                 title_en,event_utc,timezone_name,source_ref,
                 source_evidence_sha256,version_number
-         FROM jrei_news_exam_milestones
-         WHERE review_state='OFFICIAL_DATE_REVIEWED' AND owner_approved=1
-           AND event_utc>=?
-         ORDER BY event_utc ASC LIMIT ?"
+         FROM jrei_news_exam_milestones AS m
+         WHERE m.review_state='OFFICIAL_DATE_REVIEWED' AND m.owner_approved=1
+           AND m.event_utc>=?
+           AND NOT EXISTS (
+             SELECT 1 FROM jrei_news_exam_milestones AS newer
+             WHERE newer.external_exam_key=m.external_exam_key
+               AND newer.milestone_type=m.milestone_type
+               AND newer.version_number>m.version_number
+               AND newer.review_state='OFFICIAL_DATE_REVIEWED'
+               AND newer.owner_approved=1
+           )
+         ORDER BY m.event_utc ASC LIMIT ?"
     );
     $query->bindValue(1,$nowEpoch,PDO::PARAM_INT);
     $query->bindValue(2,$limit,PDO::PARAM_INT);
