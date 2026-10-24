@@ -128,6 +128,7 @@ export function renderNewsroomHome({language='fa',stories=[],examEvents=[],
     '<section class="ni-archive-search" data-ni-archive-search data-ni-language="'+language+'"></section>'+
     '<div class="ni-home-columns"><section class="ni-news-feed">'+
     '<h2>'+e(copy.latest)+'</h2>'+
+    (rest.length?categories:'')+
     '<label for="ni-filter">'+e(copy.search)+'</label>'+
     '<input id="ni-filter" data-ni-list-filter type="search" autocomplete="off" maxlength="160" placeholder="'+e(copy.search)+'">'+
     '<p data-ni-empty-result hidden>'+e(copy.noMatch)+'</p>'+
