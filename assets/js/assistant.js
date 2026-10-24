@@ -49,12 +49,14 @@
     ?'سلام. فعلاً راهنمای محلی سایت در دسترس است. بر اساس مسیرهای عمومی منتشرشده به شما کمک می‌کنم موضوعتان را پیدا کنید؛ مدل گفت‌وگوی زنده و پاسخ مبتنی بر پرونده شخصی در این بخش فعال یا تأیید نشده است.'
     :'Hello. The public site guide is available. It can point you to published educational routes and their limitations; a live conversational model and private-record answers are not activated or verified here.';
   const liveGreeting=isFa
-    ?'گفت‌وگوی هوش مصنوعی برای راهنمایی عمومی در دسترس است. برای استفاده، گزینهٔ رضایت پردازش توسط ارائه‌دهندهٔ API را فعال کنید. می‌توانم بر اساس صفحات منتشرشدهٔ سایت، خدمات متناسب با سؤال شما را نیز معرفی کنم.'
-    :'Live AI guidance is available for public questions. To use it, opt in to API-provider processing below. I can also help identify relevant services from published site pages.';
+    ?'گفت‌وگوی هوش مصنوعی JREI برای راهنمایی عمومی در دسترس است. می‌توانید پس از اعلام رضایت، با مدل فعال گفت‌وگو کنید و دربارهٔ خدمات موجود سایت نیز بپرسید.'
+    :'JREI conversational intelligence is available for general guidance. Opt in to the active model to ask questions and explore relevant published site services.';
   let history=[];
   let busy=false;
   let lastQuery='';
   let activeRequest=null;
+  let pendingLocalJob=null;
+  let providerMode='OFFLINE_GUIDE';
   let requestGeneration=0;
   // Never create a persistent cross-visit pseudonymous identifier merely
   // for opening public guidance or voluntarily asking a question. The legacy
@@ -140,12 +142,8 @@
   providerConsent.type='checkbox';
   providerConsent.checked=false;
   providerConsent.autocomplete='off';
-  providerLabel.append(
-    providerConsent,
-    document.createTextNode(isFa?
-      ' استفاده از مدل هوش مصنوعی زنده؛ پیام‌های همین گفتگو برای پردازش به ارائه‌دهندهٔ API ارسال می‌شوند. پاسخ‌ها ممکن است خطا داشته باشند.':
-      ' Use live AI: this conversation is sent to the external API provider for processing. AI answers may be incorrect.')
-  );
+  const providerConsentText=document.createTextNode('');
+  providerLabel.append(providerConsent,providerConsentText);
   form.before(providerLabel);
   async function discoverLiveAssistant(){
     if(liveCapabilitiesChecked)return;
@@ -162,7 +160,17 @@
         const policy=await res.json();
         if(policy?.schema!=='jr.jrei.assistant-capability.v1'||
            policy.live!==true||policy.providerConsentRequired!==true)return;
+        const mode=policy.providerMode;
+        if(!['JREI_LM_LOCAL_WINDOWS','OPTIONAL_OPENAI'].includes(mode))return;
+        providerMode=mode;
         approvedLiveEndpoint=location.origin+'/api/assistant/v1/chat';
+        providerConsentText.textContent=mode==='JREI_LM_LOCAL_WINDOWS'
+          ?(isFa?
+            ' استفاده از هوش مصنوعی اختصاصی JREI: متن گفت‌وگو به رایانهٔ پردازشی تأییدشدهٔ JREI منتقل می‌شود و ممکن است پاسخ خطا داشته باشد.':
+            ' Use JREI-owned local AI: this conversation is processed on the approved JREI computer; answers may contain errors.')
+          :(isFa?
+            ' استفاده اختیاری از مدل ابری؛ متن گفت‌وگو برای پردازش به ارائه‌دهندهٔ API خارجی ارسال می‌شود.':
+            ' Optional external-cloud AI: this conversation is sent to an external API provider for processing.');
         providerLabel.hidden=false;
         // Update only the untouched welcome message: never change
         // an answer to a real visitor or create a false ready state.
@@ -176,7 +184,7 @@
       }finally{clearTimeout(stop);}
     }catch(_){
       // Offline or unaccepted providers retain local, no-network guidance.
-      approvedLiveEndpoint='';providerLabel.hidden=true;
+      approvedLiveEndpoint='';providerMode='OFFLINE_GUIDE';providerLabel.hidden=true;
     }
   }
   const leadEndpoint=trustedEndpoint?trustedEndpoint.replace(/\/v1\/chat$/,'/v1/leads'):'';
@@ -313,6 +321,42 @@
     return {answer:labels.error,links};
   }
 
+  const cancelLocalJob=()=>{
+    const job=pendingLocalJob;
+    pendingLocalJob=null;
+    if(!job)return;
+    // The short-lived capability is held in memory only, never localStorage.
+    void fetch('/api/assistant/v1/local/cancel',{
+      method:'POST',credentials:'omit',cache:'no-store',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(job),keepalive:true
+    }).catch(()=>{});
+  };
+  async function awaitLocalResult(data,controller,requestToken){
+    if(data?.pending!==true||data?.runtime!=='JREI_LOCAL_INFERENCE_PENDING')
+      return data;
+    if(!/^[a-f0-9-]{36}$/.test(data.jobId||'')||
+       !/^[a-f0-9]{64}$/.test(data.retrievalToken||''))
+      throw Error('Invalid JREI local queue capability');
+    pendingLocalJob={jobId:data.jobId,retrievalToken:data.retrievalToken};
+    for(let attempt=0;attempt<45;attempt++){
+      await new Promise(resolve=>setTimeout(resolve,1500));
+      if(controller.signal.aborted||requestToken!==requestGeneration)
+        return null;
+      const res=await fetch('/api/assistant/v1/local/result',{
+        method:'POST',credentials:'omit',cache:'no-store',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify(pendingLocalJob),signal:controller.signal
+      });
+      if(!res.ok)throw Error('Local JREI result '+res.status);
+      const next=await res.json();
+      if(next?.pending===true)continue;
+      pendingLocalJob=null;
+      if(next?.unavailable===true)throw Error('JREI local result unavailable');
+      return next;
+    }
+    throw Error('JREI local inference wait exceeded');
+  };
   async function ask(message){
     if(busy||!message.trim()) return;
     const chatEndpoint=providerConsent.checked?approvedLiveEndpoint:'';
@@ -336,7 +380,7 @@
     try{
       controller=new AbortController();
       activeRequest=controller;
-      timer=setTimeout(()=>controller.abort(),30000);
+      timer=setTimeout(()=>controller.abort(),providerMode==='JREI_LM_LOCAL_WINDOWS'?78000:30000);
       const res=await fetch(chatEndpoint,{
         method:'POST',
         mode:'cors',
@@ -351,7 +395,9 @@
         signal:controller.signal
       });
       if(!res.ok) throw new Error('assistant '+res.status);
-      const data=await res.json();
+      let data=await res.json();
+      if(providerMode==='JREI_LM_LOCAL_WINDOWS')
+        data=await awaitLocalResult(data,controller,requestToken);
       if(requestToken!==requestGeneration||document.hidden)return;
       if(!data?.answer) throw new Error('assistant empty');
       pending.remove();
@@ -359,6 +405,7 @@
       history.push({role:'user',content:lastQuery.slice(0,800)},{role:'assistant',content:String(data.answer).slice(0,800)});
       history=history.slice(-8);
     }catch(e){
+      cancelLocalJob();
       pending.remove();
       if(requestToken===requestGeneration&&!document.hidden){
         const f=fallback(lastQuery);
@@ -381,6 +428,7 @@
     requestGeneration++;
     activeRequest?.abort();
     activeRequest=null;
+    cancelLocalJob();
     busy=false;
     stopButton.hidden=true;
     input.disabled=false;
@@ -409,6 +457,7 @@
     // resumable tab or accept late async responses after a user leaves.
     requestGeneration++;
     activeRequest?.abort();activeRequest=null;
+    cancelLocalJob();
     history=[];lastQuery='';busy=false;ephemeralVisitorId=null;
     providerConsent.checked=false;
     thread.replaceChildren();input.value='';input.disabled=false;stopButton.hidden=true;
