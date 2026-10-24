@@ -114,7 +114,13 @@
     "slug-routes.mjs",
     "php/feed-discovery.php",
     "php/approved-feed-item-link.php",
-    "delegated-source-scopes.mjs"
+    "delegated-source-scopes.mjs",
+    "php/original-api-http-adapter.php",
+    "php/original-cron-adapter.php",
+    "php/original-eco-compatibility.php",
+    "php/eco-digest-composer.php",
+    "php/eco-reminder-composer.php",
+    "ui/news-reminders.js"
   ],
   "criticalInteroperabilityNotes": [
     "Original JREI-KA approved source policy currently requires at least 3600-second refresh intervals; faster official P0 radar needs separately authorized original-scheduler extension",
@@ -130,5 +136,42 @@
     "One-time owner-delegated bounded official-source scopes are proposals; the original JREI source registrar must validate and materialize article-specific rights and receipts before automatic article acquisition",
     "A full draft's exact PHP JSON hash includes auto-generated bilingual path proposals; never trust client-supplied path proposals",
     "The original JREI source refresh policy at 3600 seconds is not silently bypassed for urgent P0 announcements"
-  ]
+  ],
+  "sourceOnlyChanges20261024": [
+    "PHP owner preview uses real approved_image_ref column and independently rechecks stored approval SHA256",
+    "Feed discovery and article-specific JREI observation IDs are distinct; no accidental RSS-byte-as-article evidence",
+    "One current news digest frequency per account/topic/channel; SQL unique key and upsert match",
+    "Owned account read of existing news preferences and individually cancellable verified upcoming exam reminders",
+    "Account UI loads existing selections rather than silently resetting and accidentally overwriting",
+    "Original same-origin Bertina PHP request adapter requires server-owned identity, MFA, CSRF, release and source policies",
+    "Source-only Cron dispatcher uses the existing JREI operations scheduler and original eco transport, no extra Cron",
+    "International search index country defaults to ZZ and requires original JREI source-country verification",
+    "Original published ARTICLES consent is the native umbrella for JREI News topic segmentation, not a nonexistent NEWSLETTER purpose",
+    "Existing newsletter mailer only supports a single approved FA article; advanced digests and exam reminders require original worker extensions and cannot claim delivery",
+    "Native eco consent and conservative ARTICLES queued-delivery suppression adapter added",
+    "News/account/exam original eco receipts are verified, never assumed from arbitrary callback state",
+    "New source-only bilingual digest and official exam reminder email composers created"
+  ],
+  "criticalOriginalEcoConstraints": {
+    "existingNewsletterTopics": [
+      "ARTICLES",
+      "BOOKS",
+      "EVENTS",
+      "SERVICES",
+      "GOLDEN_TALENT",
+      "JHELA"
+    ],
+    "existingNewsletterPublishedPage": "Single verified /fa/akhbar/ article and sitemap-news.xml",
+    "newsTopicSegmentationExistingEcoPurpose": "ARTICLES",
+    "bilingualMultiArticleDigestActive": false,
+    "examReminderNativeDeliveryActive": false,
+    "missingOrUnverifiedComponents": [
+      "Original notification worker extension",
+      "Real per-purpose EXAM_REMINDERS consent template",
+      "Owner review notification sender mapping",
+      "Original SMTP receipt acceptance",
+      "User opt-out suppression through original worker"
+    ],
+    "approvedToRun": false
+  }
 }
