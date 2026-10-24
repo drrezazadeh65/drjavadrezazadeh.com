@@ -102,7 +102,8 @@ export function renderPublicNewsPage({article,language,route,otherLanguageRoute,
     '<h2>'+esc(label.assistant)+'</h2><p>'+esc(label.assistantHelp)+'</p>'+
     '<p class="ni-assistant-slot" data-jrei-existing-assistant-slot></p></section>'+
     '<p class="ni-disclaimer">'+esc(label.disclaimer)+'</p>'+
-    '</article></main>';
+    '</article></main><script defer src="/assets/js/assistant.js"></script>'+ 
+    '<script defer src="/assets/js/news-assistant.js"></script>';
   return Object.freeze({schema:'jr.jrei.rendered-article.v1',
     language,route,canonical,
     html:'<!doctype html><html lang="'+language+'" dir="'+(isFa?'rtl':'ltr')+
