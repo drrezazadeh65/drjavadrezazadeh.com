@@ -548,6 +548,7 @@ function jrLocalChatOwnerSnapshot(PDO $pdo,array $cfg): array {
       'ownerPublicReleaseAccepted'=>($cfg['jrei_local_public_release_accepted']??false)===true,
       'privateEncryptionKeyConfigured'=>jrLocalChatKey($cfg)!==null,
       'live'=>false,'authorizedNodes'=>null,
+      'recentlySignedGenerativeWorkers'=>null,
       'pendingOrLeasedJobs'=>null,'provenModelQuality'=>false,
       'externalCloudRequired'=>false
     ];
@@ -556,6 +557,13 @@ function jrLocalChatOwnerSnapshot(PDO $pdo,array $cfg): array {
         $result['authorizedNodes']=(int)$pdo->query(
           'SELECT COUNT(*) FROM jrei_local_chat_node_authorizations WHERE enabled=1'
         )->fetchColumn();
+        $recent=$pdo->prepare("SELECT COUNT(*)
+          FROM jrei_local_chat_node_authorizations a
+          JOIN jrei_hybrid_nodes n ON n.node_id=a.node_id
+          WHERE a.enabled=1 AND a.last_signed_chat_seen_at>?
+            AND n.status='ENABLED' AND n.revoked_at IS NULL");
+        $recent->execute([time()-45]);
+        $result['recentlySignedGenerativeWorkers']=(int)$recent->fetchColumn();
         $result['pendingOrLeasedJobs']=(int)$pdo->query(
           "SELECT COUNT(*) FROM jrei_local_chat_jobs WHERE status IN ('QUEUED','LEASED')"
         )->fetchColumn();
