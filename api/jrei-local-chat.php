@@ -66,12 +66,35 @@ function jrLocalChatNodeApproved(PDO $pdo,string $nodeId,
     $q->execute([$nodeId,$modelId,$modelVersion,$modelSha]);
     return $q->fetchColumn()!==false;
 }
+/**
+ * A worker could become unavailable while the visitor closes a tab.
+ * Refuse new conversations until the actual owner-authorised privacy
+ * janitor has demonstrably removed old encrypted requests recently.
+ * Cron registration or private flags alone are NOT execution proof.
+ */
+function jrLocalChatRetentionReady(PDO $pdo,array $cfg): bool {
+    if(($cfg['jrei_local_chat_retention_enabled']??false)!==true||
+       ($cfg['operations_cron_master_enabled']??false)!==true)return false;
+    try {
+        $q=$pdo->prepare('SELECT enabled,last_state,last_finished_at,
+            needs_owner_review FROM operations_cron_jobs WHERE job_id=? LIMIT 1');
+        $q->execute(['jrei_local_chat_retention']);
+        $row=$q->fetch(PDO::FETCH_ASSOC);
+        return is_array($row)&&(int)$row['enabled']===1&&
+            (int)$row['needs_owner_review']===0&&
+            $row['last_state']==='completed'&&
+            $row['last_finished_at']!==null&&
+            (int)$row['last_finished_at']>=time()-1800;
+    }catch(Throwable $e){return false;}
+}
 function jrLocalChatReady(PDO $pdo,array $cfg): bool {
     if(($cfg['jrei_local_chat_enabled']??false)!==true||
        ($cfg['jrei_local_public_release_accepted']??false)!==true||
        ($cfg['jrei_hybrid_enabled']??false)!==true||
        jrLocalChatKey($cfg)===null||
-       !jrLocalChatSchemaReady($pdo)||!is_readable(jrAiPublicIndexPath()))
+       !jrLocalChatSchemaReady($pdo)||
+       !jrLocalChatRetentionReady($pdo,$cfg)||
+       !is_readable(jrAiPublicIndexPath()))
         return false;
     try {
         $q=$pdo->prepare("SELECT COUNT(*) FROM jrei_local_chat_node_authorizations a
