@@ -265,8 +265,8 @@ function jrNewsOwnerMonitorInventory(
                 n.source_url_sha256,s.source_title,s.source_locator_uri,
                 s.review_state,s.rights_state,s.is_revoked,s.is_superseded,
                 s.verified_at,s.reviewer_account_id,
-                p.revision,p.scheduling_state,p.rights_reviewed,
-                p.robots_terms_reviewed,p.transport_reviewed,
+                p.revision,p.scheduling_state,p.refresh_interval_seconds,
+                p.rights_reviewed,p.robots_terms_reviewed,p.transport_reviewed,
                 p.rights_evidence_sha256,p.robots_terms_evidence_sha256,
                 p.transport_evidence_sha256
          FROM jrei_news_monitors n
@@ -285,8 +285,20 @@ function jrNewsOwnerMonitorInventory(
                 (string)($row[$field]??''))!==1)$evidence=false;
         }
         $uri=$row['source_locator_uri']??null;
-        $approved=is_string($uri) &&
+        $parts=is_string($uri)?parse_url($uri):false;
+        $publicHttps=is_array($parts)&&($parts['scheme']??null)==='https'&&
+            !empty($parts['host'])&&!isset($parts['user'])&&
+            !isset($parts['pass'])&&!isset($parts['fragment'])&&
+            (!isset($parts['port'])||(int)$parts['port']===443)&&
+            filter_var((string)$parts['host'],FILTER_VALIDATE_IP)===false&&
+            strlen($uri)<=1000&&
+            preg_match('/[\\x00-\\x20\\x7f]/',$uri)!==1;
+        $approved=$publicHttps &&
             hash_equals((string)$row['source_url_sha256'],hash('sha256',$uri)) &&
+            (int)$row['interval_minutes']>=60 &&
+            (int)$row['interval_minutes']<=1440 &&
+            (int)$row['refresh_interval_seconds']>=3600 &&
+            (int)$row['refresh_interval_seconds']<=86400 &&
             $row['review_state']==='AUTHORITATIVE_REVIEWED' &&
             in_array($row['rights_state'],[
                 'PERMITTED_PRIVATE_ANALYSIS','PERMITTED_REPRODUCTION'
