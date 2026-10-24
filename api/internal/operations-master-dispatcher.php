@@ -228,7 +228,26 @@ function jrMasterDispatch(): int {
               AND needs_owner_review=0 AND next_due_at<=?
             ORDER BY next_due_at ASC,job_id ASC LIMIT 30');
         $q->execute([...$ids,time()]);
-        foreach($q->fetchAll(PDO::FETCH_COLUMN) as $id){
+        // The public site's essential retention, mail and incident jobs
+        // take precedence when an AI backlog is overdue. PHP 8's stable
+        // sort preserves the original next_due_at order within each tier.
+        // This is the ONE approved master scheduler, not a new queue.
+        $due=$q->fetchAll(PDO::FETCH_COLUMN);
+        $essential=[
+            'jrei_local_chat_retention',
+            'jrei_hybrid_lease_reconciliation',
+            'jrei_hybrid_metadata_retention',
+            'operations_alert_mail',
+            'newsletter_outbox',
+            'publishing_outbox',
+            'jrei_exam_deadline_review'
+        ];
+        $tier=static fn(string $job): int =>
+            in_array($job,$essential,true)?0:
+            (jrMasterDeferrableAiJob($job)?2:1);
+        usort($due,static fn($a,$b): int=>
+            $tier((string)$a)<=>$tier((string)$b));
+        foreach($due as $id){
             if($attempts>=4||microtime(true)-$started>35)break;
             if(!isset($registry[$id]))continue;
             // Recheck after each prior child. A busy shared host must not
