@@ -296,3 +296,50 @@ only afterwards a separate owner-authorized production deployment.
 
 All live connections and tests in that paragraph are **NOT YET DONE**.
 No claim of complete end-to-end implementation is authorized.
+
+
+## RSS evidence-chain hardening — further staged development
+
+The original feed observation and an independently fetched article are
+**different evidence objects**. Reusing the feed's content hash for each
+article would be misleading, and changes to the RSS index could duplicate
+many supposedly new article revisions. This workstream now separates:
+
+1. Legally acquired, original-JREI source-approved RSS/Atom FEED bytes.
+2. Idempotently discovered metadata/URLs in jrei_news_discovered_urls.
+3. Explicitly registered, independently authorized ORIGINAL JREI ARTICLE
+   source IDs matching each exact link, or a future original-JREI signed and
+   policy-limited automatic source-scope registrar.
+4. Original-JREI privately acquired **article-specific** content hashes.
+5. Independent official-source evidence review.
+6. Bilingual drafting in the approved owner style, original brand media,
+   internal links and exact proposed URLs.
+7. Immutable owner-reviewed, MFA-approved version.
+8. Authentic original CMS publication receipt before publication status,
+   index, RSS, sitemap, social distribution or email claims.
+
+Additional source-only modules:
+- php/feed-discovery.php
+- php/approved-feed-item-link.php
+- delegated-source-scopes.mjs
+- docs/migrations/20261024_jrei_news_feed_discovery_mother_mysql.sql
+
+These controls make automatic discovery safe to *plan*, but the existing
+JREI source registrar must eventually authorize actual article registrations
+within permitted source scopes. No article downloads, tests or source
+activations have been performed by this new workstream.
+
+### No-test development remains in force
+
+All source-only work is committed under migration/bertina-linux6 with
+conventional [skip ci] commit messages. No manual suite, build, smoke test,
+integration test, SSL check, migration, live crawler, email submission,
+public sitemap request, provider model call or production deployment has
+been started from this chat. Whether third-party repository automations
+run is independently governed by GitHub configuration, not evidence of
+testing performed here.
+
+The next real step after isolated coding is safe shared-file integration
+with the already-running developers; only once ALL code and mandatory
+original-JREI/CMS/eco bindings are finished should the owner authorize the
+single final test campaign, followed by an independently approved release.
