@@ -95,7 +95,11 @@ function jrNewsPersistObservedCandidate(
                AND s.verified_at IS NOT NULL
                AND p.scheduling_state='APPROVED'
                AND p.rights_reviewed=1 AND p.robots_terms_reviewed=1
-               AND p.transport_reviewed=1 LIMIT 1 FOR UPDATE"
+               AND p.transport_reviewed=1
+               AND p.rights_evidence_sha256 REGEXP '^[a-f0-9]{64}$'
+               AND p.robots_terms_evidence_sha256 REGEXP '^[a-f0-9]{64}$'
+               AND p.transport_evidence_sha256 REGEXP '^[a-f0-9]{64}$'
+             LIMIT 1 FOR UPDATE"
         );
         $q->execute([$candidate['sourceId'],
             hash('sha256',(string)$sourceAuthority['canonicalUrl']),
@@ -124,6 +128,9 @@ function jrNewsPersistObservedCandidate(
                AND ap.rights_reviewed=1
                AND ap.robots_terms_reviewed=1
                AND ap.transport_reviewed=1
+               AND ap.rights_evidence_sha256 REGEXP '^[a-f0-9]{64}$'
+               AND ap.robots_terms_evidence_sha256 REGEXP '^[a-f0-9]{64}$'
+               AND ap.transport_evidence_sha256 REGEXP '^[a-f0-9]{64}$'
              LIMIT 1 FOR UPDATE"
         );
         $q->execute([$monitor['monitor_id'],$sourceHash,$url]);
