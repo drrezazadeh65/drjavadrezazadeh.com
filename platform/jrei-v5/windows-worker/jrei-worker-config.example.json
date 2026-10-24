@@ -21,6 +21,7 @@
     "modelFile": "C:\\JREI-Private\\models\\Qwen3-4B-Q4_K_M.gguf",
     "endpoint": "http://127.0.0.1:8080/v1/chat/completions",
     "pollSeconds": 3,
+    "idlePollMaxSeconds": 20,
     "modelTimeoutMs": 30000,
     "maxContextTokens": 240,
     "backendExe": "C:\\JREI-Private\\runtime\\llama-server.exe",
