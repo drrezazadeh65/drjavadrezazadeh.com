@@ -261,6 +261,15 @@ function jrLocalChatWorkerPoll(PDO $pdo,array $cfg,string $node,array $body): ar
        ->execute([$model,$version,$now,$now,$node]);
     $pdo->beginTransaction();
     try {
+        // Match the original hybrid worker's lock discipline: concurrent
+        // signed polls by one node must never lease two different jobs.
+        $lock=$pdo->prepare("SELECT node_id FROM jrei_hybrid_nodes
+          WHERE node_id=? AND status='ENABLED' AND revoked_at IS NULL
+            AND permitted_task='REVIEWED_PUBLIC_RETRIEVAL_EVALUATION'
+          FOR UPDATE");
+        $lock->execute([$node]);
+        if($lock->fetchColumn()===false)
+            throw new DomainException('local_chat_node_disabled_during_poll');
         // A missing completion is an UNKNOWN outcome, never a retry.
         $pdo->prepare("UPDATE jrei_local_chat_jobs SET status='FAILED',
           request_ciphertext=NULL,response_ciphertext=NULL,
