@@ -21,7 +21,7 @@ $pdo=new PDO($dsn,$user,$password,[
 $pdo->exec('CREATE TABLE customer_accounts (
     id CHAR(36) PRIMARY KEY,status VARCHAR(20) NOT NULL,
     email_verified_at DATETIME NULL
-) ENGINE=InnoDB');
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci');
 $pdo->exec('CREATE TABLE jrei_exam_sources (
     source_id CHAR(36) PRIMARY KEY,
     source_title VARCHAR(200) NOT NULL,
@@ -32,7 +32,7 @@ $pdo->exec('CREATE TABLE jrei_exam_sources (
     verified_at BIGINT UNSIGNED NOT NULL,
     is_revoked TINYINT NOT NULL,
     is_superseded TINYINT NOT NULL
-) ENGINE=InnoDB');
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci');
 $pdo->exec('CREATE TABLE jrei_ka_source_policies (
     source_id CHAR(36) PRIMARY KEY,
     revision BIGINT UNSIGNED NOT NULL,
@@ -42,7 +42,7 @@ $pdo->exec('CREATE TABLE jrei_ka_source_policies (
     robots_terms_reviewed TINYINT NOT NULL,
     transport_reviewed TINYINT NOT NULL,
     priority_tier VARCHAR(10) NOT NULL
-) ENGINE=InnoDB');
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci');
 $dir=dirname(__DIR__,3).'/docs/migrations';
 foreach([
     '20261024_jrei_news_intelligence_mother_mysql.sql',
