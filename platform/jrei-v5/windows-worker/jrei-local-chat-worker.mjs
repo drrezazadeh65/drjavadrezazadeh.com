@@ -148,7 +148,7 @@ export async function runLocalChatWorker(config,key,{post,log,signal,fetchImpl}=
             try{
               const status=await post(config,key,pollEndpoint,{
                 modelId:model.modelId,modelVersion:model.modelVersion,
-                modelSha256:model.modelSha256
+                modelSha256:model.modelSha256,heartbeatOnly:true
               });
               if(status?.ok!==true||status.job!==null)
                 log('LOCAL_CHAT_HEARTBEAT_REQUIRES_REVIEW');
