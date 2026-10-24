@@ -119,9 +119,15 @@ function jrNewsStageVerifiedFeedLinkSuggestions(
              VALUES(?,?,?,?,?,?,?,?,?,?,
                     'REQUIRES_ARTICLE_SOURCE_APPROVAL')
              ON DUPLICATE KEY UPDATE
+               -- Original JREI article approval stays bound to the exact
+               -- URL even as subsequent unreviewed feed metadata changes.
+               -- Keep that approval intact and do not allow an unreviewed
+               -- feed title to overwrite the formerly reviewed headline.
                last_seen_at=VALUES(last_seen_at),
                latest_feed_sha256=VALUES(latest_feed_sha256),
-               discovered_headline=VALUES(discovered_headline)"
+               discovered_headline=IF(
+                 review_state='REQUIRES_ARTICLE_SOURCE_APPROVAL',
+                 VALUES(discovered_headline),discovered_headline)"
         );
         foreach($feed['candidates'] as $entry){
             if(!is_string($entry['url']??null)||
