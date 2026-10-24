@@ -8,6 +8,7 @@ declare(strict_types=1);
  * drafts for human owner review, but cannot authorize publication.
  */
 if (!defined('BERTINA_API_BOOTSTRAPPED')) { http_response_code(404); exit; }
+require_once __DIR__.'/candidate-intake.php';
 
 function jrNewsCleanEditorialLanguage(array $input,string $language): array {
     if (($input['language']??null)!==$language)
