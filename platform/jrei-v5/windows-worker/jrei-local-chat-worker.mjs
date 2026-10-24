@@ -37,6 +37,15 @@ export function validateLocalChatConfig(config){
      typeof c.maxContextTokens!=='number'||!Number.isInteger(c.maxContextTokens)||
      c.maxContextTokens<128||c.maxContextTokens>1200)
     throw Error('JREI_LOCAL_MODEL_OWNER_APPROVAL_REQUIRED');
+  // Validate endpoint before even polling a signed job. Never make the
+  // local model accessible through a public/private-network hostname.
+  let endpoint;
+  try{endpoint=new URL(c.endpoint);}catch{throw Error('MODEL_MUST_USE_EXACT_WINDOWS_LOOPBACK');}
+  if(endpoint.protocol!=='http:'||endpoint.hostname!=='127.0.0.1'||
+     endpoint.pathname!=='/v1/chat/completions'||!endpoint.port||
+     Number(endpoint.port)<1024||Number(endpoint.port)>65535||
+     endpoint.username||endpoint.password||endpoint.search||endpoint.hash)
+    throw Error('MODEL_MUST_USE_EXACT_WINDOWS_LOOPBACK');
   return Object.freeze({...c});
 }
 
