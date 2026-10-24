@@ -124,3 +124,69 @@ function jrNewsExistingJreiApprovedSources(PDO $pdo,int $limit=200): array {
         'downloadsPerformed'=>0,'publicNewsPublished'=>false
     ];
 }
+
+
+/**
+ * READ ONLY: relate News monitors to jobs and verified observations held by
+ * the ORIGINAL JREI-KA scheduler. An accepted queue receipt does not
+ * establish that a source was downloaded or scientifically reviewed.
+ * No private document bytes, worker keys, student data or source tokens.
+ */
+function jrNewsOwnerOriginalAcquisitionSnapshot(
+    PDO $pdo,array $ownerSession,int $limit=50
+): array {
+    jrNewsOwnerAuthority($ownerSession);
+    if($limit<1||$limit>100)
+        throw new InvalidArgumentException('news_original_jobs_limit_invalid');
+    $q=$pdo->prepare(
+        "SELECT j.job_id,j.source_id,j.job_state,j.priority_tier,
+                j.source_policy_revision,j.created_at,j.updated_at,
+                j.bytes_observed,j.observed_digest,j.last_failure_code,
+                s.source_title,
+                n.monitor_id,n.enabled AS news_monitor_enabled,
+                o.observation_id,o.state AS observation_state,
+                o.content_sha256 AS observation_content_sha256
+         FROM jrei_ka_jobs j
+         JOIN jrei_news_monitors n ON n.jrei_source_reference=j.source_id
+         JOIN jrei_exam_sources s ON s.source_id=j.source_id
+         LEFT JOIN jrei_ka_private_observations o ON o.job_id=j.job_id
+         ORDER BY j.created_at DESC,j.job_id DESC LIMIT ?"
+    );
+    $q->bindValue(1,$limit,PDO::PARAM_INT);
+    $q->execute();
+    $items=[];
+    foreach($q->fetchAll(PDO::FETCH_ASSOC) as $row){
+        $observation=$row['observation_id']!==null;
+        $digest=$row['observed_digest'];
+        $observationHash=$row['observation_content_sha256'];
+        $matchingReceipt=$observation&&is_string($digest)&&
+            preg_match('/^[a-f0-9]{64}$/D',$digest)===1&&
+            hash_equals($digest,(string)$observationHash);
+        $items[]=[
+            'jobId'=>$row['job_id'],
+            'sourceId'=>$row['source_id'],
+            'sourceTitle'=>(string)$row['source_title'],
+            'monitorId'=>$row['monitor_id'],
+            'monitorCurrentlyEnabled'=>(int)$row['news_monitor_enabled']===1,
+            'originalJobState'=>(string)$row['job_state'],
+            'originalPriority'=>(string)$row['priority_tier'],
+            'originalPolicyRevision'=>(int)$row['source_policy_revision'],
+            'createdAt'=>(int)$row['created_at'],
+            'updatedAt'=>(int)$row['updated_at'],
+            'bytesObserved'=>(int)$row['bytes_observed'],
+            'failureCode'=>$row['last_failure_code'],
+            'privateObservationReceiptMatches'=>$matchingReceipt,
+            'originalObservationState'=>$observation?
+                (string)$row['observation_state']:null,
+            'scientificallyValidated'=>false,
+            'publishedByNews'=>false
+        ];
+    }
+    return [
+        'schema'=>'jr.jrei.news-original-jrei-queue-observability.v1',
+        'items'=>$items,'returnedCount'=>count($items),
+        'originalJreiSchedulerOnly'=>true,
+        'queueReceiptIsNotAcquisitionOrApproval'=>true,
+        'noOriginalJobsModified'=>true
+    ];
+}
