@@ -46,7 +46,7 @@ function jrNewsPrivateOwnerPreview(PDO $pdo,array $session,
         throw new RuntimeException('news_owner_preview_exact_digest_mismatch');
     }
     $draft=json_decode($row['bilingual_editorial_json'],true,24,
-        JSON_INVALID_UTF8_SUBSTITUTE);
+        JSON_THROW_ON_ERROR);
     if (!is_array($draft)) {
         throw new RuntimeException('news_editorial_json_invalid');
     }
