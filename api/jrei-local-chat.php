@@ -181,19 +181,45 @@ function jrLocalChatEnqueue(PDO $pdo,array $cfg,array $body): array {
     if(strlen($cipher)>16384)throw new DomainException('local_chat_cipher_too_large');
     $id=jrHybridNewUuid();$token=bin2hex(random_bytes(32));
     $now=time();
-    $pdo->beginTransaction();
+    // Counting queued rows inside separate transactions cannot enforce a
+    // global maximum under concurrent visitors. The existing MariaDB
+    // advisory-lock facility serializes only this short enqueue critical
+    // section, never inference, payment or public-search traffic.
+    $queueLock='jr-local-chat-capacity-v1';
+    $lockHeld=false;
     try{
-        $q=$pdo->query("SELECT COUNT(*) FROM jrei_local_chat_jobs
-          WHERE status IN ('QUEUED','LEASED') AND expires_at>".(int)$now);
-        if((int)$q->fetchColumn()>=20)
-            throw new DomainException('jrei_local_queue_full');
-        $q=$pdo->prepare("INSERT INTO jrei_local_chat_jobs
-          (job_id,retrieval_secret_sha256,status,request_ciphertext,
-           expires_at,created_at,updated_at)
-          VALUES (?,?,'QUEUED',?,?,?,?)");
-        $q->execute([$id,hash('sha256',$token),$cipher,$now+70,$now,$now]);
-        $pdo->commit();
-    }catch(Throwable $e){if($pdo->inTransaction())$pdo->rollBack();throw $e;}
+        $lock=$pdo->query("SELECT GET_LOCK('jr-local-chat-capacity-v1',0)");
+        $lockHeld=(int)$lock->fetchColumn()===1;
+        if(!$lockHeld)throw new DomainException('jrei_local_queue_busy');
+        $pdo->beginTransaction();
+        try{
+            $q=$pdo->prepare("SELECT COUNT(*) FROM jrei_local_chat_jobs
+              WHERE status IN ('QUEUED','LEASED') AND expires_at>?");
+            $q->execute([$now]);
+            if((int)$q->fetchColumn()>=20)
+                throw new DomainException('jrei_local_queue_full');
+            $q=$pdo->prepare("INSERT INTO jrei_local_chat_jobs
+              (job_id,retrieval_secret_sha256,status,request_ciphertext,
+               expires_at,created_at,updated_at)
+              VALUES (?,?,'QUEUED',?,?,?,?)");
+            $q->execute([$id,hash('sha256',$token),$cipher,$now+70,$now,$now]);
+            $pdo->commit();
+        }catch(Throwable $e){
+            if($pdo->inTransaction())$pdo->rollBack();
+            throw $e;
+        }
+    }finally{
+        if($lockHeld){
+            try{
+                $release=$pdo->prepare('SELECT RELEASE_LOCK(?)');
+                $release->execute([$queueLock]);
+            }catch(Throwable $e){
+                // The nonpersistent PDO connection will also release it
+                // on close. Never disclose DB details in a public response.
+                error_log('JREI local queue lock release unavailable');
+            }
+        }
+    }
     return ['ok'=>true,'schema'=>'jr.jrei.local-chat-queued.v1',
       'pending'=>true,'jobId'=>$id,'retrievalToken'=>$token,
       'runtime'=>'JREI_LOCAL_INFERENCE_PENDING',
