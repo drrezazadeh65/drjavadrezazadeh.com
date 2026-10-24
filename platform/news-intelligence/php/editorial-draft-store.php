@@ -60,7 +60,9 @@ function jrNewsStoreEvidenceReviewedDraft(
             !preg_match('#^/(?:fa|en)/[a-z0-9/-]+/$#D',$item['path'])||
             str_contains($item['path'],'//')||
             !is_string($item['anchor']??null)||
-            mb_strlen($item['anchor'],'UTF-8')>120) {
+            (function_exists('mb_strlen') ?
+                mb_strlen($item['anchor'],'UTF-8')>120 :
+                strlen($item['anchor'])>480)) {
             throw new InvalidArgumentException('news_draft_link_invalid');
         }
         $sanitized[]=[
