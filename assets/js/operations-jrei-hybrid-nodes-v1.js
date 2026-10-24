@@ -599,6 +599,25 @@
        Number.isSafeInteger(lm.recentlySignedGenerativeWorkers)?
          number(lm.recentlySignedGenerativeWorkers):
          T('نامعلوم؛ دادهٔ معتبر در دسترس نیست','Unknown; authoritative data unavailable'));
+     if(Array.isArray(lm.generativeWorkerStates)){
+       for(const worker of lm.generativeWorkerStates.slice(0,8)){
+         if(typeof worker.nodeId!=='string')continue;
+         const state=worker.state==='RECENT_SIGNED_CHAT_POLL'?
+           T('امضای تازه؛ آزمون مدل همچنان ضروری است',
+             'Recent signature; model dialogue still requires acceptance'):
+           worker.state==='NO_RECENT_SIGNED_CHAT_POLL'?
+             T('بدون امضای مکالمه تازه','No recent signed chat poll'):
+           worker.state==='MODEL_REVIEW_REQUIRED'?
+             T('مدل نیازمند تأیید مستقل','Model independent review required'):
+           worker.state==='NODE_DISABLED_OR_REVOKED'?
+             T('نود اصلی غیرفعال یا لغوشده','Original node disabled or revoked'):
+           T('مجوز مکالمه خاموش','Generative permission disabled');
+         const seen=Number.isSafeInteger(worker.lastSignedAt)?
+           T('؛ آخرین امضا: ','; last signed: ')+date(worker.lastSignedAt):'';
+         cell(summary,T('Worker مکالمه','Generative worker')+' '+
+           worker.nodeId.slice(0,8),state+seen);
+       }
+     }
      cell(summary,T('پیام‌های در صف JREI-LM','JREI-LM queued and leased requests'),
        number(lm.pendingOrLeasedJobs));
      cell(summary,T('کلید رمزگذاری خصوصی','Private message encryption key'),
