@@ -76,7 +76,7 @@ function jrNewsPrivateRecordDecision(PDO $pdo,array $session,
              JOIN jrei_news_discovered_urls d
                ON d.monitor_id=c.monitor_id
               AND d.canonical_url_sha256=SHA2(c.source_url,256)
-              AND d.review_state='ORIGINAL_JREI_ARTICLE_APPROVED'
+              AND d.review_state=\'ORIGINAL_JREI_ARTICLE_APPROVED\'
              JOIN jrei_news_evidence_reviews e
                ON e.review_id=v.evidence_review_id
              WHERE v.revision_id=? FOR UPDATE'
