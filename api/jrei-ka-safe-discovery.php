@@ -2,6 +2,7 @@
 declare(strict_types=1);
 if(!defined('BERTINA_API_BOOTSTRAPPED')){http_response_code(404);exit;}
 require_once __DIR__.'/jrei-ka-private-https.php';
+require_once __DIR__.'/jrei-ka-universal-discovery.php';
 
 /**
  * Autonomously discover candidate PDF documents only from an HTML seed
@@ -95,19 +96,41 @@ function jrKaStageHtmlDiscovery(PDO $pdo,string $sourceId,
     string $observationId,string $seedUrl,string $html,int $now): int {
     if(!validUuid($sourceId)||!validUuid($observationId))
         throw new DomainException('ka_discovery_reference_invalid');
-    $found=jrKaDiscoverSameHostPdfLinks($seedUrl,$html);
+    // Preserve previously staged exam/PDF candidates and add independently
+    // reviewable Word, spreadsheet, slides, text and HTML links. Discovery
+    // never authorizes a new source, fetch or extraction job.
+    $found=[];
+    foreach(jrKaDiscoverSameHostPdfLinks($seedUrl,$html) as $item){
+        $found[$item['sha256']]=[
+            'url'=>$item['url'],'sha256'=>$item['sha256'],
+            'label'=>$item['label'],'kind'=>'POTENTIAL_EXAM_DOCUMENT'
+        ];
+    }
+    foreach(jrKaDiscoverEducationalLinks($seedUrl,$html) as $item){
+        if(isset($found[$item['sha256']]))continue;
+        // Enforce the existing candidate_label column bound without
+        // cutting a multi-byte character when mbstring is unavailable.
+        $label=(string)($item['label']??'Educational resource');
+        if(!preg_match('/^.{0,180}/us',$label,$prefix))continue;
+        $label=$prefix[0]!==''?$prefix[0]:'Educational resource';
+        $found[$item['sha256']]=[
+            'url'=>$item['url'],'sha256'=>$item['sha256'],
+            'label'=>$label,'kind'=>'POTENTIAL_EDUCATIONAL_FILE'
+        ];
+    }
     if(!$found)return 0;
     $q=$pdo->prepare("INSERT INTO jrei_ka_discovery_candidates
       (candidate_id,seed_source_id,originating_observation_id,
        candidate_url,candidate_url_sha256,candidate_label,
        discovery_kind,state,first_discovered_at,last_discovered_at)
-      VALUES (?,?,?,?,?,?,'POTENTIAL_EXAM_DOCUMENT',
+      VALUES (?,?,?,?,?,?,?,
        'DISCOVERED_REQUIRES_RIGHTS_REVIEW',?,?)
       ON DUPLICATE KEY UPDATE last_discovered_at=VALUES(last_discovered_at)");
     $new=0;
     foreach($found as $item){
         $q->execute([jrKaUuid(),$sourceId,$observationId,
-            $item['url'],$item['sha256'],$item['label'],$now,$now]);
+            $item['url'],$item['sha256'],$item['label'],
+            $item['kind'],$now,$now]);
         if($q->rowCount()===1)$new++;
     }
     return $new;
