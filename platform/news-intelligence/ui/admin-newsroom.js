@@ -109,6 +109,7 @@ export function mountNewsOwnerPanel({root,csrfResolver,
           }
         }
       }catch{
+        if(readVersion!==loadRevision)return;
         const unavailable=document.createElement('p');
         unavailable.textContent=say(
           'شاخص‌های مدیریتی فعلاً از دیتابیس مادر قابل تأیید نیستند.',
@@ -194,6 +195,7 @@ export function mountNewsOwnerPanel({root,csrfResolver,
           sources.append(empty);
         }
       }catch{
+        if(readVersion!==loadRevision)return;
         const missing=document.createElement('p');
         missing.textContent=say('فهرست منابع در حال حاضر قابل تأیید نیست.',
           'Source monitor inventory is currently unavailable.');
@@ -289,6 +291,7 @@ export function mountNewsOwnerPanel({root,csrfResolver,
           sources.append(section);
         }
       }catch{
+        if(readVersion!==loadRevision)return;
         const unavailable=document.createElement('p');
         unavailable.textContent=say('منابع واجد شرایط برای ثبت قابل دریافت نیستند.',
           'Eligible original sources are currently unavailable.');
@@ -322,6 +325,7 @@ export function mountNewsOwnerPanel({root,csrfResolver,
           actions.append(b);
         }
         view.addEventListener('click',async()=>{
+          const previewReadVersion=loadRevision;
           view.disabled=true;
           reviewButtons.forEach(button=>{button.disabled=true;});
           fullPreview.replaceChildren();
@@ -330,6 +334,7 @@ export function mountNewsOwnerPanel({root,csrfResolver,
           try{
             const data=await request('/owner/preview?revisionId='+
               encodeURIComponent(item.revision_id),{method:'GET'});
+            if(previewReadVersion!==loadRevision)return;
             if(data.schema!=='jr.jrei.news-owner-full-preview.v1'||
               data.approvalDigest!==item.approval_digest||
               data.revisionId!==item.revision_id||
