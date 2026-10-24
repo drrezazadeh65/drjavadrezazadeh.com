@@ -65,8 +65,10 @@ export function makeBilingualNewsReviewPackage({
   assert(plain(media)&&media.rightsReviewed===true&&
     media.isDocumentaryPhoto!==undefined,
     'NEWS_EDITORIAL_MEDIA_NOT_REVIEWED');
-  const links=suggestSemanticLinks({article:{language:'fa',
-    topics:candidate.topics??[]},approvedRoutes:relatedRoutes});
+  const links=[...suggestSemanticLinks({article:{language:'fa',
+    topics:candidate.topics??[]},approvedRoutes:relatedRoutes,maxLinks:8}),
+    ...suggestSemanticLinks({article:{language:'en',
+    topics:candidate.topics??[]},approvedRoutes:relatedRoutes,maxLinks:8})];
   const verification={
     sourceRegistryRead:true,evidenceReviewed:true,issuerVerified:true,
     sourceStillCurrent:true,evidenceSha256:candidate.evidenceSha256,
