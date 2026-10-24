@@ -552,6 +552,8 @@ function jrLocalChatOwnerSnapshot(PDO $pdo,array $cfg): array {
       'privateSwitchEnabled'=>($cfg['jrei_local_chat_enabled']??false)===true,
       'ownerPublicReleaseAccepted'=>($cfg['jrei_local_public_release_accepted']??false)===true,
       'privateEncryptionKeyConfigured'=>jrLocalChatKey($cfg)!==null,
+      'privateRetentionWorkerReady'=>false,
+      'approvedPublicEvidenceIndexReadable'=>is_readable(jrAiPublicIndexPath()),
       'live'=>false,'authorizedNodes'=>null,
       'recentlySignedGenerativeWorkers'=>null,
       'pendingOrLeasedJobs'=>null,'provenModelQuality'=>false,
@@ -561,6 +563,9 @@ function jrLocalChatOwnerSnapshot(PDO $pdo,array $cfg): array {
     ];
     if(!$ready)return $result;
     try{
+        // The cleanup Cron must have demonstrably completed recently.
+        // Its presence or a setting by itself is never privacy readiness.
+        $result['privateRetentionWorkerReady']=jrLocalChatRetentionReady($pdo,$cfg);
         $result['authorizedNodes']=(int)$pdo->query(
           'SELECT COUNT(*) FROM jrei_local_chat_node_authorizations WHERE enabled=1'
         )->fetchColumn();
