@@ -34,17 +34,24 @@ export async function queueDueNewsAcquisitions({
       continue;
     }
     const observation=observationsBySource[source.sourceId]??{};
+    // The ORIGINAL JREI monitor supplies requestedNewsPriority. The
+    // generic source adapter's optional urgentMonitoring flag is secondary.
+    // Even P0 is bounded by the real approved source poll interval.
+    const priority=source.requestedNewsPriority==='P0'||
+      source.urgentMonitoring===true?'P0':
+      source.requestedNewsPriority==='P1'?'P1':'P2';
     const decision=nextSourcePoll({source,nowUtc,
       lastCheckedAt:observation.lastCheckedAt??null,
-      priority:source.urgentMonitoring===true?'P0':'P2',
+      priority,
       hostBackoffUntil:observation.hostBackoffUntil??null,
       sourceSuspended:observation.sourceSuspended===true});
     if(!decision.eligible){blocked.push({
       sourceId:source.sourceId,reason:decision.reason});continue;}
-    eligible.push({source,decision});
+    eligible.push({source,decision,priority});
   }
-  eligible.sort((a,b)=>Number(b.source.urgentMonitoring===true)-
-    Number(a.source.urgentMonitoring===true)||a.source.sourceId.localeCompare(b.source.sourceId));
+  const priorityRank={P0:0,P1:1,P2:2};
+  eligible.sort((a,b)=>priorityRank[a.priority]-priorityRank[b.priority]||
+    a.source.sourceId.localeCompare(b.source.sourceId));
   // These signals must originate from the EXISTING private scheduler,
   // never from a browser or an untrusted source observation. Protect
   // public browsing and commerce before scheduling lower-priority crawling.
@@ -112,16 +119,20 @@ export async function queueDueNewsAcquisitions({
       continue;
     }
     const host=new URL(item.source.canonicalUrl).hostname;
-    if(seenHosts.has(host))continue;
+    if(seenHosts.has(host)){
+      blocked.push({sourceId:item.source.sourceId,
+        reason:'HOST_ALREADY_QUEUED_THIS_BATCH'});
+      continue;
+    }
     seenHosts.add(host);
     // Reserves budget/lease in ORIGINAL JREI dispatcher transaction.
     const job={schema:'jr.jrei.news-acquisition-job.v1',
       sourceId:item.source.sourceId,
       sourcePolicyRevision:policyRevision,
       url:item.source.canonicalUrl,
-      requestReason:item.source.urgentMonitoring===true?
+      requestReason:item.priority==='P0'?
         'URGENT_NEWS_CHANGE_RECHECK':'REGULAR_NEWS_SOURCE_RECHECK',
-      priority:item.source.urgentMonitoring===true?'P0':'P2',
+      priority:item.priority,
       requestedAt:nowUtc,
       requireRobots:true,requireTerms:true,requireCurrentRights:true,
       requireDNSPinning:true,allowRedirectBypass:false,
