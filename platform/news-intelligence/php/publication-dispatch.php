@@ -36,10 +36,15 @@ function jrNewsStageApprovedPublication(
             "SELECT v.revision_id,v.candidate_id,v.approval_digest,
                     v.bilingual_editorial_json,v.editorial_state,
                     v.approved_image_ref,c.source_url,c.content_sha256,
+                    dsrc.approved_article_source_id,
                     d.decision_id,d.action_code,d.owner_account_id,
                     d.approval_digest AS decision_digest
              FROM jrei_news_editorial_versions v
              JOIN jrei_news_candidates c ON c.candidate_id=v.candidate_id
+             JOIN jrei_news_discovered_urls dsrc
+               ON dsrc.monitor_id=c.monitor_id
+              AND dsrc.canonical_url_sha256=SHA2(c.source_url,256)
+              AND dsrc.review_state='ORIGINAL_JREI_ARTICLE_APPROVED'
              JOIN jrei_news_owner_decisions d ON d.revision_id=v.revision_id
              WHERE v.revision_id=? AND d.action_code='APPROVE'
              ORDER BY d.decided_at DESC LIMIT 1 FOR UPDATE"
@@ -58,6 +63,7 @@ function jrNewsStageApprovedPublication(
             'revisionId'=>$revisionId,
             'approvalDigest'=>$row['approval_digest'],
             'sourceUrl'=>$row['source_url'],
+            'articleSourceId'=>$row['approved_article_source_id'],
             'evidenceSha256'=>$row['content_sha256'],
             'featuredImage'=>$row['approved_image_ref'],
             'faRoute'=>$faRoute,'enRoute'=>$enRoute,
