@@ -140,6 +140,7 @@ function jrNewsConfirmOriginalCmsPublication(
                     p.publisher_receipt_reference,p.fa_content_sha256,
                     p.en_content_sha256,p.revision_id,
                     v.approval_digest,v.editorial_state,
+                    v.bilingual_editorial_json,
                     d.action_code,d.approval_digest AS decision_digest
              FROM jrei_news_publications p
              JOIN jrei_news_editorial_versions v ON v.revision_id=p.revision_id
@@ -154,7 +155,9 @@ function jrNewsConfirmOriginalCmsPublication(
             $row['editorial_state']!=='OWNER_APPROVED' ||
             $row['action_code']!=='APPROVE' ||
             !hash_equals((string)$row['approval_digest'],
-                (string)$row['decision_digest'])) {
+                (string)$row['decision_digest']) ||
+            !hash_equals((string)$row['approval_digest'],
+                hash('sha256',(string)$row['bilingual_editorial_json']))) {
             throw new RuntimeException('news_publisher_receipt_approval_invalid');
         }
         $receipt=$readAndVerifyOriginalCmsReceipt([
