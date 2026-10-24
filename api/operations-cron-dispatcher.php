@@ -40,6 +40,11 @@ function operationsCronRegistry(): array {
         'fa'=>'ارزیابی یادگیری روزانه JREI','en'=>'JREI daily learning evaluator',
         'relative'=>'internal/jrei-daily-learning-worker.php',
         'defaultCadence'=>86400,'minimumCadence'=>86400,'sensitive'=>true],
+      'jrei_local_chat_retention'=>[
+        'fa'=>'حذف خودکار گفت‌وگوهای موقت رمزگذاری‌شدهٔ JREI-LM',
+        'en'=>'JREI-LM encrypted temporary conversation expiry',
+        'relative'=>'internal/jrei-local-chat-retention-worker.php',
+        'defaultCadence'=>300,'minimumCadence'=>300,'sensitive'=>true],
       'jrei_hybrid_incident_sensor'=>[
         'fa'=>'پایش اختلال دو Worker آموزشی','en'=>'JREI hybrid worker incident sensor',
         'relative'=>'internal/jrei-hybrid-incident-worker.php',
