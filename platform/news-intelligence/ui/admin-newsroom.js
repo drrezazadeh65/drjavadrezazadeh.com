@@ -122,6 +122,26 @@ export function mountNewsOwnerPanel({root,csrfResolver,
             media.textContent='Approved media reference: '+
               String(data.imageAssetReference??'not available');
             fullPreview.prepend(source,media);
+            if(typeof data.safeImagePreviewUrl==='string' &&
+              /^\/assets\/images\/[a-zA-Z0-9_./-]+$/.test(data.safeImagePreviewUrl)){
+              const image=document.createElement('img');
+              image.src=data.safeImagePreviewUrl;
+              image.alt=say('تصویر شاخص پیشنهادی خبر',
+                'Proposed licensed featured image');
+              image.loading='lazy';image.className='ni-admin-image';
+              fullPreview.prepend(image);
+            }
+            if(Array.isArray(data.relatedInternalLinks)){
+              const list=document.createElement('ul');
+              for(const item of data.relatedInternalLinks){
+                if(typeof item.anchor!=='string' ||
+                  typeof item.path!=='string')continue;
+                const li=document.createElement('li');
+                li.textContent=item.anchor+' — '+item.path;
+                list.append(li);
+              }
+              if(list.children.length)fullPreview.append(list);
+            }
             fullPreview.hidden=false;
             reviewButtons.forEach(button=>{button.disabled=false;});
             show(say('نسخه کامل نمایش داده شد؛ تصمیم را ثبت کنید.',
