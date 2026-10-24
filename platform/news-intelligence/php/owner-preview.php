@@ -51,6 +51,15 @@ function jrNewsPrivateOwnerPreview(PDO $pdo,array $session,
             $clean[$language][$key]=$text[$key];
         }
     }
+    $paths=$draft['routeProposal']??null;
+    if(!is_array($paths) ||
+        ($paths['schema']??null)!=='jr.jrei.news-bilingual-proposed-routes.v1' ||
+        !is_string($paths['faPath']??null) ||
+        !is_string($paths['enPath']??null) ||
+        !preg_match('#^/fa/akhbar/[a-z0-9-]+/$#D',$paths['faPath']) ||
+        !preg_match('#^/en/news/[a-z0-9-]+/$#D',$paths['enPath'])) {
+        throw new RuntimeException('news_owner_draft_route_proposal_not_reviewed');
+    }
     $asset=$row['image_asset_ref']??null;
     if (is_string($asset) && str_starts_with($asset,'assets/images/')) {
         $asset='/'.$asset;
@@ -80,6 +89,8 @@ function jrNewsPrivateOwnerPreview(PDO $pdo,array $session,
         'sourceUrl'=>$row['source_url'],
         'evidenceSha256'=>$row['content_sha256'],
         'imageAssetReference'=>$row['image_asset_ref'],
+        'proposedBilingualRoutes'=>[
+            'fa'=>$paths['faPath'],'en'=>$paths['enPath']],
         'safeImagePreviewUrl'=>$safeImageUrl,
         'relatedInternalLinks'=>$related,
         'fa'=>$clean['fa'],'en'=>$clean['en'],
