@@ -97,7 +97,9 @@ function jrNewsApproveOfficialExamMilestone(
                  FROM jrei_news_exam_follows f
                  WHERE f.milestone_id=? AND f.follow_state='ACTIVE'
                  ON DUPLICATE KEY UPDATE
-                   follow_state='ACTIVE'"
+                   -- An existing explicit withdrawal is authoritative.
+                   -- Date corrections must not silently re-subscribe a user.
+                   follow_state=follow_state"
             )->execute([$milestoneId,$milestoneId,$milestoneId,
                 $milestoneId,$milestoneId,$milestoneId,$nowEpoch,$oldId]);
             $pdo->prepare(
