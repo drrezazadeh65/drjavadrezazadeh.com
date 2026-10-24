@@ -1433,7 +1433,14 @@ if(in_array($path,['/assistant/v1/chat','/assistant/v1/local/result',
          ['same-origin','none'],true))
         fail('assistant_origin_forbidden',403);
     if(!($aiDb instanceof PDO))fail('assistant_unavailable',503);
-    if(!rateAllowed($aiDb,'jrei_ai_public','public',18,600))
+    // A local inference job involves bounded short polling; never count all
+    // those polls as new expensive conversation requests.
+    $bucketAction=$path==='/assistant/v1/chat'?'jrei_ai_public':
+      ($path==='/assistant/v1/local/result'?'jrei_local_result':'jrei_local_cancel');
+    $limit=$path==='/assistant/v1/chat'?6:
+      ($path==='/assistant/v1/local/result'?70:12);
+    $window=$path==='/assistant/v1/chat'?600:180;
+    if(!rateAllowed($aiDb,$bucketAction,'public',$limit,$window))
         fail('assistant_rate_limited',429);
     try{
         $body=jsonBody();
