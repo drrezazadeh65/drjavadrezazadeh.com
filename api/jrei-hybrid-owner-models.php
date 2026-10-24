@@ -151,7 +151,7 @@ function jrHybridModelOwnerChange(PDO $pdo,string $actor,array $body): array {
             // Hash-only audit; does not copy benchmark data or private model
             // weights to Bertina. The owner retains the original evidence.
             operationsAudit($pdo,$actor,'jrei_local_model_owner_verified',
-               $id.':'.$version.':'.$node.':'.$fixture.':'.$evidence);
+               hash('sha256',$id.':'.$version.':'.$node.':'.$fixture.':'.$evidence));
             $pdo->commit();
         }catch(Throwable $e){
             if($pdo->inTransaction())$pdo->rollBack();
