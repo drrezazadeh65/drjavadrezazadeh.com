@@ -111,9 +111,9 @@ function jrNewsStageVerifiedFeedLinkSuggestions(
                AND p.rights_reviewed=1
                AND p.robots_terms_reviewed=1
                AND p.transport_reviewed=1
-               AND p.rights_evidence_sha256 IS NOT NULL
-               AND p.robots_terms_evidence_sha256 IS NOT NULL
-               AND p.transport_evidence_sha256 IS NOT NULL
+               AND p.rights_evidence_sha256 REGEXP '^[a-f0-9]{64}$'
+               AND p.robots_terms_evidence_sha256 REGEXP '^[a-f0-9]{64}$'
+               AND p.transport_evidence_sha256 REGEXP '^[a-f0-9]{64}$'
              LIMIT 1 FOR UPDATE"
         );
         $current->execute([
