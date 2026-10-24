@@ -11,6 +11,19 @@
     "fa": "دستیار دکتر رضازاده",
     "en": "Dr. Rezazadeh Assistant"
   },
+  "future_experience_contract": {
+    "product_identity": "JREI_INDEPENDENT_EDUCATIONAL_ASSISTANT",
+    "aspiration": "CHATGPT_CLASS_CONVERSATIONAL_EXPERIENCE",
+    "not_chatgpt_affiliation_or_equivalent_model_claim": true,
+    "binding_document": "docs/governance/JREI_CHATGPT_CLASS_FUTURE_EXPERIENCE_STANDARD_20261024.md",
+    "mobile_first_bilingual": true,
+    "live_model_inference_verified": false,
+    "multiformat_ingestion_end_to_end_verified": false,
+    "long_term_user_memory_enabled": false,
+    "autonomous_production_schema_changes_enabled": false,
+    "continuous_self_training_enabled": false,
+    "status": "SOURCE_STAGE_NOT_PRODUCTION_ACCEPTED"
+  },
   "public_endpoint": null,
   "runtime": "STATIC_BROWSER_FALLBACK",
   "default_model": null,
