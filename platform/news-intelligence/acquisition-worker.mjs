@@ -33,6 +33,22 @@ export async function queueDueNewsAcquisitions({
         reason:'INDEPENDENT_SOURCE_APPROVAL_MISSING'});
       continue;
     }
+    // This orchestrator is a *projection* of a real JREI-KA source and
+    // monitor, never a generic metadata crawler. Refuse unbound source rows
+    // rather than inventing a revision or promoting P0 from a free-form flag.
+    if(source.jreiSourceReference!==source.sourceId||
+       !isId(source.jreiMonitorId)||
+       !Number.isSafeInteger(source.originalJreiPolicyRevision)||
+       source.originalJreiPolicyRevision<1||
+       !Number.isInteger(source.effectiveJreiPolicyMinMinutes)||
+       source.effectiveJreiPolicyMinMinutes<60||
+       source.effectiveJreiPolicyMinMinutes>1440||
+       source.pollIntervalMinutes<source.effectiveJreiPolicyMinMinutes||
+       !['P0','P1','P2'].includes(source.requestedNewsPriority)){
+      blocked.push({sourceId:source.sourceId,
+        reason:'ORIGINAL_APPROVED_JREI_MONITOR_BINDING_REQUIRED'});
+      continue;
+    }
     const observation=observationsBySource[source.sourceId]??{};
     // The ORIGINAL JREI monitor supplies requestedNewsPriority. The
     // generic source adapter's optional urgentMonitoring flag is secondary.
