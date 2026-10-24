@@ -15,6 +15,7 @@ on:
       - "en/account/admin/index.html"
       - "tests/jrei-*.test.mjs"
       - "tests/jrei*.test.mjs"
+      - "tests/jrei-*.php"
       - "tests/educational-intelligence-*.test.mjs"
   workflow_dispatch:
 permissions:
@@ -51,6 +52,10 @@ jobs:
           for file in api/jrei-*.php api/internal/jrei-daily-learning-worker.php api/operations-cron-dispatcher.php api/internal/operations-master-dispatcher.php; do
             php -l "$file"
           done
+      - name: Verify universal discovery and self-improvement offline PHP regressions
+        run: |
+          php tests/jrei-universal-discovery-offline.php
+          php tests/jrei-self-improvement-offline.php
       - name: Assert private worker is outbound and nothing is deployed
         run: |
           node -e "const fs=require('fs');const s=fs.readFileSync('platform/jrei-v5/windows-worker/jrei-worker.mjs','utf8');if(!s.includes('redirect:\x27error\x27')||s.includes('createServer('))process.exit(1)"
