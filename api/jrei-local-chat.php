@@ -250,7 +250,7 @@ function jrLocalChatWorkerPoll(PDO $pdo,array $cfg,string $node,array $body): ar
           WHERE status='LEASED' AND leased_to_node=".$pdo->quote($node));
         if((int)$q->fetchColumn()>0){$pdo->commit();
             return ['ok'=>true,'job'=>null];}
-        $q=$pdo->prepare("SELECT job_id,request_ciphertext
+        $q=$pdo->prepare("SELECT job_id,request_ciphertext,expires_at
           FROM jrei_local_chat_jobs WHERE status='QUEUED'
             AND expires_at>? ORDER BY created_at ASC,job_id ASC LIMIT 1 FOR UPDATE");
         $q->execute([$now]);$row=$q->fetch(PDO::FETCH_ASSOC);
@@ -266,12 +266,13 @@ function jrLocalChatWorkerPoll(PDO $pdo,array $cfg,string $node,array $body): ar
           status='LEASED',leased_to_node=?,lease_secret_sha256=?,
           lease_expires_at=?,attempt_count=attempt_count+1,updated_at=?
           WHERE job_id=? AND status='QUEUED'");
-        $q->execute([$node,hash('sha256',$secret),$now+42,$now,$row['job_id']]);
+        $leaseUntil=min($now+42,(int)$row['expires_at']);
+        $q->execute([$node,hash('sha256',$secret),$leaseUntil,$now,$row['job_id']]);
         if($q->rowCount()!==1)throw new DomainException('local_chat_lease_race');
         $pdo->commit();
         return ['ok'=>true,'job'=>[
           'jobId'=>$row['job_id'],'leaseToken'=>$secret,
-          'expiresAt'=>$now+42,'messages'=>$request['messages']]];
+          'expiresAt'=>$leaseUntil,'messages'=>$request['messages']]];
     }catch(Throwable $e){
         if($pdo->inTransaction())$pdo->rollBack();throw $e;
     }
