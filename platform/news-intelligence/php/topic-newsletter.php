@@ -62,28 +62,54 @@ function jrNewsTopicUuid(): string {
         substr($h,12,4).'-'.substr($h,16,4).'-'.substr($h,20,12);
 }
 function jrNewsWithdrawTopics(PDO $pdo,string $authenticatedAccountId,
-    ?string $topic,int $nowEpoch): array {
+    ?string $topic,int $nowEpoch,
+    callable $suppressExistingPendingNewsOutbox): array {
     if (!preg_match('/^[a-f0-9-]{36}$/iD',$authenticatedAccountId) ||
         ($topic!==null&&!jrNewsTopicValid($topic)) || $nowEpoch<=0) {
         throw new InvalidArgumentException('news_topic_withdrawal_invalid');
     }
-    if ($topic===null) {
-        $stmt=$pdo->prepare(
-            "UPDATE jrei_news_topic_follows
-             SET follow_state='WITHDRAWN',updated_at=?
-             WHERE account_id=? AND follow_state='ACTIVE'"
+    $pdo->beginTransaction();
+    try {
+        $lock=$pdo->prepare(
+            'SELECT id FROM customer_accounts WHERE id=? FOR UPDATE'
         );
-        $stmt->execute([$nowEpoch,$authenticatedAccountId]);
-    } else {
-        $stmt=$pdo->prepare(
-            "UPDATE jrei_news_topic_follows
-             SET follow_state='WITHDRAWN',updated_at=?
-             WHERE account_id=? AND topic_code=? AND follow_state='ACTIVE'"
+        $lock->execute([$authenticatedAccountId]);
+        if (!$lock->fetchColumn()) {
+            throw new RuntimeException('news_withdrawal_account_missing');
+        }
+        if ($topic===null) {
+            $stmt=$pdo->prepare(
+                "UPDATE jrei_news_topic_follows
+                 SET follow_state='WITHDRAWN',updated_at=?
+                 WHERE account_id=? AND follow_state='ACTIVE'"
+            );
+            $stmt->execute([$nowEpoch,$authenticatedAccountId]);
+        } else {
+            $stmt=$pdo->prepare(
+                "UPDATE jrei_news_topic_follows
+                 SET follow_state='WITHDRAWN',updated_at=?
+                 WHERE account_id=? AND topic_code=? AND follow_state='ACTIVE'"
+            );
+            $stmt->execute([$nowEpoch,$authenticatedAccountId,$topic]);
+        }
+        $changed=$stmt->rowCount();
+        // Suppression callback MUST participate in this SAME PDO transaction.
+        // Any ambiguous/failed response aborts preference updates.
+        $suppressed=$suppressExistingPendingNewsOutbox(
+            $pdo,$authenticatedAccountId,'JREI_NEWSLETTER','EMAIL',$topic
         );
-        $stmt->execute([$nowEpoch,$authenticatedAccountId,$topic]);
+        if (!is_int($suppressed)||$suppressed<0) {
+            throw new RuntimeException('news_original_outbox_suppression_failed');
+        }
+        $pdo->commit();
+        return ['schema'=>'jr.jrei.news-withdrawal.v1',
+            'state'=>'WITHDRAWN','affectedRows'=>$changed,
+            'suppressedPendingNotifications'=>$suppressed,
+            'newsletterMailNotDeliveredByThisCall'=>true];
+    }catch(Throwable $e) {
+        if ($pdo->inTransaction())$pdo->rollBack();
+        throw $e;
     }
-    return ['state'=>'WITHDRAWN','affectedRows'=>$stmt->rowCount(),
-        'alsoMustApplyOriginalEcoNotificationSuppression'=>true];
 }
 /** Prepare one bounded recipient batch, but do not send email directly. */
 function jrNewsTopicSubscribers(PDO $pdo,string $topic,string $mode,
