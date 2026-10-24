@@ -620,6 +620,20 @@
      }
      cell(summary,T('پیام‌های در صف JREI-LM','JREI-LM queued and leased requests'),
        number(lm.pendingOrLeasedJobs));
+     if(lm.liveJobStates&&typeof lm.liveJobStates==='object'){
+       const labels=[
+         ['queued',T('درخواست‌های مکالمه در انتظار','Unexpired queued dialogues')],
+         ['leased',T('در حال پردازش در رایانه','Leased to Windows model')],
+         ['completed',T('پاسخ آماده و هنوز دریافت‌نشده','Response ready for collection')],
+         ['blocked',T('پاسخ مسدودشده توسط کنترل شواهد','Blocked by evidence gate')],
+         ['failed',T('پردازش ناموفق؛ هنوز پاک‌سازی‌نشده','Failed awaiting erasure')]
+       ];
+       for(const [key,label] of labels){
+         const count=lm.liveJobStates[key];
+         cell(summary,label,Number.isSafeInteger(count)&&count>=0?
+           number(count):T('نامعلوم','Unknown'));
+       }
+     }
      cell(summary,T('کلید رمزگذاری خصوصی','Private message encryption key'),
        lm.privateEncryptionKeyConfigured===true?
          T('پیکربندی شده؛ اعتبارسنجی محیط هنوز مستقل است',
