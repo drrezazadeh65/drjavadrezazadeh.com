@@ -14,6 +14,11 @@ function jrJreiIranNightDate(int $timestamp): string {
 }
 // A bounded network acquisition makes up to two sequential 20-second HTTP
 // requests. Do not initiate work too close to 05:00 local time.
+// 300 decimal GB is the maximum authorized allowance, never a target.
+// The owner may choose a lower cap in the existing mother-DB controls.
+function jrJreiIranNightTransferCap(int $configuredBytes): int {
+    return max(0,min(300000000000,$configuredBytes));
+}
 function jrJreiIranNightAllowsRequest(int $timestamp): bool {
     if(!jrJreiIranNightOpen($timestamp))return false;
     $d=(new DateTimeImmutable('@'.$timestamp))->setTimezone(new DateTimeZone('Asia/Tehran'));
