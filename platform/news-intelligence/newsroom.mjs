@@ -10,6 +10,7 @@ import {editorialGenerationRequest} from './editorial-style.mjs';
 import {imageDesignBrief} from './media.mjs';
 import {suggestSemanticLinks} from './links.mjs';
 import {approvalEmailDescriptor} from './approval.mjs';
+import {preOwnerNewsQualityReview} from './content-quality.mjs';
 export function newsModuleCapabilities(){
   return Object.freeze({
     schema:'jr.jrei.news-module-capabilities.v1',
@@ -50,7 +51,8 @@ export function planNewsDiscovery({sources,nowUtc,lastChecks={},hostBackoffs={},
 }
 export function makeBilingualNewsReviewPackage({
   candidate,evidence,fa,en,media,relatedRoutes=[],format='NEWS_REPORT',
-  corpusRecords=[],recipient,previewTokenReference,expiresAt
+  corpusRecords=[],recipient,previewTokenReference,expiresAt,
+  checkedAt,linksCheckedByServer=false
 }={}){
   assert(plain(candidate)&&plain(evidence)&&
     evidence.schema==='jr.jrei.news-evidence-review.v1'&&
@@ -69,6 +71,13 @@ export function makeBilingualNewsReviewPackage({
     topics:candidate.topics??[]},approvedRoutes:relatedRoutes,maxLinks:8}),
     ...suggestSemanticLinks({article:{language:'en',
     topics:candidate.topics??[]},approvedRoutes:relatedRoutes,maxLinks:8})];
+  // Owner preview may only be assembled after an explicit server-time
+  // quality review. Suggested links are not equivalent to checked links.
+  // These values must originate in the authenticated private backend.
+  const qualityReview=preOwnerNewsQualityReview({candidate,evidence,
+    fa,en,media,internalLinks:links,linksCheckedByServer,checkedAt});
+  assert(qualityReview.editorialReadyForOwnerPreview,
+    'NEWS_EDITORIAL_QUALITY_BLOCKED:'+qualityReview.findings.join(','));
   const verification={
     sourceRegistryRead:true,evidenceReviewed:true,issuerVerified:true,
     sourceStillCurrent:true,evidenceSha256:candidate.evidenceSha256,
@@ -80,7 +89,7 @@ export function makeBilingualNewsReviewPackage({
     preview,recipient,baseUrl:'https://drjavadrezazadeh.com',
     previewTokenReference,expiresAt});
   return Object.freeze({schema:'jr.jrei.news-review-package.v1',
-    preview,generationContract:generation,imageTemplate:image,
+    preview,qualityReview,generationContract:generation,imageTemplate:image,
     emailProposal:email,publicationApproved:false,
     publicUrl:null,noEmailSentYet:true,
     requiresAuthenticatedOwnerDecision:true});
