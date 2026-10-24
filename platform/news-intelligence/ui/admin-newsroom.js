@@ -22,8 +22,9 @@ export function mountNewsOwnerPanel({root,csrfResolver,
   refresh.textContent=say('دریافت پیش‌نویس‌های جدید','Load new drafts');
   const status=document.createElement('p');status.setAttribute('role','status');
   status.setAttribute('aria-live','polite');
+  const metrics=document.createElement('div');metrics.className='ni-admin-metrics';
   const list=document.createElement('div');list.className='ni-admin-queue';
-  root.replaceChildren(header,refresh,status,list);
+  root.replaceChildren(header,refresh,status,metrics,list);
   const show=s=>{status.textContent=s;};
   const request=async (path,options)=>{
     const token=csrfResolver();
@@ -64,6 +65,31 @@ export function mountNewsOwnerPanel({root,csrfResolver,
       if(data.schema!=='jr.jrei.news-owner-review-queue.v1'||
         !Array.isArray(data.items))throw Error('NEWS_QUEUE_SHAPE_UNEXPECTED');
       list.replaceChildren();
+      metrics.replaceChildren();
+      try {
+        const overview=await request('/owner/overview',{method:'GET'});
+        if(overview.schema==='jr.jrei.news-owner-operations-overview.v1'&&
+           overview.metrics){
+          const labels={
+            enabledMonitors:say('منابع در حال پایش','Enabled sources'),
+            pendingEvidenceReview:say('در انتظار بررسی منبع','Awaiting evidence'),
+            ownerApprovalQueue:say('در انتظار تأیید من','Awaiting owner approval'),
+            actuallyPublishedBilingualItems:say('اخبار واقعاً منتشرشده','Published bilingual stories'),
+            socialDeliveryFailures:say('خطاهای توزیع','Social delivery failures')
+          };
+          for(const [key,labelText] of Object.entries(labels)){
+            const metric=overview.metrics[key]||{};
+            const card=document.createElement('div');
+            card.className='ni-admin-metric';
+            const name=document.createElement('span');
+            name.textContent=labelText;
+            const value=document.createElement('strong');
+            value.textContent=metric.status==='MEASURED'?
+              String(metric.value):say('نامشخص','Unknown');
+            card.append(name,value);metrics.append(card);
+          }
+        }
+      }catch{/* real overview unavailable; never render invented zeros */}
       for(const item of data.items){
         const card=document.createElement('article');
         card.className='ni-admin-card';
