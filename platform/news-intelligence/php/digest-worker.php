@@ -100,7 +100,7 @@ function jrNewsQueueTopicDigests(PDO $pdo,string $mode,int $nowEpoch,
     $lastAccount=$pageIds?end($pageIds):$afterAccountId;
     foreach ($grouped as $subscriber) {
         $consent=$currentEcoConsentResolver(
-            $subscriber['accountId'],'NEWSLETTER',$subscriber['channel']);
+            $subscriber['accountId'],'ARTICLES',$subscriber['channel']);
         if (!is_array($consent) ||
             ($consent['granted']??null)!==true ||
             ($consent['withdrawn']??null)!==false ||
