@@ -24,7 +24,8 @@ function jrNewsIndexApprovedPublication(
                     p.fa_route,p.en_route,p.fa_content_sha256,
                     p.en_content_sha256,p.publisher_receipt_reference,
                     v.bilingual_editorial_json,v.approval_digest,
-                    c.event_type,m.category_code,d.action_code
+                    c.event_type,c.source_url,c.content_sha256 AS source_evidence_sha256,
+                    m.category_code,d.action_code
              FROM jrei_news_publications p
              JOIN jrei_news_editorial_versions v ON v.revision_id=p.revision_id
              JOIN jrei_news_candidates c ON c.candidate_id=v.candidate_id
@@ -61,6 +62,21 @@ function jrNewsIndexApprovedPublication(
             ($receipt['ownerApprovalDigest']??null)!==$row['approval_digest']) {
             throw new RuntimeException('news_search_live_publisher_unverified');
         }
+        $countryProof=$originalSourceCountryResolver(
+            $row['source_url'],$row['source_evidence_sha256'],
+            $publicationId
+        );
+        if(!is_array($countryProof) ||
+            ($countryProof['source']??null)!==
+                'ORIGINAL_JREI_REVIEWED_SOURCE_REGISTRY' ||
+            ($countryProof['current']??null)!==true ||
+            ($countryProof['contentSha256']??null)!==
+                $row['source_evidence_sha256'] ||
+            !preg_match('/^[A-Z]{2}$/D',
+                (string)($countryProof['countryCode']??''))) {
+            throw new RuntimeException('news_search_country_not_original_source_verified');
+        }
+        $country=$countryProof['countryCode'];
         $data=json_decode((string)$row['bilingual_editorial_json'],true,
             32,JSON_INVALID_UTF8_SUBSTITUTE);
         $copy=is_array($data)?($data[$language]??null):null;
@@ -91,14 +107,14 @@ function jrNewsIndexApprovedPublication(
         $cleanBody=preg_replace('/<[^>]*>/u',' ',(string)$copy['body']);
         if (!is_string($cleanBody)) $cleanBody=$copy['body'];
         $params=[$path,$copy['headline'],$copy['summary'],
-            $cleanBody,(string)$row['category_code'],
+            $cleanBody,$country,(string)$row['category_code'],
             (string)$row['event_type'],(string)$row['approval_digest'],
             $contentHash,(int)$row['published_at'],$indexedAt];
         if ($existing) {
             $pdo->prepare(
                 "UPDATE jrei_news_search_documents SET
                  public_route=?,title=?,summary=?,searchable_body=?,
-                 category_code=?,event_code=?,owner_approval_digest=?,
+                 country_code=?,category_code=?,event_code=?,owner_approval_digest=?,
                  content_sha256=?,published_at=?,indexed_at=?,
                  index_state='PUBLISHED'
                  WHERE document_id=? AND publication_id=? AND language_code=?"
@@ -109,16 +125,17 @@ function jrNewsIndexApprovedPublication(
             $pdo->prepare(
                 "INSERT INTO jrei_news_search_documents
                  (document_id,publication_id,language_code,public_route,
-                  title,summary,searchable_body,category_code,event_code,
+                  title,summary,searchable_body,country_code,category_code,event_code,
                   owner_approval_digest,content_sha256,published_at,
                   indexed_at,index_state)
-                 VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,'PUBLISHED')"
+                 VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,'PUBLISHED')"
             )->execute(array_merge([$id,$publicationId,$language],$params));
         }
         $pdo->commit();
         return ['schema'=>'jr.jrei.news-search-index-receipt.v1',
             'documentId'=>$id,'publicationId'=>$publicationId,
-            'language'=>$language,'publishedRoute'=>$path,
+            'language'=>$language,'countryCode'=>$country,
+            'publishedRoute'=>$path,
             'sourceVerifiedByOriginalPublisher'=>true,
             'publicSearchEligible'=>true,'siteDeploymentPerformed'=>false];
     }catch(Throwable $e){
