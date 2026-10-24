@@ -23,7 +23,9 @@ export const NEWS_ASSETS=Object.freeze([
   {source:'platform/news-intelligence/ui/admin-newsroom.css',
     target:'assets/css/admin-newsroom.css',visibility:'AUTHENTICATED_ADMIN_ONLY'},
   {source:'platform/news-intelligence/ui/news-preferences.js',
-    target:'assets/js/news-preferences.js',visibility:'AUTHENTICATED_ACCOUNT_ONLY'}
+    target:'assets/js/news-preferences.js',visibility:'AUTHENTICATED_ACCOUNT_ONLY'},
+  {source:'platform/news-intelligence/ui/news-reminders.js',
+    target:'assets/js/news-reminders.js',visibility:'AUTHENTICATED_ACCOUNT_ONLY'}
 ].map(x=>Object.freeze(x)));
 export function newsAssetPublishingPlan({sourceFiles,existingAssetRegistry,
   authenticatedPublisherPolicy}={}){
