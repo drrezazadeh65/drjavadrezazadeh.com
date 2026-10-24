@@ -56,10 +56,12 @@ export function normalizeNewsSource(s){
   return Object.freeze({...s,canonicalUrl:publicHttps(s.canonicalUrl)});
 }
 export function stageNewsCandidate({approvedSource,sourceUrl,title,observedAt,
-  publishedAt=null,evidenceSha256,eventType,officialEventAt=null}={}){
+  publishedAt=null,evidenceSha256,eventType,officialEventAt=null,topics=[]}={}){
   const source=normalizeNewsSource(approvedSource),url=publicHttps(sourceUrl);
   assert(new URL(url).hostname===new URL(source.canonicalUrl).hostname,
     'NEWS_SOURCE_ORIGIN_MISMATCH');
+  assert(Array.isArray(topics)&&topics.length<=20&&topics.every(t=>safeText(t,2,80)),
+    'NEWS_CANDIDATE_TOPICS_INVALID');
   assert(safeText(title,8,240)&&isHash(evidenceSha256)&&utcInstant(observedAt)&&
     (publishedAt===null||utcInstant(publishedAt))&&
     (officialEventAt===null||utcInstant(officialEventAt))&&
@@ -68,7 +70,8 @@ export function stageNewsCandidate({approvedSource,sourceUrl,title,observedAt,
   return Object.freeze({schema:'jr.jrei.news-candidate.v1',fingerprint,
     sourceId:source.sourceId,sourceUrl:url,title:title.trim(),
     eventType,priority:NEWS_PRIORITY[eventType],observedAt,publishedAt,
-    officialEventAt,evidenceSha256,sourceTrust:source.trustClass,
+    officialEventAt,evidenceSha256,topics:Object.freeze([...new Set(topics)]),
+    sourceTrust:source.trustClass,
     usageRights:source.usageRights,status:'PENDING_EVIDENCE_VERIFICATION',
     verified:false,publicVisible:false,canPublish:false});
 }
