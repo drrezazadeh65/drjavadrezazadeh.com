@@ -395,9 +395,12 @@ export function mountNewsOwnerPanel({root,csrfResolver,
             show(say('نسخه کامل نمایش داده شد؛ تصمیم را ثبت کنید.',
               'Complete exact revision loaded for owner decision.'));
           }catch(error){
-            show(say('نسخه کامل قابل تأیید نیست. ','Preview is not verified. ')+
-              error.message);
-          }finally{view.disabled=false;}
+            if(previewReadVersion===loadRevision)
+              show(say('نسخه کامل قابل تأیید نیست. ',
+                'Preview is not verified. ')+error.message);
+          }finally{
+            if(previewReadVersion===loadRevision)view.disabled=false;
+          }
         });
         card.append(h,meta,view,fullPreview,actions);list.append(card);
       }
