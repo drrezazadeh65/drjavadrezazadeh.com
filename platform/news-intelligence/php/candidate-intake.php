@@ -49,7 +49,8 @@ function jrNewsPersistObservedCandidate(
     }
     $url=jrNewsFeedPublicUrl($candidate['url'],strtolower($approvedOrigin));
     if ($url===null)throw new RuntimeException('news_source_url_outside_registry');
-    $existingReceipt=$independentJreiObservationReader($candidate['sourceId'],
+    $existingReceipt=$independentJreiObservationReader(
+        $candidate['url'],$candidate['sourceId'],
         $candidate['sourceFingerprint']);
     if (!is_array($existingReceipt) ||
         ($existingReceipt['source']??null)!=='ORIGINAL_JREI_PRIVATE_OBSERVATION' ||
