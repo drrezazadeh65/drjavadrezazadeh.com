@@ -60,9 +60,12 @@ function protectKey(mode, file, plaintext='') {
     throw Error('WINDOWS_SYSTEM_ROOT_UNAVAILABLE');
   const powershell=join(resolve(systemRoot),'System32',
     'WindowsPowerShell','v1.0','powershell.exe');
+  // Windows may default to Restricted execution policy. Permit ONLY this
+  // fixed, reviewed DPAPI helper subprocess; do not relax the user's system
+  // or CurrentUser policy, nor accept a script path from the network.
   const r=spawnSync(powershell,
-    ['-NoProfile','-NonInteractive','-File',DPAPI,
-     '-Mode',mode,'-KeyFile',file],
+    ['-NoProfile','-NonInteractive','-ExecutionPolicy','Bypass',
+     '-File',DPAPI,'-Mode',mode,'-KeyFile',file],
     {input:plaintext,encoding:'utf8',timeout:12000,maxBuffer:16384,
      windowsHide:true,shell:false});
   if(r.error||r.status!==0)
