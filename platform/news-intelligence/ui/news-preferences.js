@@ -88,6 +88,45 @@ export function mountJreiNewsPreferences({
     if(!response.ok)throw Error('PREFERENCE_NOT_CONFIRMED');
     return response.json();
   }
+  async function loadCurrentPreferences(){
+    status.textContent=tr('در حال دریافت انتخاب‌های فعلی…',
+      'Loading your current selections…');
+    try {
+      const token=csrfResolver();
+      if(typeof token!=='string'||token.length<8)
+        throw Error('ACCOUNT_SESSION_REQUIRED');
+      const response=await fetch(apiBase+'/preferences/current',{
+        method:'GET',credentials:'same-origin',cache:'no-store',redirect:'error',
+        headers:{'Accept':'application/json','X-CSRF-Token':token}});
+      if(!response.ok)throw Error('READ_NOT_AVAILABLE');
+      const data=await response.json();
+      if(data.schema!=='jr.jrei.news-current-topic-preferences.v1' ||
+        !Array.isArray(data.topics))throw Error('INVALID_READ_MODEL');
+      const current=data.topics.filter(item=>item?.channel==='EMAIL');
+      const names=new Set(current.map(item=>item.topic));
+      checks.forEach(input=>{input.checked=names.has(input.value);});
+      const frequencies=new Set(current.map(item=>item.mode));
+      if(frequencies.size===1){
+        modes.forEach(radio=>{radio.checked=frequencies.has(radio.value);});
+        status.textContent=tr('تنظیمات فعلی شما بارگذاری شد.',
+          'Your saved newsletter preferences are ready.');
+      }else if(frequencies.size>1){
+        status.textContent=tr(
+          'موضوعات بارگذاری شد؛ فرکانس‌های قبلی متفاوت‌اند. ذخیره مجدد آن‌ها را یکسان می‌کند.',
+          'Saved topics use different frequencies. Saving makes one shared choice.');
+      }else{
+        status.textContent=tr('هنوز موضوع خبری انتخاب نشده است.',
+          'No topics selected yet.');
+      }
+    } catch{
+      status.textContent=tr(
+        'دریافت تنظیمات قبلی ممکن نیست. برای جلوگیری از تغییر ناخواسته، ذخیره غیرفعال است.',
+        'Saved preferences could not be loaded; editing is disabled to prevent replacement.');
+      subscribe.disabled=true;withdraw.disabled=true;
+    }
+  }
+  // Do not overwrite existing preferences if the private owner read fails.
+  loadCurrentPreferences();
   subscribe.addEventListener('click',async()=>{
     const selected=checks.filter(x=>x.checked).map(x=>x.value);
     const mode=modes.find(x=>x.checked)?.value||'WEEKLY';
