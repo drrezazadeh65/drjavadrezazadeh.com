@@ -43,7 +43,7 @@ function jrNewsStageApprovedPublication(
              JOIN jrei_news_candidates c ON c.candidate_id=v.candidate_id
              JOIN jrei_news_discovered_urls dsrc
                ON dsrc.monitor_id=c.monitor_id
-              AND dsrc.canonical_url_sha256=SHA2(c.source_url,256)
+              AND BINARY dsrc.canonical_url_sha256=BINARY SHA2(c.source_url,256)
               AND dsrc.review_state=\'ORIGINAL_JREI_ARTICLE_APPROVED\'
              JOIN jrei_news_owner_decisions d ON d.revision_id=v.revision_id
              WHERE v.revision_id=? AND d.action_code='APPROVE'
