@@ -306,6 +306,14 @@ function jrLocalChatCancel(PDO $pdo,array $body): array {
     return ['ok'=>true,'cancelled'=>$q->rowCount()===1];
 }
 function jrLocalChatWorkerPoll(PDO $pdo,array $cfg,string $node,array $body): array {
+    // Independently enforce the original owner privacy/release controls
+    // even if another authenticated server dispatcher calls this function.
+    if(($cfg['jrei_local_chat_enabled']??false)!==true||
+       ($cfg['jrei_hybrid_enabled']??false)!==true||
+       ($cfg['jrei_local_public_release_accepted']??false)!==true)
+        throw new DomainException('local_chat_owner_release_revoked');
+    if(!jrLocalChatRetentionReady($pdo,$cfg))
+        throw new DomainException('local_chat_retention_not_ready');
     $model=$body['modelId']??null;$version=$body['modelVersion']??null;
     $digest=$body['modelSha256']??null;
     // A signed heartbeat refreshes the already approved node's timestamp,
@@ -391,6 +399,12 @@ function jrLocalChatWorkerPoll(PDO $pdo,array $cfg,string $node,array $body): ar
     }
 }
 function jrLocalChatWorkerComplete(PDO $pdo,array $cfg,string $node,array $body): array {
+    if(($cfg['jrei_local_chat_enabled']??false)!==true||
+       ($cfg['jrei_hybrid_enabled']??false)!==true||
+       ($cfg['jrei_local_public_release_accepted']??false)!==true)
+        throw new DomainException('local_chat_owner_release_revoked');
+    if(!jrLocalChatRetentionReady($pdo,$cfg))
+        throw new DomainException('local_chat_retention_not_ready');
     $id=$body['jobId']??null;$token=$body['leaseToken']??null;
     $answer=$body['answer']??null;
     $model=$body['modelId']??null;
