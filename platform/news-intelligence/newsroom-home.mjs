@@ -61,7 +61,8 @@ export function renderNewsroomHome({language='fa',stories=[],examEvents=[],
     safeText(isFa?x.titleFa:x.titleEn,8,220))
     .sort((a,b)=>Date.parse(a.startsAt)-Date.parse(b.startsAt))
     .slice(0,12);
-  const cards=rest.map(s=>'<article class="ni-card" data-ni-story>'+
+  const cards=rest.map(s=>'<article class="ni-card" data-ni-story data-ni-category="'+
+    e(NEWS_CATEGORIES.some(c=>c.id===s.category)?s.category:'uncategorized')+'">'+
     '<a href="'+e(s.path)+'"><img src="'+e(s.featuredImage)+
     '" alt="'+e(s.imageAlt)+'" width="800" height="450" loading="lazy">'+
     '<div class="ni-card-copy"><p class="ni-label">'+e(s.category??'')+
@@ -80,8 +81,11 @@ export function renderNewsroomHome({language='fa',stories=[],examEvents=[],
       e(copy.source)+'</a></li>').join('')+'</ul>'+
     '<p class="ni-note">'+e(copy.note)+'</p></aside>';
   const categories='<nav class="ni-categories" aria-label="'+e(copy.topics)+'">'+
-    NEWS_CATEGORIES.map(c=>'<span class="ni-category">'+e(isFa?c.fa:c.en)+
-      '</span>').join('')+'</nav>';
+    '<button type="button" class="ni-category" data-ni-category-select="all" aria-pressed="true">'+
+      e(isFa?'همه اخبار':'All news')+'</button>'+
+    NEWS_CATEGORIES.map(c=>'<button type="button" class="ni-category" data-ni-category-select="'+
+      e(c.id)+'" aria-pressed="false">'+e(isFa?c.fa:c.en)+
+      '</button>').join('')+'</nav>';
   const template='<!doctype html><html lang="'+language+'" dir="'+(isFa?'rtl':'ltr')+
     '"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'+
     '<meta name="robots" content="index,follow"><title>'+e(copy.brand)+'</title>'+
