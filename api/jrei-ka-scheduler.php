@@ -33,11 +33,12 @@ function jrKaScheduleApprovedSources(PDO $pdo,array $cfg,int $at): array {
       'workAutomaticallyDispatched'=>false,'ownerRightsBypassed'=>false];
     if(($cfg['jrei_ka_schedule_enabled']??false)!==true)
         return $summary;
-    // The owner-authorized JREI acquisition mode is strictly night-only.
-    // A missing/false opt-in never silently enables daytime collection.
-    if(($cfg['jrei_ka_night_mode_enabled']??false)!==true)
+    // Preserve the existing safe night mode whenever continuous owner
+    // permission has not been independently provisioned on the host.
+    if(($cfg['jrei_ka_continuous_enabled']??false)!==true&&
+       ($cfg['jrei_ka_night_mode_enabled']??false)!==true)
         return [...$summary,'status'=>'IRAN_NIGHT_MODE_DISABLED'];
-    if(!jrJreiIranNightOpen($at))
+    if(!jrJreiKaAcquisitionWindowAllowed($cfg,$at))
         return [...$summary,'status'=>'OUTSIDE_IRAN_NIGHT_WINDOW'];
     if(!jrKaSchemaReady($pdo))
         throw new DomainException('jrei_ka_migration_not_installed');
