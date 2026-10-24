@@ -129,7 +129,7 @@ function jrNewsQueueTopicDigests(PDO $pdo,string $mode,int $nowEpoch,
         if(!preg_match('/^[a-f0-9-]{36}$/iD',$reference))continue;
         $grouped[$key]['topicsByConsent'][$reference][]=$row['topic_code'];
     }
-    $queued=0;$skipped=0;
+    $queued=0;$alreadyQueued=0;$skipped=0;
     $lastAccount=$pageIds?end($pageIds):$afterAccountId;
     foreach ($grouped as $subscriber) {
         $consent=$currentEcoConsentResolver(
@@ -175,37 +175,47 @@ function jrNewsQueueTopicDigests(PDO $pdo,string $mode,int $nowEpoch,
             if (count($selected)>=20)break;
         }
         if (!$selected)continue;
-        // Bind the original eco outbox's idempotency to immutable CMS
-        // content receipts as well as routes. An independently approved
-        // correction on an existing frozen URL is a *different* edition;
-        // a repeated delivery request for the SAME edition stays deduped.
-        $editions=array_map(static fn(array $item): string=>
-            $item['publicationId'].':'.$item['contentSha256'].':'.
-            $item['ownerApprovalDigest'], $selected);
-        $digestKey=hash('sha256','JREI_NEWS_DIGEST|'.$mode.'|'.
-            gmdate($mode==='WEEKLY'?'o-W':'Y-m-d',$nowEpoch).'|'.
-            $subscriber['accountId'].'|'.$subscriber['locale'].'|'.
-            $subscriber['channel'].'|'.$consent['reference'].'|'.
-            implode('|',$editions));
-        $message=['schema'=>'jr.jrei.news-articles-digest-intent.v1',
-            'purpose'=>'ARTICLES','accountId'=>$subscriber['accountId'],
-            'locale'=>$subscriber['locale'],'channel'=>$subscriber['channel'],
-            'digestMode'=>$mode,'items'=>$selected,
-            'consentReference'=>$consent['reference'],
-            'verifyCurrentConsentBeforeDelivery'=>true,
-            'idempotencyKey'=>$digestKey,
-            'smtpAccepted'=>false,'mailboxDelivered'=>false];
-        $receipt=$existingOutboxEnqueue($message);
-        if (is_array($receipt) &&
-            ($receipt['source']??null)==='ORIGINAL_ECO_NEWS_DIGEST_OUTBOX' &&
-            ($receipt['purpose']??null)==='ARTICLES' &&
-            ($receipt['idempotencyKey']??null)===$digestKey &&
-            in_array($receipt['state']??null,
-                ['QUEUED','ALREADY_QUEUED'],true))$queued++;
-        else $skipped++;
+        // Urgent releases are independently deduplicated PER verified
+        // edition. A fresh P0 must not resend yesterday's P0 simply because
+        // the membership of one aggregate changed. Scheduled digests, by
+        // contrast, have ONE idempotency key per subscriber, mode and period.
+        // Their item set is frozen by the ORIGINAL eco outbox on first queue.
+        $batches=$mode==='URGENT'?
+            array_map(static fn(array $entry): array=>[$entry],$selected):
+            [$selected];
+        foreach($batches as $batch){
+            $editions=array_map(static fn(array $item): string=>
+                $item['publicationId'].':'.$item['contentSha256'].':'.
+                $item['ownerApprovalDigest'], $batch);
+            $period=gmdate($mode==='WEEKLY'?'o-W':'Y-m-d',$nowEpoch);
+            $editionScope=$mode==='URGENT'?
+                implode('|',$editions):'SINGLE_SCHEDULED_PERIOD';
+            $digestKey=hash('sha256','JREI_NEWS_DIGEST|'.$mode.'|'.
+                $period.'|'.$subscriber['accountId'].'|'.
+                $subscriber['locale'].'|'.$subscriber['channel'].'|'.
+                $consent['reference'].'|'.$editionScope);
+            $message=['schema'=>'jr.jrei.news-articles-digest-intent.v1',
+                'purpose'=>'ARTICLES','accountId'=>$subscriber['accountId'],
+                'locale'=>$subscriber['locale'],'channel'=>$subscriber['channel'],
+                'digestMode'=>$mode,'items'=>$batch,
+                'consentReference'=>$consent['reference'],
+                'verifyCurrentConsentBeforeDelivery'=>true,
+                'idempotencyKey'=>$digestKey,
+                'smtpAccepted'=>false,'mailboxDelivered'=>false];
+            $receipt=$existingOutboxEnqueue($message);
+            if(is_array($receipt)&&
+                ($receipt['source']??null)==='ORIGINAL_ECO_NEWS_DIGEST_OUTBOX'&&
+                ($receipt['purpose']??null)==='ARTICLES'&&
+                ($receipt['idempotencyKey']??null)===$digestKey){
+                if(($receipt['state']??null)==='QUEUED')$queued++;
+                elseif(($receipt['state']??null)==='ALREADY_QUEUED')$alreadyQueued++;
+                else $skipped++;
+            }else $skipped++;
+        }
     }
     return ['schema'=>'jr.jrei.news-digest-queue.v1',
-        'queued'=>$queued,'skipped'=>$skipped,
+        'queued'=>$queued,'alreadyQueued'=>$alreadyQueued,
+        'skipped'=>$skipped,
         'nextAfterAccountId'=>$lastAccount,
         'mayHaveMoreAudience'=>$hasMore,
         'actualSmtpDeliveryUnverified'=>true];
