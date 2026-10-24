@@ -8,6 +8,7 @@
  * one local model and one in-flight inference per Windows node.
  */
 import {createLocalLlamaAdapter} from './jrei-loopback-model-adapter.mjs';
+import os from 'node:os';
 
 const ID=/^[A-Za-z0-9._:-]{1,64}$/;
 const SHA=/^[a-f0-9]{64}$/;
@@ -22,6 +23,33 @@ const safeReason=error=>{
 const isPlain=x=>x!==null&&typeof x==='object'&&!Array.isArray(x)&&
   Object.getPrototypeOf(x)===Object.prototype;
 
+// Sample actual host CPU time rather than interpreting the owner's
+// "training" label as proof of a model-weight training process.
+// Local system limits are used to defer NEW inference leases only.
+function cpuSnapshot(){
+  const cpus=os.cpus();
+  if(!cpus.length)return null;
+  return cpus.reduce((sum,cpu)=>{
+    const t=cpu.times;
+    sum.idle+=t.idle;
+    sum.total+=t.user+t.nice+t.sys+t.irq+t.idle;
+    return sum;
+  },{idle:0,total:0});
+}
+function resourcePressure(previous,limits){
+  const snapshot=cpuSnapshot();
+  const duration=snapshot&&previous?snapshot.total-previous.total:0;
+  const cpuPercent=duration>0?
+    100*(1-(snapshot.idle-previous.idle)/duration):null;
+  const total=os.totalmem();
+  const ramPercent=total>0?100*(1-os.freemem()/total):null;
+  const cpuBusy=Number.isInteger(limits?.maxCpuPercent)&&
+    cpuPercent!==null&&cpuPercent>limits.maxCpuPercent;
+  const ramBusy=Number.isInteger(limits?.maxRamPercent)&&
+    ramPercent!==null&&ramPercent>limits.maxRamPercent;
+  return {snapshot,busy:cpuBusy||ramBusy};
+}
+
 export function validateLocalChatConfig(config){
   if(!isPlain(config)||!isPlain(config.localChat)||config.localChat.enabled!==true)
     throw Error('OWNER_LOCAL_CHAT_NOT_CONFIGURED');
@@ -34,6 +62,9 @@ export function validateLocalChatConfig(config){
      !Number.isInteger(c.pollSeconds)||c.pollSeconds<2||c.pollSeconds>10||
      !Number.isInteger(c.modelTimeoutMs)||c.modelTimeoutMs<5000||
      c.modelTimeoutMs>35000||
+     (c.idlePollMaxSeconds!==undefined&&
+       (!Number.isInteger(c.idlePollMaxSeconds)||
+        c.idlePollMaxSeconds<c.pollSeconds||c.idlePollMaxSeconds>60))||
      typeof c.maxContextTokens!=='number'||!Number.isInteger(c.maxContextTokens)||
      c.maxContextTokens<128||c.maxContextTokens>1200)
     throw Error('JREI_LOCAL_MODEL_OWNER_APPROVAL_REQUIRED');
@@ -62,12 +93,28 @@ export async function runLocalChatWorker(config,key,{post,log,signal,fetchImpl}=
   const pollEndpoint='/api/jrei/v1/local-chat/poll';
   const completeEndpoint='/api/jrei/v1/local-chat/complete';
   let stopping=false,backoff=0;
+  let previousCpu=cpuSnapshot(),resourceBusy=false;
+  let idlePollSeconds=model.pollSeconds;
+  const maxIdlePollSeconds=model.idlePollMaxSeconds??30;
   const stop=()=>{stopping=true;log('LOCAL_CHAT_STOP_REQUESTED');};
   signal?.addEventListener?.('abort',stop,{once:true});
   log('OWNER_JREI_LOCAL_CHAT_STARTED_NO_CLOUD');
   try{
     while(!stopping){
       try{
+        // Protect both the web-host queue and the owner's local computer:
+        // do not request a NEW lease while RAM/CPU pressure is above
+        // the already approved Worker configuration limits.
+        const pressure=resourcePressure(previousCpu,config.limits);
+        previousCpu=pressure.snapshot;
+        if(pressure.busy){
+          if(!resourceBusy)log('LOCAL_CHAT_RESOURCE_PRESSURE_DEFERRED');
+          resourceBusy=true;
+          if(!stopping)await sleep(15000);
+          continue;
+        }
+        if(resourceBusy)log('LOCAL_CHAT_RESOURCE_PRESSURE_CLEARED');
+        resourceBusy=false;
         // Original transport signs exact method/path/body with independent
         // Ed25519 key. Model SHA/approval are checked again by Bertina.
         const result=await post(config,key,pollEndpoint,{
@@ -118,7 +165,18 @@ export async function runLocalChatWorker(config,key,{post,log,signal,fetchImpl}=
             log('LOCAL_CHAT_TASK_'+safeReason(error));
           }
         }
-        if(!stopping)await sleep(model.pollSeconds*1000);
+        if(!stopping){
+          // Idle polling is progressively reduced, at most once per
+          // configured bounded interval. This prevents two always-on PCs
+          // generating unnecessary MariaDB writes every few seconds.
+          // A leased job resets polling to its owner-approved base rate.
+          const delaySeconds=result.job===null?idlePollSeconds:model.pollSeconds;
+          idlePollSeconds=result.job===null?
+            Math.min(maxIdlePollSeconds,Math.max(model.pollSeconds,idlePollSeconds*2)):
+            model.pollSeconds;
+          const jitterMs=Math.floor(Math.random()*1000);
+          await sleep(delaySeconds*1000+jitterMs);
+        }
       }catch(error){
         log('LOCAL_CHAT_TRANSPORT_'+safeReason(error));
         if(error?.message==='WORKER_NOT_AUTHORIZED'||
@@ -126,6 +184,7 @@ export async function runLocalChatWorker(config,key,{post,log,signal,fetchImpl}=
           log('LOCAL_CHAT_STOPPED_AWAITING_OWNER_AUTHORIZATION');
           break;
         }
+        idlePollSeconds=model.pollSeconds;
         backoff=Math.min(backoff+1,6);
         if(!stopping)await sleep(wait(120000,10000*2**(backoff-1)));
       }
