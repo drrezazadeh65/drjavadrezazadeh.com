@@ -61,7 +61,8 @@ function jrNewsExistingJreiApprovedSources(PDO $pdo,int $limit=200): array {
             $skipped++;continue;
         }
         $title=(string)$row['source_title'];
-        if(trim($title)===''||strlen($title)>600) {
+        if(trim($title)===''||strlen($title)>600||
+            preg_match_all('/./us',$title)>160) {
             $skipped++;continue;
         }
         $eligible[]=[
