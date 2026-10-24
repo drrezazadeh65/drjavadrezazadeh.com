@@ -1,0 +1,96 @@
+{
+  "schema": "jr.jrei.news-integration-manifest.v1",
+  "workstream": "JREI Global Education News & Intelligence",
+  "repository": "drrezazadeh65/drjavadrezazadeh.com",
+  "branch": "migration/bertina-linux6",
+  "sourceRoot": "platform/news-intelligence",
+  "state": "SOURCE_STAGED_NOT_TESTED_NOT_INTEGRATED_NOT_DEPLOYED",
+  "noParallelSystems": true,
+  "integrationDefaults": {
+    "apiEnabled": false,
+    "acquisitionEnabled": false,
+    "modelEnabled": false,
+    "emailEnabled": false,
+    "socialEnabled": false,
+    "publicPublisherEnabled": false,
+    "newsletterEnabled": false,
+    "remindersEnabled": false,
+    "premiumEnabled": false
+  },
+  "reuse": {
+    "authentication": "original customer_accounts and session cookies",
+    "ownerReview": "api/operations.php owner MFA / CSRF",
+    "ai": "platform/jrei-v5 and original approved JREI provider router",
+    "sources": "jrei_exam_sources / JREI-KA original approved-source registry and acquisition",
+    "newsletter": "api/newsletter-preferences.php and original eco_notification_*",
+    "social": "platform/social-distribution/engine.mjs (AWOSE)",
+    "payments": "commerce_orders and existing entitlements",
+    "analytics": "operations / GSC / GA4 without invented results",
+    "cms": "api/operations-editor.php, frozen published routes and original CMS publisher",
+    "database": "drjavad1_store mother DB"
+  },
+  "sharedTouchpointsForFinalAcceptance": [
+    {
+      "path": "api/index.php",
+      "task": "register protected news read, preferences and owner routes",
+      "mustNotModifyBeforeSharedDeveloperCoordination": true
+    },
+    {
+      "path": "api/operations.php",
+      "task": "mount owner dashboard links, verify MFA and private audit contract",
+      "mustNotModifyBeforeSharedDeveloperCoordination": true
+    },
+    {
+      "path": "api/operations-cron-dispatcher.php",
+      "task": "add owned allowlisted JREI news jobs, source rights, bounded source intervals, retries and private kill switch",
+      "mustNotModifyBeforeSharedDeveloperCoordination": true
+    },
+    {
+      "path": "api/newsletter-delivery.php",
+      "task": "reuse eco outbox, purpose consent, idempotency and suppression for news topics",
+      "mustNotModifyBeforeSharedDeveloperCoordination": true
+    },
+    {
+      "path": "platform/social-distribution/engine.mjs",
+      "task": "reuse original AWOSE recipient-specific approval, only authorized live channels",
+      "mustNotModifyBeforeSharedDeveloperCoordination": true
+    },
+    {
+      "path": "assets/js/assistant.js",
+      "task": "reuse existing first-party model consent, news contextual questions without forced model",
+      "mustNotModifyBeforeSharedDeveloperCoordination": true
+    },
+    {
+      "path": "fa/akhbar/index.html",
+      "task": "preserve canonical URL and integrate reviewed premium layout",
+      "mustNotModifyBeforeSharedDeveloperCoordination": true
+    },
+    {
+      "path": "en/news/index.html",
+      "task": "preserve existing URL, confirm actual path before adoption",
+      "mustNotModifyBeforeSharedDeveloperCoordination": true
+    }
+  ],
+  "stagedMigrations": [
+    "docs/migrations/20261024_jrei_news_intelligence_mother_mysql.sql",
+    "docs/migrations/20261024_jrei_news_topic_preferences_mother_mysql.sql",
+    "docs/migrations/20261024_jrei_news_public_search_mother_mysql.sql"
+  ],
+  "finalAcceptanceDeferred": [
+    "source legality publisher permissions and robots policy",
+    "host PHP8.3/mariadb real migrations and recovery rehearsal",
+    "owner MFA/session/CSRF and exact digest tamper-resistance",
+    "JREI provider adapter actual response and privacy",
+    "real owner email and verified consented unsubscribes",
+    "official exam source/changed deadline and reminders",
+    "social provider API connected credentials and separate approvals",
+    "bilingual mobile CSS/RTL/LTR accessibility and PWA behavior",
+    "immutable existing URLs canonicals hreflang and sitemap",
+    "SEO and public indexing prevention for drafts",
+    "real response / analytics / conversion attribution",
+    "security and performance final campaign"
+  ],
+  "deploymentApproved": false,
+  "testsRunByThisWorkstream": false,
+  "liveClaimsProhibited": true
+}
