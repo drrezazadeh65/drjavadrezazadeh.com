@@ -102,7 +102,10 @@ function jrNewsQueueDueReminders(PDO $pdo,int $nowEpoch,
            )
          ORDER BY m.event_utc ASC LIMIT 100"
     );
-    $stmt->execute([':recent'=>$nowEpoch-3600,
+    // Never enqueue a deadline reminder after the OFFICIAL event has
+    // already begun. A delayed host Cron may still deliver future reminders,
+    // but it must not mislead applicants with an expired exam date.
+    $stmt->execute([':recent'=>$nowEpoch,
         ':future'=>$nowEpoch+30*86400,':current'=>$nowEpoch,
         ':earliest'=>$nowEpoch-86400]);
     $queued=0;$suppressed=0;
