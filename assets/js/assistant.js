@@ -339,10 +339,25 @@
        !/^[a-f0-9]{64}$/.test(data.retrievalToken||''))
       throw Error('Invalid JREI local queue capability');
     pendingLocalJob={jobId:data.jobId,retrievalToken:data.retrievalToken};
-    for(let attempt=0;attempt<45;attempt++){
-      await new Promise(resolve=>setTimeout(resolve,1500));
+    // Respect the Bertina queue's retry interval rather than issuing
+    // fixed 1.5-second database reads. Stop timers immediately on user
+    // cancellation; do not leak an abandoned polling loop into a new chat.
+    const boundedDelay=value=>
+      Number.isInteger(value)?Math.max(1500,Math.min(6000,value)):2500;
+    let delay=boundedDelay(data.retryAfterMilliseconds);
+    const deadline=Date.now()+70000;
+    while(Date.now()<deadline){
+      const remaining=deadline-Date.now();
+      await new Promise((resolve,reject)=>{
+        if(controller.signal.aborted){reject(Error('JREI request cancelled'));return;}
+        const wake=()=>{clearTimeout(timer);controller.signal.removeEventListener('abort',abort);resolve();};
+        const abort=()=>{clearTimeout(timer);controller.signal.removeEventListener('abort',abort);reject(Error('JREI request cancelled'));};
+        const timer=setTimeout(wake,Math.min(delay,remaining));
+        controller.signal.addEventListener('abort',abort,{once:true});
+      });
       if(controller.signal.aborted||requestToken!==requestGeneration)
         return null;
+      if(Date.now()>=deadline)break;
       const res=await fetch('/api/assistant/v1/local/result',{
         method:'POST',credentials:'omit',cache:'no-store',
         headers:{'Content-Type':'application/json'},
@@ -350,7 +365,10 @@
       });
       if(!res.ok)throw Error('Local JREI result '+res.status);
       const next=await res.json();
-      if(next?.pending===true)continue;
+      if(next?.pending===true){
+        delay=boundedDelay(next.retryAfterMilliseconds);
+        continue;
+      }
       pendingLocalJob=null;
       if(next?.unavailable===true)throw Error('JREI local result unavailable');
       return next;
