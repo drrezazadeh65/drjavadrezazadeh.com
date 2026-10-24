@@ -92,10 +92,10 @@ export function renderPublicNewsPage({article,language,route,otherLanguageRoute,
   const body='<a class="ni-skip" href="#ni-main">'+esc(isFa?'رفتن به محتوا':'Skip to content')+'</a>'+
     '<header class="ni-header"><a href="/'+language+'/">'+esc(isFa?'دکتر جواد رضازاده یزدلی':'Dr. Javad Rezazadeh')+'</a>'+
     '<nav aria-label="News"><a href="/'+language+'/">'+esc(label.home)+'</a>'+
-    '<a href="'+(isFa?'/fa/akhbar/':'/en/news/')+'">'+esc(label.news)+'</a></nav></header>'+
+    '<a href="'+(isFa?'/fa/akhbar/':'/en/news-insights/')+'">'+esc(label.news)+'</a></nav></header>'+
     '<main id="ni-main" class="ni-page"><article class="ni-article">'+
     '<nav class="ni-breadcrumb" aria-label="Breadcrumb"><a href="/'+language+'/">'+esc(label.home)+'</a>'+
-    ' / <a href="'+(isFa?'/fa/akhbar/':'/en/news/')+'">'+esc(label.news)+'</a></nav>'+
+    ' / <a href="'+(isFa?'/fa/akhbar/':'/en/news-insights/')+'">'+esc(label.news)+'</a></nav>'+
     '<header><p class="ni-kicker">'+esc(article.priority??'')+'</p>'+
     '<h1>'+esc(d.headline)+'</h1><p class="ni-lead">'+esc(d.summary)+'</p>'+
     '<time datetime="'+esc(publicationDate)+'">'+esc(publicationDate.slice(0,10))+'</time>'+
