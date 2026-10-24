@@ -24,6 +24,7 @@ function jrNewsIndexApprovedPublication(
                     p.fa_route,p.en_route,p.fa_content_sha256,
                     p.en_content_sha256,p.publisher_receipt_reference,
                     v.bilingual_editorial_json,v.approval_digest,
+                    v.editorial_state,
                     c.event_type,c.source_url,c.content_sha256 AS source_evidence_sha256,
                     m.category_code,d.action_code,
                     d.revision_id AS decision_revision_id,
@@ -40,6 +41,7 @@ function jrNewsIndexApprovedPublication(
         $row=$stmt->fetch(PDO::FETCH_ASSOC);
         if (!$row||$row['publisher_state']!=='PUBLISHED'||
             $row['action_code']!=='APPROVE'||
+            $row['editorial_state']!=='OWNER_APPROVED'||
             $row['decision_revision_id']!==$row['published_revision_id']||
             !hash_equals((string)$row['approval_digest'],
                 (string)$row['decision_approval_digest'])||
