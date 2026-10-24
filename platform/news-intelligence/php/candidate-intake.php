@@ -37,7 +37,8 @@ function jrNewsPersistObservedCandidate(
         strlen($candidate['url'])>1000 ||
         ($sourceAuthority['source']??null)!=='PRIVATE_JREI_SOURCE_REGISTRY' ||
         ($sourceAuthority['reviewStatus']??null)!=='APPROVED' ||
-        ($sourceAuthority['usageRights']??null)!=='PUBLIC_REUSE_APPROVED' ||
+        !in_array(($sourceAuthority['usageRights']??null),
+            ['METADATA_ONLY','PUBLIC_REUSE_APPROVED'],true) ||
         ($sourceAuthority['termsApproved']??null)!==true ||
         ($sourceAuthority['robotsApproved']??null)!==true ||
         ($sourceAuthority['sourceId']??null)!==$candidate['sourceId']) {
