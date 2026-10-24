@@ -12,57 +12,87 @@ function jrNewsOwnerOperationalOverview(PDO $pdo,array $ownerSession,
     int $nowEpoch): array {
     jrNewsOwnerAuthority($ownerSession);
     if ($nowEpoch<=0)throw new InvalidArgumentException('news_ops_clock_invalid');
-    $metrics=[
-        'registeredMonitors'=>
-            'SELECT COUNT(*) FROM jrei_news_monitors',
-        'enabledMonitors'=>
-            'SELECT COUNT(*) FROM jrei_news_monitors WHERE enabled=1',
-        'discoveredCandidates'=>
-            'SELECT COUNT(*) FROM jrei_news_candidates',
-        'pendingEvidenceReview'=>
-            "SELECT COUNT(*) FROM jrei_news_candidates
-             WHERE state='PENDING_EVIDENCE_VERIFICATION'",
-        'independentlyReviewedCandidates'=>
-            "SELECT COUNT(*) FROM jrei_news_candidates WHERE state='EVIDENCE_REVIEWED'",
-        'ownerApprovalQueue'=>
-            "SELECT COUNT(*) FROM jrei_news_editorial_versions
-             WHERE editorial_state='PENDING_OWNER_APPROVAL'",
-        'ownerApprovedRevisions'=>
-            "SELECT COUNT(*) FROM jrei_news_editorial_versions
-             WHERE editorial_state='OWNER_APPROVED'",
-        'actuallyPublishedBilingualItems'=>
-            "SELECT COUNT(*) FROM jrei_news_publications p
-             JOIN jrei_news_editorial_versions v ON v.revision_id=p.revision_id
-             JOIN jrei_news_owner_decisions d ON d.decision_id=p.approved_decision_id
-             WHERE p.publisher_state='PUBLISHED'
-               AND p.published_at IS NOT NULL
-               AND p.publisher_receipt_reference IS NOT NULL
-               AND d.action_code='APPROVE'
-               AND d.approval_digest=v.approval_digest
-               AND p.fa_content_sha256 IS NOT NULL
-               AND p.en_content_sha256 IS NOT NULL",
-        'socialDeliveryFailures'=>
-            "SELECT COUNT(*) FROM jrei_news_delivery_receipts
-             WHERE state IN ('FAILED','UNKNOWN_REVIEW_REQUIRED')",
-        'activeNewsTopicFollows'=>
-            "SELECT COUNT(*) FROM jrei_news_topic_follows
-             WHERE follow_state='ACTIVE'",
-        'activeExamReminderFollows'=>
-            "SELECT COUNT(*) FROM jrei_news_exam_follows
-             WHERE follow_state='ACTIVE'"
+    // A dashboard refresh must not scan the same growing table two or
+    // three times. Combine related counters into one read per table;
+    // each group fails independently to UNKNOWN if its migration is absent.
+    // The original customer/commerce database is never modified here.
+    $groups=[
+        [
+            'keys'=>['registeredMonitors','enabledMonitors'],
+            'sql'=>"SELECT COUNT(*) AS registeredMonitors,
+                  COALESCE(SUM(enabled=1),0) AS enabledMonitors
+                  FROM jrei_news_monitors"
+        ],
+        [
+            'keys'=>['discoveredCandidates','pendingEvidenceReview',
+                     'independentlyReviewedCandidates'],
+            'sql'=>"SELECT COUNT(*) AS discoveredCandidates,
+                  COALESCE(SUM(state='PENDING_EVIDENCE_VERIFICATION'),0)
+                     AS pendingEvidenceReview,
+                  COALESCE(SUM(state='EVIDENCE_REVIEWED'),0)
+                     AS independentlyReviewedCandidates
+                  FROM jrei_news_candidates"
+        ],
+        [
+            'keys'=>['ownerApprovalQueue','ownerApprovedRevisions'],
+            'sql'=>"SELECT
+                  COALESCE(SUM(editorial_state='PENDING_OWNER_APPROVAL'),0)
+                     AS ownerApprovalQueue,
+                  COALESCE(SUM(editorial_state='OWNER_APPROVED'),0)
+                     AS ownerApprovedRevisions
+                  FROM jrei_news_editorial_versions"
+        ],
+        [
+            'keys'=>['actuallyPublishedBilingualItems'],
+            'sql'=>"SELECT COUNT(*) AS actuallyPublishedBilingualItems
+                  FROM jrei_news_publications p
+                  JOIN jrei_news_editorial_versions v ON v.revision_id=p.revision_id
+                  JOIN jrei_news_owner_decisions d ON d.decision_id=p.approved_decision_id
+                  WHERE p.publisher_state='PUBLISHED'
+                    AND p.published_at IS NOT NULL
+                    AND p.publisher_receipt_reference IS NOT NULL
+                    AND d.action_code='APPROVE'
+                    AND d.approval_digest=v.approval_digest
+                    AND p.fa_content_sha256 IS NOT NULL
+                    AND p.en_content_sha256 IS NOT NULL"
+        ],
+        [
+            'keys'=>['socialDeliveryFailures'],
+            'sql'=>"SELECT COUNT(*) AS socialDeliveryFailures
+                  FROM jrei_news_delivery_receipts
+                  WHERE state IN ('FAILED','UNKNOWN_REVIEW_REQUIRED')"
+        ],
+        [
+            'keys'=>['activeNewsTopicFollows'],
+            'sql'=>"SELECT COUNT(*) AS activeNewsTopicFollows
+                  FROM jrei_news_topic_follows WHERE follow_state='ACTIVE'"
+        ],
+        [
+            'keys'=>['activeExamReminderFollows'],
+            'sql'=>"SELECT COUNT(*) AS activeExamReminderFollows
+                  FROM jrei_news_exam_follows WHERE follow_state='ACTIVE'"
+        ]
     ];
     $results=[];
-    foreach ($metrics as $metric=>$sql) {
+    foreach ($groups as $group) {
         try {
-            $value=$pdo->query($sql)->fetchColumn();
-            $results[$metric]=[
-                'status'=>'MEASURED','value'=>(int)$value,
-                'liveServerSource'=>'BERTINA_MOTHER_DATABASE'];
+            $values=$pdo->query($group['sql'])->fetch(PDO::FETCH_ASSOC);
+            if (!is_array($values))
+                throw new RuntimeException('news_overview_unavailable');
+            foreach ($group['keys'] as $key) {
+                if (!isset($values[$key]) || !is_numeric($values[$key]))
+                    throw new RuntimeException('news_overview_metric_unavailable');
+            }
+            foreach ($group['keys'] as $key)
+                $results[$key]=[
+                    'status'=>'MEASURED','value'=>(int)$values[$key],
+                    'liveServerSource'=>'BERTINA_MOTHER_DATABASE'];
         }catch(Throwable $e){
-            // No leaks of SQL or private connection details in the UI.
-            $results[$metric]=[
-                'status'=>'UNKNOWN','value'=>null,
-                'reason'=>'SCHEMA_OR_OBSERVATION_NOT_AVAILABLE'];
+            // Report unknown separately for each metric, never as false zero.
+            foreach ($group['keys'] as $key)
+                $results[$key]=[
+                    'status'=>'UNKNOWN','value'=>null,
+                    'reason'=>'SCHEMA_OR_OBSERVATION_NOT_AVAILABLE'];
         }
     }
     return [
