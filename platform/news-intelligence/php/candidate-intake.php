@@ -28,6 +28,9 @@ function jrNewsPersistObservedCandidate(
         ($candidate['schema']??null)!=='jr.jrei.news-feed-candidate.v1' ||
         ($candidate['evidenceStatus']??null)!=='UNREVIEWED_METADATA' ||
         !is_string($candidate['sourceId']??null) ||
+        (isset($candidate['monitorId']) &&
+         (!is_string($candidate['monitorId']) ||
+          !preg_match('/^[a-f0-9-]{36}$/iD',$candidate['monitorId']))) ||
         !is_string($candidate['title']??null) ||
         strlen($candidate['title'])>720 ||
         preg_match('//u',$candidate['title'])!==1 ||
@@ -85,6 +88,7 @@ function jrNewsPersistObservedCandidate(
              JOIN jrei_exam_sources s ON s.source_id=n.jrei_source_reference
              JOIN jrei_ka_source_policies p ON p.source_id=s.source_id
              WHERE n.jrei_source_reference=? AND n.source_url_sha256=?
+               AND (? IS NULL OR n.monitor_id=?)
                AND n.enabled=1 AND n.policy_revision=p.revision
                AND s.source_locator_uri=?
                AND s.review_state='AUTHORITATIVE_REVIEWED'
@@ -101,8 +105,10 @@ function jrNewsPersistObservedCandidate(
                AND p.transport_evidence_sha256 REGEXP '^[a-f0-9]{64}$'
              LIMIT 1 FOR UPDATE"
         );
+        $monitorId=$candidate['monitorId']??null;
         $q->execute([$candidate['sourceId'],
             hash('sha256',(string)$sourceAuthority['canonicalUrl']),
+            $monitorId,$monitorId,
             (string)$sourceAuthority['canonicalUrl']]);
         $monitor=$q->fetch(PDO::FETCH_ASSOC);
         if (!$monitor)throw new RuntimeException('news_monitor_not_owner_enabled');
