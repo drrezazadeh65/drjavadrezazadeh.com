@@ -42,7 +42,8 @@ function jrNewsActiveCustomerSession(array $ctx): string {
 }
 function jrNewsDispatchApi(PDO $pdo,string $method,string $route,
     array $body,array $serverCtx,callable $currentEcoConsentResolver,
-    callable $publicReadRateLimiter): array {
+    callable $publicReadRateLimiter,
+    callable $originalJreiSourceCurrentResolver): array {
     if (getenv('JR_JREI_NEWS_API_ENABLED')!=='true' ||
         ($serverCtx['originalApiBootstrap']??null)!==true ||
         ($serverCtx['finalIntegratedAcceptanceVerified']??null)!==true ||
@@ -106,7 +107,7 @@ function jrNewsDispatchApi(PDO $pdo,string $method,string $route,
         $digest=jrNewsRouteBody($body,'approvalDigest',64);
         $action=jrNewsRouteBody($body,'action',24);
         return jrNewsPrivateRecordDecision($pdo,$owner,$revisionId,
-            $digest,$action,time());
+            $digest,$action,time(),$originalJreiSourceCurrentResolver);
     }
     if ($method==='POST' && $route==='/news/v1/preferences') {
         $accountId=jrNewsActiveCustomerSession($serverCtx);
