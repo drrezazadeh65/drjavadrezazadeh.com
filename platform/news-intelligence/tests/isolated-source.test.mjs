@@ -84,7 +84,7 @@ test('propose stable bilingual routes without changing frozen URLs',()=>{
       completeCurrentSnapshot:true}
   });
   assert.ok(p.faPath.startsWith('/fa/akhbar/'));
-  assert.ok(p.enPath.startsWith('/en/news/'));
+  assert.ok(p.enPath.startsWith('/en/news-insights/'));
   assert.equal(p.dnsOrPublicPageChanged,false);
   assert.throws(()=>proposeImmutableBilingualNewsRoutes({
     headlineEn:'International English teacher examination',
