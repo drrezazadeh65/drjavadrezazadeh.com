@@ -8,5 +8,15 @@
     "maxRamPercent": 85,
     "maxCpuPercent": 90
   },
-  "datasets": []
+  "datasets": [],
+  "localChat": {
+    "enabled": false,
+    "ownerApproved": false,
+    "licenceReviewed": false,
+    "model": "REPLACE_WITH_APPROVED_MODEL_ID",
+    "modelVersion": "REPLACE_WITH_APPROVED_GGUF_VERSION",
+    "modelArtifactSha256": "REPLACE_WITH_SHA256_OF_ACTUAL_LOCAL_GGUF",
+    "modelFile": "C:\\JREI-Private\\models\\approved-model.gguf",
+    "endpoint": "http://127.0.0.1:8080/v1/chat/completions"
+  }
 }
