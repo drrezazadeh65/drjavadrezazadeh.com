@@ -25,7 +25,10 @@ function jrNewsIndexApprovedPublication(
                     p.en_content_sha256,p.publisher_receipt_reference,
                     v.bilingual_editorial_json,v.approval_digest,
                     c.event_type,c.source_url,c.content_sha256 AS source_evidence_sha256,
-                    m.category_code,d.action_code
+                    m.category_code,d.action_code,
+                    d.revision_id AS decision_revision_id,
+                    d.approval_digest AS decision_approval_digest,
+                    p.revision_id AS published_revision_id
              FROM jrei_news_publications p
              JOIN jrei_news_editorial_versions v ON v.revision_id=p.revision_id
              JOIN jrei_news_candidates c ON c.candidate_id=v.candidate_id
@@ -37,6 +40,9 @@ function jrNewsIndexApprovedPublication(
         $row=$stmt->fetch(PDO::FETCH_ASSOC);
         if (!$row||$row['publisher_state']!=='PUBLISHED'||
             $row['action_code']!=='APPROVE'||
+            $row['decision_revision_id']!==$row['published_revision_id']||
+            !hash_equals((string)$row['approval_digest'],
+                (string)$row['decision_approval_digest'])||
             empty($row['publisher_receipt_reference'])||
             empty($row['published_at'])) {
             throw new RuntimeException('news_search_unpublished_or_unapproved');
