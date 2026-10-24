@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS jrei_ka_discovery_candidates (
   candidate_url_sha256 CHAR(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
   candidate_label VARCHAR(220) NOT NULL,
   discovery_kind VARCHAR(28) NOT NULL DEFAULT 'POTENTIAL_EXAM_DOCUMENT',
-  state VARCHAR(32) NOT NULL DEFAULT 'DISCOVERED_REQUIRES_RIGHTS_REVIEW',
+  state VARCHAR(48) NOT NULL DEFAULT 'DISCOVERED_REQUIRES_RIGHTS_REVIEW',
   first_discovered_at BIGINT UNSIGNED NOT NULL,
   last_discovered_at BIGINT UNSIGNED NOT NULL,
   independent_review_account_id CHAR(36) NULL,
