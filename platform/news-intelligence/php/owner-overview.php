@@ -52,6 +52,8 @@ function jrNewsOwnerOperationalOverview(PDO $pdo,array $ownerSession,
                     AND p.published_at IS NOT NULL
                     AND p.publisher_receipt_reference IS NOT NULL
                     AND d.action_code='APPROVE'
+                    AND d.revision_id=v.revision_id
+                    AND v.editorial_state='OWNER_APPROVED'
                     AND d.approval_digest=v.approval_digest
                     AND p.fa_content_sha256 IS NOT NULL
                     AND p.en_content_sha256 IS NOT NULL"
