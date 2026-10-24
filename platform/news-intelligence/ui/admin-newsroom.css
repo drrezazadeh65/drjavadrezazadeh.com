@@ -39,3 +39,47 @@
 .ni-admin-metric span{font-size:.84rem;color:#d0c1ab}
 .ni-admin-metric strong{font-size:1.5rem;color:#edcf97;
  font-variant-numeric:tabular-nums}
+
+/* Original source intelligence and publication reconciliation remain in the
+ * EXISTING MFA dashboard. Mobile-first, no fixed-width admin tables. */
+.ni-admin-sources,.ni-admin-acquisition,.ni-admin-publication-backlog{
+ border:1px solid #695837;border-radius:1rem;background:#191e20;
+ color:#f5f1e7;padding:clamp(.85rem,2.2vw,1.4rem);
+ margin-block:1rem;min-width:0;overflow-wrap:anywhere}
+.ni-admin-sources h3,.ni-admin-acquisition h3,
+.ni-admin-publication-backlog h3{
+ font-size:clamp(1.05rem,2.8vw,1.35rem);line-height:1.55;
+ color:#efcf91;margin:.2rem 0 .85rem}
+.ni-admin-source-row,.ni-admin-acquisition-row,.ni-admin-publication-row{
+ display:flex;flex-wrap:wrap;align-items:center;gap:.6rem 1rem;
+ border-top:1px solid #4f4637;padding:.85rem .15rem;
+ min-width:0;line-height:1.55}
+.ni-admin-source-row strong,.ni-admin-acquisition-row strong,
+.ni-admin-publication-row strong{flex:1 1 14rem;min-width:0}
+.ni-admin-source-row span,.ni-admin-acquisition-row span,
+.ni-admin-publication-row span{font-size:.9rem;color:#d8cbb8}
+.ni-admin-source-row select{
+ font:inherit;min-height:44px;max-width:100%;width:min(100%,220px);
+ padding:.45rem .65rem;background:#262b2e;color:#f7f0e5;
+ border:1px solid #8e7958;border-radius:.55rem}
+.ni-admin-sources button,.ni-admin-publication-backlog button{
+ font:inherit;min-height:44px;border-radius:.55rem;
+ padding:.55rem 1rem;border:1px solid #b99a64;
+ color:#f9efd9;background:#353027;cursor:pointer}
+.ni-admin-sources button:hover:not(:disabled),
+.ni-admin-publication-backlog button:hover:not(:disabled){
+ background:#51432e}
+.ni-admin-sources button:disabled,
+.ni-admin-publication-backlog button:disabled{
+ opacity:.5;cursor:not-allowed}
+.ni-admin-sources :is(select,button):focus-visible,
+.ni-admin-publication-backlog button:focus-visible{
+ outline:2px solid #edcf91;outline-offset:3px}
+.ni-admin-source-staging{margin-block-start:1.15rem;
+ border-block-start:1px solid #6d5735;padding-block-start:.75rem}
+@media(max-width:560px){
+ .ni-admin-source-row,.ni-admin-acquisition-row,.ni-admin-publication-row{
+   display:grid;grid-template-columns:minmax(0,1fr);gap:.6rem}
+ .ni-admin-source-row select,.ni-admin-sources button,
+ .ni-admin-publication-backlog button{width:100%}
+}
