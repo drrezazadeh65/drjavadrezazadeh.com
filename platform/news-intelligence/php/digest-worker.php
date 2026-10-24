@@ -53,7 +53,7 @@ function jrNewsQueueTopicDigests(PDO $pdo,string $mode,int $nowEpoch,
            AND p.publisher_receipt_reference IS NOT NULL
            AND p.fa_content_sha256 IS NOT NULL
            AND p.en_content_sha256 IS NOT NULL
-         ORDER BY p.published_at DESC LIMIT 120"
+         ORDER BY p.published_at DESC LIMIT 500"
     );
     $stmt->execute([$since,$nowEpoch]);
     $articles=array_values(array_filter(
