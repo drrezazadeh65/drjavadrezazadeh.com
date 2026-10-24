@@ -43,4 +43,16 @@ foreach([$fa,$en,$editing,$major,$general] as $items)
     verifyService(!isset($entry['price'])&&!isset($entry['availability']),
       'recommendation does not invent prices or availability');
   }
+$extended=[
+    ['برای مشاوره تخصصی تحصیلی خدمت می خواهم','fa/services/academic_consult_60/'],
+    ['مشاوره انتخاب رشته جامع و اولویت بندی نهایی','fa/services/field_selection_comprehensive/'],
+    ['Golden Talent premium service for parent session and pathway report','en/services/golden_talent_premium/'],
+    ['برای استعدادیابی تخصصی اولیه خدمت می خواهم','fa/services/talent_initial/'],
+    ['برنامه مشاوره کنکور یک ماهه می خواهم','fa/services/konkur_month/']
+];
+foreach($extended as [$question,$expected]){
+    $found=jrAiPublicServiceEvidence($question,str_starts_with($expected,'en/')?'en':'fa');
+    verifyService(in_array('/'.$expected,array_column($found,'url'),true),
+       'specialist service missing: '.$expected);
+}
 echo "JREI bilingual service recommendation source checks passed\n";
