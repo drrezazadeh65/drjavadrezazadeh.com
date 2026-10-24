@@ -732,6 +732,11 @@ if ($path==='/publishing/offer' && $verb==='GET') {
 if (str_starts_with($path, '/publishing/')) jrPublishingAuthorRoute($path,$verb);
 // Credential-free public indicative rate only; never authorize an order or payment from this tick.
 if ($path==='/rates/usdt-irt') { require_once __DIR__.'/ramzinex-public-usdt-rate.php'; jrPublicUsdtRateRoute($verb); }
+// Public JREI News search: existing published-only index; disabled until both private release gates.
+if ($path==='/news/v1/search') {
+    require_once __DIR__.'/news-public-search.php';
+    jrNewsPublicSearchRoute($verb);
+}
 // First-party newsletter preferences, verified account only, independent of transactional mail.
 if(str_starts_with($path, '/newsletter/')) { require_once __DIR__.'/newsletter-preferences.php'; jrNewsletterRoute($path,$verb); }
 // Owner-gated community pilot: schema and privacy approval required.
