@@ -232,6 +232,7 @@ export async function runLocalChatWorker(config,key,{post,log,signal,fetchImpl}=
             log('LOCAL_CHAT_TASK_'+safeReason(error));
           }finally{
             clearInterval(heartbeatTimer);
+            clearTimeout(leaseDeadline);
             jobController.abort();
             signal?.removeEventListener?.('abort',stopJob);
           }
