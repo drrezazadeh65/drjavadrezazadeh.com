@@ -120,7 +120,7 @@ function jrHybridOwnerChange(PDO $pdo,array $cfg,string $actor,
        'suspend_public_source','propose_source_version',
        'review_source_version','propose_local_model',
        'approve_model_rights','suspend_model_version',
-       'set_local_chat_node'],true))
+       'attest_local_model_runtime','set_local_chat_node'],true))
          throw new InvalidArgumentException('invalid_action');
     $now=time();
     if($action==='set_local_chat_node')
@@ -135,7 +135,7 @@ function jrHybridOwnerChange(PDO $pdo,array $cfg,string $actor,
        'review_source_version'],true))
         return jrHybridSourceChange($pdo,$actor,$body);
     if(in_array($action,['propose_local_model','approve_model_rights',
-       'suspend_model_version'],true))
+       'suspend_model_version','attest_local_model_runtime'],true))
         return jrHybridModelOwnerChange($pdo,$actor,$body);
     if($action==='register_node'){
         $key=$body['publicKeyB64']??null;
