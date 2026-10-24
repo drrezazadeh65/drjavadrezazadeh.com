@@ -29,6 +29,14 @@ require_once __DIR__.'/preferences-replace.php';
 require_once __DIR__.'/digest-worker.php';
 require_once __DIR__.'/public-search-indexer.php';
 require_once __DIR__.'/public-read-model.php';
+require_once __DIR__.'/slug-routes.php';
+require_once __DIR__.'/publication-dispatch.php';
+require_once __DIR__.'/exam-deadline-owner.php';
+require_once __DIR__.'/calendar-read.php';
+require_once __DIR__.'/owner-review-outbox.php';
+require_once __DIR__.'/source-monitor-owner.php';
+require_once __DIR__.'/jrei-ka-source-adapter.php';
+require_once __DIR__.'/retraction.php';
 require_once __DIR__.'/news-api-adapter.php';
 
 function jrNewsSourceCapabilities(): array {
