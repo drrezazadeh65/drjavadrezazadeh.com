@@ -54,20 +54,25 @@
         }
       }catch{official.hidden=true;}
       const actions=el('div','ni-calendar-actions');
-      const button=el('button',null,isFa?'یادآوری برای من':'Remind me');
+      const label=el('label',null,isFa?'چند روز پیش از موعد؟':'How many days before?');
+      const daysSelect=el('select');
+      for(const count of [30,15,10,7,5,3,1,0]){
+        const option=el('option',null,String(count));
+        option.value=String(count);
+        if(count===5)option.selected=true;
+        daysSelect.append(option);
+      }
+      label.append(daysSelect);
+      const button=el('button',null,isFa?'ثبت یادآوری':'Set reminder');
       button.type='button';
-      button.addEventListener('click',()=>follow(item,button));
-      actions.append(button);
+      button.addEventListener('click',()=>follow(item,button,daysSelect));
+      actions.append(label,button);
       card.append(time,head,official,actions);
       results.append(card);
     }
   }
-  async function follow(item,button){
-    const days=window.prompt(isFa?
-      'چند روز قبل یادآوری شود؟ ۱، ۳، ۵، ۷، ۱۰، ۱۵ یا ۳۰':
-      'How many days before? Choose 1, 3, 5, 7, 10, 15 or 30','5');
-    if(days===null)return;
-    const value=Number(days);
+  async function follow(item,button,daysSelect){
+    const value=Number(daysSelect.value);
     if(![0,1,3,5,7,10,15,30].includes(value)){
       status.textContent=isFa?'عدد معتبر انتخاب کنید.':'Choose an allowed number.';
       return;
