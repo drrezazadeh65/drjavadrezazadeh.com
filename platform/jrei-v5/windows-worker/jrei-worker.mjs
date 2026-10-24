@@ -129,7 +129,7 @@ async function showPublic() {
   if(!/^[A-Za-z0-9+/]{43}=$/.test(publicKeyB64))
     throw Error('ED25519_PUBLIC_KEY_INVALID');
   log('EXISTING_INDEPENDENT_NODE_KEY_VERIFIED');
-  process.stdout.write('PUBLIC_KEY_B64='+publicKeyB64+'\\n');
+  process.stdout.write('PUBLIC_KEY_B64='+publicKeyB64+'\n');
   log('ONLY_THE_PUBLIC_KEY_MAY_BE_USED_FOR_OWNER_REGISTRATION');
 }
 
