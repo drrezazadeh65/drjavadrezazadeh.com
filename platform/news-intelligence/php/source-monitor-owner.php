@@ -248,3 +248,71 @@ function jrNewsOwnerDisableSourceMonitor(
         throw $e;
     }
 }
+
+/**
+ * Private owner inventory, including disabled and stale-policy monitors.
+ * This is a READ model, not an acquisition permission grant.
+ */
+function jrNewsOwnerMonitorInventory(
+    PDO $pdo,array $session,int $limit=100
+): array {
+    jrNewsOwnerAuthority($session);
+    if($limit<1||$limit>200)
+        throw new InvalidArgumentException('news_monitor_inventory_limit_invalid');
+    $q=$pdo->prepare(
+        "SELECT n.monitor_id,n.jrei_source_reference,n.category_code,
+                n.priority_code,n.enabled,n.interval_minutes,n.policy_revision,
+                n.source_url_sha256,s.source_title,s.source_locator_uri,
+                s.review_state,s.rights_state,s.is_revoked,s.is_superseded,
+                s.verified_at,s.reviewer_account_id,
+                p.revision,p.scheduling_state,p.rights_reviewed,
+                p.robots_terms_reviewed,p.transport_reviewed,
+                p.rights_evidence_sha256,p.robots_terms_evidence_sha256,
+                p.transport_evidence_sha256
+         FROM jrei_news_monitors n
+         LEFT JOIN jrei_exam_sources s ON s.source_id=n.jrei_source_reference
+         LEFT JOIN jrei_ka_source_policies p ON p.source_id=s.source_id
+         ORDER BY n.created_at DESC,n.monitor_id ASC LIMIT ?"
+    );
+    $q->bindValue(1,$limit,PDO::PARAM_INT);
+    $q->execute();
+    $items=[];
+    foreach($q->fetchAll(PDO::FETCH_ASSOC) as $row){
+        $evidence=true;
+        foreach(['rights_evidence_sha256','robots_terms_evidence_sha256',
+                 'transport_evidence_sha256'] as $field){
+            if(preg_match('/^[a-f0-9]{64}$/D',
+                (string)($row[$field]??''))!==1)$evidence=false;
+        }
+        $uri=$row['source_locator_uri']??null;
+        $approved=is_string($uri) &&
+            hash_equals((string)$row['source_url_sha256'],hash('sha256',$uri)) &&
+            $row['review_state']==='AUTHORITATIVE_REVIEWED' &&
+            in_array($row['rights_state'],[
+                'PERMITTED_PRIVATE_ANALYSIS','PERMITTED_REPRODUCTION'
+            ],true) &&
+            (int)$row['is_revoked']===0 && (int)$row['is_superseded']===0 &&
+            $row['verified_at']!==null && $row['reviewer_account_id']!==null &&
+            (int)$row['policy_revision']===(int)$row['revision'] &&
+            $row['scheduling_state']==='APPROVED' &&
+            (int)$row['rights_reviewed']===1 &&
+            (int)$row['robots_terms_reviewed']===1 &&
+            (int)$row['transport_reviewed']===1 && $evidence;
+        $items[]=[
+            'monitorId'=>$row['monitor_id'],
+            'sourceReference'=>$row['jrei_source_reference'],
+            'sourceTitle'=>(string)($row['source_title']??''),
+            'category'=>$row['category_code'],
+            'priority'=>$row['priority_code'],
+            'intervalMinutes'=>(int)$row['interval_minutes'],
+            'enabled'=>(int)$row['enabled']===1,
+            'originalPolicyCurrent'=>$approved,
+            'activationRequiresOriginalOwnerRelease'=>true
+        ];
+    }
+    return [
+        'schema'=>'jr.jrei.news-owner-monitor-inventory.v1',
+        'items'=>$items,'returnedCount'=>count($items),
+        'ownerApprovalCannotBeInferredFromReadOnlyProjection'=>true
+    ];
+}
