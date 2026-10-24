@@ -63,10 +63,11 @@ function jrNewsPrivateRecordDecision(PDO $pdo,array $session,
     if (!function_exists('operationsAudit')) {
         throw new RuntimeException('news_owner_operations_audit_missing');
     }
-    $pdo->beginTransaction();
+    // Verify possibly slow ORIGINAL source evidence before opening a DB
+    // transaction. Then lock and compare the exact editorial/evidence row
+    // before writing a decision. No HTTP call may hold InnoDB owner locks.
     try {
-        $stmt=$pdo->prepare(
-            'SELECT v.approval_digest,v.editorial_state,
+        $decisionSql='SELECT v.approval_digest,v.editorial_state,
                     v.bilingual_editorial_json,v.candidate_id,
                     c.content_sha256,c.source_url,d.approved_article_source_id,
                     e.verification_state,e.issuer_verified,
@@ -79,8 +80,8 @@ function jrNewsPrivateRecordDecision(PDO $pdo,array $session,
               AND d.review_state=\'ORIGINAL_JREI_ARTICLE_APPROVED\'
              JOIN jrei_news_evidence_reviews e
                ON e.review_id=v.evidence_review_id
-             WHERE v.revision_id=? FOR UPDATE'
-        );
+             WHERE v.revision_id=?';
+        $stmt=$pdo->prepare($decisionSql);
         $stmt->execute([$revisionId]);
         $row=$stmt->fetch(PDO::FETCH_ASSOC);
         if (!$row ||
@@ -109,6 +110,12 @@ function jrNewsPrivateRecordDecision(PDO $pdo,array $session,
                 throw new RuntimeException('news_original_source_no_longer_current');
             }
         }
+        $pdo->beginTransaction();
+        $locked=$pdo->prepare($decisionSql.' FOR UPDATE');
+        $locked->execute([$revisionId]);
+        $latest=$locked->fetch(PDO::FETCH_ASSOC);
+        if(!is_array($latest)||$latest!==$row)
+            throw new RuntimeException('news_owner_decision_changed_during_source_review');
         $bytes=random_bytes(16);
         $bytes[6]=chr((ord($bytes[6])&15)|64);
         $bytes[8]=chr((ord($bytes[8])&63)|128);
