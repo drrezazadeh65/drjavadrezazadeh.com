@@ -128,3 +128,101 @@ function jrNewsQueueDueReminders(PDO $pdo,int $nowEpoch,
         'smtpAcceptedUnverified'=>true,'mailboxDeliveredUnverified'=>true,
         'usesExistingOutbox'=>true];
 }
+
+
+/** One account's approved and not-yet-expired exam reminders. */
+function jrNewsCurrentExamReminders(
+    PDO $pdo,string $accountId,int $nowEpoch
+): array {
+    if(!preg_match('/^[a-f0-9-]{36}$/iD',$accountId) ||
+        $nowEpoch<=0)throw new InvalidArgumentException('news_reminder_owner_invalid');
+    $q=$pdo->prepare(
+        "SELECT f.follow_id,f.milestone_id,f.days_before,f.channel_code,
+                f.follow_state,m.title_fa,m.title_en,m.event_utc,
+                m.milestone_type,m.version_number
+         FROM jrei_news_exam_follows f
+         JOIN jrei_news_exam_milestones m
+           ON m.milestone_id=f.milestone_id
+         WHERE f.account_id=? AND f.follow_state='ACTIVE'
+           AND m.review_state='OFFICIAL_DATE_REVIEWED'
+           AND m.owner_approved=1 AND m.event_utc>?
+         ORDER BY m.event_utc ASC,f.days_before DESC LIMIT 100"
+    );
+    $q->execute([$accountId,$nowEpoch]);
+    $rows=[];
+    foreach($q->fetchAll(PDO::FETCH_ASSOC) as $r) {
+        $rows[]=[
+            'followId'=>$r['follow_id'],
+            'milestoneId'=>$r['milestone_id'],
+            'titleFa'=>$r['title_fa'],
+            'titleEn'=>$r['title_en'],
+            'eventUtc'=>(int)$r['event_utc'],
+            'daysBefore'=>(int)$r['days_before'],
+            'channel'=>$r['channel_code'],
+            'milestoneType'=>$r['milestone_type'],
+            'eventVersion'=>(int)$r['version_number']
+        ];
+    }
+    return [
+        'schema'=>'jr.jrei.news-account-exam-reminders.v1',
+        'items'=>$rows,
+        'activeFutureReminderCount'=>count($rows),
+        'actualEmailDeliveryUnverified'=>true
+    ];
+}
+
+/**
+ * Withdraw one exact account-owned reminder. The existing eco outbox must
+ * atomically suppress queued deliveries for this follow record. Does not
+ * withdraw other newsletter/transactional consent scopes.
+ */
+function jrNewsWithdrawExamReminder(
+    PDO $pdo,string $accountId,string $followId,
+    callable $originalEcoReminderSuppressor,int $nowEpoch
+): array {
+    if(!preg_match('/^[a-f0-9-]{36}$/iD',$accountId)||
+        !preg_match('/^[a-f0-9-]{36}$/iD',$followId)||
+        $nowEpoch<=0)throw new InvalidArgumentException('news_reminder_withdraw_invalid');
+    $pdo->beginTransaction();
+    try {
+        $q=$pdo->prepare('SELECT id FROM customer_accounts
+            WHERE id=? FOR UPDATE');
+        $q->execute([$accountId]);
+        if(!$q->fetchColumn())
+            throw new RuntimeException('news_reminder_owner_missing');
+        $q=$pdo->prepare(
+            "SELECT follow_id,milestone_id,channel_code,follow_state
+             FROM jrei_news_exam_follows
+             WHERE follow_id=? AND account_id=? FOR UPDATE"
+        );
+        $q->execute([$followId,$accountId]);
+        $row=$q->fetch(PDO::FETCH_ASSOC);
+        if(!$row)throw new RuntimeException('news_reminder_follow_not_owned');
+        if($row['follow_state']==='ACTIVE'){
+            $pdo->prepare(
+                "UPDATE jrei_news_exam_follows
+                 SET follow_state='WITHDRAWN'
+                 WHERE follow_id=? AND account_id=? AND follow_state='ACTIVE'"
+            )->execute([$followId,$accountId]);
+        }
+        $receipt=$originalEcoReminderSuppressor(
+            $pdo,$accountId,'EXAM_REMINDERS',
+            $row['channel_code'],$followId,$row['milestone_id']
+        );
+        if(!is_array($receipt)||
+            ($receipt['source']??null)!=='ORIGINAL_ECO_NOTIFICATION_OUTBOX'||
+            ($receipt['queuedMessagesSuppressed']??null)!==true) {
+            throw new RuntimeException('news_reminder_original_outbox_not_suppressed');
+        }
+        $pdo->commit();
+        return [
+            'schema'=>'jr.jrei.news-exam-reminder-withdrawal.v1',
+            'state'=>'WITHDRAWN','followId'=>$followId,
+            'queuedDeliveriesSuppressed'=>true,
+            'previouslySentMailCannotBeRecalled'=>true
+        ];
+    }catch(Throwable $e){
+        if($pdo->inTransaction())$pdo->rollBack();
+        throw $e;
+    }
+}
