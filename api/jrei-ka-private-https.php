@@ -61,7 +61,16 @@ function jrKaPinnedPublicIpv4(string $host): string {
 }
 function jrKaPinnedGet(string $url,int $maximumBytes,
     array $allowedMime=['application/pdf','text/html','text/plain',
-      'application/json']): array {
+      'application/json',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+      'application/vnd.oasis.opendocument.text',
+      'application/vnd.oasis.opendocument.spreadsheet',
+      'application/vnd.oasis.opendocument.presentation',
+      'application/msword','application/vnd.ms-excel',
+      'application/vnd.ms-powerpoint','text/csv','text/rtf',
+      'application/rtf']): array {
     if(!function_exists('curl_init')||
        $maximumBytes<1||$maximumBytes>8388608)
         throw new DomainException('ka_transport_not_available');
@@ -103,7 +112,12 @@ function jrKaPinnedGet(string $url,int $maximumBytes,
       CURLOPT_PROXY=>'',
       CURLOPT_USERAGENT=>'JREI-ReviewedSourceIntake/1.0',
       CURLOPT_HTTPHEADER=>[
-        'Accept: application/pdf,text/html,text/plain,application/json',
+        'Accept: application/pdf,text/html,text/plain,application/json,'.
+          'application/vnd.openxmlformats-officedocument.wordprocessingml.document,'.
+          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,'.
+          'application/vnd.openxmlformats-officedocument.presentationml.presentation,'.
+          'application/vnd.oasis.opendocument.text,application/vnd.oasis.opendocument.spreadsheet,'.
+          'application/msword,application/vnd.ms-excel,text/csv',
         'Accept-Encoding: identity'
       ],
       CURLOPT_WRITEFUNCTION=>$write,
