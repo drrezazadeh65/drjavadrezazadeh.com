@@ -119,11 +119,13 @@ function jrNewsQueueDueReminders(PDO $pdo,int $nowEpoch,
             $suppressed++;continue;
         }
         $key=hash('sha256','JREI_EXAM_REMINDER|'.$row['follow_id'].'|'.
-            $row['version_number']);
+            $row['version_number'].'|'.$row['consent_reference']);
         $message=['topic'=>'EXAM_REMINDERS',
             'idempotencyKey'=>$key,
             'accountId'=>$row['account_id'],
             'channel'=>$row['channel_code'],
+            'consentReference'=>$row['consent_reference'],
+            'verifyCurrentConsentBeforeDelivery'=>true,
             'milestoneId'=>$row['milestone_id'],
             'eventUtc'=>(int)$row['event_utc'],
             'titleFa'=>$row['title_fa'],
