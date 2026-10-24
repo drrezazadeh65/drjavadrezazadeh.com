@@ -92,7 +92,7 @@ export function renderNewsroomHome({language='fa',stories=[],examEvents=[],
     '<meta name="description" content="'+e(copy.intro)+'">'+
     '<link rel="canonical" href="'+SITE+news+'">'+
     '<link rel="alternate" hreflang="fa" href="'+SITE+'/fa/akhbar/">'+
-    '<link rel="alternate" hreflang="en" href="'+SITE+'/en/news/">'+
+    '<link rel="alternate" hreflang="en" href="'+SITE+'/en/news-insights/">'+
     '<link rel="stylesheet" href="/assets/css/news-intelligence.css">'+
     '</head><body class="ni-newsroom ni-home"><a class="ni-skip" href="#ni-home-main">'+
     e(isFa?'پرش به متن اصلی':'Skip to content')+'</a>'+
