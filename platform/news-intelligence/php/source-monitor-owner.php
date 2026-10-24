@@ -316,3 +316,73 @@ function jrNewsOwnerMonitorInventory(
         'ownerApprovalCannotBeInferredFromReadOnlyProjection'=>true
     ];
 }
+
+/**
+ * An MFA-owner-only, read-only shortlist of ORIGINAL JREI-KA sources that
+ * have not yet been staged as News monitors. Discovery is not a rights
+ * approval and never creates a crawler job, source, or additional database.
+ */
+function jrNewsOwnerStageableOriginalSources(
+    PDO $pdo,array $session,int $limit=80
+): array {
+    jrNewsOwnerAuthority($session);
+    if($limit<1||$limit>100)
+        throw new InvalidArgumentException('news_source_shortlist_limit_invalid');
+    $stmt=$pdo->prepare(
+        "SELECT s.source_id,s.source_title,s.source_locator_uri,s.rights_state,
+                p.refresh_interval_seconds
+         FROM jrei_exam_sources s
+         JOIN jrei_ka_source_policies p ON p.source_id=s.source_id
+         LEFT JOIN jrei_news_monitors n
+           ON n.jrei_source_reference=s.source_id
+          AND n.source_url_sha256=SHA2(s.source_locator_uri,256)
+         WHERE n.monitor_id IS NULL
+           AND s.review_state='AUTHORITATIVE_REVIEWED'
+           AND s.rights_state IN
+             ('PERMITTED_PRIVATE_ANALYSIS','PERMITTED_REPRODUCTION')
+           AND s.is_revoked=0 AND s.is_superseded=0
+           AND s.verified_at IS NOT NULL
+           AND s.reviewer_account_id IS NOT NULL
+           AND p.scheduling_state='APPROVED'
+           AND p.rights_reviewed=1 AND p.robots_terms_reviewed=1
+           AND p.transport_reviewed=1
+           AND p.rights_evidence_sha256 REGEXP '^[a-f0-9]{64}$'
+           AND p.robots_terms_evidence_sha256 REGEXP '^[a-f0-9]{64}$'
+           AND p.transport_evidence_sha256 REGEXP '^[a-f0-9]{64}$'
+           AND p.refresh_interval_seconds BETWEEN 3600 AND 86400
+           AND s.source_locator_uri LIKE 'https://%'
+         ORDER BY s.source_id ASC LIMIT ?"
+    );
+    $stmt->bindValue(1,$limit,PDO::PARAM_INT);
+    $stmt->execute();
+    $items=[];
+    foreach($stmt->fetchAll(PDO::FETCH_ASSOC) as $row){
+        $id=$row['source_id'];
+        $title=$row['source_title'];
+        $uri=$row['source_locator_uri'];
+        if(!is_string($id)||!preg_match('/^[a-f0-9-]{36}$/iD',$id)||
+           !is_string($title)||trim($title)===''||
+           !is_string($uri)||strlen($uri)>1000||
+           preg_match('/[\\x00-\\x20\\x7f]/',$uri)===1)
+            continue;
+        $parts=parse_url($uri);
+        if(!is_array($parts)||($parts['scheme']??null)!=='https'||
+           empty($parts['host'])||isset($parts['user'])||
+           isset($parts['pass'])||isset($parts['fragment'])||
+           (isset($parts['port'])&&(int)$parts['port']!==443)||
+           filter_var((string)$parts['host'],FILTER_VALIDATE_IP)!==false)
+            continue;
+        $items[]=[
+            'sourceId'=>$id,'title'=>mb_substr($title,0,160),
+            'rights'=>$row['rights_state'],
+            'originalPolicyMinMinutes'=>(int)ceil(
+                (int)$row['refresh_interval_seconds']/60),
+            'ownerMustChooseCategoryAndPriority'=>true
+        ];
+    }
+    return [
+        'schema'=>'jr.jrei.news-owner-stageable-original-sources.v1',
+        'items'=>$items,'returnedCount'=>count($items),
+        'monitorStaged'=>false,'acquisitionStarted'=>false
+    ];
+}
