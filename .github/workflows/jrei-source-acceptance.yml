@@ -48,7 +48,8 @@ jobs:
             tests/jrei-v5-two-windows-node-gates.test.mjs \
             tests/jrei-chat-experience.test.mjs \
             tests/jrei-local-first-bridge.test.mjs \
-            tests/jrei-local-chat-worker-offline.test.mjs
+            tests/jrei-local-chat-worker-offline.test.mjs \
+            tests/jrei-local-model-activation.test.mjs
       - name: Check JREI model worker syntax and model privacy firewall
         run: |
           set -euo pipefail
