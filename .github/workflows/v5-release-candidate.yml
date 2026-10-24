@@ -240,6 +240,7 @@ jobs:
           # Isolated, disposable publishing_fixture schema; no BitPay/SMTP calls.
           php tests/jr-publishing-mysql-fixture.php
           php tests/bertina-donations-mysql-contract.php
+          php tests/jrei-iran-night-acquisition.php
           php tests/bertina-student-support-contract.php
           php -l scripts/service-private-custody-preflight.php
           php -l scripts/journal-ojs-preflight.php
