@@ -25,7 +25,7 @@ export function proposeImmutableBilingualNewsRoutes({
   const stem=words.join('-').slice(0,72).replace(/-$/,'')||'education-update';
   const end=candidateFingerprint.slice(0,12);
   const slug=stem+'-'+end;
-  const routes={fa:'/fa/akhbar/'+slug+'/',en:'/en/news/'+slug+'/'};
+  const routes={fa:'/fa/akhbar/'+slug+'/',en:'/en/news-insights/'+slug+'/'};
   const inUse=new Set(existingCanonicalRoutes);
   assert(!inUse.has(routes.fa)&&!inUse.has(routes.en)&&
     routes.fa!==routes.en,
