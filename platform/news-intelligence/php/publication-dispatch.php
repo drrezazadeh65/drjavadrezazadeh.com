@@ -245,7 +245,7 @@ function jrNewsStageFromApprovedStoredRouteProposal(
         !is_string($proposal['faPath']??null)||
         !is_string($proposal['enPath']??null)||
         !preg_match('#^/fa/akhbar/[a-z0-9-]+/$#D',$proposal['faPath'])||
-        !preg_match('#^/en/news/[a-z0-9-]+/$#D',$proposal['enPath'])) {
+        !preg_match('#^/en/news-insights/[a-z0-9-]+/$#D',$proposal['enPath'])) {
         throw new RuntimeException('news_stored_approved_routes_invalid');
     }
     return jrNewsStageApprovedPublication(
