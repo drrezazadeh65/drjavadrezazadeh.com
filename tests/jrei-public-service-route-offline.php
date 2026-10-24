@@ -55,4 +55,24 @@ foreach($extended as [$question,$expected]){
     verifyService(in_array('/'.$expected,array_column($found,'url'),true),
        'specialist service missing: '.$expected);
 }
+// Every individual service already listed in the canonical bilingual
+// public index must be discoverable from its own official published title.
+$publicIndex=json_decode(file_get_contents(dirname(__DIR__).'/assets/search-index.json'),true,24,JSON_THROW_ON_ERROR);
+$validated=0;
+foreach($publicIndex as $row){
+    $path=$row['path']??'';
+    if(!is_string($path)||
+       preg_match('~^(fa|en)/services/[a-z0-9_]+/$~D',$path,$m)!==1)
+        continue;
+    $lang=$m[1];
+    $title=(string)($row['title']??'');
+    $question=$lang==='fa'?
+        'می خواهم خدمت '.$title.' را از سایت دریافت کنم':
+        'I need help with the professional service '.$title;
+    $matches=jrAiPublicServiceEvidence($question,$lang);
+    verifyService(in_array('/'.$path,array_column($matches,'url'),true),
+        'service not matched to its own published title: '.$path);
+    $validated++;
+}
+verifyService($validated===42,'must verify all 21 services in both languages');
 echo "JREI bilingual service recommendation source checks passed\n";
