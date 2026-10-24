@@ -10,6 +10,8 @@
   .\jrei-managed-startup.ps1 -Mode remove -OwnerApproved
   .\jrei-managed-startup.ps1 -Mode install -WorkerMode chat -ConfigPath "C:\Private\jrei-worker.json" -OwnerApproved
   .\jrei-managed-startup.ps1 -Mode remove -WorkerMode chat -OwnerApproved
+  .\jrei-managed-startup.ps1 -Mode install -WorkerMode model -ConfigPath "C:\Private\jrei-worker.json" -OwnerApproved
+  .\jrei-managed-startup.ps1 -Mode remove -WorkerMode model -OwnerApproved
 
   Script registration is no proof of real Bertina worker connectivity.
 #>
@@ -19,7 +21,7 @@ param(
   [ValidateSet('install','remove')]
   [string]$Mode,
   [string]$ConfigPath,
-  [ValidateSet('evaluation','chat')]
+  [ValidateSet('evaluation','chat','model')]
   [string]$WorkerMode='evaluation',
   [switch]$OwnerApproved
 )
@@ -31,6 +33,8 @@ if(-not [System.Runtime.InteropServices.RuntimeInformation]::IsOSPlatform(
 }
 $taskName=if($WorkerMode -eq 'chat'){
   'JREI-Owner-Local-Chat-Worker'
+}elseif($WorkerMode -eq 'model'){
+  'JREI-Owner-Local-Model'
 }else{'JREI-Owner-Outbound-Worker'}
 if($Mode -eq 'remove'){
   $task=Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue
@@ -65,12 +69,30 @@ if($null -ne $existing){
 $escapedWorker=$worker.Replace('"','')
 $escapedConfig=$fullConfig.Replace('"','')
 $runMode=if($WorkerMode -eq 'chat'){'start-chat'}else{'start'}
-$action=New-ScheduledTaskAction -Execute $node -Argument (
-  '"' + $escapedWorker + '" ' + $runMode + ' "' + $escapedConfig + '"'
-) -WorkingDirectory $PSScriptRoot
+if($WorkerMode -eq 'model'){
+  $reviewedLauncher=[IO.Path]::GetFullPath(
+    (Join-Path $PSScriptRoot 'jrei-local-model-start.ps1'))
+  if(-not [IO.File]::Exists($reviewedLauncher)){
+    throw 'JREI_LOCAL_MODEL_LAUNCHER_MISSING'
+  }
+  $psExe=Join-Path $env:SystemRoot 'System32\WindowsPowerShell\v1.0\powershell.exe'
+  if(-not [IO.File]::Exists($psExe)){
+    throw 'TRUSTED_WINDOWS_POWERSHELL_UNAVAILABLE'
+  }
+  $escapedLauncher=$reviewedLauncher.Replace('"','')
+  $action=New-ScheduledTaskAction -Execute $psExe -Argument (
+    '-NoProfile -NonInteractive -ExecutionPolicy Bypass -File "'+
+    $escapedLauncher+'" -ConfigPath "'+$escapedConfig+'" -OwnerApproved'
+  ) -WorkingDirectory $PSScriptRoot
+}else{
+  $action=New-ScheduledTaskAction -Execute $node -Argument (
+    '"' + $escapedWorker + '" ' + $runMode + ' "' + $escapedConfig + '"'
+  ) -WorkingDirectory $PSScriptRoot
+}
 $trigger=New-ScheduledTaskTrigger -AtLogOn -User $user
 $settings=New-ScheduledTaskSettingsSet -ExecutionTimeLimit (New-TimeSpan -Hours 0) `
-  -MultipleInstances IgnoreNew -StartWhenAvailable:$false
+  -MultipleInstances IgnoreNew -StartWhenAvailable:$false `
+  -RestartCount 3 -RestartInterval (New-TimeSpan -Minutes 2)
 $principal=New-ScheduledTaskPrincipal -UserId $user -LogonType Interactive -RunLevel Limited
 Register-ScheduledTask -TaskName $taskName -Action $action -Trigger $trigger `
   -Settings $settings -Principal $principal -Description (
