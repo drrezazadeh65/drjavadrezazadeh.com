@@ -52,7 +52,7 @@ function jrNewsPrivateOwnerQueue(PDO $pdo,array $session,
 }
 function jrNewsPrivateRecordDecision(PDO $pdo,array $session,
     string $revisionId,string $expectedApprovalDigest,
-    string $action,int $nowEpoch): array {
+    string $action,int $nowEpoch,callable $sourceCurrentResolver): array {
     $auth=jrNewsOwnerAuthority($session);
     if (!in_array($action,['APPROVE','REJECT','REQUEST_REVISION'],true) ||
         !preg_match('/^[0-9a-f-]{36}$/iD',$revisionId) ||
@@ -66,16 +66,45 @@ function jrNewsPrivateRecordDecision(PDO $pdo,array $session,
     $pdo->beginTransaction();
     try {
         $stmt=$pdo->prepare(
-            'SELECT approval_digest,editorial_state
-             FROM jrei_news_editorial_versions
-             WHERE revision_id=? FOR UPDATE'
+            'SELECT v.approval_digest,v.editorial_state,
+                    v.bilingual_editorial_json,v.candidate_id,
+                    c.content_sha256,c.source_url,m.jrei_source_reference,
+                    e.verification_state,e.issuer_verified,
+                    e.usage_rights_verified,e.content_sha256 AS review_sha
+             FROM jrei_news_editorial_versions v
+             JOIN jrei_news_candidates c ON c.candidate_id=v.candidate_id
+             JOIN jrei_news_monitors m ON m.monitor_id=c.monitor_id
+             JOIN jrei_news_evidence_reviews e
+               ON e.review_id=v.evidence_review_id
+             WHERE v.revision_id=? FOR UPDATE'
         );
         $stmt->execute([$revisionId]);
         $row=$stmt->fetch(PDO::FETCH_ASSOC);
         if (!$row ||
             (string)$row['editorial_state']!=='PENDING_OWNER_APPROVAL' ||
-            !hash_equals((string)$row['approval_digest'],$expectedApprovalDigest)) {
+            !hash_equals((string)$row['approval_digest'],$expectedApprovalDigest) ||
+            !hash_equals($expectedApprovalDigest,hash('sha256',
+                (string)$row['bilingual_editorial_json'])) ||
+            $row['verification_state']!=='APPROVED' ||
+            (int)$row['issuer_verified']!==1 ||
+            (int)$row['usage_rights_verified']!==1 ||
+            !hash_equals((string)$row['content_sha256'],
+                (string)$row['review_sha'])) {
             throw new RuntimeException('news_stale_or_unreviewable_revision');
+        }
+        if ($action==='APPROVE') {
+            $rechecked=$sourceCurrentResolver(
+                $row['jrei_source_reference'],
+                $row['source_url'],$row['content_sha256']
+            );
+            if (!is_array($rechecked) ||
+                ($rechecked['source']??null)!=='ORIGINAL_JREI_SOURCE_RECHECK' ||
+                ($rechecked['current']??null)!==true ||
+                ($rechecked['rightsApproved']??null)!==true ||
+                ($rechecked['currentEvidenceSha256']??null)!==
+                    $row['content_sha256']) {
+                throw new RuntimeException('news_original_source_no_longer_current');
+            }
         }
         $bytes=random_bytes(16);
         $bytes[6]=chr((ord($bytes[6])&15)|64);
@@ -99,7 +128,7 @@ function jrNewsPrivateRecordDecision(PDO $pdo,array $session,
             'UPDATE jrei_news_editorial_versions SET editorial_state=?
              WHERE revision_id=? AND editorial_state=?'
         )->execute([$state,$revisionId,'PENDING_OWNER_APPROVAL']);
-        operationsAudit($pdo,$auth['actor'],'jrei_news_owner_decision',$decisionId);
+        operationsAudit($pdo,$auth['actor'],'jrei_news_owner_decision',hash('sha256',$decisionId));
         $pdo->commit();
         return ['schema'=>'jr.jrei.news-owner-decision-receipt.v1',
             'decisionId'=>$decisionId,'revisionId'=>$revisionId,
