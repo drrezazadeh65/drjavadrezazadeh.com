@@ -18,6 +18,7 @@ require_once __DIR__.'/owner-editorial.php';
 require_once __DIR__.'/owner-preview.php';
 require_once __DIR__.'/exam-reminders.php';
 require_once __DIR__.'/topic-newsletter.php';
+require_once __DIR__.'/preferences-replace.php';
 function jrNewsRouteBody(array $body,string $key,int $maxBytes=240): string {
     $v=$body[$key]??null;
     if (!is_string($v) || trim($v)==='' || strlen($v)>$maxBytes ||
@@ -43,7 +44,8 @@ function jrNewsActiveCustomerSession(array $ctx): string {
 function jrNewsDispatchApi(PDO $pdo,string $method,string $route,
     array $body,array $serverCtx,callable $currentEcoConsentResolver,
     callable $publicReadRateLimiter,
-    callable $originalJreiSourceCurrentResolver): array {
+    callable $originalJreiSourceCurrentResolver,
+    callable $existingEcoNewsSuppressor): array {
     if (getenv('JR_JREI_NEWS_API_ENABLED')!=='true' ||
         ($serverCtx['originalApiBootstrap']??null)!==true ||
         ($serverCtx['finalIntegratedAcceptanceVerified']??null)!==true ||
@@ -108,6 +110,19 @@ function jrNewsDispatchApi(PDO $pdo,string $method,string $route,
         $action=jrNewsRouteBody($body,'action',24);
         return jrNewsPrivateRecordDecision($pdo,$owner,$revisionId,
             $digest,$action,time(),$originalJreiSourceCurrentResolver);
+    }
+    if ($method==='POST' && $route==='/news/v1/preferences/replace') {
+        $accountId=jrNewsActiveCustomerSession($serverCtx);
+        $topics=$body['topics']??null;
+        if (!is_array($topics)||count($topics)>14) {
+            throw new InvalidArgumentException('news_api_topics_invalid');
+        }
+        $mode=jrNewsRouteBody($body,'mode',24);
+        $locale=jrNewsRouteBody($body,'locale',2);
+        $channel=jrNewsRouteBody($body,'channel',12);
+        return jrNewsReplaceTopicPreferences($pdo,$accountId,$topics,
+            $mode,$locale,$channel,$currentEcoConsentResolver,
+            $existingEcoNewsSuppressor,time());
     }
     if ($method==='POST' && $route==='/news/v1/preferences') {
         $accountId=jrNewsActiveCustomerSession($serverCtx);
