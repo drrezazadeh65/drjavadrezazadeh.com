@@ -34,7 +34,7 @@ function jrNewsProposeBilingualDraftRoutes(
         'schema'=>'jr.jrei.news-bilingual-proposed-routes.v1',
         'slug'=>$slug,
         'faPath'=>'/fa/akhbar/'.$slug.'/',
-        'enPath'=>'/en/news/'.$slug.'/',
+        'enPath'=>'/en/news-insights/'.$slug.'/',
         'candidateFingerprint'=>$candidateFingerprint,
         'routesReserved'=>false,
         'immutableRegistryCollisionCheckRequired'=>true,
