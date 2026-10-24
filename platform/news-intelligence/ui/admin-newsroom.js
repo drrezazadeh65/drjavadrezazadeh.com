@@ -147,7 +147,14 @@ export function mountNewsOwnerPanel({root,csrfResolver,
             const media=document.createElement('p');
             media.textContent='Approved media reference: '+
               String(data.imageAssetReference??'not available');
-            fullPreview.prepend(source,media);
+            const paths=document.createElement('p');
+            const proposed=data.proposedBilingualRoutes||{};
+            if(typeof proposed.fa!=='string'||typeof proposed.en!=='string'||
+              !/^\/fa\/akhbar\/[a-z0-9-]+\/$/.test(proposed.fa)||
+              !/^\/en\/news\/[a-z0-9-]+\/$/.test(proposed.en))
+              throw Error('NEWS_PROPOSED_ROUTES_NOT_REVIEWABLE');
+            paths.textContent='Proposed URLs — '+proposed.fa+' | '+proposed.en;
+            fullPreview.prepend(source,media,paths);
             if(typeof data.safeImagePreviewUrl==='string' &&
               /^\/assets\/images\/[a-zA-Z0-9_./-]+$/.test(data.safeImagePreviewUrl)){
               const image=document.createElement('img');
