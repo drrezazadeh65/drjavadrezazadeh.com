@@ -27,7 +27,15 @@ if($null -eq $c -or $c.enabled -ne $true -or
    $c.ownerApproved -ne $true -or $c.rightsReviewed -ne $true){
   throw 'LOCAL_MODEL_PRIVATE_APPROVAL_REQUIRED'
 }
-$exe=[string]$c.backendExe
+# A named per-user mutex prevents a Task Scheduler/manual restart from
+# allocating a second multi-GB GGUF server on the same Windows machine.
+# The other computer has an independent operating-system mutex namespace.
+$singleInstance=New-Object System.Threading.Mutex($false, 'Local\JREI-Owner-Local-Model')
+$mutexHeld=$false
+try {
+  $mutexHeld=$singleInstance.WaitOne(0)
+  if(-not $mutexHeld){throw 'LOCAL_MODEL_ALREADY_RUNNING_ON_THIS_COMPUTER'}
+  $exe=[string]$c.backendExe
 $model=[string]$c.modelFile
 $expectedExe=[string]$c.backendExeSha256
 $expectedModel=[string]$c.modelSha256
@@ -59,7 +67,19 @@ if($uri.Scheme -ne 'http' -or $uri.Host -ne '127.0.0.1' -or
 }
 # Runtime/driver probing must precede GPU use; CPU mode only on both
 # Ryzen desktops until an owner-reviewed AMD Vulkan/backend benchmark.
-$threads=6
+# The prior fixed six CPU threads could monopolise small Windows desktops
+# when the independent evaluation worker is active. Never use more than half
+# the logical processors or four inference threads by default.
+$logicalCores=[Environment]::ProcessorCount
+$threads=[Math]::Max(1,[Math]::Min(4,[Math]::Floor($logicalCores/2)))
+if($null -ne $c.cpuThreads){
+  $requestedThreads=0
+  if(-not [int]::TryParse([string]$c.cpuThreads,[ref]$requestedThreads) -or
+     $requestedThreads -lt 1 -or $requestedThreads -gt $threads){
+    throw 'LOCAL_MODEL_CPU_THREAD_BUDGET_INVALID'
+  }
+  $threads=$requestedThreads
+}
 $context=2048
 # Quoting paths as individual fixed arguments prevents arbitrary CLI flags.
 $arguments=@(
@@ -74,8 +94,15 @@ Write-Output 'JREI-LM verified local model and binary SHA-256; starting CPU-only
 $process=Start-Process -FilePath $exe -ArgumentList $arguments -PassThru -NoNewWindow
 if($null -eq $process){throw 'LOCAL_MODEL_START_FAILED'}
 try{
+  # Deprioritise local inference relative to interactive desktop work.
+  # Failure to change priority does not bypass the pinned model checks.
+  try { $process.PriorityClass='BelowNormal' } catch {}
   $process.WaitForExit()
   if($process.ExitCode -ne 0){throw 'LOCAL_MODEL_RUNTIME_FAILED'}
 }finally{
   if(-not $process.HasExited){Stop-Process -Id $process.Id -Force -ErrorAction SilentlyContinue}
+}
+} finally {
+  if($mutexHeld){$singleInstance.ReleaseMutex()}
+  $singleInstance.Dispose()
 }
