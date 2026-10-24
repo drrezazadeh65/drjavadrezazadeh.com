@@ -74,16 +74,64 @@ export function mountNewsOwnerPanel({root,csrfResolver,
           String(item.source_url??'');
         const actions=document.createElement('div');
         actions.className='ni-admin-actions';
+        const reviewButtons=[];
+        const fullPreview=document.createElement('section');
+        fullPreview.className='ni-admin-full-preview';
+        fullPreview.hidden=true;
+        const view=document.createElement('button');view.type='button';
+        view.textContent=say('مشاهده کامل خبر، تصویر و دو زبان',
+          'Review full story in both languages');
         for(const [action,faLabel,enLabel] of [
           ['APPROVE','تأیید نسخه','Approve version'],
           ['REQUEST_REVISION','درخواست اصلاح','Request revision'],
           ['REJECT','رد خبر','Reject']]){
           const b=document.createElement('button');b.type='button';
           b.textContent=fa?faLabel:enLabel;
+          b.disabled=true;reviewButtons.push(b);
           b.addEventListener('click',()=>decide(item,action,b));
           actions.append(b);
         }
-        card.append(h,meta,actions);list.append(card);
+        view.addEventListener('click',async()=>{
+          view.disabled=true;show(say('در حال دریافت نسخه کامل…','Loading exact version…'));
+          try{
+            const data=await request('/owner/preview?revisionId='+
+              encodeURIComponent(item.revision_id),{method:'GET'});
+            if(data.schema!=='jr.jrei.news-owner-full-preview.v1'||
+              data.approvalDigest!==item.approval_digest||
+              data.revisionId!==item.revision_id||
+              data.state!=='PENDING_OWNER_APPROVAL')
+              throw Error('NEWS_PREVIEW_DIGEST_MISMATCH');
+            fullPreview.replaceChildren();
+            for(const lang of ['fa','en']){
+              const section=document.createElement('div');
+              section.dir=lang==='fa'?'rtl':'ltr';
+              section.lang=lang;
+              const titleEl=document.createElement('h4');
+              titleEl.textContent=data[lang].headline;
+              section.append(titleEl);
+              for(const field of ['summary','body','nextSteps']){
+                const paragraph=document.createElement('p');
+                paragraph.textContent=data[lang][field];
+                section.append(paragraph);
+              }
+              fullPreview.append(section);
+            }
+            const source=document.createElement('p');
+            source.textContent='Official source: '+data.sourceUrl;
+            const media=document.createElement('p');
+            media.textContent='Approved media reference: '+
+              String(data.imageAssetReference??'not available');
+            fullPreview.prepend(source,media);
+            fullPreview.hidden=false;
+            reviewButtons.forEach(button=>{button.disabled=false;});
+            show(say('نسخه کامل نمایش داده شد؛ تصمیم را ثبت کنید.',
+              'Complete exact revision loaded for owner decision.'));
+          }catch(error){
+            show(say('نسخه کامل قابل تأیید نیست. ','Preview is not verified. ')+
+              error.message);
+          }finally{view.disabled=false;}
+        });
+        card.append(h,meta,view,fullPreview,actions);list.append(card);
       }
       show(data.items.length?say('پیش‌نویس‌های آماده بازبینی نمایش داده شدند.',
         'Drafts available for owner review are displayed.'):
