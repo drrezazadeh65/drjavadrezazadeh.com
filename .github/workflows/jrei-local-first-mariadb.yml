@@ -12,6 +12,7 @@ on:
       - 'api/jrei-ai-answer-guard.php'
       - 'api/jrei-ai-uncited-answer-guard.php'
       - 'docs/migrations/20261024_jrei_local_inference_queue_mother_mysql.sql'
+      - 'docs/migrations/20261024_jrei_local_chat_signed_freshness_mother_mysql.sql'
       - 'tests/jrei-local-mariadb-fixture.php'
   workflow_dispatch:
 permissions:
@@ -78,6 +79,7 @@ jobs:
       - name: Test ephemeral encrypted conversation, model lease, citations and deletion
         run: |
           set -euo pipefail
+          mariadb -h127.0.0.1 -P3306 -uroot drjavad1_store < docs/migrations/20261024_jrei_local_chat_signed_freshness_mother_mysql.sql
           php -l api/jrei-local-chat.php
           php -l tests/jrei-local-mariadb-fixture.php
           php tests/jrei-local-mariadb-fixture.php
