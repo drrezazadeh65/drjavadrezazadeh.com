@@ -44,13 +44,15 @@ test('private queue always uses original mother DB and message encryption',()=>{
   assert.doesNotMatch(queue,/jrAiOpenAiResponses\(/);
   assert.doesNotMatch(queue,/api\.openai\.com/);
 });
-test('signed Windows node only executes approved local GGUF backend',()=>{
-  for(const text of ['start-chat','JREI_LOCAL_MODEL_REAL_INFERENCE_OBSERVED','LOCAL_MODEL_WEIGHT_DIGEST_MISMATCH','LOCAL_CHAT_JOB_INVALID','LOCAL_CHAT_EXPIRED_DRAFT_DISCARDED']) {
-    assert.ok(windows.includes(text),text);
-  }
+test('signed Windows node checks GGUF digest and starts the separately approved chat worker',()=>{
+  for(const term of [
+    'start-chat','verifyLocalModelArtifact','LOCAL_MODEL_GGUF_SHA256_MISMATCH',
+    'LOCAL_MODEL_GGUF_SHA256_MATCHED_NOT_INFERENCE',
+    'runLocalChatWorker','validateLocalChatConfig'
+  ])assert.ok(windows.includes(term),term);
   assert.match(windows,/createReadStream\(c\.modelFile/);
-  assert.match(windows,/createLocalLlamaAdapter\(/);
-  assert.match(windows,/adapter\.complete\(/);
+  assert.match(windows,/await verifyLocalModelArtifact\(config\.localChat\)/);
+  assert.match(windows,/await runLocalChatWorker\(config,key/);
   assert.match(model,/127\.0\.0\.1/);
   assert.doesNotMatch(windows,/api\.openai\.com/);
   assert.doesNotMatch(windows,/createServer\(/);
