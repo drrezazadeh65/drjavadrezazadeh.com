@@ -31,7 +31,7 @@ function jrNewsSaveTopicPreference(PDO $pdo,string $authenticatedAccountId,
     // accountId must be derived from the original authenticated session,
     // never taken from a public request. Consent resolver reads existing
     // eco_consent_records and current suppression/unsubscribe policy.
-    $consent=$currentEcoConsentResolver($authenticatedAccountId,'NEWSLETTER',$channel);
+    $consent=$currentEcoConsentResolver($authenticatedAccountId,'ARTICLES',$channel);
     if (!is_array($consent) || ($consent['granted']??null)!==true ||
         ($consent['withdrawn']??null)!==false ||
         !is_string($consent['reference']??null) ||
