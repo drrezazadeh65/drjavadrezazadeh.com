@@ -58,7 +58,9 @@ export function mountNewsOwnerPanel({root,csrfResolver,
         'Decision was not confirmed. Verify server status. ')+error.message);
     }finally{button.disabled=false;}
   }
+  let loadRevision=0;
   async function load(){
+    const readVersion=++loadRevision;
     refresh.disabled=true;
     // A stale, previously authorized decision must not remain clickable
     // when the owner session expires or the next queue refresh fails.
@@ -68,12 +70,14 @@ export function mountNewsOwnerPanel({root,csrfResolver,
     show(say('در حال دریافت صف خصوصی…','Loading private owner queue…'));
     try{
       const data=await request('/owner/queue',{method:'GET'});
+      if(readVersion!==loadRevision)return;
       if(data.schema!=='jr.jrei.news-owner-review-queue.v1'||
         !Array.isArray(data.items))throw Error('NEWS_QUEUE_SHAPE_UNEXPECTED');
       list.replaceChildren();
       metrics.replaceChildren();
       try {
         const overview=await request('/owner/overview',{method:'GET'});
+        if(readVersion!==loadRevision)return;
         if(overview.schema==='jr.jrei.news-owner-operations-overview.v1'&&
            overview.metrics){
           const labels={
@@ -107,6 +111,7 @@ export function mountNewsOwnerPanel({root,csrfResolver,
       // stale or revoked source is rendered as blocked, never as online.
       try{
         const inventory=await request('/owner/source/monitors',{method:'GET'});
+        if(readVersion!==loadRevision)return;
         if(inventory.schema!=='jr.jrei.news-owner-monitor-inventory.v1'||
            !Array.isArray(inventory.items))
           throw Error('NEWS_OWNER_MONITOR_INVENTORY_INVALID');
@@ -190,6 +195,7 @@ export function mountNewsOwnerPanel({root,csrfResolver,
       // crawling job. Owner must explicitly choose a category and priority.
       try{
         const available=await request('/owner/source/available',{method:'GET'});
+        if(readVersion!==loadRevision)return;
         if(available.schema!=='jr.jrei.news-owner-stageable-original-sources.v1'||
            !Array.isArray(available.items))
           throw Error('NEWS_ORIGINAL_STAGEABLE_SOURCE_UNAVAILABLE');
@@ -383,9 +389,16 @@ export function mountNewsOwnerPanel({root,csrfResolver,
         'Drafts available for owner review are displayed.'):
         say('در حال حاضر پیش‌نویسی در صف نیست.','No drafts awaiting review.'));
     }catch(error){
-      show(say('صف بررسی قابل دریافت نیست. ','Unable to load queue. ')+error.message);
-    }finally{refresh.disabled=false;}
+      if(readVersion===loadRevision)
+        show(say('صف بررسی قابل دریافت نیست. ',
+          'Unable to load queue. ')+error.message);
+    }finally{
+      if(readVersion===loadRevision)refresh.disabled=false;
+    }
   }
   refresh.addEventListener('click',load);
-  return Object.freeze({load,unmount(){root.replaceChildren();}});
+  return Object.freeze({load,unmount(){
+    ++loadRevision;
+    root.replaceChildren();
+  }});
 }
