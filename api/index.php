@@ -115,6 +115,11 @@ function cfg(): array {
         // Real AI inference: independent paid-provider credentials and
         // source-owned budget approval; entirely OFF until final acceptance.
         'jrei_live_ai_enabled' => getenv('JR_JREI_LIVE_AI_ENABLED') === 'true',
+        // Independent JREI-LM Windows inference; OpenAI not required.
+        'jrei_local_chat_enabled' => getenv('JR_JREI_LOCAL_CHAT_ENABLED') === 'true',
+        'jrei_local_public_release_accepted' => getenv('JR_JREI_LOCAL_PUBLIC_RELEASE_ACCEPTED') === 'true',
+        'jrei_local_chat_key_b64' => (string)(getenv('JR_JREI_LOCAL_CHAT_KEY_B64') ?: ''),
+        'jrei_allow_optional_cloud_public_fallback' => getenv('JR_JREI_ALLOW_OPTIONAL_CLOUD_PUBLIC_FALLBACK') === 'true',
         // Credentials/policy alone cannot expose source-only AI to the public.
         // Release approval is independently OFF until the final acceptance.
         'jrei_public_ai_release_accepted' => getenv('JR_JREI_PUBLIC_AI_RELEASE_ACCEPTED') === 'true',
@@ -671,6 +676,39 @@ if ($path==='/exams/catalog' && $verb==='GET') {
     }catch(Throwable $e){fail('exam_catalogue_read_unavailable',503);}
 }
 if (str_starts_with($path, '/admin/operations')) operationsRoute($path, $verb);
+// Independent first-party Windows generative worker: no public machine port.
+if(in_array($path,['/jrei/v1/local-chat/poll','/jrei/v1/local-chat/complete'],true)){
+    require_once __DIR__.'/jrei-local-chat.php';
+    header('Cache-Control: private, no-store, max-age=0');
+    if($verb!=='POST')fail('local_worker_method_invalid',405);
+    if(!jrHybridHttps($_SERVER))fail('local_worker_tls_required',403);
+    $lc=cfg();$lp=db();
+    if(($lc['jrei_local_chat_enabled']??false)!==true||
+       ($lc['jrei_hybrid_enabled']??false)!==true||
+       !($lp instanceof PDO)||!jrLocalChatSchemaReady($lp)||
+       jrLocalChatKey($lc)===null)
+        fail('local_worker_not_accepted',503);
+    $raw=jrHybridReadBody($_SERVER);
+    if($raw===null)fail('local_worker_bad_request',422);
+    try{
+        $node=jrHybridAuthenticate($lp,'POST',$path,$raw,$_SERVER,time());
+        if(!is_array($node))fail('local_worker_auth_denied',403);
+        if(!rateAllowed($lp,'jrei_local_worker',$node['node_id'],180,300))
+            fail('local_worker_rate_limited',429);
+        $body=jrHybridDecode($raw);
+        if($body===null)fail('local_worker_bad_request',422);
+        $nodeId=(string)$node['node_id'];
+        if($path==='/jrei/v1/local-chat/poll')
+            respond(jrLocalChatWorkerPoll($lp,$lc,$nodeId,$body));
+        if(!jrLocalChatNodeApproved($lp,$nodeId,
+           (string)($body['modelId']??''),(string)($body['modelVersion']??''),
+           (string)($body['modelSha256']??'')))
+            fail('local_chat_model_approval_revoked',403);
+        respond(jrLocalChatWorkerComplete($lp,$lc,$nodeId,$body));
+    }catch(InvalidArgumentException $e){fail('local_worker_bad_request',422);}
+     catch(DomainException $e){fail('local_worker_not_ready_or_expired',409);}
+     catch(Throwable $e){fail('local_worker_temporary_error',503);}
+}
 if (str_starts_with($path,'/jrei/v1/worker/')) {
     require_once __DIR__.'/jrei-hybrid-worker.php';
     jrHybridWorkerRoute($path,$verb);
@@ -1368,41 +1406,50 @@ if(str_starts_with($path,'/student-support/')){
     require_once __DIR__.'/student-support.php';
     studentSupportRoute($path,$verb);
 }
-if(($path==='/assistant/v1/chat' && $verb==='POST')||
-   ($path==='/assistant/v1/capabilities' && $verb==='GET')){
-    require_once __DIR__.'/jrei-ai-assistant-runtime.php';
+if(in_array($path,['/assistant/v1/chat','/assistant/v1/local/result',
+  '/assistant/v1/local/cancel','/assistant/v1/capabilities'],true)){
+    require_once __DIR__.'/jrei-local-chat.php';
     header('Cache-Control: private, no-store, max-age=0');
     header('X-Robots-Tag: noindex, nofollow, noarchive');
     $aiCfg=cfg();$aiDb=db();
+    $local=($aiDb instanceof PDO)&&jrLocalChatReady($aiDb,$aiCfg);
+    // Paid providers cannot become the site's primary AI by accident.
+    $optionalCloud=($aiCfg['jrei_allow_optional_cloud_public_fallback']??false)===true
+       &&($aiDb instanceof PDO)&&jrAiPublicCanAnswer($aiDb,$aiCfg);
     if($path==='/assistant/v1/capabilities'){
+        if($verb!=='GET')fail('assistant_method_invalid',405);
         respond(['ok'=>true,'schema'=>'jr.jrei.assistant-capability.v1',
-          'live'=>($aiDb instanceof PDO)&&jrAiPublicCanAnswer($aiDb,$aiCfg),
+          'live'=>$local||$optionalCloud,
+          'providerMode'=>$local?'JREI_LM_LOCAL_WINDOWS':
+             ($optionalCloud?'OPTIONAL_OPENAI':'OFFLINE_GUIDE'),
           'providerConsentRequired'=>true,
-          'sourceScope'=>'PUBLIC_SITE_SUMMARY_ONLY',
+          'sourceScope'=>'PUBLIC_REVIEWED_OR_SITE_SUMMARY',
           'privateLearnerRecordsAccessible'=>false,
           'scientificValidationEstablished'=>false]);
     }
-    if(!($aiDb instanceof PDO)||!jrAiPublicCanAnswer($aiDb,$aiCfg))
-        fail('assistant_local_fallback',503);
-    // Explicit per-chat voluntary provider transfer. Stronger than legacy
-    // Origin validation, which admits absent Origin on unrelated routes.
+    if($verb!=='POST')fail('assistant_method_invalid',405);
     if(($_SERVER['HTTP_ORIGIN']??null)!==SITE_ORIGIN ||
        !in_array(($_SERVER['HTTP_SEC_FETCH_SITE']??'same-origin'),
          ['same-origin','none'],true))
         fail('assistant_origin_forbidden',403);
-    if(!rateAllowed($aiDb,'jrei_ai_public','public',6,600))
+    if(!($aiDb instanceof PDO))fail('assistant_unavailable',503);
+    if(!rateAllowed($aiDb,'jrei_ai_public','public',18,600))
         fail('assistant_rate_limited',429);
     try{
-        $result=jrAiPublicChat($aiDb,$aiCfg,jsonBody());
-        respond($result);
-    }catch(InvalidArgumentException $e){
-        fail('assistant_message_or_consent_invalid',422);
-    }catch(DomainException $e){
-        fail('assistant_evidence_or_budget_unavailable',503);
-    }catch(Throwable $e){
-        // Provider/transport/DB details are never returned to the browser.
-        fail('assistant_live_ai_temporarily_unavailable',503);
-    }
+        $body=jsonBody();
+        if($path==='/assistant/v1/local/result'){
+            respond(jrLocalChatCollect($aiDb,$aiCfg,$body));
+        }
+        if($path==='/assistant/v1/local/cancel'){
+            respond(jrLocalChatCancel($aiDb,$body));
+        }
+        if($path!=='/assistant/v1/chat')fail('assistant_not_found',404);
+        if($local)respond(jrLocalChatEnqueue($aiDb,$aiCfg,$body));
+        if($optionalCloud)respond(jrAiPublicChat($aiDb,$aiCfg,$body));
+        fail('assistant_local_fallback',503);
+    }catch(InvalidArgumentException $e){fail('assistant_message_invalid',422);}
+     catch(DomainException $e){fail('assistant_unavailable_or_review_required',503);}
+     catch(Throwable $e){fail('assistant_temporarily_unavailable',503);}
 }
 if($path==='/assistant/v1/leads'&&$verb==='POST')fail('lead_capture_not_configured',503);
 if($path==='/register-request'&&$verb==='POST')fail('registration_intake_not_configured',503);
