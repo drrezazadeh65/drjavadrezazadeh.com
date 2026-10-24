@@ -350,7 +350,10 @@ function jrLocalChatWorkerComplete(PDO $pdo,array $cfg,string $node,array $body)
           'answer'=>$answer,'links'=>$links,'runtime'=>'JREI_LM_LOCAL_WINDOWS',
           'sourceScope'=>$old['scope'],'independentScientificValidation'=>false,
           'provider'=>'OWNER_WINDOWS_LOCAL_MODEL',
-          'conversationStoredByJrei'=>false,'cloudModelInvoked'=>false
+          'conversationStoredByJrei'=>false,'cloudModelInvoked'=>false,
+          'ephemeralEncryptedQueueUsed'=>true,
+          'queuePayloadDeletedOnSuccessfulCollection'=>true,
+          'persistentLearnerMemoryEnabled'=>false
         ]:null;
         $sealed=$result===null?null:jrLocalChatSeal(json_encode($result,
           JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),
