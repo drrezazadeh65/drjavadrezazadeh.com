@@ -26,7 +26,7 @@ test('local-first router cannot silently use OpenAI instead',()=>{
             area.indexOf("if($optionalCloud)respond(jrAiPublicChat"));
   assert.match(area,/jrei_allow_optional_cloud_public_fallback/);
   assert.match(area,/JREI_LM_LOCAL_WINDOWS/);
-  assert.match(area,/LOCAL_PUBLIC_RELEASE_ACCEPTED|local_public_release_accepted/);
+  assert.match(server,/JR_JREI_LOCAL_PUBLIC_RELEASE_ACCEPTED/);
   assert.match(server,/JR_JREI_LOCAL_CHAT_KEY_B64/);
 });
 test('private queue always uses original mother DB and message encryption',()=>{
