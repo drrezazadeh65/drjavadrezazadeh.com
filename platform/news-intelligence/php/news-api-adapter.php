@@ -125,11 +125,8 @@ function jrNewsDispatchApi(PDO $pdo,string $method,string $route,
         if (!is_array($owner)||!is_callable($resolver)) {
             throw new RuntimeException('news_original_publisher_policy_missing');
         }
-        return jrNewsStageApprovedPublication($pdo,$owner,
-            jrNewsRouteBody($body,'revisionId',36),
-            jrNewsRouteBody($body,'faRoute',260),
-            jrNewsRouteBody($body,'enRoute',260),
-            $resolver,time());
+        return jrNewsStageFromApprovedStoredRouteProposal($pdo,$owner,
+            jrNewsRouteBody($body,'revisionId',36),$resolver,time());
     }
     if ($method==='POST' && $route==='/news/v1/owner/review/email') {
         $owner=$serverCtx['existingOwnerMfaSession']??null;
@@ -173,8 +170,33 @@ function jrNewsDispatchApi(PDO $pdo,string $method,string $route,
         $revisionId=jrNewsRouteBody($body,'revisionId',36);
         $digest=jrNewsRouteBody($body,'approvalDigest',64);
         $action=jrNewsRouteBody($body,'action',24);
-        return jrNewsPrivateRecordDecision($pdo,$owner,$revisionId,
+        $decision=jrNewsPrivateRecordDecision($pdo,$owner,$revisionId,
             $digest,$action,time(),$originalJreiSourceCurrentResolver);
+        if ($action!=='APPROVE')return $decision;
+        $publisherPolicy=$ownerIntegrationPorts['originalCmsAndSourcePolicy']??null;
+        if (!is_callable($publisherPolicy)) {
+            return $decision+[
+                'publicationQueueState'=>'WAITING_FOR_ORIGINAL_CMS_POLICY',
+                'publiclyPublished'=>false
+            ];
+        }
+        try {
+            $staged=jrNewsStageFromApprovedStoredRouteProposal(
+                $pdo,$owner,$revisionId,$publisherPolicy,time());
+            return $decision+[
+                'publicationQueueState'=>$staged['state'],
+                'publicationId'=>$staged['publicationId'],
+                'publiclyPublished'=>false,
+                'needsOriginalPublisherReceipt'=>true
+            ];
+        }catch(Throwable $e) {
+            error_log('News queue reconciliation required: '.get_class($e));
+            return $decision+[
+                'publicationQueueState'=>'NEEDS_PRIVATE_RECONCILIATION',
+                'publiclyPublished'=>false,
+                'ownerApprovalAlreadyRecorded'=>true
+            ];
+        }
     }
     if ($method==='POST' && $route==='/news/v1/preferences/replace') {
         $accountId=jrNewsActiveCustomerSession($serverCtx);
