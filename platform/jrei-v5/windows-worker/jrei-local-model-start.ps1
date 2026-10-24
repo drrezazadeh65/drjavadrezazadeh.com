@@ -27,10 +27,10 @@ if($null -eq $c -or $c.enabled -ne $true -or
    $c.ownerApproved -ne $true -or $c.rightsReviewed -ne $true){
   throw 'LOCAL_MODEL_PRIVATE_APPROVAL_REQUIRED'
 }
-# A named per-user mutex prevents a Task Scheduler/manual restart from
-# allocating a second multi-GB GGUF server on the same Windows machine.
-# The other computer has an independent operating-system mutex namespace.
-$singleInstance=[System.Threading.Mutex]::new($false, 'Local\JREI-Owner-Local-Model')
+# A machine-wide named mutex protects against double GGUF launches from
+# different desktop/logon sessions, including Task Scheduler/manual overlap.
+# Each independent Windows node has its own OS-wide mutex namespace.
+$singleInstance=[System.Threading.Mutex]::new($false, 'Global\JREI-Owner-Local-Model')
 $mutexHeld=$false
 try {
   try {
