@@ -41,6 +41,24 @@ function copy(rel=''){
   }
 }
 copy();
+// Copy ONLY the independently accepted published-only news search read model.
+// The whole platform/ directory stays excluded from the public artifact.
+// Original api/internal/.htaccess prevents direct HTTP access to this PHP.
+const newsPrivateDir=path.join(out,'api/internal/jrei-news');
+const parentDeny=path.join(out,'api/internal/.htaccess');
+if(!fs.existsSync(parentDeny) ||
+   !/Require\s+all\s+denied/i.test(fs.readFileSync(parentDeny,'utf8')))
+  throw Error('News private PHP cannot be packaged without original api/internal deny policy');
+fs.mkdirSync(newsPrivateDir,{recursive:true});
+const newsModelName='public-read-model.php';
+const newsModelSrc=path.join(root,'platform/news-intelligence/php',newsModelName);
+const newsModelBody=fs.readFileSync(newsModelSrc,'utf8');
+if(!newsModelBody.includes("if (!defined('BERTINA_API_BOOTSTRAPPED'))")||
+   !newsModelBody.includes('function jrNewsPublishedSearch')||
+   !newsModelBody.includes("s.index_state='PUBLISHED'")||
+   !newsModelBody.includes("p.publisher_state='PUBLISHED'"))
+  throw Error('News public-read model lost its owner-approved-only/bootstrapped constraints');
+fs.writeFileSync(path.join(newsPrivateDir,newsModelName),newsModelBody,{flag:'wx'});
 // Insert an opt-in public Q&A surface only on catalogued public service detail pages.
 // Server deployment flags remain OFF unless separately approved after real QA.
 projectCommunityServicePages(root,out);
