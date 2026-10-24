@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS jrei_news_search_documents (
   title VARCHAR(240) NOT NULL,
   summary TEXT NOT NULL,
   searchable_body MEDIUMTEXT NOT NULL,
-  country_code CHAR(2) NOT NULL DEFAULT 'IR',
+  country_code CHAR(2) NOT NULL DEFAULT 'ZZ',
   category_code VARCHAR(48) NOT NULL,
   event_code VARCHAR(64) NOT NULL,
   owner_approval_digest CHAR(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
