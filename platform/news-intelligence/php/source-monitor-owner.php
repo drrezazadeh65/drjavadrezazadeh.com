@@ -362,6 +362,8 @@ function jrNewsOwnerStageableOriginalSources(
         $uri=$row['source_locator_uri'];
         if(!is_string($id)||!preg_match('/^[a-f0-9-]{36}$/iD',$id)||
            !is_string($title)||trim($title)===''||
+           strlen($title)>600||preg_match('//u',$title)!==1||
+           preg_match_all('/./us',$title)>160||
            !is_string($uri)||strlen($uri)>1000||
            preg_match('/[\\x00-\\x20\\x7f]/',$uri)===1)
             continue;
@@ -373,7 +375,7 @@ function jrNewsOwnerStageableOriginalSources(
            filter_var((string)$parts['host'],FILTER_VALIDATE_IP)!==false)
             continue;
         $items[]=[
-            'sourceId'=>$id,'title'=>mb_substr($title,0,160),
+            'sourceId'=>$id,'title'=>$title,
             'rights'=>$row['rights_state'],
             'originalPolicyMinMinutes'=>(int)ceil(
                 (int)$row['refresh_interval_seconds']/60),
