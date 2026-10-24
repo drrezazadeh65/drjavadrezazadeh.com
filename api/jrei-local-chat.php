@@ -249,6 +249,11 @@ function jrLocalChatCancel(PDO $pdo,array $body): array {
 function jrLocalChatWorkerPoll(PDO $pdo,array $cfg,string $node,array $body): array {
     $model=$body['modelId']??null;$version=$body['modelVersion']??null;
     $digest=$body['modelSha256']??null;
+    // A signed heartbeat refreshes the already approved node's timestamp,
+    // but MUST NOT lease a new request or run global queue maintenance.
+    $heartbeatOnly=$body['heartbeatOnly']??false;
+    if(!is_bool($heartbeatOnly))
+        throw new InvalidArgumentException('local_chat_heartbeat_invalid');
     if(!is_string($model)||!is_string($version)||!is_string($digest)||
        !jrLocalChatNodeApproved($pdo,$node,$model,$version,$digest))
         throw new DomainException('local_chat_model_not_approved');
