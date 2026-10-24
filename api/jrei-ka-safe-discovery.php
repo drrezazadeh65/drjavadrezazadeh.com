@@ -57,7 +57,8 @@ function jrKaDiscoverSameHostPdfLinks(string $seedUrl,string $html): array {
     $dom=new DOMDocument();
     $old=libxml_use_internal_errors(true);
     try{
-        if(!$dom->loadHTML($html,LIBXML_NONET|LIBXML_NOERROR|LIBXML_NOWARNING))
+        if(!$dom->loadHTML('<?xml encoding="UTF-8"?>'.$html,
+            LIBXML_NONET|LIBXML_NOERROR|LIBXML_NOWARNING))
             return [];
         $links=$dom->getElementsByTagName('a');
         if($links->length>4000)return [];
