@@ -128,3 +128,63 @@ function jrNewsBindOriginalApprovedArticleSource(
         throw $e;
     }
 }
+
+/**
+ * Read-only owner inbox of RSS/Atom article URLs which still need their own
+ * independent ORIGINAL JREI-KA source registration and rights approval.
+ */
+function jrNewsOwnerUnboundArticleSuggestions(
+    PDO $pdo,array $session,int $limit=40
+): array {
+    jrNewsOwnerAuthority($session);
+    if($limit<1||$limit>100)
+        throw new InvalidArgumentException('news_article_suggestion_limit_invalid');
+    $q=$pdo->prepare(
+        "SELECT d.discovery_id,d.monitor_id,d.canonical_article_url,
+                d.discovered_headline,d.claimed_published_at,d.first_seen_at
+         FROM jrei_news_discovered_urls d
+         JOIN jrei_news_monitors n ON n.monitor_id=d.monitor_id
+         JOIN jrei_exam_sources s ON s.source_id=n.jrei_source_reference
+         JOIN jrei_ka_source_policies p ON p.source_id=s.source_id
+         WHERE d.review_state='REQUIRES_ARTICLE_SOURCE_APPROVAL'
+           AND n.enabled=1 AND n.policy_revision=p.revision
+           AND n.source_url_sha256=SHA2(s.source_locator_uri,256)
+           AND s.review_state='AUTHORITATIVE_REVIEWED'
+           AND s.rights_state IN
+             ('PERMITTED_PRIVATE_ANALYSIS','PERMITTED_REPRODUCTION')
+           AND s.is_revoked=0 AND s.is_superseded=0
+           AND s.reviewer_account_id IS NOT NULL
+           AND s.verified_at IS NOT NULL
+           AND p.scheduling_state='APPROVED'
+           AND p.rights_reviewed=1 AND p.robots_terms_reviewed=1
+           AND p.transport_reviewed=1
+           AND p.rights_evidence_sha256 REGEXP '^[a-f0-9]{64}$'
+           AND p.robots_terms_evidence_sha256 REGEXP '^[a-f0-9]{64}$'
+           AND p.transport_evidence_sha256 REGEXP '^[a-f0-9]{64}$'
+         ORDER BY d.first_seen_at DESC,d.discovery_id ASC LIMIT ?"
+    );
+    $q->bindValue(1,$limit,PDO::PARAM_INT);
+    $q->execute();
+    $items=[];
+    foreach($q->fetchAll(PDO::FETCH_ASSOC) as $row){
+        $url=(string)$row['canonical_article_url'];
+        $title=(string)$row['discovered_headline'];
+        if(strlen($url)>1000||strlen($title)>720||
+           preg_match('//u',$title)!==1)continue;
+        $items[]=[
+            'discoveryId'=>$row['discovery_id'],
+            'monitorId'=>$row['monitor_id'],
+            'proposedArticleUrl'=>$url,
+            'feedClaimedTitle'=>$title,
+            'firstObservedAt'=>(int)$row['first_seen_at'],
+            'reviewState'=>'REQUIRES_ORIGINAL_JREI_SOURCE_APPROVAL',
+            'originalArticleSourceId'=>null,
+            'autoApproved'=>false
+        ];
+    }
+    return [
+        'schema'=>'jr.jrei.news-owner-unbound-articles.v1',
+        'items'=>$items,'returnedCount'=>count($items),
+        'newArticleDownloads'=>0,'publicationsCreated'=>0
+    ];
+}
