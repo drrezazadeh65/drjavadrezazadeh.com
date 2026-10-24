@@ -20,6 +20,11 @@ require_once __DIR__.'/owner-overview.php';
 require_once __DIR__.'/exam-reminders.php';
 require_once __DIR__.'/topic-newsletter.php';
 require_once __DIR__.'/preferences-replace.php';
+require_once __DIR__.'/source-monitor-owner.php';
+require_once __DIR__.'/jrei-ka-source-adapter.php';
+require_once __DIR__.'/exam-deadline-owner.php';
+require_once __DIR__.'/publication-dispatch.php';
+require_once __DIR__.'/owner-review-outbox.php';
 function jrNewsRouteBody(array $body,string $key,int $maxBytes=240): string {
     $v=$body[$key]??null;
     if (!is_string($v) || trim($v)==='' || strlen($v)>$maxBytes ||
@@ -46,7 +51,8 @@ function jrNewsDispatchApi(PDO $pdo,string $method,string $route,
     array $body,array $serverCtx,callable $currentEcoConsentResolver,
     callable $publicReadRateLimiter,
     callable $originalJreiSourceCurrentResolver,
-    callable $existingEcoNewsSuppressor): array {
+    callable $existingEcoNewsSuppressor,
+    array $ownerIntegrationPorts=[]): array {
     if (getenv('JR_JREI_NEWS_API_ENABLED')!=='true' ||
         ($serverCtx['originalApiBootstrap']??null)!==true ||
         ($serverCtx['finalIntegratedAcceptanceVerified']??null)!==true ||
@@ -85,6 +91,57 @@ function jrNewsDispatchApi(PDO $pdo,string $method,string $route,
             throw new InvalidArgumentException('news_api_search_window_invalid');
         }
         return jrNewsPublishedSearch($pdo,$q,$language,20,$filters);
+    }
+    if ($method==='GET' && $route==='/news/v1/owner/sources') {
+        $owner=$serverCtx['existingOwnerMfaSession']??null;
+        if (!is_array($owner)) {
+            throw new RuntimeException('news_owner_session_required');
+        }
+        jrNewsOwnerAuthority($owner);
+        return jrNewsExistingJreiApprovedSources($pdo,200);
+    }
+    if ($method==='POST' && $route==='/news/v1/owner/source/stage') {
+        $owner=$serverCtx['existingOwnerMfaSession']??null;
+        if (!is_array($owner)) {
+            throw new RuntimeException('news_owner_session_required');
+        }
+        return jrNewsOwnerStageSourceMonitor($pdo,$owner,
+            jrNewsRouteBody($body,'sourceId',36),
+            jrNewsRouteBody($body,'category',48),
+            jrNewsRouteBody($body,'priority',2),time());
+    }
+    if ($method==='POST' && $route==='/news/v1/owner/exam/approve') {
+        $owner=$serverCtx['existingOwnerMfaSession']??null;
+        $resolver=$ownerIntegrationPorts['originalExamSourceRecheck']??null;
+        if (!is_array($owner)||!is_callable($resolver)) {
+            throw new RuntimeException('news_exam_owner_original_port_missing');
+        }
+        return jrNewsApproveOfficialExamMilestone($pdo,$owner,
+            jrNewsRouteBody($body,'milestoneId',36),$resolver,time());
+    }
+    if ($method==='POST' && $route==='/news/v1/owner/publication/stage') {
+        $owner=$serverCtx['existingOwnerMfaSession']??null;
+        $resolver=$ownerIntegrationPorts['originalCmsAndSourcePolicy']??null;
+        if (!is_array($owner)||!is_callable($resolver)) {
+            throw new RuntimeException('news_original_publisher_policy_missing');
+        }
+        return jrNewsStageApprovedPublication($pdo,$owner,
+            jrNewsRouteBody($body,'revisionId',36),
+            jrNewsRouteBody($body,'faRoute',260),
+            jrNewsRouteBody($body,'enRoute',260),
+            $resolver,time());
+    }
+    if ($method==='POST' && $route==='/news/v1/owner/review/email') {
+        $owner=$serverCtx['existingOwnerMfaSession']??null;
+        $mailbox=$ownerIntegrationPorts['originalVerifiedOwnerMailbox']??null;
+        $outbox=$ownerIntegrationPorts['originalEcoPrivateOutbox']??null;
+        if(!is_array($owner)||!is_callable($mailbox)||
+            !is_callable($outbox)) {
+            throw new RuntimeException('news_original_owner_mail_not_connected');
+        }
+        return jrNewsQueueOwnerEditorialReviewNotice($pdo,$owner,
+            jrNewsRouteBody($body,'revisionId',36),$mailbox,
+            $outbox,time());
     }
     if ($method==='GET' && $route==='/news/v1/owner/overview') {
         $owner=$serverCtx['existingOwnerMfaSession']??null;
