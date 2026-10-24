@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 if (!defined('BERTINA_API_BOOTSTRAPPED')) { http_response_code(404); exit; }
-require_once __DIR__.'/jrei-ka-safe-discovery.php';
+require_once __DIR__.'/jrei-ka-private-https.php';
 
 /**
  * Format-neutral candidate discovery. This module is intentionally discovery
