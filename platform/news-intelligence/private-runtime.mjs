@@ -10,7 +10,6 @@
  * accept controls or trust flags from unauthenticated web requests.
  */
 import {assert,plain,utcInstant} from './contracts.mjs';
-import {stageNewsCandidate} from './contracts.mjs';
 import {planNewsDiscovery} from './newsroom.mjs';
 import {approvalEmailDescriptor,publicationQueueDescriptor} from './approval.mjs';
 import {verifiedPublicationPlan} from './publisher-plan.mjs';
@@ -22,6 +21,7 @@ const PORTS=Object.freeze([
   'savePrivateNewsCandidate',
   'readPrivateEditorialPreview',
   'readOwnerMfaDecision',
+  'readOwnerPublicationPolicy',
   'readCurrentSourceRevision',
   'readImmutablePublishedRoutes',
   'queueThroughExistingEcoOutbox',
@@ -31,9 +31,9 @@ const PORTS=Object.freeze([
 export function createPrivateNewsRuntime({ports,serverPolicy}={}){
   assert(plain(ports)&&PORTS.every(k=>typeof ports[k]==='function')&&
     plain(serverPolicy)&&serverPolicy.source==='PRIVATE_OWNER_CONFIGURATION'&&
-    serverPolicy.autoAcquireEnabled===false&&
-    serverPolicy.ownerEmailEnabled===false&&
-    serverPolicy.publishEnabled===false,
+    typeof serverPolicy.autoAcquireEnabled==='boolean'&&
+    typeof serverPolicy.ownerEmailEnabled==='boolean'&&
+    typeof serverPolicy.publishEnabled==='boolean',
     'NEWS_RUNTIME_REQUIRES_OFF_BY_DEFAULT_PRIVATE_PORTS');
   // No worker loop, timer, outbound request or new DB on construction.
   async function discoverPlan(nowUtc){
@@ -79,11 +79,11 @@ export function createPrivateNewsRuntime({ports,serverPolicy}={}){
       currentApprovedSourceHash:current?.evidenceSha256,
       serverRecheckedAt:nowUtc});
     const immutableRouteRegistry=await ports.readImmutablePublishedRoutes();
+    const ownerRegistry=await ports.readOwnerPublicationPolicy(digest);
+    assert(plain(ownerRegistry)&&ownerRegistry.source==='PRIVATE_SERVER_RECHECK',
+      'NEWS_OWNER_PUBLICATION_POLICY_UNVERIFIED');
     const plan=verifiedPublicationPlan({queue,preview,paths,
-      ownerRegistry:{
-        ownerAuthenticated:true,currentApprovalDigest:digest,
-        approvalRevoked:false,privacyGatePassed:true,rightsGatePassed:true
-      },immutableRouteRegistry,nowUtc});
+      ownerRegistry,immutableRouteRegistry,nowUtc});
     // The existing authenticated CMS MUST independently re-read exact
     // policy, owner action, source digest, route registry and MFA audit.
     const receipt=await ports.publishThroughExistingApprovedCms(plan);
@@ -96,6 +96,8 @@ export function createPrivateNewsRuntime({ports,serverPolicy}={}){
   }
   return Object.freeze({discoverPlan,queueOwnerPreview,
     publishAfterVerifiedOwnerApproval,
-    active:{autoAcquisition:false,ownerEmail:false,publication:false},
+    active:{autoAcquisition:serverPolicy.autoAcquireEnabled,
+      ownerEmail:serverPolicy.ownerEmailEnabled,
+      publication:serverPolicy.publishEnabled},
     noTimersStarted:true,noDatabaseConnectionCreated:true});
 }
