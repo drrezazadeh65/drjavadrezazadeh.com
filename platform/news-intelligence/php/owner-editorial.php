@@ -68,12 +68,15 @@ function jrNewsPrivateRecordDecision(PDO $pdo,array $session,
         $stmt=$pdo->prepare(
             'SELECT v.approval_digest,v.editorial_state,
                     v.bilingual_editorial_json,v.candidate_id,
-                    c.content_sha256,c.source_url,m.jrei_source_reference,
+                    c.content_sha256,c.source_url,d.approved_article_source_id,
                     e.verification_state,e.issuer_verified,
                     e.usage_rights_verified,e.content_sha256 AS review_sha
              FROM jrei_news_editorial_versions v
              JOIN jrei_news_candidates c ON c.candidate_id=v.candidate_id
-             JOIN jrei_news_monitors m ON m.monitor_id=c.monitor_id
+             JOIN jrei_news_discovered_urls d
+               ON d.monitor_id=c.monitor_id
+              AND d.canonical_url_sha256=SHA2(c.source_url,256)
+              AND d.review_state='ORIGINAL_JREI_ARTICLE_APPROVED'
              JOIN jrei_news_evidence_reviews e
                ON e.review_id=v.evidence_review_id
              WHERE v.revision_id=? FOR UPDATE'
@@ -94,7 +97,7 @@ function jrNewsPrivateRecordDecision(PDO $pdo,array $session,
         }
         if ($action==='APPROVE') {
             $rechecked=$sourceCurrentResolver(
-                $row['jrei_source_reference'],
+                $row['approved_article_source_id'],
                 $row['source_url'],$row['content_sha256']
             );
             if (!is_array($rechecked) ||
