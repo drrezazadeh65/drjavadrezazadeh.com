@@ -135,3 +135,45 @@ function jrNewsTopicSubscribers(PDO $pdo,string $topic,string $mode,
     $stmt->execute();
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
+
+
+/**
+ * Current topic subscriptions belonging only to the verified account.
+ * Existing identity/session derives accountId. This does not expose user
+ * email, IP, provider consent tokens or other people's subscriptions.
+ */
+function jrNewsCurrentTopicPreferences(
+    PDO $pdo,string $authenticatedAccountId
+): array {
+    if(!preg_match('/^[a-f0-9-]{36}$/iD',$authenticatedAccountId)) {
+        throw new InvalidArgumentException('news_topic_account_invalid');
+    }
+    $q=$pdo->prepare(
+        "SELECT topic_code,locale_code,digest_mode,channel_code,
+                follow_state,updated_at
+         FROM jrei_news_topic_follows
+         WHERE account_id=? AND follow_state='ACTIVE'
+         ORDER BY channel_code,topic_code LIMIT 100"
+    );
+    $q->execute([$authenticatedAccountId]);
+    $items=[];
+    foreach($q->fetchAll(PDO::FETCH_ASSOC) as $r) {
+        if(!jrNewsTopicValid((string)$r['topic_code']) ||
+            !jrNewsDigestValid((string)$r['digest_mode']) ||
+            !in_array($r['channel_code'],['EMAIL','DASHBOARD'],true) ||
+            !in_array($r['locale_code'],['fa','en'],true))continue;
+        $items[]=[
+            'topic'=>$r['topic_code'],
+            'mode'=>$r['digest_mode'],
+            'locale'=>$r['locale_code'],
+            'channel'=>$r['channel_code'],
+            'updatedAt'=>(int)$r['updated_at']
+        ];
+    }
+    return [
+        'schema'=>'jr.jrei.news-current-topic-preferences.v1',
+        'topics'=>$items,
+        'currentlyAuthorizedToSendEmailNotEstablished'=>true,
+        'subjectToExistingEcoConsentAtDelivery'=>true
+    ];
+}
