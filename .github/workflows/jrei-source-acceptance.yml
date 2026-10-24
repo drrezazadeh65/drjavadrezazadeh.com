@@ -60,6 +60,7 @@ jobs:
       - name: Verify universal discovery and self-improvement offline PHP regressions
         run: |
           php tests/jrei-universal-discovery-offline.php
+          php tests/jrei-universal-staging-offline.php
           php tests/jrei-self-improvement-offline.php
       - name: Assert private worker is outbound and nothing is deployed
         run: |
