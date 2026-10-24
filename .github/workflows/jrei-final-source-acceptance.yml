@@ -9,6 +9,7 @@ on:
     paths:
       - '.github/workflows/jrei-final-source-acceptance.yml'
       - 'api/jrei-*.php'
+      - 'tests/jrei-ka-safe-discovery.test.php'
       - 'api/internal/jrei-daily-learning-worker.php'
       - 'api/operations-cron-dispatcher.php'
       - 'api/internal/operations-master-dispatcher.php'
@@ -66,5 +67,7 @@ jobs:
           for file in             api/jrei-hybrid-worker.php             api/jrei-hybrid-owner.php             api/jrei-learning-operations.php             api/jrei-exam-research-owner.php             api/operations-cron-dispatcher.php             api/internal/jrei-daily-learning-worker.php             api/internal/operations-master-dispatcher.php             api/index.php api/operations.php; do
             php -l "$file"
           done
+      - name: Offline safe PDF discovery acceptance
+        run: php tests/jrei-ka-safe-discovery.test.php
       - name: Report limit
         run: echo 'Syntax checks only. Neither Bertina MySQL 8.3 runtime nor Windows DPAPI, RX580, SSH or production operations have been tested.' >> "$GITHUB_STEP_SUMMARY"
