@@ -10,7 +10,8 @@ require_once __DIR__.'/candidate-intake.php';
 
 function jrNewsIndexApprovedPublication(
     PDO $pdo,string $publicationId,string $language,
-    callable $verifyOriginalPublisherReceipt,int $indexedAt
+    callable $verifyOriginalPublisherReceipt,
+    callable $originalSourceCountryResolver,int $indexedAt
 ): array {
     if (!preg_match('/^[a-f0-9-]{36}$/iD',$publicationId)||
         !in_array($language,['fa','en'],true)||$indexedAt<=0) {
