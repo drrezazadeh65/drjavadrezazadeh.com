@@ -161,6 +161,11 @@
       "order": 29,
       "stage": "operations",
       "file": "docs/migrations/20261023_jrei_hybrid_operations_alerts_mother_mysql.sql"
+    },
+    {
+      "order": 30,
+      "stage": "local_first_inference",
+      "file": "docs/migrations/20261024_jrei_local_inference_queue_mother_mysql.sql"
     }
   ],
   "runtimePrerequisites": [
@@ -169,8 +174,9 @@
     "Private document archive outside web root writable under the runtime UID and covered by private backup",
     "ZipArchive, DOMDocument and MySQL PDO extensions installed and checked in the actual CLI runtime",
     "Source rights, robots and rate-limit controls approved before enabling any network crawler",
-    "OpenAI API key and budget provisioned server-side only before enabling live model",
-    "All migrations independently reviewed; no destructive schema operations or silent payment/session changes"
+    "Independent JREI-LM Windows GGUF runtime, rights, hash, signed-node access and full localhost real-response benchmark; OpenAI only optional separately approved support",
+    "All migrations independently reviewed; no destructive schema operations or silent payment/session changes",
+    "First-party local inference private sodium encryption key configured and tested; bounded retention Cron configured on original mother DB; owner-authorised node and client release gates independently accepted"
   ],
-  "notes": "A prepared order and CI package are NOT a database migration, model activation, PDF OCR installation, approval to collect restricted sources, or an owner production release. The existing frozen manual Deploy to Bertina workflow remains unchanged."
+  "notes": "This is a source-only, additive migration order. It does not execute SQL, install weights, start the Windows workers, enable the encrypted chat queue, activate daily learning or release production. OpenAI API is an optional independently authorised helper, not the primary JREI-LM."
 }
