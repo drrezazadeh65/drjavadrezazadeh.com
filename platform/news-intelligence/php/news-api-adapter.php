@@ -106,6 +106,12 @@ function jrNewsDispatchApi(PDO $pdo,string $method,string $route,
             $pdo,time(),$resolver,60
         );
     }
+    if ($method==='GET' && $route==='/news/v1/owner/original-jobs') {
+        $owner=$serverCtx['existingOwnerMfaSession']??null;
+        if(!is_array($owner))
+            throw new RuntimeException('news_owner_session_required');
+        return jrNewsOwnerOriginalAcquisitionSnapshot($pdo,$owner,50);
+    }
     if ($method==='GET' && $route==='/news/v1/owner/source/available') {
         $owner=$serverCtx['existingOwnerMfaSession']??null;
         if(!is_array($owner))
