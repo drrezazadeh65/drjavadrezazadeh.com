@@ -152,6 +152,84 @@
            modelVersion:model.modelVersion,revision:model.revision,
            confirmation:'SUSPEND_LOCAL_MODEL_METADATA'});
        }));
+     if(model.status==='RIGHTS_REVIEWED'&&!model.runtimeVerified){
+       const candidates=Array.isArray(d.nodes)?d.nodes.filter(
+         n=>n.ownerEnabled===true&&n.revoked!==true):[];
+       const acceptance=el('details',undefined,'jr-hybrid-form-panel');
+       acceptance.append(el('summary',T(
+         'ثبت شواهد اجرای واقعی مدل روی Windows',
+         'Attest measured Windows model inference')));
+       acceptance.append(el('p',T(
+         'این فرم تنها پس از بررسی هش واقعی فایل GGUF، اجرای محلی مدل و ارزیابی مستقل پاسخ‌ها مجاز است. هیچ فایلی بارگذاری نمی‌شود؛ صرفاً هش شواهد ثبت خواهد شد.',
+         'Complete only after checking the actual GGUF digest, local inference and independent quality evaluation. Only evidence hashes are recorded; files stay on the Windows PC.')));
+       if(!candidates.length){
+         acceptance.append(el('p',T(
+           'ابتدا یک Worker امضاشده را ثبت و فعال کنید.',
+           'Register and enable a signed Windows worker first.')));
+       }else{
+         const att=el('form',undefined,'jr-hybrid-form');
+         const choose=el('label',T('رایانهٔ تأییدشده','Reviewed Windows node'));
+         const nodeSelect=document.createElement('select');
+         for(const n of candidates){
+           const option=el('option',String(n.name||n.nodeId)+' / '+n.nodeId);
+           option.value=n.nodeId;nodeSelect.append(option);
+         }
+         choose.append(nodeSelect);att.append(choose);
+         const addField=(label,type,placeholder,min,max)=>{
+           const l=el('label',label),input=document.createElement('input');
+           input.type=type;input.placeholder=placeholder;input.required=true;
+           if(type==='number'){
+             input.min=String(min);input.max=String(max);input.step='any';
+           }else if(type==='text'){
+             input.pattern='[a-f0-9]{64}';input.minLength=64;input.maxLength=64;
+             input.dir='ltr';input.spellcheck=false;
+           }
+           l.append(input);att.append(l);return input;
+         };
+         const fixture=addField('Reviewed evaluation fixture SHA-256',
+           'text','64 hexadecimal characters');
+         const report=addField('Local benchmark report SHA-256',
+           'text','64 hexadecimal characters');
+         const tokens=addField(T('توکن بر ثانیه','Measured tokens / second'),
+           'number','5.2',0.1,1000);
+         const p95=addField('Measured p95 latency (ms)',
+           'number','6000',100,120000);p95.step='1';
+         const peak=addField('Measured peak RAM (MB)',
+           'number','8192',256,131072);peak.step='1';
+         const consent=el('label');
+         const checked=document.createElement('input');checked.type='checkbox';
+         checked.required=true;
+         consent.append(checked,document.createTextNode(T(
+           ' هش وزن‌ها، آزمون واقعی محلی، ارزیابی مستقل کیفیت و عدم استفاده از مدل ابری را شخصاً بررسی کرده‌ام.',
+           ' I personally checked the model artifact hash, real local inference, independent quality evaluation and no cloud invocation.')));
+         att.append(consent);
+         const submit=el('button',T('ثبت پذیرش اندازه‌گیری‌شدهٔ مدل',
+           'Record measured runtime acceptance'));submit.type='submit';
+         att.append(submit);
+         att.addEventListener('submit',event=>{
+           event.preventDefault();
+           if(!visible()||busy||!att.reportValidity())return;
+           if(!confirmAction(
+             'تأیید می‌کنید اجرای واقعی مدل محلی و شواهد کیفیت مستقل بررسی شده‌اند؟ ثبت این گزارش به معنای فعال‌سازی خودکار عمومی نیست.',
+             'Confirm you personally reviewed genuine local model inference and independent quality evidence? This does NOT activate public AI automatically.'))return;
+           mutate({action:'attest_local_model_runtime',
+             modelId:model.modelId,modelVersion:model.modelVersion,
+             nodeId:nodeSelect.value,artifactSha256:model.artifactSha256,
+             revision:model.revision,
+             evaluationFixtureSha256:fixture.value.trim(),
+             runEvidenceSha256:report.value.trim(),
+             measuredTokensPerSecond:Number(tokens.value),
+             measuredP95LatencyMs:Number(p95.value),
+             measuredPeakRamMb:Number(peak.value),
+             realLocalGGUFHashChecked:true,
+             independentLanguageQualityReviewed:true,
+             ownerReviewedNoCloudExecution:true,
+             confirmation:'OWNER_ACCEPTS_MEASURED_LOCAL_MODEL_NOT_CLOUD'});
+         });
+         acceptance.append(att);
+       }
+       item.append(acceptance);
+     }
      wrapper.append(item);
    }
    tasks.append(wrapper);
