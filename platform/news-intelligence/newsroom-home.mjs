@@ -13,6 +13,10 @@ const path=p=>typeof p==='string'&&
 const asset=p=>typeof p==='string'&&
   /^\/assets\/images\/[a-zA-Z0-9_./-]+\.(webp|png|jpg|jpeg|avif)$/.test(p)&&
   !p.includes('..');
+const categoryLabel=(id,language)=>{
+  const category=NEWS_CATEGORIES.find(c=>c.id===id);
+  return category?category[language]:(language==='fa'?'گزارش آموزشی':'Education report');
+};
 function validOfficialLink(url){
   try{return typeof url==='string'&&publicHttps(url)===url;}
   catch{return false;}
@@ -39,6 +43,10 @@ export function renderNewsroomHome({language='fa',stories=[],examEvents=[],
     noMatch:'خبری در این فهرست با عبارت شما پیدا نشد.',
     more:'مطالعه خبر و راهنمای اقدام',source:'منبع رسمی',
     today:'امروز',privacy:'تنظیم خبرنامه و هشدارهای من',
+    empty:'هنوز گزارش تازه‌ای با تأیید نهایی برای نمایش در این بخش منتشر نشده است.',
+    noMore:'گزارش دیگری در فهرست تأییدشده فعلی وجود ندارد.',
+    standards:'روش سردبیری',
+    standardsText:'خبر، تحلیل و معرفی پروژه از یکدیگر تفکیک می‌شوند. تنها نسخه‌های دارای مجوز انتشار و مسیر بررسی منبع در این فهرست نمایش می‌یابند.',
     note:'برای تاریخ‌های حساس، اطلاعیه رسمی مرجع نهایی است.'
   }:{
     brand:'Education & Examination News Intelligence',
@@ -49,6 +57,10 @@ export function renderNewsroomHome({language='fa',stories=[],examEvents=[],
     noMatch:'No story in this list matches your search.',
     more:'Read story and practical guidance',source:'Official source',
     today:'Today',privacy:'My newsletter and reminders',
+    empty:'No newly approved public report is available in this section yet.',
+    noMore:'There are no additional reports in the current approved selection.',
+    standards:'Editorial standard',
+    standardsText:'News, analysis and project updates remain distinct. This archive displays only versions with publication authorization and traceable source review.',
     note:'For consequential dates and regulations, the official issuing source is authoritative.'
   };
   const now=Date.parse(currentUtc);
@@ -71,12 +83,12 @@ export function renderNewsroomHome({language='fa',stories=[],examEvents=[],
     e(NEWS_CATEGORIES.some(c=>c.id===s.category)?s.category:'uncategorized')+'">'+
     '<a href="'+e(s.path)+'"><img src="'+e(s.featuredImage)+
     '" alt="'+e(s.imageAlt)+'" width="800" height="450" loading="lazy">'+
-    '<div class="ni-card-copy"><p class="ni-label">'+e(s.category??'')+
+    '<div class="ni-card-copy"><p class="ni-label">'+e(categoryLabel(s.category,language))+
     '</p><h3>'+e(s.headline)+'</h3><p>'+e(s.summary)+
     '</p><time datetime="'+e(s.publishedAt)+'">'+e(s.publishedAt.slice(0,10))+
     '</time><span class="ni-action">'+e(copy.more)+'</span></div></a></article>').join('');
   const hero=featured?'<section class="ni-feature"><a href="'+e(featured.path)+'">'+
-    '<img src="'+e(featured.featuredImage)+'" alt="'+e(featured.imageAlt)+'">'+
+    '<img src="'+e(featured.featuredImage)+'" alt="'+e(featured.imageAlt)+'" width="1600" height="900" loading="eager" decoding="async">'+
     '<div><span class="ni-tag">'+e(featured.priority==='P0'?copy.urgent:copy.latest)+
     '</span><h2>'+e(featured.headline)+'</h2><p>'+e(featured.summary)+'</p>'+
     '<span class="ni-action">'+e(copy.more)+'</span></div></a></section>':'';
