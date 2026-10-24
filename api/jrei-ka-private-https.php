@@ -61,7 +61,10 @@ function jrKaPinnedPublicIpv4(string $host): string {
 }
 function jrKaPinnedGet(string $url,int $maximumBytes,
     array $allowedMime=['application/pdf','text/html','text/plain',
-      'application/json',
+      // Official XML feeds are archived PRIVATE by the existing licensed
+      // JREI-KA scheduler; parsing/rights approval stays separately gated.
+      'application/rss+xml','application/atom+xml',
+      'application/xml','text/xml','application/json',
       'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
       'application/vnd.openxmlformats-officedocument.presentationml.presentation',
@@ -113,6 +116,7 @@ function jrKaPinnedGet(string $url,int $maximumBytes,
       CURLOPT_USERAGENT=>'JREI-ReviewedSourceIntake/1.0',
       CURLOPT_HTTPHEADER=>[
         'Accept: application/pdf,text/html,text/plain,application/json,'.
+          'application/rss+xml,application/atom+xml,application/xml,text/xml,'.
           'application/vnd.openxmlformats-officedocument.wordprocessingml.document,'.
           'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,'.
           'application/vnd.openxmlformats-officedocument.presentationml.presentation,'.
