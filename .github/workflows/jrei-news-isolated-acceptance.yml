@@ -5,6 +5,9 @@ on:
     paths:
       - ".github/workflows/jrei-news-isolated-acceptance.yml"
       - "platform/news-intelligence/**"
+      - "api/jrei-news-*.php"
+      - "api/internal/jrei-news-*.php"
+      - "api/operations-jrei-news.php"
       - "docs/migrations/20261024_jrei_news_*.sql"
   workflow_dispatch:
 permissions:
@@ -49,6 +52,12 @@ jobs:
           find platform/news-intelligence/ui -name '*.js' -type f -print0 |
             while IFS= read -r -d '' f; do node --check "$f"; done
           node -e "JSON.parse(require('node:fs').readFileSync('platform/news-intelligence/integration-manifest.json','utf8'))"
+      - name: Verify original PHP 8.3 source adapters and private CLI intake syntax
+        run: |
+          set -euo pipefail
+          for file in api/jrei-news-*.php api/operations-jrei-news.php api/internal/jrei-news-*.php; do
+            php -l "$file"
+          done
       - name: Offline Node contract regressions, no network/provider
         run: node --test platform/news-intelligence/tests/*.test.mjs
       - name: Offline PHP source boundaries
