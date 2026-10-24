@@ -53,7 +53,7 @@ function jrNewsQueueTopicDigests(PDO $pdo,string $mode,int $nowEpoch,
            AND p.publisher_receipt_reference IS NOT NULL
            AND p.fa_content_sha256 IS NOT NULL
            AND p.en_content_sha256 IS NOT NULL
-         ORDER BY p.published_at DESC LIMIT 500"
+         ORDER BY p.published_at DESC LIMIT 120"
     );
     $stmt->execute([$since,$nowEpoch]);
     $articles=array_values(array_filter(
@@ -62,6 +62,24 @@ function jrNewsQueueTopicDigests(PDO $pdo,string $mode,int $nowEpoch,
             hash_equals((string)$row['approval_digest'],
                 hash('sha256',(string)$row['bilingual_editorial_json']))
     ));
+    foreach($articles as &$article){
+        $decoded=json_decode((string)$article['bilingual_editorial_json'],
+            true,32);
+        $article['decodedBilingual']=is_array($decoded)?$decoded:[];
+        unset($article['bilingual_editorial_json']);
+    }
+    unset($article);
+    // No approved articles: do not scan or lock thousands of customer
+    // preferences simply to discover that no digest can be sent.
+    if(!$articles){
+        return [
+            'schema'=>'jr.jrei.news-digest-queue.v1',
+            'queued'=>0,'skipped'=>0,
+            'nextAfterAccountId'=>$afterAccountId,
+            'mayHaveMoreAudience'=>false,
+            'actualSmtpDeliveryUnverified'=>true
+        ];
+    }
     // Page account IDs rather than preference rows: every selected account
     // must have ALL topic subscriptions considered in the same digest.
     $idsQuery=$pdo->prepare(
@@ -135,7 +153,9 @@ function jrNewsQueueTopicDigests(PDO $pdo,string $mode,int $nowEpoch,
             $path=$a[$locale.'_route'];
             if (!is_string($path) ||
                 !preg_match('#^/'.$locale.'/[a-z0-9/-]+/$#D',$path))continue;
-            $data=json_decode((string)$a['bilingual_editorial_json'],true,32);
+            // Decode each verified immutable bilingual draft once per
+            // batch, rather than once per subscribed account.
+            $data=$a['decodedBilingual']??null;
             $title=is_array($data)&&is_array($data[$locale]??null)?
                 ($data[$locale]['headline']??null):null;
             if (!is_string($title)||trim($title)===''||strlen($title)>720)
@@ -148,7 +168,8 @@ function jrNewsQueueTopicDigests(PDO $pdo,string $mode,int $nowEpoch,
         if (!$selected)continue;
         $digestKey=hash('sha256','JREI_NEWS_DIGEST|'.$mode.'|'.
             gmdate($mode==='WEEKLY'?'o-W':'Y-m-d',$nowEpoch).'|'.
-            $subscriber['accountId'].'|'.implode('|',
+            $subscriber['accountId'].'|'.$subscriber['locale'].'|'.
+            $subscriber['channel'].'|'.implode('|',
                 array_column($selected,'url')));
         $message=['schema'=>'jr.jrei.news-articles-digest-intent.v1',
             'purpose'=>'ARTICLES','accountId'=>$subscriber['accountId'],
