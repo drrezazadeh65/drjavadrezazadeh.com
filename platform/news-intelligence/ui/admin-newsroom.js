@@ -308,6 +308,83 @@ export function mountNewsOwnerPanel({root,csrfResolver,
           'Eligible original sources are currently unavailable.');
         sources.append(unavailable);
       }
+      // A feed headline is unverified metadata. Only an independently
+      // owner-approved ORIGINAL JREI article source ID may be bound here.
+      try{
+        const suggestions=await request('/owner/article/suggestions',{method:'GET'});
+        if(readVersion!==loadRevision)return;
+        if(suggestions.schema!=='jr.jrei.news-owner-unbound-articles.v1'||
+           !Array.isArray(suggestions.items))
+          throw Error('NEWS_ARTICLE_APPROVAL_INBOX_UNAVAILABLE');
+        const title=document.createElement('h3');
+        title.textContent=say('پیوندهای خبری نیازمند تأیید منبع اصلی',
+          'Discovered article links awaiting original source approval');
+        articles.append(title);
+        for(const candidate of suggestions.items){
+          if(typeof candidate.discoveryId!=='string'||
+             typeof candidate.proposedArticleUrl!=='string')continue;
+          const row=document.createElement('article');
+          row.className='ni-admin-unbound-row';
+          const headline=document.createElement('strong');
+          headline.textContent=candidate.feedClaimedTitle||'';
+          const url=document.createElement('p');
+          url.textContent=candidate.proposedArticleUrl;
+          const note=document.createElement('p');
+          note.textContent=say(
+            'ابتدا همین نشانی را در دفتر اصلی منابع JREI تأیید کنید؛ سپس شناسه منبع تأییدشده را وارد کنید.',
+            'Approve this exact URL in the original JREI source registry first, then enter that source ID.');
+          const id=document.createElement('input');
+          id.type='text';id.maxLength=36;
+          id.autocomplete='off';id.spellcheck=false;
+          id.placeholder=say('شناسه منبع اصلی JREI',
+            'Approved original JREI source UUID');
+          id.setAttribute('aria-label',id.placeholder);
+          const bind=document.createElement('button');
+          bind.type='button';bind.disabled=true;
+          bind.textContent=say('اتصال تأیید منبع','Bind approved original source');
+          id.addEventListener('input',()=>{
+            bind.disabled=!/^[a-f0-9]{8}-(?:[a-f0-9]{4}-){3}[a-f0-9]{12}$/i.test(id.value.trim());
+          });
+          bind.addEventListener('click',async()=>{
+            bind.disabled=true;
+            show(say('در حال تطبیق مجوز مستقل منبع…',
+              'Verifying original JREI source approval…'));
+            try{
+              const receipt=await request('/owner/article/bind',{
+                method:'POST',body:JSON.stringify({
+                  discoveryId:candidate.discoveryId,
+                  originalArticleSourceId:id.value.trim()
+                })
+              });
+              if(receipt.schema!=='jr.jrei.news-original-article-source-bound.v1'||
+                 receipt.newsPublished!==false||
+                 receipt.articleDownloaded!==false||
+                 receipt.discoveryId!==candidate.discoveryId)
+                throw Error('NEWS_ARTICLE_BINDING_UNCONFIRMED');
+              if(await load()!==true)return;
+              show(say('مجوز منبع اصلی متصل شد؛ هیچ مقاله‌ای دانلود یا منتشر نشد.',
+                'Original source linked; no article download or publication occurred.'));
+            }catch{
+              show(say('نتیجه تطبیق تأیید نشد؛ وضعیت واقعی را دوباره دریافت کنید.',
+                'Original source binding unconfirmed; refresh authoritative state.'));
+            }
+          });
+          row.append(headline,url,note,id,bind);
+          articles.append(row);
+        }
+        if(!suggestions.items.length){
+          const empty=document.createElement('p');
+          empty.textContent=say('پیوند نیازمند تأیید جدید وجود ندارد.',
+            'No newly discovered article links need review.');
+          articles.append(empty);
+        }
+      }catch{
+        if(readVersion!==loadRevision)return;
+        const missing=document.createElement('p');
+        missing.textContent=say('فهرست پیوندهای نیازمند تأیید در دسترس نیست.',
+          'Original article approval inbox unavailable.');
+        articles.append(missing);
+      }
       // These receipts come only from the ORIGINAL JREI-KA tables. They
       // distinguish a queued download from an actual verified observation.
       // The panel does not start or repeat an acquisition job.
