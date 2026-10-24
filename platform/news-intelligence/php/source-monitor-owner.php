@@ -239,7 +239,9 @@ function jrNewsOwnerDisableSourceMonitor(
         return [
             'schema'=>'jr.jrei.news-owner-monitor-disabled.v1',
             'monitorId'=>$monitorId,'enabled'=>false,
-            'changed'=>$changed,'futureNewsDispatchDisabled'=>true,
+            'changed'=>$changed,
+            'futureSourceProjectionsExcluded'=>true,
+            'inFlightSchedulerSnapshotsMayStillExist'=>true,
             'alreadyQueuedOriginalJreiJobsNotCancelledByThisAction'=>true,
             'requiresOriginalSchedulerReconciliation'=>true
         ];
