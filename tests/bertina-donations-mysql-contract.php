@@ -49,8 +49,12 @@ function assertDonation(bool $condition,string $case): void {
 }
 $source=(string)file_get_contents(__DIR__.'/../api/index.php');
 $start=strpos($source,"if(\$path==='/donations/health'&&");
-$end=strpos($source,"if(\$path==='/assistant/v1/chat'",$start===false?0:$start);
-if($start===false||$end===false)throw new RuntimeException('Could not extract donation production route');
+// Stop at the next independent route family, not at the AI assistant route:
+// assistant syntax and intervening routes may evolve independently of donations.
+$end=strpos($source,"if(str_starts_with(\$path,'/growth/'))",$start===false?0:$start);
+if($start===false||$end===false||$end<=$start||
+    !str_contains(substr($source,$start,$end-$start),"if(\$path==='/donations/create'&&"))
+    throw new RuntimeException('Could not extract donation production route');
 $route=substr($source,$start,$end-$start);
 $id=uuidv4();
 $GLOBALS['pdo']=$pdo;
