@@ -517,11 +517,13 @@ function jrLocalChatOwnerSetNode(PDO $pdo,array $cfg,string $actor,array $body):
                  model_artifact_sha256=VALUES(model_artifact_sha256),
                  enabled=1,reviewed_by_account_id=VALUES(reviewed_by_account_id),
                  reviewed_at=VALUES(reviewed_at),updated_at=VALUES(updated_at),
+                 last_signed_chat_seen_at=NULL,
                  revision=revision+1");
             $q->execute([$id,$model,$version,$digest,$actor,time(),time()]);
         }else{
             $q=$pdo->prepare('UPDATE jrei_local_chat_node_authorizations
-                 SET enabled=0,revision=revision+1,updated_at=?
+                 SET enabled=0,last_signed_chat_seen_at=NULL,
+                     revision=revision+1,updated_at=?
                  WHERE node_id=?');
             $q->execute([time(),$id]);
             $q=$pdo->prepare("UPDATE jrei_local_chat_jobs SET status='FAILED',
