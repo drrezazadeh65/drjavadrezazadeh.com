@@ -124,6 +124,9 @@ function cfg(): array {
         'jrei_news_feed_discovery_enabled' => getenv('JR_JREI_NEWS_FEED_DISCOVERY_ENABLED') === 'true',
         'jrei_news_article_intake_enabled' => getenv('JR_JREI_NEWS_ARTICLE_INTAKE_ENABLED') === 'true',
         'jrei_news_integrated_release_accepted' => getenv('JR_JREI_NEWS_INTEGRATED_RELEASE_ACCEPTED') === 'true',
+        // A separate SUPER_ADMIN decision. Creating news monitors or
+        // approving original sources does not enable scheduled crawling.
+        'jrei_news_source_activation_accepted' => getenv('JR_JREI_NEWS_SOURCE_ACTIVATION_ACCEPTED') === 'true',
         // Real AI inference: independent paid-provider credentials and
         // source-owned budget approval; entirely OFF until final acceptance.
         'jrei_live_ai_enabled' => getenv('JR_JREI_LIVE_AI_ENABLED') === 'true',
