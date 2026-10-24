@@ -146,6 +146,9 @@ function jrNewsQueueTopicDigests(PDO $pdo,string $mode,int $nowEpoch,
             'smtpAccepted'=>false,'mailboxDelivered'=>false];
         $receipt=$existingOutboxEnqueue($message);
         if (is_array($receipt) &&
+            ($receipt['source']??null)==='ORIGINAL_ECO_NEWS_DIGEST_OUTBOX' &&
+            ($receipt['purpose']??null)==='ARTICLES' &&
+            ($receipt['idempotencyKey']??null)===$digestKey &&
             in_array($receipt['state']??null,
                 ['QUEUED','ALREADY_QUEUED'],true))$queued++;
         else $skipped++;
