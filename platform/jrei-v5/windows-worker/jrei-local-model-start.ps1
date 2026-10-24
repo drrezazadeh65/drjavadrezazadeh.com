@@ -33,7 +33,13 @@ if($null -eq $c -or $c.enabled -ne $true -or
 $singleInstance=[System.Threading.Mutex]::new($false, 'Local\JREI-Owner-Local-Model')
 $mutexHeld=$false
 try {
-  $mutexHeld=$singleInstance.WaitOne(0)
+  try {
+    $mutexHeld=$singleInstance.WaitOne(0)
+  } catch [System.Threading.AbandonedMutexException] {
+    # The previous launcher crashed, so this process now owns the mutex.
+    # The pinning and loopback checks below still run before any inference.
+    $mutexHeld=$true
+  }
   if(-not $mutexHeld){throw 'LOCAL_MODEL_ALREADY_RUNNING_ON_THIS_COMPUTER'}
   $exe=[string]$c.backendExe
 $model=[string]$c.modelFile
