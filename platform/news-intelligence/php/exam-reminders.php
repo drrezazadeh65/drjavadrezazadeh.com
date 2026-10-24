@@ -36,8 +36,16 @@ function jrNewsFollowExam(PDO $pdo,string $accountId,
         throw new RuntimeException('news_reminder_consent_missing');
     }
     $stmt=$pdo->prepare(
-        'SELECT milestone_id,event_utc,review_state,owner_approved
-         FROM jrei_news_exam_milestones WHERE milestone_id=?'
+        "SELECT m.milestone_id,m.event_utc,m.review_state,m.owner_approved
+         FROM jrei_news_exam_milestones m WHERE m.milestone_id=?
+         AND NOT EXISTS (
+           SELECT 1 FROM jrei_news_exam_milestones newer
+           WHERE newer.external_exam_key=m.external_exam_key
+             AND newer.milestone_type=m.milestone_type
+             AND newer.version_number>m.version_number
+             AND newer.owner_approved=1
+             AND newer.review_state='OFFICIAL_DATE_REVIEWED'
+         )"
     );
     $stmt->execute([$milestoneId]);
     $event=$stmt->fetch(PDO::FETCH_ASSOC);
@@ -86,7 +94,9 @@ function jrNewsQueueDueReminders(PDO $pdo,int $nowEpoch,
            AND (m.event_utc-(f.days_before*86400))>:earliest
            AND NOT EXISTS (
               SELECT 1 FROM jrei_news_exam_milestones newer
-              WHERE newer.previous_milestone_id=m.milestone_id
+              WHERE newer.external_exam_key=m.external_exam_key
+                AND newer.milestone_type=m.milestone_type
+                AND newer.version_number>m.version_number
                 AND newer.owner_approved=1
                 AND newer.review_state='OFFICIAL_DATE_REVIEWED'
            )
@@ -148,6 +158,14 @@ function jrNewsCurrentExamReminders(
          WHERE f.account_id=? AND f.follow_state='ACTIVE'
            AND m.review_state='OFFICIAL_DATE_REVIEWED'
            AND m.owner_approved=1 AND m.event_utc>?
+           AND NOT EXISTS (
+              SELECT 1 FROM jrei_news_exam_milestones newer
+              WHERE newer.external_exam_key=m.external_exam_key
+                AND newer.milestone_type=m.milestone_type
+                AND newer.version_number>m.version_number
+                AND newer.owner_approved=1
+                AND newer.review_state='OFFICIAL_DATE_REVIEWED'
+           )
          ORDER BY m.event_utc ASC,f.days_before DESC LIMIT 100"
     );
     $q->execute([$accountId,$nowEpoch]);
