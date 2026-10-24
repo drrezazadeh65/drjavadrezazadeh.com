@@ -174,6 +174,7 @@ function jrMasterFinish(PDO $pdo,array $claim,array $result): void {
 function jrMasterDeferrableAiJob(string $id): bool {
     return str_starts_with($id,'jrei_ka_') ||
         in_array($id,[
+          'jrei_news_original_feed_projection',
           'jrei_ai_private_quality_benchmark',
           'jrei_ai_benchmark_case_discovery',
           'jrei_ai_improvement_discovery',
