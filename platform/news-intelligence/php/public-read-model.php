@@ -25,7 +25,8 @@ function jrNewsProjection(array $publication, string $locale): ?array {
         !in_array($locale,['fa','en'],true)) return null;
     $raw=$publication['bilingual_editorial_json']??null;
     if (!is_string($raw) || strlen($raw)>250000) return null;
-    $draft=json_decode($raw,true,32,JSON_THROW_ON_ERROR);
+    try{$draft=json_decode($raw,true,32,JSON_THROW_ON_ERROR);}
+    catch(Throwable $e){return null;}
     if (!is_array($draft))return null;
     $localized=$draft[$locale]??null;
     if (!is_array($localized))return null;
