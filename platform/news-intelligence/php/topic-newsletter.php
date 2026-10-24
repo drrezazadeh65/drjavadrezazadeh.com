@@ -45,6 +45,7 @@ function jrNewsSaveTopicPreference(PDO $pdo,string $authenticatedAccountId,
             consent_reference,follow_state,updated_at)
          VALUES(?,?,?,?,?,?,?,'ACTIVE',?)
          ON DUPLICATE KEY UPDATE locale_code=VALUES(locale_code),
+           digest_mode=VALUES(digest_mode),
            consent_reference=VALUES(consent_reference),
            follow_state='ACTIVE',updated_at=VALUES(updated_at)"
     );
