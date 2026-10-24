@@ -289,11 +289,18 @@ function jrLocalChatWorkerPoll(PDO $pdo,array $cfg,string $node,array $body): ar
         throw new DomainException('local_chat_model_not_approved');
     // Signed model readiness is not independent measurement of GPU/quality.
     $now=time();
+    // Preserve signed heartbeats, but do not update the same mother-DB
+    // row on every idle poll when it is already fresh and accurate.
+    // Two independent Windows nodes share the public site's database.
     $pdo->prepare("UPDATE jrei_hybrid_nodes SET
        model_id=?,model_version=?,last_seen_at=?,
        last_reported_state='ONLINE',updated_at=?
-       WHERE node_id=? AND status='ENABLED' AND revoked_at IS NULL")
-       ->execute([$model,$version,$now,$now,$node]);
+       WHERE node_id=? AND status='ENABLED' AND revoked_at IS NULL
+         AND (last_seen_at IS NULL OR last_seen_at<=?
+           OR model_id IS NULL OR model_id<>?
+           OR model_version IS NULL OR model_version<>?
+           OR last_reported_state<>'ONLINE')")
+       ->execute([$model,$version,$now,$now,$node,$now-10,$model,$version]);
     if($heartbeatOnly)return ['ok'=>true,'job'=>null];
     // Idle requests are read-only after the signed authorization check.
     // The composite (status,expires_at,created_at) index keeps this
@@ -317,10 +324,12 @@ function jrLocalChatWorkerPoll(PDO $pdo,array $cfg,string $node,array $body): ar
         // Retention/erasure runs in the existing private retention worker,
         // never as global UPDATE/DELETE scans on frequent Windows polls.
         // Expired jobs remain UNKNOWN and are never reassigned.
+        // A lost completion leaves an uncertain inference outcome. Keep
+        // the node blocked until the short encrypted job TTL expires;
+        // lease expiry alone is not permission to process another job.
         $q=$pdo->prepare("SELECT COUNT(*) FROM jrei_local_chat_jobs
-          WHERE status='LEASED' AND leased_to_node=?
-            AND lease_expires_at>=? AND expires_at>=?");
-        $q->execute([$node,$now,$now]);
+          WHERE status='LEASED' AND leased_to_node=? AND expires_at>=?");
+        $q->execute([$node,$now]);
         if((int)$q->fetchColumn()>0){$pdo->commit();
             return ['ok'=>true,'job'=>null];}
         $q=$pdo->prepare("SELECT job_id,request_ciphertext,expires_at
