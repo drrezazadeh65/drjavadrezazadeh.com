@@ -28,7 +28,7 @@ export function renderNewsroomHome({language='fa',stories=[],examEvents=[],
     examEvents.length<=200&&utcInstant(currentUtc),
     'NEWS_HOME_INPUT_INVALID');
   assert(siteReleaseApproved===true,'NEWS_HOME_PUBLIC_RELEASE_NOT_APPROVED');
-  const isFa=language==='fa',home='/'+language+'/',news=isFa?'/fa/akhbar/':'/en/news/';
+  const isFa=language==='fa',home='/'+language+'/',news=isFa?'/fa/akhbar/':'/en/news-insights/';
   const copy=isFa?{
     brand:'مرکز هوشمند اخبار آموزش و آزمون‌ها',intro:'اطلاعیه‌های معتبر، تحلیل‌های آموزشی و مسیر اقدام پس از خبر',
     urgent:'خبر فوری',latest:'تازه‌ترین خبرها',calendar:'تقویم آزمون‌ها و مهلت‌ها',
