@@ -36,8 +36,8 @@ $db->prepare('INSERT INTO jrei_hybrid_nodes
  'CI FAKE WORKER','ENABLED','REVIEWED_PUBLIC_RETRIEVAL_EVALUATION',
  $model,$v,$now,'ONLINE',$now,$now]);
 $db->prepare('INSERT INTO jrei_local_chat_node_authorizations
- (node_id,model_id,model_version,model_artifact_sha256,enabled,updated_at)
- VALUES (?,?,?,?,?,?)')->execute([$node,$model,$v,$sha,1,$now]);
+ (node_id,model_id,model_version,model_artifact_sha256,enabled,updated_at,last_signed_chat_seen_at)
+ VALUES (?,?,?,?,?,?,?)')->execute([$node,$model,$v,$sha,1,$now,$now]);
 $db->prepare("INSERT INTO operations_cron_jobs
  (job_id,enabled,cadence_seconds,next_due_at,last_state,last_finished_at,updated_at)
  VALUES ('jrei_local_chat_retention',1,300,0,'completed',?,?)")
