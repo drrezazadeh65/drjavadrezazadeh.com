@@ -1,0 +1,52 @@
+/* JREI education newsroom premium responsive interface — source only.
+   Activate only after final owner-approved publisher/release integration. */
+.ni-newsroom{--ni-black:#101315;--ni-gold:#bda16e;--ni-charcoal:#262b2e;
+  --ni-ivory:#f7f4ed;--ni-muted:#e7e1d3;
+  color:var(--ni-ivory);background:var(--ni-black);
+  font-family:inherit;line-height:1.8;min-height:100vh}
+.ni-newsroom *{box-sizing:border-box}
+.ni-skip{position:absolute;inset-inline-start:-999rem}
+.ni-skip:focus{inset-inline-start:1rem;top:1rem;z-index:999}
+.ni-header{display:flex;align-items:center;justify-content:space-between;
+  flex-wrap:wrap;gap:1rem;padding:1rem clamp(1rem,4vw,3rem);
+  border-bottom:1px solid #544d40}
+.ni-header>a{font-weight:700;color:var(--ni-gold);text-decoration:none}
+.ni-header nav{display:flex;gap:1rem;flex-wrap:wrap}
+.ni-header nav a{color:var(--ni-ivory);text-decoration:none}
+.ni-header a:hover,.ni-page a:hover{text-decoration:underline}
+.ni-page{max-width:1180px;padding:clamp(1rem,3vw,3rem);margin:auto}
+.ni-article{max-width:840px;margin-inline:auto;min-width:0}
+.ni-breadcrumb{font-size:.86rem;color:var(--ni-muted);margin-bottom:1.5rem}
+.ni-breadcrumb a{color:var(--ni-gold)}
+.ni-article h1{font-size:clamp(1.65rem,4vw,3rem);line-height:1.43;
+  margin:1rem 0;color:var(--ni-ivory)}
+.ni-article h2{font-size:clamp(1.16rem,2.5vw,1.6rem);line-height:1.5;
+  margin:1.2rem 0;color:var(--ni-gold)}
+.ni-kicker{color:var(--ni-gold);font-weight:700}
+.ni-lead{font-size:clamp(1.04rem,1.5vw,1.23rem);color:#ded8cb}
+.ni-article time{font-variant-numeric:tabular-nums;font-size:.83rem;color:#beb8aa}
+.ni-article figure{margin:1.7rem 0;border-radius:1.2rem;overflow:hidden;
+  border:1px solid #4a4439;background:var(--ni-charcoal)}
+.ni-article figure img{display:block;width:100%;height:auto;object-fit:cover;
+  aspect-ratio:16/9}
+.ni-body{font-size:clamp(1.03rem,1.55vw,1.19rem);line-height:2;
+  overflow-wrap:anywhere}
+.ni-next,.ni-related,.ni-source,.ni-assistant{border:1px solid #474134;
+  border-radius:1rem;background:#1b1e20;padding:clamp(1rem,2vw,1.7rem);
+  margin-block:1.4rem}
+.ni-assistant{border-color:var(--ni-gold)}
+.ni-next p,.ni-source p,.ni-assistant p{margin-bottom:.2rem}
+.ni-related ul{margin:0;padding-inline-start:1.5rem}
+.ni-related li{margin:.65rem 0}
+.ni-page a{color:#e6c892}
+.ni-disclaimer{color:#bbb4a6;font-size:.86rem}
+@media(max-width:540px){
+ .ni-page{padding:1rem}
+ .ni-header{padding:1rem}
+ .ni-header nav{width:100%;justify-content:space-between}
+ .ni-article h1{line-height:1.55}
+ .ni-body{line-height:1.96}
+ .ni-next,.ni-related,.ni-source,.ni-assistant{padding:1rem;border-radius:.75rem}
+}
+@media(prefers-reduced-motion:reduce){.ni-newsroom *{scroll-behavior:auto!important;
+ animation-duration:.01ms!important;transition-duration:.01ms!important}}
