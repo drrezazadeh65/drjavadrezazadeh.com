@@ -1,0 +1,176 @@
+{
+  "schema": "jr.jrei.mother-migration-campaign.v1",
+  "releaseIntent": "STAGED_OWNER_GATED_MOTHER_DATABASE_MIGRATION",
+  "database": "drjavad1_store",
+  "canonicalBranch": "migration/bertina-linux6",
+  "created": "2026-10-24",
+  "policy": {
+    "denyAutomaticProductionSql": true,
+    "denySchemaDropOrAlter": true,
+    "denyForeignKeyCheckDisable": true,
+    "denyPublicDocumentPublishing": true,
+    "denyImplicitWorkerEnablement": true,
+    "denyPaymentMutation": true,
+    "requireVerifiedPrivateBackupAndRestorePlan": true,
+    "requireFreshLiveInformationSchema": true,
+    "requireOwnerApprovedProductionExecution": true,
+    "postMigrationSwitchesRemainOff": true
+  },
+  "orderedFiles": [
+    {
+      "order": 1,
+      "stage": "foundation",
+      "file": "docs/migrations/20261023_jrei_exams_testly_research_mother_mysql.sql"
+    },
+    {
+      "order": 2,
+      "stage": "foundation",
+      "file": "docs/migrations/20261023_jrei_hybrid_worker_mother_mysql.sql"
+    },
+    {
+      "order": 3,
+      "stage": "foundation",
+      "file": "docs/migrations/20261023_jrei_governed_source_registry_mother_mysql.sql"
+    },
+    {
+      "order": 4,
+      "stage": "foundation",
+      "file": "docs/migrations/20261023_jrei_governed_corpus_mother_mysql.sql"
+    },
+    {
+      "order": 5,
+      "stage": "foundation",
+      "file": "docs/migrations/20261023_jrei_model_registry_mother_mysql.sql"
+    },
+    {
+      "order": 6,
+      "stage": "learning",
+      "file": "docs/migrations/20261023_jrei_daily_learning_mother_mysql.sql"
+    },
+    {
+      "order": 7,
+      "stage": "learning",
+      "file": "docs/migrations/20261023_jrei_ai_governed_benchmark_mother_mysql.sql"
+    },
+    {
+      "order": 8,
+      "stage": "learning",
+      "file": "docs/migrations/20261023_jrei_ai_improvement_opportunities_mother_mysql.sql"
+    },
+    {
+      "order": 9,
+      "stage": "learning",
+      "file": "docs/migrations/20261023_jrei_live_ai_budget_mother_mysql.sql"
+    },
+    {
+      "order": 10,
+      "stage": "learning",
+      "file": "docs/migrations/20261023_jrei_live_ai_provider_telemetry_mother_mysql.sql"
+    },
+    {
+      "order": 11,
+      "stage": "acquisition",
+      "file": "docs/migrations/20261023_jrei_knowledge_acquisition_mother_mysql.sql"
+    },
+    {
+      "order": 12,
+      "stage": "acquisition",
+      "file": "docs/migrations/20261023_jrei_ka_verified_private_acquisition_mother_mysql.sql"
+    },
+    {
+      "order": 13,
+      "stage": "acquisition",
+      "file": "docs/migrations/20261023_jrei_ka_private_text_extraction_mother_mysql.sql"
+    },
+    {
+      "order": 14,
+      "stage": "acquisition",
+      "file": "docs/migrations/20261023_jrei_ka_autonomous_document_discovery_mother_mysql.sql"
+    },
+    {
+      "order": 15,
+      "stage": "acquisition",
+      "file": "docs/migrations/20261023_jrei_ka_private_passage_provenance_mother_mysql.sql"
+    },
+    {
+      "order": 16,
+      "stage": "acquisition",
+      "file": "docs/migrations/20261023_jrei_ka_source_human_attestations_mother_mysql.sql"
+    },
+    {
+      "order": 17,
+      "stage": "acquisition",
+      "file": "docs/migrations/20261023_jrei_ka_public_quote_attestations_mother_mysql.sql"
+    },
+    {
+      "order": 18,
+      "stage": "acquisition",
+      "file": "docs/migrations/20261023_jrei_ka_local_ocr_observation_intake_mother_mysql.sql"
+    },
+    {
+      "order": 19,
+      "stage": "acquisition",
+      "file": "docs/migrations/20261023_jrei_ka_exam_key_pairing_mother_mysql.sql"
+    },
+    {
+      "order": 20,
+      "stage": "acquisition",
+      "file": "docs/migrations/20261023_jrei_ka_curriculum_grade_alignment_mother_mysql.sql"
+    },
+    {
+      "order": 21,
+      "stage": "acquisition",
+      "file": "docs/migrations/20261023_jrei_ka_coverage_link_corrections_mother_mysql.sql"
+    },
+    {
+      "order": 22,
+      "stage": "acquisition",
+      "file": "docs/migrations/20261024_jrei_night_quota_mother_mysql.sql"
+    },
+    {
+      "order": 23,
+      "stage": "commerce_examination",
+      "file": "docs/migrations/20261023_jrei_commercial_examination_mother_mysql.sql"
+    },
+    {
+      "order": 24,
+      "stage": "commerce_examination",
+      "file": "docs/migrations/20261023_jrei_preliminary_grade_snapshots_mother_mysql.sql"
+    },
+    {
+      "order": 25,
+      "stage": "commerce_examination",
+      "file": "docs/migrations/20261023_jrei_reviewed_exam_prompt_localizations_mother_mysql.sql"
+    },
+    {
+      "order": 26,
+      "stage": "commerce_examination",
+      "file": "docs/migrations/20261024_jrei_exam_buyer_service_review_mother_mysql.sql"
+    },
+    {
+      "order": 27,
+      "stage": "learning",
+      "file": "docs/migrations/20261024_jrei_learning_human_hazard_review_mother_mysql.sql"
+    },
+    {
+      "order": 28,
+      "stage": "operations",
+      "file": "docs/migrations/20261023_operations_cron_master_mysql.sql"
+    },
+    {
+      "order": 29,
+      "stage": "operations",
+      "file": "docs/migrations/20261023_jrei_hybrid_operations_alerts_mother_mysql.sql"
+    }
+  ],
+  "runtimePrerequisites": [
+    "Bertina PHP 8.3 CLI availability and five-minute Cron execution separately verified",
+    "Existing mother database customer and eco tables confirm matching FK types/engines",
+    "Private document archive outside web root writable under the runtime UID and covered by private backup",
+    "ZipArchive, DOMDocument and MySQL PDO extensions installed and checked in the actual CLI runtime",
+    "Source rights, robots and rate-limit controls approved before enabling any network crawler",
+    "OpenAI API key and budget provisioned server-side only before enabling live model",
+    "All migrations independently reviewed; no destructive schema operations or silent payment/session changes"
+  ],
+  "notes": "A prepared order and CI package are NOT a database migration, model activation, PDF OCR installation, approval to collect restricted sources, or an owner production release. The existing frozen manual Deploy to Bertina workflow remains unchanged."
+}
