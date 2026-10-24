@@ -28,7 +28,7 @@ function jrAiPublicServiceIntent(string $question): ?array {
     // word "service", but topical educational questions alone are not.
     $rules=[
       'field_selection_comprehensive'=>'/(?:انتخاب.{0,8}رشته.{0,12}جامع|انتخاب.{0,8}رشته.{0,20}نهایی|اولویت.{0,6}بندی.{0,10}نهایی|comprehensive.{0,18}major selection|comprehensive.{0,18}university selection)/iu',
-      'golden_talent_premium'=>'/(?:golden.{0,18}talent.{0,20}premium|استعدادیابی.{0,18}جلسه.{0,12}والد|ارزیابی جامع.{0,18}گزارش.{0,12}مسیر|parent.{0,16}session.{0,16}pathway report)/iu',
+      'golden_talent_premium'=>'/(?:golden.{0,18}talent.{0,20}premium|استعدادیابی.{0,18}جلسه.{0,12}والد|ارزیابی جامع.{0,40}گزارش.{0,12}مسیر|parent.{0,16}session.{0,16}pathway report)/iu',
       'konkur_month'=>'/(?:کنکور.{0,20}(?:یک ماه|یک ماهه|ماهانه)|برنامه.{0,16}یک ماهه.{0,12}کنکور|one.month.{0,14}(?:konkur|entrance)|month.long.{0,16}(?:exam|konkur))/iu',
       'talent_initial'=>'/(?:استعدادیابی.{0,14}اولیه|ارزیابی.{0,14}استعداد.{0,14}اولیه|initial.{0,15}talent assessment)/iu',
       'academic_consult_60'=>'/(?:مشاوره.{0,14}تخصصی.{0,14}تحصیلی|specialist.{0,16}academic consultation|academic.{0,16}consultation)/iu',
@@ -43,11 +43,11 @@ function jrAiPublicServiceIntent(string $question): ?array {
       'transcript_analysis'=>'/(?:تحلیل.{0,14}کارنامه|کارنامه.{0,14}تحلیل|academic transcript|scorecard analysis)/iu',
       'golden_talent_comprehensive'=>'/(?:golden[ -]?talent|استعدادیابی|استعداد.{0,10}فرزند|talent assessment)/iu',
       'teacher_consult_60'=>'/(?:مشکل.{0,12}تدریس|مواد.{0,10}آموزشی|مشاوره.{0,12}معلم|teacher.{0,16}(?:consult|materials|assessment))/iu',
-      'teacher_dev_90'=>'/(?:توسعه.{0,8}حرفه ای.{0,10}(?:معلم|مدرس)|teacher professional development|educator development)/iu',
-      'organization_consult_90'=>'/(?:مشاوره.{0,10}مدرسه|مشاوره.{0,10}سازمان|school.{0,12}consult|institutional.{0,12}consult)/iu',
-      'research_consult_60'=>'/(?:روش.{0,8}پژوهش|روش.{0,8}تحقیق|روش شناسی.{0,10}پژوهش|research.{0,12}(?:method|design|consult)|پایان نامه.{0,15}مشاور)/iu',
-      'specialist_workshop_120'=>'/(?:کارگاه.{0,14}آموزشی|برگزاری.{0,14}کارگاه|ورکشاپ|professional workshop|online workshop)/iu',
-      'student_parent_90'=>'/(?:جلسه.{0,12}والد|دانش آموز.{0,15}والد|student.parent consultation)/iu'
+      'teacher_dev_90'=>'/(?:توسعه.{0,8}حرفه ای.{0,10}(?:معلم|مدرس)|teacher professional development|educator.{0,18}professional development|educator development)/iu',
+      'organization_consult_90'=>'/(?:مشاوره.{0,18}مدرسه|مشاوره.{0,18}سازمان|school.{0,40}consult|institutional.{0,30}consult|organisational.{0,20}consult)/iu',
+      'research_consult_60'=>'/(?:روش.{0,8}پژوهش|روش.{0,8}تحقیق|روش شناسی.{0,10}پژوهش|مشاوره.{0,12}پژوهش|research.{0,12}(?:method|design|consult)|پایان نامه.{0,15}مشاور)/iu',
+      'specialist_workshop_120'=>'/(?:کارگاه.{0,20}(?:آموزشی|تخصصی|آنلاین)|برگزاری.{0,14}کارگاه|ورکشاپ|professional workshop|online workshop)/iu',
+      'student_parent_90'=>'/(?:جلسه.{0,12}والد|دانش آموز.{0,15}والد|student.{0,16}parent consultation)/iu'
     ];
     $found=[];
     foreach($rules as $code=>$pattern){
