@@ -125,10 +125,10 @@ function jrNewsPublishedSearch(PDO $pdo,string $query,string $locale='fa',
     $statement->execute();
     $rows=$statement->fetchAll(PDO::FETCH_ASSOC);
     if (!$rows) {
-        $literal=str_replace(['\\','%','_'],['\\\\','\\%','\\_'],$query);
+        $literal=str_replace(['!','%','_'],['!!','!%','!_'],$query);
         $sql='SELECT s.public_route,s.title,s.summary,s.published_at'.
-          $joins.' AND (s.title LIKE :title ESCAPE \x27\\\\\x27'.
-          ' OR s.summary LIKE :summary ESCAPE \x27\\\\\x27)'.
+          $joins." AND (s.title LIKE :title ESCAPE '!'".
+          " OR s.summary LIKE :summary ESCAPE '!')".
           ' ORDER BY s.published_at DESC LIMIT :row_limit';
         $fallback=$pdo->prepare($sql);
         foreach ($args as $key=>$value) $fallback->bindValue($key,$value,
