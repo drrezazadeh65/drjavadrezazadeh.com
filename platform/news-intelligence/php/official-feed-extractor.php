@@ -73,7 +73,8 @@ function jrNewsParseApprovedFeed(
                     else if ($href==='')$link=trim($child->textContent);
                 }
             }
-            if ($title==='' || strlen($title)>720 || $link==='')continue;
+            if ($title==='' || strlen($title)>960 ||
+                preg_match_all('/./us',$title)>240 || $link==='')continue;
             $url=jrNewsFeedPublicUrl($link,$approvedHost);
             if (!$url)continue;
             $dedupe=hash('sha256',$sourceRegistryId.'|'.$url);
