@@ -181,11 +181,17 @@ export async function runLocalChatWorker(config,key,{post,log,signal,fetchImpl}=
                 log('LOCAL_CHAT_HEARTBEAT_REQUIRES_REVIEW');
                 jobController.abort();
               }
-            }catch{
-              // Signed refresh is unconfirmed: stop the current model call
-              // instead of spending CPU on an answer we cannot submit.
+            }catch(error){
+              // Unknown heartbeat outcome aborts only the active lease;
+              // explicit owner revocation stops the ENTIRE chat process so
+              // it never silently reconnects under withdrawn permission.
               log('LOCAL_CHAT_HEARTBEAT_UNCONFIRMED');
               jobController.abort();
+              if(error?.message==='WORKER_NOT_AUTHORIZED'||
+                 error?.message==='LOCAL_CHAT_MODEL_NOT_APPROVED'){
+                stopping=true;
+                log('LOCAL_CHAT_STOPPED_AWAITING_OWNER_AUTHORIZATION');
+              }
             }finally{heartbeatInFlight=false;}
           };
           const heartbeatTimer=setInterval(()=>{void heartbeat();},15000);
