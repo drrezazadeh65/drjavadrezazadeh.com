@@ -31,7 +31,7 @@
     open:'دستیار هوشمند',title:'دستیار دکتر رضازاده',subtitle:'راهنمای هوشمند سایت',
     greeting:'سلام. من دستیار هوشمند سایت دکتر رضازاده هستم. درباره خدمات، Golden Talent، انتخاب رشته، پژوهش‌ها و مسیرهای سایت می‌توانم راهنمایی‌تان کنم.',
     notice:'اطلاعات حساس، مدارک هویتی، پرونده پزشکی، رمز عبور یا اطلاعات پرداخت را در این گفتگو ارسال نکنید.',
-    placeholder:'سؤال‌تان را بنویسید…',send:'ارسال',close:'بستن',reset:'گفت‌وگوی جدید',copy:'کپی پاسخ',copied:'کپی شد',thinking:'در حال بررسی…',
+    placeholder:'سؤال‌تان را بنویسید…',send:'ارسال',close:'بستن',reset:'گفت‌وگوی جدید',copy:'کپی پاسخ',copied:'کپی شد',stop:'توقف',stopped:'پاسخ به درخواست شما متوقف شد.',thinking:'در حال بررسی…',
     error:'ارتباط زنده با دستیار هنوز برقرار نیست. می‌توانید از راهنماهای زیر استفاده کنید یا دوباره تلاش کنید.',
     retry:'تلاش دوباره',offline:'راهنمای سریع',leadOpen:'درخواست تماس',leadTitle:'اگر مایلید با شما تماس بگیریم',leadEmail:'ایمیل',leadMobile:'شماره موبایل',leadValue:'راه ارتباط',leadIntent:'موضوع اصلی',leadConsent:'با ذخیره این راه ارتباط برای پاسخ‌گویی به همین درخواست موافقم.',leadWhatsApp:'اگر واتس‌اپ بیزنس فعال شود، تماس در واتس‌اپ را هم می‌پذیرم.',leadSend:'ثبت درخواست تماس',leadSaved:'درخواست تماس ثبت شد.',leadError:'ثبت درخواست تماس انجام نشد؛ لطفاً بعداً دوباره تلاش کنید.',
     chips:['برای انتخاب رشته از کجا شروع کنم؟','Golden Talent چیست؟','چطور مشاوره بگیرم؟']
@@ -39,7 +39,7 @@
     open:'AI Assistant',title:'Dr. Rezazadeh Assistant',subtitle:'Smart site guide',
     greeting:'Hello. I am the AI assistant for Dr. Rezazadeh’s website. I can guide you through services, Golden Talent, student guidance, research and the site.',
     notice:'Please do not share identity documents, medical records, passwords, payment details or other sensitive personal information here.',
-    placeholder:'Ask a question…',send:'Send',close:'Close',reset:'New chat',copy:'Copy answer',copied:'Copied',thinking:'Checking…',
+    placeholder:'Ask a question…',send:'Send',close:'Close',reset:'New chat',copy:'Copy answer',copied:'Copied',stop:'Stop',stopped:'Response stopped at your request.',thinking:'Checking…',
     error:'The live assistant is not connected yet. You can use the quick guidance below or try again.',
     retry:'Try again',offline:'Quick guidance',leadOpen:'Request contact',leadTitle:'Would you like us to contact you?',leadEmail:'Email',leadMobile:'Mobile',leadValue:'Contact detail',leadIntent:'Main topic',leadConsent:'I agree that this contact detail may be stored to respond to this request.',leadWhatsApp:'If WhatsApp Business is activated, I also consent to contact through WhatsApp.',leadSend:'Save contact request',leadSaved:'Your contact request has been saved.',leadError:'The contact request could not be saved. Please try again later.',
     chips:['Which service fits my needs?','What is Golden Talent?','How do I request consultation?']
@@ -111,7 +111,8 @@
       '<div class="jr-assistant-chips"></div>'+
       '<form class="jr-assistant-form"><label class="sr-only" for="jr-assistant-input">'+labels.placeholder+'</label>'+
       '<textarea id="jr-assistant-input" rows="2" maxlength="1600" placeholder="'+labels.placeholder+'"></textarea>'+
-      '<button type="submit">'+labels.send+'</button></form>'+
+      '<div class="jr-assistant-form-actions"><button type="submit">'+labels.send+'</button>'+
+      '<button type="button" class="jr-assistant-stop" hidden>'+labels.stop+'</button></div></form>'+
       '<p class="jr-assistant-privacy">'+labels.notice+'</p>'+
     '</section>';
   document.body.appendChild(wrap);
@@ -123,6 +124,7 @@
   const chips=wrap.querySelector('.jr-assistant-chips');
   const form=wrap.querySelector('.jr-assistant-form');
   const input=wrap.querySelector('textarea');
+  const stopButton=wrap.querySelector('.jr-assistant-stop');
   // Actual inference is optional and cannot be switched on by a page's
   // arbitrary metadata: the same-origin server must report ready, and the
   // visitor must explicitly opt in to provider-side message processing.
@@ -246,6 +248,7 @@
         }catch(_){return;}
         const a=document.createElement('a');
         a.href=safeUrl;
+        if(new URL(safeUrl).origin!==location.origin){a.target='_blank';a.rel='noopener noreferrer';}
         a.textContent=link.label;
         list.appendChild(a);
       });
@@ -289,7 +292,7 @@
       addMessage('assistant',local.answer,local.links);
       return;
     }
-    busy=true;lastQuery=message.trim();
+    busy=true;lastQuery=message.trim();stopButton.hidden=false;
     const requestToken=++requestGeneration;
     let controller=null,timer=null;
     input.disabled=true;
@@ -335,11 +338,26 @@
       if(timer!==null)clearTimeout(timer);
       if(activeRequest===controller)activeRequest=null;
       if(requestToken===requestGeneration){
-        busy=false;input.disabled=false;form.querySelector('button').disabled=false;
+        busy=false;stopButton.hidden=true;input.disabled=false;form.querySelector('button').disabled=false;
         if(!panel.hidden&&!document.hidden)input.focus();
       }
     }
   }
+
+  stopButton.addEventListener('click',()=>{
+    if(!busy)return;
+    // Invalidate the response BEFORE aborting: an older request must never
+    // append output into a newer or user-cancelled conversation.
+    requestGeneration++;
+    activeRequest?.abort();
+    activeRequest=null;
+    busy=false;
+    stopButton.hidden=true;
+    input.disabled=false;
+    form.querySelector('button').disabled=false;
+    addMessage('assistant',labels.stopped);
+    if(!panel.hidden&&!document.hidden)input.focus();
+  });
 
   labels.chips.forEach(text=>{
     const b=document.createElement('button');b.type='button';b.textContent=text;
@@ -363,7 +381,7 @@
     activeRequest?.abort();activeRequest=null;
     history=[];lastQuery='';busy=false;ephemeralVisitorId=null;
     providerConsent.checked=false;
-    thread.replaceChildren();input.value='';input.disabled=false;
+    thread.replaceChildren();input.value='';input.disabled=false;stopButton.hidden=true;
     form.querySelector('button').disabled=false;
     panel.hidden=!keepOpen;launcher.setAttribute('aria-expanded',keepOpen?'true':'false');
     if(keepOpen){addMessage('assistant',staticGreeting);input.focus();}
