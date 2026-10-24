@@ -108,6 +108,24 @@ function jrNewsPrivateRecordDecision(PDO $pdo,array $session,
               AND d.review_state=\'ORIGINAL_JREI_ARTICLE_APPROVED\'
              JOIN jrei_news_evidence_reviews e
                ON e.review_id=v.evidence_review_id
+             JOIN jrei_exam_sources article
+               ON article.source_id=d.approved_article_source_id
+              AND article.source_locator_uri=c.source_url
+              AND article.review_state=\'AUTHORITATIVE_REVIEWED\'
+              AND article.rights_state IN
+                (\'PERMITTED_PRIVATE_ANALYSIS\',\'PERMITTED_REPRODUCTION\')
+              AND article.is_revoked=0 AND article.is_superseded=0
+              AND article.reviewer_account_id IS NOT NULL
+              AND article.verified_at IS NOT NULL
+             JOIN jrei_ka_source_policies article_policy
+               ON article_policy.source_id=article.source_id
+              AND article_policy.scheduling_state=\'APPROVED\'
+              AND article_policy.rights_reviewed=1
+              AND article_policy.robots_terms_reviewed=1
+              AND article_policy.transport_reviewed=1
+              AND article_policy.rights_evidence_sha256 REGEXP \'^[a-f0-9]{64}$\'
+              AND article_policy.robots_terms_evidence_sha256 REGEXP \'^[a-f0-9]{64}$\'
+              AND article_policy.transport_evidence_sha256 REGEXP \'^[a-f0-9]{64}$\'
              WHERE v.revision_id=?';
         $stmt=$pdo->prepare($decisionSql);
         $stmt->execute([$revisionId]);
