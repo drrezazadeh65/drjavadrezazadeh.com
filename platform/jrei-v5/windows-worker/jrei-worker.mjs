@@ -14,6 +14,8 @@
 import { createHash, createPrivateKey, generateKeyPairSync, randomBytes, sign } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import { readFile, mkdir, lstat } from 'node:fs/promises';
+import { createReadStream } from 'node:fs';
+import { createLocalLlamaAdapter } from './jrei-loopback-model-adapter.mjs';
 import { join, isAbsolute, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import os from 'node:os';
@@ -27,7 +29,9 @@ const API_ORIGIN = 'https://drjavadrezazadeh.com';
 const ENDPOINTS = Object.freeze({
   poll: '/api/jrei/v1/worker/poll',
   heartbeat: '/api/jrei/v1/worker/heartbeat',
-  complete: '/api/jrei/v1/worker/complete'
+  complete: '/api/jrei/v1/worker/complete',
+  localPoll: '/api/jrei/v1/local-chat/poll',
+  localComplete: '/api/jrei/v1/local-chat/complete'
 });
 const UUID = /^[a-f0-9]{8}-(?:[a-f0-9]{4}-){3}[a-f0-9]{12}$/;
 const SHA = /^[a-f0-9]{64}$/;
@@ -375,10 +379,120 @@ async function run(configArg) {
   }
   log('OUTBOUND_WORKER_STOPPED');
 }
+
+/**
+ * Independently approved JREI-LM generative mode. Never accepts an inbound
+ * socket, installs a model, downloads weights or executes model-generated code.
+ * Only a separately started localhost llama.cpp-compatible server is used.
+ */
+async function runLocalChat(configArg){
+  const cfg=await loadConfig(configArg);
+  const c=cfg.localChat;
+  if(!strictObject(c)||c.enabled!==true||c.ownerApproved!==true||
+     c.licenceReviewed!==true||!ID.test(c.model??'')||
+     !ID.test(c.modelVersion??'')||!SHA.test(c.modelArtifactSha256??'')||
+     typeof c.modelFile!=='string'||!isAbsolute(c.modelFile)||
+     c.modelFile.length>500||typeof c.endpoint!=='string')
+    throw Error('LOCAL_CHAT_PRIVATE_APPROVAL_REQUIRED');
+  const stat=await lstat(c.modelFile);
+  if(!stat.isFile()||stat.isSymbolicLink()||stat.size<1048576||
+     stat.size>16000000000)
+    throw Error('LOCAL_MODEL_FILE_NOT_APPROVED');
+  const digest=createHash('sha256');
+  let bytes=0;
+  for await (const chunk of createReadStream(c.modelFile,{highWaterMark:1024*1024})){
+    bytes+=chunk.length;
+    if(bytes>16000000000)throw Error('LOCAL_MODEL_FILE_TOO_LARGE');
+    digest.update(chunk);
+  }
+  if(bytes!==stat.size||digest.digest('hex')!==c.modelArtifactSha256)
+    throw Error('LOCAL_MODEL_WEIGHT_DIGEST_MISMATCH');
+  const pem=protectKey('unprotect',keyPath());
+  if(!pem)throw Error('WINDOWS_DPAPI_KEY_UNAVAILABLE');
+  const key=createPrivateKey(pem);
+  if(key.asymmetricKeyType!=='ed25519')
+    throw Error('PRIVATE_KEY_TYPE_UNAPPROVED');
+  const adapter=createLocalLlamaAdapter({
+    id:'jrei-lm-owned-windows',model:c.model,
+    modelVersion:c.modelVersion,modelArtifactSha256:c.modelArtifactSha256,
+    licenceReviewed:true,ownerApproved:true,endpoint:c.endpoint,
+    timeoutMs:32000
+  });
+  let stopped=false,backoff=0;
+  const stop=()=>{stopped=true;log('JREI_LOCAL_CHAT_STOP_REQUESTED');};
+  process.once('SIGINT',stop);
+  process.once('SIGTERM',stop);
+  log('JREI_LOCAL_MODEL_OUTBOUND_WORKER_STARTED');
+  while(!stopped){
+    try {
+      const response=await post(cfg,key,ENDPOINTS.localPoll,{
+        modelId:c.model,modelVersion:c.modelVersion,
+        modelSha256:c.modelArtifactSha256
+      });
+      backoff=0;
+      if(response.job!==null){
+        const job=response.job;
+        if(!strictObject(job)||!UUID.test(job.jobId??'')||
+           !SHA.test(job.leaseToken??'')||
+           !Number.isSafeInteger(job.expiresAt)||
+           job.expiresAt<=Date.now()/1000+8||
+           !Array.isArray(job.messages)||job.messages.length<2||
+           job.messages.length>10||job.messages[0]?.role!=='system'||
+           job.messages.at(-1)?.role!=='user')
+          throw Error('LOCAL_CHAT_JOB_INVALID');
+        let total=0;
+        for(const m of job.messages){
+          if(!strictObject(m)||!['system','user','assistant'].includes(m.role)||
+             typeof m.content!=='string'||!m.content.trim()||
+             m.content.length>11000)
+            throw Error('LOCAL_CHAT_JOB_INVALID');
+          total+=m.content.length;
+        }
+        if(total>12000)throw Error('LOCAL_CHAT_PROMPT_LIMIT');
+        let answer;
+        try {
+          const draft=await adapter.complete({
+            model:c.model,messages:job.messages,
+            maxOutputTokens:240,temperature:0
+          });
+          if(stopped||draft.verified!==false||
+             draft.requiresEvidenceVerification!==true||
+             typeof draft.text!=='string'||draft.text.length<12||
+             draft.text.length>4000)
+            throw Error('LOCAL_CHAT_DRAFT_NOT_ACCEPTABLE');
+          answer=draft.text;
+        }catch(error){
+          log('LOCAL_CHAT_DRAFT_REQUIRES_REVIEW_'+safeCode(error));
+          // Failed leases are quarantined, never reassigned automatically.
+          continue;
+        }
+        if(Date.now()/1000>=job.expiresAt-1){
+          log('LOCAL_CHAT_EXPIRED_DRAFT_DISCARDED');continue;
+        }
+        const done=await post(cfg,key,ENDPOINTS.localComplete,{
+          modelId:c.model,modelVersion:c.modelVersion,
+          modelSha256:c.modelArtifactSha256,
+          jobId:job.jobId,leaseToken:job.leaseToken,answer
+        });
+        log(done.accepted===true?
+          'JREI_LOCAL_ANSWER_EVIDENCE_GUARD_ACCEPTED':
+          'JREI_LOCAL_ANSWER_BLOCKED_FOR_REVIEW');
+      }
+      if(!stopped)await sleep(4000);
+    }catch(error){
+      log(safeCode(error));
+      if(error?.message==='WORKER_NOT_AUTHORIZED')break;
+      backoff=Math.min(6,backoff+1);
+      if(!stopped)await sleep(Math.min(120000,5000*2**(backoff-1)));
+    }
+  }
+  log('JREI_LOCAL_MODEL_WORKER_STOPPED');
+}
 const cmd=process.argv[2];
 try {
   if(cmd==='init'&&process.argv.length===3)await init();
   else if(cmd==='start'&&process.argv.length===4)await run(process.argv[3]);
+  else if(cmd==='start-chat'&&process.argv.length===4)await runLocalChat(process.argv[3]);
   else{
     process.stdout.write(
       'JREI: use "node jrei-worker.mjs init" separately on each PC, then\n'+
