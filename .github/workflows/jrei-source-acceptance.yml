@@ -4,6 +4,7 @@ on:
     branches: [migration/bertina-linux6]
     paths:
       - ".github/workflows/jrei-source-acceptance.yml"
+      - ".github/workflows/v5-release-candidate.yml"
       - "platform/jrei-v5/**"
       - "api/jrei-*.php"
       - "api/operations-cron-dispatcher.php"

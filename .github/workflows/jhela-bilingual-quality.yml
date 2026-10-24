@@ -31,6 +31,7 @@ on:
       - '.github/workflows/jhela-bilingual-quality.yml'
       # Recheck scholarly guardrails when the unified release QA changes.
       - '.github/workflows/v5-release-candidate.yml'
+      - 'tests/**'
   pull_request:
     branches: [migration/bertina-linux6]
     paths:

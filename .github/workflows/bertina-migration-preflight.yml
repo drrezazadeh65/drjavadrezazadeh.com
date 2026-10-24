@@ -18,6 +18,7 @@ on:
       - '.htaccess'
       # The complete release package also contains the protected PHP API.
       - 'api/**'
+      - 'tests/**'
       - 'scripts/build-public-data.mjs'
       - 'scripts/build-public-site.mjs'
       - '.github/workflows/bertina-migration-preflight.yml'
