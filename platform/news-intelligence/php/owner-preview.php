@@ -57,12 +57,16 @@ function jrNewsPrivateOwnerPreview(PDO $pdo,array $session,
             throw new RuntimeException('news_translation_not_ready');
         }
         foreach (['headline','summary','body','nextSteps'] as $key) {
-            if (!is_string($text[$key]??null) ||
-                trim($text[$key])==='' ||
-                strlen($text[$key])>100000) {
+            $value=$text[$key]??null;
+            $maxBytes=['headline'=>720,'summary'=>4000,
+                       'body'=>100000,'nextSteps'=>12000][$key];
+            if (!is_string($value)||trim($value)===''||
+                strlen($value)>$maxBytes||preg_match('//u',$value)!==1||
+                ($key==='headline'&&
+                    preg_match_all('/./us',$value)>240)) {
                 throw new RuntimeException('news_translation_field_invalid');
             }
-            $clean[$language][$key]=$text[$key];
+            $clean[$language][$key]=$value;
         }
     }
     $paths=$draft['routeProposal']??null;
