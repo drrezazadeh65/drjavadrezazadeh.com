@@ -469,7 +469,12 @@
       setTimeout(()=>input.focus(),30);
     }
   });
-  close.addEventListener('click',()=>{panel.hidden=true;launcher.setAttribute('aria-expanded','false');launcher.focus();});
+  close.addEventListener('click',()=>{
+    // Closing the private conversation revokes the in-memory capability
+    // and cancels an active GGUF lease; hiding alone wastes Windows CPU.
+    clearEphemeralAssistant();
+    launcher.focus();
+  });
   const clearEphemeralAssistant=(keepOpen=false)=>{
     // Backgrounded mobile PWAs must not keep private text visible in a
     // resumable tab or accept late async responses after a user leaves.
@@ -490,5 +495,10 @@
   window.addEventListener('pagehide',clearEphemeralAssistant);
   form.addEventListener('submit',e=>{e.preventDefault();const q=input.value.trim();if(!q)return;input.value='';ask(q);});
   input.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();form.requestSubmit();}});
-  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!panel.hidden){panel.hidden=true;launcher.setAttribute('aria-expanded','false');launcher.focus();}});
+  document.addEventListener('keydown',e=>{
+    if(e.key==='Escape'&&!panel.hidden){
+      clearEphemeralAssistant();
+      launcher.focus();
+    }
+  });
 })();
