@@ -24,7 +24,7 @@ export function renderPublicNewsPage({article,language,route,otherLanguageRoute,
   relatedLinks=[],publisherAuthorization=null,
   organization='JREI Education News & Intelligence'}={}){
   assert(plain(article)&&
-    article.publicationState==='PUBLISHED'&&
+    ['PUBLISHED','OWNER_APPROVED_FOR_PUBLICATION'].includes(article.publicationState)&&
     article.ownerApproved===true&&
     plain(publisherAuthorization)&&
     publisherAuthorization.source==='ORIGINAL_AUTHENTICATED_CMS'&&
@@ -32,7 +32,6 @@ export function renderPublicNewsPage({article,language,route,otherLanguageRoute,
     publisherAuthorization.sourceAndRightsRechecked===true&&
     publisherAuthorization.bilingualRouteReservationsVerified===true&&
     publisherAuthorization.publicActivationApproved===true&&
-    publisherAuthorization.publishedByOriginalCms===true&&
     ['fa','en'].includes(language)&&validRoute(route)&&
     validRoute(otherLanguageRoute)&&route.startsWith('/'+language+'/')&&
     otherLanguageRoute.startsWith('/'+(language==='fa'?'en':'fa')+'/')&&
