@@ -47,6 +47,16 @@ foreach(['index.php','commerce-stage9.php','publishing.php','publishing-onboardi
     if(!copy(__DIR__.'/../api/'.$file,$folder.'/api/'.$file))
         throw new RuntimeException('isolated_router_dependency_missing_'.$file);
 }
+// The ORIGINAL operations router now imports the first-party News adapter.
+// Stage its source-only library in this synthetic HTTP fixture as well.
+$newsLib=__DIR__.'/../platform/news-intelligence/php';
+$newsTarget=$folder.'/platform/news-intelligence/php';
+if(!is_dir($newsTarget)&&!mkdir($newsTarget,0700,true))
+    throw new RuntimeException('news_fixture_library_directory_missing');
+foreach(glob($newsLib.'/*.php') ?: [] as $newsSource){
+    if(!copy($newsSource,$newsTarget.'/'.basename($newsSource)))
+        throw new RuntimeException('news_fixture_library_missing_'.basename($newsSource));
+}
 // Keep the isolated HTTP fixture synchronized with additive JREI PHP
 // modules used by the ORIGINAL operations controller. Never contact the
 // production host: only copy source into this temporary local fixture.
