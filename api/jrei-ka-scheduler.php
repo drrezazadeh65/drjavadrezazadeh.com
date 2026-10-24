@@ -33,8 +33,11 @@ function jrKaScheduleApprovedSources(PDO $pdo,array $cfg,int $at): array {
       'workAutomaticallyDispatched'=>false,'ownerRightsBypassed'=>false];
     if(($cfg['jrei_ka_schedule_enabled']??false)!==true)
         return $summary;
-    if(($cfg['jrei_ka_night_mode_enabled']??false)===true&&
-       !jrJreiIranNightOpen($at))
+    // The owner-authorized JREI acquisition mode is strictly night-only.
+    // A missing/false opt-in never silently enables daytime collection.
+    if(($cfg['jrei_ka_night_mode_enabled']??false)!==true)
+        return [...$summary,'status'=>'IRAN_NIGHT_MODE_DISABLED'];
+    if(!jrJreiIranNightOpen($at))
         return [...$summary,'status'=>'OUTSIDE_IRAN_NIGHT_WINDOW'];
     if(!jrKaSchemaReady($pdo))
         throw new DomainException('jrei_ka_migration_not_installed');
@@ -236,7 +239,7 @@ function jrKaOwnerSnapshot(PDO $pdo,array $cfg): array {
         $summary['candidatesPendingRightsReview']=(int)$r['pending'];
         $q=$pdo->prepare("SELECT COALESCE(SUM(reserved_bytes),0)
            FROM jrei_ka_daily_transfer_reservations WHERE reservation_day=?");
-        $q->execute([gmdate('Y-m-d')]);
+        $q->execute([jrJreiIranNightDate(time())]);
         $summary['bytesReservedToday']=(int)$q->fetchColumn();
         $q=$pdo->query("SELECT candidate_id,candidate_url,candidate_label,
             seed_source_id,state,last_discovered_at
