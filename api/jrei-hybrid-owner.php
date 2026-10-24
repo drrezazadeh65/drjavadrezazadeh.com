@@ -10,6 +10,7 @@ require_once __DIR__.'/jrei-hybrid-diagnostics.php';
 require_once __DIR__.'/jrei-hybrid-incident-status.php';
 require_once __DIR__.'/jrei-hybrid-queue-health.php';
 require_once __DIR__.'/jrei-hybrid-readiness.php';
+require_once __DIR__.'/jrei-local-chat.php';
 
 /**
  * MFA SUPER_ADMIN-only projection and control of the OUTBOUND JREI worker.
@@ -103,6 +104,7 @@ function jrHybridOwnerSnapshot(PDO $pdo,array $cfg): array {
     $projection['incidentMonitoring']=jrHybridOwnerIncidentStatus($pdo,$cfg);
     $projection['queueHealth']=jrHybridOwnerQueueHealth($pdo,$cfg,time());
     $projection['readiness']=jrHybridOwnerReadiness($projection);
+    $projection['jreiLocalGenerative']=jrLocalChatOwnerSnapshot($pdo,$cfg);
     return $projection;
 }
 function jrHybridOwnerChange(PDO $pdo,array $cfg,string $actor,
@@ -117,9 +119,12 @@ function jrHybridOwnerChange(PDO $pdo,array $cfg,string $actor,
        'propose_public_source','approve_public_source',
        'suspend_public_source','propose_source_version',
        'review_source_version','propose_local_model',
-       'approve_model_rights','suspend_model_version'],true))
+       'approve_model_rights','suspend_model_version',
+       'set_local_chat_node'],true))
          throw new InvalidArgumentException('invalid_action');
     $now=time();
+    if($action==='set_local_chat_node')
+        return jrLocalChatOwnerSetNode($pdo,$cfg,$actor,$body);
     if(in_array($action,['propose_public_dataset',
        'approve_public_dataset','suspend_public_dataset'],true))
         return jrHybridOwnerCorpusChange($pdo,$actor,$body);
