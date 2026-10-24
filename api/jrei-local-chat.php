@@ -105,15 +105,17 @@ function jrLocalChatReady(PDO $pdo,array $cfg): bool {
             m.model_id=a.model_id AND m.model_version=a.model_version
            WHERE a.enabled=1 AND n.status='ENABLED'
              AND n.permitted_task='REVIEWED_PUBLIC_RETRIEVAL_EVALUATION'
-             AND n.revoked_at IS NULL AND n.last_seen_at>?
+             AND n.revoked_at IS NULL
              AND a.last_signed_chat_seen_at>?
-             AND n.last_reported_state IN ('ONLINE','DEGRADED')
              AND m.model_artifact_sha256=a.model_artifact_sha256
              AND m.status='RIGHTS_REVIEWED' AND m.suspended_at IS NULL
              AND m.weights_installed_verified=1 AND m.runtime_verified=1
              AND m.independent_quality_accepted=1");
-        $freshAfter=time()-45;
-        $q->execute([$freshAfter,$freshAfter]);
+        // Evaluation mode uses the same original node identity but can
+        // legitimately report its own OFFLINE/DEGRADED state. Only a
+        // recent separately Ed25519-verified generative poll proves chat
+        // availability; unrelated worker telemetry cannot cancel it.
+        $q->execute([time()-45]);
         return (int)$q->fetchColumn()>0;
     }catch(Throwable $e){return false;}
 }
