@@ -719,7 +719,19 @@ if(in_array($path,['/jrei/v1/local-chat/poll','/jrei/v1/local-chat/complete'],tr
             fail('local_chat_model_approval_revoked',403);
         respond(jrLocalChatWorkerComplete($lp,$lc,$nodeId,$body));
     }catch(InvalidArgumentException $e){fail('local_worker_bad_request',422);}
-     catch(DomainException $e){fail('local_worker_not_ready_or_expired',409);}
+     catch(DomainException $e){
+       // A revoked owner/model grant is terminal for the Windows client.
+       // Distinguish it from an expired lease or transient queue conflict:
+       // jrei-worker.mjs intentionally halts on HTTP 403, but retries 409.
+       // Do not send private authorization details in the public response.
+       if(in_array($e->getMessage(),[
+         'local_chat_model_not_approved',
+         'local_chat_model_revoked_during_poll',
+         'local_chat_model_authorization_revoked',
+         'local_chat_node_disabled_during_poll'
+       ],true))fail('local_worker_auth_denied',403);
+       fail('local_worker_not_ready_or_expired',409);
+     }
      catch(Throwable $e){fail('local_worker_temporary_error',503);}
 }
 if (str_starts_with($path,'/jrei/v1/worker/')) {
