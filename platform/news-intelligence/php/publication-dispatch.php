@@ -46,6 +46,25 @@ function jrNewsStageApprovedPublication(
                ON dsrc.monitor_id=c.monitor_id
               AND BINARY dsrc.canonical_url_sha256=BINARY SHA2(c.source_url,256)
               AND dsrc.review_state='ORIGINAL_JREI_ARTICLE_APPROVED'
+             JOIN jrei_exam_sources article_source
+               ON article_source.source_id=dsrc.approved_article_source_id
+              AND article_source.source_locator_uri=c.source_url
+              AND article_source.review_state='AUTHORITATIVE_REVIEWED'
+              AND article_source.rights_state IN
+                ('PERMITTED_PRIVATE_ANALYSIS','PERMITTED_REPRODUCTION')
+              AND article_source.is_revoked=0
+              AND article_source.is_superseded=0
+              AND article_source.reviewer_account_id IS NOT NULL
+              AND article_source.verified_at IS NOT NULL
+             JOIN jrei_ka_source_policies article_policy
+               ON article_policy.source_id=article_source.source_id
+              AND article_policy.scheduling_state='APPROVED'
+              AND article_policy.rights_reviewed=1
+              AND article_policy.robots_terms_reviewed=1
+              AND article_policy.transport_reviewed=1
+              AND article_policy.rights_evidence_sha256 REGEXP '^[a-f0-9]{64}$'
+              AND article_policy.robots_terms_evidence_sha256 REGEXP '^[a-f0-9]{64}$'
+              AND article_policy.transport_evidence_sha256 REGEXP '^[a-f0-9]{64}$'
              JOIN jrei_news_owner_decisions d ON d.revision_id=v.revision_id
              WHERE v.revision_id=? AND d.action_code='APPROVE'
              ORDER BY d.decided_at DESC LIMIT 1";
