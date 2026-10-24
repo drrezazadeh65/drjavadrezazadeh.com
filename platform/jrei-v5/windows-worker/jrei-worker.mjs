@@ -421,6 +421,20 @@ async function runLocalChat(configArg){
     licenceReviewed:true,ownerApproved:true,endpoint:c.endpoint,
     timeoutMs:32000
   });
+  // Proof of an actual running local inference backend BEFORE this node
+  // advertises its readiness. A signed heartbeat or a file hash alone
+  // cannot establish a working language model.
+  const probe=await adapter.complete({
+    model:c.model,maxOutputTokens:32,temperature:0,
+    messages:[
+      {role:'system',content:'Local-only operational inference probe. Reply with a brief acknowledgement.'},
+      {role:'user',content:'JREI local model readiness probe'}
+    ]
+  });
+  if(probe.verified!==false||typeof probe.text!=='string'||
+     !probe.text.trim()||probe.text.length>4000)
+    throw Error('LOCAL_MODEL_REAL_INFERENCE_PROBE_FAILED');
+  log('JREI_LOCAL_MODEL_REAL_INFERENCE_OBSERVED');
   let stopped=false,backoff=0;
   const stop=()=>{stopped=true;log('JREI_LOCAL_CHAT_STOP_REQUESTED');};
   process.once('SIGINT',stop);
