@@ -60,9 +60,11 @@ function jrNewsExistingJreiApprovedSources(PDO $pdo,int $limit=200): array {
             $skipped++;continue;
         }
         $rights=(string)$row['rights_state'];
+        // The ORIGINAL JREI-KA private acquisition worker can fetch
+        // only these two permissions. PUBLIC_DISPLAY by itself permits
+        // presentation of already held material, not a new download.
         if(!in_array($rights,[
-            'PERMITTED_PRIVATE_ANALYSIS','PERMITTED_PUBLIC_DISPLAY',
-            'PERMITTED_REPRODUCTION'
+            'PERMITTED_PRIVATE_ANALYSIS','PERMITTED_REPRODUCTION'
         ],true)){$skipped++;continue;}
         $minutes=max(
             (int)ceil((int)$row['refresh_interval_seconds']/60),
