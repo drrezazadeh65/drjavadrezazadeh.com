@@ -696,10 +696,16 @@ if(in_array($path,['/jrei/v1/local-chat/poll','/jrei/v1/local-chat/complete'],tr
     if($verb!=='POST')fail('local_worker_method_invalid',405);
     if(!jrHybridHttps($_SERVER))fail('local_worker_tls_required',403);
     $lc=cfg();$lp=db();
+    // Signed model identity alone never overrides the independent public
+    // release switch. A withdrawn owner acceptance is an explicit terminal
+    // authorization failure, not a temporary inference outage.
     if(($lc['jrei_local_chat_enabled']??false)!==true||
        ($lc['jrei_hybrid_enabled']??false)!==true||
-       !($lp instanceof PDO)||!jrLocalChatSchemaReady($lp)||
-       jrLocalChatKey($lc)===null)
+       ($lc['jrei_local_public_release_accepted']??false)!==true)
+        fail('local_worker_auth_denied',403);
+    if(!($lp instanceof PDO)||!jrLocalChatSchemaReady($lp)||
+       jrLocalChatKey($lc)===null||
+       !jrLocalChatRetentionReady($lp,$lc))
         fail('local_worker_not_accepted',503);
     $raw=jrHybridReadBody($_SERVER);
     if($raw===null)fail('local_worker_bad_request',422);
