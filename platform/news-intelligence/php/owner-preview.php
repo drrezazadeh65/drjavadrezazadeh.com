@@ -61,7 +61,7 @@ function jrNewsPrivateOwnerPreview(PDO $pdo,array $session,
         !is_string($paths['faPath']??null) ||
         !is_string($paths['enPath']??null) ||
         !preg_match('#^/fa/akhbar/[a-z0-9-]+/$#D',$paths['faPath']) ||
-        !preg_match('#^/en/news/[a-z0-9-]+/$#D',$paths['enPath'])) {
+        !preg_match('#^/en/news-insights/[a-z0-9-]+/$#D',$paths['enPath'])) {
         throw new RuntimeException('news_owner_draft_route_proposal_not_reviewed');
     }
     $asset=$row['approved_image_ref']??null;
