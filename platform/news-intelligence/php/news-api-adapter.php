@@ -58,7 +58,29 @@ function jrNewsDispatchApi(PDO $pdo,string $method,string $route,
         if (!in_array($language,['fa','en'],true)) {
             throw new InvalidArgumentException('news_api_locale_invalid');
         }
-        return jrNewsPublishedSearch($pdo,$q,$language,20);
+        $filters=[];
+        if (isset($body['category']) && $body['category']!=='') {
+            $filters['category']=jrNewsRouteBody($body,'category',48);
+        }
+        if (isset($body['country']) && $body['country']!=='') {
+            $country=jrNewsRouteBody($body,'country',2);
+            $filters['country']=strtoupper($country);
+        }
+        foreach (['after','before'] as $dateKey) {
+            if (!isset($body[$dateKey])||$body[$dateKey]==='')continue;
+            $raw=$body[$dateKey];
+            if (!is_string($raw) ||
+                !preg_match('/^[0-9]{1,10}$/D',$raw) ||
+                (int)$raw>4102444800) {
+                throw new InvalidArgumentException('news_api_search_date_invalid');
+            }
+            $filters[$dateKey]=(int)$raw;
+        }
+        if (isset($filters['after'],$filters['before']) &&
+            $filters['after']>$filters['before']) {
+            throw new InvalidArgumentException('news_api_search_window_invalid');
+        }
+        return jrNewsPublishedSearch($pdo,$q,$language,20,$filters);
     }
     if ($method==='GET' && $route==='/news/v1/owner/queue') {
         $owner=$serverCtx['existingOwnerMfaSession']??null;
