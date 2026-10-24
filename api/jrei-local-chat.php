@@ -555,6 +555,7 @@ function jrLocalChatOwnerSnapshot(PDO $pdo,array $cfg): array {
       'live'=>false,'authorizedNodes'=>null,
       'recentlySignedGenerativeWorkers'=>null,
       'pendingOrLeasedJobs'=>null,'provenModelQuality'=>false,
+      'liveJobStates'=>null,
       'generativeWorkerStates'=>[],
       'externalCloudRequired'=>false
     ];
@@ -626,12 +627,24 @@ function jrLocalChatOwnerSnapshot(PDO $pdo,array $cfg): array {
                 'state'=>$state,'inferenceIndependentlyVerified'=>false
             ];
         }
+        // Read bounded current-state queue health from the same mother
+        // table; exclude expired ciphertext awaiting the privacy janitor.
+        // No visitor message, result text or retrieval token is exposed.
+        $states=['queued'=>0,'leased'=>0,'completed'=>0,
+                 'blocked'=>0,'failed'=>0];
         $pending=$pdo->prepare(
-          "SELECT COUNT(*) FROM jrei_local_chat_jobs
-           WHERE status IN ('QUEUED','LEASED') AND expires_at>?"
+          "SELECT status,COUNT(*) AS total
+           FROM jrei_local_chat_jobs
+           WHERE expires_at>? GROUP BY status"
         );
         $pending->execute([time()]);
-        $result['pendingOrLeasedJobs']=(int)$pending->fetchColumn();
+        foreach($pending->fetchAll(PDO::FETCH_ASSOC) as $row){
+            $status=strtolower((string)$row['status']);
+            if(array_key_exists($status,$states))
+                $states[$status]=(int)$row['total'];
+        }
+        $result['liveJobStates']=$states;
+        $result['pendingOrLeasedJobs']=$states['queued']+$states['leased'];
         $result['live']=jrLocalChatReady($pdo,$cfg);
     }catch(Throwable $e){}
     return $result;
