@@ -101,13 +101,23 @@ export async function queueDueNewsAcquisitions({
         reason:'ORIGINAL_DAILY_BYTE_BUDGET_EXHAUSTED'});
       break;
     }
+    // Never ask the ORIGINAL JREI scheduler to use a source without the
+    // independently reviewed policy revision. The source-registry adapter
+    // uses originalJreiPolicyRevision, not the older generic field name.
+    const policyRevision=item.source.originalJreiPolicyRevision??
+      item.source.policyRevision;
+    if(!Number.isSafeInteger(policyRevision)||policyRevision<1){
+      blocked.push({sourceId:item.source.sourceId,
+        reason:'ORIGINAL_JREI_SOURCE_POLICY_REVISION_REQUIRED'});
+      continue;
+    }
     const host=new URL(item.source.canonicalUrl).hostname;
     if(seenHosts.has(host))continue;
     seenHosts.add(host);
     // Reserves budget/lease in ORIGINAL JREI dispatcher transaction.
     const job={schema:'jr.jrei.news-acquisition-job.v1',
       sourceId:item.source.sourceId,
-      sourcePolicyRevision:item.source.policyRevision,
+      sourcePolicyRevision:policyRevision,
       url:item.source.canonicalUrl,
       requestReason:item.source.urgentMonitoring===true?
         'URGENT_NEWS_CHANGE_RECHECK':'REGULAR_NEWS_SOURCE_RECHECK',
@@ -116,8 +126,14 @@ export async function queueDueNewsAcquisitions({
       requireRobots:true,requireTerms:true,requireCurrentRights:true,
       requireDNSPinning:true,allowRedirectBypass:false,
       byteReservationCap:Math.min(perObjectCap,remainingBytes),
+      // Stable over the approved source's real polling interval, not
+      // just a one-minute dispatch tick. A lost scheduler response must
+      // not cause another uncontrolled download on the next Cron tick.
       idempotencyKey:sha256([item.source.sourceId,
-        nowUtc.slice(0,16),item.source.canonicalUrl].join('|')),
+        String(policyRevision),
+        String(Math.floor(now/
+          (item.decision.minimumIntervalMinutes*60000))),
+        item.source.canonicalUrl].join('|')),
       resultClass:'PRIVATE_NEWS_SOURCE_OBSERVATION',
       neverPubliclyPublishRawContent:true};
     assert(Number.isInteger(job.byteReservationCap)&&
