@@ -95,6 +95,9 @@ function cfg(): array {
         'jrei_ka_schedule_enabled' => getenv('JR_JREI_KA_SCHEDULE_ENABLED') === 'true',
         // Optional Iran-local 02:00–05:00 scheduling/acquisition window.
         'jrei_ka_night_mode_enabled' => getenv('JR_JREI_KA_NIGHT_MODE_ENABLED') === 'true',
+        // Separate PRIVATE owner opt-in to run approved scheduling throughout
+        // the civil day. No switch is activated by a source commit.
+        'jrei_ka_continuous_enabled' => getenv('JR_JREI_KA_CONTINUOUS_ENABLED') === 'true',
         // Separate legal autonomous-fetch opt-in, OFF even when scheduling
         // is enabled; private archived bytes must reside outside public_html.
         'jrei_ka_autofetch_enabled' => getenv('JR_JREI_KA_AUTOFETCH_ENABLED') === 'true',
