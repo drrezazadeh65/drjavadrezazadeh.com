@@ -27,11 +27,19 @@ function jrNewsApprovedExamCalendarSnapshot(
     $query->bindValue(1,$nowEpoch,PDO::PARAM_INT);
     $query->bindValue(2,$limit,PDO::PARAM_INT);
     $query->execute();
-    $events=[];$omitted=0;
+    $events=[];$omitted=0;$verifiedSources=[];
     foreach ($query->fetchAll(PDO::FETCH_ASSOC) as $row) {
-        $source=$originalJreiPublicSourceResolver(
-            $row['source_ref'],$row['source_evidence_sha256']
-        );
+        // Several milestone updates can cite the same original source
+        // and evidence version. Resolve each pair just once per request:
+        // no cross-request cache can outlive an issuer's correction.
+        $sourceKey=hash('sha256',(string)$row['source_ref']."\0".
+            (string)$row['source_evidence_sha256']);
+        if (!array_key_exists($sourceKey,$verifiedSources)) {
+            $verifiedSources[$sourceKey]=$originalJreiPublicSourceResolver(
+                $row['source_ref'],$row['source_evidence_sha256']
+            );
+        }
+        $source=$verifiedSources[$sourceKey];
         if (!is_array($source) ||
             ($source['source']??null)!=='ORIGINAL_JREI_SOURCE_REGISTRY' ||
             ($source['issuerVerified']??null)!==true ||
