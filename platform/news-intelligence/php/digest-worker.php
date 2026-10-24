@@ -55,25 +55,36 @@ function jrNewsQueueTopicDigests(PDO $pdo,string $mode,int $nowEpoch,
     );
     $stmt->execute([$since,$nowEpoch]);
     $articles=$stmt->fetchAll(PDO::FETCH_ASSOC);
-    $audience=$pdo->prepare(
-        "SELECT f.account_id,f.topic_code,f.locale_code,
-                f.channel_code,f.consent_reference
+    // Page account IDs rather than preference rows: every selected account
+    // must have ALL topic subscriptions considered in the same digest.
+    $idsQuery=$pdo->prepare(
+        "SELECT DISTINCT f.account_id
          FROM jrei_news_topic_follows f
          JOIN customer_accounts a ON a.id=f.account_id
-         WHERE f.digest_mode=?
-           AND f.follow_state='ACTIVE'
-           AND a.status='active'
-           AND a.email_verified_at IS NOT NULL
+         WHERE f.digest_mode=? AND f.follow_state='ACTIVE'
+           AND a.status='active' AND a.email_verified_at IS NOT NULL
            AND f.account_id>?
-         ORDER BY f.account_id,f.topic_code LIMIT 101"
+         ORDER BY f.account_id LIMIT 51"
     );
-    $audience->execute([$mode,$afterAccountId]);
-    $rows=$audience->fetchAll(PDO::FETCH_ASSOC);
-    $hasMore=count($rows)>100;
-    if ($hasMore) {
-        $partialAccount=$rows[count($rows)-1]['account_id'];
-        $rows=array_values(array_filter($rows,
-            static fn(array $r): bool => $r['account_id']!==$partialAccount));
+    $idsQuery->execute([$mode,$afterAccountId]);
+    $accountRows=$idsQuery->fetchAll(PDO::FETCH_COLUMN,0);
+    $hasMore=count($accountRows)>50;
+    $pageIds=array_slice($accountRows,0,50);
+    $rows=[];
+    if ($pageIds) {
+        $markers=implode(',',array_fill(0,count($pageIds),'?'));
+        $audience=$pdo->prepare(
+            "SELECT f.account_id,f.topic_code,f.locale_code,
+                    f.channel_code,f.consent_reference
+             FROM jrei_news_topic_follows f
+             JOIN customer_accounts a ON a.id=f.account_id
+             WHERE f.digest_mode=? AND f.follow_state='ACTIVE'
+               AND a.status='active' AND a.email_verified_at IS NOT NULL
+               AND f.account_id IN ($markers)
+             ORDER BY f.account_id,f.topic_code"
+        );
+        $audience->execute(array_merge([$mode],$pageIds));
+        $rows=$audience->fetchAll(PDO::FETCH_ASSOC);
     }
     $grouped=[];
     foreach ($rows as $row) {
@@ -85,9 +96,9 @@ function jrNewsQueueTopicDigests(PDO $pdo,string $mode,int $nowEpoch,
         $grouped[$key]['topics'][]=$row['topic_code'];
         $grouped[$key]['consentReferences'][]=$row['consent_reference'];
     }
-    $queued=0;$skipped=0;$lastAccount=$afterAccountId;
+    $queued=0;$skipped=0;
+    $lastAccount=$pageIds?end($pageIds):$afterAccountId;
     foreach ($grouped as $subscriber) {
-        $lastAccount=max($lastAccount,$subscriber['accountId']);
         $consent=$currentEcoConsentResolver(
             $subscriber['accountId'],'NEWSLETTER',$subscriber['channel']);
         if (!is_array($consent) ||
