@@ -29,7 +29,7 @@ function jrNewsPersistObservedCandidate(
         ($candidate['evidenceStatus']??null)!=='UNREVIEWED_METADATA' ||
         !is_string($candidate['sourceId']??null) ||
         !is_string($candidate['title']??null) ||
-        strlen($candidate['title'])>960 ||
+        strlen($candidate['title'])>720 ||
         preg_match_all('/./us',$candidate['title'])>240 ||
         trim($candidate['title'])==='' ||
         !is_string($candidate['url']??null) ||
