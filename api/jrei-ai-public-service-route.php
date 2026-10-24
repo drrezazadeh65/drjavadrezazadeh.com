@@ -27,10 +27,10 @@ function jrAiPublicServiceIntent(string $question): ?array {
     // Strong task-specific phrases are explicit asks even without the
     // word "service", but topical educational questions alone are not.
     $rules=[
-      'reviewer_response'=>'/(?:پاسخ.{0,18}داور|کامنت.{0,18}داور|داور.{0,18}پاسخ|response.{0,18}reviewer|reviewer.{0,18}comments?)/iu',
+      'reviewer_response'=>'/(?:پاسخ.{0,18}داور|کامنت.{0,18}داور|داور.{0,18}پاسخ|response.{0,18}reviewer|reviewer.{0,18}(?:response|comments?))/iu',
       'academic_interview_90'=>'/(?:مصاحبه.{0,25}(?:هیات|هیئت|علمی|دانشگاه)|آمادگی.{0,15}مصاحبه|faculty.{0,20}interview|academic.{0,20}interview)/iu',
       'academic_cv'=>'/(?:رزومه|\bcv\b|اپلای|academic application|faculty application)/iu',
-      'academic_editing'=>'/(?:ویرایش.{0,24}(?:انگلیسی|مقاله|پایان نامه|متن علمی)|ویراستاری|english.{0,12}edit|proofread|language edit)/iu',
+      'academic_editing'=>'/(?:ویرایش.{0,24}(?:انگلیسی|مقاله|پایان نامه|متن علمی)|ویراستاری|english.{0,12}edit|academic.{0,12}edit|proofread|language edit)/iu',
       'manuscript_diagnostic'=>'/(?:بازبینی.{0,18}مقاله|ارزیابی.{0,18}مقاله|نقد.{0,18}مقاله|manuscript.{0,20}(?:review|diagnos)|diagnostic.{0,12}review)/iu',
       'journal_strategy'=>'/(?:انتخاب.{0,12}مجله|مجله.{0,12}مناسب|ژورنال.{0,12}مناسب|journal.{0,16}(?:selection|strategy|fit)|where.{0,20}publish)/iu',
       'field_selection_standard'=>'/(?:انتخاب.{0,8}رشته|رشته.{0,10}دانشگاه|major.{0,12}selection|choose.{0,12}major|university.{0,12}selection)/iu',
