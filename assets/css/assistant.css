@@ -119,3 +119,13 @@ html[dir="rtl"] .jr-assistant-panel{right:auto;left:0}
 @media(max-width:360px){
   .jr-assistant-reset{padding-inline:8px;font-size:11px}
 }
+
+/* A cancellable live-request composer with proper hidden-state behavior. */
+.jr-assistant-form-actions{display:flex;align-items:stretch;gap:6px}
+.jr-assistant-form .jr-assistant-stop{border:1px solid rgba(198,161,90,.52);background:#252018;color:#ead7b3}
+.jr-assistant-form .jr-assistant-stop[hidden]{display:none!important}
+.jr-assistant-stop:focus-visible{outline:3px solid rgba(213,178,105,.72);outline-offset:2px}
+@media(max-width:360px){
+  .jr-assistant-form-actions{gap:4px}
+  .jr-assistant-form-actions button{min-width:50px;padding-inline:7px}
+}
