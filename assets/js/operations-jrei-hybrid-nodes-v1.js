@@ -639,6 +639,16 @@
          T('پیکربندی شده؛ اعتبارسنجی محیط هنوز مستقل است',
            'Configured; deployment verification remains separate'):
          T('نصب نشده','Not provisioned'));
+     cell(summary,T('پاک‌سازی امن صف مکالمه','Encrypted queue retention janitor'),
+       lm.privateRetentionWorkerReady===true?
+         T('آخرین اجرای Cron معتبر و تازه؛ پذیرش نهایی باقی است',
+           'Recent successful Cron; final acceptance pending'):
+         T('اجرای معتبر اخیر تأیید نشده','Recent successful cleanup not confirmed'));
+     cell(summary,T('فهرست عمومی شواهد','Approved public evidence index'),
+       lm.approvedPublicEvidenceIndexReadable===true?
+         T('فایل قابل‌خواندن؛ اعتبار علمی جداگانه بررسی شود',
+           'Index readable; independent scientific review outstanding'):
+         T('فایل در دسترس نیست','Public evidence index unavailable'));
      if(lm.motherDatabaseSchemaReady!==true){
        listing.append(el('p',T(
          'پردازش گفت‌وگوی اختصاصی تا اجرای مهاجرت افزایشی، اتصال مدل واقعی و پذیرش مجزا غیرفعال می‌ماند.',
