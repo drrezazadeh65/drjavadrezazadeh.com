@@ -205,24 +205,51 @@ function jrLocalChatCollect(PDO $pdo,array $cfg,array $body): array {
        preg_match('/^[a-f0-9]{64}$/D',$token)!==1||
        jrLocalChatKey($cfg)===null)
         throw new InvalidArgumentException('local_chat_result_capability_invalid');
+
+    $tokenHash=hash('sha256',$token);
+    // Browsers poll repeatedly until a Windows worker completes inference.
+    // Do not lock a MariaDB row every ~1.5s for a still-pending answer:
+    // the eventual terminal read below acquires the exclusive lock.
+    $peek=$pdo->prepare('SELECT retrieval_secret_sha256,status,expires_at
+        FROM jrei_local_chat_jobs WHERE job_id=?');
+    $peek->execute([$id]);
+    $state=$peek->fetch(PDO::FETCH_ASSOC);
+    if(!is_array($state)||
+       !hash_equals((string)$state['retrieval_secret_sha256'],$tokenHash))
+        throw new DomainException('local_chat_result_unavailable');
+    $now=time();
+    if((int)$state['expires_at']<$now||
+       in_array($state['status'],['FAILED','BLOCKED'],true)){
+        $del=$pdo->prepare("DELETE FROM jrei_local_chat_jobs
+            WHERE job_id=? AND retrieval_secret_sha256=?
+              AND (expires_at<? OR status IN ('FAILED','BLOCKED'))");
+        $del->execute([$id,$tokenHash,$now]);
+        return ['ok'=>false,'pending'=>false,'unavailable'=>true];
+    }
+    if($state['status']!=='COMPLETED')
+        return ['ok'=>true,'pending'=>true,'retryAfterMilliseconds'=>2500];
+
+    // A single authenticated collector may decrypt and consume a completed
+    // result. Any concurrent collector must recheck the row under lock.
     $pdo->beginTransaction();
     try {
         $q=$pdo->prepare('SELECT retrieval_secret_sha256,status,expires_at,
             response_ciphertext FROM jrei_local_chat_jobs WHERE job_id=? FOR UPDATE');
-        $q->execute([$id]);$row=$q->fetch(PDO::FETCH_ASSOC);
+        $q->execute([$id]);
+        $row=$q->fetch(PDO::FETCH_ASSOC);
         if(!is_array($row)||
-           !hash_equals((string)$row['retrieval_secret_sha256'],hash('sha256',$token)))
+           !hash_equals((string)$row['retrieval_secret_sha256'],$tokenHash))
             throw new DomainException('local_chat_result_unavailable');
-        $status=$row['status'];$now=time();
-        if((int)$row['expires_at']<$now||
-           in_array($status,['FAILED','BLOCKED'],true)){
-            $pdo->prepare('DELETE FROM jrei_local_chat_jobs WHERE job_id=?')->execute([$id]);
+        if((int)$row['expires_at']<time()||
+           in_array($row['status'],['FAILED','BLOCKED'],true)){
+            $pdo->prepare('DELETE FROM jrei_local_chat_jobs WHERE job_id=?')
+                ->execute([$id]);
             $pdo->commit();
             return ['ok'=>false,'pending'=>false,'unavailable'=>true];
         }
-        if($status!=='COMPLETED'){
+        if($row['status']!=='COMPLETED'){
             $pdo->commit();
-            return ['ok'=>true,'pending'=>true,'retryAfterMilliseconds'=>1500];
+            return ['ok'=>true,'pending'=>true,'retryAfterMilliseconds'=>2500];
         }
         $result=jrLocalChatOpen((string)$row['response_ciphertext'],
                  (string)jrLocalChatKey($cfg));
@@ -230,7 +257,8 @@ function jrLocalChatCollect(PDO $pdo,array $cfg,array $body): array {
         if(!is_array($parsed)||($parsed['schema']??null)!==
            'jr.jrei.local-chat-answer.v1')
             throw new DomainException('local_chat_result_not_verified');
-        $pdo->prepare('DELETE FROM jrei_local_chat_jobs WHERE job_id=?')->execute([$id]);
+        $pdo->prepare('DELETE FROM jrei_local_chat_jobs WHERE job_id=?')
+            ->execute([$id]);
         $pdo->commit();
         return [...$parsed,'ok'=>true,'pending'=>false];
     }catch(Throwable $e){
