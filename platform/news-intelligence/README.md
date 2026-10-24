@@ -87,6 +87,18 @@ social provider, MariaDB schema or JREI Windows worker.
 - php/owner-editorial.php — staged MFA owner queue + atomic decision persistence
 - php/exam-reminders.php — staged consented milestone subscription/outbox queue
 - php/topic-newsletter.php — staged news-category newsletter preferences
+- php/digest-worker.php — bounded official/owner-approved categorized digest batches
+- php/owner-preview.php — exact MFA-reviewed full bilingual draft
+- php/news-api-adapter.php — disabled-until-acceptance original Bertina API dispatch interface
+- style-profile.mjs — measured original corpus voice features, no invented author examples
+- news-prompt-builder.mjs — reviewable grounded author-style prompt for existing JREI
+- visual-cover-generator.mjs — original branded Persian/English vector news artwork
+- news-feed.mjs — verified approved-article RSS and 48-hour news sitemap proposals
+- deadline-radar.mjs — revised verified exam deadlines and opportunities
+- premium-access.mjs — original commerce entitlement gate; no invented pricing
+- reader-consent.mjs — consent-based topics and single optional popup
+- ui/admin-newsroom.js — protected owner review UI with full bilingual preview
+
 
 Staged migrations (DO NOT EXECUTE NOW):
 - docs/migrations/20261024_jrei_news_intelligence_mother_mysql.sql
