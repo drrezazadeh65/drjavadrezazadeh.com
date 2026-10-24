@@ -38,8 +38,7 @@ function jrNewsStageVerifiedFeedLinkSuggestions(
     $monitor=$q->fetch(PDO::FETCH_ASSOC);
     if(!$monitor || $monitor['review_state']!=='AUTHORITATIVE_REVIEWED' ||
         !in_array($monitor['rights_state'],[
-            'PERMITTED_PRIVATE_ANALYSIS','PERMITTED_PUBLIC_DISPLAY',
-            'PERMITTED_REPRODUCTION'
+            'PERMITTED_PRIVATE_ANALYSIS','PERMITTED_REPRODUCTION'
         ],true) ||
         (int)$monitor['is_revoked']!==0 ||
         (int)$monitor['is_superseded']!==0 ||
