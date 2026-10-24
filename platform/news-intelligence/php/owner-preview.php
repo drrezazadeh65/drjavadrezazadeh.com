@@ -52,6 +52,9 @@ function jrNewsPrivateOwnerPreview(PDO $pdo,array $session,
         }
     }
     $asset=$row['image_asset_ref']??null;
+    if (is_string($asset) && str_starts_with($asset,'assets/images/')) {
+        $asset='/'.$asset;
+    }
     $safeImageUrl=is_string($asset) &&
       preg_match('#^/assets/images/[a-zA-Z0-9_./-]+\.(?:webp|png|jpg|jpeg|avif|svg)$#D',$asset) &&
       !str_contains($asset,'..') ? $asset : null;
