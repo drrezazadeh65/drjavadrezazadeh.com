@@ -111,6 +111,7 @@ export function renderNewsroomHome({language='fa',stories=[],examEvents=[],
     '<link rel="canonical" href="'+SITE+news+'">'+
     '<link rel="alternate" hreflang="fa" href="'+SITE+'/fa/akhbar/">'+
     '<link rel="alternate" hreflang="en" href="'+SITE+'/en/news-insights/">'+
+    '<link rel="alternate" hreflang="x-default" href="'+SITE+'/en/news-insights/">'+
     '<link rel="stylesheet" href="/assets/css/news-intelligence.css">'+
     '</head><body class="ni-newsroom ni-home"><a class="ni-skip" href="#ni-home-main">'+
     e(isFa?'پرش به متن اصلی':'Skip to content')+'</a>'+
@@ -122,13 +123,16 @@ export function renderNewsroomHome({language='fa',stories=[],examEvents=[],
     '<main id="ni-home-main" class="ni-home-shell">'+
     '<header class="ni-home-heading"><p class="ni-kicker">JREI NEWS INTELLIGENCE</p>'+
     '<h1>'+e(copy.brand)+'</h1><p>'+e(copy.intro)+'</p></header>'+
-    categories+hero+'<section class="ni-archive-search" data-ni-archive-search data-ni-language="'+language+'"></section>'+
+    categories+(hero||'<section class="ni-empty-public" role="status"><p>'+e(copy.empty)+'</p></section>')+
+    '<section class="ni-editorial-standard" aria-label="'+e(copy.standards)+'"><strong>'+e(copy.standards)+'</strong><p>'+e(copy.standardsText)+'</p></section>'+
+    '<section class="ni-archive-search" data-ni-archive-search data-ni-language="'+language+'"></section>'+
     '<div class="ni-home-columns"><section class="ni-news-feed">'+
     '<h2>'+e(copy.latest)+'</h2>'+
     '<label for="ni-filter">'+e(copy.search)+'</label>'+
     '<input id="ni-filter" data-ni-list-filter type="search" autocomplete="off" maxlength="160" placeholder="'+e(copy.search)+'">'+
     '<p data-ni-empty-result hidden>'+e(copy.noMatch)+'</p>'+
-    '<div class="ni-grid" data-ni-news-cards>'+cards+'</div></section>'+
+    '<div class="ni-grid" data-ni-news-cards>'+cards+'</div>'+
+    (rest.length===0?'<p class="ni-empty-public">'+e(copy.noMore)+'</p>':'')+'</section>'+
     calendar+'</div></main>'+
     '<script defer src="/assets/js/news-reader.js"></script>'+
     '<script defer src="/assets/js/news-search.js"></script></body></html>';
