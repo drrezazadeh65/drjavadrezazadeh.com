@@ -34,6 +34,8 @@ function jrNewsOwnerStageSourceMonitor(
                     s.reviewer_account_id,s.verified_at,
                     p.scheduling_state,p.rights_reviewed,
                     p.robots_terms_reviewed,p.transport_reviewed,
+                    p.rights_evidence_sha256,p.robots_terms_evidence_sha256,
+                    p.transport_evidence_sha256,
                     p.refresh_interval_seconds,p.revision
              FROM jrei_exam_sources s
              JOIN jrei_ka_source_policies p ON p.source_id=s.source_id
@@ -52,6 +54,12 @@ function jrNewsOwnerStageSourceMonitor(
             (int)$s['rights_reviewed']!==1||
             (int)$s['robots_terms_reviewed']!==1||
             (int)$s['transport_reviewed']!==1||
+            !preg_match('/^[a-f0-9]{64}$/D',
+                (string)$s['rights_evidence_sha256'])||
+            !preg_match('/^[a-f0-9]{64}$/D',
+                (string)$s['robots_terms_evidence_sha256'])||
+            !preg_match('/^[a-f0-9]{64}$/D',
+                (string)$s['transport_evidence_sha256'])||
             (int)$s['revision']<1 ||
             (int)$s['refresh_interval_seconds']<3600) {
             throw new RuntimeException('news_original_source_policy_not_approved');
@@ -138,6 +146,8 @@ function jrNewsOwnerEnableSourceMonitor(
             'SELECT n.monitor_id,n.jrei_source_reference,n.policy_revision,
                     n.enabled,n.source_url_sha256,p.revision,p.scheduling_state,
                     p.rights_reviewed,p.robots_terms_reviewed,p.transport_reviewed,
+                    p.rights_evidence_sha256,p.robots_terms_evidence_sha256,
+                    p.transport_evidence_sha256,
                     s.source_locator_uri,s.rights_state,s.review_state,
                     s.verified_at,s.reviewer_account_id,
                     s.is_revoked,s.is_superseded
@@ -153,6 +163,12 @@ function jrNewsOwnerEnableSourceMonitor(
             (int)$r['rights_reviewed']!==1||
             (int)$r['robots_terms_reviewed']!==1||
             (int)$r['transport_reviewed']!==1||
+            !preg_match('/^[a-f0-9]{64}$/D',
+                (string)$r['rights_evidence_sha256'])||
+            !preg_match('/^[a-f0-9]{64}$/D',
+                (string)$r['robots_terms_evidence_sha256'])||
+            !preg_match('/^[a-f0-9]{64}$/D',
+                (string)$r['transport_evidence_sha256'])||
             $r['review_state']!=='AUTHORITATIVE_REVIEWED'||
             !in_array($r['rights_state'],[
                 'PERMITTED_PRIVATE_ANALYSIS','PERMITTED_REPRODUCTION'
