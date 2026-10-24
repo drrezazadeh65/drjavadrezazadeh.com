@@ -187,7 +187,10 @@ function jrNewsQueueTopicDigests(PDO $pdo,string $mode,int $nowEpoch,
             $editions=array_map(static fn(array $item): string=>
                 $item['publicationId'].':'.$item['contentSha256'].':'.
                 $item['ownerApprovalDigest'], $batch);
-            $period=gmdate($mode==='WEEKLY'?'o-W':'Y-m-d',$nowEpoch);
+            // URGENT idempotency must survive the UTC midnight boundary:
+            // the same article edition cannot be sent again next day.
+            $period=$mode==='URGENT'?'IMMUTABLE_EDITION':
+                gmdate($mode==='WEEKLY'?'o-W':'Y-m-d',$nowEpoch);
             $editionScope=$mode==='URGENT'?
                 implode('|',$editions):'SINGLE_SCHEDULED_PERIOD';
             $digestKey=hash('sha256','JREI_NEWS_DIGEST|'.$mode.'|'.
