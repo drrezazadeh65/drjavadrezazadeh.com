@@ -69,13 +69,29 @@ function jrNewsPersistObservedCandidate(
     $fingerprint=hash('sha256',$candidate['sourceId'].'|'.$url.'|'.$contentHash);
     $pdo->beginTransaction();
     try {
+        // A prior feed observation is not current acquisition authority.
+        // Re-read original JREI rights and source-policy revision while
+        // staging; the monitor alone is never a parallel permission grant.
         $q=$pdo->prepare(
-            'SELECT monitor_id FROM jrei_news_monitors
-             WHERE jrei_source_reference=? AND source_url_sha256=?
-               AND enabled=1 LIMIT 1 FOR UPDATE'
+            "SELECT n.monitor_id FROM jrei_news_monitors n
+             JOIN jrei_exam_sources s ON s.source_id=n.jrei_source_reference
+             JOIN jrei_ka_source_policies p ON p.source_id=s.source_id
+             WHERE n.jrei_source_reference=? AND n.source_url_sha256=?
+               AND n.enabled=1 AND n.policy_revision=p.revision
+               AND s.source_locator_uri=?
+               AND s.review_state='AUTHORITATIVE_REVIEWED'
+               AND s.rights_state IN
+                   ('PERMITTED_PRIVATE_ANALYSIS','PERMITTED_REPRODUCTION')
+               AND s.is_revoked=0 AND s.is_superseded=0
+               AND s.reviewer_account_id IS NOT NULL
+               AND s.verified_at IS NOT NULL
+               AND p.scheduling_state='APPROVED'
+               AND p.rights_reviewed=1 AND p.robots_terms_reviewed=1
+               AND p.transport_reviewed=1 LIMIT 1 FOR UPDATE"
         );
         $q->execute([$candidate['sourceId'],
-            hash('sha256',(string)$sourceAuthority['canonicalUrl'])]);
+            hash('sha256',(string)$sourceAuthority['canonicalUrl']),
+            (string)$sourceAuthority['canonicalUrl']]);
         $monitor=$q->fetch(PDO::FETCH_ASSOC);
         if (!$monitor)throw new RuntimeException('news_monitor_not_owner_enabled');
         $q=$pdo->prepare(
