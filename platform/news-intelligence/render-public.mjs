@@ -10,7 +10,7 @@ const esc=v=>String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;')
 const para=t=>String(t).trim().split(/\n\n+/).filter(Boolean)
   .map(p=>'<p>'+esc(p).replace(/\n/g,'<span class="ni-soft-break"> </span>')+'</p>').join('\n');
 const validRoute=s=>typeof s==='string'&&
-  /^\/(?:fa|en)\/[a-z0-9\/-]{3,250}\/$/.test(s)&&!s.includes('//');
+  /^\/(?:fa\/akhbar|en\/news-insights)\/[a-z0-9-]+\/$/.test(s);
 const localAsset=s=>typeof s==='string'&&
   /^\/assets\/images\/[a-zA-Z0-9_\/.-]+\.(?:webp|png|jpe?g|avif)$/.test(s)&&
   !s.includes('..');
@@ -24,7 +24,7 @@ export function renderPublicNewsPage({article,language,route,otherLanguageRoute,
   relatedLinks=[],publisherAuthorization=null,
   organization='JREI Education News & Intelligence'}={}){
   assert(plain(article)&&
-    ['PUBLISHED','OWNER_APPROVED_FOR_PUBLICATION'].includes(article.publicationState)&&
+    article.publicationState==='PUBLISHED'&&
     article.ownerApproved===true&&
     plain(publisherAuthorization)&&
     publisherAuthorization.source==='ORIGINAL_AUTHENTICATED_CMS'&&
@@ -32,12 +32,14 @@ export function renderPublicNewsPage({article,language,route,otherLanguageRoute,
     publisherAuthorization.sourceAndRightsRechecked===true&&
     publisherAuthorization.bilingualRouteReservationsVerified===true&&
     publisherAuthorization.publicActivationApproved===true&&
+    publisherAuthorization.publishedByOriginalCms===true&&
     ['fa','en'].includes(language)&&validRoute(route)&&
     validRoute(otherLanguageRoute)&&route.startsWith('/'+language+'/')&&
     otherLanguageRoute.startsWith('/'+(language==='fa'?'en':'fa')+'/')&&
     localAsset(featuredImage)&&safeText(sourceTitle,3,160)&&
     utcInstant(publicationDate)&&utcInstant(modifiedDate)&&
     Date.parse(modifiedDate)>=Date.parse(publicationDate)&&
+    Date.parse(publicationDate)<=Date.now()&&
     Array.isArray(relatedLinks)&&relatedLinks.length<=16,
     'NEWS_PUBLIC_RENDER_NOT_AUTHORIZED');
   const d=article[language];assert(plain(d)&&
@@ -47,7 +49,8 @@ export function renderPublicNewsPage({article,language,route,otherLanguageRoute,
     'NEWS_PUBLIC_RENDER_CONTENT_INCOMPLETE');
   const official=publicHttps(article.sourceUrl);
   const internal=relatedLinks.filter(x=>plain(x)&&
-    x.language===language&&validRoute(x.path)&&safeText(x.anchor,3,120));
+    x.language===language&&validRoute(x.path)&&x.path!==route&&
+    safeText(x.anchor,3,120));
   const canonical=ORIGIN+route, alternate=ORIGIN+otherLanguageRoute;
   const isFa=language==='fa';
   const label=isFa?{
