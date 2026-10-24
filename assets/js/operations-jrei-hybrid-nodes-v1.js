@@ -591,6 +591,14 @@
          T('غیرفعال یا بدون Worker تأییدشده','Offline or not approved'));
      cell(summary,T('مجوزهای Worker گفت‌وگو','Approved generative nodes'),
        number(lm.authorizedNodes));
+     // Registration and evaluation-mode heartbeats cannot masquerade as
+     // a live GGUF conversational backend. These numbers come from the
+     // server's independent signed generative-only timestamps.
+     cell(summary,T('Workerهای مکالمه با امضای تازه',
+       'Recently signed generative workers'),
+       Number.isSafeInteger(lm.recentlySignedGenerativeWorkers)?
+         number(lm.recentlySignedGenerativeWorkers):
+         T('نامعلوم؛ دادهٔ معتبر در دسترس نیست','Unknown; authoritative data unavailable'));
      cell(summary,T('پیام‌های در صف JREI-LM','JREI-LM queued and leased requests'),
        number(lm.pendingOrLeasedJobs));
      cell(summary,T('کلید رمزگذاری خصوصی','Private message encryption key'),
