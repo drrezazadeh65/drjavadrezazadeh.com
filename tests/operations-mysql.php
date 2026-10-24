@@ -47,6 +47,17 @@ foreach(['index.php','commerce-stage9.php','publishing.php','publishing-onboardi
     if(!copy(__DIR__.'/../api/'.$file,$folder.'/api/'.$file))
         throw new RuntimeException('isolated_router_dependency_missing_'.$file);
 }
+// Keep the isolated HTTP fixture synchronized with additive JREI PHP
+// modules used by the ORIGINAL operations controller. Never contact the
+// production host: only copy source into this temporary local fixture.
+foreach(glob(__DIR__.'/../api/jrei-*.php') ?: [] as $jreiSource){
+    if(!copy($jreiSource,$folder.'/api/'.basename($jreiSource)))
+        throw new RuntimeException('isolated_jrei_runtime_missing_'.basename($jreiSource));
+}
+foreach(glob(__DIR__.'/../api/internal/jrei-*.php') ?: [] as $jreiSource){
+    if(!copy($jreiSource,$folder.'/api/internal/'.basename($jreiSource)))
+        throw new RuntimeException('isolated_jrei_private_runtime_missing_'.basename($jreiSource));
+}
 foreach(['jr-publishing-digital.php','jr-publishing-allocation-policy.php','jr-publishing-contract-draft.php','jr-publishing-notifications.php','jr-publishing-mailer.php'] as $helper) {
     if(!copy(__DIR__.'/../api/internal/'.$helper,$folder.'/api/internal/'.$helper))
       throw new RuntimeException('missing_publishing_private_runtime_'.$helper);
