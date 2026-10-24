@@ -133,6 +133,7 @@ function jrNewsStageVerifiedFeedLinkSuggestions(
             if(!is_string($entry['url']??null)||
                 !is_string($entry['title']??null)||
                 strlen($entry['title'])>720 ||
+                preg_match('//u',$entry['title'])!==1 ||
                 preg_match_all('/./us',$entry['title'])>240){
                 $skipped++;continue;
             }
