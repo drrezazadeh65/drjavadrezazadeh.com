@@ -160,4 +160,95 @@ ensure((int)$pdo->query('SELECT COUNT(*) FROM jrei_news_candidates')
     ->fetchColumn()===1,'private candidate inserted once');
 ensure((int)$pdo->query('SELECT COUNT(*) FROM jrei_news_publications')
     ->fetchColumn()===0,'no public site publication');
-echo "PASS: disposable MariaDB mother tables, original monitor, scoped article source and private candidate\n";
+
+$review=jrNewsApproveIndependentSourceEvidence($pdo,
+    $receipt['candidateId'],[
+        'role'=>'INDEPENDENT_NEWS_EVIDENCE_REVIEWER',
+        'verifiedOriginalJreiSession'=>true,'mfaVerified'=>true,
+        'accountId'=>$account,'issuerVerified'=>true,'licenceReviewed'=>true
+    ],static function(string $sourceId,string $url,string $hash,
+        string $reviewerId) use($itemId,$articleUrl,$contentHash,$account):array {
+        ensure($sourceId===$itemId,'review uses approved ARTICLE source, not RSS');
+        ensure($url===$articleUrl && $hash===$contentHash &&
+            $reviewerId===$account,'review validates signed article observation');
+        return [
+            'source'=>'ORIGINAL_JREI_REVIEWED_SOURCE',
+            'policyCurrent'=>true,'issuerEvidenceAccepted'=>true,
+            'publicNewsReuseAllowed'=>true,
+            'reviewedSourceSha256'=>$contentHash,
+            'reviewerIndependentOfModel'=>true,
+            'reviewEvidencePrivateRef'=>'synthetic-immutable-review-1'
+        ];
+    },1792820400);
+ensure($review['state']==='EVIDENCE_REVIEWED',
+    'independent evidence review recorded');
+$fa=[
+    'language'=>'fa',
+    'headline'=>'آغاز ثبت نام آزمون رسمی دانشگاه در سال جدید',
+    'summary'=>'اطلاعیه معتبر دانشگاه درباره شرایط و زمان ثبت نام دانشجویان منتشر شده است.',
+    'body'=>'این گزارش آموزشی درباره ثبت نام دانشگاه و بررسی اطلاعیه رسمی و شرایط پذیرش توضیح می‌دهد.',
+    'nextSteps'=>'برای دریافت اطلاعات دقیق به وب‌سایت رسمی دانشگاه مراجعه کنید.',
+    'description'=>'اطلاعیه دانشگاه به همراه توضیح شرایط و مراحل ثبت نام رسمی آزمون دانشجویان.',
+    'sourceUrl'=>$articleUrl
+];
+$en=[
+    'language'=>'en',
+    'headline'=>'Official university admission registration announced',
+    'summary'=>'The verified university notice explains the current admissions registration process and requirements.',
+    'body'=>'This educational report summarizes the published university announcement and describes how readers can check the official admissions requirements.',
+    'nextSteps'=>'Read the original university announcement and verify the application deadline.',
+    'description'=>'Official educational news about university admissions registration, deadlines, requirements and the original announcement.',
+    'sourceUrl'=>$articleUrl
+];
+$draft=jrNewsStoreEvidenceReviewedDraft($pdo,$receipt['candidateId'],
+    $review['reviewId'],[
+        'fa'=>$fa,'en'=>$en,
+        'imageAssetReference'=>'assets/images/news/university.webp',
+        'internalLinks'=>[]
+    ],static fn(string $action):bool=>$action==='NEWS_PRIVATE_DRAFT',
+      static fn(string $asset):bool=>
+        $asset==='assets/images/news/university.webp',1792820500);
+ensure($draft['readyForOwnerPreview']===true,'private bilingual draft staged');
+$preview=jrNewsPrivateOwnerPreview($pdo,$owner,$draft['revisionId']);
+ensure($preview['approvalDigest']===$draft['approvalDigest'],
+    'owner sees original immutable SHA');
+ensure($preview['proposedBilingualRoutes']['fa']===$draft['routeProposal']['faPath'],
+    'owner sees exact drafted route');
+$decision=jrNewsPrivateRecordDecision($pdo,$owner,$draft['revisionId'],
+    $draft['approvalDigest'],'APPROVE',1792820600,
+    static function(string $sourceId,string $url,string $hash)
+      use($itemId,$articleUrl,$contentHash):array {
+        ensure($sourceId===$itemId,'owner rechecks actual ARTICLE, not RSS');
+        ensure($url===$articleUrl&&$hash===$contentHash,
+            'owner rechecks exact persisted article');
+        return [
+            'source'=>'ORIGINAL_JREI_SOURCE_RECHECK',
+            'current'=>true,'rightsApproved'=>true,
+            'currentEvidenceSha256'=>$contentHash
+        ];
+    });
+ensure($decision['editorialState']==='OWNER_APPROVED',
+    'owner decision committed');
+$queued=jrNewsStageFromApprovedStoredRouteProposal($pdo,$owner,
+    $draft['revisionId'],
+    static function(array $params)use($itemId):array{
+        ensure($params['articleSourceId']===$itemId,
+            'publisher policy receives ARTICLE id, never RSS');
+        return [
+            'source'=>'ORIGINAL_CMS_AND_JREI_POLICY',
+            'ownerMfaCurrent'=>true,
+            'sourceStillOfficialAndCurrent'=>true,
+            'imageRightsCurrent'=>true,
+            'immutableUrlRegistryChecked'=>true,
+            'noExistingPathCollision'=>true,
+            'bothLanguagesReviewed'=>true,
+            'approvalDigest'=>$params['approvalDigest']
+        ];
+    },1792820700);
+ensure($queued['state']==='WAITING_FOR_PUBLISHER',
+    'owner approval queues, never pretends to publish');
+ensure((int)$pdo->query(
+    "SELECT COUNT(*) FROM jrei_news_publications WHERE publisher_state='PUBLISHED'"
+)->fetchColumn()===0,'approval cannot fabricate CMS receipt');
+echo "PASS: disposable MariaDB full RSS -> verified article -> bilingual draft -> MFA owner -> private publisher queue\n";
+
