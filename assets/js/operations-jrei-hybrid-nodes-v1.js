@@ -738,20 +738,33 @@
      cell(box,T('مدل','Model'),n.modelId||T('بارگذاری نشده یا تأیید نشده','No verified loaded model'));
      cell(box,T('شناسه برتینا','Node ID'),n.nodeId||'—');
      if(lm?.motherDatabaseSchemaReady===true&&n.ownerEnabled===true&&!n.revoked){
-       const verified=Array.isArray(d.registeredModels)?
-         d.registeredModels.find(m=>m.modelId===n.modelId&&
-           m.modelVersion===n.modelVersion&&m.status==='RIGHTS_REVIEWED'&&
+       // First authorization must NOT require n.modelId from a prior chat
+       // poll: a node cannot poll for its model until that permission exists.
+       const verifiedModels=Array.isArray(d.registeredModels)?
+         d.registeredModels.filter(m=>m.status==='RIGHTS_REVIEWED'&&
            m.weightsInstalledVerified===true&&m.runtimeVerified===true&&
-           m.independentQualityAccepted===true):null;
-       if(verified&&lm.privateSwitchEnabled===true){
+           m.independentQualityAccepted===true):[];
+       if(verifiedModels.length&&lm.privateSwitchEnabled===true){
+         const holder=el('label',T('مدل مورد تأیید برای این Worker',
+           'Approved model for this Windows worker'));
+         const choice=document.createElement('select');
+         for(const model of verifiedModels){
+           const option=el('option',model.modelId+' / '+model.modelVersion);
+           option.value=model.modelId+'|'+model.modelVersion;
+           choice.append(option);
+         }
+         holder.append(choice);box.append(holder);
          box.append(btn(T('تأیید جداگانهٔ Worker مکالمه JREI-LM',
-           'Authorize this verified JREI-LM conversational worker'),()=>{
+           'Authorize this JREI-LM conversational worker'),()=>{
+           const chosen=verifiedModels.find(m=>
+             m.modelId+'|'+m.modelVersion===choice.value);
+           if(!chosen)return;
            if(!confirmAction(
-             'آیا وزن مدل، کیفیت مستقل، حقوق استفاده و ارتباط واقعی رایانهٔ خودتان را بررسی کرده‌اید؟ این تصمیم فقط مجوز این نود است، نه انتشار عمومی.',
-             'Have you independently verified the model, quality, licence and your owned worker? This only grants this node a separate permission.'))return;
+             'آیا صحت فایل مدل روی همین رایانه، کیفیت مستقل و حقوق استفاده را بررسی کرده‌اید؟ این اقدام فقط مجوز جداگانهٔ نود است، نه انتشار عمومی.',
+             'Have you reviewed the actual model on this exact Windows PC, its independent quality evidence and rights? This grants only a node-specific permission, not public release.'))return;
            mutate({action:'set_local_chat_node',nodeId:n.nodeId,revision:n.revision,
-             enabled:true,modelId:verified.modelId,modelVersion:verified.modelVersion,
-             modelSha256:verified.artifactSha256,
+             enabled:true,modelId:chosen.modelId,modelVersion:chosen.modelVersion,
+             modelSha256:chosen.artifactSha256,
              confirmation:'OWNER_APPROVE_JREI_LOCAL_INFERENCE'});
          }));
        }
