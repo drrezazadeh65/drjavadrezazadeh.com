@@ -63,6 +63,7 @@ jobs:
         run: |
           php tests/jrei-universal-discovery-offline.php
           php tests/jrei-universal-staging-offline.php
+          php tests/jrei-docx-private-extraction-offline.php
           php tests/jrei-self-improvement-offline.php
           php tests/jrei-public-service-route-offline.php
           php tests/jrei-public-uncited-answer-offline.php
