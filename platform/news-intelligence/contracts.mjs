@@ -56,7 +56,8 @@ export function normalizeNewsSource(s){
   return Object.freeze({...s,canonicalUrl:publicHttps(s.canonicalUrl)});
 }
 export function stageNewsCandidate({approvedSource,sourceUrl,title,observedAt,
-  publishedAt=null,evidenceSha256,eventType,officialEventAt=null,topics=[]}={}){
+  publishedAt=null,evidenceSha256,eventType,officialEventAt=null,
+  topics=[],category='research'}={}){
   const source=normalizeNewsSource(approvedSource),url=publicHttps(sourceUrl);
   assert(new URL(url).hostname===new URL(source.canonicalUrl).hostname,
     'NEWS_SOURCE_ORIGIN_MISMATCH');
