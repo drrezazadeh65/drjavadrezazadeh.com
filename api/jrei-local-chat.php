@@ -265,6 +265,14 @@ function jrLocalChatWorkerPoll(PDO $pdo,array $cfg,string $node,array $body): ar
        WHERE node_id=? AND status='ENABLED' AND revoked_at IS NULL")
        ->execute([$model,$version,$now,$now,$node]);
     if($heartbeatOnly)return ['ok'=>true,'job'=>null];
+    // Idle requests are read-only after the signed authorization check.
+    // The composite (status,expires_at,created_at) index keeps this
+    // lightweight, avoiding an unnecessary FOR UPDATE per idle poll.
+    // Races are harmless: new jobs are picked up on the next poll.
+    $pending=$pdo->prepare("SELECT job_id FROM jrei_local_chat_jobs
+      WHERE status='QUEUED' AND expires_at>? LIMIT 1");
+    $pending->execute([$now]);
+    if($pending->fetchColumn()===false)return ['ok'=>true,'job'=>null];
     $pdo->beginTransaction();
     try {
         // Match the original hybrid worker's lock discipline: concurrent
