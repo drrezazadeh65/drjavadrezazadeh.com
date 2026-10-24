@@ -69,6 +69,18 @@ export async function queueDueNewsAcquisitions({
   const maxQueued=Number.isInteger(serverControls.maxNewsQueuesPerDispatch)?
     Math.max(0,Math.min(MAX_PER_BATCH,serverControls.maxNewsQueuesPerDispatch)):
     MAX_PER_BATCH;
+  if(maxQueued===0){
+    blocked.push(...eligible.map(item=>({
+      sourceId:item.source.sourceId,
+      reason:'ORIGINAL_OWNER_QUEUE_CONCURRENCY_PAUSED'
+    })));
+    return Object.freeze({
+      schema:'jr.jrei.news-acquisition-schedule.v1',
+      requestedAt:nowUtc,queueRequests:0,accepted:[],blocked,
+      actualSourceDownloadsConfirmed:0,
+      requiresOriginalJreiSignedWorker:true,noAutomaticPublication:true
+    });
+  }
   const perObjectCap=Math.min(serverControls.maxPerObjectBytes??1048576,2097152);
   assert(Number.isInteger(perObjectCap)&&perObjectCap>=1,
     'NEWS_ACQUISITION_BOUND_INVALID');
