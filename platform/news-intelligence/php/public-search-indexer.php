@@ -41,6 +41,11 @@ function jrNewsIndexApprovedPublication(
             empty($row['published_at'])) {
             throw new RuntimeException('news_search_unpublished_or_unapproved');
         }
+        // Recheck immutable editorial bytes at index time: a prior signed
+        // CMS receipt must not be used to promote a modified draft.
+        if(!hash_equals((string)$row['approval_digest'],
+              hash('sha256',(string)$row['bilingual_editorial_json'])))
+            throw new RuntimeException('news_search_approved_editorial_digest_changed');
         $path=$row[$language.'_route'];
         $contentHash=$row[$language.'_content_sha256'];
         if (!is_string($path)||
