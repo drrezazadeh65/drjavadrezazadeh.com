@@ -6,8 +6,8 @@ require_once dirname(__DIR__).'/api/jrei-ka-universal-discovery.php';
 function check(bool $condition, string $name): void {
     if (!$condition) { fwrite(STDERR, "FAIL: ".$name."\n"); exit(1); }
 }
-$seed='https://example.edu/exams/index.html';
-check(jrKaResolveEducationalCandidate($seed,'../files/sample.docx')==='https://example.edu/files/sample.docx','relative Word link');
+$seed='https://example.org/exams/index.html';
+check(jrKaResolveEducationalCandidate($seed,'../files/sample.docx')==='https://example.org/files/sample.docx','relative Word link');
 check(jrKaResolveEducationalCandidate($seed,'https://evil.example/test.pdf')===null,'cross-host rejected');
 check(jrKaResolveEducationalCandidate($seed,'javascript:alert(1)')===null,'scheme rejected');
 check(jrKaResolveEducationalCandidate($seed,'../../../../escape.pdf')===null,'path traversal rejected');
