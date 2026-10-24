@@ -46,7 +46,7 @@ jrNightAssert(jrJreiKaUncappedDailyAuthorized(
   'two_independent_owner_opt_ins_required');
 jrNightAssert(str_contains($acquisition,'$cap=$uncapped?null:')&&
     str_contains($acquisition,'$cap!==null&&$total>$cap-$reserveBytes')&&
-    str_contains($acquisition,"(int)$c['max_storage_bytes']"),
+    str_contains($acquisition,"(int)\$c['max_storage_bytes']"),
     'unlimited_daily_still_requires_physical_storage_policy');
 jrNightAssert(str_contains($scheduler,'jrei_ka_continuous_enabled'),
     'scheduler_requires_explicit_continuous_switch');
