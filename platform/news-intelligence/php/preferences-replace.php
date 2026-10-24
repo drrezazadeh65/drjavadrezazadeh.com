@@ -78,7 +78,7 @@ function jrNewsReplaceTopicPreferences(
         // This callback must be an internal same-transaction function and
         // must NOT suppress unrelated account/security notifications.
         $suppressed=$suppressExistingPendingNewsOutbox(
-            $pdo,$verifiedAccountId,'JREI_NEWSLETTER',$channel,null
+            $pdo,$verifiedAccountId,'ARTICLES',$channel,null
         );
         if (!is_int($suppressed)||$suppressed<0) {
             throw new RuntimeException('news_eco_suppression_unconfirmed');
