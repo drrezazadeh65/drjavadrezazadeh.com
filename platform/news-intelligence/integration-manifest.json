@@ -92,5 +92,35 @@
   ],
   "deploymentApproved": false,
   "testsRunByThisWorkstream": false,
-  "liveClaimsProhibited": true
+  "liveClaimsProhibited": true,
+  "sourceCheckpoint": "2026-10-24",
+  "newSourceComponents": [
+    "php/publication-dispatch.php",
+    "php/exam-deadline-owner.php",
+    "php/calendar-read.php",
+    "php/jrei-ka-source-adapter.php",
+    "php/source-monitor-owner.php",
+    "php/owner-review-outbox.php",
+    "php/slug-routes.php",
+    "php/retraction.php",
+    "php/news-library.php",
+    "calendar-authority.mjs",
+    "first-draft-jrei-bridge.mjs",
+    "news-publication-artifacts.mjs",
+    "scheduler-integration.mjs",
+    "editorial-coverage-planner.mjs",
+    "asset-publishing-plan.mjs",
+    "slug-routes.mjs"
+  ],
+  "criticalInteroperabilityNotes": [
+    "Original JREI-KA approved source policy currently requires at least 3600-second refresh intervals; faster official P0 radar needs separately authorized original-scheduler extension",
+    "Owner draft stores bilingual route proposal in hashed immutable JSON; publication staging reads stored routes only",
+    "JREI original provider route selection is proposed before bilingual first-draft generation, not a second live model",
+    "CSS/JS remain in platform/news-intelligence/ui and are not served from public assets until authenticated publisher packaging",
+    "An owner APPROVE records approval and attempts queue staging only when original CMS policy port is available; it does not constitute an actual CMS publication receipt",
+    "Official exam changes supersede prior milestone; original notification outbox must enforce idempotency and current consent",
+    "300 GB is the original JREI decimal upper allowance, not a traffic target",
+    "Full bilingual artifact generation is source-only; original CMS receipt is mandatory before search indexing, syndication, social distribution or publication claims",
+    "Current repository source is not acceptance-tested; no final schema migration, build, runtime or deploy was initiated"
+  ]
 }
