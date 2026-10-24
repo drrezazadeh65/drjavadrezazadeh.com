@@ -5,7 +5,7 @@ if(document.querySelector('script[data-jr-assistant]')) return;
 const scripts=[...document.scripts];
 const siteScript=scripts.find(s=>/\/assets\/js\/site\.js(?:\?|$)/.test(s.src));
 if(!siteScript?.src) return;
-const cssHref=new URL('../css/assistant.css?v=56',siteScript.src).href;
+const cssHref=new URL('../css/assistant.css?v=20261024-openai-service-integration-v1',siteScript.src).href;
 if(!document.querySelector('link[data-jr-assistant-style]')){
 const link=document.createElement('link');
 link.rel='stylesheet';
@@ -14,7 +14,7 @@ link.dataset.jrAssistantStyle='1';
 document.head.appendChild(link);
 }
 const script=document.createElement('script');
-script.src=new URL('assistant.js?v=20261022-privacy-guide-v2',siteScript.src).href;
+script.src=new URL('assistant.js?v=20261024-openai-service-integration-v1',siteScript.src).href;
 script.defer=true;
 script.dataset.jrAssistant='1';
 document.head.appendChild(script);
