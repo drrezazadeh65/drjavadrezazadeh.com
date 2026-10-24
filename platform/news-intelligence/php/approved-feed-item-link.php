@@ -21,14 +21,37 @@ function jrNewsBindOriginalApprovedArticleSource(
     $pdo->beginTransaction();
     try {
         $q=$pdo->prepare(
-            'SELECT discovery_id,canonical_article_url,review_state,
-                    approved_article_source_id
+            'SELECT discovery_id,monitor_id,source_registry_id,
+                    canonical_article_url,review_state,approved_article_source_id
              FROM jrei_news_discovered_urls
              WHERE discovery_id=? FOR UPDATE'
         );
         $q->execute([$discoveryId]);
         $candidate=$q->fetch(PDO::FETCH_ASSOC);
         if(!$candidate)throw new RuntimeException('news_discovered_url_missing');
+        // Approving an article must not resurrect a feed monitor disabled
+        // by the owner or a source policy revoked after feed discovery.
+        // Bind to the same original source URL/hash and approved revision.
+        $q=$pdo->prepare(
+            "SELECT n.monitor_id FROM jrei_news_monitors n
+             JOIN jrei_exam_sources s ON s.source_id=n.jrei_source_reference
+             JOIN jrei_ka_source_policies p ON p.source_id=s.source_id
+             WHERE n.monitor_id=? AND n.jrei_source_reference=?
+               AND n.enabled=1 AND n.policy_revision=p.revision
+               AND n.source_url_sha256=SHA2(s.source_locator_uri,256)
+               AND s.review_state='AUTHORITATIVE_REVIEWED'
+               AND s.rights_state IN
+                 ('PERMITTED_PRIVATE_ANALYSIS','PERMITTED_REPRODUCTION')
+               AND s.is_revoked=0 AND s.is_superseded=0
+               AND s.verified_at IS NOT NULL AND s.reviewer_account_id IS NOT NULL
+               AND p.scheduling_state='APPROVED'
+               AND p.rights_reviewed=1 AND p.robots_terms_reviewed=1
+               AND p.transport_reviewed=1
+             LIMIT 1 FOR UPDATE"
+        );
+        $q->execute([$candidate['monitor_id'],$candidate['source_registry_id']]);
+        if($q->fetchColumn()===false)
+            throw new RuntimeException('news_discovered_feed_authority_revoked');
         $q=$pdo->prepare(
             'SELECT s.source_id,s.source_locator_uri,s.review_state,
                     s.rights_state,s.is_revoked,s.is_superseded,
