@@ -482,6 +482,6 @@ target_kind:el.matches('a[href^="mailto:"]')?'EMAIL':(el.tagName==='A'?'LINK':'A
 window.dispatchEvent(new CustomEvent('JR_CONVERSION_INTENT',{detail}));
 },{capture:true});
 })();
-(()=>{const jr=document.createElement('script');jr.src='/assets/js/site-extras.js?v=20261022-privacy-guide-v2';jr.defer=true;document.head.appendChild(jr)})();
+(()=>{const jr=document.createElement('script');jr.src='/assets/js/site-extras.js?v=20261024-openai-services-v1';jr.defer=true;document.head.appendChild(jr)})();
 
 
