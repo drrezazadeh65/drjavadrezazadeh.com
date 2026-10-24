@@ -54,7 +54,10 @@ function jrNewsPersistObservedCandidate(
         $candidate['sourceFingerprint']);
     if (!is_array($existingReceipt) ||
         ($existingReceipt['source']??null)!=='ORIGINAL_JREI_PRIVATE_OBSERVATION' ||
-        ($existingReceipt['sourceId']??null)!==$candidate['sourceId'] ||
+        !is_string($existingReceipt['sourceId']??null) ||
+        ($existingReceipt['articleCanonicalUrl']??null)!==$url ||
+        ($existingReceipt['contentKind']??null)!=='PUBLIC_HTML_ARTICLE' ||
+        ($existingReceipt['articleSourceRightsApproved']??null)!==true ||
         ($existingReceipt['sourcePolicyCurrent']??null)!==true ||
         !preg_match('/^[a-f0-9]{64}$/D',
             (string)($existingReceipt['contentSha256']??'')) ||
@@ -75,6 +78,19 @@ function jrNewsPersistObservedCandidate(
             hash('sha256',(string)$sourceAuthority['canonicalUrl'])]);
         $monitor=$q->fetch(PDO::FETCH_ASSOC);
         if (!$monitor)throw new RuntimeException('news_monitor_not_owner_enabled');
+        $q=$pdo->prepare(
+            'SELECT approved_article_source_id,review_state
+             FROM jrei_news_discovered_urls
+             WHERE monitor_id=? AND canonical_url_sha256=? FOR UPDATE'
+        );
+        $q->execute([$monitor['monitor_id'],$sourceHash]);
+        $discovered=$q->fetch(PDO::FETCH_ASSOC);
+        if(!$discovered ||
+            $discovered['review_state']!=='ORIGINAL_JREI_ARTICLE_APPROVED' ||
+            empty($discovered['approved_article_source_id']) ||
+            $discovered['approved_article_source_id']!==$existingReceipt['sourceId']) {
+            throw new RuntimeException('news_article_exact_url_not_jrei_source_approved');
+        }
         $q=$pdo->prepare(
             'SELECT candidate_id FROM jrei_news_candidates
              WHERE fingerprint_sha256=? LIMIT 1 FOR UPDATE'
