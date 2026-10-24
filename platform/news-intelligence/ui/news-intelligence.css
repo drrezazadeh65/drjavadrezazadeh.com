@@ -192,3 +192,11 @@
 .ni-preferences-withdraw{background:#24282a!important;color:#d9d2c8!important}
 .ni-preferences-status{min-height:1.5rem}
 @media(max-width:650px){.ni-preferences-topics{grid-template-columns:1fr}}
+
+
+.ni-category{font-family:inherit;cursor:pointer;transition:border-color .2s ease,
+ background-color .2s ease}
+.ni-category[aria-pressed="true"]{background:#c8a976;color:#171817;
+ border-color:#ead2a6;font-weight:800}
+.ni-category:hover{border-color:#f1d4a5}
+.ni-category:focus-visible{outline:2px solid #eac994;outline-offset:3px}
