@@ -100,6 +100,33 @@ export function createLocalLlamaAdapter({
     providerType:'LOCAL_WINDOWS_WORKER',
     actualBackendVerified:false,
     modelWeightsUpdated:false,
+    /**
+     * This is an inexpensive loopback-only liveness probe, not a licence,
+     * weights, process-identity or scientific-quality attestation.
+     * The JREI Windows Worker must not advertise a signed chat heartbeat
+     * until its previously hash-pinned llama.cpp backend is responsive.
+     */
+    async probe({signal}={}) {
+      const ctl=new AbortController();
+      const cancel=()=>ctl.abort();
+      signal?.addEventListener?.('abort',cancel,{once:true});
+      const timer=setTimeout(cancel,2000);
+      try{
+        const healthUrl=new URL('/health',localUrl).toString();
+        const response=await fetchImpl(healthUrl,{
+          method:'GET',redirect:'error',cache:'no-store',
+          headers:{'Accept':'application/json'},signal:ctl.signal
+        });
+        const health=await boundedJson(response);
+        if(health.status!=='ok')
+          throw failure('LOCAL_MODEL_BACKEND_NOT_READY');
+        return {reachable:true,loopbackOnly:true,
+          runtimeHealthChecked:true,weightsAndIdentityIndependentlyAttested:false};
+      }finally{
+        clearTimeout(timer);
+        signal?.removeEventListener?.('abort',cancel);
+      }
+    },
     async complete(request={}) {
       if(request.model!==model)
         throw failure('UNAPPROVED_MODEL_SELECTION');
