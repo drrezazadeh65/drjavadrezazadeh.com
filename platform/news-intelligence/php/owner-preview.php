@@ -51,6 +51,23 @@ function jrNewsPrivateOwnerPreview(PDO $pdo,array $session,
             $clean[$language][$key]=$text[$key];
         }
     }
+    $asset=$row['image_asset_ref']??null;
+    $safeImageUrl=is_string($asset) &&
+      preg_match('#^/assets/images/[a-zA-Z0-9_./-]+\.(?:webp|png|jpg|jpeg|avif|svg)$#D',$asset) &&
+      !str_contains($asset,'..') ? $asset : null;
+    $related=[];
+    if (is_array($draft['internalLinks']??null)) {
+        foreach (array_slice($draft['internalLinks'],0,16) as $link) {
+            if (!is_array($link))continue;
+            $path=$link['path']??null;
+            $anchor=$link['anchor']??null;
+            if (is_string($path) &&
+                preg_match('#^/(?:fa|en)/[a-z0-9/-]+/$#D',$path) &&
+                is_string($anchor) && strlen($anchor)<=240) {
+                $related[]=['path'=>$path,'anchor'=>$anchor];
+            }
+        }
+    }
     return [
         'schema'=>'jr.jrei.news-owner-full-preview.v1',
         'revisionId'=>$row['revision_id'],
@@ -60,6 +77,8 @@ function jrNewsPrivateOwnerPreview(PDO $pdo,array $session,
         'sourceUrl'=>$row['source_url'],
         'evidenceSha256'=>$row['content_sha256'],
         'imageAssetReference'=>$row['image_asset_ref'],
+        'safeImagePreviewUrl'=>$safeImageUrl,
+        'relatedInternalLinks'=>$related,
         'fa'=>$clean['fa'],'en'=>$clean['en'],
         'state'=>'PENDING_OWNER_APPROVAL',
         'publiclyPublished'=>false,
