@@ -10,8 +10,9 @@ if (!defined('BERTINA_API_BOOTSTRAPPED')) {
 }
 function jrNewsTopicValid(string $topic): bool {
     return in_array($topic,[
-        'ARTICLES','EXAMINATIONS','RESULTS','UNIVERSITIES','EMPLOYMENT',
-        'LANGUAGE','SCHOLARSHIPS','RESEARCH','EDTECH','EVENTS'
+        'ARTICLES','SCHOOL','EXAMINATIONS','RESULTS','UNIVERSITIES',
+        'EMPLOYMENT','LANGUAGE','SCHOLARSHIPS','INTERNATIONAL',
+        'RESEARCH','EDTECH','TALENT','TEACHER_EDUCATION','EVENTS'
     ],true);
 }
 function jrNewsDigestValid(string $mode): bool {
