@@ -62,9 +62,12 @@ if(!newsModelBody.includes("if (!defined('BERTINA_API_BOOTSTRAPPED'))")||
 fs.writeFileSync(path.join(newsPrivateDir,newsModelName),newsModelBody,{flag:'wx'});
 const newsPhpSourceDir=path.join(root,'platform/news-intelligence/php');
 const newsLibraryBody=fs.readFileSync(path.join(newsPhpSourceDir,'news-library.php'),'utf8');
-const requiredNewsPhp=[...newsLibraryBody.matchAll(
-  /^require_once __DIR__\.'\\/([a-z][a-z0-9-]*\\.php)';$/gm
-)].map(match=>match[1]);
+const requiredNewsPhp=newsLibraryBody.split('\n')
+  .filter(line=>line.startsWith("require_once __DIR__.'/") &&
+    line.endsWith(".php';"))
+  .map(line=>line.slice("require_once __DIR__.'/".length,-"';".length));
+if(requiredNewsPhp.some(name=>!/^[a-z][a-z0-9-]*[.]php$/.test(name)))
+  throw Error('JREI News private library lists unsafe dependency names');
 if(requiredNewsPhp.length<24 || requiredNewsPhp.length>32 ||
    new Set(requiredNewsPhp).size!==requiredNewsPhp.length ||
    !requiredNewsPhp.includes('public-read-model.php') ||
