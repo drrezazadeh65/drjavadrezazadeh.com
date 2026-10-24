@@ -27,6 +27,11 @@ function jrAiPublicServiceIntent(string $question): ?array {
     // Strong task-specific phrases are explicit asks even without the
     // word "service", but topical educational questions alone are not.
     $rules=[
+      'field_selection_comprehensive'=>'/(?:انتخاب.{0,8}رشته.{0,12}جامع|انتخاب.{0,8}رشته.{0,20}نهایی|اولویت.{0,6}بندی.{0,10}نهایی|comprehensive.{0,18}major selection|comprehensive.{0,18}university selection)/iu',
+      'golden_talent_premium'=>'/(?:golden.{0,18}talent.{0,20}premium|استعدادیابی.{0,18}جلسه.{0,12}والد|ارزیابی جامع.{0,18}گزارش.{0,12}مسیر|parent.{0,16}session.{0,16}pathway report)/iu',
+      'konkur_month'=>'/(?:کنکور.{0,20}(?:یک ماه|یک ماهه|ماهانه)|برنامه.{0,16}یک ماهه.{0,12}کنکور|one.month.{0,14}(?:konkur|entrance)|month.long.{0,16}(?:exam|konkur))/iu',
+      'talent_initial'=>'/(?:استعدادیابی.{0,14}اولیه|ارزیابی.{0,14}استعداد.{0,14}اولیه|initial.{0,15}talent assessment)/iu',
+      'academic_consult_60'=>'/(?:مشاوره.{0,14}تخصصی.{0,14}تحصیلی|specialist.{0,16}academic consultation|academic.{0,16}consultation)/iu',
       'reviewer_response'=>'/(?:پاسخ.{0,18}داور|کامنت.{0,18}داور|داور.{0,18}پاسخ|response.{0,18}reviewer|reviewer.{0,18}(?:response|comments?))/iu',
       'academic_interview_90'=>'/(?:مصاحبه.{0,25}(?:هیات|هیئت|علمی|دانشگاه)|آمادگی.{0,15}مصاحبه|faculty.{0,20}interview|academic.{0,20}interview)/iu',
       'academic_cv'=>'/(?:رزومه|\bcv\b|اپلای|academic application|faculty application)/iu',
