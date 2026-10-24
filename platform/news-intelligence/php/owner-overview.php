@@ -31,11 +31,16 @@ function jrNewsOwnerOperationalOverview(PDO $pdo,array $ownerSession,
             "SELECT COUNT(*) FROM jrei_news_editorial_versions
              WHERE editorial_state='OWNER_APPROVED'",
         'actuallyPublishedBilingualItems'=>
-            "SELECT COUNT(*) FROM jrei_news_publications
-             WHERE publisher_state='PUBLISHED'
-               AND published_at IS NOT NULL
-               AND fa_content_sha256 IS NOT NULL
-               AND en_content_sha256 IS NOT NULL",
+            "SELECT COUNT(*) FROM jrei_news_publications p
+             JOIN jrei_news_editorial_versions v ON v.revision_id=p.revision_id
+             JOIN jrei_news_owner_decisions d ON d.decision_id=p.approved_decision_id
+             WHERE p.publisher_state='PUBLISHED'
+               AND p.published_at IS NOT NULL
+               AND p.publisher_receipt_reference IS NOT NULL
+               AND d.action_code='APPROVE'
+               AND d.approval_digest=v.approval_digest
+               AND p.fa_content_sha256 IS NOT NULL
+               AND p.en_content_sha256 IS NOT NULL",
         'socialDeliveryFailures'=>
             "SELECT COUNT(*) FROM jrei_news_delivery_receipts
              WHERE state IN ('FAILED','UNKNOWN_REVIEW_REQUIRED')",
