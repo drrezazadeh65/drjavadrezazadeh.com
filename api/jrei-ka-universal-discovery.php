@@ -23,12 +23,18 @@ function jrKaDiscoverEducationalLinks(string $seedUrl, string $html): array {
             $href = trim((string)$anchor->getAttribute('href'));
             // Reuse the existing same-host HTTPS URL canonicalization and
             // reject unsafe or cross-origin links; no network access here.
-            $extension = strtolower((string)pathinfo((string)parse_url($href, PHP_URL_PATH), PATHINFO_EXTENSION));
+            $parsedPath = parse_url($href, PHP_URL_PATH);
+            if (!is_string($parsedPath)) continue;
+            $extension = strtolower((string)pathinfo($parsedPath, PATHINFO_EXTENSION));
             if (!in_array($extension, ['pdf','doc','docx','txt','csv','xls','xlsx','ppt','pptx','odt','ods','odp','rtf','html','htm'], true)) continue;
             $url = jrKaResolveEducationalCandidate($seedUrl, $href);
             if ($url === null) continue;
             $label = trim((string)preg_replace('/\s+/u', ' ', (string)$anchor->textContent));
-            if (mb_strlen($label, 'UTF-8') > 120) $label = mb_substr($label, 0, 120, 'UTF-8');
+            if (function_exists('mb_strlen') && mb_strlen($label, 'UTF-8') > 120) {
+                $label = mb_substr($label, 0, 120, 'UTF-8');
+            } elseif (strlen($label) > 480) {
+                $label = substr($label, 0, 480);
+            }
             $key = hash('sha256', $url);
             $found[$key] ??= ['sha256'=>$key, 'url'=>$url, 'label'=>$label ?: 'Educational resource', 'format'=>$extension, 'state'=>'DISCOVERED_REQUIRES_RIGHTS_REVIEW'];
         }
