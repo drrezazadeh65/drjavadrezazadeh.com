@@ -29,6 +29,17 @@ function jrNewsBridgeOriginalFeedObservation(
        ($cfg['jrei_ka_schedule_enabled']??false)!==true||
        ($cfg['jrei_ka_autofetch_enabled']??false)!==true)
         return $summary;
+    // The original JREI-KA owner can pause ALL acquisition independently
+    // of feature switches and individual source policies. Respect that
+    // decision before inspecting new archived source observations.
+    $controls=$pdo->query(
+        'SELECT scheduling_enabled,acquisition_enabled FROM jrei_ka_controls
+         WHERE singleton_id=1 LIMIT 1'
+    )->fetch(PDO::FETCH_ASSOC);
+    if(!is_array($controls)||
+       (int)$controls['scheduling_enabled']!==1||
+       (int)$controls['acquisition_enabled']!==1)
+        return [...$summary,'state'=>'ORIGINAL_JREI_ACQUISITION_PAUSED'];
     $root=jrKaPrivateArchiveRoot($cfg);
     if($root===null)
         return [...$summary,'state'=>'ORIGINAL_PRIVATE_ARCHIVE_UNAVAILABLE'];
