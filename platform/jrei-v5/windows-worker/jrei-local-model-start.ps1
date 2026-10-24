@@ -24,13 +24,13 @@ if(-not [IO.Path]::IsPathRooted($ConfigPath) -or
 $cfg=Get-Content -LiteralPath $ConfigPath -Raw -Encoding UTF8 | ConvertFrom-Json
 $c=$cfg.localChat
 if($null -eq $c -or $c.enabled -ne $true -or
-   $c.ownerApproved -ne $true -or $c.licenceReviewed -ne $true){
+   $c.ownerApproved -ne $true -or $c.rightsReviewed -ne $true){
   throw 'LOCAL_MODEL_PRIVATE_APPROVAL_REQUIRED'
 }
 $exe=[string]$c.backendExe
 $model=[string]$c.modelFile
 $expectedExe=[string]$c.backendExeSha256
-$expectedModel=[string]$c.modelArtifactSha256
+$expectedModel=[string]$c.modelSha256
 if(-not [IO.Path]::IsPathRooted($exe) -or
    -not [IO.Path]::IsPathRooted($model) -or
    -not [IO.File]::Exists($exe) -or
