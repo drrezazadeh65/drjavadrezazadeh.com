@@ -90,8 +90,13 @@ function jrNewsQueueDueReminders(PDO $pdo,int $nowEpoch,
            AND m.owner_approved=1 AND a.status='active'
            AND a.email_verified_at IS NOT NULL
            AND m.event_utc>=:recent AND m.event_utc<=:future
-           AND (m.event_utc-(f.days_before*86400))<=:current
-           AND (m.event_utc-(f.days_before*86400))>:earliest
+           -- '0 days' means an actionable same-day reminder six hours
+           -- BEFORE the event, not the unattainable exact event second.
+           -- Longer lead-time reminders retain their original deadlines.
+           AND (m.event_utc-(CASE WHEN f.days_before=0
+                THEN 21600 ELSE f.days_before*86400 END))<=:current
+           AND (m.event_utc-(CASE WHEN f.days_before=0
+                THEN 21600 ELSE f.days_before*86400 END))>:earliest
            AND NOT EXISTS (
               SELECT 1 FROM jrei_news_exam_milestones newer
               WHERE newer.external_exam_key=m.external_exam_key
