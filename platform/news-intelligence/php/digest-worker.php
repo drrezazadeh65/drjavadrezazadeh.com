@@ -65,7 +65,7 @@ function jrNewsQueueTopicDigests(PDO $pdo,string $mode,int $nowEpoch,
            AND a.status='active'
            AND a.email_verified_at IS NOT NULL
            AND f.account_id>?
-         ORDER BY f.account_id,f.topic_code LIMIT 100"
+         ORDER BY f.account_id,f.topic_code LIMIT 101"
     );
     $audience->execute([$mode,$afterAccountId]);
     $rows=$audience->fetchAll(PDO::FETCH_ASSOC);
