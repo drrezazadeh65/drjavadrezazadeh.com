@@ -335,7 +335,25 @@ function jrLocalChatWorkerPoll(PDO $pdo,array $cfg,string $node,array $body): ar
          AND (last_signed_chat_seen_at IS NULL OR last_signed_chat_seen_at<=?)")
        ->execute([$now,$node,$model,$version,$digest,$now-10]);
     // Independent chat timestamps must not overwrite evaluation-node telemetry.
-    if($heartbeatOnly)return ['ok'=>true,'job'=>null];
+    if($heartbeatOnly){
+        // A heartbeat for a leased conversation also proves that the visitor
+        // has not cancelled/deleted it. This read-only check prevents a
+        // Windows llama.cpp worker wasting CPU after tab closure/revocation.
+        $job=$body['jobId']??null;
+        $lease=$body['leaseToken']??null;
+        if($job===null&&$lease===null)
+            return ['ok'=>true,'job'=>null]; // legacy idle heartbeat
+        if(!jrHybridUuid($job)||!is_string($lease)||
+           preg_match('/^[a-f0-9]{64}$/D',$lease)!==1)
+            throw new InvalidArgumentException('local_chat_lease_heartbeat_invalid');
+        $active=$pdo->prepare("SELECT job_id FROM jrei_local_chat_jobs
+          WHERE job_id=? AND leased_to_node=? AND status='LEASED'
+            AND lease_secret_sha256=? AND expires_at>? AND lease_expires_at>?
+          LIMIT 1");
+        $active->execute([$job,$node,hash('sha256',$lease),$now,$now]);
+        return ['ok'=>true,'job'=>null,
+                'jobActive'=>$active->fetchColumn()!==false];
+    }
     // Idle requests are read-only after the signed authorization check.
     // The composite (status,expires_at,created_at) index keeps this
     // lightweight, avoiding an unnecessary FOR UPDATE per idle poll.
