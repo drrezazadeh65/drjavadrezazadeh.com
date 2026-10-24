@@ -24,6 +24,27 @@ function jrNewsOwnerOperationalOverview(PDO $pdo,array $ownerSession,
                   FROM jrei_news_monitors"
         ],
         [
+            'keys'=>['eligibleOriginalSourcesNow'],
+            'sql'=>"SELECT COUNT(*) AS eligibleOriginalSourcesNow
+              FROM jrei_news_monitors n
+              JOIN jrei_exam_sources s ON s.source_id=n.jrei_source_reference
+              JOIN jrei_ka_source_policies p ON p.source_id=s.source_id
+              WHERE n.enabled=1 AND n.policy_revision=p.revision
+                AND n.source_url_sha256=SHA2(s.source_locator_uri,256)
+                AND s.review_state='AUTHORITATIVE_REVIEWED'
+                AND s.rights_state IN
+                  ('PERMITTED_PRIVATE_ANALYSIS','PERMITTED_REPRODUCTION')
+                AND s.is_revoked=0 AND s.is_superseded=0
+                AND s.verified_at IS NOT NULL
+                AND s.reviewer_account_id IS NOT NULL
+                AND p.scheduling_state='APPROVED'
+                AND p.rights_reviewed=1 AND p.robots_terms_reviewed=1
+                AND p.transport_reviewed=1
+                AND p.rights_evidence_sha256 REGEXP '^[a-f0-9]{64}$'
+                AND p.robots_terms_evidence_sha256 REGEXP '^[a-f0-9]{64}$'
+                AND p.transport_evidence_sha256 REGEXP '^[a-f0-9]{64}$'"
+        ],
+        [
             'keys'=>['discoveredCandidates','pendingEvidenceReview',
                      'independentlyReviewedCandidates'],
             'sql'=>"SELECT COUNT(*) AS discoveredCandidates,
