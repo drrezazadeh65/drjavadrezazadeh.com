@@ -94,12 +94,31 @@ function jrNewsPersistObservedCandidate(
             (string)$sourceAuthority['canonicalUrl']]);
         $monitor=$q->fetch(PDO::FETCH_ASSOC);
         if (!$monitor)throw new RuntimeException('news_monitor_not_owner_enabled');
+        // An owner-bound article URL may later be revoked independently
+        // of the feed. Check the ORIGINAL article's current acquisition
+        // policy inside this same transaction, before preserving metadata.
         $q=$pdo->prepare(
-            'SELECT approved_article_source_id,review_state
-             FROM jrei_news_discovered_urls
-             WHERE monitor_id=? AND canonical_url_sha256=? FOR UPDATE'
+            "SELECT d.approved_article_source_id,d.review_state
+             FROM jrei_news_discovered_urls d
+             JOIN jrei_exam_sources a
+               ON a.source_id=d.approved_article_source_id
+             JOIN jrei_ka_source_policies ap ON ap.source_id=a.source_id
+             WHERE d.monitor_id=? AND d.canonical_url_sha256=?
+               AND d.canonical_article_url=?
+               AND a.source_locator_uri=d.canonical_article_url
+               AND a.review_state='AUTHORITATIVE_REVIEWED'
+               AND a.rights_state IN
+                 ('PERMITTED_PRIVATE_ANALYSIS','PERMITTED_REPRODUCTION')
+               AND a.is_revoked=0 AND a.is_superseded=0
+               AND a.verified_at IS NOT NULL
+               AND a.reviewer_account_id IS NOT NULL
+               AND ap.scheduling_state='APPROVED'
+               AND ap.rights_reviewed=1
+               AND ap.robots_terms_reviewed=1
+               AND ap.transport_reviewed=1
+             LIMIT 1 FOR UPDATE"
         );
-        $q->execute([$monitor['monitor_id'],$sourceHash]);
+        $q->execute([$monitor['monitor_id'],$sourceHash,$url]);
         $discovered=$q->fetch(PDO::FETCH_ASSOC);
         if(!$discovered ||
             $discovered['review_state']!=='ORIGINAL_JREI_ARTICLE_APPROVED' ||
