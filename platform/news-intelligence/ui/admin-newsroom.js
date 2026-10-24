@@ -24,12 +24,14 @@ export function mountNewsOwnerPanel({root,csrfResolver,
   status.setAttribute('aria-live','polite');
   const metrics=document.createElement('div');metrics.className='ni-admin-metrics';
   const sources=document.createElement('section');sources.className='ni-admin-sources';
+  const articles=document.createElement('section');
+  articles.className='ni-admin-unbound-articles';
   const acquisition=document.createElement('section');
   acquisition.className='ni-admin-acquisition';
   const publications=document.createElement('section');
   publications.className='ni-admin-publication-backlog';
   const list=document.createElement('div');list.className='ni-admin-queue';
-  root.replaceChildren(header,refresh,status,metrics,sources,acquisition,publications,list);
+  root.replaceChildren(header,refresh,status,metrics,sources,articles,acquisition,publications,list);
   const show=s=>{status.textContent=s;};
   const request=async (path,options)=>{
     const token=csrfResolver();
@@ -80,6 +82,7 @@ export function mountNewsOwnerPanel({root,csrfResolver,
     list.replaceChildren();
     metrics.replaceChildren();
     sources.replaceChildren();
+    articles.replaceChildren();
     acquisition.replaceChildren();
     publications.replaceChildren();
     show(say('در حال دریافت صف خصوصی…','Loading private owner queue…'));
