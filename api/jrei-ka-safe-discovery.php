@@ -7,11 +7,16 @@ require_once __DIR__.'/jrei-ka-private-https.php';
  * Autonomously discover candidate PDF documents only from an HTML seed
  * which has already been lawfully acquired from an approved original source.
  * Never fetch a newly found URL or assume reuse rights on a linked PDF.
+ * Resolve ordinary same-host relative links without trusting an HTML <base>
+ * element or permitting protocol-relative, cross-host or traversal locators.
  */
 function jrKaDiscoverSameHostPdfLinks(string $seedUrl,string $html): array {
     if(strlen($html)<1||strlen($html)>2097152||
        !class_exists('DOMDocument'))return [];
     [$seedHost,$seedPath]=jrKaApprovedHttpsUrl($seedUrl);
+    $seedPath=explode('?',$seedPath,2)[0];
+    $parent=substr($seedPath,0,(int)strrpos($seedPath,'/')+1);
+    if($parent==='')$parent='/';
     $dom=new DOMDocument();
     $old=libxml_use_internal_errors(true);
     try{
@@ -26,18 +31,24 @@ function jrKaDiscoverSameHostPdfLinks(string $seedUrl,string $html): array {
             if($href===''||strlen($href)>620||
                preg_match('/[\x00-\x20\x7f\\\\]/',$href)||
                str_contains($href,'#')||
-               preg_match('~(?:^|/)\.\.(?:/|$)~',$href))
+               preg_match('~(?:^|/)\.\.(?:/|$)~',$href)||
+               preg_match('~%(?:2e|2f|5c)~i',$href))
                 continue;
-            if(str_starts_with($href,'/')){
-                if(str_starts_with($href,'//'))continue;
-                $target='https://'.$seedHost.$href;
-            }elseif(str_starts_with($href,'https://')){
+            if(str_starts_with($href,'//'))continue;
+            if(str_starts_with($href,'https://')){
                 $target=$href;
+            }elseif(str_starts_with($href,'/')){
+                $target='https://'.$seedHost.$href;
             }else{
-                // Do not resolve arbitrary relative or protocol-relative
-                // paths; owner-approved root and absolute URLs are enough
-                // for the first safe autonomous discovery phase.
-                continue;
+                if(preg_match('~^[a-z][a-z0-9+.-]*:~i',$href)||
+                   str_starts_with($href,'?'))continue;
+                // Only literal relative filenames/paths. Never evaluate an
+                // HTML-provided <base>, javascript or redirect instructions.
+                $relative=$href;
+                while(str_starts_with($relative,'./'))
+                    $relative=substr($relative,2);
+                if($relative==='')continue;
+                $target='https://'.$seedHost.$parent.$relative;
             }
             try{[$host,$path]=jrKaApprovedHttpsUrl($target);}
             catch(Throwable $e){continue;}
@@ -45,10 +56,10 @@ function jrKaDiscoverSameHostPdfLinks(string $seedUrl,string $html): array {
             $pathname=explode('?',strtolower($path),2)[0];
             if(!str_ends_with($pathname,'.pdf'))continue;
             $label=trim(preg_replace('/\s+/u',' ',
-                (string)$link->textContent));
+                (string)$link->textContent)??'');
             if(strlen($label)>220){
-                // Never cut in the middle of a Persian UTF-8 code point.
-                preg_match('/^.{0,50}/us',$label,$prefix);
+                // A 40-character prefix is at most 160 UTF-8 bytes.
+                preg_match('/^.{0,40}/us',$label,$prefix);
                 $label=$prefix[0]??'Potential document';
             }
             if($label==='')$label='Potential PDF from approved seed';
