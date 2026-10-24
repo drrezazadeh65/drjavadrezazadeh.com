@@ -241,3 +241,58 @@ remain deferred under the owner's explicit instruction.
 No test, build, CI dispatch, database migration, crawling session, SMTP
 transmission, social post, AI inference or production deployment was
 intentionally triggered in this source-development continuation.
+
+
+## Owner request continuation — source-only release preparation (24 October)
+
+Additional isolated implementation staged in the **same canonical branch**:
+
+- First draft requests now use the original JREI provider-neutral model route
+  directly after independent source evidence review, without pretending a
+  bilingual draft, live model or approved owner preview already exists.
+- Exact owner-approved, hash-bound bilingual URL proposals are embedded in
+  the PRIVATE persisted editorial JSON; owner can review both proposed paths.
+- An authenticated MFA APPROVE decision attempts to stage the exact stored
+  routes for the existing CMS. If the original CMS policy port is unavailable
+  or refuses, the result explicitly records waiting/reconciliation. A
+  queued version is **not** counted as published.
+- Original CMS publication persistence is a separate transaction with
+  current source, media rights, owner decision and immutable route checking.
+  Only an authentic two-language CMS receipt can mark a row PUBLISHED.
+- The pre-publication renderer now accepts owner-approved content ONLY with
+  a trusted original CMS authorization, and generates bytes without touching
+  the public filesystem.
+- PHP reading of approved official exam milestones, owner-authorized date
+  revisions, reminder version rollover, and opt-in delivery are source-staged.
+- Original JREI-KA source and policy adapter explicitly reflects the actual
+  **at least one-hour** approved source refresh policy. Urgent five-minute
+  monitoring is NOT active, and must use an approved original JREI scheduler
+  policy extension rather than a covert parallel crawler.
+- Owner review email drafts are routed into the original eco outbox as a
+  private notice with a link to existing MFA dashboard. Sending, receiving
+  and the downstream CMS publisher still require original infrastructure.
+- Public retract/withdraw handling preserves the evidence history, removes
+  active search documents and suppresses queued distribution AFTER verified
+  original CMS action.
+- Source-only verified fulltext search, premium mobile UI, RSS/Google News
+  feed proposals, original AWOSE provider-specific plans, JREI assistant
+  context and existing-account newsletter preferences remain staged.
+- The original nightly owner allowance is **300,000,000,000 bytes** total
+  (300 GB decimal), 02:00–05:00 Asia/Tehran, under strict host and source
+  policies; it is not a consumption target.
+- Module-only asset manifest identifies source CSS/JS and future
+  destinations inside the original assets pipeline without overwriting
+  any existing production files.
+
+Important final blockers before claiming whole-project completion: align the
+original JREI Cron/source policy if truly faster official P0 checks are wanted;
+securely mount the module in the existing PHP entry point and original
+operations owner dashboard; reconcile and apply staged mother migrations;
+connect original SMTP/eco outbox, actual CMS publisher, permitted AWOSE APIs,
+and actual signed JREI model executor; package the news UI assets into the
+original published asset bundle; review genuine bilingual authorial corpora;
+then perform ONE comprehensive final integrated test/acceptance campaign and
+only afterwards a separate owner-authorized production deployment.
+
+All live connections and tests in that paragraph are **NOT YET DONE**.
+No claim of complete end-to-end implementation is authorized.
