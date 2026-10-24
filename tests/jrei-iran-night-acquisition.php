@@ -29,4 +29,19 @@ jrNightAssert(str_contains($acquisition,'jrJreiIranNightTransferCap(')&&
     str_contains($acquisition,'jrJreiIranNightDate($at)'), 'bounded_local_reservation');
 jrNightAssert(str_contains($scheduler,"'IRAN_NIGHT_MODE_DISABLED'")&&
     str_contains($scheduler,'jrJreiIranNightOpen($at)'), 'scheduler_fail_closed');
+jrNightAssert(!jrJreiKaAcquisitionWindowAllowed([],jrNightTime('2026-10-24 12:00:00'),true),'continuous_defaults_off');
+jrNightAssert(jrJreiKaAcquisitionWindowAllowed(
+  ['jrei_ka_night_mode_enabled'=>true],jrNightTime('2026-10-24 02:30:00'),true),
+  'night_mode_remains_compatible');
+jrNightAssert(!jrJreiKaAcquisitionWindowAllowed(
+  ['jrei_ka_night_mode_enabled'=>true],jrNightTime('2026-10-24 12:00:00'),true),
+  'night_mode_rejects_day');
+jrNightAssert(jrJreiKaAcquisitionWindowAllowed(
+  ['jrei_ka_continuous_enabled'=>true],jrNightTime('2026-10-24 12:00:00'),true),
+  'continuous_mode_opt_in');
+jrNightAssert(!jrJreiKaUncappedDailyAuthorized(
+  ['jrei_ka_uncapped_daily_enabled'=>true]),'no_uncapped_without_continuous');
+jrNightAssert(jrJreiKaUncappedDailyAuthorized(
+  ['jrei_ka_continuous_enabled'=>true,'jrei_ka_uncapped_daily_enabled'=>true]),
+  'two_independent_owner_opt_ins_required');
 echo "JREI Iran 02:00-05:00 offline window contract PASS. NO CRAWLING.\n";
