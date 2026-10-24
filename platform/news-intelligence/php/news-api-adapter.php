@@ -14,6 +14,7 @@ if (!defined('BERTINA_API_BOOTSTRAPPED')) {
     exit;
 }
 require_once __DIR__.'/public-read-model.php';
+require_once __DIR__.'/calendar-read.php';
 require_once __DIR__.'/owner-editorial.php';
 require_once __DIR__.'/owner-preview.php';
 require_once __DIR__.'/owner-overview.php';
@@ -91,6 +92,19 @@ function jrNewsDispatchApi(PDO $pdo,string $method,string $route,
             throw new InvalidArgumentException('news_api_search_window_invalid');
         }
         return jrNewsPublishedSearch($pdo,$q,$language,20,$filters);
+    }
+    if ($method==='GET' && $route==='/news/v1/calendar') {
+        if ($publicReadRateLimiter('NEWS_PUBLIC_CALENDAR',$serverCtx)!==true)
+            throw new RuntimeException('news_api_public_rate_limited');
+        // Official source links are resolved by the ORIGINAL JREI registry.
+        // Caller-controlled URLs, private evidence or unapproved exam
+        // dates can never enter this public calendar.
+        $resolver=$ownerIntegrationPorts['originalJreiPublicSourceResolver']??null;
+        if (!is_callable($resolver))
+            throw new RuntimeException('news_calendar_original_registry_missing');
+        return jrNewsApprovedExamCalendarSnapshot(
+            $pdo,time(),$resolver,60
+        );
     }
     if ($method==='GET' && $route==='/news/v1/owner/sources') {
         $owner=$serverCtx['existingOwnerMfaSession']??null;
