@@ -33,6 +33,22 @@ function jrKaTextExtractBytes(string $mime,string $raw,?string $privatePath=null
            'language'=>null,'requiresOcr'=>true];
     }
     $docxMime='application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+    $needsSpecialistParser=[
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+      'application/vnd.oasis.opendocument.text',
+      'application/vnd.oasis.opendocument.spreadsheet',
+      'application/vnd.oasis.opendocument.presentation',
+      'application/msword','application/vnd.ms-excel',
+      'application/vnd.ms-powerpoint','text/csv','text/rtf',
+      'application/rtf'
+    ];
+    if(in_array($mime,$needsSpecialistParser,true))
+        return ['state'=>'PARSER_REVIEW_REQUIRED','text'=>null,
+          'method'=>'RETAIN_ORIGINAL_UNPARSED',
+          'language'=>null,'requiresOcr'=>false,
+          'professionalLayoutVerified'=>false,
+          'executableContentAllowed'=>false];
     $isDocx=$mime===$docxMime;
     if(!$isDocx&&!in_array($mime,['text/html','text/plain','application/json'],true))
         throw new DomainException('ka_extraction_mime_unhandled');
