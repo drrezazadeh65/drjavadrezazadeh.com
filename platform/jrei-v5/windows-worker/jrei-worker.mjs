@@ -1,8 +1,9 @@
 /**
  * JREI V5 Windows 11 outbound worker v1 (Node.js 20+).
  *
- * Exactly two human-invoked commands:
+ * Owner-invoked commands:
  *    node jrei-worker.mjs init
+ *    node jrei-worker.mjs show-public
  *    node jrei-worker.mjs start [absolute-private-config.json]
  *    node jrei-worker.mjs start-chat [absolute-private-config.json]
  *
@@ -15,7 +16,6 @@
 import { createHash, createPrivateKey, createPublicKey, generateKeyPairSync, randomBytes, sign } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import { readFile, mkdir, lstat, stat } from 'node:fs/promises';
-import { createReadStream } from 'node:fs';
 import { join, isAbsolute, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import os from 'node:os';
@@ -435,6 +435,39 @@ async function verifyLocalModelArtifact(c) {
   log('LOCAL_MODEL_GGUF_SHA256_MATCHED_NOT_INFERENCE');
 }
 
+const cmd=process.argv[2];
+try {
+  if(cmd==='init'&&process.argv.length===3)await init();
+  else if(cmd==='show-public'&&process.argv.length===3)await showPublic();
+  else if(cmd==='start'&&process.argv.length===4)await run(process.argv[3]);
+  else if(cmd==='start-chat'&&process.argv.length===4){
+    const config=await loadConfig(process.argv[3]);
+    const {runLocalChatWorker,validateLocalChatConfig}=await import('./jrei-local-chat-worker.mjs');
+    validateLocalChatConfig(config);
+    await verifyLocalModelArtifact(config.localChat);
+    const pem=protectKey('unprotect',keyPath());
+    if(!pem)throw Error('WINDOWS_DPAPI_KEY_UNAVAILABLE');
+    const key=createPrivateKey(pem);
+    if(key.asymmetricKeyType!=='ed25519')
+      throw Error('PRIVATE_KEY_TYPE_UNAPPROVED');
+    const stop=new AbortController();
+    process.once('SIGINT',()=>stop.abort());
+    process.once('SIGTERM',()=>stop.abort());
+    await runLocalChatWorker(config,key,{post,log,signal:stop.signal});
+  }
+  else{
+    process.stdout.write(
+      'JREI: use "node jrei-worker.mjs init" separately on each PC, then\n'+
+      '       "node jrei-worker.mjs start C:\\path\\to\\private-config.json"\n'+
+      '       "node jrei-worker.mjs start-chat C:\\path\\to\\private-config.json" for separately approved local JREI-LM.\n'+
+      'No models or worker APIs are activated by displaying this help.\n'
+    );
+    if(cmd!==undefined)process.exitCode=2;
+  }
+}catch(error){
+  log(safeCode(error));
+  process.exitCode=1;
+}
 const cmd=process.argv[2];
 try {
   if(cmd==='init'&&process.argv.length===3)await init();
