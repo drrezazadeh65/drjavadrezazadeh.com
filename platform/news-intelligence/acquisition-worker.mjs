@@ -150,16 +150,28 @@ export async function queueDueNewsAcquisitions({
     assert(Number.isInteger(job.byteReservationCap)&&
       job.byteReservationCap>=1&&job.byteReservationCap<=2097152,
       'NEWS_ACQUISITION_BOUND_INVALID');
-    const receipt=await privateScheduler.queueExistingJreiSourceJob(job);
+    // An exception after dispatch is an UNKNOWN side effect, not proof
+    // that the original JREI scheduler rolled back its reservation. Record
+    // the same safe ambiguity as a missing receipt and stop this batch.
+    let receipt=null;
+    try{
+      receipt=await privateScheduler.queueExistingJreiSourceJob(job);
+    }catch{
+      receipt=null;
+    }
     // Reserve the attempted bytes conservatively, even if the receipt is
     // ambiguous: never oversubscribe the per-dispatch budget on retries.
     remainingBytes-=job.byteReservationCap;
+    const confirmed=receipt?.status==='QUEUED'&&
+      typeof receipt.jobReference==='string'&&
+      receipt.jobReference.length>0;
     accepted.push({sourceId:item.source.sourceId,
-      status:receipt?.status==='QUEUED'?'QUEUED':'NOT_CONFIRMED',
-      jobReference:receipt?.jobReference??null});
+      status:confirmed?'QUEUED':'NOT_CONFIRMED',
+      jobReference:confirmed?receipt.jobReference:null,
+      manualReviewRequired:!confirmed});
     // A missing/negative scheduler acknowledgement is an operational
     // backpressure signal, not permission to keep flooding the mother DB.
-    if(receipt?.status!=='QUEUED')break;
+    if(!confirmed)break;
   }
   return Object.freeze({schema:'jr.jrei.news-acquisition-schedule.v1',
     requestedAt:nowUtc,queueRequests:accepted.length,
