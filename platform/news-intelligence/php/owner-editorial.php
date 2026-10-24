@@ -40,7 +40,17 @@ function jrNewsPrivateOwnerQueue(PDO $pdo,array $session,
                 c.source_url,c.content_sha256
          FROM jrei_news_editorial_versions v
          JOIN jrei_news_candidates c ON c.candidate_id=v.candidate_id
+         JOIN jrei_news_evidence_reviews e ON e.review_id=v.evidence_review_id
+         JOIN jrei_news_discovered_urls d
+           ON d.monitor_id=c.monitor_id
+          AND BINARY d.canonical_url_sha256=BINARY SHA2(c.source_url,256)
          WHERE v.editorial_state='PENDING_OWNER_APPROVAL'
+           AND e.verification_state='APPROVED'
+           AND e.issuer_verified=1 AND e.usage_rights_verified=1
+           AND e.content_sha256=c.content_sha256
+           AND d.review_state='ORIGINAL_JREI_ARTICLE_APPROVED'
+           AND d.approved_article_source_id IS NOT NULL
+           AND v.approval_digest=SHA2(v.bilingual_editorial_json,256)
          ORDER BY c.priority_code ASC, v.created_at ASC LIMIT :lim"
     );
     $stmt->bindValue(':lim',$limit,PDO::PARAM_INT);
