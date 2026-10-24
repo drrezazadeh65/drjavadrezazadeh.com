@@ -112,3 +112,13 @@ test('Bertina verifies the real /api worker path with Node Ed25519 signatures',(
   assert.equal(changedBody.status,0,changedBody.stderr);
   assert.equal(changedBody.stdout,'REJECTED','a signature must never authorize a modified body');
 });
+
+test('Windows Worker confines DPAPI execution-policy override to the reviewed helper subprocess',()=>{
+  const worker=fs.readFileSync(
+    new URL('../platform/jrei-v5/windows-worker/jrei-worker.mjs',import.meta.url),
+    'utf8'
+  );
+  assert.match(worker,/spawnSync\(powershell,[\s\S]{0,180}'-ExecutionPolicy','Bypass',[\s\S]{0,75}'-File',DPAPI/);
+  assert.match(worker,/const powershell=join\(resolve\(systemRoot\),'System32',/);
+  assert.doesNotMatch(worker,/Set-ExecutionPolicy|powershell\.exe\s*\/c/i);
+});
