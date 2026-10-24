@@ -1,0 +1,68 @@
+<?php
+declare(strict_types=1);
+/**
+ * Unpublished owner-only article preview. NOT an open content endpoint.
+ * Original operations MFA owner authentication is mandatory.
+ */
+if (!defined('BERTINA_API_BOOTSTRAPPED')) {
+    http_response_code(404);
+    exit;
+}
+function jrNewsPrivateOwnerPreview(PDO $pdo,array $session,
+    string $revisionId): array {
+    jrNewsOwnerAuthority($session);
+    if (!preg_match('/^[0-9a-f-]{36}$/iD',$revisionId)) {
+        throw new InvalidArgumentException('news_owner_preview_id_invalid');
+    }
+    $stmt=$pdo->prepare(
+        "SELECT v.revision_id,v.revision_number,v.bilingual_editorial_json,
+                v.approval_digest,v.image_asset_ref,v.editorial_state,
+                c.source_url,c.headline,c.priority_code,c.content_sha256
+         FROM jrei_news_editorial_versions v
+         JOIN jrei_news_candidates c ON c.candidate_id=v.candidate_id
+         WHERE v.revision_id=? AND
+           v.editorial_state='PENDING_OWNER_APPROVAL'
+         LIMIT 1"
+    );
+    $stmt->execute([$revisionId]);
+    $row=$stmt->fetch(PDO::FETCH_ASSOC);
+    if (!$row || !is_string($row['bilingual_editorial_json']) ||
+        strlen($row['bilingual_editorial_json'])>250000 ||
+        !preg_match('/^[a-f0-9]{64}$/D',(string)$row['approval_digest'])) {
+        throw new RuntimeException('news_owner_preview_not_available');
+    }
+    $draft=json_decode($row['bilingual_editorial_json'],true,24,
+        JSON_INVALID_UTF8_SUBSTITUTE);
+    if (!is_array($draft)) {
+        throw new RuntimeException('news_editorial_json_invalid');
+    }
+    $clean=[];
+    foreach (['fa','en'] as $language) {
+        $text=$draft[$language]??null;
+        if (!is_array($text)) {
+            throw new RuntimeException('news_translation_not_ready');
+        }
+        foreach (['headline','summary','body','nextSteps'] as $key) {
+            if (!is_string($text[$key]??null) ||
+                trim($text[$key])==='' ||
+                strlen($text[$key])>100000) {
+                throw new RuntimeException('news_translation_field_invalid');
+            }
+            $clean[$language][$key]=$text[$key];
+        }
+    }
+    return [
+        'schema'=>'jr.jrei.news-owner-full-preview.v1',
+        'revisionId'=>$row['revision_id'],
+        'revisionNumber'=>(int)$row['revision_number'],
+        'approvalDigest'=>$row['approval_digest'],
+        'priority'=>$row['priority_code'],
+        'sourceUrl'=>$row['source_url'],
+        'evidenceSha256'=>$row['content_sha256'],
+        'imageAssetReference'=>$row['image_asset_ref'],
+        'fa'=>$clean['fa'],'en'=>$clean['en'],
+        'state'=>'PENDING_OWNER_APPROVAL',
+        'publiclyPublished'=>false,
+        'adminSessionOnly'=>true
+    ];
+}
