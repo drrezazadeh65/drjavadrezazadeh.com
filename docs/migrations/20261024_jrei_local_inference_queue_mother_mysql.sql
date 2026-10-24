@@ -10,6 +10,9 @@ CREATE TABLE IF NOT EXISTS jrei_local_chat_node_authorizations (
   model_version VARCHAR(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
   model_artifact_sha256 CHAR(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
   enabled TINYINT(1) NOT NULL DEFAULT 0,
+  -- Signed GENERATIVE worker only; evaluation-only heartbeats cannot
+  -- make a model eligible for the public assistant.
+  last_signed_chat_seen_at BIGINT UNSIGNED NULL DEFAULT NULL,
   revision BIGINT UNSIGNED NOT NULL DEFAULT 1,
   reviewed_by_account_id CHAR(36) NULL,
   reviewed_at BIGINT UNSIGNED NULL,
