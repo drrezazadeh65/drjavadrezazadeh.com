@@ -1,0 +1,77 @@
+name: JREI-LM Disposable MariaDB Roundtrip (No Production)
+on:
+  push:
+    branches: [migration/bertina-linux6]
+    paths:
+      - '.github/workflows/jrei-local-first-mariadb.yml'
+      - 'api/jrei-local-chat.php'
+      - 'api/jrei-ai-public-service-route.php'
+      - 'api/jrei-ai-answer-guard.php'
+      - 'api/jrei-ai-uncited-answer-guard.php'
+      - 'docs/migrations/20261024_jrei_local_inference_queue_mother_mysql.sql'
+      - 'tests/jrei-local-mariadb-fixture.php'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: jrei-lm-fixture-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  disposable-queue:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      db:
+        image: mariadb:10.11
+        env:
+          MARIADB_ROOT_PASSWORD: jrei-disposable-ci-only
+          MARIADB_DATABASE: drjavad1_store
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=8s
+          --health-timeout=5s
+          --health-retries=12
+    env:
+      MYSQL_PWD: jrei-disposable-ci-only
+      JREI_FIXTURE_DB_PASSWORD: jrei-disposable-ci-only
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prepare disposable MariaDB PHP fixture
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq mariadb-client php-mysql php-xml php-zip
+          for try in $(seq 1 45); do
+            if mariadb -h127.0.0.1 -P3306 -uroot -Nse 'SELECT VERSION()' drjavad1_store >/dev/null 2>&1; then break; fi
+            sleep 2
+          done
+          php -r 'exit((extension_loaded("pdo_mysql") && extension_loaded("sodium")) ? 0 : 1);'
+      - name: Install only base identity and approved additive SQL in test DB
+        run: |
+          set -euo pipefail
+          db() { mariadb -h127.0.0.1 -P3306 -uroot drjavad1_store "$@"; }
+          db < docs/BERTINA_MYSQL_SCHEMA.sql
+          db < database/unified/001_core_governance.sql
+          for file in \
+            docs/migrations/20261023_jrei_hybrid_worker_mother_mysql.sql \
+            docs/migrations/20261023_jrei_model_registry_mother_mysql.sql \
+            docs/migrations/20261023_operations_cron_master_mysql.sql \
+            docs/migrations/20261024_jrei_local_inference_queue_mother_mysql.sql; do
+            db < "$file"
+          done
+          db < docs/migrations/20261024_jrei_local_inference_queue_mother_mysql.sql
+          test "$(db -Nse "SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA='drjavad1_store' AND TABLE_NAME IN ('jrei_local_chat_node_authorizations','jrei_local_chat_jobs')")" = 2
+          test "$(db -Nse "SELECT COUNT(*) FROM jrei_local_chat_jobs")" = 0
+      - name: Test ephemeral encrypted conversation, model lease, citations and deletion
+        run: |
+          set -euo pipefail
+          php -l api/jrei-local-chat.php
+          php -l tests/jrei-local-mariadb-fixture.php
+          php tests/jrei-local-mariadb-fixture.php
+      - name: Report production boundary
+        if: always()
+        run: |
+          echo 'This test uses a disposable MariaDB service, fake model metadata and fake worker identity.' >> "$GITHUB_STEP_SUMMARY"
+          echo 'It executes no Windows local model, no OpenAI API, no Bertina migration, no production deployment.' >> "$GITHUB_STEP_SUMMARY"
