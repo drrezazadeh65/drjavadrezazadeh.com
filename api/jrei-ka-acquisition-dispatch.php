@@ -121,7 +121,7 @@ function jrKaClaimOneLicensedJob(PDO $pdo,array $cfg): ?array {
             if($lastNetwork>0&&$lastNetwork+$spacing>$at){
                 $pdo->commit();continue;
             }
-            $cap=(int)$c['max_daily_download_bytes'];
+            $cap=jrJreiIranNightTransferCap((int)$c['max_daily_download_bytes']);
             $storageCap=(int)$c['max_storage_bytes'];
             if($cap<$reserveBytes||$storageCap<$max)
                 throw new DomainException('ka_owner_quota_too_small');
