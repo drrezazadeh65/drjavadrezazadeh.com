@@ -69,6 +69,12 @@ function jrNewsQueueTopicDigests(PDO $pdo,string $mode,int $nowEpoch,
     );
     $audience->execute([$mode,$afterAccountId]);
     $rows=$audience->fetchAll(PDO::FETCH_ASSOC);
+    $hasMore=count($rows)>100;
+    if ($hasMore) {
+        $partialAccount=$rows[count($rows)-1]['account_id'];
+        $rows=array_values(array_filter($rows,
+            static fn(array $r): bool => $r['account_id']!==$partialAccount));
+    }
     $grouped=[];
     foreach ($rows as $row) {
         $key=$row['account_id'].'|'.$row['locale_code'].'|'.$row['channel_code'];
