@@ -201,3 +201,50 @@ function jrNewsOwnerEnableSourceMonitor(
         throw $e;
     }
 }
+
+/**
+ * Owner emergency pause of this NEWS monitor projection only. Unlike
+ * activation, stopping further NEWS dispatch does not require successful
+ * public-release acceptance. Already leased jobs on the ORIGINAL JREI-KA
+ * scheduler must be reconciled there; this is not a cancellation receipt.
+ */
+function jrNewsOwnerDisableSourceMonitor(
+    PDO $pdo,array $session,string $monitorId,int $nowEpoch
+): array {
+    $owner=jrNewsOwnerAuthority($session);
+    if(!preg_match('/^[a-f0-9-]{36}$/iD',$monitorId)||$nowEpoch<=0)
+        throw new InvalidArgumentException('news_monitor_disable_request_invalid');
+    $pdo->beginTransaction();
+    try {
+        $q=$pdo->prepare(
+            'SELECT monitor_id,enabled FROM jrei_news_monitors
+             WHERE monitor_id=? FOR UPDATE'
+        );
+        $q->execute([$monitorId]);
+        $row=$q->fetch(PDO::FETCH_ASSOC);
+        if(!is_array($row))
+            throw new RuntimeException('news_monitor_disable_missing');
+        $changed=(int)$row['enabled']===1;
+        if($changed){
+            $pdo->prepare(
+                'UPDATE jrei_news_monitors SET enabled=0
+                 WHERE monitor_id=? AND enabled=1'
+            )->execute([$monitorId]);
+            if(function_exists('operationsAudit')){
+                operationsAudit($pdo,$owner['actor'],
+                    'jrei_news_monitor_disabled',hash('sha256',$monitorId));
+            }
+        }
+        $pdo->commit();
+        return [
+            'schema'=>'jr.jrei.news-owner-monitor-disabled.v1',
+            'monitorId'=>$monitorId,'enabled'=>false,
+            'changed'=>$changed,'futureNewsDispatchDisabled'=>true,
+            'alreadyQueuedOriginalJreiJobsNotCancelledByThisAction'=>true,
+            'requiresOriginalSchedulerReconciliation'=>true
+        ];
+    }catch(Throwable $e){
+        if($pdo->inTransaction())$pdo->rollBack();
+        throw $e;
+    }
+}
