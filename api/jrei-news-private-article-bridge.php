@@ -137,6 +137,7 @@ function jrNewsBridgeOriginalArticleObservation(
         $candidate=[
             'schema'=>'jr.jrei.news-feed-candidate.v1',
             'sourceId'=>$feedId,'url'=>$url,
+            'monitorId'=>(string)$row['monitor_id'],
             'title'=>(string)$row['discovered_headline'],
             'sourcePublishedAt'=>$published,
             'sourceFingerprint'=>$fingerprint,
