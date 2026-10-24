@@ -11,7 +11,11 @@ declare(strict_types=1);
 if (!defined('BERTINA_API_BOOTSTRAPPED')) { http_response_code(404); exit; }
 
 function jrNewsFeedPublicUrl(string $candidate, string $approvedHost): ?string {
-    if (strlen($candidate)>1000 || strpbrk($candidate, "\r\n\t\\")!==false) return null;
+    // Feed-provided URLs are metadata, never routing instructions. Reject
+    // whitespace/control characters and backslashes before URL parsing.
+    if (strlen($candidate)>1000 ||
+        preg_match('/[[:cntrl:][:space:]\\\\]/',$candidate)===1 ||
+        filter_var($candidate,FILTER_VALIDATE_URL)===false) return null;
     $parts=parse_url($candidate);
     if (!is_array($parts) || strtolower((string)($parts['scheme']??''))!=='https' ||
         !empty($parts['user']) || !empty($parts['pass']) ||
@@ -52,7 +56,14 @@ function jrNewsParseApprovedFeed(
         $root=$xml->documentElement;
         if (!$root || !in_array(strtolower($root->localName),['rss','feed','rdf'],true))
             throw new RuntimeException('news_feed_root_invalid');
-        $items=$xpath->query('//*[local-name()="item" or local-name()="entry"]');
+        // Only root-level RSS channel items, Atom feed entries and RDF
+        // channel items are candidates. Do not interpret nested/embedded
+        // HTML or foreign XML as an independently approved news item.
+        $items=$xpath->query(
+            "/*[local-name()='rss']/*[local-name()='channel']/*[local-name()='item']".
+            " | /*[local-name()='feed']/*[local-name()='entry']".
+            " | /*[local-name()='RDF']/*[local-name()='item']"
+        );
         if (!$items) throw new RuntimeException('news_feed_items_missing');
         $output=[];$seen=[];
         foreach ($items as $node) {
@@ -73,7 +84,8 @@ function jrNewsParseApprovedFeed(
                     else if ($href==='')$link=trim($child->textContent);
                 }
             }
-            if ($title==='' || strlen($title)>960 ||
+            if ($title==='' || strlen($title)>720 ||
+                preg_match('//u',$title)!==1 ||
                 preg_match_all('/./us',$title)>240 || $link==='')continue;
             $url=jrNewsFeedPublicUrl($link,$approvedHost);
             if (!$url)continue;
