@@ -30,7 +30,7 @@ if($null -eq $c -or $c.enabled -ne $true -or
 # A named per-user mutex prevents a Task Scheduler/manual restart from
 # allocating a second multi-GB GGUF server on the same Windows machine.
 # The other computer has an independent operating-system mutex namespace.
-$singleInstance=New-Object System.Threading.Mutex($false, 'Local\JREI-Owner-Local-Model')
+$singleInstance=[System.Threading.Mutex]::new($false, 'Local\JREI-Owner-Local-Model')
 $mutexHeld=$false
 try {
   $mutexHeld=$singleInstance.WaitOne(0)
