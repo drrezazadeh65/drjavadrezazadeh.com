@@ -126,6 +126,15 @@ function jrKaOwnerSnapshot(PDO $pdo,array $cfg): array {
       'schema'=>'jr.jrei.ka-owner.v1',
       'schemaReady'=>$ready,
       'privateScheduleOptIn'=>($cfg['jrei_ka_schedule_enabled']??false)===true,
+      // Policy visibility only; a scheduled source is NOT a proven live crawler.
+      'iranNightAcquisitionPolicy'=>[
+        'zone'=>'Asia/Tehran','start'=>'02:00','end'=>'05:00',
+        'enabled'=>($cfg['jrei_ka_night_mode_enabled']??false)===true,
+        'windowOpenNow'=>jrJreiIranNightOpen(time()),
+        'requestStartAllowedNow'=>jrJreiIranNightAllowsRequest(time()),
+        'transferCapBytes'=>300000000000,
+        'iranDate'=>jrJreiIranNightDate(time())
+      ],
       'privateAutoFetchOptIn'=>($cfg['jrei_ka_autofetch_enabled']??false)===true,
       'privateTextExtractionOptIn'=>($cfg['jrei_ka_text_extraction_enabled']??false)===true,
       'privatePassageProposalsOptIn'=>($cfg['jrei_ka_passage_proposals_enabled']??false)===true,

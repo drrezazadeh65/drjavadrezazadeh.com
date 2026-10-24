@@ -5,6 +5,8 @@ on:
     branches: [migration/bertina-linux6]
     paths:
       - '.github/workflows/v5-release-candidate.yml'
+      - '.github/workflows/bertina-migration-preflight.yml'
+      - '.github/workflows/jhela-bilingual-quality.yml'
       - 'index.html'
       - '.github/workflows/stage14-organic-growth.yml'
       - 'scripts/build-public-site.mjs'
