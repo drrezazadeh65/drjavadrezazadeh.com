@@ -46,8 +46,7 @@ function jrNewsOwnerStageSourceMonitor(
             (int)$s['is_superseded']!==0||
             !$s['reviewer_account_id']||!$s['verified_at']||
             !in_array($s['rights_state'],[
-                'PERMITTED_PRIVATE_ANALYSIS','PERMITTED_PUBLIC_DISPLAY',
-                'PERMITTED_REPRODUCTION'
+                'PERMITTED_PRIVATE_ANALYSIS','PERMITTED_REPRODUCTION'
             ],true)||
             $s['scheduling_state']!=='APPROVED'||
             (int)$s['rights_reviewed']!==1||
@@ -134,9 +133,11 @@ function jrNewsOwnerEnableSourceMonitor(
     try {
         $q=$pdo->prepare(
             'SELECT n.monitor_id,n.jrei_source_reference,n.policy_revision,
-                    n.enabled,p.revision,p.scheduling_state,
+                    n.enabled,n.source_url_sha256,p.revision,p.scheduling_state,
                     p.rights_reviewed,p.robots_terms_reviewed,p.transport_reviewed,
-                    s.review_state,s.is_revoked,s.is_superseded
+                    s.source_locator_uri,s.rights_state,s.review_state,
+                    s.verified_at,s.reviewer_account_id,
+                    s.is_revoked,s.is_superseded
              FROM jrei_news_monitors n
              JOIN jrei_exam_sources s ON s.source_id=n.jrei_source_reference
              JOIN jrei_ka_source_policies p ON p.source_id=s.source_id
@@ -150,6 +151,14 @@ function jrNewsOwnerEnableSourceMonitor(
             (int)$r['robots_terms_reviewed']!==1||
             (int)$r['transport_reviewed']!==1||
             $r['review_state']!=='AUTHORITATIVE_REVIEWED'||
+            !in_array($r['rights_state'],[
+                'PERMITTED_PRIVATE_ANALYSIS','PERMITTED_REPRODUCTION'
+            ],true)||
+            $r['verified_at']===null||
+            $r['reviewer_account_id']===null||
+            !is_string($r['source_locator_uri'])||
+            !hash_equals((string)$r['source_url_sha256'],
+                hash('sha256',$r['source_locator_uri']))||
             (int)$r['is_revoked']!==0||
             (int)$r['is_superseded']!==0) {
             throw new RuntimeException('news_original_source_permission_changed');
