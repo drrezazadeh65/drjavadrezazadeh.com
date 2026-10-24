@@ -44,6 +44,24 @@ function jrNewsPrivateOwnerQueue(PDO $pdo,array $session,
          JOIN jrei_news_discovered_urls d
            ON d.monitor_id=c.monitor_id
           AND BINARY d.canonical_url_sha256=BINARY SHA2(c.source_url,256)
+         JOIN jrei_exam_sources article
+           ON article.source_id=d.approved_article_source_id
+          AND article.source_locator_uri=c.source_url
+          AND article.review_state='AUTHORITATIVE_REVIEWED'
+          AND article.rights_state IN
+            ('PERMITTED_PRIVATE_ANALYSIS','PERMITTED_REPRODUCTION')
+          AND article.is_revoked=0 AND article.is_superseded=0
+          AND article.reviewer_account_id IS NOT NULL
+          AND article.verified_at IS NOT NULL
+         JOIN jrei_ka_source_policies article_policy
+           ON article_policy.source_id=article.source_id
+          AND article_policy.scheduling_state='APPROVED'
+          AND article_policy.rights_reviewed=1
+          AND article_policy.robots_terms_reviewed=1
+          AND article_policy.transport_reviewed=1
+          AND article_policy.rights_evidence_sha256 REGEXP '^[a-f0-9]{64}$'
+          AND article_policy.robots_terms_evidence_sha256 REGEXP '^[a-f0-9]{64}$'
+          AND article_policy.transport_evidence_sha256 REGEXP '^[a-f0-9]{64}$'
          WHERE v.editorial_state='PENDING_OWNER_APPROVAL'
            AND e.verification_state='APPROVED'
            AND e.issuer_verified=1 AND e.usage_rights_verified=1
