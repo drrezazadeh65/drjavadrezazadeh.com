@@ -75,3 +75,106 @@ The signed worker polling contract is now `{ "metrics": ..., "datasets": [...] }
 **Development update:** The NEW governed-corpus workflow is now implemented in branch source: an additive mother-DB table, owner proposal/approval/suspension actions, version-and-policy digest constraints, signed node dataset advertisements, dashboard corpus/queue controls and auditable result review. Its deployment, migration and genuine holdout acceptance are NOT yet complete. With both private worker configs still reporting `datasets: []`, neither node is eligible for the first approved real evaluation; this is not a connectivity fault. No hardware power-on photo constitutes that approval.
 
 The staged loopback GGUF adapter is *separate from the signed job handler*; its existence does not authorize a new `task_type` or let public learners reach the owner's PC. All generation remains unverified JREI drafts behind existing evidence gates. Do not load model weights or start a localhost HTTP server until an independently accepted benchmark/release.
+
+## 24 October 2026: independent JREI-LM generative chat bridge (source stage)
+
+This is an **additive extension** of the two previously registered, signed
+Windows computers. **Do not repeat** `node jrei-worker.mjs init`, replace
+either existing DPAPI private key or register a duplicate node.
+
+### Architecture and service ownership
+
+`website assistant → Bertina API → encrypted, short-lived mother-DB queue →
+Ed25519-authenticated outbound Windows polling → owner-installed localhost
+llama.cpp/GGUF → signed result → server citation/privacy guard → website`.
+
+- The **owner's own JREI-LM is first priority**. The website can answer from
+  original public pages, approved source passages and the website's actual
+  bilingual service catalogue. External OpenAI is **not required**; it is only
+  an independently owner-enabled optional fallback, OFF by default.
+- Web visitor prompts and drafts are encrypted using a 32-byte key provisioned
+  **only on Bertina**, not embedded in GitHub, HTML, a worker configuration,
+  Windows DPAPI key, or the browser. Poll/cancel capability tokens exist only
+  in the temporary browser session.
+- The existing original `jrei_hybrid_nodes` and its replay-protected signed
+  HTTPS identity are reused. Inference authority is held in the **separate**
+  `jrei_local_chat_node_authorizations` table. Existing evaluation tasks are
+  neither replaced nor expanded to arbitrary execution.
+- The feature refuses public readiness unless the independently approved
+  **privacy-retention Cron worker** has completed successfully within the
+  previous 30 minutes. This prevents abandoned encrypted messages from
+  accumulating when a Windows computer goes offline.
+
+### Single-machine acceptance sequence (repeat with own keys on PC B only if needed)
+
+1. After a verified original mother-DB backup and schema preflight, separately
+   owner-authorise the existing additive migration campaign including
+   `docs/migrations/20261024_jrei_local_inference_queue_mother_mysql.sql`.
+   Do not run SQL from the model itself or create a parallel database.
+2. Review the real local GGUF model licence and record its version and digest
+   in the **existing JREI hybrid admin**. Compute the real SHA-256 on the
+   Windows computer, not from a filename or model-page claim:
+   `Get-FileHash -LiteralPath "C:\\JREI-Private\\models\\model.gguf" -Algorithm SHA256`.
+   Model download/licensing, RAM, CPU throughput, thermal limits, data rights
+   and actual Persian/English answers require separate owner approval.
+3. Start a vetted compatible localhost inference server, bound **only to
+   127.0.0.1**; never expose the model endpoint to the internet or Windows
+   firewall. Confirm its accepted model identifier matches the exact
+   `localChat.modelId` you set. No GPU backend, model weights, or available
+   tokens-per-second can be assumed from source code.
+4. Produce a local, independently reviewed bilingual benchmark report and a
+   reviewed evaluation fixture. Keep the real files private; calculate SHA-256
+   digests for the evaluation fixture and run report. After inspecting the
+   actual model weight SHA and measured p95 latency/RAM/tokens-per-second, use
+   the MFA admin's **measured runtime acceptance** form. This owner attestation
+   does not activate public traffic by itself.
+5. The MFA admin next **authorises the chosen approved model for a specific
+   existing signed Windows node**, without demanding a previous chat heartbeat.
+   Keep a different authorization for each PC. If one computer's model differs,
+   record its own version, actual weights SHA, rights and evaluation evidence.
+6. Create an owner-private JSON configuration **from the current**
+   `jrei-worker-config.example.json`, preserving its existing `nodeId`
+   and DPAPI identity. Under `localChat`, after measured acceptance use
+   `enabled:true`, `ownerApproved:true`, `rightsReviewed:true`,
+   `modelRuntimeVerified:true`, `independentQualityAccepted:true`,
+   `modelId`, `modelVersion`, `modelSha256`, exact localhost `endpoint`,
+   `pollSeconds:3`, `modelTimeoutMs:30000`, `maxContextTokens:240`.
+   The example defaults intentionally remain OFF and unusable.
+7. On Bertina, privately provision `JR_JREI_HYBRID_ENABLED=true`,
+   `JR_JREI_LOCAL_CHAT_ENABLED=true`,
+   `JR_JREI_LOCAL_PUBLIC_RELEASE_ACCEPTED=true`,
+   `JR_JREI_LOCAL_CHAT_KEY_B64` (a newly generated, server-only random
+   32-byte secret encoded as base64),
+   `JR_JREI_LOCAL_CHAT_RETENTION_ENABLED=true`, and the existing
+   `JR_OPERATIONS_CRON_MASTER_ENABLED=true`. Enable/confirm the
+   `jrei_local_chat_retention` job in the original MFA operations dashboard
+   and observe a successful **real host Cron run**. Do not enable the public
+   release flag before the exact model and both deployment/hardware checks.
+8. On that already-registered Windows PC, start **only after approval**:
+   `node jrei-worker.mjs start-chat "C:\\Private\\jrei-worker.json"`.
+   Optional logon automation after acceptance:
+   `.\\jrei-managed-startup.ps1 -Mode install -WorkerMode chat -ConfigPath "C:\\Private\\jrei-worker.json" -OwnerApproved`.
+   Do **not** run the previous evaluation-mode worker simultaneously on the
+   same overloaded computer without a measured scheduling/CPU budget.
+9. Verify **real** bilingual browser prompts (one source-grounded and one
+   general educational prompt), non-promotional service suggestions, owner
+   queue/worker health, encrypted-at-rest and deletion-on-read, cancellation,
+   missing-node fallback, 30-minute Cron privacy expiration, mobile RTL/LTR,
+   accuracy/latency, SEO, commerce regressions and rollback preparedness.
+   Green source-only CI is not enough.
+
+### Important evidence limitations
+
+- Current source code can prepare, sign, queue and process model requests. It
+  **cannot** certify an owner-installed GGUF file, benchmark performance,
+  scientific validity, permanent memory, autonomous model-weight training,
+  Windows availability or Bertina DB migrations. Only verified real host and
+  PC runs can establish those outcomes.
+- Existing `jrei_daily_learning` records daily metadata and reviewed
+  improvement proposals; it does **not** automatically fine-tune an LLM.
+  The larger knowledge-acquisition and scientific testing workflows remain
+  separately licence-, rights-, quota- and QA-gated. No invented "1000×
+  better per day" performance claim may appear as a factual status.
+- If no verified local model is available, the public assistant remains an
+  accurately labelled static site guide. It must **not** silently switch to
+  OpenAI or claim autonomous intelligence that is not executing.
