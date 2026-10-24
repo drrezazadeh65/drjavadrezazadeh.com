@@ -49,6 +49,7 @@ function jrNewsQueueTopicDigests(PDO $pdo,string $mode,int $nowEpoch,
          WHERE p.publisher_state='PUBLISHED'
            AND p.published_at>=? AND p.published_at<=?
            AND d.action_code='APPROVE'
+           AND v.editorial_state='OWNER_APPROVED'
            AND d.revision_id=v.revision_id
            AND d.approval_digest=v.approval_digest
            AND p.publisher_receipt_reference IS NOT NULL
