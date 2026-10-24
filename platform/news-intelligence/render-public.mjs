@@ -79,7 +79,8 @@ export function renderPublicNewsPage({article,language,route,otherLanguageRoute,
     '<link rel="stylesheet" href="/assets/css/style.css">'+
     '<link rel="stylesheet" href="/assets/css/public-v2.css">'+
     '<link rel="stylesheet" href="/assets/css/jr-ecosystem-design-v2.css">'+
-    '<link rel="stylesheet" href="/assets/css/news-intelligence.css">';
+    '<link rel="stylesheet" href="/assets/css/news-intelligence.css">'+
+    '<link rel="stylesheet" href="/assets/css/assistant.css">';
   const body='<a class="ni-skip" href="#ni-main">'+esc(isFa?'رفتن به محتوا':'Skip to content')+'</a>'+
     '<header class="ni-header"><a href="/'+language+'/">'+esc(isFa?'دکتر جواد رضازاده یزدلی':'Dr. Javad Rezazadeh')+'</a>'+
     '<nav aria-label="News"><a href="/'+language+'/">'+esc(label.home)+'</a>'+
