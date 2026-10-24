@@ -13,6 +13,8 @@ if (!defined('BERTINA_API_BOOTSTRAPPED')) {
 }
 
 require_once __DIR__.'/official-feed-extractor.php';
+require_once __DIR__.'/feed-discovery.php';
+require_once __DIR__.'/approved-feed-item-link.php';
 require_once __DIR__.'/candidate-intake.php';
 require_once __DIR__.'/evidence-review.php';
 require_once __DIR__.'/editorial-draft-store.php';
