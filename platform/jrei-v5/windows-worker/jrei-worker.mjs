@@ -481,10 +481,13 @@ async function runLocalChat(configArg){
         }catch(error){
           log('LOCAL_CHAT_DRAFT_REQUIRES_REVIEW_'+safeCode(error));
           // Failed leases are quarantined, never reassigned automatically.
+          await sleep(4000);
           continue;
         }
         if(Date.now()/1000>=job.expiresAt-1){
-          log('LOCAL_CHAT_EXPIRED_DRAFT_DISCARDED');continue;
+          log('LOCAL_CHAT_EXPIRED_DRAFT_DISCARDED');
+          await sleep(4000);
+          continue;
         }
         const done=await post(cfg,key,ENDPOINTS.localComplete,{
           modelId:c.model,modelVersion:c.modelVersion,
