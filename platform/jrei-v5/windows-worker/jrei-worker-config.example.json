@@ -21,6 +21,8 @@
     "endpoint": "http://127.0.0.1:8080/v1/chat/completions",
     "pollSeconds": 3,
     "modelTimeoutMs": 30000,
-    "maxContextTokens": 240
+    "maxContextTokens": 240,
+    "backendExe": "C:\\JREI-Private\\runtime\\llama-server.exe",
+    "backendExeSha256": "REPLACE_WITH_SHA256_OF_APPROVED_LLAMA_CPP_EXECUTABLE"
   }
 }
