@@ -107,6 +107,7 @@ export async function runLocalChatWorker(config,key,{post,log,signal,fetchImpl}=
   let stopping=false,backoff=0;
   let previousCpu=cpuSnapshot(),resourceBusy=false;
   let idlePollSeconds=model.pollSeconds;
+  let backendCheckedAt=0;
   const maxIdlePollSeconds=model.idlePollMaxSeconds??20;
   const stop=()=>{stopping=true;log('LOCAL_CHAT_STOP_REQUESTED');};
   signal?.addEventListener?.('abort',stop,{once:true});
@@ -127,6 +128,13 @@ export async function runLocalChatWorker(config,key,{post,log,signal,fetchImpl}=
         }
         if(resourceBusy)log('LOCAL_CHAT_RESOURCE_PRESSURE_CLEARED');
         resourceBusy=false;
+        // No signed chat-mode readiness advertisement while the local
+        // llama.cpp backend is absent, starting or unhealthy. This is a
+        // bounded loopback-only GET; it never sends visitor messages.
+        if(Date.now()-backendCheckedAt>=25000){
+          await adapter.probe({signal});
+          backendCheckedAt=Date.now();
+        }
         // Original transport signs exact method/path/body with independent
         // Ed25519 key. Model SHA/approval are checked again by Bertina.
         const result=await post(config,key,pollEndpoint,{
@@ -220,6 +228,7 @@ export async function runLocalChatWorker(config,key,{post,log,signal,fetchImpl}=
           break;
         }
         idlePollSeconds=model.pollSeconds;
+        backendCheckedAt=0;
         backoff=Math.min(backoff+1,6);
         if(!stopping)await abortableDelay(wait(120000,10000*2**(backoff-1)),signal);
       }
