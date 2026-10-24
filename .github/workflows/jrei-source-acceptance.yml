@@ -65,6 +65,7 @@ jobs:
           php tests/jrei-universal-staging-offline.php
           php tests/jrei-self-improvement-offline.php
           php tests/jrei-public-service-route-offline.php
+          php tests/jrei-public-uncited-answer-offline.php
       - name: Assert private worker is outbound and nothing is deployed
         run: |
           node -e "const fs=require('fs');const s=fs.readFileSync('platform/jrei-v5/windows-worker/jrei-worker.mjs','utf8');if(!s.includes('redirect:\x27error\x27')||s.includes('createServer('))process.exit(1)"
