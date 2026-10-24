@@ -1,0 +1,166 @@
+# JREI Global Education News & Intelligence — source-development workstream
+
+Repository: drrezazadeh65/drjavadrezazadeh.com
+Branch: migration/bertina-linux6
+Module: platform/news-intelligence/
+Database authority: existing Bertina mother DB drjavad1_store
+Release status: NOT TESTED / NOT INTEGRATED / NOT DEPLOYED
+
+## Critical operating rules
+
+This is a source-only, additive newsroom module for the owner's unified JREI.
+It is **not** a second website, AI model, crawler, account database, newsletter
+provider, owner dashboard or payment system. The existing public news URLs,
+especially /fa/akhbar/, are frozen. There is **no authorization to publish
+articles, alter existing page canonicals, send outbound emails, initiate
+social posts, run live acquisition, apply migrations, enable Cron, or deploy.**
+
+Source staging is allowed until the owner requests a single comprehensive
+integrated acceptance campaign. No interim unit, CI, browser, security, SEO
+or live acceptance tests were intentionally executed by this workstream.
+No status or document in this folder is evidence of a successful test.
+
+The owner approves **every final public editorial version** through the
+EXISTING owner-MFA operations session. News is discovered and prepared
+automatically (once enabled), but never published merely because the model
+generates it. Corrections also need fresh explicit approval.
+
+## Canonical integrations — do not duplicate these
+
+| Concern | Reuse existing authority |
+|---|---|
+| Acquiring public sources | JREI approved-source registry, source policy, private HTTPS transport and original acquisition scheduler |
+| Evidence & AI | platform/jrei-v5 and existing source-review and model-routing controls; original assistant |
+| Accounts | customer_accounts, identity sessions, RBAC, owner MFA |
+| User consent | eco_consent_records and eco_notification_preferences |
+| Transactional/marketing mail | eco_notification_* outbox + original verified SMTP worker |
+| Social | platform/social-distribution (AWOSE) with exact approved recipient and official provider APIs |
+| Publishing | existing authorized CMS / editorial tools and immutable public URL policy |
+| Payment | existing commerce_orders / entitlements; do not invent paid plans or prices |
+| Analytics | existing operations/GSC/GA4 instrumentation; never fabricate performance |
+| Database | exactly one mother DB, additive owner-approved migrations after schema reconciliation |
+
+Source code may provide capabilities to these services but does not
+establish current working connection to a live model, server Cron, SMTP,
+social provider, MariaDB schema or JREI Windows worker.
+
+## Source inventory
+
+- contracts.mjs — approved sources, immutable candidate facts, owner preview and decision
+- taxonomy.mjs — bilingual controlled educational category hierarchy
+- source-intelligence.mjs — source polling, hash-based change detection and dedup
+- acquisition-worker.mjs — bounded queue proposals to original JREI acquisition worker
+- evidence.mjs — reviewed extractive claims, amendments, rumor review
+- breaking-radar.mjs — P0/P1/P2 triage; no auto-publication
+- corrections.mjs — correction proposals and changed-deadline notification policy
+- editorial-style.mjs — Persian philosophy/Masir-e Roshd and English MA/PhD authorial style references
+- jrei-model-bridge.mjs — original JREI model routing; no forced OpenAI dependency
+- content-quality.mjs — pre-owner review and source integrity checks
+- newsroom.mjs — evidence-to-bilingual preview coordinator
+- workflow.mjs — editorial lifecycle with immutable revision transitions
+- approval.mjs — owner preview mail and publication queue gates
+- approval-email.mjs — escaped bilingual email preview template
+- bulk-approval.mjs — exact selected digests, same MFA owner
+- private-runtime.mjs — private backend port interfaces, activation controlled by server
+- publisher-plan.mjs — canonical URL collision avoidance, owner permission recheck
+- render-public.mjs — escaped approved bilingual NewsArticle HTML
+- newsroom-home.mjs — mobile-first bilingual newsroom portal HTML
+- ui/news-intelligence.css — premium charcoal/gold/ivory responsive visual system
+- ui/news-reader.js — only filters cards shown in browser; not an archive-wide search
+- calendar.mjs — official evidence-bound milestone versions and reminder reservations
+- calendar-ics.mjs — RFC5545 descriptor and calendar renderer
+- deadline-radar.mjs — reviewed official upcoming dates
+- notifications.mjs — existing eco-outbox reminder and owner email proposals
+- newsletter.mjs — consent-bound daily/weekly/urgent/exam-only digests
+- reader-consent.mjs — user-first optional single-popup and purpose-scoped preferences
+- channels.mjs — official-provider social delivery proposals, not actual dispatch
+- links.mjs — cross-content semantic link proposals and reciprocal review
+- search.mjs — bounded in-memory search over already published content only
+- assistant-context.mjs — citations-first context for existing JREI conversational assistant
+- reader-actions.mjs — official links, reminders, genuine related services
+- seo.mjs — bilingual NewsArticle, hreflang and sitemap descriptors
+- premium-access.mjs — paid extras only after existing commerce entitlement
+- analytics.mjs — observed-only newsroom metrics
+- admin-projection.mjs — owner-MFA dashboard read model
+- status-policy.mjs — non-operational truthful feature readiness markers
+- php/public-read-model.php — staged bounded search of owner-approved PUBLISHED rows
+- php/owner-editorial.php — staged MFA owner queue + atomic decision persistence
+- php/exam-reminders.php — staged consented milestone subscription/outbox queue
+- php/topic-newsletter.php — staged news-category newsletter preferences
+
+Staged migrations (DO NOT EXECUTE NOW):
+- docs/migrations/20261024_jrei_news_intelligence_mother_mysql.sql
+- docs/migrations/20261024_jrei_news_topic_preferences_mother_mysql.sql
+
+## Feature acceptance matrix — source ≠ live
+
+| Feature | Source code | Integrated / tested / released |
+|---|---|---|
+| Global category taxonomy, P0 monitoring and official change detection | Staged | NO |
+| Automatic crawling from source-approved origins | Private orchestration staged | NO |
+| Independent official announcement fact verification | Review contracts staged | NO |
+| Model-driven Persian and English production in owner's own style | JREI routing/style contracts staged | NO |
+| Premium licensed featured visual generation | Templates and media rules staged | NO |
+| High-quality bilingual public news article rendering | Renderer staged | NO |
+| Premium CNN-class newsroom homepage | Source HTML/CSS staged | NO |
+| Owner email and one-click authenticated review dashboard | Read/decision and mail contracts staged | NO |
+| Group approval, corrections, audit and revision history | Source logic staged | NO |
+| Public publishing and Google News XML sitemap | Descriptor/publisher plan staged | NO |
+| Telegram, Eitaa, Bale, other authorized channels | Existing AWOSE adapter handoff staged | NO |
+| News topic newsletter and user opt-outs | Consent/outbox and SQL staged | NO |
+| Exam event calendar + 5/10 day alerts | Logic/SQL staged | NO |
+| Advanced full-archive search with database index | Bounded search models staged | NO |
+| JREI answer context under each article | Source context contract staged | NO |
+| Semantic internal links, services, books, assessments | Source matching rules staged | NO |
+| Free official news, optional premium subscriptions | Entitlement planning staged | NO |
+| GSC/GA4 and AI visibility observation | Metric descriptors staged | NO |
+| Full end-to-end acceptance, security, live performance | NOT RUN | NO |
+
+## Required FINAL-ONLY integration
+
+1. Re-read fresh canonical HEAD, the 117-item atomic ledger, source policies,
+   immutable URL registry, owner-MFA and mother-DB governance. Avoid touching
+   concurrently edited shared files without first coordinating.
+2. Reconcile existing JREI source permissions, allowlisted domains, legally
+   permitted retrieval method and the desired urgent polling interval.
+   Stage explicit integration in existing Cron and source worker only after
+   final authority and testing; no new unconstrained crawler.
+3. Obtain the actual author-approved first chapter of Masir-e Roshd and
+   approved Persian educational-philosophy text, and actual English MA/PhD
+   prose. Do not claim corpus analysis without this evidence.
+4. Wire server-authenticated reviewer previews and one authenticated
+   publish decision to the central operations dashboard, without bypassing MFA.
+5. Add the approved news migration in one documented mother-DB campaign,
+   with real inventory, schema consistency, backup, rollback and proof.
+6. Connect the original eco_notification_* system (both owner previews and
+   consented newsletter/deadline reminders), verify SMTP only in final tests.
+7. Wire the existing AWOSE social delivery system, one exact recipient and
+   immutable media/approval digest per platform; never bypass APIs.
+8. Serve reviewed public templates through the existing editorial publisher,
+   install approved CSS/JS assets, implement the full archive search endpoint
+   and its index, update multilingual public routes, canonical/hreflang and
+   SEO data on owner-authorized release only.
+9. Hook the original JREI assistant into each released news story using only
+   approved evidence, optional user consent, and clear uncertainty.
+10. Run the ONE owner-approved end-to-end acceptance campaign before a
+    separately approved production release, including rollback and real
+    monitoring. No source-only progress is a final acceptance PASS.
+
+## Design commitments preserved from the 66-section owner master
+
+Two independent editorial languages; formal evidence-grounded original
+authorial voice; Iran and international education/exams/scholarships/research;
+news-first but with educational next steps; urgent official results and
+deadline coverage; 2 AM–5 AM Iran acquisition capability under original
+JREI private controls; official exam calendar and configurable 5/10-day
+alerts; news-specific email subscriptions and unsubscribes; approved
+multi-channel distribution; original semantic links and SEO standard;
+AI assistant context below each story; reader-first free essentials,
+optional verified commerce entitlements; image provenance and premium design;
+owner-exclusive authenticated publication approval; original database,
+existing products and zero regression.
+
+The requested nightly 300 GB is an **allowance** rather than a transfer
+target. No continuous traffic or private PC crawler activation is implied.
+
+**Status is a source checkpoint, not a completion certificate.**
