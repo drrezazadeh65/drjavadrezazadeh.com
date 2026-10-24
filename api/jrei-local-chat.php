@@ -347,6 +347,11 @@ function jrLocalChatWorkerPoll(PDO $pdo,array $cfg,string $node,array $body): ar
         $lock->execute([$node]);
         if($lock->fetchColumn()===false)
             throw new DomainException('local_chat_node_disabled_during_poll');
+        // The earlier nonlocking signature check can race with a fresh
+        // owner-MFA revocation or model replacement. Lock and revalidate
+        // this exact independent generative grant before leasing prompts.
+        if(!jrLocalChatNodeApproved($pdo,$node,$model,$version,$digest,true))
+            throw new DomainException('local_chat_model_revoked_during_poll');
         // Retention/erasure runs in the existing private retention worker,
         // never as global UPDATE/DELETE scans on frequent Windows polls.
         // Expired jobs remain UNKNOWN and are never reassigned.
