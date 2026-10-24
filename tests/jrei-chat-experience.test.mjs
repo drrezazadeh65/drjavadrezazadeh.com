@@ -42,3 +42,17 @@ test('vision standard does not claim nonexistent live abilities', () => {
   assert.equal(policy.hosting.runtime_backend_verified, false);
   assert.equal(policy.storage.server_conversation_persistence, false);
 });
+
+test('live answer can be stopped and old responses are discarded', () => {
+  for (const message of ['توقف', 'Stop', 'jr-assistant-stop', 'stopButton.hidden=false', 'stopButton.hidden=true']) {
+    assert.ok(js.includes(message), 'missing cancellation contract: '+message);
+  }
+  assert.match(js, /stopButton\.addEventListener\('click'/);
+  assert.match(js, /requestGeneration\+\+;\s*activeRequest\?\.abort\(\)/);
+  assert.match(js, /if\(requestToken!==requestGeneration\|\|document\.hidden\)return/);
+  assert.match(css, /jr-assistant-stop\[hidden\]\{display:none!important\}/);
+});
+
+test('off-site citations cannot access opener or referrer', () => {
+  assert.match(js, /a\.target='_blank';a\.rel='noopener noreferrer'/);
+});
