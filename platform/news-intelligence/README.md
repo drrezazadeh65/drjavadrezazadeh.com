@@ -176,3 +176,68 @@ The requested nightly 300 GB is an **allowance** rather than a transfer
 target. No continuous traffic or private PC crawler activation is implied.
 
 **Status is a source checkpoint, not a completion certificate.**
+
+
+## Continued isolated source work — 24 October 2026 (NOT TESTED)
+
+The current development continues in **this original branch and module**, not a
+separate repository. No production route, Cron, mailer, account, model or social
+provider has been activated; no public files or existing SEO URLs were replaced.
+
+Newly staged source integration components:
+
+- php/official-feed-extractor.php — bounded DTD/XXE-resistant RSS/Atom
+  extraction of already approved, privately fetched public bytes.
+- php/candidate-intake.php — source-monitored, review-pending deduplicated
+  official news metadata in the original mother DB.
+- php/evidence-review.php — independently reviewed current JREI source
+  attestation; LLMs cannot self-certify publisher rights or official claims.
+- php/editorial-draft-store.php — versioned bilingual, image-rights-bound,
+  private source-reviewed editorial draft persistence.
+- mother-db-projection.mjs — SHA256 of exact PHP persisted JSON bridges owner
+  approval safely into JREI Node contracts.
+- php/public-search-indexer.php — original-publisher-receipt-gated
+  public-only fulltext indexing, preserving URL permanence.
+- php/public-read-model.php — public-only search by language/topic/country/date,
+  MariaDB FULLTEXT + bounded literal fallback, no draft search leakage.
+- ui/news-search.js — opt-in bilingual archive search with controlled filters.
+- ui/news-assistant.js — user-click bridge into original JREI assistant;
+  no hidden question submission, second chatbot or bypass of consent.
+- calendar-page.mjs + ui/news-calendar.js — official date-only calendar,
+  embedded safe event data and optional choice of reminder timing.
+- ui/news-preferences.js + php/preferences-replace.php — atomic topic digest
+  preferences, central consent, and suppression of previous queued mail.
+- php/digest-worker.php — existing outbox digest planning with stable,
+  complete per-account pagination (source only).
+- php/owner-overview.php — genuine mother-DB owner dashboard metrics;
+  unavailable tables or missing observations are UNKNOWN, not invented zero.
+- awose-bridge.mjs — explicit compatibility with existing AWOSE social
+  publisher and honest distinction between supported and unimplemented APIs.
+- ui/admin-newsroom.css, ui/admin-newsroom.js and php/owner-preview.php —
+  owner-only bilingual full-text/source/image/semantic-link review before MFA
+  decisions, without prematurely publishing.
+- php/news-api-adapter.php — original API integration dispatcher with
+  hard-closed environmental and owner release gates; currently NOT mounted.
+- integration-manifest.json — exact shared ownership boundary and deferred
+  final integrated acceptance checklist.
+- docs/migrations/20261024_jrei_news_public_search_mother_mysql.sql —
+  staged multilingual published-article-only public search index.
+
+All previously created module files remain additive and preserved.
+The staged migrations are NOT applied; per-source/news permissions and
+publisher receipts still need authenticated final integration.
+
+### Release truthfulness
+
+**Do not declare this module complete, verified, production-ready, operating,
+fully AI-integrated, continuously crawling, connected to the original JREI
+provider, or 100% implemented solely because these files exist.** End-to-end
+runtime wiring, real source rights, actual style corpus, original owner SMTP,
+approved provider channels, original JREI assistant context, complete
+bilingual public route integration, authorized migrations, monitoring and
+owner-controlled release are separate remaining acceptance gates. All tests
+remain deferred under the owner's explicit instruction.
+
+No test, build, CI dispatch, database migration, crawling session, SMTP
+transmission, social post, AI inference or production deployment was
+intentionally triggered in this source-development continuation.
