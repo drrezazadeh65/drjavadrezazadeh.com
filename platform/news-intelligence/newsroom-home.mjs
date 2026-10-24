@@ -8,12 +8,15 @@ import {NEWS_CATEGORIES} from './taxonomy.mjs';
 const SITE='https://drjavadrezazadeh.com';
 const e=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;')
   .replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
-const path=p=>typeof p==='string'&&/^\/(?:fa|en)\/[a-z0-9/-]+\/$/.test(p)&&
-  !p.includes('//');
+const path=p=>typeof p==='string'&&
+  /^\/(?:fa\/akhbar|en\/news-insights)\/[a-z0-9-]+\/$/.test(p);
 const asset=p=>typeof p==='string'&&
   /^\/assets\/images\/[a-zA-Z0-9_./-]+\.(webp|png|jpg|jpeg|avif)$/.test(p)&&
   !p.includes('..');
-const escapeArr=arr=>arr.map(e);
+function validOfficialLink(url){
+  try{return typeof url==='string'&&publicHttps(url)===url;}
+  catch{return false;}
+}
 function safeStory(s,lang){
   return plain(s)&&s.ownerApproved===true&&s.publicationState==='PUBLISHED'&&
     s.language===lang&&path(s.path)&&s.path.startsWith('/'+lang+'/')&&
@@ -48,16 +51,19 @@ export function renderNewsroomHome({language='fa',stories=[],examEvents=[],
     today:'Today',privacy:'My newsletter and reminders',
     note:'For consequential dates and regulations, the official issuing source is authoritative.'
   };
-  const approved=stories.filter(s=>safeStory(s,language))
+  const now=Date.parse(currentUtc);
+  const approved=stories.filter(s=>safeStory(s,language)&&
+    Date.parse(s.publishedAt)<=now)
     .sort((a,b)=>Date.parse(b.publishedAt)-Date.parse(a.publishedAt));
-  const featured=approved.find(s=>s.priority==='P0')??approved[0]??null;
-  const featuredId=featured?.id;
-  const rest=approved.filter(s=>s.id!==featuredId).slice(0,48);
+  // A historically urgent report must not remain breaking indefinitely.
+  const featured=approved.find(s=>s.priority==='P0'&&
+    now-Date.parse(s.publishedAt)<=48*60*60*1000)??approved[0]??null;
+  const rest=approved.filter(s=>s.path!==featured?.path).slice(0,48);
   const events=examEvents.filter(x=>plain(x)&&
     x.schema==='jr.jrei.exam-event.v1'&&
     x.status==='OFFICIAL_DATE_REVIEWED'&&
     x.ownerPublicationApproved===true&&utcInstant(x.startsAt)&&
-    Date.parse(x.startsAt)>=Date.parse(currentUtc)&&
+    Date.parse(x.startsAt)>=now&&validOfficialLink(x.sourceUrl)&&
     safeText(isFa?x.titleFa:x.titleEn,8,220))
     .sort((a,b)=>Date.parse(a.startsAt)-Date.parse(b.startsAt))
     .slice(0,12);
