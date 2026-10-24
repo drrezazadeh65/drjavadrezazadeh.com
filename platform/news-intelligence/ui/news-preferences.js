@@ -98,17 +98,16 @@ export function mountJreiNewsPreferences({
     subscribe.disabled=true;
     status.textContent=tr('در حال ذخیره تنظیمات…','Saving preferences…');
     try{
-      let saved=0;
-      for(const topic of selected){
-        const response=await api('/preferences',{
-          topic,mode,locale,channel:'EMAIL'});
-        if(response.state!=='ACTIVE'||response.topic!==topic)
-          throw Error('PREFERENCE_ACK_MISMATCH');
-        saved++;
-      }
+      const response=await api('/preferences/replace',{
+        topics:selected,mode,locale,channel:'EMAIL'});
+      if(response.schema!=='jr.jrei.news-preferences-replaced.v1' ||
+         response.state!=='ACTIVE' ||
+         !Array.isArray(response.selectedTopics) ||
+         response.selectedTopics.length!==selected.length)
+        throw Error('PREFERENCE_REPLACEMENT_ACK_MISMATCH');
       status.textContent=tr(
-        'موضوعات ثبت‌شده: '+saved+'. عضویت تنها با رضایت معتبر حساب شما فعال خواهد شد.',
-        'Saved topics: '+saved+'. Your existing newsletter consent remains mandatory.');
+        'تنظیمات '+selected.length+' موضوع خبری ذخیره شد. خبرنامه فقط با رضایت معتبر حساب شما ارسال می‌شود.',
+        selected.length+' news topics saved. Original account consent remains mandatory.');
     }catch{
       status.textContent=tr(
         'ثبت همه تنظیمات تأیید نشد؛ حساب و رضایت خبرنامه را بررسی کنید.',
