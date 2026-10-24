@@ -264,6 +264,7 @@ function jrLocalChatWorkerPoll(PDO $pdo,array $cfg,string $node,array $body): ar
        last_reported_state='ONLINE',updated_at=?
        WHERE node_id=? AND status='ENABLED' AND revoked_at IS NULL")
        ->execute([$model,$version,$now,$now,$node]);
+    if($heartbeatOnly)return ['ok'=>true,'job'=>null];
     $pdo->beginTransaction();
     try {
         // Match the original hybrid worker's lock discipline: concurrent
