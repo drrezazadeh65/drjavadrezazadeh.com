@@ -29,9 +29,8 @@ function jrNewsPersistObservedCandidate(
         ($candidate['evidenceStatus']??null)!=='UNREVIEWED_METADATA' ||
         !is_string($candidate['sourceId']??null) ||
         !is_string($candidate['title']??null) ||
-        (function_exists('mb_strlen') ?
-            mb_strlen($candidate['title'],'UTF-8')>240 :
-            strlen($candidate['title'])>720) ||
+        strlen($candidate['title'])>960 ||
+        preg_match_all('/./us',$candidate['title'])>240 ||
         trim($candidate['title'])==='' ||
         !is_string($candidate['url']??null) ||
         strlen($candidate['url'])>1000 ||
