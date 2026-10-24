@@ -349,6 +349,76 @@ export function mountNewsOwnerPanel({root,csrfResolver,
           'Authoritative original JREI queue status is unavailable.');
         acquisition.append(unknown);
       }
+      // An APPROVE decision is not a publication. Reconcile separately
+      // against the original CMS policy and immutable bilingual routes.
+      try{
+        const backlog=await request('/owner/publication/backlog',{method:'GET'});
+        if(readVersion!==loadRevision)return;
+        if(backlog.schema!=='jr.jrei.news-owner-publication-backlog.v1'||
+           !Array.isArray(backlog.items))
+          throw Error('NEWS_OWNER_PUBLISHING_BACKLOG_UNAVAILABLE');
+        const heading=document.createElement('h3');
+        heading.textContent=say('پیگیری خبرهای تأییدشده تا انتشار واقعی',
+          'Approved stories awaiting original CMS publication');
+        publications.append(heading);
+        for(const record of backlog.items){
+          if(typeof record.revisionId!=='string'||
+             typeof record.state!=='string')continue;
+          const item=document.createElement('article');
+          item.className='ni-admin-publication-row';
+          const name=document.createElement('strong');
+          name.textContent=String(record.headline??'');
+          const state=document.createElement('span');
+          state.textContent=record.state==='APPROVED_NOT_STAGED'?
+            say('تأیید سردبیری؛ هنوز در صف ناشر ثبت نشده',
+              'Editorial approval recorded; CMS queue not yet staged'):
+            say('در انتظار رسید انتشار واقعی CMS',
+              'Awaiting verified original CMS publication receipt');
+          item.append(name,state);
+          if(record.state==='APPROVED_NOT_STAGED'){
+            const stage=document.createElement('button');
+            stage.type='button';
+            stage.textContent=say('ثبت در صف ناشر اصلی','Stage original CMS publication');
+            stage.addEventListener('click',async()=>{
+              stage.disabled=true;
+              show(say('در حال بررسی مجوز و ثبت صف انتشار…',
+                'Rechecking original publisher approval…'));
+              try{
+                const receipt=await request('/owner/publication/stage',{
+                  method:'POST',body:JSON.stringify({
+                    revisionId:record.revisionId
+                  })
+                });
+                if(receipt.schema!=='jr.jrei.news-publishing-stage.v1'||
+                   receipt.state!=='WAITING_FOR_PUBLISHER'||
+                   receipt.publishedByThisCall!==false||
+                   typeof receipt.publicationId!=='string')
+                  throw Error('NEWS_PUBLICATION_STAGE_NOT_CONFIRMED');
+                if(await load()!==true)return;
+                show(say('خبر صرفاً در صف ناشر ثبت شد؛ انتشار عمومی تأیید نشده.',
+                  'CMS staging confirmed; public publication remains unverified.'));
+              }catch{
+                show(say('نتیجه ثبت صف ناشر مشخص نیست؛ وضعیت اصلی را تازه‌سازی کنید.',
+                  'CMS stage outcome unknown; refresh the authoritative queue.'));
+              }
+            });
+            item.append(stage);
+          }
+          publications.append(item);
+        }
+        if(!backlog.items.length){
+          const empty=document.createElement('p');
+          empty.textContent=say('مورد تأییدشدهٔ در انتظار انتشار وجود ندارد.',
+            'No owner-approved stories await original CMS publication.');
+          publications.append(empty);
+        }
+      }catch{
+        if(readVersion!==loadRevision)return;
+        const uncertain=document.createElement('p');
+        uncertain.textContent=say('صف انتشار اصلی قابل تأیید نیست.',
+          'Original CMS publication queue is currently unavailable.');
+        publications.append(uncertain);
+      }
       for(const item of data.items){
         const card=document.createElement('article');
         card.className='ni-admin-card';
