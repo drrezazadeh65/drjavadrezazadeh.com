@@ -337,3 +337,97 @@ function jrLocalChatWorkerComplete(PDO $pdo,array $cfg,string $node,array $body)
         if($pdo->inTransaction())$pdo->rollBack();throw $e;
     }
 }
+
+/** Independent MFA owner grant; a model's licence alone cannot authorize it. */
+function jrLocalChatOwnerSetNode(PDO $pdo,array $cfg,string $actor,array $body): array {
+    if(!jrLocalChatSchemaReady($pdo))
+        throw new DomainException('jrei_local_chat_migration_required');
+    $id=$body['nodeId']??null;$revision=$body['revision']??null;
+    $enabled=$body['enabled']??null;
+    if(!jrHybridUuid($id)||!is_int($revision)||$revision<1||
+       !is_bool($enabled))throw new InvalidArgumentException('local_chat_owner_input_invalid');
+    if(($body['confirmation']??null)!==($enabled?
+         'OWNER_APPROVE_JREI_LOCAL_INFERENCE':
+         'OWNER_DISABLE_JREI_LOCAL_INFERENCE'))
+        throw new DomainException('local_chat_owner_confirmation_required');
+    $model=$body['modelId']??null;$version=$body['modelVersion']??null;
+    $digest=$body['modelSha256']??null;
+    if($enabled&&(!jrHybridIdentifier($model)||!jrHybridIdentifier($version)||
+       !jrHybridSha($digest)||($cfg['jrei_local_chat_enabled']??false)!==true||
+       ($cfg['jrei_hybrid_enabled']??false)!==true))
+        throw new DomainException('local_chat_model_or_switch_not_authorized');
+    $pdo->beginTransaction();
+    try{
+        $q=$pdo->prepare('SELECT status,revoked_at,permitted_task,revision
+          FROM jrei_hybrid_nodes WHERE node_id=? FOR UPDATE');
+        $q->execute([$id]);$node=$q->fetch(PDO::FETCH_ASSOC);
+        if(!is_array($node)||(int)$node['revision']!==$revision||
+           $node['revoked_at']!==null||
+           $node['permitted_task']!==JR_HYBRID_TASK||
+           ($enabled&&$node['status']!=='ENABLED'))
+            throw new DomainException('local_chat_signed_node_not_authorized');
+        if($enabled){
+            $q=$pdo->prepare("SELECT model_artifact_sha256
+              FROM jrei_local_model_registry
+              WHERE model_id=? AND model_version=? AND
+                model_artifact_sha256=? AND status='RIGHTS_REVIEWED'
+                AND suspended_at IS NULL AND weights_installed_verified=1
+                AND runtime_verified=1 AND independent_quality_accepted=1");
+            $q->execute([$model,$version,$digest]);
+            if($q->fetchColumn()===false)
+                throw new DomainException('local_chat_model_not_independently_accepted');
+            $q=$pdo->prepare("INSERT INTO jrei_local_chat_node_authorizations
+              (node_id,model_id,model_version,model_artifact_sha256,
+               enabled,reviewed_by_account_id,reviewed_at,updated_at)
+              VALUES (?,?,?,?,1,?,?,?)
+              ON DUPLICATE KEY UPDATE
+                 model_id=VALUES(model_id),model_version=VALUES(model_version),
+                 model_artifact_sha256=VALUES(model_artifact_sha256),
+                 enabled=1,reviewed_by_account_id=VALUES(reviewed_by_account_id),
+                 reviewed_at=VALUES(reviewed_at),updated_at=VALUES(updated_at),
+                 revision=revision+1");
+            $q->execute([$id,$model,$version,$digest,$actor,time(),time()]);
+        }else{
+            $q=$pdo->prepare('UPDATE jrei_local_chat_node_authorizations
+                 SET enabled=0,revision=revision+1,updated_at=?
+                 WHERE node_id=?');
+            $q->execute([time(),$id]);
+            $q=$pdo->prepare("UPDATE jrei_local_chat_jobs SET status='FAILED',
+              request_ciphertext=NULL,response_ciphertext=NULL,updated_at=?
+              WHERE leased_to_node=? AND status='LEASED'");
+            $q->execute([time(),$id]);
+        }
+        operationsAudit($pdo,$actor,$enabled?
+            'jrei_local_chat_owner_approved':'jrei_local_chat_owner_disabled',$id);
+        $pdo->commit();
+        return ['ok'=>true,'nodeId'=>$id,'generativeEnabled'=>$enabled,
+          'notProofOfRunningLocalModel'=>true];
+    }catch(Throwable $e){
+        if($pdo->inTransaction())$pdo->rollBack();
+        throw $e;
+    }
+}
+function jrLocalChatOwnerSnapshot(PDO $pdo,array $cfg): array {
+    $ready=jrLocalChatSchemaReady($pdo);
+    $result=[
+      'schema'=>'jr.jrei.local-generative-owner.v1',
+      'motherDatabaseSchemaReady'=>$ready,
+      'privateSwitchEnabled'=>($cfg['jrei_local_chat_enabled']??false)===true,
+      'ownerPublicReleaseAccepted'=>($cfg['jrei_local_public_release_accepted']??false)===true,
+      'privateEncryptionKeyConfigured'=>jrLocalChatKey($cfg)!==null,
+      'live'=>false,'authorizedNodes'=>null,
+      'pendingOrLeasedJobs'=>null,'provenModelQuality'=>false,
+      'externalCloudRequired'=>false
+    ];
+    if(!$ready)return $result;
+    try{
+        $result['authorizedNodes']=(int)$pdo->query(
+          'SELECT COUNT(*) FROM jrei_local_chat_node_authorizations WHERE enabled=1'
+        )->fetchColumn();
+        $result['pendingOrLeasedJobs']=(int)$pdo->query(
+          "SELECT COUNT(*) FROM jrei_local_chat_jobs WHERE status IN ('QUEUED','LEASED')"
+        )->fetchColumn();
+        $result['live']=jrLocalChatReady($pdo,$cfg);
+    }catch(Throwable $e){}
+    return $result;
+}
