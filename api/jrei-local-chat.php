@@ -555,6 +555,7 @@ function jrLocalChatOwnerSnapshot(PDO $pdo,array $cfg): array {
       'live'=>false,'authorizedNodes'=>null,
       'recentlySignedGenerativeWorkers'=>null,
       'pendingOrLeasedJobs'=>null,'provenModelQuality'=>false,
+      'generativeWorkerStates'=>[],
       'externalCloudRequired'=>false
     ];
     if(!$ready)return $result;
@@ -580,6 +581,51 @@ function jrLocalChatOwnerSnapshot(PDO $pdo,array $cfg): array {
             AND m.independent_quality_accepted=1");
         $recent->execute([time()-45]);
         $result['recentlySignedGenerativeWorkers']=(int)$recent->fetchColumn();
+        // Owner readout of independent chat authorization, never evaluation
+        // telemetry. A signed heartbeat is observable, not proof that the
+        // model weights have passed a real end-to-end dialogue benchmark.
+        $workers=$pdo->query("SELECT a.node_id,a.model_id,a.model_version,
+            a.enabled,a.last_signed_chat_seen_at,
+            n.status AS node_status,n.revoked_at,n.permitted_task,
+            m.model_artifact_sha256 AS reviewed_sha,
+            m.status AS model_status,m.suspended_at,
+            m.weights_installed_verified,m.runtime_verified,
+            m.independent_quality_accepted
+          FROM jrei_local_chat_node_authorizations a
+          LEFT JOIN jrei_hybrid_nodes n ON n.node_id=a.node_id
+          LEFT JOIN jrei_local_model_registry m
+            ON m.model_id=a.model_id AND m.model_version=a.model_version
+            AND m.model_artifact_sha256=a.model_artifact_sha256
+          ORDER BY a.updated_at DESC,a.node_id ASC LIMIT 20");
+        foreach($workers->fetchAll(PDO::FETCH_ASSOC) as $worker){
+            $nodeCurrent=$worker['node_status']==='ENABLED'&&
+                $worker['revoked_at']===null&&
+                $worker['permitted_task']==='REVIEWED_PUBLIC_RETRIEVAL_EVALUATION';
+            $modelCurrent=$worker['reviewed_sha']!==null&&
+                $worker['model_status']==='RIGHTS_REVIEWED'&&
+                $worker['suspended_at']===null&&
+                (int)$worker['weights_installed_verified']===1&&
+                (int)$worker['runtime_verified']===1&&
+                (int)$worker['independent_quality_accepted']===1;
+            $enabled=(int)$worker['enabled']===1;
+            $seen=$worker['last_signed_chat_seen_at'];
+            $signedFresh=$seen!==null&&
+                (int)$seen>time()-45;
+            $state=!$enabled?'DISABLED_BY_OWNER':
+                (!$nodeCurrent?'NODE_DISABLED_OR_REVOKED':
+                (!$modelCurrent?'MODEL_REVIEW_REQUIRED':
+                (!$signedFresh?'NO_RECENT_SIGNED_CHAT_POLL':'RECENT_SIGNED_CHAT_POLL')));
+            $result['generativeWorkerStates'][]=[
+                'nodeId'=>$worker['node_id'],
+                'modelId'=>$worker['model_id'],
+                'modelVersion'=>$worker['model_version'],
+                'generativeEnabled'=>$enabled,
+                'modelApprovalCurrent'=>$modelCurrent,
+                'signedPollRecent'=>$signedFresh,
+                'lastSignedAt'=>$seen===null?null:(int)$seen,
+                'state'=>$state,'inferenceIndependentlyVerified'=>false
+            ];
+        }
         $pending=$pdo->prepare(
           "SELECT COUNT(*) FROM jrei_local_chat_jobs
            WHERE status IN ('QUEUED','LEASED') AND expires_at>?"
