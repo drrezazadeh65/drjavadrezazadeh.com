@@ -252,3 +252,92 @@ ensure((int)$pdo->query(
 )->fetchColumn()===0,'approval cannot fabricate CMS receipt');
 echo "PASS: disposable MariaDB full RSS -> verified article -> bilingual draft -> MFA owner -> private publisher queue\n";
 
+$publicationId=$queued['publicationId'];
+$fakeAttempt=false;
+try {
+    jrNewsConfirmOriginalCmsPublication($pdo,$publicationId,[
+        'source'=>'ORIGINAL_PRIVATE_CMS',
+        'finalIntegratedAcceptanceVerified'=>true,
+        'ownerAuthorizedActivation'=>true
+    ],static fn(array $ctx):array=>[
+        'source'=>'FORGED_BROWSER_CMS','verified'=>true,
+        'faRoute'=>$ctx['faRoute'],'enRoute'=>$ctx['enRoute']
+    ],1792820800);
+}catch(RuntimeException $e){$fakeAttempt=true;}
+ensure($fakeAttempt,'forged publisher receipts must be rejected');
+ensure((int)$pdo->query(
+    "SELECT COUNT(*) FROM jrei_news_publications WHERE publisher_state='PUBLISHED'"
+)->fetchColumn()===0,'forged receipt did not publish');
+$faPublicHash=hash('sha256','synthetic validated Persian canonical HTML');
+$enPublicHash=hash('sha256','synthetic validated English canonical HTML');
+$cmsOriginalReceipt='test-cms-signed-publication-receipt-1';
+$confirmed=jrNewsConfirmOriginalCmsPublication(
+    $pdo,$publicationId,[
+        'source'=>'ORIGINAL_PRIVATE_CMS',
+        'finalIntegratedAcceptanceVerified'=>true,
+        'ownerAuthorizedActivation'=>true
+    ],
+    static function(array $ctx) use(
+      $faPublicHash,$enPublicHash,$cmsOriginalReceipt):array {
+        return [
+            'source'=>'ORIGINAL_AUTHENTICATED_CMS',
+            'verified'=>true,
+            'faRoute'=>$ctx['faRoute'],
+            'enRoute'=>$ctx['enRoute'],
+            'approvalDigest'=>$ctx['approvalDigest'],
+            'bothCanonicalDocumentsVerified'=>true,
+            'sourceRecheckedAfterPublication'=>true,
+            'faContentSha256'=>$faPublicHash,
+            'enContentSha256'=>$enPublicHash,
+            'receiptReference'=>$cmsOriginalReceipt
+        ];
+    },1792820900);
+ensure($confirmed['status']==='PUBLISHED',
+    'only signed verified CMS receipt advances fixture publication');
+$publisherProof=static function(
+    string $receiptRef,string $route,string $hash
+)use($cmsOriginalReceipt,$faPublicHash,$enPublicHash,$draft):array{
+    ensure($receiptRef===$cmsOriginalReceipt,'CMS receipt provenance');
+    ensure(in_array($hash,[$faPublicHash,$enPublicHash],true),
+        'CMS approved content hash matches');
+    return [
+        'source'=>'ORIGINAL_AUTHENTICATED_CMS',
+        'verified'=>true,'route'=>$route,
+        'contentSha256'=>$hash,
+        'ownerApprovalDigest'=>$draft['approvalDigest']
+    ];
+};
+$countryProof=static function(string $sourceUrl,string $hash,string $pubId)
+  use($articleUrl,$contentHash,$publicationId):array {
+    ensure($sourceUrl===$articleUrl&&$hash===$contentHash&&
+        $pubId===$publicationId,'only original article source country accepted');
+    return [
+        'source'=>'ORIGINAL_JREI_REVIEWED_SOURCE_REGISTRY',
+        'current'=>true,'contentSha256'=>$contentHash,
+        'countryCode'=>'ZZ'
+    ];
+};
+foreach(['fa','en'] as $locale){
+    $indexed=jrNewsIndexApprovedPublication($pdo,$publicationId,$locale,
+        $publisherProof,$countryProof,1792821000);
+    ensure($indexed['publicSearchEligible']===true,
+        'published approved news enters correct language index');
+    ensure($indexed['countryCode']==='ZZ',
+        'no fabricated national attribution');
+}
+$searchEnglish=jrNewsPublishedSearch($pdo,'university','en',20,
+    ['country'=>'ZZ']);
+ensure($searchEnglish['result_count']===1,
+    'only signed English news is searchable');
+ensure($searchEnglish['results'][0]['url']===
+    'https://drjavadrezazadeh.com'.$draft['routeProposal']['enPath'],
+    'English canonical points to existing news-insights archive');
+$searchPersian=jrNewsPublishedSearch($pdo,'دانشگاه','fa',20);
+ensure($searchPersian['result_count']===1,
+    'published Persian news indexed with unicode search');
+ensure((int)$pdo->query(
+    "SELECT COUNT(*) FROM jrei_news_search_documents WHERE index_state='PUBLISHED'"
+)->fetchColumn()===2,'only two published language records indexed');
+echo "PASS: forged CMS rejected, authenticated fixture receipt, bilingual searchable index, original canonicals\n";
+
+
