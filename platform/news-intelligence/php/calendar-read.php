@@ -9,6 +9,28 @@ declare(strict_types=1);
  */
 if (!defined('BERTINA_API_BOOTSTRAPPED')) { http_response_code(404); exit; }
 
+/** Only source-registry-confirmed PUBLIC HTTPS issuing-authority links. */
+function jrNewsPublicOfficialSourceUrl(string $url): bool {
+    if(strlen($url)>1000||preg_match('/[\x00-\x20\x7F]/',$url))
+        return false;
+    $parts=parse_url($url);
+    if(!is_array($parts)||($parts['scheme']??null)!=='https'||
+       !is_string($parts['host']??null)||$parts['host']===''||
+       isset($parts['user'])||isset($parts['pass'])||
+       isset($parts['fragment'])||
+       (isset($parts['port'])&&(int)$parts['port']!==443))
+        return false;
+    $host=strtolower($parts['host']);
+    if(filter_var($host,FILTER_VALIDATE_IP)!==false||
+       $host==='localhost'||str_ends_with($host,'.localhost')||
+       str_ends_with($host,'.local')||
+       str_ends_with($host,'.internal')||
+       str_ends_with($host,'.test')||
+       !str_contains($host,'.'))
+        return false;
+    return filter_var($url,FILTER_VALIDATE_URL)!==false;
+}
+
 function jrNewsApprovedExamCalendarSnapshot(
     PDO $pdo,int $nowEpoch,callable $originalJreiPublicSourceResolver,
     int $limit=300
@@ -55,8 +77,7 @@ function jrNewsApprovedExamCalendarSnapshot(
             ($source['rightsCurrent']??null)!==true ||
             ($source['contentSha256']??null)!==$row['source_evidence_sha256'] ||
             !is_string($source['officialUrl']??null) ||
-            !filter_var($source['officialUrl'],FILTER_VALIDATE_URL) ||
-            !str_starts_with($source['officialUrl'],'https://')) {
+            !jrNewsPublicOfficialSourceUrl($source['officialUrl'])) {
             $omitted++;continue;
         }
         if (strlen((string)$row['external_exam_key'])>80 ||
