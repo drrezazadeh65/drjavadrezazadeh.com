@@ -1,0 +1,60 @@
+name: JREI News Isolated Acceptance (NO DEPLOYMENT)
+on:
+  push:
+    branches: [migration/bertina-linux6]
+    paths:
+      - ".github/workflows/jrei-news-isolated-acceptance.yml"
+      - "platform/news-intelligence/**"
+      - "docs/migrations/20261024_jrei_news_*.sql"
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: jrei-news-isolated-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    services:
+      mariadb:
+        image: mariadb:10.11
+        env:
+          MARIADB_ROOT_PASSWORD: fixture-password
+          MARIADB_DATABASE: news_fixture
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=15
+    env:
+      JREI_NEWS_TEST_DSN: mysql:host=127.0.0.1;port=3306;dbname=news_fixture;charset=utf8mb4
+      JREI_NEWS_TEST_USER: root
+      JREI_NEWS_TEST_PASSWORD: fixture-password
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Source syntax for EVERY isolated news module
+        shell: bash
+        run: |
+          set -euo pipefail
+          find platform/news-intelligence/php -name '*.php' -type f -print0 |
+            while IFS= read -r -d '' f; do php -l "$f"; done
+          find platform/news-intelligence -name '*.mjs' -type f -print0 |
+            while IFS= read -r -d '' f; do node --check "$f"; done
+          find platform/news-intelligence/ui -name '*.js' -type f -print0 |
+            while IFS= read -r -d '' f; do node --check "$f"; done
+          node -e "JSON.parse(require('node:fs').readFileSync('platform/news-intelligence/integration-manifest.json','utf8'))"
+      - name: Offline Node contract regressions, no network/provider
+        run: node --test platform/news-intelligence/tests/*.test.mjs
+      - name: Offline PHP source boundaries
+        run: php platform/news-intelligence/tests/news-source-contracts.php
+      - name: Disposable MariaDB mother-schema compatibility and workflows
+        run: php platform/news-intelligence/tests/news-schema-fixture.php
+      - name: Explicitly prohibit deploy side effects
+        run: |
+          echo 'JREI News offline PHP/JS + disposable MariaDB 10.11 tests. NO FTP, SSH, Bertina access, real customer database, SMTP, provider inference, public sitemap mutation or deployment.' >> "$GITHUB_STEP_SUMMARY"
