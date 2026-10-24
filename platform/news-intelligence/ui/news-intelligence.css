@@ -200,3 +200,21 @@
  border-color:#ead2a6;font-weight:800}
 .ni-category:hover{border-color:#f1d4a5}
 .ni-category:focus-visible{outline:2px solid #eac994;outline-offset:3px}
+
+
+/* Existing-account examination reminder management, small/mobile friendly. */
+.ni-reminders-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));
+ gap:.85rem;margin:1rem 0}
+.ni-reminder-card{background:#202527;color:#f7f3ea;
+ border:1px solid #705b3f;border-radius:.85rem;padding:1rem;
+ display:flex;flex-direction:column;align-items:flex-start;gap:.55rem;
+ overflow-wrap:anywhere}
+.ni-reminder-card h3{font-size:1.05rem;margin:0;line-height:1.7}
+.ni-reminder-card time{font-variant-numeric:tabular-nums;color:#e6ca91}
+.ni-reminder-card p{font-size:.85rem;margin:0;color:#c8bfad}
+.ni-reminder-card button{font:inherit;padding:.65rem .9rem;
+ border:1px solid #b59870;border-radius:.55rem;
+ min-height:44px;background:#2a2927;color:#f2d2a6;cursor:pointer}
+.ni-reminder-card button:disabled{opacity:.55;cursor:progress}
+.ni-reminder-card button:focus-visible{outline:2px solid #f4d49a;
+ outline-offset:3px}
