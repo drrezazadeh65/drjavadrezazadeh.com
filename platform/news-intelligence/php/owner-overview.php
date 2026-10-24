@@ -40,9 +40,9 @@ function jrNewsOwnerOperationalOverview(PDO $pdo,array $ownerSession,
                 AND p.scheduling_state='APPROVED'
                 AND p.rights_reviewed=1 AND p.robots_terms_reviewed=1
                 AND p.transport_reviewed=1
-                AND p.rights_evidence_sha256 REGEXP '^[a-f0-9]{64}$'
-                AND p.robots_terms_evidence_sha256 REGEXP '^[a-f0-9]{64}$'
-                AND p.transport_evidence_sha256 REGEXP '^[a-f0-9]{64}$'"
+                AND BINARY p.rights_evidence_sha256 REGEXP BINARY '^[a-f0-9]{64}$'
+                AND BINARY p.robots_terms_evidence_sha256 REGEXP BINARY '^[a-f0-9]{64}$'
+                AND BINARY p.transport_evidence_sha256 REGEXP BINARY '^[a-f0-9]{64}$'"
         ],
         [
             'keys'=>['discoveredCandidates','pendingEvidenceReview',
