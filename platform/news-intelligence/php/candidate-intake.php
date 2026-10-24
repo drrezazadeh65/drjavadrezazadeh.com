@@ -30,6 +30,7 @@ function jrNewsPersistObservedCandidate(
         !is_string($candidate['sourceId']??null) ||
         !is_string($candidate['title']??null) ||
         strlen($candidate['title'])>720 ||
+        preg_match('//u',$candidate['title'])!==1 ||
         preg_match_all('/./us',$candidate['title'])>240 ||
         trim($candidate['title'])==='' ||
         !is_string($candidate['url']??null) ||
