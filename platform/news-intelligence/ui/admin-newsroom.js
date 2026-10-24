@@ -150,6 +150,27 @@ export function mountNewsOwnerPanel({root,csrfResolver,
               }
             });
           }
+          if(source.enabled===false&&source.originalPolicyCurrent===true){
+            const activate=document.createElement('button');
+            activate.type='button';
+            activate.textContent=say('درخواست فعال‌سازی','Request activation');
+            line.append(activate);
+            activate.addEventListener('click',async()=>{
+              activate.disabled=true;
+              try{
+                const receipt=await request('/owner/source/enable',{
+                  method:'POST',body:JSON.stringify({monitorId:source.monitorId})
+                });
+                if(receipt.enabled!==true||
+                   receipt.originalSchedulerStillRequired!==true)
+                  throw Error('NEWS_SOURCE_ACTIVATION_UNKNOWN');
+                await load();
+              }catch{
+                show(say('مجوز فعال‌سازی تأیید نشد؛ وضعیت سرور را تازه‌سازی کنید.',
+                  'Activation not confirmed. Refresh authoritative status.'));
+              }
+            });
+          }
           sources.append(line);
         }
         if(inventory.items.length===0){
