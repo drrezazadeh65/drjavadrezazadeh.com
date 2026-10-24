@@ -41,9 +41,10 @@ function copy(rel=''){
   }
 }
 copy();
-// Copy ONLY the independently accepted published-only news search read model.
-// The whole platform/ directory stays excluded from the public artifact.
-// Original api/internal/.htaccess prevents direct HTTP access to this PHP.
+// Bundle the original MFA-gated JREI News PHP dependency closure only inside
+// the EXISTING api/internal/ HTTP-denied private directory. Never copy the
+// platform/ source tree or expose a new public entrypoint. All features remain
+// OFF until existing owner/release policy explicitly authorizes them.
 const newsPrivateDir=path.join(out,'api/internal/jrei-news');
 const parentDeny=path.join(out,'api/internal/.htaccess');
 if(!fs.existsSync(parentDeny) ||
@@ -59,6 +60,29 @@ if(!newsModelBody.includes("if (!defined('BERTINA_API_BOOTSTRAPPED'))")||
    !newsModelBody.includes("p.publisher_state='PUBLISHED'"))
   throw Error('News public-read model lost its owner-approved-only/bootstrapped constraints');
 fs.writeFileSync(path.join(newsPrivateDir,newsModelName),newsModelBody,{flag:'wx'});
+const newsPhpSourceDir=path.join(root,'platform/news-intelligence/php');
+const newsLibraryBody=fs.readFileSync(path.join(newsPhpSourceDir,'news-library.php'),'utf8');
+const requiredNewsPhp=[...newsLibraryBody.matchAll(
+  /^require_once __DIR__\.'\\/([a-z][a-z0-9-]*\\.php)';$/gm
+)].map(match=>match[1]);
+if(requiredNewsPhp.length<24 || requiredNewsPhp.length>32 ||
+   new Set(requiredNewsPhp).size!==requiredNewsPhp.length ||
+   !requiredNewsPhp.includes('public-read-model.php') ||
+   !requiredNewsPhp.includes('news-api-adapter.php'))
+  throw Error('JREI News private runtime library dependency list is unexpected');
+for(const name of ['news-library.php',...requiredNewsPhp]){
+  const body=name==='news-library.php'?newsLibraryBody:
+    fs.readFileSync(path.join(newsPhpSourceDir,name),'utf8');
+  if(!body.startsWith('<?php') ||
+     !body.includes("defined('BERTINA_API_BOOTSTRAPPED')"))
+    throw Error('JREI News private runtime bootstrap guard missing: '+name);
+  const output=path.join(newsPrivateDir,name);
+  if(name===newsModelName){
+    if(body!==newsModelBody)throw Error('JREI News public projection mismatch');
+  }else{
+    fs.writeFileSync(output,body,{flag:'wx'});
+  }
+}
 // Insert an opt-in public Q&A surface only on catalogued public service detail pages.
 // Server deployment flags remain OFF unless separately approved after real QA.
 projectCommunityServicePages(root,out);
