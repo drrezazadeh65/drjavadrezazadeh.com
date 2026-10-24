@@ -60,6 +60,9 @@ function jrNewsOwnerStageSourceMonitor(
         if (!is_array($parts)||($parts['scheme']??null)!=='https'||
             !isset($parts['host'])||isset($parts['user'])||
             isset($parts['pass'])||isset($parts['fragment'])||
+            (isset($parts['port'])&&(int)$parts['port']!==443)||
+            preg_match('/[\\x00-\\x20\\x7F]/',
+                (string)$s['source_locator_uri'])===1||
             filter_var((string)$parts['host'],FILTER_VALIDATE_IP)!==false) {
             throw new RuntimeException('news_original_source_uri_not_public_https');
         }
