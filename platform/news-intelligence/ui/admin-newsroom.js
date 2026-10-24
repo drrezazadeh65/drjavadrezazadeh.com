@@ -128,6 +128,28 @@ export function mountNewsOwnerPanel({root,csrfResolver,
             say('سیاست منبع معتبر','Original source policy current'):
             say('نیازمند بررسی مجوز اصلی','Original policy review needed');
           line.append(name,state,authority);
+          if(source.enabled===true){
+            const pause=document.createElement('button');
+            pause.type='button';
+            pause.textContent=say('توقف پایش','Pause monitoring');
+            line.append(pause);
+            pause.addEventListener('click',async()=>{
+              pause.disabled=true;
+              try{
+                const receipt=await request('/owner/source/disable',{
+                  method:'POST',
+                  body:JSON.stringify({monitorId:source.monitorId})
+                });
+                if(receipt.enabled!==false||
+                   receipt.schema!=='jr.jrei.news-owner-monitor-disabled.v1')
+                  throw Error('NEWS_SOURCE_PAUSE_UNKNOWN');
+                await load();
+              }catch{
+                show(say('توقف پایش تأیید نشد؛ وضعیت را تازه‌سازی کنید.',
+                  'Pause outcome unknown. Refresh authoritative status.'));
+              }
+            });
+          }
           sources.append(line);
         }
         if(inventory.items.length===0){
