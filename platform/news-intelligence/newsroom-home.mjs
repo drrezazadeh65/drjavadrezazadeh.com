@@ -123,7 +123,7 @@ export function renderNewsroomHome({language='fa',stories=[],examEvents=[],
     '<main id="ni-home-main" class="ni-home-shell">'+
     '<header class="ni-home-heading"><p class="ni-kicker">JREI NEWS INTELLIGENCE</p>'+
     '<h1>'+e(copy.brand)+'</h1><p>'+e(copy.intro)+'</p></header>'+
-    categories+(hero||'<section class="ni-empty-public" role="status"><p>'+e(copy.empty)+'</p></section>')+
+    (hero||'<section class="ni-empty-public" role="status"><p>'+e(copy.empty)+'</p></section>')+
     '<section class="ni-editorial-standard" aria-label="'+e(copy.standards)+'"><strong>'+e(copy.standards)+'</strong><p>'+e(copy.standardsText)+'</p></section>'+
     '<section class="ni-archive-search" data-ni-archive-search data-ni-language="'+language+'"></section>'+
     '<div class="ni-home-columns"><section class="ni-news-feed">'+
