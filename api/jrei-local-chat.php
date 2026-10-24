@@ -47,7 +47,8 @@ function jrLocalChatSchemaReady(PDO $pdo): bool {
     }catch(Throwable $e){return false;}
 }
 function jrLocalChatNodeApproved(PDO $pdo,string $nodeId,
-    string $modelId,string $modelVersion,string $modelSha): bool {
+    string $modelId,string $modelVersion,string $modelSha,
+    bool $lockForCompletion=false): bool {
     if(!jrHybridUuid($nodeId)||!jrHybridIdentifier($modelId)||
        !jrHybridIdentifier($modelVersion)||!jrHybridSha($modelSha))return false;
     $q=$pdo->prepare("SELECT a.enabled,n.node_id
@@ -62,7 +63,8 @@ function jrLocalChatNodeApproved(PDO $pdo,string $nodeId,
          AND m.model_artifact_sha256=a.model_artifact_sha256
          AND m.status='RIGHTS_REVIEWED' AND m.suspended_at IS NULL
          AND m.weights_installed_verified=1 AND m.runtime_verified=1
-         AND m.independent_quality_accepted=1 LIMIT 1");
+         AND m.independent_quality_accepted=1 LIMIT 1".
+         ($lockForCompletion?' FOR UPDATE':''));
     $q->execute([$nodeId,$modelId,$modelVersion,$modelSha]);
     return $q->fetchColumn()!==false;
 }
@@ -323,6 +325,13 @@ function jrLocalChatWorkerPoll(PDO $pdo,array $cfg,string $node,array $body): ar
 function jrLocalChatWorkerComplete(PDO $pdo,array $cfg,string $node,array $body): array {
     $id=$body['jobId']??null;$token=$body['leaseToken']??null;
     $answer=$body['answer']??null;
+    $model=$body['modelId']??null;
+    $version=$body['modelVersion']??null;
+    $digest=$body['modelSha256']??null;
+    if(!is_string($model)||!is_string($version)||!is_string($digest)||
+       !jrHybridIdentifier($model)||!jrHybridIdentifier($version)||
+       !jrHybridSha($digest))
+        throw new InvalidArgumentException('local_chat_model_receipt_invalid');
     if(!jrHybridUuid($id)||!is_string($token)||
        preg_match('/^[a-f0-9]{64}$/D',$token)!==1||
        !is_string($answer)||strlen($answer)<12||strlen($answer)>4000||
@@ -330,6 +339,11 @@ function jrLocalChatWorkerComplete(PDO $pdo,array $cfg,string $node,array $body)
         throw new InvalidArgumentException('local_chat_worker_reply_invalid');
     $pdo->beginTransaction();
     try {
+        // Serialize accepted completion with independent owner revocation
+        // of this node/model pair. A signed old lease does not overrule a
+        // revoked, suspended or unreviewed model authorization.
+        if(!jrLocalChatNodeApproved($pdo,$node,$model,$version,$digest,true))
+            throw new DomainException('local_chat_model_authorization_revoked');
         $q=$pdo->prepare('SELECT status,leased_to_node,lease_secret_sha256,
           lease_expires_at,expires_at,request_ciphertext
           FROM jrei_local_chat_jobs WHERE job_id=? FOR UPDATE');
