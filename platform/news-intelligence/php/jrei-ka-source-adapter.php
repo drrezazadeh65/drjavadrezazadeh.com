@@ -24,7 +24,8 @@ function jrNewsExistingJreiApprovedSources(PDO $pdo,int $limit=200): array {
                 s.verified_at,s.is_revoked,s.is_superseded,
                 p.revision,p.refresh_interval_seconds,p.scheduling_state,
                 p.rights_reviewed,p.robots_terms_reviewed,p.transport_reviewed,
-                p.priority_tier
+                p.rights_evidence_sha256,p.robots_terms_evidence_sha256,
+                p.transport_evidence_sha256,p.priority_tier
          FROM jrei_news_monitors n
          JOIN jrei_exam_sources s ON s.source_id=n.jrei_source_reference
          JOIN jrei_ka_source_policies p ON p.source_id=s.source_id
@@ -43,6 +44,17 @@ function jrNewsExistingJreiApprovedSources(PDO $pdo,int $limit=200): array {
     $q->execute();
     $eligible=[];$skipped=0;
     foreach($q->fetchAll(PDO::FETCH_ASSOC) as $row) {
+        // A policy checkbox is not sufficient if the ORIGINAL reviewed
+        // evidence was removed or never recorded in JREI-KA.
+        $evidenceComplete=true;
+        foreach(['rights_evidence_sha256','robots_terms_evidence_sha256',
+                 'transport_evidence_sha256'] as $field){
+            if(preg_match('/^[a-f0-9]{64}$/D',
+               (string)($row[$field]??''))!==1){
+                $evidenceComplete=false;break;
+            }
+        }
+        if(!$evidenceComplete){$skipped++;continue;}
         $uri=$row['source_locator_uri'];
         // The monitor is scoped to the exact ORIGINAL source URL and
         // independently reviewed source-policy revision. A later registry
