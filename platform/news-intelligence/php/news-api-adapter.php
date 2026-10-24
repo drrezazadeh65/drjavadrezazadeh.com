@@ -139,7 +139,8 @@ function jrNewsDispatchApi(PDO $pdo,string $method,string $route,
         if ($topic!==null&&!is_string($topic)) {
             throw new InvalidArgumentException('news_api_topic_invalid');
         }
-        return jrNewsWithdrawTopics($pdo,$accountId,$topic,time());
+        return jrNewsWithdrawTopics($pdo,$accountId,$topic,time(),
+            $existingEcoNewsSuppressor);
     }
     if ($method==='POST' && $route==='/news/v1/exam/follow') {
         $accountId=jrNewsActiveCustomerSession($serverCtx);
