@@ -15,6 +15,7 @@ if (!defined('BERTINA_API_BOOTSTRAPPED')) {
 }
 require_once __DIR__.'/public-read-model.php';
 require_once __DIR__.'/owner-editorial.php';
+require_once __DIR__.'/owner-preview.php';
 require_once __DIR__.'/exam-reminders.php';
 require_once __DIR__.'/topic-newsletter.php';
 function jrNewsRouteBody(array $body,string $key,int $maxBytes=240): string {
@@ -65,6 +66,14 @@ function jrNewsDispatchApi(PDO $pdo,string $method,string $route,
             throw new RuntimeException('news_api_owner_session_required');
         }
         return jrNewsPrivateOwnerQueue($pdo,$owner,40);
+    }
+    if ($method==='GET' && $route==='/news/v1/owner/preview') {
+        $owner=$serverCtx['existingOwnerMfaSession']??null;
+        if (!is_array($owner)) {
+            throw new RuntimeException('news_api_owner_session_required');
+        }
+        $revisionId=jrNewsRouteBody($body,'revisionId',36);
+        return jrNewsPrivateOwnerPreview($pdo,$owner,$revisionId);
     }
     if ($method==='POST' && $route==='/news/v1/owner/decision') {
         $owner=$serverCtx['existingOwnerMfaSession']??null;
