@@ -45,6 +45,10 @@ test('signed Windows worker invokes ONLY loopback and returns unverified answer 
   };
   const fetchImpl=async (url,init)=>{
     localCalls.push({url:String(url),init});
+    if(init.method==='GET')
+      return new Response(JSON.stringify({status:'ok'}),{
+        status:200,headers:{'Content-Type':'application/json'}
+      });
     return new Response(JSON.stringify({
       choices:[{message:{role:'assistant',content:'Educational research examines learning practices.'},
         finish_reason:'stop'}],
@@ -60,11 +64,13 @@ test('signed Windows worker invokes ONLY loopback and returns unverified answer 
   assert.equal(requests[1].body.jobId,job.jobId);
   assert.equal(requests[1].body.leaseToken,job.leaseToken);
   assert.match(requests[1].body.answer,/Educational research/);
-  assert.equal(localCalls.length,1);
-  assert.equal(localCalls[0].url,'http://127.0.0.1:8080/v1/chat/completions');
-  assert.equal(localCalls[0].init.method,'POST');
-  assert.equal(localCalls[0].init.redirect,'error');
-  assert.equal(JSON.parse(localCalls[0].init.body).model,'JREI-LM');
+  assert.equal(localCalls.length,2);
+  assert.equal(localCalls[0].url,'http://127.0.0.1:8080/health');
+  assert.equal(localCalls[0].init.method,'GET');
+  assert.equal(localCalls[1].url,'http://127.0.0.1:8080/v1/chat/completions');
+  assert.equal(localCalls[1].init.method,'POST');
+  assert.equal(localCalls[1].init.redirect,'error');
+  assert.equal(JSON.parse(localCalls[1].init.body).model,'JREI-LM');
   assert.ok(logs.includes('LOCAL_CHAT_EVIDENCE_GUARD_ACCEPTED_PROVISIONAL'));
 });
 
@@ -77,7 +83,11 @@ test('model failure does not fabricate a reply, call cloud, or retry a leased jo
     }};
     throw Error('UNEXPECTED_COMPLETION');
   };
-  const fetchImpl=async ()=>{
+  const fetchImpl=async (_url,init)=>{
+    if(init.method==='GET')
+      return new Response(JSON.stringify({status:'ok'}),{
+        status:200,headers:{'Content-Type':'application/json'}
+      });
     controller.abort();
     throw Error('LOCAL_BACKEND_OFFLINE');
   };
