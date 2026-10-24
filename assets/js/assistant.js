@@ -31,7 +31,7 @@
     open:'دستیار هوشمند',title:'دستیار دکتر رضازاده',subtitle:'راهنمای هوشمند سایت',
     greeting:'سلام. من دستیار هوشمند سایت دکتر رضازاده هستم. درباره خدمات، Golden Talent، انتخاب رشته، پژوهش‌ها و مسیرهای سایت می‌توانم راهنمایی‌تان کنم.',
     notice:'اطلاعات حساس، مدارک هویتی، پرونده پزشکی، رمز عبور یا اطلاعات پرداخت را در این گفتگو ارسال نکنید.',
-    placeholder:'سؤال‌تان را بنویسید…',send:'ارسال',close:'بستن',thinking:'در حال بررسی…',
+    placeholder:'سؤال‌تان را بنویسید…',send:'ارسال',close:'بستن',reset:'گفت‌وگوی جدید',copy:'کپی پاسخ',copied:'کپی شد',thinking:'در حال بررسی…',
     error:'ارتباط زنده با دستیار هنوز برقرار نیست. می‌توانید از راهنماهای زیر استفاده کنید یا دوباره تلاش کنید.',
     retry:'تلاش دوباره',offline:'راهنمای سریع',leadOpen:'درخواست تماس',leadTitle:'اگر مایلید با شما تماس بگیریم',leadEmail:'ایمیل',leadMobile:'شماره موبایل',leadValue:'راه ارتباط',leadIntent:'موضوع اصلی',leadConsent:'با ذخیره این راه ارتباط برای پاسخ‌گویی به همین درخواست موافقم.',leadWhatsApp:'اگر واتس‌اپ بیزنس فعال شود، تماس در واتس‌اپ را هم می‌پذیرم.',leadSend:'ثبت درخواست تماس',leadSaved:'درخواست تماس ثبت شد.',leadError:'ثبت درخواست تماس انجام نشد؛ لطفاً بعداً دوباره تلاش کنید.',
     chips:['برای انتخاب رشته از کجا شروع کنم؟','Golden Talent چیست؟','چطور مشاوره بگیرم؟']
@@ -39,7 +39,7 @@
     open:'AI Assistant',title:'Dr. Rezazadeh Assistant',subtitle:'Smart site guide',
     greeting:'Hello. I am the AI assistant for Dr. Rezazadeh’s website. I can guide you through services, Golden Talent, student guidance, research and the site.',
     notice:'Please do not share identity documents, medical records, passwords, payment details or other sensitive personal information here.',
-    placeholder:'Ask a question…',send:'Send',close:'Close',thinking:'Checking…',
+    placeholder:'Ask a question…',send:'Send',close:'Close',reset:'New chat',copy:'Copy answer',copied:'Copied',thinking:'Checking…',
     error:'The live assistant is not connected yet. You can use the quick guidance below or try again.',
     retry:'Try again',offline:'Quick guidance',leadOpen:'Request contact',leadTitle:'Would you like us to contact you?',leadEmail:'Email',leadMobile:'Mobile',leadValue:'Contact detail',leadIntent:'Main topic',leadConsent:'I agree that this contact detail may be stored to respond to this request.',leadWhatsApp:'If WhatsApp Business is activated, I also consent to contact through WhatsApp.',leadSend:'Save contact request',leadSaved:'Your contact request has been saved.',leadError:'The contact request could not be saved. Please try again later.',
     chips:['Which service fits my needs?','What is Golden Talent?','How do I request consultation?']
@@ -105,7 +105,8 @@
     '</button>'+
     '<section class="jr-assistant-panel" id="jr-assistant-panel" hidden aria-label="'+labels.title+'">'+
       '<div class="jr-assistant-head"><div><strong>'+labels.title+'</strong><small>'+labels.subtitle+'</small></div>'+
-      '<button class="jr-assistant-close" type="button" aria-label="'+labels.close+'">×</button></div>'+
+      '<div class="jr-assistant-head-actions"><button class="jr-assistant-reset" type="button">'+labels.reset+'</button>'+
+      '<button class="jr-assistant-close" type="button" aria-label="'+labels.close+'">×</button></div></div>'+
       '<div class="jr-assistant-thread" role="log" aria-live="polite" aria-relevant="additions"></div>'+
       '<div class="jr-assistant-chips"></div>'+
       '<form class="jr-assistant-form"><label class="sr-only" for="jr-assistant-input">'+labels.placeholder+'</label>'+
@@ -214,6 +215,22 @@
     body.className='jr-assistant-bubble';
     body.textContent=String(text||'');
     item.appendChild(body);
+    if(role!=='user'){
+      const actions=document.createElement('div');
+      actions.className='jr-assistant-message-actions';
+      const copy=document.createElement('button');
+      copy.type='button';copy.className='jr-assistant-copy';
+      copy.textContent=labels.copy;
+      copy.addEventListener('click',async()=>{
+        try{
+          if(!navigator.clipboard?.writeText)return;
+          await navigator.clipboard.writeText(body.textContent||'');
+          copy.textContent=labels.copied;
+        }catch(_){copy.textContent=labels.copy;}
+      });
+      actions.appendChild(copy);
+      item.appendChild(actions);
+    }
     if(Array.isArray(links)&&links.length){
       const list=document.createElement('div');
       list.className='jr-assistant-links';
@@ -339,16 +356,19 @@
     }
   });
   close.addEventListener('click',()=>{panel.hidden=true;launcher.setAttribute('aria-expanded','false');launcher.focus();});
-  const clearEphemeralAssistant=()=>{
+  const clearEphemeralAssistant=(keepOpen=false)=>{
     // Backgrounded mobile PWAs must not keep private text visible in a
     // resumable tab or accept late async responses after a user leaves.
     requestGeneration++;
     activeRequest?.abort();activeRequest=null;
     history=[];lastQuery='';busy=false;ephemeralVisitorId=null;
+    providerConsent.checked=false;
     thread.replaceChildren();input.value='';input.disabled=false;
     form.querySelector('button').disabled=false;
-    panel.hidden=true;launcher.setAttribute('aria-expanded','false');
+    panel.hidden=!keepOpen;launcher.setAttribute('aria-expanded',keepOpen?'true':'false');
+    if(keepOpen){addMessage('assistant',staticGreeting);input.focus();}
   };
+  wrap.querySelector('.jr-assistant-reset').addEventListener('click',()=>clearEphemeralAssistant(true));
   document.addEventListener('visibilitychange',()=>{
     if(document.hidden)clearEphemeralAssistant();
   });
