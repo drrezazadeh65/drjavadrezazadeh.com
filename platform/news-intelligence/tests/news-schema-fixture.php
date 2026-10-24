@@ -41,6 +41,9 @@ $pdo->exec('CREATE TABLE jrei_ka_source_policies (
     rights_reviewed TINYINT NOT NULL,
     robots_terms_reviewed TINYINT NOT NULL,
     transport_reviewed TINYINT NOT NULL,
+    rights_evidence_sha256 CHAR(64) CHARACTER SET ascii COLLATE ascii_bin NULL,
+    robots_terms_evidence_sha256 CHAR(64) CHARACTER SET ascii COLLATE ascii_bin NULL,
+    transport_evidence_sha256 CHAR(64) CHARACTER SET ascii COLLATE ascii_bin NULL,
     priority_tier VARCHAR(10) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci');
 $dir=dirname(__DIR__,3).'/docs/migrations';
@@ -91,10 +94,15 @@ $insertSource->execute([$itemId,'Verified official admissions article',
 $insertPolicy=$pdo->prepare(
     "INSERT INTO jrei_ka_source_policies
      (source_id,revision,refresh_interval_seconds,scheduling_state,
-      rights_reviewed,robots_terms_reviewed,transport_reviewed,priority_tier)
-     VALUES (?,1,3600,'APPROVED',1,1,1,'P1')");
-$insertPolicy->execute([$feedId]);
-$insertPolicy->execute([$itemId]);
+      rights_reviewed,robots_terms_reviewed,transport_reviewed,
+      rights_evidence_sha256,robots_terms_evidence_sha256,
+      transport_evidence_sha256,priority_tier)
+     VALUES (?,1,3600,'APPROVED',1,1,1,
+       SHA2(CONCAT('synthetic-rights-proof:',?),256),
+       SHA2(CONCAT('synthetic-robots-proof:',?),256),
+       SHA2(CONCAT('synthetic-transport-proof:',?),256),'P1')");
+$insertPolicy->execute([$feedId,$feedId,$feedId,$feedId]);
+$insertPolicy->execute([$itemId,$itemId,$itemId,$itemId]);
 $owner=[
     'source'=>'EXISTING_OPERATIONS_SESSION',
     'ownerAuthenticated'=>true,'mfaVerified'=>true,'csrfVerified'=>true,
