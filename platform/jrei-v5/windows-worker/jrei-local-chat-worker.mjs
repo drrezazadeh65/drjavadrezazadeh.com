@@ -14,8 +14,20 @@ const ID=/^[A-Za-z0-9._:-]{1,64}$/;
 const SHA=/^[a-f0-9]{64}$/;
 const UUID=/^[a-f0-9]{8}-(?:[a-f0-9]{4}-){3}[a-f0-9]{12}$/;
 const TOKEN=/^[a-f0-9]{64}$/;
-const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 const wait=Math.min;
+function abortableDelay(ms,signal){
+  return new Promise(resolve=>{
+    if(signal?.aborted){resolve();return;}
+    let timer;
+    const finish=()=>{
+      clearTimeout(timer);
+      signal?.removeEventListener?.('abort',finish);
+      resolve();
+    };
+    timer=setTimeout(finish,ms);
+    signal?.addEventListener?.('abort',finish,{once:true});
+  });
+}
 const safeReason=error=>{
   const value=typeof error?.message==='string'?error.message:'UNAVAILABLE';
   return /^[A-Z0-9_]{3,90}$/.test(value)?value:'LOCAL_MODEL_TEMPORARILY_UNAVAILABLE';
@@ -110,7 +122,7 @@ export async function runLocalChatWorker(config,key,{post,log,signal,fetchImpl}=
         if(pressure.busy){
           if(!resourceBusy)log('LOCAL_CHAT_RESOURCE_PRESSURE_DEFERRED');
           resourceBusy=true;
-          if(!stopping)await sleep(15000);
+          if(!stopping)await abortableDelay(15000,signal);
           continue;
         }
         if(resourceBusy)log('LOCAL_CHAT_RESOURCE_PRESSURE_CLEARED');
@@ -198,7 +210,7 @@ export async function runLocalChatWorker(config,key,{post,log,signal,fetchImpl}=
             Math.min(maxIdlePollSeconds,Math.max(model.pollSeconds,idlePollSeconds*2)):
             model.pollSeconds;
           const jitterMs=Math.floor(Math.random()*1000);
-          await sleep(delaySeconds*1000+jitterMs);
+          await abortableDelay(delaySeconds*1000+jitterMs,signal);
         }
       }catch(error){
         log('LOCAL_CHAT_TRANSPORT_'+safeReason(error));
@@ -209,7 +221,7 @@ export async function runLocalChatWorker(config,key,{post,log,signal,fetchImpl}=
         }
         idlePollSeconds=model.pollSeconds;
         backoff=Math.min(backoff+1,6);
-        if(!stopping)await sleep(wait(120000,10000*2**(backoff-1)));
+        if(!stopping)await abortableDelay(wait(120000,10000*2**(backoff-1)),signal);
       }
     }
   }finally{
