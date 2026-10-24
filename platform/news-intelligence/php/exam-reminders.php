@@ -83,6 +83,7 @@ function jrNewsQueueDueReminders(PDO $pdo,int $nowEpoch,
            AND a.email_verified_at IS NOT NULL
            AND m.event_utc>=:recent AND m.event_utc<=:future
            AND (m.event_utc-(f.days_before*86400))<=:current
+           AND (m.event_utc-(f.days_before*86400))>:earliest
            AND NOT EXISTS (
               SELECT 1 FROM jrei_news_exam_milestones newer
               WHERE newer.previous_milestone_id=m.milestone_id
@@ -92,7 +93,8 @@ function jrNewsQueueDueReminders(PDO $pdo,int $nowEpoch,
          ORDER BY m.event_utc ASC LIMIT 100"
     );
     $stmt->execute([':recent'=>$nowEpoch-3600,
-        ':future'=>$nowEpoch+30*86400,':current'=>$nowEpoch]);
+        ':future'=>$nowEpoch+30*86400,':current'=>$nowEpoch,
+        ':earliest'=>$nowEpoch-86400]);
     $queued=0;$suppressed=0;
     foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
         $consent=$consentResolver($row['account_id'],
