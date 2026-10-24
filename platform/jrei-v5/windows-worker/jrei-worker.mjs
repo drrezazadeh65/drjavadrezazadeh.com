@@ -4,6 +4,7 @@
  * Exactly two human-invoked commands:
  *    node jrei-worker.mjs init
  *    node jrei-worker.mjs start [absolute-private-config.json]
+ *    node jrei-worker.mjs start-chat [absolute-private-config.json]
  *
  * NO inbound listener, no remote shell, no arbitrary tool execution, no
  * unapproved model downloads, no cloud inference, and no filesystem upload.
@@ -30,6 +31,8 @@ const ENDPOINTS = Object.freeze({
   poll: '/api/jrei/v1/worker/poll',
   heartbeat: '/api/jrei/v1/worker/heartbeat',
   complete: '/api/jrei/v1/worker/complete',
+  localChatPoll:'/api/jrei/v1/local-chat/poll',
+  localChatComplete:'/api/jrei/v1/local-chat/complete',
   localPoll: '/api/jrei/v1/local-chat/poll',
   localComplete: '/api/jrei/v1/local-chat/complete'
 });
@@ -492,11 +495,25 @@ const cmd=process.argv[2];
 try {
   if(cmd==='init'&&process.argv.length===3)await init();
   else if(cmd==='start'&&process.argv.length===4)await run(process.argv[3]);
+  else if(cmd==='start-chat'&&process.argv.length===4){
+    const config=await loadConfig(process.argv[3]);
+    const pem=protectKey('unprotect',keyPath());
+    if(!pem)throw Error('WINDOWS_DPAPI_KEY_UNAVAILABLE');
+    const key=createPrivateKey(pem);
+    if(key.asymmetricKeyType!=='ed25519')
+      throw Error('PRIVATE_KEY_TYPE_UNAPPROVED');
+    const {runLocalChatWorker}=await import('./jrei-local-chat-worker.mjs');
+    const stop=new AbortController();
+    process.once('SIGINT',()=>stop.abort());
+    process.once('SIGTERM',()=>stop.abort());
+    await runLocalChatWorker(config,key,{post,log,signal:stop.signal});
+  }
   else if(cmd==='start-chat'&&process.argv.length===4)await runLocalChat(process.argv[3]);
   else{
     process.stdout.write(
       'JREI: use "node jrei-worker.mjs init" separately on each PC, then\n'+
       '       "node jrei-worker.mjs start C:\\path\\to\\private-config.json"\n'+
+      '       "node jrei-worker.mjs start-chat C:\\path\\to\\private-config.json" for separately approved local JREI-LM.\n'+
       'No models or worker APIs are activated by displaying this help.\n'
     );
     if(cmd!==undefined)process.exitCode=2;
