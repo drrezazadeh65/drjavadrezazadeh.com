@@ -8,6 +8,7 @@ on:
       - "platform/jrei-v5/**"
       - "assets/js/assistant.js"
       - "assets/js/site-extras.js"
+      - "assets/js/site.js"
       - "platform/assistant-runtime-policy.json"
       - "assets/css/assistant.css"
       - "docs/governance/JREI_CHATGPT_CLASS_FUTURE_EXPERIENCE_STANDARD_20261024.md"
