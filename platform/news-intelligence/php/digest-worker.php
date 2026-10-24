@@ -141,6 +141,6 @@ function jrNewsQueueTopicDigests(PDO $pdo,string $mode,int $nowEpoch,
     return ['schema'=>'jr.jrei.news-digest-queue.v1',
         'queued'=>$queued,'skipped'=>$skipped,
         'nextAfterAccountId'=>$lastAccount,
-        'mayHaveMoreAudience'=>count($rows)>=100,
+        'mayHaveMoreAudience'=>$hasMore,
         'actualSmtpDeliveryUnverified'=>true];
 }
