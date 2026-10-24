@@ -326,18 +326,7 @@ function jrLocalChatWorkerPoll(PDO $pdo,array $cfg,string $node,array $body): ar
          AND model_version=? AND model_artifact_sha256=?
          AND (last_signed_chat_seen_at IS NULL OR last_signed_chat_seen_at<=?)")
        ->execute([$now,$node,$model,$version,$digest,$now-10]);
-    // Preserve signed heartbeats, but do not update the same mother-DB
-    // row on every idle poll when it is already fresh and accurate.
-    // Two independent Windows nodes share the public site's database.
-    $pdo->prepare("UPDATE jrei_hybrid_nodes SET
-       model_id=?,model_version=?,last_seen_at=?,
-       last_reported_state='ONLINE',updated_at=?
-       WHERE node_id=? AND status='ENABLED' AND revoked_at IS NULL
-         AND (last_seen_at IS NULL OR last_seen_at<=?
-           OR model_id IS NULL OR model_id<>?
-           OR model_version IS NULL OR model_version<>?
-           OR last_reported_state<>'ONLINE')")
-       ->execute([$model,$version,$now,$now,$node,$now-10,$model,$version]);
+    // Independent chat timestamps must not overwrite evaluation-node telemetry.
     if($heartbeatOnly)return ['ok'=>true,'job'=>null];
     // Idle requests are read-only after the signed authorization check.
     // The composite (status,expires_at,created_at) index keeps this
