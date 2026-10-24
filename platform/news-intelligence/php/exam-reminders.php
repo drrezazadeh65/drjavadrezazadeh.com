@@ -119,6 +119,8 @@ function jrNewsQueueDueReminders(PDO $pdo,int $nowEpoch,
             'mailboxDelivered'=>false];
         $result=$enqueueExistingOutbox($message);
         if (is_array($result) &&
+            ($result['source']??null)==='ORIGINAL_ECO_EXAM_REMINDER_OUTBOX' &&
+            ($result['idempotencyKey']??null)===$key &&
             in_array($result['state']??null,['QUEUED','ALREADY_QUEUED'],true)) {
             $queued++;
         } else $suppressed++;
