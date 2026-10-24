@@ -7,6 +7,7 @@ on:
       - ".github/workflows/v5-release-candidate.yml"
       - "platform/jrei-v5/**"
       - "assets/js/assistant.js"
+      - "platform/assistant-runtime-policy.json"
       - "assets/css/assistant.css"
       - "docs/governance/JREI_CHATGPT_CLASS_FUTURE_EXPERIENCE_STANDARD_20261024.md"
       - "api/jrei-*.php"
