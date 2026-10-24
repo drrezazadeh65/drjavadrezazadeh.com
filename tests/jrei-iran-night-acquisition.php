@@ -23,12 +23,12 @@ jrNightAssert(jrJreiIranNightTransferCap(5000000)===5000000,'lower_owner_cap_pre
 jrNightAssert(jrJreiIranNightTransferCap(-1)===0,'reject_negative_cap');
 $acquisition=(string)file_get_contents(__DIR__.'/../api/jrei-ka-acquisition-dispatch.php');
 $scheduler=(string)file_get_contents(__DIR__.'/../api/jrei-ka-scheduler.php');
-jrNightAssert(substr_count($acquisition,'jrJreiIranNightAllowsRequest(time())')>=2,
+jrNightAssert(substr_count($acquisition,'jrJreiKaAcquisitionWindowAllowed($cfg,time(),true)')>=2,
     'independent_acquisition_gates');
 jrNightAssert(str_contains($acquisition,'jrJreiIranNightTransferCap(')&&
     str_contains($acquisition,'jrJreiIranNightDate($at)'), 'bounded_local_reservation');
 jrNightAssert(str_contains($scheduler,"'IRAN_NIGHT_MODE_DISABLED'")&&
-    str_contains($scheduler,'jrJreiIranNightOpen($at)'), 'scheduler_fail_closed');
+    str_contains($scheduler,'jrJreiKaAcquisitionWindowAllowed($cfg,$at)'), 'scheduler_fail_closed');
 jrNightAssert(!jrJreiKaAcquisitionWindowAllowed([],jrNightTime('2026-10-24 12:00:00'),true),'continuous_defaults_off');
 jrNightAssert(jrJreiKaAcquisitionWindowAllowed(
   ['jrei_ka_night_mode_enabled'=>true],jrNightTime('2026-10-24 02:30:00'),true),
@@ -44,4 +44,10 @@ jrNightAssert(!jrJreiKaUncappedDailyAuthorized(
 jrNightAssert(jrJreiKaUncappedDailyAuthorized(
   ['jrei_ka_continuous_enabled'=>true,'jrei_ka_uncapped_daily_enabled'=>true]),
   'two_independent_owner_opt_ins_required');
+jrNightAssert(str_contains($acquisition,'$cap=$uncapped?null:')&&
+    str_contains($acquisition,'$cap!==null&&$total>$cap-$reserveBytes')&&
+    str_contains($acquisition,"(int)$c['max_storage_bytes']"),
+    'unlimited_daily_still_requires_physical_storage_policy');
+jrNightAssert(str_contains($scheduler,'jrei_ka_continuous_enabled'),
+    'scheduler_requires_explicit_continuous_switch');
 echo "JREI Iran 02:00-05:00 offline window contract PASS. NO CRAWLING.\n";
