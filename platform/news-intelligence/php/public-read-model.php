@@ -74,6 +74,8 @@ function jrNewsPublishedSearch(PDO $pdo,string $query,string $locale='fa',
         "p.published_at IS NOT NULL",
         "d.action_code='APPROVE'",
         "d.revision_id=p.revision_id",
+        "d.approval_digest=v.approval_digest",
+        "p.publisher_receipt_reference IS NOT NULL",
         "s.owner_approval_digest=v.approval_digest",
         "s.public_route=IF(s.language_code='fa',p.fa_route,p.en_route)",
         "s.content_sha256=IF(s.language_code='fa',p.fa_content_sha256,p.en_content_sha256)"
