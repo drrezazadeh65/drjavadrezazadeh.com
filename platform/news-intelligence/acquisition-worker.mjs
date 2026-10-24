@@ -64,8 +64,10 @@ export async function queueDueNewsAcquisitions({
       requiresOriginalJreiSignedWorker:true,noAutomaticPublication:true
     });
   }
+  // Explicit zero is a private safety pause, not an instruction to queue
+  // one task. Zero or a busy public site always defers discretionary work.
   const maxQueued=Number.isInteger(serverControls.maxNewsQueuesPerDispatch)?
-    Math.max(1,Math.min(MAX_PER_BATCH,serverControls.maxNewsQueuesPerDispatch)):
+    Math.max(0,Math.min(MAX_PER_BATCH,serverControls.maxNewsQueuesPerDispatch)):
     MAX_PER_BATCH;
   const perObjectCap=Math.min(serverControls.maxPerObjectBytes??1048576,2097152);
   assert(Number.isInteger(perObjectCap)&&perObjectCap>=1,
