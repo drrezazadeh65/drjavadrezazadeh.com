@@ -436,6 +436,34 @@ async function verifyLocalModelArtifact(c) {
   log('LOCAL_MODEL_GGUF_SHA256_MATCHED_NOT_INFERENCE');
 }
 
+/**
+ * Source-file approval is insufficient unless the Windows Node process also
+ * sees the exact owner-pinned llama.cpp executable. The separate PowerShell
+ * model launcher checks this at launch; checking here independently prevents
+ * a mismatched/private configuration from leasing real visitor prompts.
+ * This does not claim to attest the identity of an already running PID.
+ */
+async function verifyLocalLlamaExecutable(c) {
+  if(typeof c?.backendExe!=='string'||!isAbsolute(c.backendExe)||
+     c.backendExe.length>500||!c.backendExe.toLowerCase().endsWith('.exe')||
+     !SHA.test(c.backendExeSha256??''))
+    throw Error('LOCAL_LLAMA_EXECUTABLE_PATH_AND_SHA_REQUIRED');
+  const link=await lstat(c.backendExe);
+  if(!link.isFile()||link.isSymbolicLink()||
+     link.size<131072||link.size>536870912)
+    throw Error('LOCAL_LLAMA_EXECUTABLE_FILE_INVALID');
+  const digest=createHash('sha256');
+  let bytes=0;
+  for await(const chunk of createReadStream(c.backendExe,{highWaterMark:1024*1024})){
+    bytes+=chunk.length;
+    if(bytes>536870912)throw Error('LOCAL_LLAMA_EXECUTABLE_TOO_LARGE');
+    digest.update(chunk);
+  }
+  if(bytes!==link.size||digest.digest('hex')!==c.backendExeSha256)
+    throw Error('LOCAL_LLAMA_EXECUTABLE_SHA256_MISMATCH');
+  log('LOCAL_LLAMA_EXECUTABLE_SHA256_MATCHED_NOT_RUNTIME_ATTESTATION');
+}
+
 const cmd=process.argv[2];
 try {
   if(cmd==='init'&&process.argv.length===3)await init();
@@ -446,6 +474,7 @@ try {
     const {runLocalChatWorker,validateLocalChatConfig}=await import('./jrei-local-chat-worker.mjs');
     validateLocalChatConfig(config);
     await verifyLocalModelArtifact(config.localChat);
+    await verifyLocalLlamaExecutable(config.localChat);
     const pem=protectKey('unprotect',keyPath());
     if(!pem)throw Error('WINDOWS_DPAPI_KEY_UNAVAILABLE');
     const key=createPrivateKey(pem);
