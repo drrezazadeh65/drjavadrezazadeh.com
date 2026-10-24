@@ -24,7 +24,7 @@ function jrNewsPrivateOwnerPreview(PDO $pdo,array $session,
            ON n.monitor_id=c.monitor_id AND n.enabled=1
          JOIN jrei_exam_sources feed
            ON feed.source_id=n.jrei_source_reference
-          AND n.source_url_sha256=SHA2(feed.source_locator_uri,256)
+          AND BINARY n.source_url_sha256=BINARY SHA2(feed.source_locator_uri,256)
           AND feed.review_state='AUTHORITATIVE_REVIEWED'
           AND feed.rights_state IN
             ('PERMITTED_PRIVATE_ANALYSIS','PERMITTED_REPRODUCTION')
@@ -38,9 +38,9 @@ function jrNewsPrivateOwnerPreview(PDO $pdo,array $session,
           AND feed_policy.rights_reviewed=1
           AND feed_policy.robots_terms_reviewed=1
           AND feed_policy.transport_reviewed=1
-          AND feed_policy.rights_evidence_sha256 REGEXP '^[a-f0-9]{64}$'
-          AND feed_policy.robots_terms_evidence_sha256 REGEXP '^[a-f0-9]{64}$'
-          AND feed_policy.transport_evidence_sha256 REGEXP '^[a-f0-9]{64}$'
+          AND BINARY feed_policy.rights_evidence_sha256 REGEXP BINARY '^[a-f0-9]{64}$'
+          AND BINARY feed_policy.robots_terms_evidence_sha256 REGEXP BINARY '^[a-f0-9]{64}$'
+          AND BINARY feed_policy.transport_evidence_sha256 REGEXP BINARY '^[a-f0-9]{64}$'
          JOIN jrei_news_evidence_reviews e
            ON e.review_id=v.evidence_review_id
          JOIN jrei_news_discovered_urls d
@@ -61,9 +61,9 @@ function jrNewsPrivateOwnerPreview(PDO $pdo,array $session,
           AND article_policy.rights_reviewed=1
           AND article_policy.robots_terms_reviewed=1
           AND article_policy.transport_reviewed=1
-          AND article_policy.rights_evidence_sha256 REGEXP '^[a-f0-9]{64}$'
-          AND article_policy.robots_terms_evidence_sha256 REGEXP '^[a-f0-9]{64}$'
-          AND article_policy.transport_evidence_sha256 REGEXP '^[a-f0-9]{64}$'
+          AND BINARY article_policy.rights_evidence_sha256 REGEXP BINARY '^[a-f0-9]{64}$'
+          AND BINARY article_policy.robots_terms_evidence_sha256 REGEXP BINARY '^[a-f0-9]{64}$'
+          AND BINARY article_policy.transport_evidence_sha256 REGEXP BINARY '^[a-f0-9]{64}$'
          WHERE v.revision_id=?
            AND v.editorial_state='PENDING_OWNER_APPROVAL'
            AND e.verification_state='APPROVED'
