@@ -24,8 +24,10 @@ function jrNewsStageVerifiedFeedLinkSuggestions(
     }
     $q=$pdo->prepare(
         "SELECT n.monitor_id,n.jrei_source_reference,n.policy_revision,
-                s.source_locator_uri,s.review_state,s.is_revoked,
-                p.revision,p.scheduling_state
+                s.source_locator_uri,s.review_state,s.rights_state,
+                s.verified_at,s.reviewer_account_id,s.is_revoked,
+                s.is_superseded,p.revision,p.scheduling_state,
+                p.rights_reviewed,p.robots_terms_reviewed,p.transport_reviewed
          FROM jrei_news_monitors n
          JOIN jrei_exam_sources s ON s.source_id=n.jrei_source_reference
          JOIN jrei_ka_source_policies p ON p.source_id=s.source_id
@@ -34,8 +36,18 @@ function jrNewsStageVerifiedFeedLinkSuggestions(
     $q->execute([$monitorId]);
     $monitor=$q->fetch(PDO::FETCH_ASSOC);
     if(!$monitor || $monitor['review_state']!=='AUTHORITATIVE_REVIEWED' ||
+        !in_array($monitor['rights_state'],[
+            'PERMITTED_PRIVATE_ANALYSIS','PERMITTED_PUBLIC_DISPLAY',
+            'PERMITTED_REPRODUCTION'
+        ],true) ||
         (int)$monitor['is_revoked']!==0 ||
+        (int)$monitor['is_superseded']!==0 ||
+        $monitor['verified_at']===null ||
+        $monitor['reviewer_account_id']===null ||
         $monitor['scheduling_state']!=='APPROVED' ||
+        (int)$monitor['rights_reviewed']!==1 ||
+        (int)$monitor['robots_terms_reviewed']!==1 ||
+        (int)$monitor['transport_reviewed']!==1 ||
         (int)$monitor['policy_revision']!==(int)$monitor['revision'] ||
         $originalObservation['sourceId']!==$monitor['jrei_source_reference']){
         throw new RuntimeException('news_feed_monitor_policy_no_longer_valid');
