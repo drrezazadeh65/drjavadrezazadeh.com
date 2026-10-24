@@ -1,57 +1,78 @@
 /**
- * Exact two-language static HTML artifact bundle for EXISTING site CMS.
- * Does not touch filesystem, sitemap, Git refs, SMTP, API, storage or host.
- * The original publisher must consume artifacts and issue authentic receipts.
+ * Exact two-language static HTML bundle from PHP's persisted editorial JSON.
+ * Requires ORIGINAL CMS source/media/route validation and public release gate.
+ * The module only returns bytes and SHA256. It NEVER writes or deploys.
  */
 import {assert,isHash,plain,publicHttps,safeText,sha256,utcInstant} from './contracts.mjs';
 import {renderPublicNewsPage} from './render-public.mjs';
 const ORIGIN='https://drjavadrezazadeh.com';
 export function prepareExactNewsPublisherArtifacts({
-  approvedEditorial,publicationPlan,publisherAuthority,
-  intendedPublicationAt,modifiedAt,
-  existingPublicFilesystemPaths=[]
+  exactPersistedEditorialJson,publicationPlan,publisherAuthority,
+  verifiedSource,verifiedMedia,
+  intendedPublicationAt,modifiedAt,existingPublicFilesystemPaths=[]
 }={}){
-  assert(plain(publicationPlan)&&
+  assert(typeof exactPersistedEditorialJson==='string'&&
+    exactPersistedEditorialJson.length<=250000&&
+    plain(publicationPlan)&&
     publicationPlan.schema==='jr.jrei.news-publication-plan.v1'&&
-    plain(approvedEditorial)&&
-    approvedEditorial.schema==='jr.jrei.news-owner-editorial-payload.v1'&&
     isHash(publicationPlan.approvalDigest)&&
-    approvedEditorial.storedApprovalDigest===publicationPlan.approvalDigest&&
+    sha256(exactPersistedEditorialJson)===publicationPlan.approvalDigest&&
     plain(publisherAuthority)&&
     publisherAuthority.source==='ORIGINAL_AUTHENTICATED_CMS'&&
     publisherAuthority.ownerMfaDecisionVerified===true&&
     publisherAuthority.currentSourceEvidenceVerified===true&&
     publisherAuthority.licensedMediaVerified===true&&
     publisherAuthority.publicReleaseActivated===true&&
+    plain(verifiedSource)&&
+    verifiedSource.source==='ORIGINAL_JREI_REVIEWED_SOURCE'&&
+    verifiedSource.current===true&&verifiedSource.republicationRightsCurrent===true&&
+    safeText(verifiedSource.issuerName,3,160)&&
+    isHash(verifiedSource.evidenceSha256)&&
+    plain(verifiedMedia)&&
+    verifiedMedia.source==='ORIGINAL_SITE_MEDIA_REGISTRY'&&
+    verifiedMedia.rightsReviewed===true&&
     plain(publicationPlan.languagePaths)&&
     utcInstant(intendedPublicationAt)&&utcInstant(modifiedAt)&&
     Date.parse(modifiedAt)>=Date.parse(intendedPublicationAt)&&
     Array.isArray(existingPublicFilesystemPaths)&&
     existingPublicFilesystemPaths.length<=500000,
     'NEWS_STATIC_ARTIFACT_APPROVAL_INVALID');
-  const image=approvedEditorial.image;
-  assert(plain(image)&&image.rightsReviewed===true&&
-    ['LICENSED_OFFICIAL','ORIGINAL_DESIGN','ORIGINAL_AI_ILLUSTRATION']
-      .includes(image.provenance)&&
-    typeof image.assetReference==='string'&&
+  let persisted;
+  try{persisted=JSON.parse(exactPersistedEditorialJson);}
+  catch{throw Error('NEWS_STORED_EDITORIAL_JSON_INVALID');}
+  assert(plain(persisted)&&
+    persisted.schema==='jr.jrei.news-owner-editorial-payload.v1'&&
+    plain(persisted.fa)&&plain(persisted.en)&&
+    plain(persisted.routeProposal)&&
+    persisted.routeProposal.faPath===publicationPlan.languagePaths.fa&&
+    persisted.routeProposal.enPath===publicationPlan.languagePaths.en&&
+    persisted.evidenceSha256===verifiedSource.evidenceSha256&&
+    persisted.fa.sourceUrl===persisted.en.sourceUrl&&
+    persisted.fa.sourceUrl===verifiedSource.sourceUrl&&
+    persisted.imageAssetReference===verifiedMedia.assetReference,
+    'NEWS_ARTIFACT_STORED_DIGEST_SOURCE_ROUTE_MISMATCH');
+  const sourceUrl=publicHttps(verifiedSource.sourceUrl);
+  assert(sourceUrl===verifiedSource.sourceUrl,
+    'NEWS_ARTIFACT_OFFICIAL_URL_NOT_CANONICAL');
+  let imagePath=verifiedMedia.assetReference;
+  if(typeof imagePath==='string'&&imagePath.startsWith('assets/images/'))
+    imagePath='/'+imagePath;
+  assert(typeof imagePath==='string'&&
     /^\/assets\/images\/[a-zA-Z0-9_.\/-]+\.(webp|png|jpeg|jpg|avif)$/
-      .test(image.assetReference)&&
-    !image.assetReference.includes('..')&&
-    safeText(image.altFa,5,300)&&safeText(image.altEn,5,300),
-    'NEWS_STATIC_ARTIFACT_MEDIA_UNVERIFIED');
-  publicHttps(approvedEditorial.sourceUrl);
-  assert(approvedEditorial.sourceUrl.startsWith('https://')&&
-    approvedEditorial.fa?.sourceUrl===approvedEditorial.sourceUrl&&
-    approvedEditorial.en?.sourceUrl===approvedEditorial.sourceUrl,
-    'NEWS_STATIC_ARTIFACT_OFFICIAL_SOURCE_INVALID');
+      .test(imagePath)&&!imagePath.includes('..')&&
+    ['LICENSED_OFFICIAL','ORIGINAL_DESIGN','ORIGINAL_AI_ILLUSTRATION']
+      .includes(verifiedMedia.provenance)&&
+    safeText(verifiedMedia.altFa,5,300)&&
+    safeText(verifiedMedia.altEn,5,300),
+    'NEWS_ARTIFACT_MEDIA_NOT_PUBLISHABLE');
   const article={
-    id:approvedEditorial.candidateId,
+    id:persisted.candidateId,
     approvalDigest:publicationPlan.approvalDigest,
     publicationState:'OWNER_APPROVED_FOR_PUBLICATION',
-    ownerApproved:true,sourceUrl:approvedEditorial.sourceUrl,
-    priority:approvedEditorial.priority,
-    fa:{...approvedEditorial.fa,imageAlt:image.altFa},
-    en:{...approvedEditorial.en,imageAlt:image.altEn}
+    ownerApproved:true,sourceUrl,
+    priority:verifiedSource.priority,
+    fa:{...persisted.fa,imageAlt:verifiedMedia.altFa},
+    en:{...persisted.en,imageAlt:verifiedMedia.altEn}
   };
   const auth={
     source:'ORIGINAL_AUTHENTICATED_CMS',
@@ -64,16 +85,16 @@ export function prepareExactNewsPublisherArtifacts({
   const rendered=[
     renderPublicNewsPage({
       article,language:'fa',route:paths.fa,otherLanguageRoute:paths.en,
-      featuredImage:image.assetReference,sourceTitle:approvedEditorial.sourceTitle,
+      featuredImage:imagePath,sourceTitle:verifiedSource.issuerName,
       publicationDate:intendedPublicationAt,modifiedDate:modifiedAt,
-      relatedLinks:approvedEditorial.internalLinks??[],
+      relatedLinks:persisted.internalLinks??[],
       publisherAuthorization:auth
     }),
     renderPublicNewsPage({
       article,language:'en',route:paths.en,otherLanguageRoute:paths.fa,
-      featuredImage:image.assetReference,sourceTitle:approvedEditorial.sourceTitle,
+      featuredImage:imagePath,sourceTitle:verifiedSource.issuerName,
       publicationDate:intendedPublicationAt,modifiedDate:modifiedAt,
-      relatedLinks:approvedEditorial.internalLinks??[],
+      relatedLinks:persisted.internalLinks??[],
       publisherAuthorization:auth
     })
   ];
@@ -82,12 +103,13 @@ export function prepareExactNewsPublisherArtifacts({
     const relativePath=result.route.slice(1)+'index.html';
     assert(!existing.has(relativePath)&&
       result.canonical===ORIGIN+result.route,
-      'NEWS_STATIC_ARTIFACT_EXISTING_PUBLIC_PATH_COLLISION');
+      'NEWS_ARTIFACT_EXISTING_PUBLIC_PATH_COLLISION');
     return Object.freeze({
       relativePath,canonical:result.canonical,language:result.language,
       mimeType:'text/html; charset=utf-8',utf8Content:result.html,
-      sha256:sha256(result.html),originalCmsOwnerApprovalDigest:
-        publicationPlan.approvalDigest,currentlyPublic:false
+      sha256:sha256(result.html),
+      originalCmsOwnerApprovalDigest:publicationPlan.approvalDigest,
+      currentlyPublic:false
     });
   });
   assert(artifacts.length===2&&
