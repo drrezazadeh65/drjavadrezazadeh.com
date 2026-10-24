@@ -185,6 +185,100 @@ export function mountNewsOwnerPanel({root,csrfResolver,
           'Source monitor inventory is currently unavailable.');
         sources.append(missing);
       }
+      // Only original JREI-KA approved and independently reviewed sources
+      // may appear here. Staging creates a DISABLED news monitor, not a
+      // crawling job. Owner must explicitly choose a category and priority.
+      try{
+        const available=await request('/owner/source/available',{method:'GET'});
+        if(available.schema!=='jr.jrei.news-owner-stageable-original-sources.v1'||
+           !Array.isArray(available.items))
+          throw Error('NEWS_ORIGINAL_STAGEABLE_SOURCE_UNAVAILABLE');
+        if(available.items.length){
+          const section=document.createElement('section');
+          section.className='ni-admin-source-staging';
+          const heading=document.createElement('h3');
+          heading.textContent=say('افزودن منبع معتبر به پایش اخبار',
+            'Stage an approved source for news monitoring');
+          section.append(heading);
+          for(const original of available.items){
+            if(typeof original.sourceId!=='string'||
+               typeof original.title!=='string')continue;
+            const entry=document.createElement('div');
+            entry.className='ni-admin-source-row';
+            const title=document.createElement('strong');
+            title.textContent=original.title;
+            const category=document.createElement('select');
+            const priority=document.createElement('select');
+            const addOptions=(select,options,placeholder)=>{
+              const first=document.createElement('option');
+              first.value='';
+              first.textContent=placeholder;
+              select.append(first);
+              for(const [value,label] of options){
+                const opt=document.createElement('option');
+                opt.value=value;opt.textContent=label;
+                select.append(opt);
+              }
+            };
+            addOptions(category,[
+              ['school',say('مدارس','Schools')],
+              ['examinations',say('آزمون‌ها','Examinations')],
+              ['universities',say('دانشگاه‌ها','Universities')],
+              ['employment',say('استخدام','Employment')],
+              ['language',say('زبان','Language')],
+              ['international',say('بین‌الملل','International')],
+              ['research',say('پژوهش','Research')]
+            ],say('انتخاب حوزه','Choose category'));
+            addOptions(priority,[
+              ['P0',say('فوری P0','Urgent P0')],
+              ['P1',say('مهم P1','High P1')],
+              ['P2',say('عادی P2','Normal P2')]
+            ],say('انتخاب اولویت','Choose priority'));
+            category.setAttribute('aria-label',say('حوزه منبع '+original.title,
+              'Source category '+original.title));
+            priority.setAttribute('aria-label',say('اولویت منبع '+original.title,
+              'Source priority '+original.title));
+            const stage=document.createElement('button');
+            stage.type='button';
+            stage.textContent=say('ثبت غیرفعال منبع','Stage disabled source');
+            const selectable=()=>{stage.disabled=!category.value||!priority.value;};
+            category.addEventListener('change',selectable);
+            priority.addEventListener('change',selectable);
+            selectable();
+            stage.addEventListener('click',async()=>{
+              stage.disabled=true;
+              show(say('در حال ثبت منبع بدون شروع خزش…',
+                'Staging original source without acquisition…'));
+              try{
+                const receipt=await request('/owner/source/stage',{
+                  method:'POST',body:JSON.stringify({
+                    sourceId:original.sourceId,
+                    category:category.value,priority:priority.value
+                  })
+                });
+                if(receipt.schema!=='jr.jrei.news-source-monitor-stage.v1'||
+                   receipt.monitorEnabled!==false||
+                   receipt.crawlStarted!==false)
+                  throw Error('NEWS_DISABLED_MONITOR_STAGE_UNCONFIRMED');
+                await load();
+                show(say('منبع به‌صورت غیرفعال ثبت شد؛ خزشی آغاز نشده است.',
+                  'Source staged disabled; no crawl was started.'));
+              }catch{
+                show(say('نتیجه ثبت نامشخص است؛ وضعیت واقعی سرور را تازه‌سازی کنید.',
+                  'Staging outcome is uncertain; refresh authoritative state.'));
+              }
+            });
+            entry.append(title,category,priority,stage);
+            section.append(entry);
+          }
+          sources.append(section);
+        }
+      }catch{
+        const unavailable=document.createElement('p');
+        unavailable.textContent=say('منابع واجد شرایط برای ثبت قابل دریافت نیستند.',
+          'Eligible original sources are currently unavailable.');
+        sources.append(unavailable);
+      }
       for(const item of data.items){
         const card=document.createElement('article');
         card.className='ni-admin-card';
