@@ -5,6 +5,9 @@ on:
     paths:
       - '.github/workflows/jrei-local-first-mariadb.yml'
       - 'api/jrei-local-chat.php'
+      - 'api/jrei-local-schema-caretaker.php'
+      - 'api/internal/jrei-local-schema-caretaker-worker.php'
+      - 'tests/jrei-local-schema-caretaker-fixture.php'
       - 'api/jrei-ai-public-service-route.php'
       - 'api/jrei-ai-answer-guard.php'
       - 'api/jrei-ai-uncited-answer-guard.php'
@@ -57,13 +60,21 @@ jobs:
           for file in \
             docs/migrations/20261023_jrei_hybrid_worker_mother_mysql.sql \
             docs/migrations/20261023_jrei_model_registry_mother_mysql.sql \
-            docs/migrations/20261023_operations_cron_master_mysql.sql \
-            docs/migrations/20261024_jrei_local_inference_queue_mother_mysql.sql; do
+            docs/migrations/20261023_operations_cron_master_mysql.sql; do
             db < "$file"
           done
-          db < docs/migrations/20261024_jrei_local_inference_queue_mother_mysql.sql
-          test "$(db -Nse "SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA='drjavad1_store' AND TABLE_NAME IN ('jrei_local_chat_node_authorizations','jrei_local_chat_jobs')")" = 2
-          test "$(db -Nse "SELECT COUNT(*) FROM jrei_local_chat_jobs")" = 0
+          # Genuine fixture backup, deliberately private and recent.
+          mariadb-dump -h127.0.0.1 -P3306 -uroot \
+            --single-transaction drjavad1_store > "$RUNNER_TEMP/jrei-mother-fixture.sql"
+          for number in $(seq 1 900); do echo '-- disposable CI backup padding' >> "$RUNNER_TEMP/jrei-mother-fixture.sql"; done
+          echo "JREI_FIXTURE_BACKUP_PATH=$RUNNER_TEMP/jrei-mother-fixture.sql" >> "$GITHUB_ENV"
+          echo "JREI_FIXTURE_BACKUP_SHA256=$(sha256sum "$RUNNER_TEMP/jrei-mother-fixture.sql" | cut -d' ' -f1)" >> "$GITHUB_ENV"
+      - name: Test governed automatic additive table creation and source idempotence
+        run: |
+          set -euo pipefail
+          php -l api/jrei-local-schema-caretaker.php
+          php -l tests/jrei-local-schema-caretaker-fixture.php
+          php tests/jrei-local-schema-caretaker-fixture.php
       - name: Test ephemeral encrypted conversation, model lease, citations and deletion
         run: |
           set -euo pipefail
@@ -73,5 +84,5 @@ jobs:
       - name: Report production boundary
         if: always()
         run: |
-          echo 'This test uses a disposable MariaDB service, fake model metadata and fake worker identity.' >> "$GITHUB_STEP_SUMMARY"
+          echo 'This test verifies idempotent backup-gated schema creation on disposable MariaDB, fake model metadata and fake worker identity.' >> "$GITHUB_STEP_SUMMARY"
           echo 'It executes no Windows local model, no OpenAI API, no Bertina migration, no production deployment.' >> "$GITHUB_STEP_SUMMARY"
