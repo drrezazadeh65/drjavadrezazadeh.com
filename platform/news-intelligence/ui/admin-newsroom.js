@@ -23,8 +23,9 @@ export function mountNewsOwnerPanel({root,csrfResolver,
   const status=document.createElement('p');status.setAttribute('role','status');
   status.setAttribute('aria-live','polite');
   const metrics=document.createElement('div');metrics.className='ni-admin-metrics';
+  const sources=document.createElement('section');sources.className='ni-admin-sources';
   const list=document.createElement('div');list.className='ni-admin-queue';
-  root.replaceChildren(header,refresh,status,metrics,list);
+  root.replaceChildren(header,refresh,status,metrics,sources,list);
   const show=s=>{status.textContent=s;};
   const request=async (path,options)=>{
     const token=csrfResolver();
@@ -63,6 +64,7 @@ export function mountNewsOwnerPanel({root,csrfResolver,
     // when the owner session expires or the next queue refresh fails.
     list.replaceChildren();
     metrics.replaceChildren();
+    sources.replaceChildren();
     show(say('در حال دریافت صف خصوصی…','Loading private owner queue…'));
     try{
       const data=await request('/owner/queue',{method:'GET'});
@@ -100,6 +102,45 @@ export function mountNewsOwnerPanel({root,csrfResolver,
           'Owner metrics are currently unavailable from the mother database.'
         );
         metrics.append(unavailable);
+      }
+      // Every inventory row is an actual original mother-DB monitor; a
+      // stale or revoked source is rendered as blocked, never as online.
+      try{
+        const inventory=await request('/owner/source/monitors',{method:'GET'});
+        if(inventory.schema!=='jr.jrei.news-owner-monitor-inventory.v1'||
+           !Array.isArray(inventory.items))
+          throw Error('NEWS_OWNER_MONITOR_INVENTORY_INVALID');
+        const h=document.createElement('h3');
+        h.textContent=say('کنترل منابع خبر','News source controls');
+        sources.append(h);
+        for(const source of inventory.items){
+          if(typeof source.monitorId!=='string')continue;
+          const line=document.createElement('div');
+          line.className='ni-admin-source-row';
+          const name=document.createElement('strong');
+          name.textContent=source.sourceTitle||source.sourceReference||'';
+          const state=document.createElement('span');
+          state.textContent=source.enabled?
+            say('پایش فعال','Monitoring enabled'):
+            say('پایش متوقف','Monitoring paused');
+          const authority=document.createElement('span');
+          authority.textContent=source.originalPolicyCurrent===true?
+            say('سیاست منبع معتبر','Original source policy current'):
+            say('نیازمند بررسی مجوز اصلی','Original policy review needed');
+          line.append(name,state,authority);
+          sources.append(line);
+        }
+        if(inventory.items.length===0){
+          const empty=document.createElement('p');
+          empty.textContent=say('هنوز منبعی برای پایش ثبت نشده است.',
+            'No source monitors are registered yet.');
+          sources.append(empty);
+        }
+      }catch{
+        const missing=document.createElement('p');
+        missing.textContent=say('فهرست منابع در حال حاضر قابل تأیید نیست.',
+          'Source monitor inventory is currently unavailable.');
+        sources.append(missing);
       }
       for(const item of data.items){
         const card=document.createElement('article');
