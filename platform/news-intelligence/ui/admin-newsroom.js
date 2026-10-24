@@ -90,7 +90,9 @@ export function mountNewsOwnerPanel({root,csrfResolver,
         if(overview.schema==='jr.jrei.news-owner-operations-overview.v1'&&
            overview.metrics){
           const labels={
-            enabledMonitors:say('منابع در حال پایش','Enabled sources'),
+            enabledMonitors:say('منابع فعال‌شده در تنظیمات','Configured enabled sources'),
+            eligibleOriginalSourcesNow:say(
+              'منابع فعال با مجوز اصلی معتبر','Enabled sources with current original permissions'),
             pendingEvidenceReview:say('در انتظار بررسی منبع','Awaiting evidence'),
             ownerApprovalQueue:say('در انتظار تأیید من','Awaiting owner approval'),
             actuallyPublishedBilingualItems:say('اخبار واقعاً منتشرشده','Published bilingual stories'),
