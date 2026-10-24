@@ -30,10 +30,11 @@ function jrNewsStageApprovedPublication(
     }
     if ($faRoute===$enRoute)
         throw new InvalidArgumentException('news_publication_language_collision');
-    $pdo->beginTransaction();
+    // Keep third-party source/CMS policy checks OUTSIDE the InnoDB
+    // transaction: they may consult a remote CMS and should never lock
+    // visitor traffic or the owner's editorial records during network I/O.
     try {
-        $lock=$pdo->prepare(
-            "SELECT v.revision_id,v.candidate_id,v.approval_digest,
+        $candidateSql="SELECT v.revision_id,v.candidate_id,v.approval_digest,
                     v.bilingual_editorial_json,v.editorial_state,
                     v.approved_image_ref,c.source_url,c.content_sha256,
                     dsrc.approved_article_source_id,
@@ -47,8 +48,8 @@ function jrNewsStageApprovedPublication(
               AND dsrc.review_state='ORIGINAL_JREI_ARTICLE_APPROVED'
              JOIN jrei_news_owner_decisions d ON d.revision_id=v.revision_id
              WHERE v.revision_id=? AND d.action_code='APPROVE'
-             ORDER BY d.decided_at DESC LIMIT 1 FOR UPDATE"
-        );
+             ORDER BY d.decided_at DESC LIMIT 1";
+        $lock=$pdo->prepare($candidateSql);
         $lock->execute([$revisionId]);
         $row=$lock->fetch(PDO::FETCH_ASSOC);
         if (!$row || $row['editorial_state']!=='OWNER_APPROVED' ||
@@ -80,6 +81,15 @@ function jrNewsStageApprovedPublication(
             ($policy['approvalDigest']??null)!==$row['approval_digest']) {
             throw new RuntimeException('news_original_publisher_policy_not_ready');
         }
+        // Serialize only the final publication stage. Any concurrent
+        // revision, withdrawal, route or owner decision invalidates the
+        // policy evidence collected for the original immutable snapshot.
+        $pdo->beginTransaction();
+        $locked=$pdo->prepare($candidateSql.' FOR UPDATE');
+        $locked->execute([$revisionId]);
+        $current=$locked->fetch(PDO::FETCH_ASSOC);
+        if(!is_array($current)||$current!==$row)
+            throw new RuntimeException('news_publication_state_changed_during_policy_review');
         $q=$pdo->prepare('SELECT publication_id,fa_route,en_route,publisher_state
             FROM jrei_news_publications WHERE revision_id=? FOR UPDATE');
         $q->execute([$revisionId]);
