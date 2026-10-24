@@ -57,9 +57,10 @@ function jrNewsIndexApprovedPublication(
             throw new RuntimeException('news_search_approved_editorial_digest_changed');
         $path=$row[$language.'_route'];
         $contentHash=$row[$language.'_content_sha256'];
+        $routePrefix=$language==='fa'?'/fa/akhbar/':'/en/news-insights/';
         if (!is_string($path)||
-            !preg_match('#^/'.$language.'/[a-z0-9/-]+/$#D',$path)||
-            str_contains($path,'//')||
+            !preg_match('#^'.preg_quote($routePrefix,'#').
+                '[a-z0-9-]+/$#D',$path)||
             !is_string($contentHash)||
             !preg_match('/^[a-f0-9]{64}$/D',$contentHash)) {
             throw new RuntimeException('news_search_route_or_hash_invalid');
@@ -91,8 +92,10 @@ function jrNewsIndexApprovedPublication(
             throw new RuntimeException('news_search_country_not_original_source_verified');
         }
         $country=$countryProof['countryCode'];
+        // Never alter immutable, owner-approved bytes by substituting
+        // malformed UTF-8 while making a public searchable projection.
         $data=json_decode((string)$row['bilingual_editorial_json'],true,
-            32,JSON_INVALID_UTF8_SUBSTITUTE);
+            32,JSON_THROW_ON_ERROR);
         $copy=is_array($data)?($data[$language]??null):null;
         if (!is_array($copy)||
             !is_string($copy['headline']??null)||
