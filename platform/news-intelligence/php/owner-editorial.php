@@ -40,6 +40,27 @@ function jrNewsPrivateOwnerQueue(PDO $pdo,array $session,
                 c.source_url,c.content_sha256
          FROM jrei_news_editorial_versions v
          JOIN jrei_news_candidates c ON c.candidate_id=v.candidate_id
+         JOIN jrei_news_monitors n
+           ON n.monitor_id=c.monitor_id AND n.enabled=1
+         JOIN jrei_exam_sources feed
+           ON feed.source_id=n.jrei_source_reference
+          AND n.source_url_sha256=SHA2(feed.source_locator_uri,256)
+          AND feed.review_state='AUTHORITATIVE_REVIEWED'
+          AND feed.rights_state IN
+            ('PERMITTED_PRIVATE_ANALYSIS','PERMITTED_REPRODUCTION')
+          AND feed.is_revoked=0 AND feed.is_superseded=0
+          AND feed.reviewer_account_id IS NOT NULL
+          AND feed.verified_at IS NOT NULL
+         JOIN jrei_ka_source_policies feed_policy
+           ON feed_policy.source_id=feed.source_id
+          AND feed_policy.revision=n.policy_revision
+          AND feed_policy.scheduling_state='APPROVED'
+          AND feed_policy.rights_reviewed=1
+          AND feed_policy.robots_terms_reviewed=1
+          AND feed_policy.transport_reviewed=1
+          AND feed_policy.rights_evidence_sha256 REGEXP '^[a-f0-9]{64}$'
+          AND feed_policy.robots_terms_evidence_sha256 REGEXP '^[a-f0-9]{64}$'
+          AND feed_policy.transport_evidence_sha256 REGEXP '^[a-f0-9]{64}$'
          JOIN jrei_news_evidence_reviews e ON e.review_id=v.evidence_review_id
          JOIN jrei_news_discovered_urls d
            ON d.monitor_id=c.monitor_id
