@@ -298,3 +298,55 @@ function jrNewsStageFromApprovedStoredRouteProposal(
         $currentPublisherPolicy,$nowEpoch
     );
 }
+
+/**
+ * Bounded MFA owner read model for already-approved revisions which still
+ * need original CMS staging/confirmation. Never returns private article text
+ * or creates a new publication, publisher receipt, or paid entitlement.
+ */
+function jrNewsOwnerPublicationBacklog(
+    PDO $pdo,array $session,int $limit=40
+): array {
+    $owner=jrNewsOwnerAuthority($session);
+    if($limit<1||$limit>100)
+        throw new InvalidArgumentException('news_publication_backlog_limit_invalid');
+    $q=$pdo->prepare(
+        "SELECT v.revision_id,v.revision_number,c.headline,
+                d.decided_at,p.publication_id,p.publisher_state
+         FROM jrei_news_editorial_versions v
+         JOIN jrei_news_candidates c ON c.candidate_id=v.candidate_id
+         JOIN jrei_news_owner_decisions d
+           ON d.revision_id=v.revision_id AND d.action_code='APPROVE'
+          AND d.approval_digest=v.approval_digest
+         LEFT JOIN jrei_news_publications p ON p.revision_id=v.revision_id
+         WHERE v.editorial_state='OWNER_APPROVED'
+           AND d.owner_account_id=?
+           AND (p.publication_id IS NULL
+             OR p.publisher_state='WAITING_FOR_PUBLISHER')
+         ORDER BY d.decided_at DESC,v.revision_id ASC LIMIT ?"
+    );
+    $q->bindValue(1,$owner['actor'],PDO::PARAM_STR);
+    $q->bindValue(2,$limit,PDO::PARAM_INT);
+    $q->execute();
+    $items=[];
+    foreach($q->fetchAll(PDO::FETCH_ASSOC) as $row){
+        $state=$row['publication_id']===null?
+            'APPROVED_NOT_STAGED':'WAITING_FOR_ORIGINAL_PUBLISHER';
+        $items[]=[
+            'revisionId'=>$row['revision_id'],
+            'revisionNumber'=>(int)$row['revision_number'],
+            'headline'=>(string)$row['headline'],
+            'publicationId'=>$row['publication_id'],
+            'state'=>$state,
+            'ownerApproved'=>true,
+            'publiclyPublished'=>false,
+            'originalPublisherPolicyRecheckRequired'=>$state==='APPROVED_NOT_STAGED'
+        ];
+    }
+    return [
+        'schema'=>'jr.jrei.news-owner-publication-backlog.v1',
+        'items'=>$items,'returnedCount'=>count($items),
+        'publisherReceiptsConfirmedByThisRead'=>0,
+        'noAutomaticPublication'=>true
+    ];
+}
