@@ -98,7 +98,10 @@ function jrNewsIndexApprovedPublication(
             !is_string($copy['headline']??null)||
             !is_string($copy['summary']??null)||
             !is_string($copy['body']??null)||
+            trim($copy['headline'])===''||
             strlen($copy['headline'])>720||
+            preg_match('//u',$copy['headline'])!==1||
+            preg_match_all('/./us',$copy['headline'])>240||
             strlen($copy['summary'])>4000||
             strlen($copy['body'])>180000) {
             throw new RuntimeException('news_search_language_payload_invalid');
