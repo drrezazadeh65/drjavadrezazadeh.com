@@ -34,7 +34,7 @@
     placeholder:'سؤال‌تان را بنویسید…',send:'ارسال',close:'بستن',reset:'گفت‌وگوی جدید',copy:'کپی پاسخ',copied:'کپی شد',stop:'توقف',stopped:'پاسخ به درخواست شما متوقف شد.',thinking:'در حال بررسی…',
     error:'ارتباط زنده با دستیار هنوز برقرار نیست. می‌توانید از راهنماهای زیر استفاده کنید یا دوباره تلاش کنید.',
     retry:'تلاش دوباره',offline:'راهنمای سریع',leadOpen:'درخواست تماس',leadTitle:'اگر مایلید با شما تماس بگیریم',leadEmail:'ایمیل',leadMobile:'شماره موبایل',leadValue:'راه ارتباط',leadIntent:'موضوع اصلی',leadConsent:'با ذخیره این راه ارتباط برای پاسخ‌گویی به همین درخواست موافقم.',leadWhatsApp:'اگر واتس‌اپ بیزنس فعال شود، تماس در واتس‌اپ را هم می‌پذیرم.',leadSend:'ثبت درخواست تماس',leadSaved:'درخواست تماس ثبت شد.',leadError:'ثبت درخواست تماس انجام نشد؛ لطفاً بعداً دوباره تلاش کنید.',
-    chips:['برای انتخاب رشته از کجا شروع کنم؟','Golden Talent چیست؟','چطور مشاوره بگیرم؟']
+    chips:['برای انتخاب رشته از کجا شروع کنم؟','Golden Talent چیست؟','چه خدمات تخصصی دارید؟']
   }:{
     open:'AI Assistant',title:'Dr. Rezazadeh Assistant',subtitle:'Smart site guide',
     greeting:'Hello. I am the AI assistant for Dr. Rezazadeh’s website. I can guide you through services, Golden Talent, student guidance, research and the site.',
@@ -42,12 +42,15 @@
     placeholder:'Ask a question…',send:'Send',close:'Close',reset:'New chat',copy:'Copy answer',copied:'Copied',stop:'Stop',stopped:'Response stopped at your request.',thinking:'Checking…',
     error:'The live assistant is not connected yet. You can use the quick guidance below or try again.',
     retry:'Try again',offline:'Quick guidance',leadOpen:'Request contact',leadTitle:'Would you like us to contact you?',leadEmail:'Email',leadMobile:'Mobile',leadValue:'Contact detail',leadIntent:'Main topic',leadConsent:'I agree that this contact detail may be stored to respond to this request.',leadWhatsApp:'If WhatsApp Business is activated, I also consent to contact through WhatsApp.',leadSend:'Save contact request',leadSaved:'Your contact request has been saved.',leadError:'The contact request could not be saved. Please try again later.',
-    chips:['Which service fits my needs?','What is Golden Talent?','How do I request consultation?']
+    chips:['Which service fits my needs?','What is Golden Talent?','What professional services do you offer?']
   };
 
   const staticGreeting=isFa
     ?'سلام. فعلاً راهنمای محلی سایت در دسترس است. بر اساس مسیرهای عمومی منتشرشده به شما کمک می‌کنم موضوعتان را پیدا کنید؛ مدل گفت‌وگوی زنده و پاسخ مبتنی بر پرونده شخصی در این بخش فعال یا تأیید نشده است.'
     :'Hello. The public site guide is available. It can point you to published educational routes and their limitations; a live conversational model and private-record answers are not activated or verified here.';
+  const liveGreeting=isFa
+    ?'گفت‌وگوی هوش مصنوعی برای راهنمایی عمومی در دسترس است. برای استفاده، گزینهٔ رضایت پردازش توسط ارائه‌دهندهٔ API را فعال کنید. می‌توانم بر اساس صفحات منتشرشدهٔ سایت، خدمات متناسب با سؤال شما را نیز معرفی کنم.'
+    :'Live AI guidance is available for public questions. To use it, opt in to API-provider processing below. I can also help identify relevant services from published site pages.';
   let history=[];
   let busy=false;
   let lastQuery='';
@@ -161,6 +164,15 @@
            policy.live!==true||policy.providerConsentRequired!==true)return;
         approvedLiveEndpoint=location.origin+'/api/assistant/v1/chat';
         providerLabel.hidden=false;
+        // Update only the untouched welcome message: never change
+        // an answer to a real visitor or create a false ready state.
+        if(thread.childElementCount===1&&
+           thread.firstElementChild?.classList.contains('is-assistant')&&
+           !history.length&&!busy){
+          const welcome=thread.firstElementChild.querySelector('.jr-assistant-bubble');
+          if(welcome&&welcome.textContent===staticGreeting)
+            welcome.textContent=liveGreeting;
+        }
       }finally{clearTimeout(stop);}
     }catch(_){
       // Offline or unaccepted providers retain local, no-network guidance.
@@ -261,7 +273,17 @@
   function fallback(query){
     const q=String(query||'').toLowerCase();
     const links=quickLinks();
+    // When no API is configured, retain accurate directory-based guidance,
+    // not a fake generated answer or a fabricated booking/price.
     if(isFa){
+      if(/پاسخ.{0,18}داور|کامنت.{0,18}داور|داور.{0,18}پاسخ/.test(q))
+        return {answer:'برای تهیه پاسخ مستند به نظرات داوران، خدمت «پشتیبانی پاسخ به داوران» در سایت معرفی شده است. محدوده و شرایط را در صفحه خدمت بررسی کنید.',links:[{label:'پشتیبانی پاسخ به داوران',url:rootPath('fa/services/reviewer_response/')}]};
+      if(/ویراستاری|ویرایش.{0,25}(?:انگلیسی|مقاله|متن)/.test(q))
+        return {answer:'برای پالایش زبانی مقاله یا متن انگلیسی دانشگاهی، صفحه خدمت ویرایش انگلیسی را ببینید. کیفیت و نتیجه چاپ تضمین نمی‌شود.',links:[{label:'ویرایش انگلیسی دانشگاهی',url:rootPath('fa/services/academic_editing/')}]};
+      if(/مصاحبه.{0,25}(?:هیئت|هیات|علمی|دانشگاه)/.test(q))
+        return {answer:'برای آمادگی مصاحبه دانشگاهی یا هیئت علمی، خدمت اختصاصی موجود است. جزئیات و شرایط را در صفحه رسمی خدمت بخوانید.',links:[{label:'آمادگی مصاحبه علمی',url:rootPath('fa/services/academic_interview_90/')}]};
+      if(/خدمت|خدمات|سفارش|رزرو|چه مشاوره|مشاوره تخصصی/.test(q))
+        return {answer:'فهرست خدمات واقعی سایت شامل راهنمایی تحصیلی، خدمات پژوهشی، ویرایش مقاله و توسعه حرفه‌ای است. نوع نیازتان را مشخص کنید تا مسیر مناسب را انتخاب کنید؛ برای قیمت و شرایط به صفحه هر خدمت مراجعه کنید.',links:[{label:'فهرست خدمات تخصصی',url:rootPath('fa/services/')},links[3]]};
       if(/مجله|ژورنال|داور|داوری|jhela|journal/.test(q)) return {answer:'JHELA در مرحله تأسیس است. می‌توانید سیاست‌های عمومی و فراخوان‌های داوری را در جست‌وجوی اختصاصی مجله بررسی کنید. این پاسخ به معنای فعال‌بودن پذیرش رسمی مقاله یا نمایه‌شدن مجله نیست.',links:[links[5]]};
        if(/جست.?وجو|جستجو|پیدا کردن|سرچ/.test(q)) return {answer:'برای پیدا کردن صفحات عمومی از جست‌وجوی فارسی سایت استفاده کنید. اطلاعات حساب و پرونده‌های خصوصی در نتایج جست‌وجو نمایش داده نمی‌شوند.',links:[links[4]]};
        if(/کارنامه|تراز|درصد|رتبه|قلم.?چی|گاج|آزمون آزمایشی/.test(q)) return {answer:'برای شروع، از بررسی مقدماتی کارنامه استفاده کنید. رتبه و تراز خوداظهاری یا آزمون آزمایشی به احتمال قبولی و رتبه رسمی تبدیل نمی‌شود؛ داده رسمی و مجازبودن باید جداگانه بررسی شود.',links:[links[7],links[1]]};
@@ -272,6 +294,14 @@
       if(/استعداد|golden|گلدن|توانمندی/.test(q)) return {answer:'Golden Talent چارچوب رشدگرا و چندمنبعی سایت برای شناخت شواهد مرتبط با توانمندی و مسیر رشد است. برای آشنایی عمومی وارد صفحه Golden Talent شوید.',links:[links[2],links[3]]};
       return {answer:labels.error,links};
     }
+    if(/reviewer.{0,18}(?:response|comments)|response.{0,18}reviewer/.test(q))
+      return {answer:'Reviewer-response support is listed among the published services. Check the service page for scope and conditions; this is not a submission or publication guarantee.',links:[{label:'Reviewer-response support',url:rootPath('en/services/reviewer_response/')}]};
+    if(/academic.{0,18}edit|english.{0,18}edit|proofread/.test(q))
+      return {answer:'For academic English editing, the published service page sets out the available scope. Publication or acceptance cannot be guaranteed.',links:[{label:'Academic English editing',url:rootPath('en/services/academic_editing/')}]};
+    if(/faculty.{0,18}interview|academic.{0,18}interview/.test(q))
+      return {answer:'Academic interview preparation is available as a listed service. See the official page for its scope and requirements.',links:[{label:'Academic interview preparation',url:rootPath('en/services/academic_interview_90/')}]};
+    if(/services?|book(?:ing)?|professional consultation|specialist support|pricing/.test(q))
+      return {answer:'The site lists academic, educational, research and teacher-development services. Browse the published service descriptions to choose what fits your needs; pricing and booking must be confirmed on the respective page.',links:[links[2],links[3]]};
     if(/jhela|journal|peer.review|reviewer|manuscript/.test(q)) return {answer:'JHELA is in its founding stage. Its separate public journal search covers published policies and calls, not private manuscript records. Formal intake and indexing must be verified independently.',links:[links[5]]};
     if(/find|search|look up|lookup/.test(q)) return {answer:'Use the public website search to find services, publications and guidance; personal account records are excluded.',links:[links[4]]};
     if(/scorecard|mock.exam|taz|exam.rank|quota|result|exam.score/.test(q)) return {answer:'Use the manual scorecard worksheet as a preliminary, self-reported review. Provider TAZ and mock ranks are not official admissions probabilities or verified national ranks.',links:[links[7],links[0]]};
@@ -326,7 +356,7 @@
       if(!data?.answer) throw new Error('assistant empty');
       pending.remove();
       addMessage('assistant',data.answer,data.links||[]);
-      history.push({role:'user',content:lastQuery},{role:'assistant',content:String(data.answer)});
+      history.push({role:'user',content:lastQuery.slice(0,800)},{role:'assistant',content:String(data.answer).slice(0,800)});
       history=history.slice(-8);
     }catch(e){
       pending.remove();
@@ -369,7 +399,7 @@
     if(opening){
       discoverLiveAssistant();
       if(!thread.childElementCount)
-        addMessage('assistant',staticGreeting);
+        addMessage('assistant',approvedLiveEndpoint?liveGreeting:staticGreeting);
       setTimeout(()=>input.focus(),30);
     }
   });
@@ -384,7 +414,7 @@
     thread.replaceChildren();input.value='';input.disabled=false;stopButton.hidden=true;
     form.querySelector('button').disabled=false;
     panel.hidden=!keepOpen;launcher.setAttribute('aria-expanded',keepOpen?'true':'false');
-    if(keepOpen){addMessage('assistant',staticGreeting);input.focus();}
+    if(keepOpen){addMessage('assistant',approvedLiveEndpoint?liveGreeting:staticGreeting);input.focus();}
   };
   wrap.querySelector('.jr-assistant-reset').addEventListener('click',()=>clearEphemeralAssistant(true));
   document.addEventListener('visibilitychange',()=>{
