@@ -44,7 +44,7 @@ function jrNewsStageApprovedPublication(
              JOIN jrei_news_discovered_urls dsrc
                ON dsrc.monitor_id=c.monitor_id
               AND dsrc.canonical_url_sha256=SHA2(c.source_url,256)
-              AND dsrc.review_state='ORIGINAL_JREI_ARTICLE_APPROVED'
+              AND dsrc.review_state=\'ORIGINAL_JREI_ARTICLE_APPROVED\'
              JOIN jrei_news_owner_decisions d ON d.revision_id=v.revision_id
              WHERE v.revision_id=? AND d.action_code='APPROVE'
              ORDER BY d.decided_at DESC LIMIT 1 FOR UPDATE"
