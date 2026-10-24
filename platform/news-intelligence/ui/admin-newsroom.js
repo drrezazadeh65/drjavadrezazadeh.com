@@ -55,9 +55,9 @@ export function mountNewsOwnerPanel({root,csrfResolver,
           approvalDigest:item.approval_digest,action})});
       if(data.decision!==action||data.publiclyPublished!==false)
         throw Error('NEWS_OWNER_DECISION_RECEIPT_UNEXPECTED');
+      if(await load()!==true)return;
       show(say('تصمیم ثبت شد. انتشار عمومی هنوز انجام نشده است.',
         'Decision recorded. Public publishing has not occurred.'));
-      await load();
     }catch(error){
       show(say('ثبت تصمیم انجام نشد؛ وضعیت سرور را بررسی کنید. ',
         'Decision was not confirmed. Verify server status. ')+error.message);
@@ -160,7 +160,7 @@ export function mountNewsOwnerPanel({root,csrfResolver,
                 if(receipt.enabled!==false||
                    receipt.schema!=='jr.jrei.news-owner-monitor-disabled.v1')
                   throw Error('NEWS_SOURCE_PAUSE_UNKNOWN');
-                await load();
+                if(await load()!==true)return;
               }catch{
                 show(say('توقف پایش تأیید نشد؛ وضعیت را تازه‌سازی کنید.',
                   'Pause outcome unknown. Refresh authoritative status.'));
@@ -181,7 +181,7 @@ export function mountNewsOwnerPanel({root,csrfResolver,
                 if(receipt.enabled!==true||
                    receipt.originalSchedulerStillRequired!==true)
                   throw Error('NEWS_SOURCE_ACTIVATION_UNKNOWN');
-                await load();
+                if(await load()!==true)return;
               }catch{
                 show(say('مجوز فعال‌سازی تأیید نشد؛ وضعیت سرور را تازه‌سازی کنید.',
                   'Activation not confirmed. Refresh authoritative status.'));
@@ -279,7 +279,7 @@ export function mountNewsOwnerPanel({root,csrfResolver,
                    receipt.monitorEnabled!==false||
                    receipt.crawlStarted!==false)
                   throw Error('NEWS_DISABLED_MONITOR_STAGE_UNCONFIRMED');
-                await load();
+                if(await load()!==true)return;
                 show(say('منبع به‌صورت غیرفعال ثبت شد؛ خزشی آغاز نشده است.',
                   'Source staged disabled; no crawl was started.'));
               }catch{
@@ -404,10 +404,12 @@ export function mountNewsOwnerPanel({root,csrfResolver,
       show(data.items.length?say('پیش‌نویس‌های آماده بازبینی نمایش داده شدند.',
         'Drafts available for owner review are displayed.'):
         say('در حال حاضر پیش‌نویسی در صف نیست.','No drafts awaiting review.'));
+      return true;
     }catch(error){
       if(readVersion===loadRevision)
         show(say('صف بررسی قابل دریافت نیست. ',
           'Unable to load queue. ')+error.message);
+      return false;
     }finally{
       if(readVersion===loadRevision)refresh.disabled=false;
     }
