@@ -8,11 +8,11 @@
     "do_not_replace_existing_store_or_payment": true
   },
   "display_name": {
-    "fa": "دستیار دکتر رضازاده",
-    "en": "Dr. Rezazadeh Assistant"
+    "fa": "JREI | هوش مصنوعی آموزشی اختصاصی",
+    "en": "JREI | Independent Educational Intelligence"
   },
   "future_experience_contract": {
-    "product_identity": "JREI_INDEPENDENT_EDUCATIONAL_ASSISTANT",
+    "product_identity": "FIRST_PARTY_JREI_LM_EDUCATIONAL_INTELLIGENCE",
     "aspiration": "CHATGPT_CLASS_CONVERSATIONAL_EXPERIENCE",
     "not_chatgpt_affiliation_or_equivalent_model_claim": true,
     "binding_document": "docs/governance/JREI_CHATGPT_CLASS_FUTURE_EXPERIENCE_STANDARD_20261024.md",
@@ -22,12 +22,18 @@
     "long_term_user_memory_enabled": false,
     "autonomous_production_schema_changes_enabled": false,
     "continuous_self_training_enabled": false,
-    "status": "SOURCE_STAGE_NOT_PRODUCTION_ACCEPTED"
+    "status": "SOURCE_STAGE_NOT_PRODUCTION_ACCEPTED",
+    "primary_model_provider": "OWNER_OPERATED_LOCAL_WINDOWS_GGUF",
+    "optional_external_assistance": "SEPARATE_OWNER_CONSENT_ONLY",
+    "daily_knowledge_growth_verified": false,
+    "local_model_inference_verified": false,
+    "first_party_windows_signed_chat_bridge_staged": true,
+    "staged_queue_mother_migration": "docs/migrations/20261024_jrei_local_inference_queue_mother_mysql.sql"
   },
   "public_endpoint": null,
   "runtime": "STATIC_BROWSER_FALLBACK",
   "default_model": null,
-  "upgrade_path": "Attach a live AI model only after an independent secure server-side runtime is provisioned; keep model/provider credentials out of GitHub Pages and public JavaScript.",
+  "upgrade_path": "Activate the verified JREI-LM model and signed Windows workers as the primary private knowledge-backed inference service. Other AI APIs are strictly optional separate aids, not prerequisites. Do not claim live self-learning without recurring verified source ingestion and measured benchmark gains.",
   "knowledge_source": "assets/search-index.json public/indexable summaries only",
   "storage": {
     "server_conversation_persistence": false,
@@ -100,8 +106,8 @@
     "admin_status_endpoint": null
   },
   "staged_real_model_runtime": {
-    "source_status": "SOURCE_COMMITTED_NOT_TESTED_NOT_DEPLOYED",
-    "actual_provider": "OPENAI_RESPONSES_API_SERVER_SIDE_OPTIONAL",
+    "source_status": "SOURCE_COMMITTED_NOT_PRODUCTION_ACCEPTED",
+    "actual_provider": "OWNER_LOCAL_WINDOWS_GGUF_AWAITING_INDEPENDENT_RUNTIME_VERIFICATION",
     "cloud_provider_api_key_present_verified": false,
     "api_subscription_is_separate_from_chatgpt_subscription": true,
     "enabled_in_production": false,
@@ -116,6 +122,13 @@
     "longitudinal_memory_enabled": false,
     "existing_static_fallback_preserved": true,
     "independent_live_model_quality_acceptance": "NOT_RUN",
-    "ultimate_binding": "docs/governance/JREI_AUTONOMOUS_EDUCATIONAL_INTELLIGENCE_ULTIMATE_VISION_BINDING_20261023.md"
+    "ultimate_binding": "docs/governance/JREI_AUTONOMOUS_EDUCATIONAL_INTELLIGENCE_ULTIMATE_VISION_BINDING_20261023.md",
+    "primary_intent": "JREI_LM_LOCAL_WINDOWS_FIRST_PARTY",
+    "optional_secondary_provider": "OPENAI_RESPONSES_API_SEPARATELY_AUTHORIZED_ONLY",
+    "local_worker_source": "platform/jrei-v5/windows-worker/jrei-worker.mjs",
+    "local_bounded_queue_source": "api/jrei-local-chat.php",
+    "local_model_installed_verified": false,
+    "generative_windows_connection_verified": false,
+    "daily_self_learning_accepted": false
   }
 }
