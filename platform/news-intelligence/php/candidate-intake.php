@@ -8,6 +8,7 @@ declare(strict_types=1);
  * This source-only file is not loaded by any live worker or public route.
  */
 if (!defined('BERTINA_API_BOOTSTRAPPED')) { http_response_code(404); exit; }
+require_once __DIR__.'/official-feed-extractor.php';
 
 function jrNewsPrivateUuid(): string {
     $b=random_bytes(16);
