@@ -100,14 +100,16 @@ export function renderNewsroomHome({language='fa',stories=[],examEvents=[],
     '<main id="ni-home-main" class="ni-home-shell">'+
     '<header class="ni-home-heading"><p class="ni-kicker">JREI NEWS INTELLIGENCE</p>'+
     '<h1>'+e(copy.brand)+'</h1><p>'+e(copy.intro)+'</p></header>'+
-    categories+hero+'<div class="ni-home-columns"><section class="ni-news-feed">'+
+    categories+hero+'<section class="ni-archive-search" data-ni-archive-search data-ni-language="'+language+'"></section>'+
+    '<div class="ni-home-columns"><section class="ni-news-feed">'+
     '<h2>'+e(copy.latest)+'</h2>'+
     '<label for="ni-filter">'+e(copy.search)+'</label>'+
     '<input id="ni-filter" data-ni-list-filter type="search" autocomplete="off" maxlength="160" placeholder="'+e(copy.search)+'">'+
     '<p data-ni-empty-result hidden>'+e(copy.noMatch)+'</p>'+
     '<div class="ni-grid" data-ni-news-cards>'+cards+'</div></section>'+
     calendar+'</div></main>'+
-    '<script defer src="/assets/js/news-reader.js"></script></body></html>';
+    '<script defer src="/assets/js/news-reader.js"></script>'+
+    '<script defer src="/assets/js/news-search.js"></script></body></html>';
   return Object.freeze({schema:'jr.jrei.newsroom-home-render.v1',
     language,canonical:SITE+news,html:template,
     approvedStoryCount:approved.length,approvedCalendarCount:events.length,
