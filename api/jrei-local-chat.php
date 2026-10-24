@@ -562,11 +562,22 @@ function jrLocalChatOwnerSnapshot(PDO $pdo,array $cfg): array {
         $result['authorizedNodes']=(int)$pdo->query(
           'SELECT COUNT(*) FROM jrei_local_chat_node_authorizations WHERE enabled=1'
         )->fetchColumn();
+        // This count is for independently signed chat-capable workers,
+        // not evaluation-only heartbeats or a suspended GGUF artifact.
+        // Match the same model/rights gate used by real chat readiness.
         $recent=$pdo->prepare("SELECT COUNT(*)
           FROM jrei_local_chat_node_authorizations a
           JOIN jrei_hybrid_nodes n ON n.node_id=a.node_id
+          JOIN jrei_local_model_registry m
+            ON m.model_id=a.model_id AND m.model_version=a.model_version
           WHERE a.enabled=1 AND a.last_signed_chat_seen_at>?
-            AND n.status='ENABLED' AND n.revoked_at IS NULL");
+            AND n.status='ENABLED' AND n.revoked_at IS NULL
+            AND n.permitted_task='REVIEWED_PUBLIC_RETRIEVAL_EVALUATION'
+            AND m.model_artifact_sha256=a.model_artifact_sha256
+            AND m.status='RIGHTS_REVIEWED' AND m.suspended_at IS NULL
+            AND m.weights_installed_verified=1
+            AND m.runtime_verified=1
+            AND m.independent_quality_accepted=1");
         $recent->execute([time()-45]);
         $result['recentlySignedGenerativeWorkers']=(int)$recent->fetchColumn();
         $pending=$pdo->prepare(
