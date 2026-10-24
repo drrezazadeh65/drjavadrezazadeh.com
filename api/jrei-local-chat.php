@@ -276,16 +276,13 @@ function jrLocalChatWorkerPoll(PDO $pdo,array $cfg,string $node,array $body): ar
         $lock->execute([$node]);
         if($lock->fetchColumn()===false)
             throw new DomainException('local_chat_node_disabled_during_poll');
-        // A missing completion is an UNKNOWN outcome, never a retry.
-        $pdo->prepare("UPDATE jrei_local_chat_jobs SET status='FAILED',
-          request_ciphertext=NULL,response_ciphertext=NULL,
-          updated_at=? WHERE status='LEASED' AND
-          (lease_expires_at<? OR expires_at<?)")
-          ->execute([$now,$now,$now]);
-        $pdo->prepare("DELETE FROM jrei_local_chat_jobs WHERE expires_at<? LIMIT 100")
-          ->execute([$now-120]);
-        $q=$pdo->query("SELECT COUNT(*) FROM jrei_local_chat_jobs
-          WHERE status='LEASED' AND leased_to_node=".$pdo->quote($node));
+        // Retention/erasure runs in the existing private retention worker,
+        // never as global UPDATE/DELETE scans on frequent Windows polls.
+        // Expired jobs remain UNKNOWN and are never reassigned.
+        $q=$pdo->prepare("SELECT COUNT(*) FROM jrei_local_chat_jobs
+          WHERE status='LEASED' AND leased_to_node=?
+            AND lease_expires_at>=? AND expires_at>=?");
+        $q->execute([$node,$now,$now]);
         if((int)$q->fetchColumn()>0){$pdo->commit();
             return ['ok'=>true,'job'=>null];}
         $q=$pdo->prepare("SELECT job_id,request_ciphertext,expires_at
