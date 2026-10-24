@@ -320,6 +320,7 @@ function jrNewsOwnerPublicationBacklog(
           AND d.approval_digest=v.approval_digest
          LEFT JOIN jrei_news_publications p ON p.revision_id=v.revision_id
          WHERE v.editorial_state='OWNER_APPROVED'
+           AND v.approval_digest=SHA2(v.bilingual_editorial_json,256)
            AND d.owner_account_id=?
            AND (p.publication_id IS NULL
              OR p.publisher_state='WAITING_FOR_PUBLISHER')
