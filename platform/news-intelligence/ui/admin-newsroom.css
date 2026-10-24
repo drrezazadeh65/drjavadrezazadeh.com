@@ -83,3 +83,24 @@
  .ni-admin-source-row select,.ni-admin-sources button,
  .ni-admin-publication-backlog button{width:100%}
 }
+
+/* Independent JREI-KA article-registration queue. Feed claims are NOT facts. */
+.ni-admin-unbound-articles{
+ border:1px solid #695837;border-radius:1rem;
+ background:#191e20;color:#f5f1e7;padding:clamp(.85rem,2.2vw,1.4rem);
+ margin-block:1rem;min-width:0;overflow-wrap:anywhere}
+.ni-admin-unbound-articles h3{font-size:clamp(1.05rem,2.8vw,1.35rem);
+ line-height:1.55;color:#efcf91}
+.ni-admin-unbound-row{display:grid;grid-template-columns:minmax(0,1fr);
+ gap:.55rem;padding:.85rem .1rem;border-top:1px solid #4f4637}
+.ni-admin-unbound-row p{font-size:.89rem;line-height:1.6;
+ color:#d8cbb8;margin:0;overflow-wrap:anywhere}
+.ni-admin-unbound-row input{font:inherit;width:100%;min-height:44px;
+ padding:.6rem .75rem;background:#262b2e;color:#f7f0e5;
+ border:1px solid #8e7958;border-radius:.55rem}
+.ni-admin-unbound-row button{font:inherit;min-height:44px;
+ border:1px solid #b99a64;background:#353027;color:#f9efd9;
+ padding:.55rem 1rem;border-radius:.55rem;cursor:pointer}
+.ni-admin-unbound-row button:disabled{cursor:not-allowed;opacity:.5}
+.ni-admin-unbound-row :is(input,button):focus-visible{
+ outline:2px solid #edcf91;outline-offset:2px}
