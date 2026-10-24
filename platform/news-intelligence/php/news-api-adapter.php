@@ -16,6 +16,7 @@ if (!defined('BERTINA_API_BOOTSTRAPPED')) {
 require_once __DIR__.'/public-read-model.php';
 require_once __DIR__.'/owner-editorial.php';
 require_once __DIR__.'/owner-preview.php';
+require_once __DIR__.'/owner-overview.php';
 require_once __DIR__.'/exam-reminders.php';
 require_once __DIR__.'/topic-newsletter.php';
 require_once __DIR__.'/preferences-replace.php';
@@ -84,6 +85,13 @@ function jrNewsDispatchApi(PDO $pdo,string $method,string $route,
             throw new InvalidArgumentException('news_api_search_window_invalid');
         }
         return jrNewsPublishedSearch($pdo,$q,$language,20,$filters);
+    }
+    if ($method==='GET' && $route==='/news/v1/owner/overview') {
+        $owner=$serverCtx['existingOwnerMfaSession']??null;
+        if (!is_array($owner)) {
+            throw new RuntimeException('news_api_owner_session_required');
+        }
+        return jrNewsOwnerOperationalOverview($pdo,$owner,time());
     }
     if ($method==='GET' && $route==='/news/v1/owner/queue') {
         $owner=$serverCtx['existingOwnerMfaSession']??null;
