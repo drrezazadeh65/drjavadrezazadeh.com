@@ -42,8 +42,13 @@ export function mountNewsOwnerPanel({root,csrfResolver,
   };
   const label=(value)=>{const node=document.createElement('span');
     node.textContent=String(value??'');return node;};
-  async function decide(item,action,button){
-    button.disabled=true;show(say('در حال ثبت تصمیم امن…','Recording verified decision…'));
+  const decisionsInFlight=new Set();
+  async function decide(item,action,buttons){
+    const id=item.revision_id;
+    if(decisionsInFlight.has(id))return;
+    decisionsInFlight.add(id);
+    buttons.forEach(button=>{button.disabled=true;});
+    show(say('در حال ثبت تصمیم امن…','Recording verified decision…'));
     try{
       const data=await request('/owner/decision',{method:'POST',
         body:JSON.stringify({revisionId:item.revision_id,
@@ -56,7 +61,11 @@ export function mountNewsOwnerPanel({root,csrfResolver,
     }catch(error){
       show(say('ثبت تصمیم انجام نشد؛ وضعیت سرور را بررسی کنید. ',
         'Decision was not confirmed. Verify server status. ')+error.message);
-    }finally{button.disabled=false;}
+    }finally{
+      decisionsInFlight.delete(id);
+      // A failed/uncertain receipt leaves all controls inert until a new
+      // owner-reviewed preview. Never permit a second blind submission.
+    }
   }
   let loadRevision=0;
   async function load(){
@@ -309,7 +318,7 @@ export function mountNewsOwnerPanel({root,csrfResolver,
           const b=document.createElement('button');b.type='button';
           b.textContent=fa?faLabel:enLabel;
           b.disabled=true;reviewButtons.push(b);
-          b.addEventListener('click',()=>decide(item,action,b));
+          b.addEventListener('click',()=>decide(item,action,reviewButtons));
           actions.append(b);
         }
         view.addEventListener('click',async()=>{
