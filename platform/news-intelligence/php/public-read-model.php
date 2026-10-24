@@ -120,14 +120,23 @@ function jrNewsPublishedSearch(PDO $pdo,string $query,string $locale='fa',
         ' MATCH(s.title,s.summary,s.searchable_body) AGAINST(:phrase IN NATURAL LANGUAGE MODE) AS relevance'.
         $joins.' AND MATCH(s.title,s.summary,s.searchable_body) AGAINST(:matched IN NATURAL LANGUAGE MODE)>0'.
         ' ORDER BY relevance DESC,s.published_at DESC LIMIT :row_limit';
-    $statement=$pdo->prepare($querySql);
-    foreach ($args as $key=>$value) $statement->bindValue($key,$value,
-        is_int($value)?PDO::PARAM_INT:PDO::PARAM_STR);
-    $statement->bindValue(':phrase',$query,PDO::PARAM_STR);
-    $statement->bindValue(':matched',$query,PDO::PARAM_STR);
-    $statement->bindValue(':row_limit',$rowLimit,PDO::PARAM_INT);
-    $statement->execute();
-    $rows=$statement->fetchAll(PDO::FETCH_ASSOC);
+    $rows=[];
+    try {
+        $statement=$pdo->prepare($querySql);
+        foreach ($args as $key=>$value) $statement->bindValue($key,$value,
+            is_int($value)?PDO::PARAM_INT:PDO::PARAM_STR);
+        $statement->bindValue(':phrase',$query,PDO::PARAM_STR);
+        $statement->bindValue(':matched',$query,PDO::PARAM_STR);
+        $statement->bindValue(':row_limit',$rowLimit,PDO::PARAM_INT);
+        $statement->execute();
+        $rows=$statement->fetchAll(PDO::FETCH_ASSOC);
+    }catch(PDOException $e) {
+        // InnoDB FULLTEXT may be unavailable after a partial migration or
+        // on some MariaDB search configurations. The existing bounded,
+        // escaped exact-text fallback remains safe for Persian queries.
+        // Never expose schema or query errors to a public search client.
+        $rows=[];
+    }
     if (!$rows) {
         $literal=str_replace(['!','%','_'],['!!','!%','!_'],$query);
         $sql='SELECT s.public_route,s.title,s.summary,s.published_at'.
