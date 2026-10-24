@@ -3,7 +3,7 @@
  * interfaces. Ports are injected by an owner-authenticated private backend.
  * This module creates no provider, crawler, SMTP or public chatbot.
  */
-import {assert,isHash,plain,utcInstant} from './contracts.mjs';
+import {assert,isHash,isId,plain,utcInstant} from './contracts.mjs';
 import {nextSourcePoll,dedupeNewsCandidates} from './source-intelligence.mjs';
 import {prepareEditorialPreview} from './contracts.mjs';
 import {editorialGenerationRequest} from './editorial-style.mjs';
@@ -57,7 +57,13 @@ export function makeBilingualNewsReviewPackage({
   assert(plain(candidate)&&plain(evidence)&&
     evidence.schema==='jr.jrei.news-evidence-review.v1'&&
     evidence.candidateFingerprint===candidate.fingerprint&&
-    evidence.evidenceSha256===candidate.evidenceSha256,
+    evidence.evidenceSha256===candidate.evidenceSha256&&
+    evidence.sourceRegistryRead===true&&
+    evidence.evidenceReviewed===true&&
+    evidence.issuerVerified===true&&
+    evidence.sourceStillCurrent===true&&
+    isId(evidence.reviewerId)&&utcInstant(evidence.reviewedAt)&&
+    Number.isInteger(evidence.claimCount)&&evidence.claimCount>0,
     'NEWS_EDITORIAL_EVIDENCE_MISMATCH');
   const generation=editorialGenerationRequest({candidate,evidence,format,
     styleCorpusRecords:corpusRecords});
