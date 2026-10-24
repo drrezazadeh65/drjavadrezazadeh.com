@@ -56,3 +56,20 @@ test('live answer can be stopped and old responses are discarded', () => {
 test('off-site citations cannot access opener or referrer', () => {
   assert.match(js, /a\.target='_blank';a\.rel='noopener noreferrer'/);
 });
+
+test('assistant differentiates real API readiness from the static guide', () => {
+  assert.match(js, /async function discoverLiveAssistant\(\)/);
+  assert.match(js, /policy\.live!==true/);
+  assert.match(js, /providerConsent\.checked/);
+  assert.match(js, /const liveGreeting=isFa/);
+  assert.match(js, /const staticGreeting=isFa/);
+  assert.match(js, /\.slice\(0,800\)/);
+});
+test('published bilingual service pages are reachable from local guide', () => {
+  for(const link of [
+    'fa/services/reviewer_response/','en/services/reviewer_response/',
+    'fa/services/academic_editing/','en/services/academic_editing/',
+    'fa/services/','en/services/'
+  ]) assert.ok(js.includes(link), 'missing public service route: '+link);
+  assert.match(js, /service/);
+});
