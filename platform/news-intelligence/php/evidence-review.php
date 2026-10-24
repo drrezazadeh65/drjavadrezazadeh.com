@@ -27,9 +27,13 @@ function jrNewsApproveIndependentSourceEvidence(
     try {
         $stmt=$pdo->prepare(
             'SELECT c.candidate_id,c.content_sha256,c.source_url,
-                    c.state,m.jrei_source_reference,m.enabled
+                    c.state,d.approved_article_source_id,m.enabled
              FROM jrei_news_candidates c JOIN jrei_news_monitors m
                ON m.monitor_id=c.monitor_id
+             JOIN jrei_news_discovered_urls d
+               ON d.monitor_id=c.monitor_id
+              AND d.canonical_url_sha256=SHA2(c.source_url,256)
+              AND d.review_state='ORIGINAL_JREI_ARTICLE_APPROVED'
              WHERE c.candidate_id=? FOR UPDATE'
         );
         $stmt->execute([$candidateId]);
@@ -43,7 +47,7 @@ function jrNewsApproveIndependentSourceEvidence(
         // independently logged reviewer identity must be re-read by the
         // ORIGINAL JREI private source system, not request-supplied flags.
         $source=$originalJreiSourceVerifier(
-            $candidate['jrei_source_reference'],
+            $candidate['approved_article_source_id'],
             $candidate['source_url'],
             $candidate['content_sha256'],
             $review['accountId']
