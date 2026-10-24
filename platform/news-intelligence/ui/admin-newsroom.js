@@ -59,6 +59,10 @@ export function mountNewsOwnerPanel({root,csrfResolver,
   }
   async function load(){
     refresh.disabled=true;
+    // A stale, previously authorized decision must not remain clickable
+    // when the owner session expires or the next queue refresh fails.
+    list.replaceChildren();
+    metrics.replaceChildren();
     show(say('در حال دریافت صف خصوصی…','Loading private owner queue…'));
     try{
       const data=await request('/owner/queue',{method:'GET'});
@@ -89,7 +93,14 @@ export function mountNewsOwnerPanel({root,csrfResolver,
             card.append(name,value);metrics.append(card);
           }
         }
-      }catch{/* real overview unavailable; never render invented zeros */}
+      }catch{
+        const unavailable=document.createElement('p');
+        unavailable.textContent=say(
+          'شاخص‌های مدیریتی فعلاً از دیتابیس مادر قابل تأیید نیستند.',
+          'Owner metrics are currently unavailable from the mother database.'
+        );
+        metrics.append(unavailable);
+      }
       for(const item of data.items){
         const card=document.createElement('article');
         card.className='ni-admin-card';
@@ -118,7 +129,11 @@ export function mountNewsOwnerPanel({root,csrfResolver,
           actions.append(b);
         }
         view.addEventListener('click',async()=>{
-          view.disabled=true;show(say('در حال دریافت نسخه کامل…','Loading exact version…'));
+          view.disabled=true;
+          reviewButtons.forEach(button=>{button.disabled=true;});
+          fullPreview.replaceChildren();
+          fullPreview.hidden=true;
+          show(say('در حال دریافت نسخه کامل…','Loading exact version…'));
           try{
             const data=await request('/owner/preview?revisionId='+
               encodeURIComponent(item.revision_id),{method:'GET'});
@@ -151,7 +166,7 @@ export function mountNewsOwnerPanel({root,csrfResolver,
             const proposed=data.proposedBilingualRoutes||{};
             if(typeof proposed.fa!=='string'||typeof proposed.en!=='string'||
               !/^\/fa\/akhbar\/[a-z0-9-]+\/$/.test(proposed.fa)||
-              !/^\/en\/news\/[a-z0-9-]+\/$/.test(proposed.en))
+              !/^\/en\/news-insights\/[a-z0-9-]+\/$/.test(proposed.en))
               throw Error('NEWS_PROPOSED_ROUTES_NOT_REVIEWABLE');
             paths.textContent='Proposed URLs — '+proposed.fa+' | '+proposed.en;
             fullPreview.prepend(source,media,paths);
