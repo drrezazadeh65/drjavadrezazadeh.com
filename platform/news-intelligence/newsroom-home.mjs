@@ -71,6 +71,8 @@ export function renderNewsroomHome({language='fa',stories=[],examEvents=[],
   const featured=approved.find(s=>s.priority==='P0'&&
     now-Date.parse(s.publishedAt)<=48*60*60*1000)??approved[0]??null;
   const rest=approved.filter(s=>s.path!==featured?.path).slice(0,48);
+  const featuredBreaking=featured?.priority==='P0'&&
+    now-Date.parse(featured.publishedAt)<=48*60*60*1000;
   const events=examEvents.filter(x=>plain(x)&&
     x.schema==='jr.jrei.exam-event.v1'&&
     x.status==='OFFICIAL_DATE_REVIEWED'&&
@@ -89,7 +91,7 @@ export function renderNewsroomHome({language='fa',stories=[],examEvents=[],
     '</time><span class="ni-action">'+e(copy.more)+'</span></div></a></article>').join('');
   const hero=featured?'<section class="ni-feature"><a href="'+e(featured.path)+'">'+
     '<img src="'+e(featured.featuredImage)+'" alt="'+e(featured.imageAlt)+'" width="1600" height="900" loading="eager" decoding="async">'+
-    '<div><span class="ni-tag">'+e(featured.priority==='P0'?copy.urgent:copy.latest)+
+    '<div><span class="ni-tag">'+e(featuredBreaking?copy.urgent:copy.latest)+
     '</span><h2>'+e(featured.headline)+'</h2><p>'+e(featured.summary)+'</p>'+
     '<span class="ni-action">'+e(copy.more)+'</span></div></a></section>':'';
   const calendar='<aside class="ni-calendar"><h2>'+e(copy.calendar)+'</h2>'+
