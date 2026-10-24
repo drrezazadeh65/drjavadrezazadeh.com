@@ -18,8 +18,7 @@ require_once __DIR__.'/jrei-ka-safe-discovery.php';
 function jrKaAcquisitionReady(PDO $pdo,array $cfg): bool {
     if(($cfg['jrei_ka_schedule_enabled']??false)!==true||
        ($cfg['jrei_ka_autofetch_enabled']??false)!==true||
-       ($cfg['jrei_ka_night_mode_enabled']??false)!==true||
-       !jrJreiIranNightAllowsRequest(time())||
+       !jrJreiKaAcquisitionWindowAllowed($cfg,time(),true)||
        !jrKaSchemaReady($pdo)||!function_exists('curl_init'))
         return false;
     try{
@@ -245,8 +244,8 @@ function jrKaPrivateAcquireOne(PDO $pdo,array $cfg): array {
             throw new DomainException('ka_robots_delay_exceeds_approved_budget');
         // The queue or robots response must not carry a new HTTP fetch past
         // the owner-approved Iran-local 05:00 boundary.
-        if(!jrJreiIranNightAllowsRequest(time()))
-            throw new DomainException('ka_night_window_closing');
+        if(!jrJreiKaAcquisitionWindowAllowed($cfg,time(),true))
+            throw new DomainException('ka_acquisition_window_closed');
         $obtained=jrKaPinnedGet($job['url'],$job['limitBytes']);
         $sha=hash('sha256',$obtained['bytes']);
         $mime=$obtained['mime'];$size=$obtained['byteCount'];
