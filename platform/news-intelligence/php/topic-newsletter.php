@@ -97,7 +97,7 @@ function jrNewsWithdrawTopics(PDO $pdo,string $authenticatedAccountId,
         // Suppression callback MUST participate in this SAME PDO transaction.
         // Any ambiguous/failed response aborts preference updates.
         $suppressed=$suppressExistingPendingNewsOutbox(
-            $pdo,$authenticatedAccountId,'JREI_NEWSLETTER','EMAIL',$topic
+            $pdo,$authenticatedAccountId,'ARTICLES','EMAIL',$topic
         );
         if (!is_int($suppressed)||$suppressed<0) {
             throw new RuntimeException('news_original_outbox_suppression_failed');
