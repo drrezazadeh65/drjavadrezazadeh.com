@@ -4,7 +4,7 @@
   "repository": "drrezazadeh65/drjavadrezazadeh.com",
   "branch": "migration/bertina-linux6",
   "sourceRoot": "platform/news-intelligence",
-  "state": "SOURCE_STAGED_NOT_TESTED_NOT_INTEGRATED_NOT_DEPLOYED",
+  "state": "SOURCE_STAGED_ISOLATED_ACCEPTANCE_PASSED_INTEGRATION_STILL_REQUIRED",
   "noParallelSystems": true,
   "integrationDefaults": {
     "apiEnabled": false,
@@ -66,8 +66,8 @@
       "mustNotModifyBeforeSharedDeveloperCoordination": true
     },
     {
-      "path": "en/news/index.html",
-      "task": "preserve existing URL, confirm actual path before adoption",
+      "path": "en/news-insights/index.html",
+      "task": "preserve existing canonical English archive and integrate bilingual news only after publishing full approved assets",
       "mustNotModifyBeforeSharedDeveloperCoordination": true
     }
   ],
@@ -92,7 +92,7 @@
     "security and performance final campaign"
   ],
   "deploymentApproved": false,
-  "testsRunByThisWorkstream": false,
+  "testsRunByThisWorkstream": true,
   "liveClaimsProhibited": true,
   "sourceCheckpoint": "2026-10-24",
   "newSourceComponents": [
@@ -135,7 +135,9 @@
     "RSS observations are metadata only: individual article-body hashes must originate from independently authorized original JREI article-source observations, never the feed hash",
     "One-time owner-delegated bounded official-source scopes are proposals; the original JREI source registrar must validate and materialize article-specific rights and receipts before automatic article acquisition",
     "A full draft's exact PHP JSON hash includes auto-generated bilingual path proposals; never trust client-supplied path proposals",
-    "The original JREI source refresh policy at 3600 seconds is not silently bypassed for urgent P0 announcements"
+    "The original JREI source refresh policy at 3600 seconds is not silently bypassed for urgent P0 announcements",
+    "All new English news child routes now follow existing /en/news-insights/ archive; no second English news archive created",
+    "Source tests now cover synthetic original JREI article receipts and CMS publication/search lifecycle; production integration has NOT been verified"
   ],
   "sourceOnlyChanges20261024": [
     "PHP owner preview uses real approved_image_ref column and independently rechecks stored approval SHA256",
@@ -173,5 +175,17 @@
       "User opt-out suppression through original worker"
     ],
     "approvedToRun": false
-  }
+  },
+  "isolatedAcceptance": {
+    "lastProvenWorkflowRunId": 40088701879,
+    "evidenceCommitSha": "20f835c0d99d067764883a7de6aa045b8bfe4ce0",
+    "testedScope": "Offline PHP and JavaScript syntax, security source contracts, disposable MariaDB 10.11 official-source-to-private-publication queue plus forged CMS rejection, synthetic receipt, bilingual public index/search",
+    "productionDatabaseTouched": false,
+    "realSmtpDeliveryVerified": false,
+    "actualNewsPublished": false,
+    "realJreiProviderInferenceVerified": false
+  },
+  "ownerReleaseIntent": "DEPLOY_WHEN_FINAL_ACCEPTANCE_AND_OWNER_ONLY_WORKFLOW_ARE_READY",
+  "englishExistingNewsCanonicalArchive": "/en/news-insights/",
+  "persianExistingNewsCanonicalArchive": "/fa/akhbar/"
 }
