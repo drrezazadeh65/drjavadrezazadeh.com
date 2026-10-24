@@ -95,7 +95,7 @@ export async function runLocalChatWorker(config,key,{post,log,signal,fetchImpl}=
   let stopping=false,backoff=0;
   let previousCpu=cpuSnapshot(),resourceBusy=false;
   let idlePollSeconds=model.pollSeconds;
-  const maxIdlePollSeconds=model.idlePollMaxSeconds??30;
+  const maxIdlePollSeconds=model.idlePollMaxSeconds??20;
   const stop=()=>{stopping=true;log('LOCAL_CHAT_STOP_REQUESTED');};
   signal?.addEventListener?.('abort',stop,{once:true});
   log('OWNER_JREI_LOCAL_CHAT_STARTED_NO_CLOUD');
@@ -137,6 +137,27 @@ export async function runLocalChatWorker(config,key,{post,log,signal,fetchImpl}=
             log('LOCAL_CHAT_LEASE_TOO_SHORT_NO_INFERENCE');
             continue;
           }
+          // The server's 45-second node freshness window must remain
+          // meaningful during a long (up to 35-second) local inference.
+          // A signed poll from an already leased node refreshes the
+          // EXISTING node heartbeat but cannot claim a second lease.
+          let heartbeatInFlight=false;
+          const heartbeat=async()=>{
+            if(stopping||heartbeatInFlight)return;
+            heartbeatInFlight=true;
+            try{
+              const status=await post(config,key,pollEndpoint,{
+                modelId:model.modelId,modelVersion:model.modelVersion,
+                modelSha256:model.modelSha256
+              });
+              if(status?.ok!==true||status.job!==null)
+                log('LOCAL_CHAT_HEARTBEAT_REQUIRES_REVIEW');
+            }catch{
+              // Do not assume an uncertain signed heartbeat succeeded.
+              log('LOCAL_CHAT_HEARTBEAT_UNCONFIRMED');
+            }finally{heartbeatInFlight=false;}
+          };
+          const heartbeatTimer=setInterval(()=>{void heartbeat();},15000);
           try{
             const draft=await adapter.complete({
               model:model.modelId,
@@ -163,6 +184,8 @@ export async function runLocalChatWorker(config,key,{post,log,signal,fetchImpl}=
             // The leased job expires to FAILED/unknown. Do not requeue a
             // possibly completed inference or transfer text elsewhere.
             log('LOCAL_CHAT_TASK_'+safeReason(error));
+          }finally{
+            clearInterval(heartbeatTimer);
           }
         }
         if(!stopping){
