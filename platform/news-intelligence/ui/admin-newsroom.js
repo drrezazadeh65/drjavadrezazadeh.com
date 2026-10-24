@@ -26,8 +26,10 @@ export function mountNewsOwnerPanel({root,csrfResolver,
   const sources=document.createElement('section');sources.className='ni-admin-sources';
   const acquisition=document.createElement('section');
   acquisition.className='ni-admin-acquisition';
+  const publications=document.createElement('section');
+  publications.className='ni-admin-publication-backlog';
   const list=document.createElement('div');list.className='ni-admin-queue';
-  root.replaceChildren(header,refresh,status,metrics,sources,acquisition,list);
+  root.replaceChildren(header,refresh,status,metrics,sources,acquisition,publications,list);
   const show=s=>{status.textContent=s;};
   const request=async (path,options)=>{
     const token=csrfResolver();
@@ -79,6 +81,7 @@ export function mountNewsOwnerPanel({root,csrfResolver,
     metrics.replaceChildren();
     sources.replaceChildren();
     acquisition.replaceChildren();
+    publications.replaceChildren();
     show(say('در حال دریافت صف خصوصی…','Loading private owner queue…'));
     try{
       const data=await request('/owner/queue',{method:'GET'});
