@@ -32,13 +32,15 @@ function jrNewsProjection(array $publication, string $locale): ?array {
     if (!is_array($localized))return null;
     $route=$publication[$locale.'_route']??null;
     if (!is_string($route) ||
-        !preg_match('#^/'.$locale.'/[a-z0-9/-]{3,240}/$#D',$route) ||
-        str_contains($route,'//'))return null;
+        !preg_match('#^'.($locale==='fa'?'/fa/akhbar/':'/en/news-insights/').'[a-z0-9-]+/$#D',$route))return null;
     $headline=$localized['headline']??null;
     $summary=$localized['summary']??null;
     if (!is_string($headline) || strlen($headline)>720 ||
         trim($headline)==='' || !is_string($summary) ||
-        strlen($summary)>4000)return null;
+        strlen($summary)>4000 ||
+        preg_match('//u',$headline)!==1 ||
+        preg_match('//u',$summary)!==1 ||
+        (int)$publication['published_at']>time())return null;
     return [
         'url'=>'https://drjavadrezazadeh.com'.$route,
         'headline'=>$headline,
