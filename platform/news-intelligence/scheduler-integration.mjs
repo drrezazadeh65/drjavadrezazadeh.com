@@ -33,7 +33,8 @@ export function planIranNightNewsWindow({atUtc,originalJreiBudget,
   const clock=iranClockParts(atUtc);
   const nighttime=clock.minutes>=120&&clock.minutes<300;
   const urgent=workClass==='URGENT_NEWS_RECHECK';
-  const allowedTime=nighttime||urgent;
+  const allowedTime=nighttime||(urgent&&
+    sourcePolicy.urgentOutsideNightApproved===true);
   const budgetAvailable=Math.min(
     ALLOWANCE_BYTES-originalJreiBudget.bytesReservedToday,
     originalJreiBudget.bytesRemainingToday
