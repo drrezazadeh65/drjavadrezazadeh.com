@@ -65,8 +65,21 @@ function jrAiPublicServiceIntent(string $question): ?array {
         $found=array_values(array_intersect($found,$strong));
         if(!$found)return null;
     }
-    // If multiple competing services match, direct the learner to the
-    // full directory rather than deciding their purchase for them.
+    // A specifically requested premium/extended package subsumes an
+    // overlapping general introduction; prefer exact user needs before
+    // applying the conflict-to-directory safety rule.
+    $specific=[
+      'golden_talent_premium'=>['golden_talent_comprehensive','student_parent_90'],
+      'field_selection_comprehensive'=>['field_selection_standard'],
+      'konkur_month'=>['konkur_consult_60'],
+      'talent_initial'=>['golden_talent_comprehensive']
+    ];
+    foreach($specific as $special=>$lessSpecific){
+        if(in_array($special,$found,true))
+            $found=array_values(array_diff($found,$lessSpecific));
+    }
+    // If three truly competing services remain, show the directory rather
+    // than deciding the user's purchase for them.
     $found=array_values(array_unique($found));
     return ['directoryOnly'=>count($found)>2,'codes'=>array_slice($found,0,2)];
 }
