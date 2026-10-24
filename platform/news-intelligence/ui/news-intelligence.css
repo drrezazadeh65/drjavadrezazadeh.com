@@ -218,3 +218,79 @@
 .ni-reminder-card button:disabled{opacity:.55;cursor:progress}
 .ni-reminder-card button:focus-visible{outline:2px solid #f4d49a;
  outline-offset:3px}
+
+
+/* Editorial-grade newsroom presentation. Source-staged; do not auto-activate. */
+.ni-home{background:linear-gradient(150deg,#1c2022 0,#101315 34%,#0c1012 100%)}
+.ni-home-shell{max-width:1520px}
+.ni-home-heading{max-width:none;position:relative;isolation:isolate;
+  padding:clamp(1.5rem,4vw,3.4rem) clamp(1.2rem,4vw,3.3rem);
+  background:linear-gradient(115deg,#272a29,#191d1f 60%,#2d2821);
+  border:1px solid #5b513f;border-radius:1.1rem;
+  box-shadow:0 22px 55px rgba(0,0,0,.18);overflow:hidden}
+.ni-home-heading:after{content:"";position:absolute;inset-block:0;
+  inset-inline-end:0;width:min(28%,300px);
+  background:repeating-linear-gradient(-45deg,transparent 0 16px,
+  rgba(215,181,110,.08) 17px 18px);pointer-events:none;z-index:-1}
+.ni-home-heading .ni-kicker{font-size:clamp(.74rem,1vw,.88rem);
+  letter-spacing:.19em;text-transform:uppercase;margin:0 0 .7rem}
+.ni-home-heading h1{max-width:900px;font-weight:800;
+  line-height:1.25;letter-spacing:-.025em;
+  margin:0 0 .8rem;text-wrap:balance}
+.ni-home-heading>p:last-child{max-width:780px;font-size:clamp(1rem,1.3vw,1.18rem);
+  line-height:1.85;margin-block-end:0}
+.ni-home .ni-categories{margin-block:.7rem 1.5rem;gap:.5rem;
+  scrollbar-width:thin;scrollbar-color:#99825d #1e2224}
+.ni-home .ni-category{min-height:44px;padding:.55rem .95rem;
+  font-weight:650;background:#212526;border-color:#554b3b}
+.ni-home .ni-category[aria-pressed="true"]{background:#c8a976;
+  color:#111;border-color:#ead2a6}
+.ni-home .ni-feature{margin:0 0 1.4rem;border-radius:1rem;
+  border-color:#65563e;box-shadow:0 12px 38px rgba(0,0,0,.16)}
+.ni-home .ni-feature>a{grid-template-columns:minmax(0,1.25fr) minmax(0,1fr)}
+.ni-home .ni-feature>a>div{padding:clamp(1.3rem,3vw,2.6rem)}
+.ni-home .ni-feature h2{font-weight:800;
+  font-size:clamp(1.48rem,2.6vw,2.7rem);line-height:1.42;
+  margin-block:.5rem .8rem;text-wrap:balance}
+.ni-home .ni-feature p{color:#ded5c5;line-height:1.85}
+.ni-editorial-standard{display:flex;align-items:baseline;gap:1rem;
+  margin:0 0 1.4rem;padding:1rem 1.2rem;
+  border-inline-start:3px solid #bf9f67;
+  background:rgba(212,182,122,.07);color:#e1d6c1}
+.ni-editorial-standard strong{flex:none;color:#e7c68f}
+.ni-editorial-standard p{margin:0;line-height:1.8;font-size:.9rem}
+.ni-empty-public{color:#dfd4c2;background:#1d2225;padding:1.1rem 1.3rem;
+  border:1px dashed #6f634f;border-radius:.75rem;line-height:1.9}
+.ni-empty-public p{margin:0}
+.ni-home-columns{grid-template-columns:minmax(0,1fr) minmax(270px,325px);
+  gap:clamp(1.25rem,3vw,2.75rem)}
+.ni-home .ni-grid{gap:clamp(.85rem,1.5vw,1.5rem)}
+.ni-home .ni-card{transition:transform .2s ease,border-color .2s ease;
+  background:#1b2022;border-radius:.85rem;overflow:hidden}
+.ni-home .ni-card:hover{transform:translateY(-3px);border-color:#af9364}
+.ni-home .ni-card a:focus-visible,.ni-home .ni-feature a:focus-visible{
+  outline:3px solid #e3be7e;outline-offset:-3px}
+.ni-home .ni-card img{aspect-ratio:16/10}
+.ni-home .ni-card-copy{padding:clamp(1rem,1.8vw,1.5rem)}
+.ni-home .ni-card h3{font-weight:750;line-height:1.52;
+  margin:.6rem 0;text-wrap:pretty}
+.ni-home .ni-calendar{border-radius:.85rem;box-shadow:0 9px 25px rgba(0,0,0,.14)}
+.ni-home .ni-calendar h2{margin-top:.2rem}
+@media(max-width:950px){
+  .ni-home-columns{grid-template-columns:1fr}
+  .ni-home .ni-calendar{position:static}
+}
+@media(max-width:700px){
+  .ni-home-heading{padding:1.4rem 1rem}
+  .ni-home-heading:after{width:22%}
+  .ni-home .ni-feature>a{grid-template-columns:1fr}
+  .ni-home .ni-feature img{width:100%;height:auto;
+    min-height:0;max-height:none;aspect-ratio:16/9}
+  .ni-home .ni-grid{grid-template-columns:1fr}
+  .ni-editorial-standard{display:block}
+  .ni-editorial-standard strong{display:block;margin-bottom:.35rem}
+}
+@media(prefers-reduced-motion:reduce){
+  .ni-home .ni-card{transition:none}
+  .ni-home .ni-card:hover{transform:none}
+}
