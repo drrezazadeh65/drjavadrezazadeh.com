@@ -9,6 +9,7 @@ declare(strict_types=1);
  */
 if (!defined('BERTINA_API_BOOTSTRAPPED')) { http_response_code(404); exit; }
 require_once __DIR__.'/candidate-intake.php';
+require_once __DIR__.'/slug-routes.php';
 
 function jrNewsCleanEditorialLanguage(array $input,string $language): array {
     if (($input['language']??null)!==$language)
@@ -73,7 +74,7 @@ function jrNewsStoreEvidenceReviewedDraft(
     try {
         $q=$pdo->prepare(
             'SELECT c.source_url,c.content_sha256,c.candidate_id,
-                    e.review_id,e.verification_state,e.issuer_verified,
+                    c.fingerprint_sha256,e.review_id,e.verification_state,e.issuer_verified,
                     e.usage_rights_verified,e.content_sha256 AS reviewed_sha
              FROM jrei_news_candidates c
              JOIN jrei_news_evidence_reviews e
@@ -100,10 +101,13 @@ function jrNewsStoreEvidenceReviewedDraft(
         );
         $q->execute([$candidateId]);
         $next=(int)($q->fetchColumn()?:0)+1;
+        $routes=jrNewsProposeBilingualDraftRoutes(
+            $en['headline'],$record['fingerprint_sha256']);
         $payload=[
             'schema'=>'jr.jrei.news-owner-editorial-payload.v1',
             'fa'=>$fa,'en'=>$en,
             'imageAssetReference'=>$image,
+            'routeProposal'=>$routes,
             'internalLinks'=>$sanitized,
             'evidenceSha256'=>$record['content_sha256'],
             'candidateId'=>$candidateId,
@@ -128,6 +132,7 @@ function jrNewsStoreEvidenceReviewedDraft(
             'schema'=>'jr.jrei.news-draft-staged.v1',
             'revisionId'=>$uuid,'revisionNumber'=>$next,
             'approvalDigest'=>$digest,
+            'routeProposal'=>$routes,
             'readyForOwnerPreview'=>true,
             'publiclyPublished'=>false,
             'noModelApprovalOfItsOwnDraft'=>true
