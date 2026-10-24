@@ -27,6 +27,7 @@ require_once __DIR__.'/calendar-read.php';
 require_once __DIR__.'/exam-deadline-owner.php';
 require_once __DIR__.'/exam-reminders.php';
 require_once __DIR__.'/topic-newsletter.php';
+require_once __DIR__.'/original-eco-compatibility.php';
 require_once __DIR__.'/preferences-replace.php';
 require_once __DIR__.'/digest-worker.php';
 require_once __DIR__.'/public-search-indexer.php';
