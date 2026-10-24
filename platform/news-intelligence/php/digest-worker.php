@@ -32,7 +32,8 @@ function jrNewsQueueTopicDigests(PDO $pdo,string $mode,int $nowEpoch,
     }
     $since=jrNewsDigestWindow($mode,$nowEpoch);
     $stmt=$pdo->prepare(
-        "SELECT p.fa_route,p.en_route,p.published_at,
+        "SELECT p.publication_id,p.fa_route,p.en_route,p.published_at,
+                p.fa_content_sha256,p.en_content_sha256,
                 v.bilingual_editorial_json,v.approval_digest,
                 c.priority_code,c.event_type,
                 m.category_code
@@ -56,19 +57,23 @@ function jrNewsQueueTopicDigests(PDO $pdo,string $mode,int $nowEpoch,
          ORDER BY p.published_at DESC LIMIT 500"
     );
     $stmt->execute([$since,$nowEpoch]);
-    $articles=array_values(array_filter(
-        $stmt->fetchAll(PDO::FETCH_ASSOC),
-        static fn(array $row): bool =>
-            hash_equals((string)$row['approval_digest'],
-                hash('sha256',(string)$row['bilingual_editorial_json']))
-    ));
-    foreach($articles as &$article){
-        $decoded=json_decode((string)$article['bilingual_editorial_json'],
-            true,32);
-        $article['decodedBilingual']=is_array($decoded)?$decoded:[];
+    // Never materialize 500 large bilingual draft bodies in a PHP array,
+    // or retain 500 fully decoded bodies for every subscriber. Inspect each
+    // approved row once, keep only small public headline projections, and
+    // discard the full draft before reading more rows.
+    $articles=[];
+    while(($article=$stmt->fetch(PDO::FETCH_ASSOC))!==false){
+        if(!hash_equals((string)$article['approval_digest'],
+            hash('sha256',(string)$article['bilingual_editorial_json'])))
+            continue;
+        $copy=json_decode((string)$article['bilingual_editorial_json'],true,32);
+        if(!is_array($copy))continue;
+        $article['headlineFa']=$copy['fa']['headline']??null;
+        $article['headlineEn']=$copy['en']['headline']??null;
         unset($article['bilingual_editorial_json']);
+        $articles[]=$article;
     }
-    unset($article);
+    unset($article,$copy);
     // No approved articles: do not scan or lock thousands of customer
     // preferences simply to discover that no digest can be sent.
     if(!$articles){
@@ -153,16 +158,19 @@ function jrNewsQueueTopicDigests(PDO $pdo,string $mode,int $nowEpoch,
             $path=$a[$locale.'_route'];
             if (!is_string($path) ||
                 !preg_match('#^/'.$locale.'/[a-z0-9/-]+/$#D',$path))continue;
-            // Decode each verified immutable bilingual draft once per
-            // batch, rather than once per subscribed account.
-            $data=$a['decodedBilingual']??null;
-            $title=is_array($data)&&is_array($data[$locale]??null)?
-                ($data[$locale]['headline']??null):null;
+            $title=$a[$locale==='fa'?'headlineFa':'headlineEn']??null;
             if (!is_string($title)||trim($title)===''||strlen($title)>720)
                 continue;
+            // Immutable, server-owned references permit the ORIGINAL
+            // eco worker to reload/recheck the actual CMS receipt and
+            // withdrawn-page state immediately before sending any mail.
             $selected[]=[
                 'url'=>'https://drjavadrezazadeh.com'.$path,
-                'title'=>$title,'publishedAt'=>(int)$a['published_at']];
+                'title'=>$title,'publishedAt'=>(int)$a['published_at'],
+                'publicationId'=>$a['publication_id'],
+                'contentSha256'=>$a[$locale.'_content_sha256'],
+                'ownerApprovalDigest'=>$a['approval_digest']
+            ];
             if (count($selected)>=20)break;
         }
         if (!$selected)continue;
