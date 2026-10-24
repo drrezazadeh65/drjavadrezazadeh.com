@@ -136,6 +136,15 @@ function jrKaOwnerSnapshot(PDO $pdo,array $cfg): array {
         'transferCapBytes'=>300000000000,
         'iranDate'=>jrJreiIranNightDate(time())
       ],
+      'continuousAcquisitionPolicy'=>[
+        'enabled'=>($cfg['jrei_ka_continuous_enabled']??false)===true,
+        'noFixedDailyTrafficCap'=>jrJreiKaUncappedDailyAuthorized($cfg),
+        'eligibleWindowNow'=>jrJreiKaAcquisitionWindowAllowed($cfg,time(),true),
+        'sourceApprovalRequired'=>true,
+        'perHostCooldownRequired'=>true,
+        'physicalStorageLimitStillApplies'=>true,
+        'liveWorkerAndCrawlVerified'=>false
+      ],
       'privateAutoFetchOptIn'=>($cfg['jrei_ka_autofetch_enabled']??false)===true,
       'privateTextExtractionOptIn'=>($cfg['jrei_ka_text_extraction_enabled']??false)===true,
       'privatePassageProposalsOptIn'=>($cfg['jrei_ka_passage_proposals_enabled']??false)===true,
