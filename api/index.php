@@ -119,6 +119,7 @@ function cfg(): array {
         'jrei_local_chat_enabled' => getenv('JR_JREI_LOCAL_CHAT_ENABLED') === 'true',
         'jrei_local_public_release_accepted' => getenv('JR_JREI_LOCAL_PUBLIC_RELEASE_ACCEPTED') === 'true',
         'jrei_local_chat_key_b64' => (string)(getenv('JR_JREI_LOCAL_CHAT_KEY_B64') ?: ''),
+        'jrei_local_chat_retention_enabled' => getenv('JR_JREI_LOCAL_CHAT_RETENTION_ENABLED') === 'true',
         'jrei_allow_optional_cloud_public_fallback' => getenv('JR_JREI_ALLOW_OPTIONAL_CLOUD_PUBLIC_FALLBACK') === 'true',
         // Credentials/policy alone cannot expose source-only AI to the public.
         // Release approval is independently OFF until the final acceptance.
