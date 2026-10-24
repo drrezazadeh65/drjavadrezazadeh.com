@@ -155,14 +155,24 @@ function jrNewsPublishedSearch(PDO $pdo,string $query,string $locale='fa',
     $results=[];
     foreach($rows as $item){
         $path=$item['public_route']??null;
+        $expectedPrefix=$locale==='fa'?'/fa/akhbar/':'/en/news-insights/';
         if (!is_string($path) ||
-            !preg_match('#^/'.$locale.'/[a-z0-9/-]+/$#D',$path) ||
-            str_contains($path,'//'))continue;
+            !str_starts_with($path,$expectedPrefix) ||
+            !preg_match('#^'.preg_quote($expectedPrefix,'#').
+                '[a-z0-9-]+/$#D',$path))continue;
+        $headline=$item['title']??null;
+        $summary=$item['summary']??null;
+        $timestamp=(int)($item['published_at']??0);
+        if(!is_string($headline)||trim($headline)===''||
+           strlen($headline)>720||preg_match('//u',$headline)!==1||
+           preg_match_all('/./us',$headline)>240||
+           !is_string($summary)||strlen($summary)>4000||
+           preg_match('//u',$summary)!==1||$timestamp<=0)continue;
         $results[]=[
             'url'=>'https://drjavadrezazadeh.com'.$path,
-            'headline'=>(string)$item['title'],
-            'summary'=>(string)$item['summary'],
-            'published_at'=>(int)$item['published_at'],
+            'headline'=>$headline,
+            'summary'=>$summary,
+            'published_at'=>$timestamp,
             'language'=>$locale
         ];
         if(count($results)>=$limit)break;
