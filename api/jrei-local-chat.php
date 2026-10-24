@@ -39,7 +39,7 @@ function jrLocalChatOpen(string $sealed,string $key): string {
 function jrLocalChatSchemaReady(PDO $pdo): bool {
     try{
         foreach([
-          'SELECT node_id,model_id,model_version,model_artifact_sha256,enabled FROM jrei_local_chat_node_authorizations LIMIT 0',
+          'SELECT node_id,model_id,model_version,model_artifact_sha256,enabled,last_signed_chat_seen_at FROM jrei_local_chat_node_authorizations LIMIT 0',
           'SELECT job_id,status,request_ciphertext,response_ciphertext,lease_secret_sha256 FROM jrei_local_chat_jobs LIMIT 0',
           'SELECT model_id,model_version,model_artifact_sha256,status FROM jrei_local_model_registry LIMIT 0'
         ] as $sql)$pdo->query($sql);
@@ -106,13 +106,14 @@ function jrLocalChatReady(PDO $pdo,array $cfg): bool {
            WHERE a.enabled=1 AND n.status='ENABLED'
              AND n.permitted_task='REVIEWED_PUBLIC_RETRIEVAL_EVALUATION'
              AND n.revoked_at IS NULL AND n.last_seen_at>?
+             AND a.last_signed_chat_seen_at>?
              AND n.last_reported_state IN ('ONLINE','DEGRADED')
-             AND n.model_id=a.model_id AND n.model_version=a.model_version
              AND m.model_artifact_sha256=a.model_artifact_sha256
              AND m.status='RIGHTS_REVIEWED' AND m.suspended_at IS NULL
              AND m.weights_installed_verified=1 AND m.runtime_verified=1
              AND m.independent_quality_accepted=1");
-        $q->execute([time()-45]);
+        $freshAfter=time()-45;
+        $q->execute([$freshAfter,$freshAfter]);
         return (int)$q->fetchColumn()>0;
     }catch(Throwable $e){return false;}
 }
@@ -287,8 +288,15 @@ function jrLocalChatWorkerPoll(PDO $pdo,array $cfg,string $node,array $body): ar
     if(!is_string($model)||!is_string($version)||!is_string($digest)||
        !jrLocalChatNodeApproved($pdo,$node,$model,$version,$digest))
         throw new DomainException('local_chat_model_not_approved');
-    // Signed model readiness is not independent measurement of GPU/quality.
+    // Maintain an independent chat-mode signed heartbeat: evaluation
+    // heartbeats legitimately carry NULL model IDs and must not be used
+    // to certify live conversational inference readiness.
     $now=time();
+    $pdo->prepare("UPDATE jrei_local_chat_node_authorizations SET
+       last_signed_chat_seen_at=?
+       WHERE node_id=? AND enabled=1 AND
+         (last_signed_chat_seen_at IS NULL OR last_signed_chat_seen_at<=?)")
+       ->execute([$now,$node,$now-10]);
     // Preserve signed heartbeats, but do not update the same mother-DB
     // row on every idle poll when it is already fresh and accurate.
     // Two independent Windows nodes share the public site's database.
