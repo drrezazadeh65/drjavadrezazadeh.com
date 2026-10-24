@@ -118,6 +118,11 @@ function cfg(): array {
         // Propose source-metadata paper/key matches only. Never approve keys.
         'jrei_ka_key_match_proposals_enabled' => getenv('JR_JREI_KA_KEY_MATCH_PROPOSALS_ENABLED') === 'true',
         'jrei_ka_private_archive_dir' => (string)(getenv('JR_JREI_KA_PRIVATE_ARCHIVE_DIR') ?: ''),
+        // Independent News projection: consumes ALREADY archived, lawfully
+        // approved JREI-KA feed receipts. Both permissions default OFF;
+        // neither switch starts a new crawler or authorizes publication.
+        'jrei_news_feed_discovery_enabled' => getenv('JR_JREI_NEWS_FEED_DISCOVERY_ENABLED') === 'true',
+        'jrei_news_integrated_release_accepted' => getenv('JR_JREI_NEWS_INTEGRATED_RELEASE_ACCEPTED') === 'true',
         // Real AI inference: independent paid-provider credentials and
         // source-owned budget approval; entirely OFF until final acceptance.
         'jrei_live_ai_enabled' => getenv('JR_JREI_LIVE_AI_ENABLED') === 'true',
