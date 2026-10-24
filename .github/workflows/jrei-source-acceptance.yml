@@ -6,6 +6,9 @@ on:
       - ".github/workflows/jrei-source-acceptance.yml"
       - ".github/workflows/v5-release-candidate.yml"
       - "platform/jrei-v5/**"
+      - "assets/js/assistant.js"
+      - "assets/css/assistant.css"
+      - "docs/governance/JREI_CHATGPT_CLASS_FUTURE_EXPERIENCE_STANDARD_20261024.md"
       - "api/jrei-*.php"
       - "api/operations-cron-dispatcher.php"
       - "api/internal/jrei-daily-learning-worker.php"
@@ -39,7 +42,8 @@ jobs:
             tests/jrei-examination-testly-research.test.mjs \
             tests/jrei-v5-learning-loop.test.mjs \
             tests/jrei-v5-reviewed-retrieval-evaluator.test.mjs \
-            tests/jrei-v5-two-windows-node-gates.test.mjs
+            tests/jrei-v5-two-windows-node-gates.test.mjs \
+            tests/jrei-chat-experience.test.mjs
       - name: Check JREI model worker syntax and model privacy firewall
         run: |
           set -euo pipefail
