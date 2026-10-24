@@ -37,8 +37,9 @@ export async function queueDueNewsAcquisitions({
     // The ORIGINAL JREI monitor supplies requestedNewsPriority. The
     // generic source adapter's optional urgentMonitoring flag is secondary.
     // Even P0 is bounded by the real approved source poll interval.
-    const priority=source.requestedNewsPriority==='P0'||
-      source.urgentMonitoring===true?'P0':
+    // Only the reviewable ORIGINAL monitor's priority can select P0.
+    // Optional discovery flags cannot silently elevate an ordinary source.
+    const priority=source.requestedNewsPriority==='P0'?'P0':
       source.requestedNewsPriority==='P1'?'P1':'P2';
     const decision=nextSourcePoll({source,nowUtc,
       lastCheckedAt:observation.lastCheckedAt??null,
