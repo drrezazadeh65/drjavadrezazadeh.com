@@ -80,6 +80,36 @@ function jrNewsStageVerifiedFeedLinkSuggestions(
     $discovered=0;$alreadySeen=0;$skipped=0;
     $pdo->beginTransaction();
     try {
+        // The feed bytes are read BEFORE this transaction to avoid holding
+        // mother-DB locks during file I/O. Recheck and lock the exact
+        // original authorisation NOW, immediately before inserting even
+        // private discovered-link metadata. Revocation or source URL drift
+        // during the read cannot slip through on the previous snapshot.
+        $current=$pdo->prepare(
+            "SELECT n.monitor_id FROM jrei_news_monitors n
+             JOIN jrei_exam_sources s ON s.source_id=n.jrei_source_reference
+             JOIN jrei_ka_source_policies p ON p.source_id=s.source_id
+             WHERE n.monitor_id=? AND n.enabled=1
+               AND n.policy_revision=p.revision
+               AND n.source_url_sha256=?
+               AND s.source_locator_uri=?
+               AND s.review_state='AUTHORITATIVE_REVIEWED'
+               AND s.rights_state IN
+                 ('PERMITTED_PRIVATE_ANALYSIS','PERMITTED_REPRODUCTION')
+               AND s.is_revoked=0 AND s.is_superseded=0
+               AND s.verified_at IS NOT NULL
+               AND s.reviewer_account_id IS NOT NULL
+               AND p.scheduling_state='APPROVED'
+               AND p.rights_reviewed=1
+               AND p.robots_terms_reviewed=1
+               AND p.transport_reviewed=1
+             LIMIT 1 FOR UPDATE"
+        );
+        $current->execute([
+            $monitorId,hash('sha256',$sourceUrl),$sourceUrl
+        ]);
+        if($current->fetchColumn()===false)
+            throw new RuntimeException('news_feed_original_source_revoked_during_read');
         $ins=$pdo->prepare(
             "INSERT INTO jrei_news_discovered_urls
               (discovery_id,monitor_id,source_registry_id,
