@@ -1,10 +1,10 @@
 /**
  * Planned newspaper polling inside EXISTING JREI operations Cron.
- * 300 GiB is an allowance, not a transfer target. Rights/robots, quota,
+ * 300 GB (decimal) is an allowance, not a transfer target. Rights/robots, quota,
  * source cadence and host backoff remain stricter. NO timer or network.
  */
 import {assert,plain,utcInstant} from './contracts.mjs';
-const ALLOWANCE_BYTES=300*1024*1024*1024;
+const ALLOWANCE_BYTES=300000000000;
 function iranClockParts(atUtc){
   const parts=new Intl.DateTimeFormat('en-GB',{
     timeZone:'Asia/Tehran',hour:'2-digit',minute:'2-digit',
