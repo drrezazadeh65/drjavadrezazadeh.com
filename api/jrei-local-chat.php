@@ -398,6 +398,7 @@ function jrLocalChatWorkerComplete(PDO $pdo,array $cfg,string $node,array $body)
     if(!jrHybridUuid($id)||!is_string($token)||
        preg_match('/^[a-f0-9]{64}$/D',$token)!==1||
        !is_string($answer)||strlen($answer)<12||strlen($answer)>4000||
+       preg_match('/<\\/?think(?:\\s|>)/i',$answer)===1||
        jrLocalChatKey($cfg)===null)
         throw new InvalidArgumentException('local_chat_worker_reply_invalid');
     $pdo->beginTransaction();
