@@ -149,7 +149,8 @@ function jrNewsHandleExistingBertinaRequest(
     foreach([
         'originalExamSourceRecheck','originalCmsAndSourcePolicy',
         'originalVerifiedOwnerMailbox','originalEcoPrivateOutbox',
-        'originalEcoReminderSuppressor'
+        'originalEcoReminderSuppressor',
+        'originalJreiPublicSourceResolver'
     ] as $name) {
         if(is_callable($originalPorts[$name]??null))
             $trustedOptional[$name]=$originalPorts[$name];
