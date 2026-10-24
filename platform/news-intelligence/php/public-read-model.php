@@ -54,41 +54,111 @@ function jrNewsProjection(array $publication, string $locale): ?array {
  * receipts must ALSO have been checked when setting that state.
  * Caller must impose IP/account request limits and cache public-only data.
  */
+/**
+ * Searches the approved public-only index, not private editorial draft JSON.
+ * Fulltext is used when populated; a bounded title/summary LIKE fallback
+ * supports shorter/Persian vocabulary under differing MariaDB tokenizers.
+ * Caller MUST enforce original site public search rate limits.
+ */
 function jrNewsPublishedSearch(PDO $pdo,string $query,string $locale='fa',
-    int $limit=20): array {
+    int $limit=20,array $filters=[]): array {
     $query=jrNewsSafeQuery($query);
-    if (!in_array($locale,['fa','en'],true) ||
-        $limit<1 || $limit>30) {
+    if (!in_array($locale,['fa','en'],true)||$limit<1||$limit>30 ||
+        !is_array($filters)) {
         throw new InvalidArgumentException('news_search_options_invalid');
     }
-    $escaped=str_replace(['\\','%','_'],['\\\\','\\%','\\_'],$query);
-    $statement=$pdo->prepare(
-        "SELECT p.publisher_state,p.published_at,p.fa_route,p.en_route,
-                v.bilingual_editorial_json
-         FROM jrei_news_publications p
-         JOIN jrei_news_editorial_versions v ON v.revision_id=p.revision_id
-         JOIN jrei_news_owner_decisions d ON d.decision_id=p.approved_decision_id
-         WHERE p.publisher_state='PUBLISHED'
-           AND p.published_at IS NOT NULL
-           AND d.action_code='APPROVE'
-           AND p.fa_content_sha256 IS NOT NULL
-           AND p.en_content_sha256 IS NOT NULL
-           AND v.bilingual_editorial_json LIKE :phrase
-         ORDER BY p.published_at DESC LIMIT 100"
-    );
-    $statement->execute([':phrase'=>'%'.$escaped.'%']);
+    $where=[
+        "s.index_state='PUBLISHED'",
+        "s.language_code=:lang",
+        "p.publisher_state='PUBLISHED'",
+        "p.published_at IS NOT NULL",
+        "d.action_code='APPROVE'",
+        "d.revision_id=p.revision_id",
+        "s.owner_approval_digest=v.approval_digest",
+        "s.public_route=IF(s.language_code='fa',p.fa_route,p.en_route)",
+        "s.content_sha256=IF(s.language_code='fa',p.fa_content_sha256,p.en_content_sha256)"
+    ];
+    $args=[':lang'=>$locale];
+    if (isset($filters['category'])) {
+        $category=$filters['category'];
+        if (!is_string($category) ||
+            !preg_match('/^[a-z0-9_-]{2,48}$/D',$category)) {
+            throw new InvalidArgumentException('news_search_category_invalid');
+        }
+        $where[]='s.category_code=:category';
+        $args[':category']=$category;
+    }
+    if (isset($filters['country'])) {
+        $country=$filters['country'];
+        if (!is_string($country) ||
+            !preg_match('/^[A-Z]{2}$/D',$country)) {
+            throw new InvalidArgumentException('news_search_country_invalid');
+        }
+        $where[]='s.country_code=:country';
+        $args[':country']=$country;
+    }
+    foreach (['after'=>'after','before'=>'before'] as $key=>$bind) {
+        if (!isset($filters[$key]))continue;
+        $value=$filters[$key];
+        if (!is_int($value) || $value<0) {
+            throw new InvalidArgumentException('news_search_date_invalid');
+        }
+        $where[]='s.published_at'.($key==='after'?'>=':'<=').':'.$bind;
+        $args[':'.$bind]=$value;
+    }
+    $joins=" FROM jrei_news_search_documents s
+       JOIN jrei_news_publications p ON p.publication_id=s.publication_id
+       JOIN jrei_news_editorial_versions v ON v.revision_id=p.revision_id
+       JOIN jrei_news_owner_decisions d ON d.decision_id=p.approved_decision_id
+       WHERE ".implode(' AND ',$where);
+    $rowLimit=min($limit*3,90);
+    $querySql='SELECT s.public_route,s.title,s.summary,s.published_at,'.
+        ' MATCH(s.title,s.summary,s.searchable_body) AGAINST(:phrase IN NATURAL LANGUAGE MODE) AS relevance'.
+        $joins.' AND MATCH(s.title,s.summary,s.searchable_body) AGAINST(:matched IN NATURAL LANGUAGE MODE)>0'.
+        ' ORDER BY relevance DESC,s.published_at DESC LIMIT :row_limit';
+    $statement=$pdo->prepare($querySql);
+    foreach ($args as $key=>$value) $statement->bindValue($key,$value,
+        is_int($value)?PDO::PARAM_INT:PDO::PARAM_STR);
+    $statement->bindValue(':phrase',$query,PDO::PARAM_STR);
+    $statement->bindValue(':matched',$query,PDO::PARAM_STR);
+    $statement->bindValue(':row_limit',$rowLimit,PDO::PARAM_INT);
+    $statement->execute();
+    $rows=$statement->fetchAll(PDO::FETCH_ASSOC);
+    if (!$rows) {
+        $literal=str_replace(['\\','%','_'],['\\\\','\\%','\\_'],$query);
+        $sql='SELECT s.public_route,s.title,s.summary,s.published_at'.
+          $joins.' AND (s.title LIKE :title ESCAPE \x27\\\\\x27'.
+          ' OR s.summary LIKE :summary ESCAPE \x27\\\\\x27)'.
+          ' ORDER BY s.published_at DESC LIMIT :row_limit';
+        $fallback=$pdo->prepare($sql);
+        foreach ($args as $key=>$value) $fallback->bindValue($key,$value,
+            is_int($value)?PDO::PARAM_INT:PDO::PARAM_STR);
+        $fallback->bindValue(':title','%'.$literal.'%',PDO::PARAM_STR);
+        $fallback->bindValue(':summary','%'.$literal.'%',PDO::PARAM_STR);
+        $fallback->bindValue(':row_limit',$rowLimit,PDO::PARAM_INT);
+        $fallback->execute();
+        $rows=$fallback->fetchAll(PDO::FETCH_ASSOC);
+    }
     $results=[];
-    foreach ($statement->fetchAll(PDO::FETCH_ASSOC) as $row) {
-        $record=jrNewsProjection($row,$locale);
-        if ($record===null)continue;
-        $results[]=$record;
-        if (count($results)>=$limit)break;
+    foreach($rows as $item){
+        $path=$item['public_route']??null;
+        if (!is_string($path) ||
+            !preg_match('#^/'.$locale.'/[a-z0-9/-]+/$#D',$path) ||
+            str_contains($path,'//'))continue;
+        $results[]=[
+            'url'=>'https://drjavadrezazadeh.com'.$path,
+            'headline'=>(string)$item['title'],
+            'summary'=>(string)$item['summary'],
+            'published_at'=>(int)$item['published_at'],
+            'language'=>$locale
+        ];
+        if(count($results)>=$limit)break;
     }
     return [
-        'schema'=>'jr.jrei.news-public-search.v1',
-        'language'=>$locale,'query'=>$query,'results'=>$results,
+        'schema'=>'jr.jrei.news-public-search.v1','language'=>$locale,
+        'query'=>$query,'filters'=>$filters,'results'=>$results,
         'result_count'=>count($results),
-        'private_editorial_records_exposed'=>false,
-        'requires_existing_api_route_and_rate_limits'=>true
+        'onlyOwnerApprovedPublishedContent'=>true,
+        'privateEditorialRecordsExposed'=>false
     ];
 }
