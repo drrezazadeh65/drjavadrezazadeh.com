@@ -7,7 +7,9 @@ declare(strict_types=1);
  * Source only: BOTH independent release flags default OFF.
  */
 if(!defined('BERTINA_API_BOOTSTRAPPED')){http_response_code(404);exit;}
-require_once dirname(__DIR__).'/platform/news-intelligence/php/news-library.php';
+// Never load a source-only module at operations.php bootstrap. A release
+// may ship with News disabled, and platform/ is deliberately absent from
+// public_html. All established customer/admin API routes must still work.
 
 function jrOperationsNewsDispatch(
     PDO $pdo,array $config,string $route,string $method,
@@ -21,6 +23,13 @@ function jrOperationsNewsDispatch(
     if(($config['jrei_news_integrated_release_accepted']??false)!==true||
        getenv('JR_JREI_NEWS_API_ENABLED')!=='true')
         throw new DomainException('news_original_integration_not_accepted');
+    // This library is deployed only into the existing HTTP-denied api/internal/
+    // directory. It is loaded AFTER both trusted activation flags are checked,
+    // never while bootstrapping the ordinary operations controller.
+    $newsLibrary=__DIR__.'/internal/jrei-news/news-library.php';
+    if(!is_file($newsLibrary)||!is_readable($newsLibrary))
+        throw new DomainException('news_original_private_library_unavailable');
+    require_once $newsLibrary;
     // The caller constructed this context only from the existing PHP
     // operationsRoute verified session + TOTP + same-origin CSRF, never JSON.
     $owner=[
