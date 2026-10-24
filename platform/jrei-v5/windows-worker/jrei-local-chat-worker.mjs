@@ -104,7 +104,7 @@ export async function runLocalChatWorker(config,key,{post,log,signal,fetchImpl}=
   });
   const pollEndpoint='/api/jrei/v1/local-chat/poll';
   const completeEndpoint='/api/jrei/v1/local-chat/complete';
-  let stopping=false,backoff=0;
+  let stopping=signal?.aborted===true,backoff=0;
   let previousCpu=cpuSnapshot(),resourceBusy=false;
   let idlePollSeconds=model.pollSeconds;
   let backendCheckedAt=0;
@@ -161,6 +161,13 @@ export async function runLocalChatWorker(config,key,{post,log,signal,fetchImpl}=
           // meaningful during a long (up to 35-second) local inference.
           // A signed poll from an already leased node refreshes the
           // EXISTING node heartbeat but cannot claim a second lease.
+          // Cancellation and owner revocation can interrupt local CPU
+          // inference without restarting the public queue or retrying the
+          // same lease. The per-job signal never escapes this lease.
+          const jobController=new AbortController();
+          const stopJob=()=>jobController.abort();
+          signal?.addEventListener?.('abort',stopJob,{once:true});
+          if(stopping||signal?.aborted)stopJob();
           let heartbeatInFlight=false;
           const heartbeat=async()=>{
             if(stopping||heartbeatInFlight)return;
@@ -170,11 +177,15 @@ export async function runLocalChatWorker(config,key,{post,log,signal,fetchImpl}=
                 modelId:model.modelId,modelVersion:model.modelVersion,
                 modelSha256:model.modelSha256,heartbeatOnly:true
               });
-              if(status?.ok!==true||status.job!==null)
+              if(status?.ok!==true||status.job!==null){
                 log('LOCAL_CHAT_HEARTBEAT_REQUIRES_REVIEW');
+                jobController.abort();
+              }
             }catch{
-              // Do not assume an uncertain signed heartbeat succeeded.
+              // Signed refresh is unconfirmed: stop the current model call
+              // instead of spending CPU on an answer we cannot submit.
               log('LOCAL_CHAT_HEARTBEAT_UNCONFIRMED');
+              jobController.abort();
             }finally{heartbeatInFlight=false;}
           };
           const heartbeatTimer=setInterval(()=>{void heartbeat();},15000);
@@ -183,9 +194,10 @@ export async function runLocalChatWorker(config,key,{post,log,signal,fetchImpl}=
               model:model.modelId,
               messages:job.messages,
               maxOutputTokens:model.maxContextTokens,
-              temperature:0.2,tools:[],signal
+              temperature:0.2,tools:[],signal:jobController.signal
             });
-            if(stopping||Date.now()/1000>=job.expiresAt)
+            if(stopping||jobController.signal.aborted||
+               Date.now()/1000>=job.expiresAt)
               throw Error('LOCAL_CHAT_RESULT_OUTSIDE_LEASE');
             // Truncated generations or visible internal reasoning are
             // not safe educational answers, even when they mention
@@ -212,6 +224,8 @@ export async function runLocalChatWorker(config,key,{post,log,signal,fetchImpl}=
             log('LOCAL_CHAT_TASK_'+safeReason(error));
           }finally{
             clearInterval(heartbeatTimer);
+            jobController.abort();
+            signal?.removeEventListener?.('abort',stopJob);
           }
         }
         if(!stopping){
