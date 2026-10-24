@@ -8,7 +8,7 @@ test('original Bertina route mounts ONLY published public news search',()=>{
   assert.match(router,/jrNewsPublicSearchRoute\(\$verb\)/);
   assert.doesNotMatch(router,/jrNewsHandleExistingBertinaRequest\(/);
 });
-test('original API's search endpoint requires two independent OFF-by-default release gates',()=>{
+test('original API news search endpoint requires two independent OFF-by-default release gates',()=>{
   const route=text('../../../api/news-public-search.php');
   assert.match(route,/\['jrei_news_search_enabled'\]\?\?false/);
   assert.match(route,/\['jrei_news_publisher_receipts_accepted'\]\?\?false/);
