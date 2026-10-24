@@ -50,6 +50,7 @@ require_once __DIR__.'/jrei-hybrid-owner.php';
 require_once __DIR__.'/jrei-exam-research-owner.php';
 require_once __DIR__.'/jrei-ka-independent-source-review.php';
 require_once __DIR__.'/jrei-exam-commercial-catalogue.php';
+require_once __DIR__.'/operations-jrei-news.php';
 
 function operationsRegistry(): array {
     $raw = file_get_contents(__DIR__.'/internal/operations-registry.json');
@@ -402,6 +403,38 @@ function operationsRoute(string $path, string $verb): never {
             respond(['ok'=>true,'mfaVerified'=>true]);
         }
         if (!$fresh) fail('admin_mfa_required',403);
+        // JREI News uses THIS existing owner login, original TOTP and CSRF.
+        // It is unmounted in production until independent final acceptance.
+        // Never expose the private source library as a separate public route.
+        if(str_starts_with($path,'/admin/operations/jrei-news/owner/')){
+            if(($configuration['operations_admins'][$accountId]['role']??'')!=='SUPER_ADMIN')
+                fail('super_admin_required',403);
+            if(!in_array($verb,['GET','POST'],true))
+                fail('news_owner_method_invalid',405);
+            if(!rateAllowed($pdo,'jrei_news_existing_owner',$accountId,
+                $verb==='GET'?35:12,300))
+                fail('rate_limited',429);
+            $provided=(string)($_SERVER['HTTP_X_CSRF_TOKEN']??'');
+            if(strlen($provided)!==64||!hash_equals($csrf,$provided)||
+               !in_array($_SERVER['HTTP_SEC_FETCH_SITE']??'same-origin',
+                   ['same-origin','none'],true))
+                fail('news_owner_csrf_forbidden',403);
+            if($verb==='POST'&&!operationsMutationAllowed($_SERVER,
+                $provided,$csrf))
+                fail('news_owner_origin_forbidden',403);
+            $suffix=substr($path,strlen('/admin/operations/jrei-news'));
+            $newsBody=$verb==='POST'?jsonBody():$_GET;
+            try{
+                respond(jrOperationsNewsDispatch(
+                    $pdo,$configuration,$suffix,$verb,
+                    $newsBody,$accountId,$sessionHash
+                ));
+            }catch(InvalidArgumentException $e){
+                fail('news_owner_input_invalid',422);
+            }catch(DomainException $e){
+                fail('news_owner_independent_approval_required',409);
+            }
+        }
         // Approved Windows CPU worker gateway: owner registry and queue
         // control only, never an inbound public model port or arbitrary code.
         // SUPER_ADMIN, current TOTP, exact-origin CSRF and audit still apply.
