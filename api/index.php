@@ -98,6 +98,9 @@ function cfg(): array {
         // Separate PRIVATE owner opt-in to run approved scheduling throughout
         // the civil day. No switch is activated by a source commit.
         'jrei_ka_continuous_enabled' => getenv('JR_JREI_KA_CONTINUOUS_ENABLED') === 'true',
+        // Separate default-off owner policy. Does NOT waive robots, legal
+        // rights, physical disk, per-source spacing or emergency stop.
+        'jrei_ka_uncapped_daily_enabled' => getenv('JR_JREI_KA_UNCAPPED_DAILY_ENABLED') === 'true',
         // Separate legal autonomous-fetch opt-in, OFF even when scheduling
         // is enabled; private archived bytes must reside outside public_html.
         'jrei_ka_autofetch_enabled' => getenv('JR_JREI_KA_AUTOFETCH_ENABLED') === 'true',
