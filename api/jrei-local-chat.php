@@ -527,7 +527,8 @@ function jrLocalChatOwnerSetNode(PDO $pdo,array $cfg,string $actor,array $body):
                  WHERE node_id=?');
             $q->execute([time(),$id]);
             $q=$pdo->prepare("UPDATE jrei_local_chat_jobs SET status='FAILED',
-              request_ciphertext=NULL,response_ciphertext=NULL,updated_at=?
+              request_ciphertext=NULL,response_ciphertext=NULL,
+              lease_secret_sha256=NULL,lease_expires_at=NULL,updated_at=?
               WHERE leased_to_node=? AND status='LEASED'");
             $q->execute([time(),$id]);
         }
