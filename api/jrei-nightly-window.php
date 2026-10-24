@@ -24,3 +24,21 @@ function jrJreiIranNightAllowsRequest(int $timestamp): bool {
     $d=(new DateTimeImmutable('@'.$timestamp))->setTimezone(new DateTimeZone('Asia/Tehran'));
     return $timestamp<=$d->setTime(5,0,0)->getTimestamp()-120;
 }
+
+// Independently owner-enabled continuous mode, OFF by default. A worker
+// still needs the existing private schedule/autofetch switches, mother-DB
+// row opt-ins and independently reviewed source rights/robots/terms.
+// The night mode remains the legacy default where continuous is not enabled.
+function jrJreiKaAcquisitionWindowAllowed(array $cfg,int $timestamp,bool $newRequest=false): bool {
+    if(($cfg['jrei_ka_continuous_enabled']??false)===true)return true;
+    if(($cfg['jrei_ka_night_mode_enabled']??false)!==true)return false;
+    return $newRequest?jrJreiIranNightAllowsRequest($timestamp):
+        jrJreiIranNightOpen($timestamp);
+}
+// No artificial byte ceiling ONLY after both explicit owner opt-ins.
+// Per-document, per-host, physical storage, original source review and
+// independent operator kill switches remain compulsory safeguards.
+function jrJreiKaUncappedDailyAuthorized(array $cfg): bool {
+    return ($cfg['jrei_ka_continuous_enabled']??false)===true&&
+        ($cfg['jrei_ka_uncapped_daily_enabled']??false)===true;
+}
