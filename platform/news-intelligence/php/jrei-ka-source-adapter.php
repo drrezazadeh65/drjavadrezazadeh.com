@@ -142,10 +142,14 @@ function jrNewsOwnerOriginalAcquisitionSnapshot(
         "SELECT j.job_id,j.source_id,j.job_state,j.priority_tier,
                 j.source_policy_revision,j.created_at,j.updated_at,
                 j.bytes_observed,j.observed_digest,j.last_failure_code,
-                s.source_title,
+                s.source_title,s.source_locator_uri,
                 n.monitor_id,n.enabled AS news_monitor_enabled,
                 o.observation_id,o.state AS observation_state,
-                o.content_sha256 AS observation_content_sha256
+                o.content_sha256 AS observation_content_sha256,
+                o.source_policy_revision AS observation_policy_revision,
+                o.source_uri_sha256 AS observation_source_url_sha256,
+                o.source_id AS observation_source_id,
+                o.rights_state_at_acquisition
          FROM jrei_ka_jobs j
          JOIN jrei_exam_sources s ON s.source_id=j.source_id
          JOIN jrei_news_monitors n ON n.jrei_source_reference=j.source_id
@@ -162,7 +166,15 @@ function jrNewsOwnerOriginalAcquisitionSnapshot(
         $observationHash=$row['observation_content_sha256'];
         $matchingReceipt=$observation&&is_string($digest)&&
             preg_match('/^[a-f0-9]{64}$/D',$digest)===1&&
-            hash_equals($digest,(string)$observationHash);
+            hash_equals($digest,(string)$observationHash)&&
+            $row['observation_source_id']===$row['source_id']&&
+            (int)$row['observation_policy_revision']===
+                (int)$row['source_policy_revision']&&
+            hash_equals((string)$row['observation_source_url_sha256'],
+                hash('sha256',(string)$row['source_locator_uri']))&&
+            in_array($row['rights_state_at_acquisition'],[
+                'PERMITTED_PRIVATE_ANALYSIS','PERMITTED_REPRODUCTION'
+            ],true);
         $items[]=[
             'jobId'=>$row['job_id'],
             'sourceId'=>$row['source_id'],
