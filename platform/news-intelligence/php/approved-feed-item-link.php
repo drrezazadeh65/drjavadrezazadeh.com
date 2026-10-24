@@ -45,8 +45,7 @@ function jrNewsBindOriginalApprovedArticleSource(
             $registered['source_locator_uri']!==$candidate['canonical_article_url']||
             $registered['review_state']!=='AUTHORITATIVE_REVIEWED'||
             !in_array($registered['rights_state'],[
-                'PERMITTED_PRIVATE_ANALYSIS','PERMITTED_PUBLIC_DISPLAY',
-                'PERMITTED_REPRODUCTION'
+                'PERMITTED_PRIVATE_ANALYSIS','PERMITTED_REPRODUCTION'
             ],true)||
             (int)$registered['is_revoked']!==0 ||
             (int)$registered['is_superseded']!==0 ||
