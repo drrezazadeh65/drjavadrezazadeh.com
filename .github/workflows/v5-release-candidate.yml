@@ -298,6 +298,7 @@ jobs:
           set -euo pipefail
           node scripts/build-public-data.mjs --check
           node scripts/build-public-site.mjs
+          node --test tests/jrei-news-private-release.test.mjs
           test -f .public-site/assets/data/service-descriptions-en.json
           cmp -s assets/data/service-descriptions-en.json .public-site/assets/data/service-descriptions-en.json
           node scripts/bookstore-release-audit.mjs
