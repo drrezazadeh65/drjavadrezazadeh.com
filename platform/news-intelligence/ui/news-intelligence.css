@@ -50,3 +50,66 @@
 }
 @media(prefers-reduced-motion:reduce){.ni-newsroom *{scroll-behavior:auto!important;
  animation-duration:.01ms!important;transition-duration:.01ms!important}}
+
+
+/* Home portal: editorial hero, topic rail, premium story cards and exam radar. */
+.ni-home-shell{max-width:1440px;margin:auto;padding:clamp(1rem,3vw,3rem)}
+.ni-home-heading{max-width:1000px;padding:clamp(1rem,3vw,2rem) 0}
+.ni-home-heading h1{font-size:clamp(2rem,5vw,3.8rem);line-height:1.35;
+ letter-spacing:-.01em;margin:.45rem 0;color:var(--ni-ivory)}
+.ni-home-heading>p{color:#d2cabb}
+.ni-categories{display:flex;gap:.6rem;flex-wrap:wrap;overflow-x:auto;
+ padding:.85rem 0 1.4rem;border-bottom:1px solid #37352e}
+.ni-category{display:inline-block;white-space:nowrap;font-size:.86rem;
+ padding:.33rem .85rem;background:#22272a;color:#ead7b5;
+ border:1px solid #4d4639;border-radius:999px}
+.ni-feature{margin:1.9rem 0;background:#1d2225;border-radius:1.3rem;
+ border:1px solid #564933;overflow:hidden}
+.ni-feature>a{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);
+ color:inherit;text-decoration:none;align-items:stretch}
+.ni-feature img{display:block;width:100%;height:100%;max-height:460px;
+ min-height:275px;object-fit:cover}
+.ni-feature>a>div{padding:clamp(1rem,3vw,2rem);
+ align-self:center}
+.ni-feature h2{font-size:clamp(1.5rem,3vw,2.6rem);line-height:1.52}
+.ni-tag{color:var(--ni-gold);font-weight:800;letter-spacing:.04em}
+.ni-action{display:block;color:#e8c987;font-weight:700;margin-top:.8rem}
+.ni-home-columns{display:grid;grid-template-columns:minmax(0,1fr) 310px;
+ gap:clamp(1rem,2vw,2.3rem);align-items:start}
+.ni-news-feed>h2,.ni-calendar>h2{color:var(--ni-ivory);
+ font-size:clamp(1.4rem,2vw,1.9rem)}
+.ni-news-feed label{display:block;color:#c5bda9;font-size:.86rem}
+.ni-news-feed input{width:100%;padding:.8rem 1rem;margin:.5rem 0 1rem;
+ background:#272c2f;color:#fff;border:1px solid #645537;border-radius:.65rem;
+ font:inherit;outline-offset:2px}
+.ni-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+ gap:1rem}
+.ni-card{border:1px solid #474134;background:#1b1f22;
+ border-radius:.9rem;overflow:hidden;min-width:0}
+.ni-card[hidden]{display:none}
+.ni-card>a{color:inherit;text-decoration:none}
+.ni-card img{display:block;width:100%;height:auto;aspect-ratio:16/9;object-fit:cover}
+.ni-card-copy{padding:1rem}
+.ni-card h3{font-size:clamp(1.12rem,1.5vw,1.35rem);line-height:1.55}
+.ni-card p{color:#d1c9bc;margin:.5rem 0}
+.ni-label{font-size:.82rem;color:var(--ni-gold)!important;font-weight:700}
+.ni-card time{font-size:.78rem;color:#a9a397}
+.ni-calendar{position:sticky;top:1rem;padding:1.1rem;background:#1d2225;
+ border:1px solid #514934;border-radius:.9rem;overflow-wrap:anywhere}
+.ni-calendar ul{list-style:none;margin:0;padding:0}
+.ni-calendar li{display:grid;gap:.3rem;padding:.8rem 0;
+ border-bottom:1px solid #3f3a30}
+.ni-calendar li strong{font-variant-numeric:tabular-nums;color:var(--ni-gold)}
+.ni-calendar a{color:#e8cc98;font-size:.85rem}
+.ni-note{font-size:.84rem;color:#c5baaa}
+@media(max-width:950px){
+ .ni-home-columns{grid-template-columns:1fr}
+ .ni-calendar{position:static}
+}
+@media(max-width:700px){
+ .ni-feature>a{grid-template-columns:1fr}
+ .ni-feature img{min-height:0;max-height:330px}
+ .ni-grid{grid-template-columns:1fr}
+ .ni-home-shell{padding:1rem}
+ .ni-home-heading h1{font-size:clamp(1.75rem,7vw,2.35rem)}
+}
