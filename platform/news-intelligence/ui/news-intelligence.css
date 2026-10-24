@@ -294,3 +294,7 @@
   .ni-home .ni-card{transition:none}
   .ni-home .ni-card:hover{transform:none}
 }
+
+/* Reserve archive-search chrome only after the original, owner-approved client mounts it. */
+.ni-archive-search:empty{display:none}
+.ni-home .ni-news-feed .ni-categories{margin-block:.7rem 1.1rem}
