@@ -65,7 +65,7 @@ CREATE TABLE IF NOT EXISTS jrei_ka_jobs (
   attempt_count SMALLINT UNSIGNED NOT NULL DEFAULT 0,
   next_attempt_at BIGINT UNSIGNED NOT NULL,
   lease_id CHAR(36) NULL,
-  leased_to_node CHAR(36) NULL,
+  leased_to_node CHAR(36) CHARACTER SET ascii COLLATE ascii_bin NULL,
   lease_expires_at BIGINT UNSIGNED NULL,
   last_failure_code VARCHAR(60) NULL,
   bytes_observed BIGINT UNSIGNED NOT NULL DEFAULT 0,
