@@ -1,0 +1,61 @@
+name: JREI AI Master VNext Isolated Execution (No Deployment)
+on:
+  push:
+    branches:
+      - migration/bertina-linux6
+    paths:
+      - 'platform/jrei-v5/jrei-deterministic-arithmetic.mjs'
+      - 'platform/jrei-v5/jrei-educational-answer-review.mjs'
+      - 'platform/jrei-v5/jrei-reviewed-knowledge-capsules.mjs'
+      - 'platform/jrei-v5/jrei-original-item-factory.mjs'
+      - 'platform/jrei-v5/jrei-adaptive-study-cycle.mjs'
+      - 'platform/jrei-v5/jrei-scoped-mission-planner.mjs'
+      - 'platform/jrei-v5/jrei-explainable-site-apprentice.mjs'
+      - 'platform/jrei-v5/jrei-nightly-acquisition-planner.mjs'
+      - 'platform/jrei-v5/windows-worker/jrei-local-chat-worker.mjs'
+      - 'platform/news-intelligence/jrei-official-news-correction.mjs'
+      - 'api/jrei-local-answer-integrity.php'
+      - 'api/jrei-local-chat.php'
+      - 'tests/jrei-ai-master-development-vnext.test.mjs'
+      - '.github/workflows/jrei-ai-master-vnext-isolated.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify-executable-source-contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax check new and integrated JREI source without private backends
+        run: |
+          set -euo pipefail
+          for file in \
+            platform/jrei-v5/jrei-deterministic-arithmetic.mjs \
+            platform/jrei-v5/jrei-educational-answer-review.mjs \
+            platform/jrei-v5/jrei-reviewed-knowledge-capsules.mjs \
+            platform/jrei-v5/jrei-original-item-factory.mjs \
+            platform/jrei-v5/jrei-adaptive-study-cycle.mjs \
+            platform/jrei-v5/jrei-scoped-mission-planner.mjs \
+            platform/jrei-v5/jrei-explainable-site-apprentice.mjs \
+            platform/jrei-v5/jrei-nightly-acquisition-planner.mjs \
+            platform/jrei-v5/windows-worker/jrei-local-chat-worker.mjs \
+            platform/news-intelligence/jrei-official-news-correction.mjs
+          do node --check "$file"; done
+          php -l api/jrei-local-answer-integrity.php
+          php -l api/jrei-local-chat.php
+      - name: Execute isolated source contracts; no live database, worker or model
+        run: |
+          set -euo pipefail
+          node --test tests/jrei-ai-master-development-vnext.test.mjs
+          node --test tests/jrei-local-chat-worker-offline.test.mjs
+          node --test tests/jrei-local-quality-triage.test.mjs
+          php -r 'define("BERTINA_API_BOOTSTRAPPED",true);require "api/jrei-local-answer-integrity.php";if(jrJreiSimpleArithmeticExpected("عدد ۱۲ را در ۷ ضرب کن و نتیجه را فقط با رقم بنویس.")!=="84")exit(1);if(jrJreiLocalDraftIntegrityFailure("عدد ۱۲ را در ۷ ضرب کن و نتیجه را فقط با رقم بنویس.","۴۸","fa")===null)exit(2);'
+      - name: No deployment or backend activation
+        run: |
+          echo 'SOURCE_ONLY: no Bertina requests, no Windows private config changes, no model-quality attestation, no production deploy.'
