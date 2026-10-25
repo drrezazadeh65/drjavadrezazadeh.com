@@ -152,7 +152,12 @@ $pdo->exec('CREATE TABLE jrei_ka_jobs (
     source_id CHAR(36) NOT NULL,
     source_policy_revision BIGINT UNSIGNED NOT NULL,
     observed_digest CHAR(64) CHARACTER SET ascii COLLATE ascii_bin,
-    job_state VARCHAR(40) NOT NULL
+    job_state VARCHAR(40) NOT NULL,
+    priority_tier VARCHAR(10) NOT NULL DEFAULT 'P1',
+    created_at BIGINT UNSIGNED NOT NULL DEFAULT 1792820100,
+    updated_at BIGINT UNSIGNED NOT NULL DEFAULT 1792820200,
+    bytes_observed INT UNSIGNED NOT NULL DEFAULT 100,
+    last_failure_code VARCHAR(100) NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4');
 $pdo->exec('CREATE TABLE jrei_ka_private_observations (
     observation_id CHAR(36) PRIMARY KEY,
@@ -449,24 +454,12 @@ try{
     );
     ensure(($snapshot['schema']??null)==='jr.jrei.news-owner-bounded-snapshot.v1',
         'owner snapshot schema');
-    $snapshotStatuses=$snapshot['viewStatus']??[];
-    $snapshotSchemas=[];
-    foreach(($snapshot['views']??[]) as $key=>$view)
-        $snapshotSchemas[$key]=is_array($view)?($view['schema']??'NO_SCHEMA'):'UNAVAILABLE';
-    fwrite(STDERR,'Synthetic snapshot status '.json_encode(
-        ['status'=>$snapshotStatuses,'schemas'=>$snapshotSchemas],JSON_UNESCAPED_SLASHES).PHP_EOL);
-    if(($snapshot['viewStatus']['queue']??null)!=='AVAILABLE'){
-        try{jrNewsPrivateOwnerQueue($pdo,$owner,40);}
-        catch(Throwable $e){fwrite(STDERR,'fixture_queue_error: '.
-            get_class($e).' / '.$e->getMessage().PHP_EOL);}
-    }
-    if(($snapshot['viewStatus']['backlog']??null)!=='AVAILABLE'){
-        try{jrNewsOwnerPublicationBacklog($pdo,$owner,40);}
-        catch(Throwable $e){fwrite(STDERR,'fixture_backlog_error: '.
-            get_class($e).' / '.$e->getMessage().PHP_EOL);}
-    }
     ensure(count($snapshot['views'])===7 &&
            count($snapshot['viewStatus'])===7 &&
+           !in_array('UNAVAILABLE',$snapshot['viewStatus'],true) &&
+           ($snapshot['allSectionsAvailable']??null)===true &&
+           ($snapshot['views']['jobs']['schema']??null)===
+             'jr.jrei.news-original-jrei-queue-observability.v1' &&
            ($snapshot['views']['queue']['schema']??null)===
              'jr.jrei.news-owner-review-queue.v1' &&
            ($snapshot['views']['overview']['schema']??null)===
