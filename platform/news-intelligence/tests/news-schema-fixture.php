@@ -499,6 +499,62 @@ ensure($complete['requiredMotherTableCount']===16 &&
        $complete['originalCmsPublisherConnected']===false &&
        $complete['publisherReceiptVerified']===false,
     'complete disposable mother schema is measured, not a CMS receipt');
+// Existing migrations may have all UNIQUEs yet omit a searchable FULLTEXT
+// index, a performance index or a non-key column. Every case must fail shut.
+$pdo->exec('ALTER TABLE jrei_news_search_documents
+    DROP INDEX ft_jrei_news_public_text');
+$missingFulltext=jrOperationsNewsReadiness(
+    $pdo,['jrei_news_integrated_release_accepted'=>true]
+);
+ensure($missingFulltext['requiredMotherSchemaAvailable']===false &&
+       $missingFulltext['verifiedMotherTableCount']===15 &&
+       $missingFulltext['originalNewsTables']['jrei_news_search_documents']==='UNAVAILABLE',
+    'missing public FULLTEXT index blocks readiness');
+$pdo->exec('ALTER TABLE jrei_news_search_documents
+    ADD FULLTEXT KEY ft_jrei_news_public_text(title,summary,searchable_body)');
+$fulltextRestored=jrOperationsNewsReadiness(
+    $pdo,['jrei_news_integrated_release_accepted'=>true]
+);
+ensure($fulltextRestored['requiredMotherSchemaAvailable']===true,
+    'restored public FULLTEXT index passes');
+
+$pdo->exec('ALTER TABLE jrei_news_search_documents
+    DROP INDEX idx_jrei_news_search_topic');
+$pdo->exec('ALTER TABLE jrei_news_search_documents
+    ADD KEY idx_jrei_news_search_topic(category_code,language_code,index_state,published_at)');
+$wrongIndexOrder=jrOperationsNewsReadiness(
+    $pdo,['jrei_news_integrated_release_accepted'=>true]
+);
+ensure($wrongIndexOrder['requiredMotherSchemaAvailable']===false &&
+       $wrongIndexOrder['originalNewsTables']['jrei_news_search_documents']==='UNAVAILABLE',
+    'incorrect composite BTREE column order blocks readiness');
+$pdo->exec('ALTER TABLE jrei_news_search_documents
+    DROP INDEX idx_jrei_news_search_topic');
+$pdo->exec('ALTER TABLE jrei_news_search_documents
+    ADD KEY idx_jrei_news_search_topic(language_code,category_code,index_state,published_at)');
+$indexRestored=jrOperationsNewsReadiness(
+    $pdo,['jrei_news_integrated_release_accepted'=>true]
+);
+ensure($indexRestored['requiredMotherSchemaAvailable']===true,
+    'restored ordered BTREE composite index passes');
+
+$pdo->exec('ALTER TABLE jrei_news_search_documents
+    DROP COLUMN country_code');
+$missingOptionalColumn=jrOperationsNewsReadiness(
+    $pdo,['jrei_news_integrated_release_accepted'=>true]
+);
+ensure($missingOptionalColumn['requiredMotherSchemaAvailable']===false &&
+       $missingOptionalColumn['verifiedMotherTableCount']===15 &&
+       $missingOptionalColumn['originalNewsTables']['jrei_news_search_documents']==='UNAVAILABLE',
+    'missing non-key migration column blocks readiness');
+$pdo->exec("ALTER TABLE jrei_news_search_documents
+    ADD COLUMN country_code CHAR(2) NOT NULL DEFAULT 'ZZ'");
+$columnRestored=jrOperationsNewsReadiness(
+    $pdo,['jrei_news_integrated_release_accepted'=>true]
+);
+ensure($columnRestored['requiredMotherSchemaAvailable']===true,
+    'restored full 124-column news contract passes');
+
 // All expected FKs must also exist: a permissive or dropped original
 // publisher reference is NOT a completed mother-database migration.
 $pdo->exec('ALTER TABLE jrei_news_search_documents
