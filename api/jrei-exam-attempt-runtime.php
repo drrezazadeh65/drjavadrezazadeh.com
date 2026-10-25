@@ -23,6 +23,18 @@ function jrExamAttemptRuntimeReady(PDO $pdo): bool {
         return true;
     }catch(Throwable $e){return false;}
 }
+/**
+ * Bertina's integer second clock alone determines the time window.
+ * UTC values are stored as Unix timestamps in the existing mother DB.
+ * The extra 120 seconds permit FINALIZATION of persisted answers ONLY;
+ * they never allow creating or changing another answer.
+ */
+function jrExamTimeAllowsSave(int $deadline,int $now): bool {
+    return $deadline>0&&$now<$deadline;
+}
+function jrExamTimeAllowsFinalization(int $deadline,int $now): bool {
+    return $deadline>0&&$now<=$deadline+120;
+}
 function jrExamAttemptUuid(mixed $value): string {
     if(!is_string($value)||!validUuid($value))
         throw new InvalidArgumentException('invalid_exam_reference');
@@ -211,7 +223,7 @@ function jrExamAttemptSave(PDO $pdo,string $account,array $request,int $at): arr
            $attempt['session_state']!=='IN_PROGRESS'||
            $attempt['offering_state']!=='PUBLISHED'||
            $attempt['product_state']!=='PUBLISHED'||
-           time()>=(int)$attempt['deadline_at'])
+           !jrExamTimeAllowsSave((int)$attempt['deadline_at'],time()))
             throw new DomainException('exam_not_accepting_responses');
         jrExamTrustedEntitlement($pdo,$account,$attempt['offering_id'],time());
         $latestConsent=jrExamAdultSubjectConsent($pdo,$account,$attempt['subject_id']);
@@ -247,7 +259,7 @@ function jrExamAttemptSave(PDO $pdo,string $account,array $request,int $at): arr
         // Database work can cross the server deadline after the initial
         // row-lock check. Expired answers must never commit even when the
         // response insert itself succeeded earlier in this transaction.
-        if(time()>=(int)$attempt['deadline_at'])
+        if(!jrExamTimeAllowsSave((int)$attempt['deadline_at'],time()))
             throw new DomainException('exam_not_accepting_responses');
         $q=$pdo->prepare('UPDATE jrei_exam_commercial_attempts
           SET response_revision=response_revision+1,revision=revision+1,
@@ -256,7 +268,7 @@ function jrExamAttemptSave(PDO $pdo,string $account,array $request,int $at): arr
         $q->execute([$at,$at,$attemptId,$revision,'IN_PROGRESS']);
         if($q->rowCount()!==1)
             throw new DomainException('exam_response_revision_conflict');
-        if(time()>=(int)$attempt['deadline_at'])
+        if(!jrExamTimeAllowsSave((int)$attempt['deadline_at'],time()))
             throw new DomainException('exam_not_accepting_responses');
         $pdo->commit();
         return [
@@ -305,7 +317,7 @@ function jrExamAttemptSubmit(PDO $pdo,string $account,array $request,int $at): a
         // or treat a months-late submit as a valid timed-out submission.
         $at=time();
         $deadline=(int)$a['deadline_at'];
-        if($deadline<1||$at>$deadline+120)
+        if(!jrExamTimeAllowsFinalization($deadline,$at))
             throw new DomainException('exam_finalization_window_closed');
         $effectiveAt=min($at,max(1,$deadline-1));
         jrExamTrustedEntitlement($pdo,$account,$a['offering_id'],$effectiveAt);
@@ -336,7 +348,7 @@ function jrExamAttemptSubmit(PDO $pdo,string $account,array $request,int $at): a
         $outputDigest=hash('sha256',$output);
         // A slow source/key verification does not extend the explicitly
         // bounded 120-second finalization grace period.
-        if(time()>$deadline+120)
+        if(!jrExamTimeAllowsFinalization($deadline,time()))
             throw new DomainException('exam_finalization_window_closed');
         $scoreId=uuidv4();
         $q=$pdo->prepare("INSERT INTO eco_score_runs
@@ -379,7 +391,7 @@ function jrExamAttemptSubmit(PDO $pdo,string $account,array $request,int $at): a
         $q->execute([$at,$a['assessment_session_id']]);
         if($q->rowCount()!==1)
             throw new DomainException('exam_assessment_session_race');
-        if(time()>$deadline+120)
+        if(!jrExamTimeAllowsFinalization($deadline,time()))
             throw new DomainException('exam_finalization_window_closed');
         $pdo->commit();
         // Results remain private, preliminary, and owner-reviewable;
