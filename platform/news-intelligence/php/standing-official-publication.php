@@ -355,7 +355,7 @@ function jrNewsPublicationAuthorityPredicate(bool $standing): string {
         AND p.standing_policy_id IS NOT NULL
         AND v.editorial_state='PENDING_OWNER_APPROVAL'
         AND pol.policy_code='OFFICIAL_PRIMARY_AUTO_NEWS'
-        AND pol.policy_digest=".$policyHash."
+        AND BINARY pol.policy_digest=BINARY ".$policyHash."
         AND pol.effective_at<=p.published_at
         AND pol.expires_at>p.published_at
         AND (pol.revoked_at IS NULL OR pol.revoked_at>p.published_at))";
