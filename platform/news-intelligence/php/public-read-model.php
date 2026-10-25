@@ -11,6 +11,7 @@ if (!defined('BERTINA_API_BOOTSTRAPPED')) {
     http_response_code(404);
     exit;
 }
+require_once __DIR__.'/standing-official-publication.php';
 function jrNewsSafeQuery(string $q): string {
     $q=trim($q);
     if ($q==='' || strlen($q)>220 ||
@@ -77,10 +78,6 @@ function jrNewsPublishedSearch(PDO $pdo,string $query,string $locale='fa',
         "p.published_at IS NOT NULL",
         "p.published_at<=UNIX_TIMESTAMP()",
         "s.published_at<=UNIX_TIMESTAMP()",
-        "d.action_code='APPROVE'",
-        "v.editorial_state='OWNER_APPROVED'",
-        "d.revision_id=p.revision_id",
-        "d.approval_digest=v.approval_digest",
         "p.publisher_receipt_reference IS NOT NULL",
         "s.owner_approval_digest=v.approval_digest",
         "s.public_route=IF(s.language_code='fa',p.fa_route,p.en_route)",
@@ -114,11 +111,16 @@ function jrNewsPublishedSearch(PDO $pdo,string $query,string $locale='fa',
         $where[]='s.published_at'.($key==='after'?'>=':'<=').':'.$bind;
         $args[':'.$bind]=$value;
     }
+    $standing=jrNewsStandingPublicSchemaInstalled($pdo);
+    $where[]=jrNewsPublicationAuthorityPredicate($standing);
     $joins=" FROM jrei_news_search_documents s
        JOIN jrei_news_publications p ON p.publication_id=s.publication_id
        JOIN jrei_news_editorial_versions v ON v.revision_id=p.revision_id
-       JOIN jrei_news_owner_decisions d ON d.decision_id=p.approved_decision_id
-       WHERE ".implode(' AND ',$where);
+       ".($standing?
+          'LEFT JOIN jrei_news_owner_decisions d ON d.decision_id=p.approved_decision_id
+           LEFT JOIN jrei_news_standing_policies pol ON pol.policy_id=p.standing_policy_id'
+         :'JOIN jrei_news_owner_decisions d ON d.decision_id=p.approved_decision_id').
+       " WHERE ".implode(' AND ',$where);
     $rowLimit=min($limit*3,90);
     $querySql='SELECT s.public_route,s.title,s.summary,s.published_at,'.
         ' MATCH(s.title,s.summary,s.searchable_body) AGAINST(:phrase IN NATURAL LANGUAGE MODE) AS relevance'.
@@ -186,6 +188,8 @@ function jrNewsPublishedSearch(PDO $pdo,string $query,string $locale='fa',
         'query'=>$query,'filters'=>$filters,'results'=>$results,
         'result_count'=>count($results),
         'onlyOwnerApprovedPublishedContent'=>true,
+        'standingOwnerPolicySupported'=>$standing,
+        'verifiedOriginalPublisherReceiptRequired'=>true,
         'privateEditorialRecordsExposed'=>false
     ];
 }
