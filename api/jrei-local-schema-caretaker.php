@@ -105,8 +105,6 @@ function jrJreiLocalSchemaApply(PDO $pdo,array $cfg): array {
     if(($cfg['jrei_local_schema_caretaker_enabled']??false)!==true||
        ($cfg['operations_cron_master_enabled']??false)!==true)
         throw new DomainException('jrei_schema_caretaker_disabled');
-    if(!jrJreiLocalSchemaBackupReady($cfg))
-        throw new DomainException('jrei_schema_private_backup_unverified');
     $name=$pdo->query('SELECT DATABASE()')->fetchColumn();
     if($name!=='drjavad1_store')
         throw new DomainException('jrei_schema_wrong_database');
@@ -126,6 +124,29 @@ function jrJreiLocalSchemaApply(PDO $pdo,array $cfg): array {
             AND TABLE_TYPE='BASE TABLE'")->fetchColumn();
         if($already<0||$already>3)
             throw new DomainException('jrei_schema_unexpected_inventory');
+        if($already===3&&jrHybridModelRegistryReady($pdo)&&jrLocalChatSchemaReady($pdo)){
+            // Do not dump production repeatedly once the three approved
+            // tables are already installed and their columns are usable.
+            return ['schema'=>'jr.jrei.local-schema-caretaker.v1',
+              'state'=>'ADDITIVE_SCHEMA_READY','database'=>'drjavad1_store',
+              'expectedTables'=>3,'newTables'=>0,
+              'paymentsChanged'=>false,'parallelDatabaseCreated'=>false,
+              'modelActivated'=>false];
+        }
+        if(!jrJreiLocalSchemaBackupReady($cfg)){
+            // A configured but stale/wrong private backup must STOP DDL.
+            // Only when no backup reference was supplied may this same
+            // owner-approved CLI task create a fresh native dump itself.
+            if(!empty($cfg['jrei_local_schema_backup_file'])||
+               !empty($cfg['jrei_local_schema_backup_sha256']))
+                throw new DomainException('jrei_schema_private_backup_unverified');
+            if(PHP_SAPI!=='cli')
+                throw new DomainException('jrei_schema_cli_required_for_autobackup');
+            require_once __DIR__.'/jrei-local-private-backup.php';
+            $cfg=array_replace($cfg,jrJreiPrivateBackupCreate($pdo,$cfg));
+            if(!jrJreiLocalSchemaBackupReady($cfg))
+                throw new DomainException('jrei_schema_private_backup_unverified');
+        }
         // Only reviewed CREATE TABLE IF NOT EXISTS: model registry first,
         // followed by grants and queue with original foreign keys.
         foreach($stmts as $sql)$pdo->exec($sql);
