@@ -532,6 +532,66 @@ function jrLocalChatWorkerComplete(PDO $pdo,array $cfg,string $node,array $body)
     }
 }
 
+/**
+ * Signed, lease-bound negative completion. A refused model draft must not
+ * leave the visitor polling for a full TTL. No generated text or rejection
+ * rationale is persisted; the private request ciphertext is erased.
+ * This route shares the owner's original chat authorisation boundary.
+ */
+function jrLocalChatWorkerReject(PDO $pdo,array $cfg,string $node,array $body): array {
+    if(($cfg['jrei_local_chat_enabled']??false)!==true||
+       ($cfg['jrei_hybrid_enabled']??false)!==true||
+       ($cfg['jrei_local_public_release_accepted']??false)!==true||
+       !jrLocalChatRetentionReady($pdo,$cfg))
+        throw new DomainException('local_chat_owner_release_revoked');
+    $id=$body['jobId']??null;
+    $token=$body['leaseToken']??null;
+    $model=$body['modelId']??null;
+    $version=$body['modelVersion']??null;
+    $sha=$body['modelSha256']??null;
+    $reason=$body['reasonCode']??null;
+    if(!jrHybridUuid($id)||!is_string($token)||
+       preg_match('/^[a-f0-9]{64}$/D',$token)!==1||
+       !is_string($model)||!jrHybridIdentifier($model)||
+       !is_string($version)||!jrHybridIdentifier($version)||
+       !is_string($sha)||!jrHybridSha($sha)||
+       !is_string($reason)||!in_array($reason,[
+         'NEGATIVE_QUALITY_GATE','INCOMPLETE_OR_UNTRUSTED_DRAFT'
+       ],true))
+        throw new InvalidArgumentException('local_chat_negative_receipt_invalid');
+    $pdo->beginTransaction();
+    try{
+        if(!jrLocalChatNodeApproved($pdo,$node,$model,$version,$sha,true))
+            throw new DomainException('local_chat_model_authorization_revoked');
+        $q=$pdo->prepare("SELECT job_id,status,leased_to_node,
+          lease_secret_sha256,lease_expires_at,expires_at
+          FROM jrei_local_chat_jobs WHERE job_id=? FOR UPDATE");
+        $q->execute([$id]);
+        $row=$q->fetch(PDO::FETCH_ASSOC);
+        if(!is_array($row)||$row['status']!=='LEASED'||
+           $row['leased_to_node']!==$node||
+           !hash_equals((string)$row['lease_secret_sha256'],hash('sha256',$token))||
+           (int)$row['lease_expires_at']<time()||
+           (int)$row['expires_at']<time())
+            throw new DomainException('local_chat_negative_receipt_lease_expired');
+        $q=$pdo->prepare("UPDATE jrei_local_chat_jobs
+          SET status='BLOCKED',request_ciphertext=NULL,
+              response_ciphertext=NULL,lease_secret_sha256=NULL,
+              lease_expires_at=NULL,updated_at=?
+          WHERE job_id=? AND status='LEASED'");
+        $q->execute([time(),$id]);
+        if($q->rowCount()!==1)
+            throw new DomainException('local_chat_negative_receipt_conflict');
+        $pdo->commit();
+        return ['ok'=>true,'accepted'=>false,'status'=>'BLOCKED_BY_QUALITY_GUARD',
+          'requestErased'=>true,'privateModelTextStored'=>false,
+          'reasonRecorded'=>false,'scientificQualityAccepted'=>false];
+    }catch(Throwable $error){
+        if($pdo->inTransaction())$pdo->rollBack();
+        throw $error;
+    }
+}
+
 /** Independent MFA owner grant; a model's licence alone cannot authorize it. */
 function jrLocalChatOwnerSetNode(PDO $pdo,array $cfg,string $actor,array $body): array {
     if(!jrLocalChatSchemaReady($pdo))
