@@ -8,6 +8,7 @@ declare(strict_types=1);
  */
 if(!defined('BERTINA_API_BOOTSTRAPPED')){http_response_code(404);exit;}
 require_once __DIR__.'/editorial-draft-store.php';
+require_once dirname(__DIR__,3).'/api/jrei-ai-cloud-provider.php';
 
 function jrNewsOriginalAiDraftObject(string $text):array {
     if(strlen($text)>10000)throw new RuntimeException('news_ai_output_oversized');
