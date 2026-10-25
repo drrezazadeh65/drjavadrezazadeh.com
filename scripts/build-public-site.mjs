@@ -41,6 +41,47 @@ function copy(rel=''){
   }
 }
 copy();
+// The source docs/ folder is deliberately absent from public_html. Bundle
+// ONLY three fixed, reviewed CREATE TABLE statements for the existing
+// CLI-only JREI caretaker, under the original HTTP-denied api/internal.
+// No generic migration runner, raw SQL upload or arbitrary model DDL.
+const jreiPrivateDir=path.join(out,'api','internal');
+const jreiPrivateDeny=path.join(jreiPrivateDir,'.htaccess');
+if(!fs.existsSync(jreiPrivateDeny)||
+   !/Require\s+all\s+denied/i.test(fs.readFileSync(jreiPrivateDeny,'utf8')))
+  throw Error('JREI migration package requires HTTP-denied private directory');
+const jreiMigrationSpecs=[
+  ['20261023_jrei_model_registry_mother_mysql.sql',
+    ['jrei_local_model_registry']],
+  ['20261024_jrei_local_inference_queue_mother_mysql.sql',
+    ['jrei_local_chat_node_authorizations','jrei_local_chat_jobs']]
+];
+const migrationFiles=jreiMigrationSpecs.map(([name,tables])=>{
+  const raw=fs.readFileSync(path.join(root,'docs','migrations',name),'utf8');
+  if(raw.length>20000)throw Error('JREI vetted SQL too large');
+  const stripped=raw.replace(/^\s*--[^\r\n]*$/gm,'');
+  const statements=stripped.split(';').map(p=>p.trim()).filter(Boolean);
+  if(statements.length!==tables.length)
+    throw Error('JREI reviewed schema statement count changed');
+  for(let i=0;i<statements.length;i++){
+    const stmt=statements[i];
+    const match=/^CREATE TABLE IF NOT EXISTS ([a-z_]+)\s*\(/i.exec(stmt);
+    if(!match||match[1]!==tables[i]||
+      !/\) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci$/.test(stmt)||
+      /\b(?:DROP|ALTER|TRUNCATE|GRANT|REVOKE|CREATE\s+DATABASE|FOREIGN_KEY_CHECKS)\b/i.test(stmt))
+      throw Error('JREI bundled DDL outside fixed additive allowlist');
+  }
+  return {source:name,tables,statements};
+});
+if(migrationFiles.reduce((sum,file)=>sum+file.statements.length,0)!==3)
+  throw Error('JREI private schema source is not exactly three statements');
+const jreiMigrationBundle={
+  schema:'jr.jrei.owner-reviewed-additive-migrations.v1',
+  database:'drjavad1_store',
+  files:migrationFiles
+};
+fs.writeFileSync(path.join(jreiPrivateDir,'jrei-approved-schema-v1.json'),
+  JSON.stringify(jreiMigrationBundle)+'\n',{flag:'wx'});
 // Bundle the original MFA-gated JREI News PHP dependency closure only inside
 // the EXISTING api/internal/ HTTP-denied private directory. Never copy the
 // platform/ source tree or expose a new public entrypoint. All features remain
@@ -320,6 +361,7 @@ const required=[
   'api/operations-activation.php','api/operations-page-quality.php',
   'api/operations-alerts.php','api/operations-response-monitor.php',
   'api/internal/operations-page-quality.json',
+  'api/internal/jrei-approved-schema-v1.json',
   'assets/js/operations-control.js','assets/css/operations-control.css',
   // These runtime modules must ship together with api/index.php; publishing
   // routes without their bound PHP source would cause an immediate 500.
