@@ -47,3 +47,17 @@ test('staging script preserves registered node and disables public chat',()=>{
   assert.match(staging,/Set-JreiProperty \$chat 'independentQualityAccepted' \$false/);
   assert.match(staging,/NO_WORKER_KEYS_OR_NODE_REGISTRATION_CHANGED/);
 });
+
+test('reviewed Windows startup keeps Qwen staged without granting live public chat',()=>{
+  const scheduler=read('../platform/jrei-v5/windows-worker/jrei-managed-startup.ps1');
+  assert.match(scheduler,/\$privateSettings\.localChat\.enabled -eq \$false/);
+  assert.match(scheduler,/' -StagingOnly'/);
+  assert.match(scheduler,/LOCAL_MODEL_OWNER_APPROVAL_MISSING/);
+  assert.match(scheduler,/LOCAL_MODEL_PRIVATE_APPROVAL_INCOMPLETE/);
+  assert.match(scheduler,/StartWhenAvailable:\$true/);
+  assert.match(scheduler,/MultipleInstances IgnoreNew/);
+  assert.match(scheduler,/RestartCount 3/);
+  assert.match(starter,/LOCAL_MODEL_RUNTIME_EXITED_RESTART_REQUIRED/);
+  assert.doesNotMatch(scheduler,/New-NetFirewallRule|Open-NetFirewall|Set-ExecutionPolicy|RunLevel Highest/);
+  assert.doesNotMatch(scheduler,/start-chat -OwnerApproved|Set-JreiProperty|jrei_local_public_release_accepted/);
+});
