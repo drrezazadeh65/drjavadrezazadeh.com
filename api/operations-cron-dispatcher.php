@@ -79,6 +79,11 @@ function operationsCronRegistry(): array {
         'en'=>'JREI News reviewed original private feed projection',
         'relative'=>'internal/jrei-news-feed-discovery-worker.php',
         'defaultCadence'=>3600,'minimumCadence'=>3600,'sensitive'=>true],
+      'jrei_news_independent_primary_evidence'=>[
+        'fa'=>'بازبینی مستقل و خودکار متن اطلاعیه رسمی دانشگاه‌ها',
+        'en'=>'JREI independently verified primary-source headline evidence',
+        'relative'=>'internal/jrei-news-private-evidence-worker.php',
+        'defaultCadence'=>3600,'minimumCadence'=>3600,'sensitive'=>true],
       'jrei_news_original_article_intake'=>[
         'fa'=>'ثبت اولیهٔ خصوصی مقالات دارای مجوز مستقل JREI-KA',
         'en'=>'JREI News approved original article receipt intake',
