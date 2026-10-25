@@ -9,6 +9,7 @@ if (!defined('BERTINA_API_BOOTSTRAPPED')) {
     http_response_code(404);
     exit;
 }
+require_once __DIR__.'/standing-official-publication.php';
 function jrNewsDigestWindow(string $mode,int $now): int {
     return match ($mode) {
         'URGENT'=>$now-12*3600,
@@ -31,6 +32,33 @@ function jrNewsQueueTopicDigests(PDO $pdo,string $mode,int $nowEpoch,
         throw new InvalidArgumentException('news_digest_job_invalid');
     }
     $since=jrNewsDigestWindow($mode,$nowEpoch);
+    // The owner's latest rule is source-based standing authorization:
+    // a genuine CMS-published official notice must not disappear from
+    // newsletters merely because it has NO per-story owner decision.
+    // Older sites continue to read the original manual-approval schema.
+    $standing=jrNewsStandingPublicSchemaInstalled($pdo);
+    $authority=jrNewsPublicationAuthorityPredicate($standing);
+    $decisionJoin=$standing?
+        'LEFT JOIN jrei_news_owner_decisions d
+          ON d.decision_id=p.approved_decision_id
+         LEFT JOIN jrei_news_standing_policies pol
+          ON pol.policy_id=p.standing_policy_id':
+        'JOIN jrei_news_owner_decisions d
+          ON d.decision_id=p.approved_decision_id';
+    $standingReceipt=$standing?
+        " AND (p.approved_decision_id IS NOT NULL OR
+            (p.publisher_receipt_reference LIKE 'jrei-original-bilingual:%'
+             AND EXISTS (SELECT 1 FROM jrei_news_search_documents sfa
+                 WHERE sfa.publication_id=p.publication_id
+                   AND sfa.language_code='fa' AND sfa.index_state='PUBLISHED'
+                   AND BINARY sfa.public_route=BINARY p.fa_route
+                   AND BINARY sfa.content_sha256=BINARY p.fa_content_sha256)
+             AND EXISTS (SELECT 1 FROM jrei_news_search_documents sen
+                 WHERE sen.publication_id=p.publication_id
+                   AND sen.language_code='en' AND sen.index_state='PUBLISHED'
+                   AND BINARY sen.public_route=BINARY p.en_route
+                   AND BINARY sen.content_sha256=BINARY p.en_content_sha256)))":
+        '';
     $stmt=$pdo->prepare(
         "SELECT p.publication_id,p.fa_route,p.en_route,p.published_at,
                 p.fa_content_sha256,p.en_content_sha256,
@@ -44,17 +72,14 @@ function jrNewsQueueTopicDigests(PDO $pdo,string $mode,int $nowEpoch,
            ON c.candidate_id=v.candidate_id
          JOIN jrei_news_monitors m
            ON m.monitor_id=c.monitor_id
-         JOIN jrei_news_owner_decisions d
-           ON d.decision_id=p.approved_decision_id
+         ".$decisionJoin."
          WHERE p.publisher_state='PUBLISHED'
            AND p.published_at>=? AND p.published_at<=?
-           AND d.action_code='APPROVE'
-           AND v.editorial_state='OWNER_APPROVED'
-           AND d.revision_id=v.revision_id
-           AND d.approval_digest=v.approval_digest
+           AND ".$authority."
            AND p.publisher_receipt_reference IS NOT NULL
            AND p.fa_content_sha256 IS NOT NULL
            AND p.en_content_sha256 IS NOT NULL
+           ".$standingReceipt."
          ORDER BY p.published_at DESC LIMIT 500"
     );
     $stmt->execute([$since,$nowEpoch]);
