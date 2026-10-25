@@ -469,6 +469,9 @@ export function mountNewsOwnerPanel({root,csrfResolver,
         if(item.submission_state!=='DISABLED')
           section.append(customSourceButton(say('توقف منبع','Disable source'),
             '/owner/admin-sources/disable',{submissionId:id}));
+        else
+          section.append(customSourceButton(say('بازگرداندن منبع','Restore source'),
+            '/owner/admin-sources/restore',{submissionId:id}));
         if(item.last_issue_code){
           const reason=document.createElement('p');
           reason.textContent=String(item.last_issue_code);section.append(reason);
