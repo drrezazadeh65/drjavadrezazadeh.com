@@ -260,8 +260,31 @@ export async function runLocalChatWorker(config,key,{post,log,signal,fetchImpl}=
             log(receipt.accepted?'LOCAL_CHAT_EVIDENCE_GUARD_ACCEPTED_PROVISIONAL':
               'LOCAL_CHAT_EVIDENCE_GUARD_REJECTED');
           }catch(error){
-            // The leased job expires to FAILED/unknown. Do not requeue a
-            // possibly completed inference or transfer text elsewhere.
+            // For a known *local negative output check* we can stop the
+            // browser's wait early by rejecting this exact signed lease.
+            // No rejected draft, source text, student question or secret
+            // is sent in this error receipt. Uncertain network outcomes
+            // are never replayed or reassigned to a second node.
+            const qualityFailure=error?.message==='LOCAL_CHAT_QUALITY_REVIEW_REJECTED';
+            const incomplete=error?.message==='LOCAL_CHAT_MODEL_OUTPUT_NOT_ACCEPTABLE';
+            if((qualityFailure||incomplete)&&!stopping&&!signal?.aborted&&
+               Date.now()+1200<job.expiresAt*1000){
+              try{
+                const reject=await post(config,key,
+                  '/api/jrei/v1/local-chat/reject',{
+                    jobId:job.jobId,leaseToken:job.leaseToken,
+                    modelId:model.modelId,modelVersion:model.modelVersion,
+                    modelSha256:model.modelSha256,
+                    reasonCode:qualityFailure?'NEGATIVE_QUALITY_GATE':
+                      'INCOMPLETE_OR_UNTRUSTED_DRAFT'
+                  });
+                if(reject?.ok===true&&reject?.accepted===false)
+                  log('LOCAL_CHAT_SIGNED_NEGATIVE_RECEIPT_ACCEPTED');
+                else log('LOCAL_CHAT_SIGNED_NEGATIVE_RECEIPT_UNCONFIRMED');
+              }catch{
+                log('LOCAL_CHAT_SIGNED_NEGATIVE_RECEIPT_UNCONFIRMED');
+              }
+            }
             log('LOCAL_CHAT_TASK_'+safeReason(error));
           }finally{
             clearInterval(heartbeatTimer);
