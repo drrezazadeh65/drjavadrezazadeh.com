@@ -11,6 +11,65 @@ if (!defined('BERTINA_API_BOOTSTRAPPED')) {
     http_response_code(404);
     exit;
 }
+/**
+ * Real read-only issuer provenance, bound to the exact original JREI
+ * article source ID and canonical URL. This is NOT a news article review
+ * and cannot replace independent claim verification or media rights.
+ * Never accept a client's boolean isOfficial as input.
+ */
+function jrNewsOriginalOfficialSourceSnapshot(
+    PDO $pdo,string $articleSourceId,string $articleUrl
+): array {
+    if(preg_match('/^[a-f0-9-]{36}$/iD',$articleSourceId)!==1 ||
+       strlen($articleUrl)>1000 ||
+       filter_var($articleUrl,FILTER_VALIDATE_URL)===false ||
+       strncmp($articleUrl,'https://',8)!==0)
+        throw new InvalidArgumentException('news_original_source_lookup_invalid');
+    $q=$pdo->prepare(
+        'SELECT s.source_locator_uri,s.review_state,s.rights_state,
+                s.reviewer_account_id,s.verified_at,s.is_revoked,
+                s.is_superseded,p.scheduling_state,p.rights_reviewed,
+                p.robots_terms_reviewed,p.transport_reviewed,
+                p.rights_evidence_sha256,p.robots_terms_evidence_sha256,
+                p.transport_evidence_sha256
+         FROM jrei_exam_sources s
+         JOIN jrei_ka_source_policies p ON p.source_id=s.source_id
+         WHERE s.source_id=? LIMIT 1'
+    );
+    $q->execute([$articleSourceId]);
+    $row=$q->fetch(PDO::FETCH_ASSOC);
+    if(!is_array($row)) {
+        return ['source'=>'ORIGINAL_JREI_PRIVATE_SOURCE_REGISTRY',
+            'registryState'=>'MISSING','issuerIdentityVerified'=>false,
+            'notRevoked'=>false,'exactSourceUrlApproved'=>false,
+            'rightsForPublicNews'=>false,'termsAndRobotsCurrent'=>false];
+    }
+    $hashesValid=true;
+    foreach(['rights_evidence_sha256','robots_terms_evidence_sha256',
+             'transport_evidence_sha256'] as $key){
+        if(preg_match('/^[a-f0-9]{64}$/D',(string)($row[$key]??''))!==1){
+            $hashesValid=false;break;
+        }
+    }
+    $approved=$row['scheduling_state']==='APPROVED'&&
+        (int)$row['rights_reviewed']===1&&
+        (int)$row['robots_terms_reviewed']===1&&
+        (int)$row['transport_reviewed']===1&&$hashesValid;
+    return [
+        'source'=>'ORIGINAL_JREI_PRIVATE_SOURCE_REGISTRY',
+        'registryState'=>$row['review_state'],
+        'issuerIdentityVerified'=>!empty($row['reviewer_account_id'])&&
+            !empty($row['verified_at']),
+        'notRevoked'=>(int)$row['is_revoked']===0&&
+            (int)$row['is_superseded']===0,
+        'exactSourceUrlApproved'=>hash_equals(
+            (string)$row['source_locator_uri'],$articleUrl),
+        'rightsForPublicNews'=>$approved&&
+            $row['rights_state']==='PERMITTED_REPRODUCTION',
+        'termsAndRobotsCurrent'=>$approved
+    ];
+}
+
 function jrNewsOfficialPublicationDecision(
     array $candidate,array $source,array $evidence,
     array $editorial,array $publisher
