@@ -924,6 +924,8 @@ function jrOperationsNewsDispatch(
             return jrNewsAdminSourceEdit($pdo,$owner,$id,$body,time());
         if($method==='POST'&&$route==='/owner/admin-sources/disable')
             return jrNewsAdminSourceDisable($pdo,$owner,$id,time());
+        if($method==='POST'&&$route==='/owner/admin-sources/restore')
+            return jrNewsAdminSourceRestore($pdo,$owner,$id,time());
         throw new InvalidArgumentException('news_admin_source_unknown_route');
     }
 
