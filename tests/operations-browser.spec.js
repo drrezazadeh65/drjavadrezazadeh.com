@@ -38,23 +38,29 @@ test('MFA code uses session CSRF and unlocks only after server confirmation',asy
  await authorized(page,{mfa:true});await page.goto(base+'/fa/app/admin/');await expect(page.locator('#ops-mfa-form')).toBeVisible();await expect(page.locator('#ops-workspace')).toBeHidden();
  await page.locator('#ops-mfa-code').fill('123456');await page.locator('#ops-mfa-form button').click();await expect(page.locator('#ops-workspace')).toBeVisible();await expect(page.locator('#ops-mfa-code')).toHaveValue('');
 });
-test('returning to an existing browser tab revalidates administrator access automatically',async({page})=>{
+test('returning to an existing tab revalidates MFA without losing the owner workspace',async({page})=>{
+ let sessionReads=0;
  await authorized(page);
+ page.on('request',request=>{if(new URL(request.url()).pathname==='/api/admin/operations/session')sessionReads++;});
  await page.goto(base+'/fa/app/admin/');
  await expect(page.locator('#ops-workspace')).toBeVisible();
+ const before=sessionReads;
+ await page.locator('#ops-search').fill('OP-03');
  await page.evaluate(()=>{
    Object.defineProperty(document,'hidden',{configurable:true,value:true});
    document.dispatchEvent(new Event('visibilitychange'));
  });
- await expect(page.locator('#ops-workspace')).toBeHidden();
- await expect(page.locator('#ops-cards article')).toHaveCount(0);
+ // Background tab navigation must not discard the workspace or input state.
+ await expect(page.locator('#ops-workspace')).toBeVisible();
+ await expect(page.locator('#ops-search')).toHaveValue('OP-03');
  await page.evaluate(()=>{
    Object.defineProperty(document,'hidden',{configurable:true,value:false});
    document.dispatchEvent(new Event('visibilitychange'));
    delete document.hidden;
  });
+ await expect.poll(()=>sessionReads).toBeGreaterThan(before);
  await expect(page.locator('#ops-workspace')).toBeVisible();
- await expect(page.locator('#ops-verified')).toHaveText('0');
+ await expect(page.locator('#ops-search')).toHaveValue('OP-03');
  await expect(page.locator('#ops-mfa-form')).toBeHidden();
  expect(await page.evaluate(()=>localStorage.length)).toBe(0);
 });
