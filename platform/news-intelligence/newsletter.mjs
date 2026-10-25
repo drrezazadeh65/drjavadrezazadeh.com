@@ -1,5 +1,6 @@
 /** User-directed, opt-in news digests; never sends mail directly. */
 import {assert,isId,plain,sha256,utcInstant} from './contracts.mjs';
+import {hasVerifiedPublicationAuthority} from './publication-authority.mjs';
 import {CHANNEL_TOPICS} from './taxonomy.mjs';
 export const DIGEST_MODES=Object.freeze(['URGENT','DAILY','WEEKLY','EXAM_ONLY']);
 export function normalizeNewsPreferences({accountId,language,topics,digestModes,
@@ -10,12 +11,14 @@ export function normalizeNewsPreferences({accountId,language,topics,digestModes,
     Array.isArray(digestModes)&&digestModes.length>=1&&
     digestModes.every(m=>DIGEST_MODES.includes(m))&&
     plain(consentRecord)&&consentRecord.accountId===accountId&&
-    consentRecord.purpose==='NEWSLETTER'&&consentRecord.granted===true&&
+    consentRecord.purpose==='ARTICLES'&&consentRecord.granted===true&&
     consentRecord.withdrawn!==true&&verifiedEmail===true&&
     utcInstant(updatedAt),'NEWS_NEWSLETTER_CONSENT_INVALID');
   return Object.freeze({schema:'jr.jrei.news-preferences.v1',accountId,language,
     topics:[...new Set(topics)],digestModes:[...new Set(digestModes)],
     consentId:consentRecord.consentId,updatedAt,
+    originalEcoPurpose:'ARTICLES',
+    delegatedArticleTopicConsentOnly:true,
     unsubscribeAvailable:true,marketingOptInNotImplied:true});
 }
 export function selectDigestCandidates({preferences,articles,mode,nowUtc}={}){
@@ -26,9 +29,13 @@ export function selectDigestCandidates({preferences,articles,mode,nowUtc}={}){
   const hours=mode==='DAILY'?24:mode==='WEEKLY'?168:mode==='URGENT'?12:168;
   const min=Date.parse(nowUtc)-hours*3600000;
   const chosen=articles.filter(a=>a&&a.publicationState==='PUBLISHED'&&
-    a.ownerApproved===true&&a.publicUrl&&
+    hasVerifiedPublicationAuthority(a)&&
+    a.publisherReceiptVerified===true&&
+    typeof a.publicUrl==='string'&&
+    /^https:\/\/drjavadrezazadeh\.com\/(?:fa\/akhbar|en\/news-insights)\/[a-z0-9-]{5,100}\/$/.test(a.publicUrl)&&
     a.topic&&preferences.topics.includes(a.topic)&&
-    utcInstant(a.publishedAt)&&Date.parse(a.publishedAt)>=min&&
+    utcInstant(a.publishedAt)&&
+    Date.parse(a.publishedAt)>=min&&Date.parse(a.publishedAt)<=Date.parse(nowUtc)&&
     (mode!=='URGENT'||a.priority==='P0')&&
     (mode!=='EXAM_ONLY'||a.topic==='EXAMINATIONS'));
   const distinct=[...new Map(chosen.map(a=>[a.publicUrl,a])).values()];
@@ -39,7 +46,9 @@ export function selectDigestCandidates({preferences,articles,mode,nowUtc}={}){
       publishedAt:a.publishedAt,priority:a.priority})),
     idempotencyKey:sha256([preferences.accountId,mode,nowUtc.slice(0,10),
       ...distinct.map(a=>a.publicUrl)].join('|')),
-    state:'PRIVATE_OUTBOX_PROPOSAL',smtpDelivered:false});
+    state:'PRIVATE_OUTBOX_PROPOSAL',smtpDelivered:false,
+    sourceOnlyPlan:true,lastMomentEcoArticlesConsentRecheckRequired:true,
+    providerOptOutAlwaysWins:true,originalEcoDeliveryRequired:true});
 }
 export function unsubscribeDirective({accountId,topic=null,nowUtc}={}){
   assert(isId(accountId)&&(topic===null||CHANNEL_TOPICS.includes(topic))&&
