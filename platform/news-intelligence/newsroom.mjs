@@ -11,6 +11,7 @@ import {imageDesignBrief} from './media.mjs';
 import {suggestSemanticLinks} from './links.mjs';
 import {approvalEmailDescriptor} from './approval.mjs';
 import {preOwnerNewsQualityReview} from './content-quality.mjs';
+import {planOfficialNewsHandoffs} from './official-publication-policy.mjs';
 export function newsModuleCapabilities(){
   return Object.freeze({
     schema:'jr.jrei.news-module-capabilities.v1',
@@ -104,4 +105,19 @@ export function consolidateNewsCandidateBatch(candidates){
   const result=dedupeNewsCandidates(candidates);
   return Object.freeze({schema:'jr.jrei.news-dedup-batch.v1',
     ...result,sourceAuthorityRequired:true,autoPublish:false});
+}
+
+/**
+ * Official publication worklist from the existing JREI worker's independently
+ * attested source, factual, QA and CMS checks. Only ambiguous sources and
+ * claims enter owner's exception desk; incomplete infrastructure is a
+ * system hold, not a fabricated owner action. No side effects here.
+ */
+export function planNewsroomOfficialHandoffs({items=[],originalPrivateContext}={}){
+  assert(plain(originalPrivateContext)&&
+    originalPrivateContext.source==='EXISTING_JREI_PRIVATE_NEWS_WORKER'&&
+    originalPrivateContext.originalServerSessionVerified===true&&
+    originalPrivateContext.newsPipelineEnabled===true,
+    'NEWS_ORIGINAL_PRIVATE_HANDOFF_CONTEXT_REQUIRED');
+  return planOfficialNewsHandoffs({items});
 }
