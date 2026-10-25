@@ -254,7 +254,8 @@ function jrLocalChatCollect(PDO $pdo,array $cfg,array $body): array {
             WHERE job_id=? AND retrieval_secret_sha256=?
               AND (expires_at<? OR status IN ('FAILED','BLOCKED'))");
         $del->execute([$id,$tokenHash,$now]);
-        return ['ok'=>false,'pending'=>false,'unavailable'=>true];
+        return ['ok'=>false,'pending'=>false,'unavailable'=>true,
+            'reviewRequired'=>$state['status']==='BLOCKED'];
     }
     if($state['status']!=='COMPLETED')
         return ['ok'=>true,'pending'=>true,'retryAfterMilliseconds'=>2500];
@@ -275,7 +276,8 @@ function jrLocalChatCollect(PDO $pdo,array $cfg,array $body): array {
             $pdo->prepare('DELETE FROM jrei_local_chat_jobs WHERE job_id=?')
                 ->execute([$id]);
             $pdo->commit();
-            return ['ok'=>false,'pending'=>false,'unavailable'=>true];
+            return ['ok'=>false,'pending'=>false,'unavailable'=>true,
+                'reviewRequired'=>$row['status']==='BLOCKED'];
         }
         if($row['status']!=='COMPLETED'){
             $pdo->commit();
