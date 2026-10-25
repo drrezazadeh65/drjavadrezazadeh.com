@@ -467,6 +467,7 @@ function jrOperationsNewsReadiness(PDO $pdo,array $config): array {
     $tables=array_fill_keys(array_keys($required),'UNAVAILABLE');
     $schemaBlockers=[];
     $metadataReadSucceeded=false;
+    $standingSchemaReady=false;
     try{
         $names=array_keys($required);
         $marks=implode(',',array_fill(0,count($names),'?'));
@@ -553,6 +554,79 @@ function jrOperationsNewsReadiness(PDO $pdo,array $config): array {
                 $row['DELETE_RULE']??null
             ];
         }
+        // Optional standing-policy upgrade is one coherent migration. A
+        // nullable legacy decision_id alone must NEVER pass readiness.
+        $standingRows=$pdo->query(
+            "SELECT TABLE_NAME,COLUMN_NAME,IS_NULLABLE
+             FROM information_schema.COLUMNS
+             WHERE TABLE_SCHEMA=DATABASE() AND
+               ((TABLE_NAME='jrei_news_standing_policies' AND
+                 COLUMN_NAME IN ('policy_id','owner_account_id','policy_code',
+                   'policy_digest','revision_number','effective_at','expires_at',
+                   'revoked_at','owner_mfa_audit_ref','created_at'))
+                 OR (TABLE_NAME='jrei_news_publications' AND
+                 COLUMN_NAME='standing_policy_id'))"
+        )->fetchAll(PDO::FETCH_ASSOC);
+        $standingShape=[];
+        foreach($standingRows as $part)
+            $standingShape[$part['TABLE_NAME']][$part['COLUMN_NAME']]=
+                $part['IS_NULLABLE'];
+        $standingFields=['policy_id','owner_account_id','policy_code',
+            'policy_digest','revision_number','effective_at','expires_at',
+            'revoked_at','owner_mfa_audit_ref','created_at'];
+        $standingTableColumns=$standingShape['jrei_news_standing_policies']??[];
+        $standingColumnCount=count(array_filter($standingFields,
+            static fn(string $c):bool=>isset($standingTableColumns[$c])));
+        $standingConstraints=$pdo->query(
+            "SELECT TABLE_NAME,CONSTRAINT_NAME,CONSTRAINT_TYPE
+             FROM information_schema.TABLE_CONSTRAINTS
+             WHERE TABLE_SCHEMA=DATABASE() AND
+             ((TABLE_NAME='jrei_news_publications' AND
+               CONSTRAINT_NAME='ck_jrei_news_publication_authority_xor')
+              OR (TABLE_NAME='jrei_news_standing_policies' AND
+               CONSTRAINT_NAME IN ('PRIMARY','ck_jrei_news_standing_code',
+                 'ck_jrei_news_standing_duration')))"
+        )->fetchAll(PDO::FETCH_ASSOC);
+        $standingCheckNames=[];
+        foreach($standingConstraints as $c)
+            $standingCheckNames[$c['TABLE_NAME']][$c['CONSTRAINT_NAME']]=
+                $c['CONSTRAINT_TYPE'];
+        $standingFkQuery=$pdo->query(
+            "SELECT k.TABLE_NAME,k.COLUMN_NAME,k.REFERENCED_TABLE_NAME,
+                    k.REFERENCED_COLUMN_NAME,r.DELETE_RULE
+             FROM information_schema.KEY_COLUMN_USAGE k
+             JOIN information_schema.REFERENTIAL_CONSTRAINTS r
+               ON r.CONSTRAINT_SCHEMA=k.CONSTRAINT_SCHEMA
+              AND r.TABLE_NAME=k.TABLE_NAME
+              AND r.CONSTRAINT_NAME=k.CONSTRAINT_NAME
+             WHERE k.TABLE_SCHEMA=DATABASE() AND
+                   k.REFERENCED_TABLE_SCHEMA=DATABASE() AND
+                   k.TABLE_NAME IN ('jrei_news_publications',
+                      'jrei_news_standing_policies')"
+        )->fetchAll(PDO::FETCH_ASSOC);
+        $standingFkPairs=[];
+        foreach($standingFkQuery as $fk)
+            $standingFkPairs[]=implode('|',[
+                $fk['TABLE_NAME'],$fk['COLUMN_NAME'],
+                $fk['REFERENCED_TABLE_NAME'],$fk['REFERENCED_COLUMN_NAME'],
+                $fk['DELETE_RULE']
+            ]);
+        $standingSchemaReady=$standingColumnCount===10&&
+            ($standingShape['jrei_news_publications']['standing_policy_id']??'')==='YES'&&
+            ($standingCheckNames['jrei_news_publications']
+                ['ck_jrei_news_publication_authority_xor']??null)==='CHECK'&&
+            ($standingCheckNames['jrei_news_standing_policies']['PRIMARY']??null)
+                ==='PRIMARY KEY'&&
+            ($standingCheckNames['jrei_news_standing_policies']
+                ['ck_jrei_news_standing_duration']??null)==='CHECK'&&
+            ($standingCheckNames['jrei_news_standing_policies']
+                ['ck_jrei_news_standing_code']??null)==='CHECK'&&
+            in_array('jrei_news_publications|standing_policy_id|jrei_news_standing_policies|policy_id|RESTRICT',
+                $standingFkPairs,true)&&
+            in_array('jrei_news_standing_policies|owner_account_id|customer_accounts|id|RESTRICT',
+                $standingFkPairs,true);
+        // Report standing-policy structural readiness independently of the
+        // original 16-table manual editor contract.
         $metadataReadSucceeded=true;
         foreach($required as $name=>$columns){
             $columnsPresent=count(array_filter($columns,
@@ -565,6 +639,10 @@ function jrOperationsNewsReadiness(PDO $pdo,array $config): array {
                     $shapePresent=false;
                 foreach($requiredColumnShape[$name] as $column=>$expectedShape){
                     [$kind,$length,$nullable,$unsigned,$charset,$collation]=$expectedShape;
+                    if($name==='jrei_news_publications'&&
+                       $column==='approved_decision_id'&&
+                       ($standingSchemaReady??false)===true)
+                        $nullable=true;
                     $actual=$columnDetails[$name][$column]??null;
                     if(!is_array($actual) ||
                        strtolower((string)($actual['DATA_TYPE']??''))!==$kind ||
@@ -669,6 +747,7 @@ function jrOperationsNewsReadiness(PDO $pdo,array $config): array {
         'originalNewsTables'=>$tables,
         'schemaBlockers'=>$schemaBlockers,
         'schemaMetadataProbeSucceeded'=>$metadataReadSucceeded,
+        'standingOfficialPolicySchemaAvailable'=>$standingSchemaReady,
         'requiredMotherSchemaAvailable'=>$schemaReady,
         'requiredMotherTableCount'=>count($required),
         'verifiedMotherTableCount'=>count(array_filter($tables,
