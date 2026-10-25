@@ -312,8 +312,9 @@ function jrNewsConfirmStandingOriginalCmsPublication(
 
 /** Read-only compatibility probe: old manual-only releases remain supported. */
 function jrNewsStandingPublicSchemaInstalled(PDO $pdo): bool {
-    static $result=null;
-    if($result!==null)return $result;
+    // Fresh only-read metadata: tests also verify upgrades within one CLI
+    // process, so a cached pre-migration FALSE must never remain stale.
+    $result=false;
     try{
         $c=$pdo->query(
             "SELECT COUNT(*) FROM information_schema.COLUMNS
