@@ -55,7 +55,7 @@ test('original CMS article dependencies survive the sanitized Bertina build',()=
   assert.ok(shipped.includes('openOriginalAssistant'));
   assert.ok(shipped.includes('location.origin'));
   assert.ok(shipped.includes('textarea.value=safe'));
-  assert.ok(!shipped.includes('form.submit('));
+  assert.doesNotMatch(shipped,/^\\s*form\\.submit\\(/m);
   assert.ok(!shipped.includes('fetch('));
   assert.ok(css.includes('.ni-article'));
   assert.ok(css.includes('data-jrei-news-context'));
