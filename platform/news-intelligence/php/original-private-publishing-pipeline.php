@@ -11,6 +11,7 @@ require_once __DIR__.'/standing-official-publication.php';
 require_once __DIR__.'/original-news-policy-resolver.php';
 require_once __DIR__.'/original-cms-news-writer.php';
 require_once __DIR__.'/public-search-indexer.php';
+require_once __DIR__.'/original-news-owner-exceptions.php';
 
 function jrNewsPrivateActiveStandingPolicy(PDO $pdo,int $at):?array{
     $q=$pdo->prepare(
@@ -154,7 +155,7 @@ function jrNewsOriginalPrivateCmsPublishBatch(
     $ready=$q->fetchAll(PDO::FETCH_COLUMN);
     $summary=['schema'=>'jr.jrei.original-private-publishing-batch.v1',
         'state'=>'NO_ELIGIBLE_REVISIONS','examined'=>0,'staged'=>0,
-        'published'=>0,'publicWrites'=>0,
+        'published'=>0,'publicWrites'=>0,'technicalHolds'=>0,
         'exceptions'=>0,'dailyNewsQuota'=>null];
     foreach($ready as $revision){
         $summary['examined']++;
@@ -166,7 +167,16 @@ function jrNewsOriginalPrivateCmsPublishBatch(
             $pdo,(string)$revision,(string)$standing['policy_id'],
             $quality,$at);
         if(($stage['state']??null)!=='WAITING_FOR_PUBLISHER'){
-            $summary['exceptions']++;continue;
+            if(($stage['decision']??null)==='OWNER_EXCEPTION_QUEUE'){
+                jrNewsRecordOriginalEvidenceException(
+                    $pdo,(string)$revision,$stage,$at);
+                $summary['exceptions']++;
+            }else{
+                // Missing CMS/QA availability is not a doubtful news
+                // source, and must never create admin approval work.
+                $summary['technicalHolds']++;
+            }
+            continue;
         }
         $summary['staged']++;
     }
