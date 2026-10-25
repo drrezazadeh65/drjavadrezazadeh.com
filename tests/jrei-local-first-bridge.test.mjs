@@ -125,12 +125,12 @@ test('JREI CLI owner bootstrap is exactly three additive tables and requires a h
   assert.doesNotMatch(bootstrapCli,/DROP TABLE|TRUNCATE TABLE|ALTER TABLE/);
 });
 test('Bertina release excludes public source SQL but packages fixed vetted SQL as private denied JSON',()=>{
-  assert.match(builder,/jrei-approved-schema-v1\.json/);
-  assert.match(builder,/jreiMigrationSpecs/);
-  assert.match(builder,/jreiMigrationBundle/);
-  assert.match(builder,/jreiPrivateDeny/);
+  assert.match(builder,/jrei-reviewed-ddl-v1\.json/);
+  assert.match(builder,/jreiSqlMigrations/);
+  assert.match(builder,/jreiSqlEntries/);
+  assert.match(builder,/jreiSqlDeny/);
   assert.match(builder,/Require\\s\+all\\s\+denied/);
-  assert.match(caretaker,/jrei-approved-schema-v1\.json/);
+  assert.match(caretaker,/jrei-reviewed-ddl-v1\.json/);
   assert.match(caretaker,/jrei_schema_unsafe_ddl/);
   assert.doesNotMatch(builder,/copy\(.*docs.migrations/);
 });
