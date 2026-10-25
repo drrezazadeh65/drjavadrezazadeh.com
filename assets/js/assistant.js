@@ -389,6 +389,8 @@
     // When no API is configured, retain accurate directory-based guidance,
     // not a fake generated answer or a fabricated booking/price.
     if(isFa){
+      if(/(?:تو|شما).{0,24}(?:کی|چی|هستی|هستید)|(?:کی|چی) هستی|خودت.{0,15}معرفی|معرفی.{0,15}خودت|jrei.*(?:چی|کی)|(?:چی|کی).*jrei/.test(q))
+        return {answer:'من JREI، دستیار اختصاصی سایت هستم. در حال حاضر می‌توانم شما را به راهنماها و خدمات منتشرشده هدایت کنم. گفت‌وگوی زنده با مدل هوش مصنوعی هنوز فعال یا تأیید نشده است.',links:[links[0],links[4]]};
       if(/پاسخ.{0,18}داور|کامنت.{0,18}داور|داور.{0,18}پاسخ/.test(q))
         return {answer:'برای تهیه پاسخ مستند به نظرات داوران، خدمت «پشتیبانی پاسخ به داوران» در سایت معرفی شده است. محدوده و شرایط را در صفحه خدمت بررسی کنید.',links:[{label:'پشتیبانی پاسخ به داوران',url:rootPath('fa/services/reviewer_response/')}]};
       if(/ویراستاری|ویرایش.{0,25}(?:انگلیسی|مقاله|متن)/.test(q))
@@ -405,8 +407,10 @@
        if(/مسیر رشد|مسیر طلایی|golden path|توسعه فردی/.test(q)) return {answer:'برای مسیر رشد از راهنمای Golden Talent شروع کنید. نتیجه معتبر شخصی و انتشار حرفه‌ای به شواهد و بررسی انسانی مستقل نیاز دارد.',links:[links[8]]};
        if(/انتخاب رشته|رشته|کنکور/.test(q)) return {answer:'برای تصمیم‌گیری درباره رشته، از صفحه «انتخاب رشته» و راهنماهای مرتبط شروع کنید. اگر مسئله شما نیازمند بررسی فردی است، درخواست مشاوره ثبت کنید.',links:[links[1],links[3]]};
       if(/استعداد|golden|گلدن|توانمندی/.test(q)) return {answer:'Golden Talent چارچوب رشدگرا و چندمنبعی سایت برای شناخت شواهد مرتبط با توانمندی و مسیر رشد است. برای آشنایی عمومی وارد صفحه Golden Talent شوید.',links:[links[2],links[3]]};
-      return {answer:labels.error,links};
+      return {answer:'من JREI هستم. این بخش فعلاً راهنمای سایت است و پاسخ آزاد هوش مصنوعی هنوز فعال نیست. می‌توانید از پیوندهای زیر استفاده کنید یا درباره یکی از خدمات سایت بپرسید.',links};
     }
+    if(/who are you|what are you|introduce yourself|tell me about yourself|what is jrei/.test(q))
+      return {answer:'I am JREI, this website’s own assistant. I can currently help you navigate published educational information and services. A live language-model conversation is not yet enabled or verified.',links:[links[0],links[4]]};
     if(/reviewer.{0,18}(?:response|comments)|response.{0,18}reviewer/.test(q))
       return {answer:'Reviewer-response support is listed among the published services. Check the service page for scope and conditions; this is not a submission or publication guarantee.',links:[{label:'Reviewer-response support',url:rootPath('en/services/reviewer_response/')}]};
     if(/academic.{0,18}edit|english.{0,18}edit|proofread/.test(q))
@@ -423,7 +427,7 @@
     if(/golden path|growth pathway|development pathway/.test(q)) return {answer:'Start with the Golden Talent public framework for a developmental pathway. Validated individual conclusions or professional release require independently reviewed evidence.',links:[links[8]]};
     if(/major|career|student|guidance/.test(q)) return {answer:'Start with Student Guidance for educational and major-exploration questions. If you need individual review, use the consultation request route.',links:[links[0],links[3]]};
     if(/talent|golden|strength/.test(q)) return {answer:'Golden Talent is the site’s developmental, multi-source framework for exploring student strengths and pathways. The public page explains the method and its limits.',links:[links[1],links[3]]};
-    return {answer:labels.error,links};
+    return {answer:'I am JREI, the public website guide. Live AI inference is not yet available here. You can use the links below or ask about published services and educational routes.',links};
   }
 
   const cancelLocalJob=()=>{
