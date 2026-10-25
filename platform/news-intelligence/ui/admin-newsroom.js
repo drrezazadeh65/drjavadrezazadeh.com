@@ -144,6 +144,42 @@ export function mountNewsOwnerPanel({root,csrfResolver,
         section.append(heading,url,state);
         const id=item.submission_id;
         if(typeof id!=='string'||!/^[a-f0-9-]{36}$/i.test(id))continue;
+        if(['PENDING_ADMIN_APPROVAL','APPROVED_DISCOVERY',
+            'ORIGINAL_POLICY_PENDING'].includes(item.submission_state)){
+          const edit=document.createElement('button');
+          edit.type='button';edit.textContent=say('ویرایش مشخصات','Edit details');
+          edit.addEventListener('click',()=>{
+            if(section.querySelector('form'))return;
+            const inline=document.createElement('form');
+            const name=document.createElement('input');
+            name.type='text';name.required=true;name.maxLength=200;
+            name.value=String(item.source_title??'');
+            const cat=document.createElement('select');
+            for(const c of ['universities','examinations','school','research',
+                'employment','language','international']){
+              const o=document.createElement('option');
+              o.value=c;o.textContent=c;if(c===item.source_category)o.selected=true;
+              cat.append(o);
+            }
+            const pri=document.createElement('select');
+            for(const p of ['P0','P1','P2']){
+              const o=document.createElement('option');
+              o.value=p;o.textContent=p;if(p===item.news_priority)o.selected=true;
+              pri.append(o);
+            }
+            const save=document.createElement('button');
+            save.type='submit';save.textContent=say('ذخیره ویرایش','Save changes');
+            inline.append(name,cat,pri,save);section.append(inline);
+            inline.addEventListener('submit',event=>{
+              event.preventDefault();
+              mutateCustomSource('/owner/admin-sources/edit',{
+                submissionId:id,title:name.value.trim(),category:cat.value,
+                priority:pri.value
+              });
+            });
+          });
+          section.append(edit);
+        }
         if(item.submission_state==='PENDING_ADMIN_APPROVAL')
           section.append(customSourceButton(say('تأیید و افزودن','Approve and add'),
             '/owner/admin-sources/approve',{
