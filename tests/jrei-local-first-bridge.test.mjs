@@ -134,3 +134,22 @@ test('Bertina release excludes public source SQL but packages fixed vetted SQL a
   assert.match(caretaker,/jrei_schema_unsafe_ddl/);
   assert.doesNotMatch(builder,/copy\(.*docs.migrations/);
 });
+
+test('Bertina JREI bootstrap builds a local-only verified dump and three reviewed tables',()=>{
+  const builder=read('scripts/build-public-site.mjs');
+  const bootstrap=read('api/internal/jrei-owner-one-shot-bootstrap.php');
+  const caretaker=read('api/jrei-local-schema-caretaker.php');
+  assert.match(builder,/jrei-reviewed-ddl-v1\.json/);
+  assert.match(builder,/Require\\s\+all\\s\+denied/);
+  assert.match(caretaker,/jrei-reviewed-ddl-v1\.json/);
+  assert.match(caretaker,/hash_equals\(\$entry\['sha256'\],hash\('sha256',\$entry\['sql'\]\)\)/);
+  assert.match(bootstrap,/\-\-owner-approved/);
+  assert.match(bootstrap,/PHP_SAPI!=='cli'/);
+  assert.match(bootstrap,/proc_open\(\$args,/);
+  assert.match(bootstrap,/hash_file\('sha256',\$backup\)/);
+  assert.match(bootstrap,/jrJreiLocalSchemaApply\(\$pdo,\$oneShot\)/);
+  assert.match(bootstrap,/DB_DUMP_FAILED/);
+  assert.match(bootstrap,/BACKUP_RESTORE_NOT_INDEPENDENTLY_TESTED/);
+  assert.doesNotMatch(bootstrap,/shell_exec\(|system\(|passthru\(|eval\(/);
+  assert.doesNotMatch(bootstrap,/CREATE\s+DATABASE/);
+});
