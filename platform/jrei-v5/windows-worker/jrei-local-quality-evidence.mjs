@@ -13,6 +13,7 @@ import {createReadStream} from 'node:fs';
 import {readFile,writeFile,mkdir,stat} from 'node:fs/promises';
 import {join,isAbsolute,resolve} from 'node:path';
 import {triageLocalQualityEvidence} from './jrei-local-quality-triage.mjs';
+import {readPinnedWindowsPeakWorkingSetMb} from './jrei-local-ram-observer.mjs';
 
 const SHA=/^[a-f0-9]{64}$/;
 const ID=/^[A-Za-z0-9._:-]{1,100}$/;
@@ -150,7 +151,9 @@ async function main() {
     observedOutputTokensPerTotalSecond:totalLatency>0&&results.every(x=>x.outputTokens!==null)?
       Math.round(totalTokens/(totalLatency/1000)*100)/100:null,
     // This utility does not sample Windows' llama-server working set.
-    measuredPeakRamMb:null,
+    measuredPeakRamMb:readPinnedWindowsPeakWorkingSetMb(c.backendExe),
+    peakRamMetric:'WINDOWS_OS_PROCESS_LIFETIME_PEAK_WORKING_SET_MB',
+    peakRamMeasurementNotIndependentAcceptance:true,
     independentLanguageQualityAccepted:false,
     publicActivationAuthorized:false,
     qualityEvaluationRequired:true,
@@ -175,11 +178,12 @@ async function main() {
   process.stdout.write('[JREI] P95_MS='+(report.p95LatencyMs??'UNKNOWN')+'\n');
   process.stdout.write('[JREI] OBSERVED_OUTPUT_TOKENS_PER_TOTAL_SECOND='+
                        (report.observedOutputTokensPerTotalSecond??'UNKNOWN')+'\n');
-  process.stdout.write('[JREI] PEAK_LLAMA_RAM_MB=UNKNOWN_NOT_MEASURED\n');
-  process.stdout.write('[JREI] NEGATIVE_QUALITY_TRIAGE='+report.negativeQualityTriage.result+'\\n');
-  process.stdout.write('[JREI] NEGATIVE_FINDINGS='+report.negativeQualityTriage.negativeFindings.length+'\\n');
+  process.stdout.write('[JREI] PEAK_LLAMA_RAM_MB='+
+                       (report.measuredPeakRamMb??'UNKNOWN_NOT_MEASURED')+'\n');
+  process.stdout.write('[JREI] NEGATIVE_QUALITY_TRIAGE='+report.negativeQualityTriage.result+'\n');
+  process.stdout.write('[JREI] NEGATIVE_FINDINGS='+report.negativeQualityTriage.negativeFindings.length+'\n');
   for(const issue of report.negativeQualityTriage.negativeFindings){
-    process.stdout.write('[JREI] QUALITY_FAULT='+String(issue.fixtureId||'campaign')+':'+issue.kind+'\\n');
+    process.stdout.write('[JREI] QUALITY_FAULT='+String(issue.fixtureId||'campaign')+':'+issue.kind+'\n');
   }
   process.stdout.write('[JREI] HUMAN_SCIENTIFIC_QUALITY_REVIEW_REQUIRED\n');
   process.stdout.write('[JREI] PUBLIC_ACTIVATION_OFF\n');
