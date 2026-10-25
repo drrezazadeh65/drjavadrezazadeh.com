@@ -146,12 +146,38 @@ function jrOperationsNewsReadiness(PDO $pdo,array $config): array {
         'jrei_ka_private_observations'=>['observation_id','job_id',
             'source_id','content_sha256','source_policy_revision']
     ];
-    $tables=[];
-    foreach($required as $name=>$columns){
-        try{
-            $pdo->query('SELECT '.implode(',',$columns).' FROM '.$name.' LIMIT 0');
-            $tables[$name]='AVAILABLE';
-        }catch(Throwable $e){$tables[$name]='UNAVAILABLE';}
+    // Read one bounded, source-owned schema inventory rather than sending
+    // sixteen individual SQL probes on every MFA newsroom refresh.
+    $tables=array_fill_keys(array_keys($required),'UNAVAILABLE');
+    try{
+        $names=array_keys($required);
+        $marks=implode(',',array_fill(0,count($names),'?'));
+        $q=$pdo->prepare(
+            "SELECT c.TABLE_NAME,c.COLUMN_NAME
+             FROM information_schema.COLUMNS c
+             JOIN information_schema.TABLES t
+               ON t.TABLE_SCHEMA=c.TABLE_SCHEMA
+              AND t.TABLE_NAME=c.TABLE_NAME
+             WHERE c.TABLE_SCHEMA=DATABASE()
+               AND c.TABLE_NAME IN (".$marks.")
+               AND t.TABLE_TYPE='BASE TABLE'"
+        );
+        $q->execute($names);
+        $seen=[];
+        while($row=$q->fetch(PDO::FETCH_ASSOC)){
+            $table=$row['TABLE_NAME']??null;
+            $column=$row['COLUMN_NAME']??null;
+            if(is_string($table)&&isset($required[$table])&&
+               is_string($column))$seen[$table][$column]=true;
+        }
+        foreach($required as $name=>$columns){
+            if(count(array_filter($columns,
+                static fn(string $column):bool=>
+                    isset($seen[$name][$column])))===count($columns))
+                $tables[$name]='AVAILABLE';
+        }
+    }catch(Throwable $e){
+        // Metadata failure never becomes a successful release assertion.
     }
     $schemaReady=!in_array('UNAVAILABLE',$tables,true);
     $library=__DIR__.'/internal/jrei-news/news-library.php';

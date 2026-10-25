@@ -509,4 +509,14 @@ ensure($incomplete['requiredMotherSchemaAvailable']===false &&
        $incomplete['ownerQueueAccessible']===false &&
        $incomplete['publicPublicationActivatedByCheck']===false,
     'partial migration fails closed even when release flag is asserted');
-echo "PASS: 16-column-aware mother-schema readiness rejects incomplete migration\\n";
+$pdo->exec('CREATE TABLE jrei_news_topic_follows (
+    follow_id CHAR(36) PRIMARY KEY
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4');
+$partial=jrOperationsNewsReadiness(
+    $pdo,['jrei_news_integrated_release_accepted'=>true]
+);
+ensure($partial['originalNewsTables']['jrei_news_topic_follows']==='UNAVAILABLE' &&
+       $partial['verifiedMotherTableCount']===15 &&
+       $partial['ownerQueueAccessible']===false,
+    'existing table with missing columns is NOT a completed migration');
+echo "PASS: 16-column-aware mother-schema readiness rejects incomplete tables and columns\\n";
