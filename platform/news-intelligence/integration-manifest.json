@@ -4,7 +4,7 @@
   "repository": "drrezazadeh65/drjavadrezazadeh.com",
   "branch": "migration/bertina-linux6",
   "sourceRoot": "platform/news-intelligence",
-  "state": "SOURCE_STAGED_POLICY_UPDATED_ORIGINAL_CMS_STANDING_AUTHORIZATION_NOT_CONNECTED",
+  "state": "DUAL_AUTHORITY_SOURCE_TESTED_LIVE_NEWSROOM_NOT_ACTIVATED",
   "noParallelSystems": true,
   "integrationDefaults": {
     "apiEnabled": false,
@@ -75,7 +75,8 @@
     "docs/migrations/20261024_jrei_news_intelligence_mother_mysql.sql",
     "docs/migrations/20261024_jrei_news_topic_preferences_mother_mysql.sql",
     "docs/migrations/20261024_jrei_news_public_search_mother_mysql.sql",
-    "docs/migrations/20261024_jrei_news_feed_discovery_mother_mysql.sql"
+    "docs/migrations/20261024_jrei_news_feed_discovery_mother_mysql.sql",
+    "docs/migrations/20261025_jrei_news_standing_official_publication_mother_mysql.sql"
   ],
   "finalAcceptanceDeferred": [
     "source legality publisher permissions and robots policy",
@@ -120,7 +121,10 @@
     "php/original-eco-compatibility.php",
     "php/eco-digest-composer.php",
     "php/eco-reminder-composer.php",
-    "ui/news-reminders.js"
+    "ui/news-reminders.js",
+    "php/standing-official-publication.php",
+    "php/official-auto-handoff.php",
+    "official-publication-policy.mjs"
   ],
   "criticalInteroperabilityNotes": [
     "Original JREI-KA approved source policy currently requires at least 3600-second refresh intervals; faster official P0 radar needs separately authorized original-scheduler extension",
@@ -197,12 +201,24 @@
     "operationalHardLimits": "BOUNDED_PER_WORKER_BATCH_RETRY_AND_SOURCE_PERMISSIONS",
     "actualAutoPublicationIntegrated": false,
     "existingPublicationSqlStillRequiresOwnerDecision": true,
-    "standingPolicyDurableAuthorizationAndOriginalCmsWiring": "NOT_INTEGRATED",
+    "standingPolicyDurableAuthorizationAndOriginalCmsWiring": "SOURCE_READY_ORIGINAL_CMS_AND_OWNER_ROUTE_NOT_MOUNTED",
     "noSyntheticOwnerDecisions": true,
     "policySourceCode": [
       "official-publication-policy.mjs",
       "php/official-auto-handoff.php"
     ],
-    "releaseProofRequired": true
+    "releaseProofRequired": true,
+    "exactMigration": "docs/migrations/20261025_jrei_news_standing_official_publication_mother_mysql.sql",
+    "standingPolicyMfaGrantRevokeSourceReady": true,
+    "durableStandingPolicyAndExclusiveForeignKeyInDisposableMariaDbTested": true,
+    "verifiedStandingCmsReceiptAndBilingualIndexInDisposableMariaDbTested": true,
+    "legacyOwnerApprovedCmsPublicationRetained": true,
+    "exactPolicyRecheckOnActualCmsPublishRequired": true,
+    "newsOriginalScheduledSourceOnboardingActive": false,
+    "originalCmsAutoPublisherConnected": false,
+    "originalJreiModelSourceRouterVerifiedInProduction": false,
+    "productionStandingSchemaApplied": false,
+    "ownerExceptionAutoNotificationsActive": false,
+    "deploymentApproved": false
   }
 }
