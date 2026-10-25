@@ -11,10 +11,20 @@ define('BERTINA_MAIL_SMOKE_CONTEXT',true);
 require_once dirname(__DIR__).'/index.php';
 define('BERTINA_API_BOOTSTRAPPED',true);
 require_once dirname(__DIR__).'/jrei-local-chat.php';
+require_once dirname(__DIR__).'/jrei-owner-private-pilot.php';
 try{
     $cfg=cfg();
+    // Ephemeral OWNER pilot rows must be reaped regardless of the
+    // separately disabled PUBLIC chat release/retention flag.
+    // The same existing private Cron can perform this safely.
+    $pilotExpired=null;
+    $pilotPdo=db();
+    if($pilotPdo instanceof PDO&&jrLocalChatSchemaReady($pilotPdo)){
+        $pilotExpired=jrOwnerPilotReap($pilotPdo);
+    }
     if(($cfg['jrei_local_chat_retention_enabled']??false)!==true){
-        fwrite(STDOUT,"JREI-LM privacy retention job disabled.\n");
+        fwrite(STDOUT,"JREI-LM public retention disabled; ".
+          "expired private-pilot rows: ".($pilotExpired??'UNKNOWN')."\n");
         exit(0);
     }
     $pdo=db();
