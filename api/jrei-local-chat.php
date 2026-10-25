@@ -4,6 +4,7 @@ if(!defined('BERTINA_API_BOOTSTRAPPED')){http_response_code(404);exit;}
 require_once __DIR__.'/jrei-ai-assistant-runtime.php';
 require_once __DIR__.'/jrei-hybrid-worker.php';
 require_once __DIR__.'/jrei-local-answer-integrity.php';
+require_once __DIR__.'/jrei-local-quality-telemetry.php';
 
 /**
  * Independent JREI-LM inference queue: owner Windows nodes poll OUTBOUND
@@ -585,6 +586,8 @@ function jrLocalChatWorkerReject(PDO $pdo,array $cfg,string $node,array $body): 
         if($q->rowCount()!==1)
             throw new DomainException('local_chat_negative_receipt_conflict');
         $pdo->commit();
+        // Only aggregate a reason code; request text is already erased.
+        jrJreiLocalQualityRecord($pdo,$sha,$reason,time());
         return ['ok'=>true,'accepted'=>false,'status'=>'BLOCKED_BY_QUALITY_GUARD',
           'requestErased'=>true,'privateModelTextStored'=>false,
           'reasonRecorded'=>false,'scientificQualityAccepted'=>false];
@@ -736,6 +739,7 @@ function jrLocalChatOwnerSnapshot(PDO $pdo,array $cfg): array {
       'registeredModelCount'=>null,
       'rightsReviewedModelCount'=>null,'acceptedModelCount'=>null,
       'readinessGates'=>null,
+      'qualityNegativeAggregate'=>jrJreiLocalQualityOwnerSnapshot($pdo),
       'generativeWorkerStates'=>[],
       'externalCloudRequired'=>false
     ];
