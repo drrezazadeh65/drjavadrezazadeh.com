@@ -111,6 +111,16 @@ function jrExamAttemptStart(PDO $pdo,string $account,array $request,int $at): ar
         if($opens>$at||$closes<=$at||
            $duration<60||$duration>28800||$limit<1||$limit>10)
             throw new DomainException('exam_time_or_attempt_limit_unavailable');
+        // A lost HTTP acknowledgement must not create a SECOND exam with
+        // another request UUID while the first server attempt is in progress.
+        // Offering row FOR UPDATE above serializes requests across tabs.
+        $running=$pdo->prepare("SELECT attempt_id
+          FROM jrei_exam_commercial_attempts
+          WHERE offering_id=? AND account_id=? AND attempt_state='IN_PROGRESS'
+          ORDER BY starts_at DESC,attempt_id DESC LIMIT 1 FOR UPDATE");
+        $running->execute([$offering,$account]);
+        if($running->fetchColumn()!==false)
+            throw new DomainException('exam_attempt_already_in_progress');
         $entitlement=jrExamTrustedEntitlement($pdo,$account,$offering,$at);
         $consentId=jrExamAdultSubjectConsent($pdo,$account,$subject);
         $q=$pdo->prepare("SELECT attempt_number FROM jrei_exam_commercial_attempts
