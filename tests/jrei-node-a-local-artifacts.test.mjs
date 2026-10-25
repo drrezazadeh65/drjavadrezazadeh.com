@@ -15,6 +15,11 @@ test('approved llama.cpp starter pins JREI model alias and loopback',()=>{
  assert.match(starter,/LOCAL_MODEL_PRIVATE_APPROVAL_REQUIRED/);
 });
 test('owner local smoke remains off-site, synthetic, and read-only',()=>{
+ assert.equal([...smoke].every(ch=>ch.codePointAt(0)<128),true,
+   'PowerShell 5.1 without BOM must not contain raw Persian Unicode literals');
+ assert.match(smoke,/\\$faPrompt=\\(-join @\\(/);
+ assert.match(smoke,/content=\\$faPrompt/);
+ assert.doesNotMatch(smoke,/content='[^']*\\/no_think'/);
  assert.match(smoke,/JREI_SMOKE_OWNER_APPROVAL_REQUIRED/);
  assert.match(smoke,/Get-FileHash/);
  assert.match(smoke,/LOOPBACK_MODEL_HEALTH_OK/);
