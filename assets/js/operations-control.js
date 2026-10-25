@@ -2551,10 +2551,33 @@ function reportingDownload(format){
 
 $('ops-mfa-form').addEventListener('submit',async event=>{event.preventDefault();try{const code=$('ops-mfa-code').value;$('ops-mfa-code').value='';await api('/mfa',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-Token':csrf},body:JSON.stringify({code})});await load();}catch(error){notice(errorMessage(error),true);}});
 for(const id of ['ops-search','ops-engine','ops-priority'])$(id).addEventListener(id==='ops-search'?'input':'change',cards);
-$('ops-refresh').addEventListener('click',load);$('ops-refresh-data').addEventListener('click',load);$('ops-report').addEventListener('click',()=>download());$('ops-print').addEventListener('click',()=>window.print());$('ops-admin-detail').addEventListener('click',()=>show('ADM-01'));// Switching browser tabs must not destroy an authenticated owner workspace.
-// Recheck the server-side session when the page becomes visible. Server MFA
-// expiry, revocation, role checks, CSRF and explicit logout remain enforced.
-document.addEventListener('visibilitychange',()=>{if(!document.hidden)void load();});
+$('ops-refresh').addEventListener('click',load);$('ops-refresh-data').addEventListener('click',load);$('ops-report').addEventListener('click',()=>download());$('ops-print').addEventListener('click',()=>window.print());$('ops-admin-detail').addEventListener('click',()=>show('ADM-01'));// Returning from another tab must not destroy an active owner's forms,
+// scroll position, or the signed-in MFA workspace. Recheck the original
+// server-side session instead of calling load() and rebuilding all panels.
+async function revalidateOwnerSessionOnReturn(){
+ if(document.hidden)return;
+ if(!snapshot || $('ops-workspace').hidden){void load();return;}
+ const generation=loadGeneration;
+ try{
+  const session=await api('/session');
+  if(document.hidden||generation!==loadGeneration)return;
+  const remaining=Number(session.mfaExpiresIn);
+  if(session.mfaRequired||session.csrfToken!==csrf||
+      !Number.isFinite(remaining)||remaining<=0){
+   lock(t('نشست مدیر منقضی یا تغییر داده شده است.','Administrator session expired or changed.'));
+   return;
+  }
+  // The server remains authoritative; tab switches do not extend MFA.
+  // A real server expiry, logout or revoked cookie still locks the workspace.
+  clearTimeout(expiryTimer);
+  expiryTimer=setTimeout(()=>lock(t(
+   'تأیید دومرحله‌ای مدیر منقضی شده است.','Administrator second factor expired.'
+  )),Math.ceil(remaining*1000));
+ }catch(error){
+  if(!document.hidden&&generation===loadGeneration)lock(errorMessage(error));
+ }
+}
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)void revalidateOwnerSessionOnReturn();});
 // Stage 7: on-demand private audit history; never poll or imply live notifications.
 const auditPanel=el('details',undefined,'ops-panel');auditPanel.id='ops-audit-timeline';
 const auditSummary=el('summary',t('تاریخچهٔ حسابرسی مدیر (۵۰ رویداد اخیر)','Administrator audit history (latest 50 events)'));
