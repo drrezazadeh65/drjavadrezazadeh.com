@@ -4,7 +4,7 @@
   "repository": "drrezazadeh65/drjavadrezazadeh.com",
   "branch": "migration/bertina-linux6",
   "sourceRoot": "platform/news-intelligence",
-  "state": "SOURCE_STAGED_ISOLATED_ACCEPTANCE_PASSED_INTEGRATION_STILL_REQUIRED",
+  "state": "SOURCE_STAGED_POLICY_UPDATED_ORIGINAL_CMS_STANDING_AUTHORIZATION_NOT_CONNECTED",
   "noParallelSystems": true,
   "integrationDefaults": {
     "apiEnabled": false,
@@ -187,5 +187,22 @@
   },
   "ownerReleaseIntent": "DEPLOY_WHEN_FINAL_ACCEPTANCE_AND_OWNER_ONLY_WORKFLOW_ARE_READY",
   "englishExistingNewsCanonicalArchive": "/en/news-insights/",
-  "persianExistingNewsCanonicalArchive": "/fa/akhbar/"
+  "persianExistingNewsCanonicalArchive": "/fa/akhbar/",
+  "ownerEditorialPolicy20261025": {
+    "supersedes": "Every final public editorial version requires per-article MFA owner approval",
+    "officialPrimarySourcePublication": "AUTOMATED_AFTER_INDEPENDENT_SOURCE_RIGHTS_EVIDENCE_EDITORIAL_AND_CMS_CHECKS",
+    "ownerReview": "ONLY_FOR_AMBIGUOUS_OR_CONTRADICTORY_EVIDENCE",
+    "technicalUnavailable": "SYSTEM_HOLD_NOT_OWNER_REVIEW",
+    "arbitraryDailyPublicationQuota": null,
+    "operationalHardLimits": "BOUNDED_PER_WORKER_BATCH_RETRY_AND_SOURCE_PERMISSIONS",
+    "actualAutoPublicationIntegrated": false,
+    "existingPublicationSqlStillRequiresOwnerDecision": true,
+    "standingPolicyDurableAuthorizationAndOriginalCmsWiring": "NOT_INTEGRATED",
+    "noSyntheticOwnerDecisions": true,
+    "policySourceCode": [
+      "official-publication-policy.mjs",
+      "php/official-auto-handoff.php"
+    ],
+    "releaseProofRequired": true
+  }
 }
