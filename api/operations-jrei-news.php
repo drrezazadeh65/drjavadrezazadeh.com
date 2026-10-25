@@ -740,6 +740,40 @@ function jrOperationsNewsReadiness(PDO $pdo,array $config): array {
     $apiFlag=getenv('JR_JREI_NEWS_API_ENABLED')==='true';
     $releaseFlag=($config['jrei_news_integrated_release_accepted']??false)===true;
     $queueAccessible=$apiFlag&&$releaseFlag&&$schemaReady&&$privateLibraryReady;
+
+    // Source presence and authorized private configuration are different from
+    // an executed AI review, real publisher receipt, or accepted deployment.
+    // Expose only BOOLEAN readiness to MFA owner, never private paths/keys.
+    $factServicePresent=is_file(__DIR__.'/internal/jrei-news/original-reviewed-news-evidence-port.php');
+    $independentQaPresent=is_file(__DIR__.'/internal/jrei-news/original-independent-news-qa-service.php');
+    $draftWorkerPresent=is_file(__DIR__.'/internal/jrei-news-private-draft-worker.php');
+    $modelAdapterPresent=is_file(__DIR__.'/internal/jrei-news/original-draft-runtime-adapter.php');
+    $styleAdapterPresent=is_file(__DIR__.'/internal/jrei-news/original-native-news-style-media.php');
+    $cmsPublisherPresent=is_file(__DIR__.'/internal/jrei-news/original-private-publishing-pipeline.php');
+    $styleEnHash=$config['jrei_news_approved_en_author_corpus_sha256']??null;
+    $styleFaHash=$config['jrei_news_approved_fa_author_corpus_sha256']??null;
+    $factKey=$config['jrei_news_original_fact_signing_secret']??null;
+    $qaKey=$config['jrei_news_independent_qa_secret']??null;
+    $modelPorts=[
+        'firstPartySourceFactsModulePackaged'=>$factServicePresent,
+        'independentQaVerifierModulePackaged'=>$independentQaPresent,
+        'modelDraftWorkerPackaged'=>$draftWorkerPresent,
+        'originalJreiDraftAdapterPackaged'=>$modelAdapterPresent,
+        'measuredStyleAndLicensedMediaModulePackaged'=>$styleAdapterPresent,
+        'originalCmsPublishingPipelinePackaged'=>$cmsPublisherPresent,
+        'englishApprovedCorpusDigestConfigured'=>is_string($styleEnHash)&&
+            preg_match('/^[a-f0-9]{64}$/D',$styleEnHash)===1,
+        'persianApprovedCorpusDigestConfigured'=>is_string($styleFaHash)&&
+            preg_match('/^[a-f0-9]{64}$/D',$styleFaHash)===1,
+        'originalFactSignatureSecretConfigured'=>is_string($factKey)&&
+            strlen($factKey)>=32,
+        'separateIndependentQaSignatureSecretConfigured'=>is_string($qaKey)&&
+            strlen($qaKey)>=32,
+        'modelDraftReleaseEnabled'=>($config['jrei_news_model_drafting_enabled']??false)===true,
+        'realCmsAutoPublicationVerified'=>false,
+        'modelOutputsOrQaApprovedByThisRead'=>false
+    ];
+
     return [
         'schema'=>'jr.jrei.news-owner-integration-readiness.v1',
         'state'=>$queueAccessible?'OWNER_QUEUE_CONFIGURED':'SOURCE_ONLY_BLOCKED',
@@ -753,6 +787,7 @@ function jrOperationsNewsReadiness(PDO $pdo,array $config): array {
         'verifiedMotherTableCount'=>count(array_filter($tables,
             static fn(string $state):bool=>$state==='AVAILABLE')),
         'packagedPrivateNewsLibraryAvailable'=>$privateLibraryReady,
+        'firstPartyModelAndEvidencePortReadiness'=>$modelPorts,
         'explicitOriginalApiFlagEnabled'=>$apiFlag,
         'integratedReleaseAccepted'=>$releaseFlag,
         'originalCmsPublisherConnected'=>false,
