@@ -1,3 +1,4 @@
+import {hasVerifiedPublicationAuthority} from './publication-authority.mjs';
 /**
  * Public bilingual NewsArticle page renderer: only signed-off content.
  * HTML is escaped; no raw markup from scraped sources or model output.
@@ -24,8 +25,14 @@ export function renderPublicNewsPage({article,language,route,otherLanguageRoute,
   relatedLinks=[],publisherAuthorization=null,
   organization='JREI Education News & Intelligence'}={}){
   assert(plain(article)&&
-    ['PUBLISHED','OWNER_APPROVED_FOR_PUBLICATION'].includes(article.publicationState)&&
-    article.ownerApproved===true&&
+    ['PUBLISHED','OWNER_APPROVED_FOR_PUBLICATION',
+      'STANDING_POLICY_READY_FOR_PUBLICATION'].includes(article.publicationState)&&
+    (article.ownerApproved===true||
+      (article.standingOfficialPublicationVerified===true&&
+       publisherAuthorization.standingOfficialPublicationVerified===true&&
+       publisherAuthorization.originalStandingPolicyCurrent===true&&
+       publisherAuthorization.standingPolicyId===article.standingPolicyId&&
+       publisherAuthorization.standingPolicyDigest===article.standingPolicyDigest))&&
     plain(publisherAuthorization)&&
     publisherAuthorization.source==='ORIGINAL_AUTHENTICATED_CMS'&&
     publisherAuthorization.exactStoredApprovalDigest===article.approvalDigest&&
@@ -119,7 +126,8 @@ export function renderPublicNewsPage({article,language,route,otherLanguageRoute,
     language,route,canonical,
     html:'<!doctype html><html lang="'+language+'" dir="'+(isFa?'rtl':'ltr')+
       '"><head>'+meta+'</head><body class="ni-newsroom">'+body+'</body></html>',
-    publicationNotPerformed:true,ownerApproved:true,
+    publicationNotPerformed:true,
+    authorityKind:article.ownerApproved===true?'MANUAL_MFA_DECISION':'OFFICIAL_STANDING_POLICY',
     onlySourceHtmlGenerated:true,
     requiresApprovedExistingSitePublisher:true});
 }
