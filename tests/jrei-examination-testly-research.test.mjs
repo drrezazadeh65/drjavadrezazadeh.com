@@ -83,6 +83,31 @@ test('alternative-label swap is not a generated new question',()=>{
    original:orig,candidate:switched,qualityReview:{}
  }).reason,'OPTIONS_REORDERED_ONLY');
 });
+test('new Konkur questions never pass as independently reviewed when either author is missing or reviewer is an author',()=>{
+ const original={id:'source-1',authorAccountId:'author-1',
+   stem:'A student estimates the square root of 49.',correctOption:'B',
+   options:[{id:'A',text:'Six'},{id:'B',text:'Seven'},{id:'C',text:'Eight'}]};
+ const candidate={id:'generated-1',authorAccountId:'author-2',
+   stem:'For a square garden with area 81 square meters, what is each side?',correctOption:'B',
+   options:[{id:'A',text:'Eight meters'},{id:'B',text:'Nine meters'},{id:'C',text:'Ten meters'}]};
+ const qualityReview={
+   reviewerAccountId:'independent-3',
+   substantiveConceptualChange:true,sameOrLinkedConstruct:true,
+   answerIndependentlyVerified:true,oneUnambiguousCorrectAnswer:true,
+   distractorsDefensible:true,noCopyrightInfringement:true,
+   curriculumVersionConfirmed:true,sourceProvenanceReviewed:true,
+   subjectExpertSigned:true
+ };
+ assert.equal(inspectGeneratedItem({original,candidate,qualityReview}).ok,true);
+ assert.equal(inspectGeneratedItem({original,candidate:{...candidate,authorAccountId:undefined},qualityReview}).ok,false);
+ assert.equal(inspectGeneratedItem({original:{...original,authorAccountId:undefined},candidate,qualityReview}).ok,false);
+ assert.equal(inspectGeneratedItem({original,candidate,qualityReview:{
+   ...qualityReview,reviewerAccountId:original.authorAccountId
+ }}).ok,false);
+ assert.equal(inspectGeneratedItem({original,candidate,qualityReview:{
+   ...qualityReview,reviewerAccountId:candidate.authorAccountId
+ }}).ok,false);
+});
 test('official blueprint must be reviewed before three-stage schedule',()=>{
  const base={examDate:'2026-12-01',examDateAuthority:'ministry',
   blueprintVersion:'official-v1',scoringRulesVersion:'scoring-v1'};
