@@ -75,15 +75,25 @@ async function boundedRead(response,max=6_000_000){
 }
 export async function publicGate(url,request=fetch){
  const safe=validatedPublicUrl(url);
+ const started=performance.now();
  try{
   const resp=await request(safe,{redirect:'manual',cache:'no-store',signal:AbortSignal.timeout(18000),
    headers:{Accept:'text/html','User-Agent':'JR-ReadOnlyPerformanceAudit/1.0'}});
+  const headersAt=performance.now();
   if(resp.status!==200)return {ok:false,reason:'http_'+resp.status};
   if(!(resp.headers.get('content-type')||'').toLowerCase().includes('text/html'))
    return {ok:false,reason:'non_html'};
   const html=await boundedRead(resp,400000);
+  const completeAt=performance.now();
   const verdict=classifyPublicResponse(html,safe,resp.status,{'x-robots-tag':resp.headers.get('x-robots-tag')||''});
-  return {ok:verdict==='eligible',reason:verdict};
+  if(verdict!=='eligible')return {ok:false,reason:verdict};
+  return {ok:true,reason:'eligible',transport:{
+    source:'read_only_public_html_fetch',
+    responseHeadersMs:Math.round(Math.max(0,headersAt-started)),
+    completeHtmlMs:Math.round(Math.max(0,completeAt-started)),
+    decodedHtmlBytes:Buffer.byteLength(html,'utf8'),
+    notLighthouseOrFieldVitals:true
+  }};
  }catch(err){
   return {ok:false,reason:err.message==='upstream_oversize'?'oversize_or_private':'public_gate_unavailable'};
  }
@@ -152,7 +162,7 @@ export function renderHtml(report){
   htmlEscape(r.categories?.accessibility??'—')+'</td><td>'+htmlEscape(r.categories?.['best-practices']??'—')+
   '</td><td>'+htmlEscape(r.categories?.seo??'—')+'</td><td>'+htmlEscape(r.lab?.lcpMs??'—')+
   '</td><td>'+htmlEscape(r.lab?.cls??'—')+'</td><td>'+htmlEscape(r.lab?.tbtMs??'—')+
-  '</td><td>'+htmlEscape(r.fieldVitals?.inpMs??'—')+'</td><td>'+htmlEscape(r.reason||'')+'</td></tr>').join('\n');
+  '</td><td>'+htmlEscape(r.fieldVitals?.inpMs??'—')+'</td><td>'+htmlEscape(r.publicHtmlTransport?.responseHeadersMs??'—')+'</td><td>'+htmlEscape(r.publicHtmlTransport?.completeHtmlMs??'—')+'</td><td>'+htmlEscape(r.publicHtmlTransport?.decodedHtmlBytes??'—')+'</td><td>'+htmlEscape(r.reason||'')+'</td></tr>').join('\n');
  const fixes=report.priorities.map(f=>'<li>'+htmlEscape(f.priority)+' · '+htmlEscape(f.url)+
   ' '+htmlEscape(f.strategy)+' · '+htmlEscape(f.metric)+': '+htmlEscape(f.action)+'</li>').join('');
  const notes=report.exclusions.map(x=>'<li>'+htmlEscape(x.feature)+': '+htmlEscape(x.reason)+'</li>').join('');
@@ -161,7 +171,7 @@ export function renderHtml(report){
   '<style>body{font:16px system-ui;margin:2rem;color:#222}table{border-collapse:collapse;display:block;overflow-x:auto}td,th{padding:8px;border:1px solid #aaa}h1{font-size:1.7rem}</style>'+
   '<h1>Private performance CI report</h1><p>Release: '+htmlEscape(report.releaseSha||'manual')+
   ' · Time: '+htmlEscape(report.observedAt)+'</p><p><strong>Laboratory scores are NOT real-user Core Web Vitals.</strong> INP is field-only and may be unavailable. This file is a private CI artifact, not a public site page or deploy gate.</p>'+
-  '<table><thead><tr>'+['URL','Device','Status','Performance','Accessibility','Best Practices','SEO','Lab LCP ms','Lab CLS','Lab TBT ms','Field INP ms','Reason'].map(x=>'<th>'+x+'</th>').join('')+
+  '<table><thead><tr>'+['URL','Device','Status','Performance','Accessibility','Best Practices','SEO','Lab LCP ms','Lab CLS','Lab TBT ms','Field INP ms','Public HTML headers ms','Public HTML complete ms','Decoded HTML bytes','Reason'].map(x=>'<th>'+x+'</th>').join('')+
   '</tr></thead><tbody>'+rows+'</tbody></table><h2>Priorities (review and repeat before changing production)</h2><ul>'+fixes+
   '</ul><h2>Private or noindex features deliberately not measured</h2><ul>'+notes+'</ul>'+
   '<p>Missing metrics are not zeros. Observations compare only same-target, same-device production data.</p></html>';
@@ -184,13 +194,14 @@ export async function runProductionAudit(){
  let prior=null;
  try{if(fs.statSync(priorFile).size<=350000)prior=JSON.parse(fs.readFileSync(priorFile,'utf8'));}catch{}
  if(prior?.schema!=='jr-performance-production-v1')prior=null;
- const records=[];let calls=0,quota=false;
+ const records=[];const htmlTransport=new Map();let calls=0,quota=false;
  for(const target of targets){
   const gate=await publicGate(target);
   if(!gate.ok){
    for(const strategy of devices)records.push({url:target,strategy,status:'excluded',reason:gate.reason});
    continue;
   }
+  if(gate.transport)htmlTransport.set(target,gate.transport);
   for(const strategy of devices){
    if(quota){records.push({url:target,strategy,status:'unavailable',reason:'provider_quota_limited'});continue;}
    if(calls>=16){records.push({url:target,strategy,status:'unavailable',reason:'call_budget_exhausted'});continue;}
@@ -228,16 +239,23 @@ export async function runProductionAudit(){
    }
   }
  }
+ // Transport measurements survive missing PSI results or provider quota.
+ // They describe the CI runner's single public HTTP fetch, not end-user CWV.
+ for(const entry of records){
+  if(entry.status!=='excluded'&&htmlTransport.has(entry.url))
+   entry.publicHtmlTransport=htmlTransport.get(entry.url);
+ }
  const report={schema:'jr-performance-production-v1',observedAt:now,
   mode,releaseSha:mode==='post_deploy'?release:null,origin:ORIGIN,
   scope:'read_only_verified_public_html_only',notADeploymentGate:true,
   records,exclusions:selected?[]:PRIVATE_FEATURE_GATES,comparisons:compare(records,prior),
   priorities:records.flatMap(r=>action(r).map(f=>({...f,url:r.url,strategy:r.strategy}))).slice(0,35),
   summary:{eligibleRequested:targets.length,strategies:devices,apiCalls:calls,
+   publicHtmlTransportObserved:htmlTransport.size,
    observed:records.filter(x=>x.status==='observed').length,
    unavailable:records.filter(x=>x.status==='unavailable').length,
    excluded:records.filter(x=>x.status==='excluded').length},
-  limitation:'PSI Lighthouse results are lab measurements. CrUX field data and INP only exist when supplied by the provider; missing is not zero. Single-run regressions require repetition. No protected pages were tested.'};
+  limitation:'PSI Lighthouse results are lab measurements. The separate HTML transport measurements are CI runner response-header and complete-decoded-HTML durations, not TTFB, LCP, INP or real-user Core Web Vitals. Missing PSI is not zero. Single-run changes need repetition. No protected pages were tested.'};
  const folder='.performanceci';
  fs.mkdirSync(folder,{recursive:true});
  fs.writeFileSync(path.join(folder,'report.json'),JSON.stringify(report,null,2)+'\n');

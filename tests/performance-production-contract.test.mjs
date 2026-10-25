@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {
  ORIGIN,POST_RELEASE_ROUTES,PRIVATE_FEATURE_GATES,
- validatedPublicUrl,classifyPublicResponse,normalizePsi,renderHtml,sourceSelfTest
+ validatedPublicUrl,classifyPublicResponse,publicGate,normalizePsi,renderHtml,sourceSelfTest
 } from '../scripts/lib/performance-production.mjs';
 
 test('bounded canonical URLs reject foreign, parameterized and private resources',()=>{
@@ -80,4 +80,27 @@ test('verified owner release proof uses the same strict token across PageSpeed a
  for(const consumer of [production,delta,sender]){
   assert.match(consumer,/process\.env\.PSI_RELEASE_VERIFIED!=='1'/,'gated consumers must agree on the proof token');
  }
+});
+
+
+test('public HTML transport is measured without inventing unavailable PSI or CWV',async()=>{
+ const url=ORIGIN+'/fa/';
+ const html='<meta name="robots" content="index,follow"><link href="'+url+'" rel="canonical"><h1>Education</h1>';
+ const request=async()=>new Response(html,{status:200,
+   headers:{'Content-Type':'text/html; charset=utf-8'}});
+ const ok=await publicGate(url,request);
+ assert.equal(ok.ok,true);
+ assert.equal(ok.transport.source,'read_only_public_html_fetch');
+ assert.ok(Number.isInteger(ok.transport.responseHeadersMs));
+ assert.ok(Number.isInteger(ok.transport.completeHtmlMs));
+ assert.ok(ok.transport.completeHtmlMs>=ok.transport.responseHeadersMs);
+ assert.equal(ok.transport.decodedHtmlBytes,Buffer.byteLength(html));
+ assert.equal(ok.transport.notLighthouseOrFieldVitals,true);
+ const hidden=await publicGate(url,async()=>new Response(
+   '<meta name="robots" content="noindex">'+html,{status:200,
+     headers:{'Content-Type':'text/html'}}));
+ assert.equal(hidden.ok,false);
+ assert.equal(hidden.reason,'noindex_meta');
+ assert.equal(hidden.transport,undefined,
+   'private or noindex content is never represented as a public timing');
 });
