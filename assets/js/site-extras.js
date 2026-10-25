@@ -1,12 +1,3 @@
-/* Public bilingual reading-flow support: no URL/canonical/robot changes. */
-(()=>{
- const html=document.documentElement;
- if(!['fa','en'].includes(html.lang)||!document.querySelector('main')||document.querySelector('link[data-jr-semantic-flow]'))return;
- const link=document.createElement('link');
- link.rel='stylesheet';link.href='/assets/css/jr-bilingual-semantic-flow-2026.css?v=20261026-r1';
- link.dataset.jrSemanticFlow='1';document.head.appendChild(link);
-})();
-
 /* Deferred, non-critical site enhancements extracted from site.js to retain the 25 KiB navigation performance budget. */
 (()=>{let s=document.createElement('script');s.src='/assets/js/analytics-adapter.js?v=20261020-gtm-consent-v5';document.head.append(s)})();
 (function(){
