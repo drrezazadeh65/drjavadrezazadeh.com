@@ -559,7 +559,12 @@ function jrLocalChatWorkerReject(PDO $pdo,array $cfg,string $node,array $body): 
        !is_string($version)||!jrHybridIdentifier($version)||
        !is_string($sha)||!jrHybridSha($sha)||
        !is_string($reason)||!in_array($reason,[
-         'NEGATIVE_QUALITY_GATE','INCOMPLETE_OR_UNTRUSTED_DRAFT'
+         'NEGATIVE_QUALITY_GATE','INCOMPLETE_OR_UNTRUSTED_DRAFT',
+         'CJK_SCRIPT_INTRUSION','NUMERIC_MISMATCH',
+         'FLAWED_PERSIAN_VALIDITY_DEFINITION',
+         'UNVERIFIED_REFERENCE_ASSURANCE','EXPOSED_INTERNAL_THINKING',
+         'TRUNCATED_COMPLETION','EMPTY_OR_OVERSIZED',
+         'UNSOURCED_ADMISSION_GUARANTEE'
        ],true))
         throw new InvalidArgumentException('local_chat_negative_receipt_invalid');
     $pdo->beginTransaction();
