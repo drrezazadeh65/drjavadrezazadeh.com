@@ -96,3 +96,36 @@ These are screen-observed results, not assertions of live operational success:
 **Rule:** CI PASS proves the checked source/fixture, not that Bertina has an
 operating automatic newsroom. Neither zero-row tables nor source-only contract
 files qualify as a completed JREI News requirement.
+
+## Subsequent engineering delivery — same requirement, 25 October 2026
+
+The original owner has ALREADY authorized unattended publication of original,
+correctly verified official announcements; do not ask for individual approval
+for Sanjesh, Payam Noor, Islamic Azad University, University of Applied Science
+and Technology or other verified universities. Urgency does not require MFA
+review, and no daily news-count quota may be imposed.
+
+A further concrete source-side engineering milestone is now implemented:
+- Additive **separate authority** table and nullable previous approval FK with
+  enforced exactly-one (manual decision XOR standing policy) in
+  `docs/migrations/20261025_jrei_news_standing_official_publication_mother_mysql.sql`.
+  This is a staged migration, **NOT applied to Bertina**.
+- `php/standing-official-publication.php` grants/revokes MFA owner standing
+  authority, stages independently reviewed official drafts without inserting
+  a false per-article owner decision, and confirms real bilingual CMS receipts.
+- `php/public-search-indexer.php` and `php/public-read-model.php` handle
+  historical MFA and standing-policy records, with a compatibility probe so
+  legacy manual-only schema keeps functioning before the migration.
+- Original publisher and search/indexing data are preserved; no schema drop or
+  production content operation was executed.
+- The MariaDB 10.11 **isolated** acceptance workflow validates grant/deny,
+  source and digest bindings, authority exclusivity, revocation, real-vs-forged
+  synthetic CMS receipts, and two language search after receipt.
+
+**Remaining, before CLOSED:** approved real-world primary-source onboarding in
+original JREI-KA, real source retrieval/inference and attribution checks,
+authentic CMS route (still unmounted), a site-side owner-standing-policy
+activation and emergency disable control, production-migration backup/restore
+and owner execution, at least one independently observed automatic original
+source -> bilingual live canonical publication and rollback/retraction check.
+The fixture's synthetic receipt is NEVER evidence of an actual news publication.
