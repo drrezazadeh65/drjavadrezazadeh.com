@@ -36,3 +36,15 @@ body.jr-en-service{margin:0;background:#0b0b0b;color:#f8f5e9;font:16px/1.8 syste
 .jr-en-service :focus-visible{outline:3px solid #f0d58b;outline-offset:3px}
 @media(max-width:700px){.jr-en-service main{width:calc(100% - 22px);padding:16px 0 116px}.jr-en-service .hero{border-radius:20px}.jr-en-service .hero-inner{padding:24px 19px}.jr-en-service .grid{grid-template-columns:1fr;gap:13px}.jr-en-service .actions{flex-direction:column}.jr-en-service .btn{width:100%}.jr-en-service .panel{padding:22px 18px}}
 @media(prefers-reduced-motion:reduce){.jr-en-service *{transition:none!important;animation:none!important;scroll-behavior:auto!important}}
+
+/* Explicit, logical bilingual reading alignment for English VIP templates. */
+html[lang="en"] .jr-en-service main{direction:ltr;text-align:start}
+.jr-en-service :is(.panel,.scope-note,.hero-inner) :where(p,li,blockquote,summary){
+ text-align:start;overflow-wrap:anywhere;text-wrap:pretty;
+}
+.jr-en-service :is(h1,h2,h3,h4,h5,h6){
+ overflow-wrap:break-word;text-wrap:balance;scroll-margin-block-start:5rem;
+}
+.jr-en-service :where(code,pre,[dir="ltr"]){direction:ltr;unicode-bidi:isolate}
+.jr-en-service :where([lang="fa"],[dir="rtl"]){direction:rtl;unicode-bidi:isolate}
+.jr-en-service :where(pre,table){max-width:100%;overflow-x:auto}
