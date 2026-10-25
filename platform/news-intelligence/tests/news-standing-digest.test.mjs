@@ -64,3 +64,32 @@ test('prior individually approved, authenticated published articles remain eligi
     mode:'DAILY',nowUtc:now});
   assert.equal(plan.items.length,1);
 });
+
+
+import {planOwnerEditorialBatchAlert} from '../notifications.mjs';
+test('owner notification requires original signed uncertain evidence; urgency alone is not review',()=>{
+  const digest='b'.repeat(64);
+  const valid={
+    evidenceExceptions:[{digest,issueCode:'CLAIMS_UNVERIFIED_OR_CONTRADICTED',
+      underlyingEvidenceVerified:true}],
+    originalEvidenceDesk:{source:'ORIGINAL_JREI_VERIFIED_EXCEPTION_DESK',
+      signedCurrentReview:true},
+    ownerId:account,nowUtc:now,secureAdminRoute:'/fa/app/admin/'
+  };
+  assert.throws(()=>planOwnerEditorialBatchAlert({
+    ...valid,evidenceExceptions:[{digest,issueCode:'P0_URGENT_OFFICIAL',
+      underlyingEvidenceVerified:true}]
+  }),/NEWS_OWNER_EDITORIAL_BATCH_INVALID/);
+  assert.throws(()=>planOwnerEditorialBatchAlert({
+    ...valid,evidenceExceptions:[{digest,issueCode:'CMS_OFFLINE',
+      underlyingEvidenceVerified:true}]
+  }),/NEWS_OWNER_EDITORIAL_BATCH_INVALID/);
+  assert.throws(()=>planOwnerEditorialBatchAlert({
+    ...valid,originalEvidenceDesk:{
+      source:'BROWSER_CLAIMED_SOURCE',signedCurrentReview:true}
+  }),/NEWS_OWNER_EDITORIAL_BATCH_INVALID/);
+  const planned=planOwnerEditorialBatchAlert(valid);
+  assert.equal(planned.exceptionCount,1);
+  assert.equal(planned.requiresIndividualOwnerApprovalForVerifiedOfficialNews,false);
+  assert.equal(planned.publicPublicationAuthorizedByNotification,false);
+});
