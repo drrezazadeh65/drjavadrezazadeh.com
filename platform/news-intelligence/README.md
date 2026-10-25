@@ -20,6 +20,38 @@ integrated acceptance campaign. No interim unit, CI, browser, security, SEO
 or live acceptance tests were intentionally executed by this workstream.
 No status or document in this folder is evidence of a successful test.
 
+## Superseding owner editorial decision — 25 October 2026
+
+The owner has explicitly replaced the former rule requiring individual
+approval for every news story. Once integrated and activated, **official
+announcements from independently verified primary authorities** (for example
+the actual institution's own official announcement, not an aggregator) should
+automatically enter the ORIGINAL CMS publishing path after current-source
+proof, publication rights, independent claims verification, original-language
+JREI editorial review, bilingual completeness, accessible design, official
+citation, source link, internal links, SEO/canonical checks and contextual
+assistant grounding. A real authenticated CMS publication receipt remains
+mandatory. The model must never self-certify its own claims or fake approval.
+
+Only questionable or contradictory source/claim evidence belongs in the
+owner-MFA **exception review queue**. A disconnected CMS, missing rendering
+asset or temporarily unfinished QA is a SYSTEM_HOLD for automatic retries,
+not a suspicious-news request to the owner. The owner retains stop/retract
+controls and may adjust standing policy. No arbitrary fixed daily quota
+applies: publish every eligible newsworthy item, whether one or many, with
+bounded worker batches, legal/source limits, deduplication and backoff.
+
+**Implementation distinction:** `official-publication-policy.mjs`,
+`newsroom.mjs`, `php/official-auto-handoff.php` and their tests now stage
+this classification policy. The existing `php/publication-dispatch.php`
+and `jrei_news_publications.approved_decision_id` still require owner
+per-article decisions. A verified standing-policy authorization mechanism,
+original authenticated CMS handoff, private-source integrations and
+production end-to-end acceptance are NOT YET DONE. Never create an owner
+decision record to impersonate individual owner approval.
+
+### Earlier source-only restriction (historical)
+
 The owner approves **every final public editorial version** through the
 EXISTING owner-MFA operations session. News is discovered and prepared
 automatically (once enabled), but never published merely because the model
@@ -169,7 +201,7 @@ alerts; news-specific email subscriptions and unsubscribes; approved
 multi-channel distribution; original semantic links and SEO standard;
 AI assistant context below each story; reader-first free essentials,
 optional verified commerce entitlements; image provenance and premium design;
-owner-exclusive authenticated publication approval; original database,
+owner-controlled standing policy with human review of uncertain news; original database,
 existing products and zero regression.
 
 The requested nightly 300 GB is an **allowance** rather than a transfer
