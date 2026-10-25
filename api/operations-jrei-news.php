@@ -848,6 +848,44 @@ function jrOperationsNewsDispatch(
         throw new InvalidArgumentException('news_owner_exception_unknown_route');
     }
 
+    // Scoped approval supersedes manual per-article source approvals.
+    // It is separately MFA/CSRF governed in the ORIGINAL operations route,
+    // never a public/browser source registrar. Does not start acquisition.
+    if(str_starts_with($route,'/owner/delegated-source-scopes')){
+        if(($config['jrei_news_delegated_scopes_enabled']??false)!==true)
+            throw new DomainException('news_official_source_scope_activation_off');
+        $module=__DIR__.'/internal/jrei-news/delegated-official-source-enrollment.php';
+        if(!is_file($module)||!is_readable($module))
+            throw new DomainException('news_delegated_source_module_missing');
+        require_once $module;
+        $owner=[
+            'source'=>'EXISTING_OPERATIONS_SESSION',
+            'ownerAuthenticated'=>true,'mfaVerified'=>true,
+            'csrfVerified'=>true,'scope'=>'JREI_NEWS_EDITORIAL',
+            'accountId'=>$ownerId,
+            'mfaAuditReference'=>'operations-mfa:'.substr($mfaSessionHash,0,64)
+        ];
+        if($method==='GET'&&$route==='/owner/delegated-source-scopes')
+            return jrNewsOwnerOfficialSourceScopes($pdo,$owner,60);
+        if($method==='POST'&&$route==='/owner/delegated-source-scopes/grant'){
+            $sourceId=$body['sourceId']??null;
+            $prefix=$body['pathPrefix']??null;
+            if(!is_string($sourceId)||!is_string($prefix))
+                throw new InvalidArgumentException('news_source_scope_fields_missing');
+            return jrNewsGrantOfficialSourceScope($pdo,$owner,
+                $sourceId,$prefix,(string)($body['confirmation']??''),
+                time(),(int)($body['validDays']??30),
+                (int)($body['maxArticlesPerCycle']??20));
+        }
+        if($method==='POST'&&$route==='/owner/delegated-source-scopes/revoke'){
+            $scopeId=$body['scopeId']??null;
+            if(!is_string($scopeId))
+                throw new InvalidArgumentException('news_source_scope_id_missing');
+            return jrNewsRevokeOfficialSourceScope($pdo,$owner,$scopeId,time());
+        }
+        throw new InvalidArgumentException('news_source_scope_unknown_route');
+    }
+
     // Owner source intake stays available BEFORE general news activation.
     // This is only discovery and registered-original-source reconciliation;
     // no crawler, LLM, auto article authorization or public CMS activation.
