@@ -1,56 +1,59 @@
+#Requires -Version 5.1
 <#
-  JREI-LM Windows 11 local CPU server. Runs only on explicit owner approval.
-  This script does not download/install any model, fetch external APIs, open
-  the LAN firewall, or accept parameters supplied by the website.
-  Requires: private config.localChat with modelFile and sha256, and a
-  separately audited, locally installed llama.cpp llama-server.exe whose
-  SHA-256 is pinned in localChat.backendExeSha256. CPU-only safe baseline.
-  Run once on each owner computer BEFORE "jrei-worker.mjs start-chat".
+  JREI-LM Windows local GGUF runner. No Python, downloads, network setup,
+  model installation, API keys, public listening ports, or database writes.
+  The owner may verify a staged model locally without enabling public chat:
+     .\jrei-local-model-start.ps1 -ConfigPath <PRIVATE_JSON> -OwnerApproved -StagingOnly
+  For reviewed live operation, omit -StagingOnly and satisfy the existing
+  owner-approval, rights, runtime and independent quality gates.
+  Stops with Ctrl+C; no automatic restart or task registration is performed.
 #>
 [CmdletBinding()]
 param(
   [Parameter(Mandatory=$true)][string]$ConfigPath,
-  [switch]$OwnerApproved
+  [switch]$OwnerApproved,
+  [switch]$StagingOnly
 )
 $ErrorActionPreference='Stop'
 if(-not $OwnerApproved){throw 'JREI_LOCAL_MODEL_EXPLICIT_OWNER_APPROVAL_REQUIRED'}
-if(-not [Environment]::OSVersion.Platform.ToString().StartsWith('Win')){
-  throw 'LOCAL_MODEL_WINDOWS_ONLY'
-}
+if($env:OS -ne 'Windows_NT'){throw 'LOCAL_MODEL_WINDOWS_ONLY'}
 if(-not [IO.Path]::IsPathRooted($ConfigPath) -or
    -not [IO.File]::Exists($ConfigPath)){
   throw 'LOCAL_MODEL_PRIVATE_CONFIG_NOT_FOUND'
 }
-$cfg=Get-Content -LiteralPath $ConfigPath -Raw -Encoding UTF8 | ConvertFrom-Json
+try {
+  $cfg=Get-Content -LiteralPath $ConfigPath -Raw -Encoding UTF8 | ConvertFrom-Json
+} catch { throw 'LOCAL_MODEL_PRIVATE_CONFIG_UNREADABLE' }
 $c=$cfg.localChat
-if($null -eq $c -or $c.enabled -ne $true -or
-   $c.ownerApproved -ne $true -or $c.rightsReviewed -ne $true){
+if($null -eq $c -or $c.ownerApproved -ne $true){
   throw 'LOCAL_MODEL_PRIVATE_APPROVAL_REQUIRED'
 }
-# A machine-wide named mutex protects against double GGUF launches from
-# different desktop/logon sessions, including Task Scheduler/manual overlap.
-# Each independent Windows node has its own OS-wide mutex namespace.
-$singleInstance=[System.Threading.Mutex]::new($false, 'Global\JREI-Owner-Local-Model')
-$mutexHeld=$false
-try {
-  try {
-    $mutexHeld=$singleInstance.WaitOne(0)
-  } catch [System.Threading.AbandonedMutexException] {
-    # The previous launcher crashed, so this process now owns the mutex.
-    # The pinning and loopback checks below still run before any inference.
-    $mutexHeld=$true
+if($StagingOnly){
+  # A staging-only local test must never activate an approved public route.
+  if($c.enabled -ne $false){
+    throw 'LOCAL_MODEL_STAGING_REQUIRES_PUBLIC_CHAT_OFF'
   }
-  if(-not $mutexHeld){throw 'LOCAL_MODEL_ALREADY_RUNNING_ON_THIS_COMPUTER'}
-  $exe=[string]$c.backendExe
+} else {
+  if($c.enabled -ne $true -or $c.rightsReviewed -ne $true -or
+     $c.modelRuntimeVerified -ne $true -or
+     $c.independentQualityAccepted -ne $true){
+    throw 'LOCAL_MODEL_PRIVATE_APPROVAL_REQUIRED'
+  }
+}
+$exe=[string]$c.backendExe
 $model=[string]$c.modelFile
 $expectedExe=[string]$c.backendExeSha256
 $expectedModel=[string]$c.modelSha256
+$modelAlias=[string]$c.modelId
+if($modelAlias -cnotmatch '^[A-Za-z0-9._:-]{1,100}$'){
+  throw 'LOCAL_MODEL_ALIAS_INVALID'
+}
 if(-not [IO.Path]::IsPathRooted($exe) -or
    -not [IO.Path]::IsPathRooted($model) -or
    -not [IO.File]::Exists($exe) -or
    -not [IO.File]::Exists($model) -or
    $exe.Length -gt 500 -or $model.Length -gt 500 -or
-   [IO.Path]::GetExtension($exe).ToLowerInvariant() -ne '.exe' -or
+   [IO.Path]::GetFileName($exe).ToLowerInvariant() -ne 'llama-server.exe' -or
    [IO.Path]::GetExtension($model).ToLowerInvariant() -ne '.gguf'){
   throw 'LOCAL_MODEL_BINARY_OR_GGUF_NOT_APPROVED'
 }
@@ -64,75 +67,20 @@ if((Get-FileHash -LiteralPath $exe -Algorithm SHA256).Hash.ToLowerInvariant() -c
 if((Get-FileHash -LiteralPath $model -Algorithm SHA256).Hash.ToLowerInvariant() -cne $expectedModel){
   throw 'LOCAL_MODEL_GGUF_SHA256_MISMATCH'
 }
-$modelAlias=[string]$c.modelId
-if($modelAlias -cnotmatch '^[A-Za-z0-9._:-]{1,100} -or $uri.Host -ne '127.0.0.1' -or
-   $uri.AbsolutePath -ne '/v1/chat/completions' -or
-   $uri.Query -ne '' -or $uri.Fragment -ne '' -or
-   $uri.Port -lt 1024 -or $uri.Port -gt 65535){
-  throw 'LOCAL_MODEL_LOOPBACK_ONLY'
-}
-# Runtime/driver probing must precede GPU use; CPU mode only on both
-# Ryzen desktops until an owner-reviewed AMD Vulkan/backend benchmark.
-# The prior fixed six CPU threads could monopolise small Windows desktops
-# when the independent evaluation worker is active. Never use more than half
-# the logical processors or four inference threads by default.
-$logicalCores=[Environment]::ProcessorCount
-$threads=[Math]::Max(1,[Math]::Min(4,[Math]::Floor($logicalCores/2)))
-if($null -ne $c.cpuThreads){
-  $requestedThreads=0
-  if(-not [int]::TryParse([string]$c.cpuThreads,[ref]$requestedThreads) -or
-     $requestedThreads -lt 1 -or $requestedThreads -gt $threads){
-    throw 'LOCAL_MODEL_CPU_THREAD_BUDGET_INVALID'
-  }
-  $threads=$requestedThreads
-}
-$context=2048
-# Quoting paths as individual fixed arguments prevents arbitrary CLI flags.
-$arguments=@(
-  '--model', ('"'+$model.Replace('"','')+'"'),
-  # Match llama.cpp's public model ID to the pinned JREI model registry ID.
-  # Without --alias, /v1/models exposes a filesystem path; a signed
-  # JREI-LM client then requests a different (unroutable) model identifier.
-  '--alias', $modelAlias,
-  '--host','127.0.0.1',
-  '--port', [string]$uri.Port,
-  '--ctx-size',[string]$context,
-  '--threads',[string]$threads,
-  '--n-gpu-layers','0'
-)
-Write-Output 'JREI-LM verified local model and binary SHA-256; starting CPU-only loopback.'
-$process=Start-Process -FilePath $exe -ArgumentList $arguments -PassThru -NoNewWindow
-if($null -eq $process){throw 'LOCAL_MODEL_START_FAILED'}
-try{
-  # Deprioritise local inference relative to interactive desktop work.
-  # Failure to change priority does not bypass the pinned model checks.
-  try { $process.PriorityClass='BelowNormal' } catch {}
-  $process.WaitForExit()
-  if($process.ExitCode -ne 0){throw 'LOCAL_MODEL_RUNTIME_FAILED'}
-}finally{
-  if(-not $process.HasExited){Stop-Process -Id $process.Id -Force -ErrorAction SilentlyContinue}
-}
-} finally {
-  if($mutexHeld){$singleInstance.ReleaseMutex()}
-  $singleInstance.Dispose()
-}
-){
-  throw 'LOCAL_MODEL_ALIAS_INVALID'
-}
-$uri=[uri]([string]$c.endpoint)
+try { $uri=[uri]([string]$c.endpoint) }
+catch { throw 'LOCAL_MODEL_LOOPBACK_ONLY' }
 if($uri.Scheme -ne 'http' -or $uri.Host -ne '127.0.0.1' -or
    $uri.AbsolutePath -ne '/v1/chat/completions' -or
    $uri.Query -ne '' -or $uri.Fragment -ne '' -or
+   [string]$uri.UserInfo -ne '' -or
    $uri.Port -lt 1024 -or $uri.Port -gt 65535){
   throw 'LOCAL_MODEL_LOOPBACK_ONLY'
 }
-# Runtime/driver probing must precede GPU use; CPU mode only on both
-# Ryzen desktops until an owner-reviewed AMD Vulkan/backend benchmark.
-# The prior fixed six CPU threads could monopolise small Windows desktops
-# when the independent evaluation worker is active. Never use more than half
-# the logical processors or four inference threads by default.
-$logicalCores=[Environment]::ProcessorCount
-$threads=[Math]::Max(1,[Math]::Min(4,[Math]::Floor($logicalCores/2)))
+# No competing listener: fail rather than replacing any unrelated process.
+$active=Get-NetTCPConnection -State Listen -LocalPort $uri.Port -ErrorAction SilentlyContinue
+if($active){throw 'LOCAL_MODEL_PORT_ALREADY_IN_USE'}
+
+$threads=[Math]::Max(1,[Math]::Min(4,[Math]::Floor([Environment]::ProcessorCount/2)))
 if($null -ne $c.cpuThreads){
   $requestedThreads=0
   if(-not [int]::TryParse([string]$c.cpuThreads,[ref]$requestedThreads) -or
@@ -141,28 +89,42 @@ if($null -ne $c.cpuThreads){
   }
   $threads=$requestedThreads
 }
-$context=2048
-# Quoting paths as individual fixed arguments prevents arbitrary CLI flags.
+# The owner selected a CPU-first baseline. GPU acceleration remains unapproved.
 $arguments=@(
   '--model', ('"'+$model.Replace('"','')+'"'),
-  '--host','127.0.0.1',
+  '--alias', $modelAlias,
+  '--host', '127.0.0.1',
   '--port', [string]$uri.Port,
-  '--ctx-size',[string]$context,
-  '--threads',[string]$threads,
-  '--n-gpu-layers','0'
+  '--ctx-size', '2048',
+  '--threads', [string]$threads,
+  '--n-gpu-layers', '0'
 )
-Write-Output 'JREI-LM verified local model and binary SHA-256; starting CPU-only loopback.'
-$process=Start-Process -FilePath $exe -ArgumentList $arguments -PassThru -NoNewWindow
-if($null -eq $process){throw 'LOCAL_MODEL_START_FAILED'}
-try{
-  # Deprioritise local inference relative to interactive desktop work.
-  # Failure to change priority does not bypass the pinned model checks.
-  try { $process.PriorityClass='BelowNormal' } catch {}
-  $process.WaitForExit()
-  if($process.ExitCode -ne 0){throw 'LOCAL_MODEL_RUNTIME_FAILED'}
-}finally{
-  if(-not $process.HasExited){Stop-Process -Id $process.Id -Force -ErrorAction SilentlyContinue}
-}
+
+# One dedicated Windows owner launcher per machine; never overwrite node keys.
+$singleInstance=[System.Threading.Mutex]::new($false,'Global\JREI-Owner-Local-Model')
+$mutexHeld=$false
+try {
+  try { $mutexHeld=$singleInstance.WaitOne(0) }
+  catch [System.Threading.AbandonedMutexException] { $mutexHeld=$true }
+  if(-not $mutexHeld){throw 'LOCAL_MODEL_ALREADY_RUNNING_ON_THIS_COMPUTER'}
+  Write-Output '[JREI] VERIFIED_GGUF_AND_LLAMA_BINARY'
+  Write-Output '[JREI] STARTING_LOCAL_LOOPBACK_WITH_JREI_ALIAS'
+  if($StagingOnly){
+    Write-Output '[JREI] STAGING_ONLY_PUBLIC_CHAT_OFF'
+  } else {
+    Write-Output '[JREI] REVIEWED_LOCAL_MODEL_START'
+  }
+  $process=Start-Process -FilePath $exe -ArgumentList $arguments -PassThru -NoNewWindow
+  if($null -eq $process){throw 'LOCAL_MODEL_START_FAILED'}
+  try {
+    try {$process.PriorityClass='BelowNormal'}catch {}
+    $process.WaitForExit()
+    if($process.ExitCode -ne 0){throw 'LOCAL_MODEL_RUNTIME_FAILED'}
+  } finally {
+    if(-not $process.HasExited){
+      Stop-Process -Id $process.Id -Force -ErrorAction SilentlyContinue
+    }
+  }
 } finally {
   if($mutexHeld){$singleInstance.ReleaseMutex()}
   $singleInstance.Dispose()
