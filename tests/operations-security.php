@@ -72,7 +72,7 @@ request('/admin/operations/mfa','POST',403,'invalid_mfa');
 $fingerprint=hash_hmac('sha256',$GLOBALS['configuration']['operations_admins'][$account]['totp_secret'],str_repeat('x',32));
 $pdo->prepare('INSERT INTO operations_session_mfa VALUES(?,?,?,?,?,?)')->execute([$hash,'other-account',$at,$at+600,0,$fingerprint]);
 request('/admin/operations','GET',403,'admin_mfa_required');
-$pdo->prepare('UPDATE operations_session_mfa SET account_id=?,verified_at=?,expires_at=?')->execute([$account,$at-601,$at+600]);
+$pdo->prepare('UPDATE operations_session_mfa SET account_id=?,verified_at=?,expires_at=?')->execute([$account,$at-OPERATIONS_MFA_TTL-1,$at+600]);
 request('/admin/operations','GET',403,'admin_mfa_required');
 $pdo->prepare('UPDATE operations_session_mfa SET verified_at=?,expires_at=?')->execute([$at,$at+600]);
 $pdo->prepare('INSERT INTO operations_release VALUES(1,?,?)')->execute([$release,$at]);
