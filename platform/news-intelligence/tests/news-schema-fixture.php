@@ -211,7 +211,8 @@ if($rechecked['current']!==true){
         try{fwrite(STDERR,'news_fixture_probe:'.$label.':'.
             $pdo->query($sql)->fetchColumn().PHP_EOL);}
         catch(Throwable $e){fwrite(STDERR,
-            'news_fixture_probe:'.$label.':'.get_class($e).PHP_EOL);}
+            'news_fixture_probe:'.$label.':'.get_class($e).
+            ' / '.$e->getMessage().PHP_EOL);}
     }
 }
 ensure($rechecked['current']===true &&
