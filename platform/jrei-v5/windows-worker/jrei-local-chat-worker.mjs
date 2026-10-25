@@ -9,6 +9,7 @@
  */
 import {createLocalLlamaAdapter} from './jrei-loopback-model-adapter.mjs';
 import {inspectJreiEducationalDraft} from '../jrei-educational-answer-review.mjs';
+import {planJreiArithmetic} from '../jrei-deterministic-arithmetic.mjs';
 import os from 'node:os';
 
 const ID=/^[A-Za-z0-9._:-]{1,64}$/;
@@ -203,7 +204,21 @@ export async function runLocalChatWorker(config,key,{post,log,signal,fetchImpl}=
           };
           const heartbeatTimer=setInterval(()=>{void heartbeat();},15000);
           try{
-            const draft=await adapter.complete({
+            // Elementary integer arithmetic is solved deterministically
+            // instead of soliciting Qwen for the demonstrated 12*7 failure.
+            // Only a narrow, bounded exact grammar bypasses generation.
+            // This path still requires the original signed worker grant,
+            // fresh lease, private release policy and Bertina revalidation.
+            const lastUser=[...job.messages].reverse()
+              .find(message=>message?.role==='user');
+            const rawQuestion=lastUser?.content??'';
+            const language=/[\u0600-\u06ff]/u.test(rawQuestion)?'fa':'en';
+            const deterministic=planJreiArithmetic(rawQuestion,language);
+            const draft=deterministic.eligible?{
+              text:deterministic.answer,stopReason:'stop',
+              requiresEvidenceVerification:true,
+              deterministicIntegerOnly:true
+            }:await adapter.complete({
               model:model.modelId,
               messages:job.messages,
               maxOutputTokens:model.maxContextTokens,
@@ -219,16 +234,13 @@ export async function runLocalChatWorker(config,key,{post,log,signal,fetchImpl}=
             if(draft.stopReason!=='stop'||
                /<\/?think(?:\s|>)/i.test(draft.text??'')||
                draft.requiresEvidenceVerification!==true||
-               typeof draft.text!=='string'||draft.text.length<12||
+               typeof draft.text!=='string'||
+               (!deterministic.eligible&&draft.text.length<12)||
                draft.text.length>4000)
               throw Error('LOCAL_CHAT_MODEL_OUTPUT_NOT_ACCEPTABLE');
             // Negative-only multilingual guard. It can veto unsafe drafts
             // but cannot certify math, education quality or public release.
             // No response text or learner question is logged locally.
-            const lastUser=[...job.messages].reverse()
-              .find(message=>message?.role==='user');
-            const rawQuestion=lastUser?.content??'';
-            const language=/[\u0600-\u06ff]/u.test(rawQuestion)?'fa':'en';
             const quality=inspectJreiEducationalDraft({
               question:rawQuestion,answer:draft.text,
               stopReason:draft.stopReason,language,scope:'PUBLIC_CHAT'
