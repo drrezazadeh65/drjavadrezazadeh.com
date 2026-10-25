@@ -319,6 +319,63 @@ $draft=jrNewsStoreEvidenceReviewedDraft($pdo,$receipt['candidateId'],
       static fn(string $asset):bool=>
         $asset==='assets/images/news/university.webp',1792820500);
 ensure($draft['readyForOwnerPreview']===true,'private bilingual draft staged');
+
+$officialPolicy=static function(array $context):array {
+    return [
+        'source'=>'ORIGINAL_JREI_PRIVATE_NEWS_POLICY',
+        'evidence'=>[
+            'source'=>'ORIGINAL_JREI_VERIFIED_ARTICLE_EVIDENCE',
+            'currentIssuerEvidence'=>true,
+            'verifiedContentSha256'=>$context['evidenceSha256'],
+            'claimsMatchPrimaryNotice'=>true,
+            'noMaterialContradictions'=>true
+        ],
+        'editorial'=>[
+            'source'=>'ORIGINAL_JREI_EDITORIAL_QA',
+            'bilingualComplete'=>true,'authorVoiceQualityPassed'=>true,
+            'newsGuidanceComplete'=>true,'internalLinksChecked'=>true,
+            'seoAndCanonicalChecked'=>true,'imageRightsCurrent'=>true,
+            'assistantContextGrounded'=>true
+        ],
+        'publisher'=>[
+            'source'=>'ORIGINAL_AUTHENTICATED_CMS_POLICY',
+            'originalCmsConnected'=>true,'exactRoutesCollisionFree'=>true,
+            'authenticatedPublishReceiptSupported'=>true
+        ]
+    ];
+};
+$autoReadiness=jrNewsOriginalAutoHandoffReadiness(
+    $pdo,$draft['revisionId'],$officialPolicy
+);
+ensure(($autoReadiness['decision']??null)==='ELIGIBLE_FOR_AUTOMATED_CMS_HANDOFF'&&
+       $autoReadiness['published']===false&&
+       $autoReadiness['requiresTransactionalPublisherRecheck']===true&&
+       (int)$pdo->query('SELECT COUNT(*) FROM jrei_news_publications')
+           ->fetchColumn()===0,
+    'verified MariaDB editorial revision is only proposed, never fabricated published');
+$uncertainAuto=jrNewsOriginalAutoHandoffReadiness(
+    $pdo,$draft['revisionId'],
+    static function(array $context) use($officialPolicy):array {
+        $r=$officialPolicy($context);
+        $r['evidence']['noMaterialContradictions']=false;
+        return $r;
+    }
+);
+ensure(($uncertainAuto['decision']??null)==='OWNER_EXCEPTION_QUEUE',
+    'contradictory official claim is sent only to owner exception review');
+$offlineAuto=jrNewsOriginalAutoHandoffReadiness(
+    $pdo,$draft['revisionId'],
+    static function(array $context) use($officialPolicy):array {
+        $r=$officialPolicy($context);
+        $r['publisher']['originalCmsConnected']=false;
+        return $r;
+    }
+);
+ensure(($offlineAuto['decision']??null)==='SYSTEM_HOLD'&&
+       $offlineAuto['humanPerArticleApprovalRequired']===false,
+    'missing CMS must be an operational hold, not owner content approval');
+echo "PASS: mother-DB verified original draft auto handoff and exception isolation\\n";
+
 $preview=jrNewsPrivateOwnerPreview($pdo,$owner,$draft['revisionId']);
 ensure($preview['approvalDigest']===$draft['approvalDigest'],
     'owner sees original immutable SHA');
