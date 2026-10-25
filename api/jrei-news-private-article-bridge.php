@@ -18,7 +18,9 @@ function jrNewsBridgeOriginalArticleObservation(
         'state'=>'OFF','reviewedObservationsExamined'=>0,
         'privateNewsCandidatesStaged'=>0,'alreadyStaged'=>0,
         'requiresIndependentScientificReview'=>true,
-        'requiresOwnerPublicationApproval'=>true,
+        'requiresOwnerPublicationApproval'=>false,
+        'ownerReviewOnlyForDisputedEvidence'=>true,
+        'standingOfficialPublisherRecheckRequired'=>true,
         'newHttpRequests'=>0,'articlesPublished'=>0
     ];
     if($now<=0)throw new InvalidArgumentException('news_article_bridge_clock_invalid');
