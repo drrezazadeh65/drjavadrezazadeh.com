@@ -144,6 +144,73 @@ $candidate=[
     'evidenceStatus'=>'UNREVIEWED_METADATA'
 ];
 $contentHash=hash('sha256','official article-body synthetic fixture');
+// Synthetic, disposable ORIGINAL KA receipt: the owner must NOT accept
+// an article merely because a reviewer mocked an approving callback.
+// These tables deliberately live in the existing fixture mother database.
+$pdo->exec('CREATE TABLE jrei_ka_jobs (
+    job_id CHAR(36) PRIMARY KEY,
+    source_id CHAR(36) NOT NULL,
+    source_policy_revision BIGINT UNSIGNED NOT NULL,
+    observed_digest CHAR(64) CHARACTER SET ascii COLLATE ascii_bin,
+    job_state VARCHAR(40) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4');
+$pdo->exec('CREATE TABLE jrei_ka_private_observations (
+    observation_id CHAR(36) PRIMARY KEY,
+    job_id CHAR(36) NOT NULL,
+    source_id CHAR(36) NOT NULL,
+    source_policy_revision BIGINT UNSIGNED NOT NULL,
+    source_uri_sha256 CHAR(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+    content_sha256 CHAR(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+    mime_type VARCHAR(100) NOT NULL,
+    state VARCHAR(60) NOT NULL,
+    rights_state_at_acquisition VARCHAR(60) NOT NULL,
+    bytes_total INT NOT NULL,
+    private_object_key VARCHAR(100) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4');
+$job='55555555-5555-4555-8555-555555555555';
+$pdo->prepare(
+    "INSERT INTO jrei_ka_jobs
+      (job_id,source_id,source_policy_revision,observed_digest,job_state)
+      VALUES (?,?,?,?, 'ACQUIRED_REVIEW')"
+)->execute([$job,$itemId,1,$contentHash]);
+$pdo->prepare(
+    "INSERT INTO jrei_ka_private_observations
+      (observation_id,job_id,source_id,source_policy_revision,
+       source_uri_sha256,content_sha256,mime_type,state,
+       rights_state_at_acquisition,bytes_total,private_object_key)
+      VALUES (?,?,?,?,?,?,'text/html','PENDING_SCIENTIFIC_REVIEW',
+       'PERMITTED_REPRODUCTION',100,?)"
+)->execute([$observedId,$job,$itemId,1,$articleHash,$contentHash,
+    $contentHash.'.bin']);
+require_once dirname(__DIR__,3).'/api/operations-jrei-news.php';
+$rechecked=jrNewsRecheckOriginalArticleReceipt(
+    $pdo,$itemId,$articleUrl,$contentHash
+);
+ensure($rechecked['current']===true &&
+       $rechecked['rightsApproved']===true &&
+       $rechecked['currentEvidenceSha256']===$contentHash,
+    'verified exact ORIGINAL KA observation must be eligible');
+ensure(jrNewsRecheckOriginalArticleReceipt(
+    $pdo,$itemId,$articleUrl,hash('sha256','altered private article')
+)['current']===false,'changed article digest rejected');
+ensure(jrNewsRecheckOriginalArticleReceipt(
+    $pdo,$itemId,'http://university.example.edu/news/admissions-2026',$contentHash
+)['current']===false,'non-HTTPS candidate rejected');
+$pdo->prepare('UPDATE jrei_exam_sources SET is_revoked=1 WHERE source_id=?')
+    ->execute([$itemId]);
+ensure(jrNewsRecheckOriginalArticleReceipt(
+    $pdo,$itemId,$articleUrl,$contentHash
+)['current']===false,'revoked original article must block owner approval');
+$pdo->prepare('UPDATE jrei_exam_sources SET is_revoked=0 WHERE source_id=?')
+    ->execute([$itemId]);
+$pdo->prepare('UPDATE jrei_ka_source_policies SET revision=2 WHERE source_id=?')
+    ->execute([$itemId]);
+ensure(jrNewsRecheckOriginalArticleReceipt(
+    $pdo,$itemId,$articleUrl,$contentHash
+)['current']===false,'stale original article policy revision must block approval');
+$pdo->prepare('UPDATE jrei_ka_source_policies SET revision=1 WHERE source_id=?')
+    ->execute([$itemId]);
+echo "PASS: exact licensed KA receipt validated; drift, spoofing and revocation rejected\n";
 $originalObservation=static function(string $url,string $parentId,
     string $fingerprint) use($articleUrl,$feedId,$itemId,$contentHash):array {
     if($url!==$articleUrl||$parentId!==$feedId)
@@ -224,17 +291,8 @@ ensure($preview['proposedBilingualRoutes']['fa']===$draft['routeProposal']['faPa
     'owner sees exact drafted route');
 $decision=jrNewsPrivateRecordDecision($pdo,$owner,$draft['revisionId'],
     $draft['approvalDigest'],'APPROVE',1792820600,
-    static function(string $sourceId,string $url,string $hash)
-      use($itemId,$articleUrl,$contentHash):array {
-        ensure($sourceId===$itemId,'owner rechecks actual ARTICLE, not RSS');
-        ensure($url===$articleUrl&&$hash===$contentHash,
-            'owner rechecks exact persisted article');
-        return [
-            'source'=>'ORIGINAL_JREI_SOURCE_RECHECK',
-            'current'=>true,'rightsApproved'=>true,
-            'currentEvidenceSha256'=>$contentHash
-        ];
-    });
+    static fn(string $sourceId,string $url,string $hash):array=>
+        jrNewsRecheckOriginalArticleReceipt($pdo,$sourceId,$url,$hash));
 ensure($decision['editorialState']==='OWNER_APPROVED',
     'owner decision committed');
 $queued=jrNewsStageFromApprovedStoredRouteProposal($pdo,$owner,
