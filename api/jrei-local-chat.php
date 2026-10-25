@@ -3,6 +3,7 @@ declare(strict_types=1);
 if(!defined('BERTINA_API_BOOTSTRAPPED')){http_response_code(404);exit;}
 require_once __DIR__.'/jrei-ai-assistant-runtime.php';
 require_once __DIR__.'/jrei-hybrid-worker.php';
+require_once __DIR__.'/jrei-local-answer-integrity.php';
 
 /**
  * Independent JREI-LM inference queue: owner Windows nodes poll OUTBOUND
@@ -463,7 +464,14 @@ function jrLocalChatWorkerComplete(PDO $pdo,array $cfg,string $node,array $body)
         $gate=$safe?($old['sources']?
            jrAiPublicAnswerGate($answer,$old['sources'],$lang):
            jrAiPublicUncitedAnswerGate($answer,$lang)):['publiclyRenderable'=>false];
-        $accepted=($gate['publiclyRenderable']??false)===true;
+        // Independent, code-reviewed negative guard in addition to the
+        // source-evidence gate. This cannot grant acceptance and has no
+        // access to learner records or model training. Only a reason code
+        // is retained in this transaction, never a draft transcript.
+        $negative=jrJreiLocalDraftIntegrityFailure($payload['query'],
+            $answer,$lang);
+        $accepted=($gate['publiclyRenderable']??false)===true&&
+            $negative===null;
         $links=[];
         if($accepted){
             $used=array_fill_keys($gate['usedSourceIds']??[],true);
