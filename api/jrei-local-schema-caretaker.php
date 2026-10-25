@@ -7,7 +7,7 @@ require_once __DIR__.'/jrei-hybrid-owner-models.php';
 /**
  * JREI first-party additive schema caretaker.
  *
- * A single prior owner policy may authorise routine installation of TWO
+ * A single prior owner policy may authorise routine installation of THREE
  * fixed, source-reviewed JREI-LM tables when prerequisites and a verified
  * private backup exist. Only the original drjavad1_store DB is touched;
  * no free-form SQL, table names, columns, payment/user mutations or remote
@@ -15,27 +15,40 @@ require_once __DIR__.'/jrei-hybrid-owner-models.php';
  * backup and idempotent rerun are mandatory.
  */
 function jrJreiLocalSchemaStatements(): array {
-    $file=dirname(__DIR__).'/docs/migrations/'.
-      '20261024_jrei_local_inference_queue_mother_mysql.sql';
-    if(!is_file($file)||!is_readable($file)||filesize($file)>20000)
-        throw new DomainException('jrei_schema_source_unavailable');
-    $sql=file_get_contents($file);
-    if(!is_string($sql)||strlen($sql)>20000)
-        throw new DomainException('jrei_schema_source_unavailable');
-    $sql=preg_replace('/^\s*--[^\r\n]*$/m','',$sql);
-    if(!is_string($sql))
-        throw new DomainException('jrei_schema_comment_parsing_failed');
-    $stmts=array_values(array_filter(array_map('trim',explode(';',$sql))));
-    $expected=['jrei_local_chat_node_authorizations','jrei_local_chat_jobs'];
-    if(count($stmts)!==2)throw new DomainException('jrei_schema_whitelist_changed');
-    foreach($stmts as $i=>$stmt){
-        if(!preg_match('/^CREATE TABLE IF NOT EXISTS ([a-z_]+)\s*\(/i',$stmt,$m)||
-           $m[1]!==$expected[$i]||
-           !preg_match('/\) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci$/',$stmt)||
-           preg_match('/\b(?:DROP|ALTER|TRUNCATE|GRANT|REVOKE|CREATE\s+DATABASE|FOREIGN_KEY_CHECKS)\b/i',$stmt))
-            throw new DomainException('jrei_schema_unsafe_ddl');
+    // The model registry must precede the owner grants and encrypted queue.
+    // Files and table names are fixed in source, never user/model input.
+    $files=[
+      ['20261023_jrei_model_registry_mother_mysql.sql',
+        ['jrei_local_model_registry']],
+      ['20261024_jrei_local_inference_queue_mother_mysql.sql',
+        ['jrei_local_chat_node_authorizations','jrei_local_chat_jobs']]
+    ];
+    $statements=[];
+    foreach($files as [$filename,$names]){
+        $file=dirname(__DIR__).'/docs/migrations/'.$filename;
+        if(!is_file($file)||!is_readable($file)||filesize($file)>20000)
+            throw new DomainException('jrei_schema_source_unavailable');
+        $sql=file_get_contents($file);
+        if(!is_string($sql)||strlen($sql)>20000)
+            throw new DomainException('jrei_schema_source_unavailable');
+        $sql=preg_replace('/^\s*--[^\r\n]*$/m','',$sql);
+        if(!is_string($sql))
+            throw new DomainException('jrei_schema_comment_parsing_failed');
+        $parts=array_values(array_filter(array_map('trim',explode(';',$sql))));
+        if(count($parts)!==count($names))
+            throw new DomainException('jrei_schema_whitelist_changed');
+        foreach($parts as $i=>$stmt){
+            if(!preg_match('/^CREATE TABLE IF NOT EXISTS ([a-z_]+)\s*\(/i',$stmt,$m)||
+               $m[1]!==$names[$i]||
+               !preg_match('/\) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci$/',$stmt)||
+               preg_match('/\b(?:DROP|ALTER|TRUNCATE|GRANT|REVOKE|CREATE\s+DATABASE|FOREIGN_KEY_CHECKS)\b/i',$stmt))
+                throw new DomainException('jrei_schema_unsafe_ddl');
+            $statements[]=$stmt;
+        }
     }
-    return $stmts;
+    if(count($statements)!==3)
+        throw new DomainException('jrei_schema_whitelist_changed');
+    return $statements;
 }
 function jrJreiLocalSchemaBackupReady(array $cfg): bool {
     $file=$cfg['jrei_local_schema_backup_file']??null;
@@ -62,8 +75,7 @@ function jrJreiLocalSchemaApply(PDO $pdo,array $cfg): array {
     $name=$pdo->query('SELECT DATABASE()')->fetchColumn();
     if($name!=='drjavad1_store')
         throw new DomainException('jrei_schema_wrong_database');
-    if(!jrHybridSchemaReady($pdo)||
-       !jrHybridModelRegistryReady($pdo))
+    if(!jrHybridSchemaReady($pdo))
         throw new DomainException('jrei_schema_missing_approved_dependencies');
     $stmts=jrJreiLocalSchemaStatements();
     $lock='jrei-lm-approved-additive-schema-v1';
@@ -74,18 +86,19 @@ function jrJreiLocalSchemaApply(PDO $pdo,array $cfg): array {
     try{
         $already=(int)$pdo->query("SELECT COUNT(*) FROM information_schema.TABLES
           WHERE TABLE_SCHEMA='drjavad1_store' AND TABLE_NAME IN
-            ('jrei_local_chat_node_authorizations','jrei_local_chat_jobs')
+            ('jrei_local_model_registry',
+             'jrei_local_chat_node_authorizations','jrei_local_chat_jobs')
             AND TABLE_TYPE='BASE TABLE'")->fetchColumn();
-        if($already<0||$already>2)
+        if($already<0||$already>3)
             throw new DomainException('jrei_schema_unexpected_inventory');
-        // Only fixed CREATE TABLE IF NOT EXISTS statements, with InnoDB
-        // foreign keys referencing already present original system tables.
+        // Only reviewed CREATE TABLE IF NOT EXISTS: model registry first,
+        // followed by grants and queue with original foreign keys.
         foreach($stmts as $sql)$pdo->exec($sql);
-        if(!jrLocalChatSchemaReady($pdo))
+        if(!jrHybridModelRegistryReady($pdo)||!jrLocalChatSchemaReady($pdo))
             throw new DomainException('jrei_schema_postflight_incompatible');
         return ['schema'=>'jr.jrei.local-schema-caretaker.v1',
           'state'=>'ADDITIVE_SCHEMA_READY','database'=>'drjavad1_store',
-          'expectedTables'=>2,'newTables'=>2-$already,
+          'expectedTables'=>3,'newTables'=>3-$already,
           'paymentsChanged'=>false,'parallelDatabaseCreated'=>false,
           'modelActivated'=>false];
     }finally{
