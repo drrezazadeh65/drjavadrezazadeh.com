@@ -37,19 +37,19 @@ function jrNewsRecheckOriginalArticleReceipt(
     $sql=<<<'SQL'
 SELECT o.content_sha256 AS verified_digest
 FROM jrei_news_discovered_urls d
-JOIN jrei_news_monitors n ON n.monitor_id=d.monitor_id AND n.enabled=1
-JOIN jrei_exam_sources f ON f.source_id=n.jrei_source_reference
+JOIN jrei_news_monitors n ON BINARY n.monitor_id=BINARY d.monitor_id AND n.enabled=1
+JOIN jrei_exam_sources f ON BINARY f.source_id=BINARY n.jrei_source_reference
 JOIN jrei_ka_source_policies fp
-  ON fp.source_id=f.source_id AND fp.revision=n.policy_revision
+  ON BINARY fp.source_id=BINARY f.source_id AND fp.revision=n.policy_revision
 JOIN jrei_exam_sources a
-  ON a.source_id=d.approved_article_source_id
+  ON BINARY a.source_id=BINARY d.approved_article_source_id
  AND BINARY a.source_locator_uri=BINARY d.canonical_article_url
-JOIN jrei_ka_source_policies ap ON ap.source_id=a.source_id
+JOIN jrei_ka_source_policies ap ON BINARY ap.source_id=BINARY a.source_id
 JOIN jrei_ka_private_observations o
-  ON o.source_id=a.source_id AND o.source_policy_revision=ap.revision
+  ON BINARY o.source_id=BINARY a.source_id AND o.source_policy_revision=ap.revision
  AND BINARY o.source_uri_sha256=BINARY d.canonical_url_sha256
 JOIN jrei_ka_jobs j
-  ON j.job_id=o.job_id AND j.source_id=o.source_id
+  ON BINARY j.job_id=BINARY o.job_id AND BINARY j.source_id=BINARY o.source_id
  AND j.source_policy_revision=o.source_policy_revision
  AND BINARY j.observed_digest=BINARY o.content_sha256
  AND j.job_state='ACQUIRED_REVIEW'
