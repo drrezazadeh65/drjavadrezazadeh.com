@@ -46,20 +46,51 @@ export function newsletterSubject({mode,locale,count,periodLabel}={}){
     'اخبار منتخب آموزشی شما — '+periodLabel:
     'Your JREI education news digest — '+periodLabel;
 }
-export function planOwnerEditorialBatchAlert({pendingDigests,ownerId,nowUtc,
-  secureAdminRoute}={}){
-  assert(Array.isArray(pendingDigests)&&pendingDigests.length>=1&&
-    pendingDigests.length<=100&&pendingDigests.every(isHash)&&
-    new Set(pendingDigests).size===pendingDigests.length&&
+/**
+ * Newer owner policy: ONLY evidence or source exceptions receive an owner
+ * alert. Official verified P0 urgency is not an exception and never creates
+ * owner approval work. Technical CMS/model outages are SYSTEM_HOLD instead.
+ *
+ * An ORIGINAL signed evidence reviewer must supply these records; this pure
+ * function may only plan a private eco outbox message, not authenticate a
+ * reviewer or actually send it.
+ */
+export function planOwnerEditorialBatchAlert({
+  evidenceExceptions,originalEvidenceDesk,ownerId,nowUtc,secureAdminRoute
+}={}){
+  const permitted=new Set([
+    'SOURCE_AUTHORITY_UNCONFIRMED',
+    'PUBLICATION_RIGHTS_UNCONFIRMED',
+    'CLAIMS_UNVERIFIED_OR_CONTRADICTED'
+  ]);
+  assert(plain(originalEvidenceDesk)&&
+    originalEvidenceDesk.source==='ORIGINAL_JREI_VERIFIED_EXCEPTION_DESK'&&
+    originalEvidenceDesk.signedCurrentReview===true&&
+    Array.isArray(evidenceExceptions)&&evidenceExceptions.length>=1&&
+    evidenceExceptions.length<=100&&
+    evidenceExceptions.every(x=>plain(x)&&isHash(x.digest)&&
+      permitted.has(x.issueCode)&&x.underlyingEvidenceVerified===true)&&
+    new Set(evidenceExceptions.map(x=>x.digest+'|'+x.issueCode)).size===
+      evidenceExceptions.length&&
     isId(ownerId)&&utcInstant(nowUtc)&&
     secureAdminRoute==='/fa/app/admin/',
     'NEWS_OWNER_EDITORIAL_BATCH_INVALID');
-  return Object.freeze({schema:'jr.jrei.news-owner-review-batch.v1',
-    ownerId,newsCount:pendingDigests.length,
-    exactDraftDigests:Object.freeze([...pendingDigests]),
+  const sorted=[...evidenceExceptions]
+    .sort((a,b)=>a.digest.localeCompare(b.digest)||
+      a.issueCode.localeCompare(b.issueCode));
+  const ids=sorted.map(x=>x.digest+'|'+x.issueCode);
+  return Object.freeze({
+    schema:'jr.jrei.news-owner-evidence-exceptions-batch.v2',
+    ownerId,exceptionCount:sorted.length,
+    exactEvidenceExceptions:Object.freeze(sorted.map(x=>Object.freeze({
+      digest:x.digest,issueCode:x.issueCode
+    }))),
     createdAt:nowUtc,adminRoute:secureAdminRoute,
-    idempotencyKey:sha256([ownerId,...pendingDigests].join('|')),
-    reviewEachDraftIndividually:true,
-    noUnreviewedBulkPublication:true,
-    outbox:'EXISTING_AUTHENTICATED_ECO_NOTIFICATION_ONLY'});
+    idempotencyKey:sha256([ownerId,...ids].join('|')),
+    requiresIndividualOwnerApprovalForVerifiedOfficialNews:false,
+    onlyQuestionableClaimsOrSourceRightsAreOwnerReviewed:true,
+    technicalFailuresNeverOwnerReviewAlerts:true,
+    publicPublicationAuthorizedByNotification:false,
+    outbox:'EXISTING_AUTHENTICATED_ECO_NOTIFICATION_ONLY'
+  });
 }
