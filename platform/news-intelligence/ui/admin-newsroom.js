@@ -657,10 +657,50 @@ export function mountNewsOwnerPanel({root,csrfResolver,
         messages.push(say('مجوز API اصلی فعال نشده','Original API activation not approved'));
       if(readiness.integratedReleaseAccepted!==true)
         messages.push(say('پذیرش نهایی یکپارچه ثبت نشده','Final integrated acceptance not recorded'));
+      const ports=readiness.firstPartyModelAndEvidencePortReadiness||{};
+      const portNames=[
+        ['firstPartySourceFactsModulePackaged',
+          'ماژول شواهد اصلی','Original source-evidence module'],
+        ['independentQaVerifierModulePackaged',
+          'ممیز مستقل خبر','Independent reviewer module'],
+        ['modelDraftWorkerPackaged',
+          'موتور زمان‌بندی مدل','Scheduled model worker'],
+        ['originalJreiDraftAdapterPackaged',
+          'اتصال مدل اصلی JREI','Original JREI model adapter'],
+        ['englishApprovedCorpusDigestConfigured',
+          'سبک معتبر انگلیسی','Approved English author corpus'],
+        ['persianApprovedCorpusDigestConfigured',
+          'سبک معتبر فارسی','Approved Persian author corpus'],
+        ['originalFactSignatureSecretConfigured',
+          'امضای خصوصی شواهد','Private fact-signature configuration'],
+        ['separateIndependentQaSignatureSecretConfigured',
+          'امضای مستقل ممیزی','Independent QA-signature configuration'],
+        ['originalCmsPublishingPipelinePackaged',
+          'مسیر ناشر اصلی','Original publisher pipeline']
+      ];
+      const modelStatus=document.createElement('section');
+      modelStatus.className='ni-admin-model-readiness';
+      const modelTitle=document.createElement('h4');
+      modelTitle.textContent=say('آمادگی اجزای هوش مصنوعی و انتشار',
+        'AI and publishing component readiness');
+      modelStatus.append(modelTitle);
+      for(const [key,faText,enText] of portNames){
+        const item=document.createElement('p');
+        item.textContent=(ports[key]===true?'✓ ':'○ ')+
+          say(faText,enText)+' — '+
+          (ports[key]===true?say('کد/تنظیمات موجود است','Present'):
+            say('نیازمند تکمیل','Not configured'));
+        modelStatus.append(item);
+      }
+      const warning=document.createElement('p');
+      warning.textContent=say(
+        'وجود این اجزا به معنی اجرای مدل، ممیزی واقعی یا انتشار خبر روی سایت نیست.',
+        'Component presence does not prove actual model review or live publication.');
+      modelStatus.append(warning);
       blockerDetails.textContent=messages.length?messages.join(' · '):
         say('اتصال صف بررسی آماده است؛ اتصال ناشر عمومی هنوز اثبات نشده.',
           'Review queue is configured; original publisher acceptance is still missing.');
-      integration.append(heading,statusLine,blockerDetails,publishing);
+      integration.append(heading,statusLine,blockerDetails,publishing,modelStatus);
       if(readiness.ownerQueueAccessible!==true){
         show(say('تحریریه هنوز غیرفعال است؛ جزئیات اتصال در همین صفحه نمایش داده شد.',
           'Newsroom remains disabled; integration blockers are shown above.'));
@@ -694,7 +734,7 @@ export function mountNewsOwnerPanel({root,csrfResolver,
             eligibleOriginalSourcesNow:say(
               'منابع فعال با مجوز اصلی معتبر','Enabled sources with current original permissions'),
             pendingEvidenceReview:say('در انتظار بررسی منبع','Awaiting evidence'),
-            ownerApprovalQueue:say('در انتظار تأیید من','Awaiting owner approval'),
+            ownerApprovalQueue:say('پرونده‌های استثنایی نیازمند بررسی','Evidence exceptions requiring review'),
             actuallyPublishedBilingualItems:say('اخبار واقعاً منتشرشده','Published bilingual stories'),
             socialDeliveryFailures:say('خطاهای توزیع','Social delivery failures')
           };
