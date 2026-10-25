@@ -13,7 +13,7 @@ $ErrorActionPreference='Stop'
 if(-not $OwnerApproved){ throw 'JREI_STAGE_EXPLICIT_OWNER_APPROVAL_REQUIRED' }
 if($env:OS -ne 'Windows_NT'){ throw 'JREI_STAGE_WINDOWS_ONLY' }
 
-$expectedModel='7485fe6f11af29433b5c1cab58009521f205840f5b4ae3a32fa7f92e8534fdf5'
+$expectedModel='7485fe6f11af29433bc51cab58009521f205840f5b4ae3a32fa7f92e8534fdf5'
 $expectedServer='0dd502d324329cf7be521d8bdb68a677a94f1fa3815f7444dd342778b484f820'
 $root=Join-Path $env:LOCALAPPDATA 'JREI'
 $configPath=Join-Path $root 'jrei-worker-config.json'
@@ -44,9 +44,11 @@ try{
 
 $actualModel=(Get-FileHash -LiteralPath $originalModel -Algorithm SHA256).Hash.ToLowerInvariant()
 $actualServer=(Get-FileHash -LiteralPath $exe -Algorithm SHA256).Hash.ToLowerInvariant()
-if($actualModel -cne $expectedModel -or
-   $actualServer -cne $expectedServer){
-  throw 'JREI_STAGE_MODEL_OR_BINARY_HASH_CHANGED'
+if($actualModel -cne $expectedModel){
+  throw 'JREI_STAGE_GGUF_SHA256_MISMATCH'
+}
+if($actualServer -cne $expectedServer){
+  throw 'JREI_STAGE_LLAMA_SERVER_SHA256_MISMATCH'
 }
 
 try {
