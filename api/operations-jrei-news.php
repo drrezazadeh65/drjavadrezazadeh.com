@@ -865,6 +865,13 @@ function jrOperationsNewsDispatch(
             return jrNewsAdminSourceList($pdo,$owner,50);
         if($method==='POST'&&$route==='/owner/admin-sources/submit')
             return jrNewsAdminSourceSubmit($pdo,$owner,$body,time());
+        if($method==='POST'&&$route==='/owner/admin-sources/suggested-approve'){
+            $institution=$body['institutionId']??null;
+            if(!is_string($institution))
+                throw new InvalidArgumentException('news_admin_institution_id_required');
+            return jrNewsAdminApproveSuggestedInstitution($pdo,$owner,
+                $institution,(string)($body['confirmation']??''),time());
+        }
         $id=$body['submissionId']??null;
         if(!is_string($id))
             throw new InvalidArgumentException('news_admin_submission_id_missing');
