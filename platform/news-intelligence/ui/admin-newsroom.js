@@ -28,10 +28,12 @@ export function mountNewsOwnerPanel({root,csrfResolver,
   articles.className='ni-admin-unbound-articles';
   const acquisition=document.createElement('section');
   acquisition.className='ni-admin-acquisition';
+  const integration=document.createElement('section');
+  integration.className='ni-admin-integration-readiness';
   const publications=document.createElement('section');
   publications.className='ni-admin-publication-backlog';
   const list=document.createElement('div');list.className='ni-admin-queue';
-  root.replaceChildren(header,refresh,status,metrics,sources,articles,acquisition,publications,list);
+  root.replaceChildren(header,refresh,status,integration,metrics,sources,articles,acquisition,publications,list);
   const show=s=>{status.textContent=s;};
   const request=async (path,options)=>{
     const token=csrfResolver();
@@ -86,8 +88,32 @@ export function mountNewsOwnerPanel({root,csrfResolver,
     articles.replaceChildren();
     acquisition.replaceChildren();
     publications.replaceChildren();
-    show(say('در حال دریافت صف خصوصی…','Loading private owner queue…'));
+    integration.replaceChildren();
+    show(say('در حال بررسی وضعیت یکپارچگی…','Checking existing integrations…'));
     try{
+      const readiness=await request('/owner/integration-readiness',{method:'GET'});
+      if(readVersion!==loadRevision)return;
+      if(readiness.schema!=='jr.jrei.news-owner-integration-readiness.v1')
+        throw Error('NEWS_READINESS_SCHEMA_UNKNOWN');
+      const heading=document.createElement('strong');
+      heading.textContent=say('وضعیت اتصال تحریریه و ناشر اصلی',
+        'Original newsroom and publisher integration status');
+      const statusLine=document.createElement('p');
+      statusLine.textContent=readiness.ownerQueueAccessible?
+        say('صف خصوصی تحریریه قابل بررسی است؛ ناشر عمومی هنوز به تأیید جداگانه نیاز دارد.',
+          'Private editorial queue can be read; original public publisher remains unverified.'):
+        say('تحریریه هنوز فعال نشده: بستهٔ خصوصی، دیتابیس یا مجوز انتشار یکپارچه ناقص است.',
+          'Newsroom not activated: private package, mother schema, or explicit release acceptance is missing.');
+      const publishing=document.createElement('p');
+      publishing.textContent=say('اتصال انتشار عمومی: تأییدنشده. هیچ خبری با این بررسی منتشر نمی‌شود.',
+        'Public publishing: not connected. This diagnostic cannot publish.');
+      integration.append(heading,statusLine,publishing);
+      if(readiness.ownerQueueAccessible!==true){
+        show(say('تحریریه هنوز غیرفعال است؛ جزئیات اتصال در همین صفحه نمایش داده شد.',
+          'Newsroom remains disabled; integration blockers are shown above.'));
+        return false;
+      }
+      show(say('در حال دریافت صف خصوصی…','Loading private owner queue…'));
       const data=await request('/owner/queue',{method:'GET'});
       if(readVersion!==loadRevision)return;
       if(data.schema!=='jr.jrei.news-owner-review-queue.v1'||

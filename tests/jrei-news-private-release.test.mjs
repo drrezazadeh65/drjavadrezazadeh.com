@@ -154,3 +154,18 @@ test('owner publishing preflight is read-only and cannot invent CMS readiness',(
   assert.match(ui,/\/owner\/publication\/preflight\?revisionId=/);
   assert.doesNotMatch(module,/file_put_contents|mkdir\(|rename\(|unlink\(|curl_exec|exec\(/);
 });
+
+test('owner-only integration readiness remains readable without activating News',()=>{
+  const php=fs.readFileSync(path.join(out,'api/operations-jrei-news.php'),'utf8');
+  const ui=fs.readFileSync(path.join(out,'assets/js/jrei-news-owner-panel-v1.mjs'),'utf8');
+  const route=fs.readFileSync(path.join(out,'api/operations.php'),'utf8');
+  assert.match(php,/function jrOperationsNewsReadiness\(/);
+  assert.match(php,/\$route==='\/owner\/integration-readiness'/);
+  assert.match(php,/originalCmsPublisherConnected'=>false/);
+  assert.match(php,/publicPublicationActivatedByCheck'=>false/);
+  assert.match(php,/crawlerActivatedByCheck'=>false/);
+  assert.ok(ui.includes("'/owner/integration-readiness'"));
+  assert.ok(ui.includes('readiness.ownerQueueAccessible!==true'));
+  assert.match(route,/news_owner_csrf_forbidden/);
+  assert.match(route,/if \(!\$fresh\) fail\('admin_mfa_required',403\)/);
+});

@@ -100,6 +100,51 @@ SQL;
     }
 }
 
+/**
+ * Read-only private availability of the original News integration.
+ * Called only after operations.php validates SUPER_ADMIN, fresh TOTP,
+ * session CSRF and origin. No News feature flag is required for this
+ * diagnostic, and no mutation or secret value is returned.
+ */
+function jrOperationsNewsReadiness(PDO $pdo,array $config): array {
+    $core=[
+        'jrei_news_monitors',
+        'jrei_news_candidates',
+        'jrei_news_discovered_urls',
+        'jrei_news_evidence_reviews',
+        'jrei_news_editorial_versions',
+        'jrei_news_owner_decisions'
+    ];
+    $tables=[];
+    foreach($core as $name){
+        try{
+            $pdo->query('SELECT 1 FROM '.$name.' LIMIT 0');
+            $tables[$name]='AVAILABLE';
+        }catch(Throwable $e){$tables[$name]='UNAVAILABLE';}
+    }
+    $schemaReady=!in_array('UNAVAILABLE',$tables,true);
+    $library=__DIR__.'/internal/jrei-news/news-library.php';
+    $privateLibraryReady=is_file($library)&&is_readable($library);
+    $apiFlag=getenv('JR_JREI_NEWS_API_ENABLED')==='true';
+    $releaseFlag=($config['jrei_news_integrated_release_accepted']??false)===true;
+    $queueAccessible=$apiFlag&&$releaseFlag&&$schemaReady&&$privateLibraryReady;
+    return [
+        'schema'=>'jr.jrei.news-owner-integration-readiness.v1',
+        'state'=>$queueAccessible?'OWNER_QUEUE_CONFIGURED':'SOURCE_ONLY_BLOCKED',
+        'ownerQueueAccessible'=>$queueAccessible,
+        'originalNewsTables'=>$tables,
+        'requiredMotherSchemaAvailable'=>$schemaReady,
+        'packagedPrivateNewsLibraryAvailable'=>$privateLibraryReady,
+        'explicitOriginalApiFlagEnabled'=>$apiFlag,
+        'integratedReleaseAccepted'=>$releaseFlag,
+        'originalCmsPublisherConnected'=>false,
+        'publisherReceiptVerified'=>false,
+        'publicPublicationActivatedByCheck'=>false,
+        'crawlerActivatedByCheck'=>false,
+        'schemaModifiedByCheck'=>false
+    ];
+}
+
 function jrOperationsNewsDispatch(
     PDO $pdo,array $config,string $route,string $method,
     array $body,string $ownerId,string $mfaSessionHash
@@ -109,6 +154,8 @@ function jrOperationsNewsDispatch(
        !preg_match('/^[a-f0-9-]{36}$/iD',$ownerId)||
        !preg_match('/^[a-f0-9]{64}$/D',$mfaSessionHash))
         throw new InvalidArgumentException('news_owner_original_route_invalid');
+    if($method==='GET'&&$route==='/owner/integration-readiness')
+        return jrOperationsNewsReadiness($pdo,$config);
     if(($config['jrei_news_integrated_release_accepted']??false)!==true||
        getenv('JR_JREI_NEWS_API_ENABLED')!=='true')
         throw new DomainException('news_original_integration_not_accepted');
