@@ -427,6 +427,9 @@ function jrExamAttemptProgress(PDO $pdo,string $account,string $id): array {
     }
     return ['ok'=>true,'schema'=>'jr.jrei.exam-progress.v1',
       'attemptId'=>$attemptId,'state'=>$a['attempt_state'],
+      // A server-signed-in session projects authoritative time for the UI;
+      // actual save/submit deadlines are STILL enforced by server time.
+      'serverNow'=>$at,
       'deadlineAt'=>$a['deadline_at']===null?null:(int)$a['deadline_at'],
       'startedAt'=>$a['starts_at']===null?null:(int)$a['starts_at'],
       'submittedAt'=>$a['submitted_at']===null?null:(int)$a['submitted_at'],
