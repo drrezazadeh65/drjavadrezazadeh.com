@@ -622,6 +622,14 @@
      cell(summary,T('جداول صف مکالمه JREI-LM','JREI-LM chat queue tables'),
        lm.motherDatabaseSchemaReady?T('در دیتابیس مادر موجود','Available in mother database'):
          T('مهاجرت هنوز اجرا نشده','Pending additive migration'));
+     cell(summary,T('مراقب خودکار جداول JREI-LM','JREI-LM schema caretaker'),
+       lm.schemaCaretakerEnabled===true?
+         T('مجوز خصوصی روشن؛ اجرای واقعی هنوز نیازمند تأیید','Owner switch on; execution not verified'):
+         T('مجوز خصوصی خاموش','Owner switch off'));
+     cell(summary,T('ارجاع پشتیبان خصوصی مادر','Mother DB private backup reference'),
+       lm.schemaCaretakerBackupReferenceConfigured===true?
+         T('تنظیم شده؛ اصالت پشتیبان هنوز بررسی نشده','Configured; backup not verified'):
+         T('تنظیم نشده','Not configured'));
      cell(summary,T('اتصال مدل محلی','Local model pathway'),
        lm.live===true?T('آمادهٔ دریافت کار؛ آزمون مکالمه ضروری است',
          'Eligible for jobs; real dialogue test still required'):
