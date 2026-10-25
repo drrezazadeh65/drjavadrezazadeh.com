@@ -251,7 +251,11 @@ test('News mother-schema readiness rejects partial UNIQUE route and idempotency 
   const fixture=fs.readFileSync(path.join(root,
     'platform/news-intelligence/tests/news-schema-fixture.php'),'utf8');
   assert.match(php,/information_schema\.STATISTICS/);
-  assert.match(php,/NON_UNIQUE=0/);
+  assert.match(php,/NON_UNIQUE,INDEX_TYPE/);
+  assert.match(php,/\$indexIsUnique/);
+  assert.match(php,/\$requiredIndexes=/);
+  assert.match(php,/FULLTEXT/);
+  assert.match(php,/REFERENCED_TABLE_SCHEMA=DATABASE\(\)/);
   assert.match(php,/SUB_PART/);
   assert.match(php,/ksort\(\$parts,SORT_NUMERIC\)/);
   for(const columns of ["['fa_route']","['en_route']",
