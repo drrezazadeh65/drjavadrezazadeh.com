@@ -555,6 +555,31 @@ $columnRestored=jrOperationsNewsReadiness(
 ensure($columnRestored['requiredMotherSchemaAvailable']===true,
     'restored full 124-column news contract passes');
 
+// Wrong types and nullability must not pass simply because every expected
+// column name, index and FK exists.
+$pdo->exec("ALTER TABLE jrei_news_search_documents
+    MODIFY country_code VARCHAR(3) NOT NULL DEFAULT 'ZZ'");
+$wrongColumnType=jrOperationsNewsReadiness(
+    $pdo,['jrei_news_integrated_release_accepted'=>true]
+);
+ensure($wrongColumnType['requiredMotherSchemaAvailable']===false &&
+       $wrongColumnType['originalNewsTables']['jrei_news_search_documents']==='UNAVAILABLE',
+    'widened varchar replaces expected CHAR(2) and blocks activation');
+$pdo->exec("ALTER TABLE jrei_news_search_documents
+    MODIFY country_code CHAR(2) NULL DEFAULT 'ZZ'");
+$wrongNullable=jrOperationsNewsReadiness(
+    $pdo,['jrei_news_integrated_release_accepted'=>true]
+);
+ensure($wrongNullable['requiredMotherSchemaAvailable']===false,
+    'nullable replacement of mandatory country code blocks activation');
+$pdo->exec("ALTER TABLE jrei_news_search_documents
+    MODIFY country_code CHAR(2) NOT NULL DEFAULT 'ZZ'");
+$exactTypeRestored=jrOperationsNewsReadiness(
+    $pdo,['jrei_news_integrated_release_accepted'=>true]
+);
+ensure($exactTypeRestored['requiredMotherSchemaAvailable']===true,
+    'restoring exact data type and NOT NULL returns readiness');
+
 // All expected FKs must also exist: a permissive or dropped original
 // publisher reference is NOT a completed mother-database migration.
 $pdo->exec('ALTER TABLE jrei_news_search_documents
