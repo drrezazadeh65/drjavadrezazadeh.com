@@ -71,9 +71,13 @@ async function load(){
     {minimumFractionDigits:1,maximumFractionDigits:1})+tr(' از ۵ · ',' / 5 · ')+count.toLocaleString(en?'en-US':'fa-IR')+tr(' رأی',' ratings');
   ratingSummary.hidden=false;
  }else{ratingSummary.hidden=true;ratingSummary.textContent='';}
- listing.replaceChildren();
- if(!result.body.comments.length)listing.append(el('p','jr-community-empty',tr('هنوز دیدگاه تأییدشده‌ای ثبت نشده است.','No approved comments have been published.')));
- for(const c of result.body.comments.slice(0,20)){
+ const more=el('button','jr-community-more',tr('نمایش دیدگاه‌های بیشتر','Load more comments'));
+ more.type='button';more.hidden=true;listing.after(more);
+ let nextCursor=result.body.nextCursor||null;
+ const renderComments=(items,replace=false)=>{
+  if(replace)listing.replaceChildren();
+  if(replace&&!items.length)listing.append(el('p','jr-community-empty',tr('هنوز دیدگاه تأییدشده‌ای ثبت نشده است.','No approved comments have been published.')));
+ for(const c of items.slice(0,20)){
   if(!c||typeof c.body!=='string')continue;
   // Native details/summary: accessible, keyboard-operable academic dialogue accordion.
   // Only server-approved comments and published replies are ever rendered here.
@@ -97,6 +101,31 @@ async function load(){
   }
   listing.append(box);
  }
+ };
+ renderComments(result.body.comments,true);
+ more.hidden=!nextCursor;
+ more.addEventListener('click',async()=>{
+  if(!nextCursor||more.disabled)return;
+  const cursor=nextCursor;
+  more.disabled=true;
+  more.textContent=tr('در حال دریافت دیدگاه‌های بیشتر…','Loading more approved comments…');
+  try{
+   const url=api+'comments?page='+encodeURIComponent(page)+'&beforeCreatedAt='+encodeURIComponent(String(cursor.createdAt))+'&beforeId='+encodeURIComponent(cursor.id);
+   const older=await request(url);
+   if(!older.ok||older.body?.schema!=='community-comments-v1'||!Array.isArray(older.body.comments))
+    throw new Error('request_failed');
+   renderComments(older.body.comments);
+   const upcoming=older.body.nextCursor||null;
+   nextCursor=upcoming&&!(upcoming.id===cursor.id&&upcoming.createdAt===cursor.createdAt)?upcoming:null;
+   more.hidden=!nextCursor;
+   status.textContent=tr('دیدگاه‌های تأییدشده بیشتری نمایش داده شد.','More approved comments have been displayed.');
+  }catch(_){
+   status.textContent=tr('دریافت دیدگاه‌های بیشتر ممکن نشد؛ لطفاً دوباره تلاش کنید.','Unable to load more comments; please retry.');
+  }finally{
+   more.disabled=false;
+   more.textContent=tr('نمایش دیدگاه‌های بیشتر','Load more comments');
+  }
+ });
  status.textContent=tr('فقط دیدگاه‌های تأییدشده مدیر نمایش داده می‌شوند.','Only moderator-approved comments are displayed.');
  const token=await request(api+'csrf').catch(()=>({ok:false}));
  if(token.ok&&typeof token.body?.csrfToken==='string'&&/^[a-f0-9]{64}$/i.test(token.body.csrfToken)){
