@@ -1417,3 +1417,32 @@ ensure((int)$pdo->query(
     ===$seedBefore,
     'directory seeding never creates a public news publication');
 echo "PASS: original curated university catalogue idempotent discovery, strict no-rights and no-publication contract\\n";
+
+$ownerSeed=jrNewsOriginalSeedOfficialInstitutionSources($pdo,[
+    'source'=>'EXISTING_OWNER_NEWS_OPERATIONS',
+    'ownerSession'=>$owner,
+    'confirmation'=>'DISCOVER_KNOWN_OFFICIAL_ORIGINS'
+],1792823503,12);
+ensure($ownerSeed['newDiscovered']===0 &&
+       $ownerSeed['alreadyRegistered']>=8,
+    'authenticated owner catalogue action reuses same ORIGINAL JREI sources');
+$noPublicOwnerSeed=false;
+try {
+    jrNewsOriginalSeedOfficialInstitutionSources($pdo,[
+        'source'=>'EXISTING_OWNER_NEWS_OPERATIONS',
+        'ownerSession'=>$owner,
+        'confirmation'=>'APPROVE_ALL_NEWS_WITHOUT_RIGHTS'
+    ],1792823504,12);
+} catch(RuntimeException $e) {$noPublicOwnerSeed=true;}
+ensure($noPublicOwnerSeed,
+    'administrator cannot silently waive original source rights');
+$utId=(string)$utOriginal['source_id'];
+$pdo->prepare('UPDATE jrei_exam_sources SET is_revoked=1 WHERE source_id=?')
+    ->execute([$utId]);
+$revokedSeed=jrNewsOriginalSeedOfficialInstitutionSources(
+    $pdo,$seedContext,1792823505,12);
+ensure($revokedSeed['newDiscovered']===0 &&
+       $revokedSeed['previouslyRevokedOrSuperseded']>=1,
+    'automated catalogue never creates a fresh approved bypass around source revocation');
+$pdo->prepare('UPDATE jrei_exam_sources SET is_revoked=0 WHERE source_id=?')
+    ->execute([$utId]);
