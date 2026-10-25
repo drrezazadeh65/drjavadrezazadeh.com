@@ -72,7 +72,7 @@ function jrNewsOriginalPrivateDraftBatch(
         }
         // MySQL named lock prevents two original Cron workers from paying
         // for duplicate model calls. Never lock a row during network access.
-        $lockName='jrei:news:draft:'.hash('sha256',$id);
+        $lockName='jrei:news:draft:'.hash('sha1',$id); // 56 chars; MySQL lock names max 64
         $get=$pdo->prepare('SELECT GET_LOCK(?,0)');
         $get->execute([$lockName]);
         if((int)$get->fetchColumn()!==1){
