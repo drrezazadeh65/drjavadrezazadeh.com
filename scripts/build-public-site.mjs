@@ -86,6 +86,20 @@ for(const name of ['news-library.php',...requiredNewsPhp]){
     fs.writeFileSync(output,body,{flag:'wx'});
   }
 }
+// Only anonymized aggregate data is packaged; original MA/PhD source
+// documents are NEVER copied to public output or the API bundle. Runtime
+// owner approval separately pins the measured corpus SHA in private cfg.
+// The Persian profile is not yet measured/approved; never fabricate one.
+const officialEnglishProfile=path.join(root,
+  'platform/news-intelligence/style-profiles/owner-en-ma-measured-20261025.json');
+const profile=JSON.parse(fs.readFileSync(officialEnglishProfile,'utf8'));
+if(profile.schema!=='jr.jrei.private-author-style-aggregate.v1'||
+   profile.language!=='en'||profile.privacy?.rawDocumentIncluded!==false||
+   profile.privacy?.quotationsIncluded!==false||
+   profile.boundaries?.requireOriginalOwnerApprovalAndCorpusProvenanceBeforeAutomaticJreiUse!==true)
+  throw Error('JREI News original approved-style aggregate provenance changed');
+fs.writeFileSync(path.join(newsPrivateDir,'style-profile-en.json'),
+  JSON.stringify(profile)+'\\n',{flag:'wx'});
 // A working source tree is NOT evidence that deployable PHP can resolve imports.
 // Assert the two private news bridges use exactly the bundled HTTP-denied
 // dependency closure, never the excluded platform/ source directory.
