@@ -14,7 +14,7 @@
     category:'موضوع',all:'همه موضوعات',country:'کشور (کد دوحرفی)',
     from:'از تاریخ',to:'تا تاریخ',
     none:'خبری مطابق جست‌وجوی شما پیدا نشد.',
-    failed:'دریافت نتیجه فعلاً ممکن نیست.',
+    failed:'دریافت نتیجه فعلاً ممکن نیست.',unavailable:'آرشیو اخبارِ تأییدشده هنوز فعال نشده است. مقاله‌های موجود در صفحه همچنان قابل مطالعه‌اند.',
     found:'نتیجه یافت شد',read:'مطالعه خبر'
   }:{
     search:'Search the full news archive',submit:'Search',
@@ -22,7 +22,7 @@
     category:'Topic',all:'All topics',country:'Country (two-letter code)',
     from:'From date',to:'Until date',
     none:'No matching published news was found.',
-    failed:'Search is temporarily unavailable.',
+    failed:'Search is temporarily unavailable.',unavailable:'The approved news archive has not yet been activated. Existing articles remain available above.',
     found:'results',read:'Read story'
   };
   var topics=[
@@ -88,6 +88,7 @@
       var response=await fetch('/api/news/v1/search?'+params.toString(),{
         credentials:'same-origin',redirect:'error',cache:'no-store',
         signal:inflight.signal,headers:{'Accept':'application/json'}});
+      if(response.status===503)throw Error('ARCHIVE_NOT_ENABLED');
       if(!response.ok)throw Error('NOT_AVAILABLE');
       var data=await response.json();
       if(data.schema!=='jr.jrei.news-public-search.v1'||
@@ -108,7 +109,9 @@
         card.append(h,summary);list.append(card);
       }
     }catch(error){
-      if(error.name!=='AbortError')status.textContent=copy.failed;
-    }finally{submit.disabled=false;}
+      if(error.name!=='AbortError')
+        status.textContent=error.message==='ARCHIVE_NOT_ENABLED'?
+          copy.unavailable:copy.failed;
+    }finally{if(inflight&&inflight.signal.aborted===false)submit.disabled=false;}
   });
 }());

@@ -101,6 +101,26 @@ for(const [bridge,module] of [
      !fs.existsSync(path.join(newsPrivateDir,module)))
     throw Error('JREI News bridge cannot resolve packaged private PHP: '+bridge);
 }
+// Project the canonical reviewed public-search UI into the existing site bundle.
+// platform/ is private source code and is not served by LiteSpeed directly.
+const newsArchiveClient=fs.readFileSync(
+  path.join(root,'platform/news-intelligence/ui/news-search.js'),'utf8');
+if(!newsArchiveClient.includes('[data-ni-archive-search]') ||
+   !newsArchiveClient.includes('/api/news/v1/search') ||
+   !newsArchiveClient.includes('textContent'))
+  throw Error('JREI News public archive UI contract changed unexpectedly');
+fs.writeFileSync(
+  path.join(out,'assets/js/jrei-news-archive-v1.js'),newsArchiveClient,{flag:'wx'});
+for(const [locale,route] of [
+  ['fa','fa/akhbar/index.html'],
+  ['en','en/news-insights/index.html']
+]){
+  const page=fs.readFileSync(path.join(out,route),'utf8');
+  if(!page.includes('data-ni-archive-search data-ni-language="'+locale+'"') ||
+     !page.includes('/assets/js/jrei-news-archive-v1.js') ||
+     !page.includes('/assets/css/jrei-news-archive-v1.css'))
+    throw Error('JREI News bilingual public archive entry not packaged: '+route);
+}
 // Insert an opt-in public Q&A surface only on catalogued public service detail pages.
 // Server deployment flags remain OFF unless separately approved after real QA.
 projectCommunityServicePages(root,out);

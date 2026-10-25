@@ -78,3 +78,21 @@ test('news search requires two independent default-off private configuration gat
   assert.match(route,/\['jrei_news_search_enabled'\]/);
   assert.match(route,/\['jrei_news_publisher_receipts_accepted'\]/);
 });
+
+test('both public knowledge hubs include the same reviewed-only news archive search',()=>{
+  const client=fs.readFileSync(path.join(src,'../ui/news-search.js'),'utf8');
+  const bundled=fs.readFileSync(path.join(out,'assets/js/jrei-news-archive-v1.js'),'utf8');
+  assert.equal(bundled,client,'source and deployable first-party client match');
+  assert.ok(client.includes("response.status===503"),'disabled archive is explained honestly');
+  for(const [locale,file] of [
+    ['fa','fa/akhbar/index.html'],
+    ['en','en/news-insights/index.html']
+  ]){
+    const html=fs.readFileSync(path.join(out,file),'utf8');
+    assert.ok(html.includes('data-ni-archive-search data-ni-language="'+locale+'"'));
+    assert.ok(html.includes('/assets/js/jrei-news-archive-v1.js'));
+    assert.ok(html.includes('/assets/css/jrei-news-archive-v1.css'));
+    assert.ok(html.includes('rel="canonical"'),'public canonical preserved');
+    assert.ok(html.includes('</main>'),'existing content remains');
+  }
+});
