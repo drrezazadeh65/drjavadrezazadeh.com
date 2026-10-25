@@ -16,6 +16,13 @@ const ID=/^[A-Za-z0-9._:-]{1,64}$/;
 const SHA=/^[a-f0-9]{64}$/;
 const UUID=/^[a-f0-9]{8}-(?:[a-f0-9]{4}-){3}[a-f0-9]{12}$/;
 const TOKEN=/^[a-f0-9]{64}$/;
+const QUALITY_VETO_CODES=new Set([
+  'CJK_SCRIPT_INTRUSION','NUMERIC_MISMATCH',
+  'FLAWED_PERSIAN_VALIDITY_DEFINITION',
+  'UNVERIFIED_REFERENCE_ASSURANCE','EXPOSED_INTERNAL_THINKING',
+  'TRUNCATED_COMPLETION','EMPTY_OR_OVERSIZED',
+  'UNSOURCED_ADMISSION_GUARANTEE'
+]);
 const wait=Math.min;
 function abortableDelay(ms,signal){
   return new Promise(resolve=>{
@@ -203,6 +210,7 @@ export async function runLocalChatWorker(config,key,{post,log,signal,fetchImpl}=
             }finally{heartbeatInFlight=false;}
           };
           const heartbeatTimer=setInterval(()=>{void heartbeat();},15000);
+          let negativeCategory='NEGATIVE_QUALITY_GATE';
           try{
             // Elementary integer arithmetic is solved deterministically
             // instead of soliciting Qwen for the demonstrated 12*7 failure.
@@ -246,6 +254,8 @@ export async function runLocalChatWorker(config,key,{post,log,signal,fetchImpl}=
               stopReason:draft.stopReason,language,scope:'PUBLIC_CHAT'
             });
             if(quality.status==='REJECT'){
+              negativeCategory=quality.reasonCodes.find(x=>
+                QUALITY_VETO_CODES.has(x))??'NEGATIVE_QUALITY_GATE';
               for(const reason of quality.reasonCodes)
                 log('LOCAL_CHAT_QUALITY_BLOCK_'+reason);
               throw Error('LOCAL_CHAT_QUALITY_REVIEW_REJECTED');
@@ -275,7 +285,7 @@ export async function runLocalChatWorker(config,key,{post,log,signal,fetchImpl}=
                     jobId:job.jobId,leaseToken:job.leaseToken,
                     modelId:model.modelId,modelVersion:model.modelVersion,
                     modelSha256:model.modelSha256,
-                    reasonCode:qualityFailure?'NEGATIVE_QUALITY_GATE':
+                    reasonCode:qualityFailure?negativeCategory:
                       'INCOMPLETE_OR_UNTRUSTED_DRAFT'
                   });
                 if(reject?.ok===true&&reject?.accepted===false)
