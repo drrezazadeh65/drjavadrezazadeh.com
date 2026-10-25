@@ -1,0 +1,36 @@
+{
+  "schema": "jr.jrei.private-author-style-aggregate.v1",
+  "status": "MEASURED_SOURCE_AGGREGATE__RUNTIME_SIGNED_APPROVAL_REQUIRED",
+  "language": "en",
+  "privacy": {
+    "rawDocumentIncluded": false,
+    "quotationsIncluded": false,
+    "personalMaterialIncluded": false,
+    "sourceNeverRepublished": true
+  },
+  "measuredCorpus": {
+    "documentCount": 1,
+    "sha256": "81d4903875191b7bdb26a28b8c74f44e0eb956c1ad2dd86665355c4696f8cf60",
+    "extractedEnglishWordCount": 19005,
+    "substantiveParagraphs": 184,
+    "analyzedSentences": 772,
+    "medianSentenceWords": 22,
+    "meanSentenceWords": 24.6,
+    "meanSubstantiveParagraphWords": 106.5,
+    "metricsAreDescriptiveNotRules": true
+  },
+  "observedFeatures": [
+    "progressively developed evidence-informed academic paragraphs",
+    "explicit contrasts and qualifications rather than categorical claims",
+    "examples used to make conceptual and methodological distinctions",
+    "moderate-to-complex sentence length with variable rhythm",
+    "high density of context-driven transitions such as however, although, moreover and for example"
+  ],
+  "measuredStyleInstructions": "Write evidence-led formal US English with a progressive paragraph arc: introduce the educational question, situate verified facts, distinguish evidence from interpretation, then explain qualified implications. Use clear causal restraint and balanced hedging where evidence warrants it (may, might, appears, likely). Integrate examples naturally and contrast legitimate alternatives with however or although when relevant. Vary sentence rhythm around a roughly 22-word median without mechanical uniformity. Avoid promotional superlatives, unsupported claims, invented citations, artificial enthusiasm and formulaic AI phrasing.",
+  "boundaries": {
+    "notACompleteIntegratedPhdMaVoice": true,
+    "notPersianProfile": true,
+    "notIndependentScientificValidation": true,
+    "requireOriginalOwnerApprovalAndCorpusProvenanceBeforeAutomaticJreiUse": true
+  }
+}
