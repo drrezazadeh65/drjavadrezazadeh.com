@@ -80,9 +80,28 @@ if($WorkerMode -eq 'model'){
     throw 'TRUSTED_WINDOWS_POWERSHELL_UNAVAILABLE'
   }
   $escapedLauncher=$reviewedLauncher.Replace('"','')
+  # The registered LOCAL model may already be staged and usable while public
+  # generative access is deliberately OFF. Keep it on loopback after logon
+  # without forcing unreviewed quality/rights flags to true. This grants NO
+  # new server authorisation and does not change the private JSON.
+  try {$privateSettings=Get-Content -LiteralPath $fullConfig -Raw -Encoding UTF8 |
+    ConvertFrom-Json} catch {throw 'LOCAL_MODEL_PRIVATE_CONFIG_UNREADABLE'}
+  if($privateSettings.localChat.ownerApproved -ne $true){
+    throw 'LOCAL_MODEL_OWNER_APPROVAL_MISSING'
+  }
+  $stagingFlag=if($privateSettings.localChat.enabled -eq $false){
+    ' -StagingOnly'
+  }elseif($privateSettings.localChat.enabled -eq $true -and
+          $privateSettings.localChat.rightsReviewed -eq $true -and
+          $privateSettings.localChat.modelRuntimeVerified -eq $true -and
+          $privateSettings.localChat.independentQualityAccepted -eq $true){
+    ''
+  }else{
+    throw 'LOCAL_MODEL_PRIVATE_APPROVAL_INCOMPLETE'
+  }
   $action=New-ScheduledTaskAction -Execute $psExe -Argument (
     '-NoProfile -NonInteractive -ExecutionPolicy Bypass -File "'+
-    $escapedLauncher+'" -ConfigPath "'+$escapedConfig+'" -OwnerApproved'
+    $escapedLauncher+'" -ConfigPath "'+$escapedConfig+'" -OwnerApproved'+$stagingFlag
   ) -WorkingDirectory $PSScriptRoot
 }else{
   $action=New-ScheduledTaskAction -Execute $node -Argument (
@@ -91,7 +110,7 @@ if($WorkerMode -eq 'model'){
 }
 $trigger=New-ScheduledTaskTrigger -AtLogOn -User $user
 $settings=New-ScheduledTaskSettingsSet -ExecutionTimeLimit (New-TimeSpan -Hours 0) `
-  -MultipleInstances IgnoreNew -StartWhenAvailable:$false `
+  -MultipleInstances IgnoreNew -StartWhenAvailable:$true `
   -RestartCount 3 -RestartInterval (New-TimeSpan -Minutes 2)
 $principal=New-ScheduledTaskPrincipal -UserId $user -LogonType Interactive -RunLevel Limited
 Register-ScheduledTask -TaskName $taskName -Action $action -Trigger $trigger `
