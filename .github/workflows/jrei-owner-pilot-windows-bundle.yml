@@ -1,0 +1,74 @@
+name: JREI Owner Pilot Windows Bundle (No Deployment)
+on:
+  push:
+    branches:
+      - migration/bertina-linux6
+    paths:
+      - '.github/workflows/jrei-owner-pilot-windows-bundle.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  package-existing-node-a-update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Static review of exact private pilot runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check platform/jrei-v5/windows-worker/jrei-worker.mjs
+          node --check platform/jrei-v5/windows-worker/jrei-owner-pilot-worker.mjs
+          node --check platform/jrei-v5/jrei-educational-answer-review.mjs
+          node --check platform/jrei-v5/jrei-deterministic-arithmetic.mjs
+          node --test tests/jrei-owner-private-pilot.test.mjs
+      - name: Package source update without owner keys, model or private config
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p bundle/platform/jrei-v5/windows-worker bundle/platform/jrei-v5
+          for file in JREI-OWNER-PRIVATE-PILOT.cmd jrei-worker.mjs jrei-owner-pilot-worker.mjs jrei-loopback-model-adapter.mjs jrei-worker-error-code.mjs jrei-windows-dpapi.ps1; do
+            cp "platform/jrei-v5/windows-worker/$file" "bundle/platform/jrei-v5/windows-worker/$file"
+          done
+          for file in jrei-educational-answer-review.mjs jrei-deterministic-arithmetic.mjs; do
+            cp "platform/jrei-v5/$file" "bundle/platform/jrei-v5/$file"
+          done
+          cat > bundle/README-JREI-OWNER-PILOT.txt <<'EOF'
+          JREI EXPERIMENTAL PRIVATE OWNER PILOT — NOT PUBLIC AI
+
+          1. Extract ALL contents INTO the existing JREI-Development folder
+             so the platform/jrei-v5/windows-worker paths match exactly.
+             Replace only the provided source files when Windows asks.
+          2. DO NOT move or upload any private DPAPI key or JSON config.
+          3. Keep the separately started Qwen on 127.0.0.1:8081 running.
+          4. Double-click platform/jrei-v5/windows-worker/
+             JREI-OWNER-PRIVATE-PILOT.cmd on Node A (the 32GB PC).
+          5. Approve Y; the worker will poll only the separately authenticated
+             private pilot queue; no public site chat will be enabled.
+          6. Open the MFA owner dashboard, JREI section, and expand
+             "Private Qwen pilot on Node A".
+          7. Submit a harmless test question; never enter learner records.
+          8. Stop the worker with Ctrl+C when done.
+
+          No model downloaded or replaced. No public release flag or
+          quality acceptance is changed. Responses may be incorrect.
+          The server needs the existing registered Node A to be ENABLED,
+          a rights-reviewed model with exact matching SHA and the private
+          local-chat encryption key configured.
+          This bundle alone does NOT guarantee a successful pilot, which
+          must be confirmed by a real signed round-trip from Node A.
+          EOF
+          (cd bundle && find platform -type f -print0 | sort -z | xargs -0 sha256sum > SHA256SUMS.txt)
+      - name: Publish owner-downloadable no-secret update
+        uses: actions/upload-artifact@v4
+        with:
+          name: JREI-OWNER-PILOT-NODE-A
+          path: bundle/
+          retention-days: 30
+          if-no-files-found: error
