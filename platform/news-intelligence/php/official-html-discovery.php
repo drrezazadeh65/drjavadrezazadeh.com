@@ -46,7 +46,12 @@ function jrNewsParseApprovedHtmlNoticeIndex(
        !preg_match('/^[a-z0-9.-]{4,253}$/D',$host)||
        !class_exists('DOMDocument'))
         throw new InvalidArgumentException('news_original_html_observation_unverified');
-    if(stripos($bytes,'<!DOCTYPE')!==false||
+    // HTML5's ordinary <!doctype html> is safe and commonplace.
+    // Reject only custom/external DTDs, entities and attacker-controlled
+    // base URLs; XML does not share HTML's permissive doctype rule.
+    $withoutSafeDoctype=preg_replace('/<!doctype\\s+html\\s*>/i','',$bytes);
+    if(!is_string($withoutSafeDoctype)||
+       stripos($withoutSafeDoctype,'<!DOCTYPE')!==false||
        stripos($bytes,'<!ENTITY')!==false||
        stripos($bytes,'<base')!==false)
         throw new RuntimeException('news_original_html_unsafe_markup');
@@ -62,7 +67,11 @@ function jrNewsParseApprovedHtmlNoticeIndex(
         $xpath=new DOMXPath($dom);
         // Prioritize article/main/section content, not navigation or footer.
         $links=$xpath->query(
-          '//main//a[@href] | //article//a[@href] | //section//a[@href]');
+          '//main//a[@href] | //article//a[@href] | //section//a[@href]'.
+          ' | //a[@href and (contains(@href,"/news/") '.
+          'or contains(@href,"/akhbar/") '.
+          'or contains(@href,"/notice/") '.
+          'or contains(@href,"/announcement/"))]');
         if($links===false)throw new RuntimeException('news_original_html_links_missing');
         $candidates=[];$seen=[];
         foreach($links as $a){
