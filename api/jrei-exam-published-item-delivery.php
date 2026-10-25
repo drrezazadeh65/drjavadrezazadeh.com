@@ -302,7 +302,7 @@ function jrExamCandidatePublishedItems(PDO $pdo,string $account,string $attempt)
     if(!is_array($row)||$row['attempt_state']!=='IN_PROGRESS'||
        $row['offering_state']!=='PUBLISHED'||
        $row['product_state']!=='PUBLISHED'||
-       (int)$row['deadline_at']<time())
+       (int)$row['deadline_at']<=time())
         throw new DomainException('exam_offering_suspended_or_expired');
     jrExamTrustedEntitlement($pdo,$account,$row['offering_id'],time());
     // Revalidate the original item/key metadata on each delivery. Consent,
@@ -337,6 +337,11 @@ function jrExamCandidatePublishedItems(PDO $pdo,string $account,string $attempt)
         JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR));
     if(!hash_equals($canonical($reviewed),$canonical($now)))
         throw new DomainException('exam_reviewed_source_or_policy_changed_during_delivery');
+    // Private manifest hashing and localized source checks may take time.
+    // Expiration at the exact deadline is a hard stop, not one more second
+    // of question disclosure. The server remains the sole time authority.
+    if(time()>=(int)$row['deadline_at'])
+        throw new DomainException('exam_question_delivery_deadline_elapsed');
     // Do not treat a consumer's original prefetch as permission to continue
     // accessing suspended content, even if the immutable item bytes match.
     $q=$pdo->prepare("SELECT o.offering_state,p.product_state
