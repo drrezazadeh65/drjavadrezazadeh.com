@@ -363,6 +363,21 @@ $uncertainAuto=jrNewsOriginalAutoHandoffReadiness(
 );
 ensure(($uncertainAuto['decision']??null)==='OWNER_EXCEPTION_QUEUE',
     'contradictory official claim is sent only to owner exception review');
+
+$pdo->prepare('UPDATE jrei_exam_sources SET is_revoked=1 WHERE source_id=?')
+    ->execute([$itemId]);
+$revokedAuto=jrNewsOriginalAutoHandoffReadiness(
+    $pdo,$draft['revisionId'],
+    static fn():never=>throw new RuntimeException(
+        'Revoked source must never invoke a model or publisher')
+);
+ensure(($revokedAuto['decision']??null)==='OWNER_EXCEPTION_QUEUE'&&
+       in_array('SOURCE_AUTHORITY_UNCONFIRMED',
+           $revokedAuto['concerns']??[],true),
+    'revoked source is held for review without any external QA model call');
+$pdo->prepare('UPDATE jrei_exam_sources SET is_revoked=0 WHERE source_id=?')
+    ->execute([$itemId]);
+
 $offlineAuto=jrNewsOriginalAutoHandoffReadiness(
     $pdo,$draft['revisionId'],
     static function(array $context) use($officialPolicy):array {
