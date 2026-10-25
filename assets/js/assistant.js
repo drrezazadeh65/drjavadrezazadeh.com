@@ -28,17 +28,17 @@
     }catch{return '';}
   })();
   const labels=isFa?{
-    open:'دستیار هوشمند',title:'دستیار دکتر رضازاده',subtitle:'راهنمای هوشمند سایت',
-    greeting:'سلام. من دستیار هوشمند سایت دکتر رضازاده هستم. درباره خدمات، Golden Talent، انتخاب رشته، پژوهش‌ها و مسیرهای سایت می‌توانم راهنمایی‌تان کنم.',
-    notice:'اطلاعات حساس، مدارک هویتی، پرونده پزشکی، رمز عبور یا اطلاعات پرداخت را در این گفتگو ارسال نکنید.',
+    open:'چت‌بات JREI',title:'JREI | هوش مصنوعی سایت',subtitle:'راهنمای سایت • وضعیت اتصال در حال بررسی',
+    greeting:'سلام. من JREI، دستیار اختصاصی سایت هستم. درباره خدمات، Golden Talent، پژوهش‌ها و مسیرهای آموزشی سایت می‌توانم راهنمایی‌تان کنم.',
+    notice:'اطلاعات حساس یا رمز عبور نفرستید. گفتگوها به‌طور خودکار به دانش یا آموزش مدل JREI تبدیل نمی‌شوند؛ فقط اطلاعات بررسی‌شده و دارای مجوز می‌توانند وارد حافظه شوند.',
     placeholder:'سؤال‌تان را بنویسید…',send:'ارسال',close:'بستن',reset:'گفت‌وگوی جدید',copy:'کپی پاسخ',copied:'کپی شد',stop:'توقف',stopped:'پاسخ به درخواست شما متوقف شد.',thinking:'در حال بررسی…',
     error:'ارتباط زنده با دستیار هنوز برقرار نیست. می‌توانید از راهنماهای زیر استفاده کنید یا دوباره تلاش کنید.',
     retry:'تلاش دوباره',offline:'راهنمای سریع',leadOpen:'درخواست تماس',leadTitle:'اگر مایلید با شما تماس بگیریم',leadEmail:'ایمیل',leadMobile:'شماره موبایل',leadValue:'راه ارتباط',leadIntent:'موضوع اصلی',leadConsent:'با ذخیره این راه ارتباط برای پاسخ‌گویی به همین درخواست موافقم.',leadWhatsApp:'اگر واتس‌اپ بیزنس فعال شود، تماس در واتس‌اپ را هم می‌پذیرم.',leadSend:'ثبت درخواست تماس',leadSaved:'درخواست تماس ثبت شد.',leadError:'ثبت درخواست تماس انجام نشد؛ لطفاً بعداً دوباره تلاش کنید.',
     chips:['برای انتخاب رشته از کجا شروع کنم؟','Golden Talent چیست؟','چه خدمات تخصصی دارید؟']
   }:{
-    open:'AI Assistant',title:'Dr. Rezazadeh Assistant',subtitle:'Smart site guide',
-    greeting:'Hello. I am the AI assistant for Dr. Rezazadeh’s website. I can guide you through services, Golden Talent, student guidance, research and the site.',
-    notice:'Please do not share identity documents, medical records, passwords, payment details or other sensitive personal information here.',
+    open:'JREI Chat',title:'JREI | Site Intelligence',subtitle:'Site guide • connection status pending',
+    greeting:'Hello. I am JREI, the website’s own assistant. I can guide you through services, Golden Talent, research and educational site content.',
+    notice:'Do not share sensitive information or passwords. Chats do not automatically train JREI; only reviewed and authorised knowledge may enter its memory.',
     placeholder:'Ask a question…',send:'Send',close:'Close',reset:'New chat',copy:'Copy answer',copied:'Copied',stop:'Stop',stopped:'Response stopped at your request.',thinking:'Checking…',
     error:'The live assistant is not connected yet. You can use the quick guidance below or try again.',
     retry:'Try again',offline:'Quick guidance',leadOpen:'Request contact',leadTitle:'Would you like us to contact you?',leadEmail:'Email',leadMobile:'Mobile',leadValue:'Contact detail',leadIntent:'Main topic',leadConsent:'I agree that this contact detail may be stored to respond to this request.',leadWhatsApp:'If WhatsApp Business is activated, I also consent to contact through WhatsApp.',leadSend:'Save contact request',leadSaved:'Your contact request has been saved.',leadError:'The contact request could not be saved. Please try again later.',
@@ -46,11 +46,11 @@
   };
 
   const staticGreeting=isFa
-    ?'سلام. فعلاً راهنمای محلی سایت در دسترس است. بر اساس مسیرهای عمومی منتشرشده به شما کمک می‌کنم موضوعتان را پیدا کنید؛ مدل گفت‌وگوی زنده و پاسخ مبتنی بر پرونده شخصی در این بخش فعال یا تأیید نشده است.'
-    :'Hello. The public site guide is available. It can point you to published educational routes and their limitations; a live conversational model and private-record answers are not activated or verified here.';
+    ?'سلام. من JREI هستم. اکنون راهنمای صفحات عمومی سایت فعال است؛ اتصال مدل گفت‌وگوی زنده هنوز تأیید نشده است. می‌توانید درباره خدمات و مسیرهای منتشرشده سایت سؤال کنید.'
+    :'Hello, I am JREI. The public-site navigation guide is available; live AI inference has not been confirmed. Ask about published services and educational pathways.';
   const liveGreeting=isFa
-    ?'گفت‌وگوی هوش مصنوعی JREI برای راهنمایی عمومی در دسترس است. می‌توانید پس از اعلام رضایت، با مدل فعال گفت‌وگو کنید و دربارهٔ خدمات موجود سایت نیز بپرسید.'
-    :'JREI conversational intelligence is available for general guidance. Opt in to the active model to ask questions and explore relevant published site services.';
+    ?'JREI به یک مدل گفت‌وگوی زنده متصل شده است. پس از رضایت آگاهانه می‌توانید پرسش عمومی بپرسید. پاسخ مدل ممکن است خطا داشته باشد و تأیید علمی محسوب نمی‌شود.'
+    :'JREI has an available live inference provider. With informed consent, ask general questions; generated replies can be inaccurate and are not independently scientifically verified.';
   let history=[];
   let busy=false;
   let lastQuery='';
@@ -166,8 +166,8 @@
         approvedLiveEndpoint=location.origin+'/api/assistant/v1/chat';
         providerConsentText.textContent=mode==='JREI_LM_LOCAL_WINDOWS'
           ?(isFa?
-            ' استفاده از هوش مصنوعی اختصاصی JREI: متن گفت‌وگو به رایانهٔ پردازشی تأییدشدهٔ JREI منتقل می‌شود و ممکن است پاسخ خطا داشته باشد.':
-            ' Use JREI-owned local AI: this conversation is processed on the approved JREI computer; answers may contain errors.')
+            ' استفاده از Qwen محلی در JREI: متن این گفتگو به رایانه پردازشی مجاز JREI منتقل می‌شود. پاسخ‌ها ممکن است خطا داشته باشند و خودکار به مدل آموزش داده نمی‌شوند.':
+            ' Use local Qwen in JREI: your message is processed on an approved JREI computer. Answers may be inaccurate; this does not automatically train the model.')
           :(isFa?
             ' استفاده اختیاری از مدل ابری؛ متن گفت‌وگو برای پردازش به ارائه‌دهندهٔ API خارجی ارسال می‌شود.':
             ' Optional external-cloud AI: this conversation is sent to an external API provider for processing.');
