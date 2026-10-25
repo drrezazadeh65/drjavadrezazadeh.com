@@ -25,6 +25,7 @@ declare(strict_types=1);
  * reviewer service key (not the source-reader/model key).
  */
 if(!defined('BERTINA_API_BOOTSTRAPPED')){http_response_code(404);exit;}
+require_once __DIR__.'/original-independent-news-qa-producer.php';
 
 function jrNewsIndependentDraftAuditDigest(array $draft):string {
     foreach(['candidateId','reviewId','contentSha256','fa','en'] as $name)
@@ -108,12 +109,22 @@ function jrNewsReadOriginalIndependentAudit(array $request):array {
 
 function jrJreiIndependentNewsEditorialAudit(array $request):array {
     $sha=jrNewsIndependentDraftAuditDigest($request);
-    $receipt=jrNewsReadOriginalIndependentAudit([
+    $lookup=[
         'draftSha256'=>$sha,
         'candidateId'=>$request['candidateId'],
         'reviewId'=>$request['reviewId'],
         'contentSha256'=>$request['contentSha256']
-    ]);
+    ];
+    try{
+        $receipt=jrNewsReadOriginalIndependentAudit($lookup);
+    }catch(RuntimeException $e){
+        // Never replace an invalid, altered, expired or revoked QA record:
+        // only a genuinely absent file may initiate an independent review.
+        if($e->getMessage()!=='news_independent_qa_signed_record_missing')
+            throw $e;
+        jrNewsOriginalPrepareIndependentSecondPass($request,$sha);
+        $receipt=jrNewsReadOriginalIndependentAudit($lookup);
+    }
     return [
         'source'=>'ORIGINAL_INDEPENDENT_JREI_NEWS_QA',
         'auditorKind'=>'INDEPENDENT_AUTOMATED_QA',
