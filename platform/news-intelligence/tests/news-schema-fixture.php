@@ -103,6 +103,25 @@ $insertPolicy=$pdo->prepare(
        SHA2(CONCAT('synthetic-transport-proof:',?),256),'P1')");
 $insertPolicy->execute([$feedId,$feedId,$feedId,$feedId]);
 $insertPolicy->execute([$itemId,$itemId,$itemId,$itemId]);
+
+$sourceSnapshot=jrNewsOriginalOfficialSourceSnapshot($pdo,$itemId,$articleUrl);
+ensure($sourceSnapshot['registryState']==='AUTHORITATIVE_REVIEWED'&&
+       $sourceSnapshot['exactSourceUrlApproved']===true&&
+       $sourceSnapshot['rightsForPublicNews']===true,
+    'real mother DB primary article source permits publisher handoff');
+$wrongArticle=jrNewsOriginalOfficialSourceSnapshot(
+    $pdo,$itemId,'https://university.example.edu/news/wrong-article');
+ensure($wrongArticle['exactSourceUrlApproved']===false,
+    'source identity cannot transfer rights to a different article URL');
+$pdo->prepare('UPDATE jrei_exam_sources SET rights_state=?
+    WHERE source_id=?')->execute(['PERMITTED_PRIVATE_ANALYSIS',$itemId]);
+$privateOnly=jrNewsOriginalOfficialSourceSnapshot($pdo,$itemId,$articleUrl);
+ensure($privateOnly['rightsForPublicNews']===false,
+    'private analysis rights cannot be silently converted to public reuse');
+$pdo->prepare('UPDATE jrei_exam_sources SET rights_state=?
+    WHERE source_id=?')->execute(['PERMITTED_REPRODUCTION',$itemId]);
+echo "PASS: mother-source attestation checks article URL and real public-use rights\\n";
+
 $owner=[
     'source'=>'EXISTING_OPERATIONS_SESSION',
     'ownerAuthenticated'=>true,'mfaVerified'=>true,'csrfVerified'=>true,
