@@ -1129,6 +1129,26 @@ $adminApproved=jrNewsAdminSourceApprove($pdo,$owner,
 ensure($adminApproved['state']==='ORIGINAL_POLICY_PENDING'&&
        $adminApproved['newsMonitorEnabled']===false,
     'administrator source approval does not invent original robots or rights');
+$registrySource=$pdo->prepare(
+    'SELECT source_kind,source_locator_digest,review_state,rights_state
+       FROM jrei_exam_sources WHERE source_id=?');
+$registrySource->execute([$adminApproved['originalSourceId']]);
+$pendingSource=$registrySource->fetch(PDO::FETCH_ASSOC);
+ensure(is_array($pendingSource)&&
+       $pendingSource['source_kind']==='OFFICIAL_UNIVERSITY_NEWS'&&
+       $pendingSource['source_locator_digest']===hash('sha256','https://uast.ac.ir/news/')&&
+       $pendingSource['review_state']==='DISCOVERED'&&
+       $pendingSource['rights_state']==='PERMISSION_UNVERIFIED',
+    'owner-accepted official source is actually added to original JREI registry without invented approval');
+$rights=$pdo->prepare('SELECT scheduling_state,rights_reviewed
+    FROM jrei_ka_source_policies WHERE source_id=?');
+$rights->execute([$adminApproved['originalSourceId']]);
+$sourcePolicy=$rights->fetch(PDO::FETCH_ASSOC);
+ensure(is_array($sourcePolicy)&&
+       $sourcePolicy['scheduling_state']==='PENDING_REVIEW'&&
+       (int)$sourcePolicy['rights_reviewed']===0,
+    'new official source has a pending original KA policy, not fabricated rights');
+
 $adminEdited=jrNewsAdminSourceEdit($pdo,$owner,$adminNoAuthority['submissionId'],[
     'title'=>'Edited applied-science university newsroom',
     'category'=>'universities','priority'=>'P0'
@@ -1182,6 +1202,34 @@ $monitorCheck=$pdo->prepare('SELECT enabled FROM jrei_news_monitors WHERE monito
 $monitorCheck->execute([$activated['monitorId']]);
 ensure((int)$monitorCheck->fetchColumn()===0,
     'emergency admin pause also stops the existing original News monitor');
+$restored=jrNewsAdminSourceRestore($pdo,$owner,
+    $adminMatched['submissionId'],1792823070);
+ensure($restored['state']==='APPROVED_DISCOVERY'&&
+       $restored['originalMonitorEnabled']===false,
+    'owner restores paused source without silently starting its Cron monitor');
+$relocated=jrNewsAdminSourceReconcile(
+    $pdo,$owner,$adminMatched['submissionId'],1792823071,false);
+ensure($relocated['state']==='MONITOR_STAGED'&&
+       $relocated['monitorId']===$activated['monitorId'],
+    'restored source reuses original paused monitor without duplication');
+$directory=jrNewsAdminSourceList($pdo,$owner);
+ensure(count($directory['suggestedInstitutions'])>=9&&
+       $directory['suggestedInstitutions'][0]['institutionId']==='sanjesh',
+    'first-party owner directory offers major Iranian institutions');
+$recommended=jrNewsAdminApproveSuggestedInstitution(
+    $pdo,$owner,'sanjesh','APPROVE_OFFICIAL_SOURCE_DISCOVERY',1792823080);
+ensure($recommended['discoveryStatus']==='ORIGINAL_POLICY_PENDING'&&
+       $recommended['actualCrawlerStartedByThisCall']===false&&
+       $recommended['perArticleOwnerApprovalRequired']===false,
+    'one-click Sanjesh inclusion registers original JREI metadata without pretending source approval');
+$noSpoofedSuggestion=false;
+try{
+    jrNewsAdminApproveSuggestedInstitution(
+       $pdo,$owner,'sanjesh-fake','APPROVE_OFFICIAL_SOURCE_DISCOVERY',1792823081);
+}catch(InvalidArgumentException $e){$noSpoofedSuggestion=true;}
+ensure($noSpoofedSuggestion,
+    'unknown institutions cannot claim curated trusted official-source identity');
+
 echo "PASS: admin custom source MFA CRUD, status, approved original monitor activation and pause on disposable mother DB\\n";
 
 /* Genuine source/claim exceptions are a dedicated owner MFA worklist.
@@ -1232,3 +1280,26 @@ try{
 }catch(InvalidArgumentException $e){$technicalCannotQueue=true;}
 ensure($technicalCannotQueue,'technical CMS outage never enters manual owner evidence queue');
 echo "PASS: real MariaDB owner evidence exceptions dedupe, MFA review, no fake approvals\\n";
+
+$modelPaused=jrNewsOriginalPrivateDraftBatch($pdo,[],[
+    'source'=>'ORIGINAL_JREI_NEWS_PRIVATE_CRON',
+    'serverSideJobAuthenticated'=>true,
+    'originalCronLeaseCurrent'=>true
+],[],1792823090,2);
+ensure($modelPaused['state']==='OFF'&&
+       $modelPaused['publicationsCreated']===0,
+    'original AI news drafting remains off until approved original model controls');
+$noModelCredentials=jrNewsOriginalPrivateDraftBatch($pdo,[
+    'jrei_news_integrated_release_accepted'=>true,
+    'jrei_news_model_drafting_enabled'=>true,
+    'jrei_live_ai_enabled'=>true,
+    'operations_cron_master_enabled'=>true
+],[
+    'source'=>'ORIGINAL_JREI_NEWS_PRIVATE_CRON',
+    'serverSideJobAuthenticated'=>true,
+    'originalCronLeaseCurrent'=>true
+],[],1792823100,2);
+ensure($noModelCredentials['state']==='SYSTEM_HOLD_ORIGINAL_JREI_SERVICE_MISSING'&&
+       $noModelCredentials['individualOwnerApprovalsRequested']===0,
+    'missing actual author corpus/independent QA is a system hold, not owner per-story review');
+echo "PASS: owner source restore/one-click known institution original registration; model pipeline fail closed\\n";
