@@ -17,7 +17,7 @@ require_once __DIR__.'/official-auto-handoff.php';
 function jrNewsIndependentVisibleOfficialTitle(string $bytes):?string {
     if(strlen($bytes)<50||strlen($bytes)>2097152||
        stripos($bytes,'<!ENTITY')!==false||
-       stripos($bytes,'<!DOCTYPE')!==false||
+       stripos((string)preg_replace('/<!doctype\\s+html\\s*>/i','',$bytes),'<!DOCTYPE')!==false||
        stripos($bytes,'<base')!==false||
        !class_exists('DOMDocument'))return null;
     $old=libxml_use_internal_errors(true);
@@ -75,11 +75,20 @@ function jrNewsReviewOriginalOfficialObservations(
         'modelCalls'=>0,'cmsWrites'=>0];
     $q=$pdo->prepare(
         "SELECT c.candidate_id,c.content_sha256,c.source_url,c.headline,
-                c.monitor_id,d.approved_article_source_id,
+                c.monitor_id,m.jrei_source_reference,d.approved_article_source_id,
                 o.observation_id,o.private_object_key,o.bytes_total,o.mime_type
          FROM jrei_news_candidates c
          JOIN jrei_news_monitors m ON m.monitor_id=c.monitor_id
            AND m.enabled=1
+         JOIN jrei_exam_sources feed ON feed.source_id=m.jrei_source_reference
+          AND feed.review_state='AUTHORITATIVE_REVIEWED'
+          AND feed.is_revoked=0 AND feed.is_superseded=0
+          AND feed.reviewer_account_id IS NOT NULL AND feed.verified_at IS NOT NULL
+         JOIN jrei_ka_source_policies fp ON fp.source_id=feed.source_id
+          AND fp.revision=m.policy_revision
+          AND fp.scheduling_state='APPROVED'
+          AND fp.rights_reviewed=1 AND fp.robots_terms_reviewed=1
+          AND fp.transport_reviewed=1
          JOIN jrei_news_discovered_urls d
            ON d.monitor_id=m.monitor_id
           AND BINARY d.canonical_article_url=BINARY c.source_url
@@ -109,6 +118,320 @@ function jrNewsReviewOriginalOfficialObservations(
            AND o.mime_type='text/html'
            AND o.rights_state_at_acquisition='PERMITTED_REPRODUCTION'
            AND o.bytes_total BETWEEN 50 AND 2097152
+           AND BINARY m.source_url_sha256=BINARY SHA2(feed.source_locator_uri,256)
+           AND BINARY fp.rights_evidence_sha256 REGEXP BINARY '^[a-f0-9]{64} '^[a-f0-9]{64}$'
+           AND p.robots_terms_evidence_sha256 REGEXP '^[a-f0-9]{64}$'
+           AND p.transport_evidence_sha256 REGEXP '^[a-f0-9]{64}$'
+         ORDER BY c.candidate_id,o.observation_id LIMIT ?");
+    $q->bindValue(1,$limit,PDO::PARAM_INT);$q->execute();
+    foreach($q->fetchAll(PDO::FETCH_ASSOC) as $row){
+        $result['examined']++;
+        $id=(string)$row['candidate_id'];
+        $hash=(string)$row['content_sha256'];
+        $bytesCount=(int)$row['bytes_total'];
+        $key=(string)$row['private_object_key'];
+        if(!preg_match('/^[a-f0-9-]{36}$/iD',$id)||
+           !preg_match('/^[a-f0-9]{64}$/D',$hash)||
+           $key!==$hash.'.bin'){
+            $result['exceptions']++;continue;
+        }
+        $filename=$archive.DIRECTORY_SEPARATOR.$key;
+        $real=realpath($filename);
+        if($real===false||dirname($real)!==$archive||is_link($filename)||
+           !is_file($real)||!is_readable($real)||filesize($real)!==$bytesCount||
+           (string)hash_file('sha256',$real)!==$hash){
+            $result['technicalHolds']++;continue;
+        }
+        $bytes=file_get_contents($real);
+        if(!is_string($bytes)||strlen($bytes)!==$bytesCount){
+            $result['technicalHolds']++;continue;
+        }
+        $headline=jrNewsIndependentVisibleOfficialTitle($bytes);
+        $expected=jrNewsIndependentNormalizedHeadline((string)$row['headline']);
+        if($headline===null||
+           jrNewsIndependentNormalizedHeadline($headline)!==$expected||
+           mb_strlen($expected,'UTF-8')<12){
+            // Different headline or uncertain markup is not silently "true".
+            $result['exceptions']++;continue;
+        }
+        // A deterministic, reproducible audit receipt verifies ONLY exact
+        // original HEADLINE and public official URL, not dates in body or
+        // downstream generated conclusions. Separate generation QA still
+        // independently verifies every claim prior to public publishing.
+        $auditSha=hash('sha256',implode('|',[
+            'jr.jrei.original-deterministic-primary-headline.v1',
+            $id,(string)$row['approved_article_source_id'],
+            (string)$row['source_url'],$hash,$expected
+        ]));
+        $auditRef='primary-headline:'.$auditSha;
+        $attestation=[
+            'source'=>'ORIGINAL_JREI_INDEPENDENT_EVIDENCE_SERVICE',
+            'separateFromNewsModel'=>true,
+            'originalAcquisitionDigestVerified'=>true,
+            'currentOfficialIssuerChecked'=>true,
+            'noContradictoryPrimaryEvidence'=>true,
+            'licenceAndRobotsCurrent'=>true,
+            'serviceId'=>'JREI_ORIGINAL_DETERMINISTIC_HEADLINE_V1',
+            'evidenceAuditSha256'=>$auditSha,
+            'auditReference'=>$auditRef
+        ];
+        $proof=static function(array $request)use($pdo,$row,$hash,$auditSha):array{
+            if(($request['canonicalArticleUrl']??null)!==$row['source_url']||
+               ($request['originalArticleSourceId']??null)!==
+                    $row['approved_article_source_id']||
+               ($request['originalObservationSha256']??null)!==$hash||
+               ($request['independentEvidenceAuditSha256']??null)!==$auditSha)
+                throw new RuntimeException('news_evidence_original_hash_drift');
+            $feed=$pdo->prepare(
+                "SELECT f.source_id FROM jrei_news_monitors m
+                 JOIN jrei_exam_sources f ON f.source_id=m.jrei_source_reference
+                 JOIN jrei_ka_source_policies p ON p.source_id=f.source_id
+                 WHERE m.monitor_id=? AND m.enabled=1
+                   AND f.review_state='AUTHORITATIVE_REVIEWED'
+                   AND f.is_revoked=0 AND f.is_superseded=0
+                   AND f.reviewer_account_id IS NOT NULL
+                   AND f.verified_at IS NOT NULL
+                   AND p.scheduling_state='APPROVED'
+                   AND p.revision=m.policy_revision
+                   AND p.rights_reviewed=1
+                   AND p.robots_terms_reviewed=1
+                   AND p.transport_reviewed=1
+                   AND BINARY m.source_url_sha256=BINARY SHA2(f.source_locator_uri,256)
+                 LIMIT 1");
+            $feed->execute([$row['monitor_id']]);
+            if($feed->fetchColumn()!==$row['jrei_source_reference'])
+                throw new RuntimeException('news_evidence_original_feed_changed');
+            $fresh=jrNewsOriginalOfficialSourceSnapshot($pdo,
+                (string)$row['approved_article_source_id'],(string)$row['source_url']);
+            $valid=$fresh['registryState']==='AUTHORITATIVE_REVIEWED'&&
+                $fresh['issuerIdentityVerified']===true&&
+                $fresh['notRevoked']===true&&
+                $fresh['exactSourceUrlApproved']===true&&
+                $fresh['rightsForPublicNews']===true&&
+                $fresh['termsAndRobotsCurrent']===true;
+            if(!$valid)
+                throw new RuntimeException('news_evidence_original_rights_changed');
+            return [
+                'source'=>'ORIGINAL_JREI_PRIVATE_EVIDENCE_AUTHORITY',
+                'exactOriginalArticleObservationVerified'=>true,
+                'verifiedPrimaryIssuerAndFeed'=>true,
+                'independentOfGenerativeModel'=>true,
+                'usageRightsForIndependentNewsSummary'=>true,
+                'termsAndRobotsCurrent'=>true,
+                'noMaterialSourceContradictions'=>true,
+                'originalEvidenceSha256'=>$hash,
+                'independentEvidenceAuditSha256'=>$auditSha
+            ];
+        };
+        try{
+            $approved=jrNewsApproveAutomatedOfficialEvidence(
+                $pdo,$id,$attestation,$proof,$now);
+            if(($approved['alreadyReviewed']??false)===true)
+                $result['alreadyReviewed']++;
+            else $result['accepted']++;
+        }catch(Throwable $e){
+            $result['technicalHolds']++;
+        }
+    }
+    return $result;
+}
+
+           AND BINARY fp.robots_terms_evidence_sha256 REGEXP BINARY '^[a-f0-9]{64} '^[a-f0-9]{64}$'
+           AND p.robots_terms_evidence_sha256 REGEXP '^[a-f0-9]{64}$'
+           AND p.transport_evidence_sha256 REGEXP '^[a-f0-9]{64}$'
+         ORDER BY c.candidate_id,o.observation_id LIMIT ?");
+    $q->bindValue(1,$limit,PDO::PARAM_INT);$q->execute();
+    foreach($q->fetchAll(PDO::FETCH_ASSOC) as $row){
+        $result['examined']++;
+        $id=(string)$row['candidate_id'];
+        $hash=(string)$row['content_sha256'];
+        $bytesCount=(int)$row['bytes_total'];
+        $key=(string)$row['private_object_key'];
+        if(!preg_match('/^[a-f0-9-]{36}$/iD',$id)||
+           !preg_match('/^[a-f0-9]{64}$/D',$hash)||
+           $key!==$hash.'.bin'){
+            $result['exceptions']++;continue;
+        }
+        $filename=$archive.DIRECTORY_SEPARATOR.$key;
+        $real=realpath($filename);
+        if($real===false||dirname($real)!==$archive||is_link($filename)||
+           !is_file($real)||!is_readable($real)||filesize($real)!==$bytesCount||
+           (string)hash_file('sha256',$real)!==$hash){
+            $result['technicalHolds']++;continue;
+        }
+        $bytes=file_get_contents($real);
+        if(!is_string($bytes)||strlen($bytes)!==$bytesCount){
+            $result['technicalHolds']++;continue;
+        }
+        $headline=jrNewsIndependentVisibleOfficialTitle($bytes);
+        $expected=jrNewsIndependentNormalizedHeadline((string)$row['headline']);
+        if($headline===null||
+           jrNewsIndependentNormalizedHeadline($headline)!==$expected||
+           mb_strlen($expected,'UTF-8')<12){
+            // Different headline or uncertain markup is not silently "true".
+            $result['exceptions']++;continue;
+        }
+        // A deterministic, reproducible audit receipt verifies ONLY exact
+        // original HEADLINE and public official URL, not dates in body or
+        // downstream generated conclusions. Separate generation QA still
+        // independently verifies every claim prior to public publishing.
+        $auditSha=hash('sha256',implode('|',[
+            'jr.jrei.original-deterministic-primary-headline.v1',
+            $id,(string)$row['approved_article_source_id'],
+            (string)$row['source_url'],$hash,$expected
+        ]));
+        $auditRef='primary-headline:'.$auditSha;
+        $attestation=[
+            'source'=>'ORIGINAL_JREI_INDEPENDENT_EVIDENCE_SERVICE',
+            'separateFromNewsModel'=>true,
+            'originalAcquisitionDigestVerified'=>true,
+            'currentOfficialIssuerChecked'=>true,
+            'noContradictoryPrimaryEvidence'=>true,
+            'licenceAndRobotsCurrent'=>true,
+            'serviceId'=>'JREI_ORIGINAL_DETERMINISTIC_HEADLINE_V1',
+            'evidenceAuditSha256'=>$auditSha,
+            'auditReference'=>$auditRef
+        ];
+        $proof=static function(array $request)use($pdo,$row,$hash,$auditSha):array{
+            if(($request['canonicalArticleUrl']??null)!==$row['source_url']||
+               ($request['originalArticleSourceId']??null)!==
+                    $row['approved_article_source_id']||
+               ($request['originalObservationSha256']??null)!==$hash||
+               ($request['independentEvidenceAuditSha256']??null)!==$auditSha)
+                throw new RuntimeException('news_evidence_original_hash_drift');
+            $fresh=jrNewsOriginalOfficialSourceSnapshot($pdo,
+                (string)$row['approved_article_source_id'],(string)$row['source_url']);
+            $valid=$fresh['registryState']==='AUTHORITATIVE_REVIEWED'&&
+                $fresh['issuerIdentityVerified']===true&&
+                $fresh['notRevoked']===true&&
+                $fresh['exactSourceUrlApproved']===true&&
+                $fresh['rightsForPublicNews']===true&&
+                $fresh['termsAndRobotsCurrent']===true;
+            if(!$valid)
+                throw new RuntimeException('news_evidence_original_rights_changed');
+            return [
+                'source'=>'ORIGINAL_JREI_PRIVATE_EVIDENCE_AUTHORITY',
+                'exactOriginalArticleObservationVerified'=>true,
+                'verifiedPrimaryIssuerAndFeed'=>true,
+                'independentOfGenerativeModel'=>true,
+                'usageRightsForIndependentNewsSummary'=>true,
+                'termsAndRobotsCurrent'=>true,
+                'noMaterialSourceContradictions'=>true,
+                'originalEvidenceSha256'=>$hash,
+                'independentEvidenceAuditSha256'=>$auditSha
+            ];
+        };
+        try{
+            $approved=jrNewsApproveAutomatedOfficialEvidence(
+                $pdo,$id,$attestation,$proof,$now);
+            if(($approved['alreadyReviewed']??false)===true)
+                $result['alreadyReviewed']++;
+            else $result['accepted']++;
+        }catch(Throwable $e){
+            $result['technicalHolds']++;
+        }
+    }
+    return $result;
+}
+
+           AND BINARY fp.transport_evidence_sha256 REGEXP BINARY '^[a-f0-9]{64} '^[a-f0-9]{64}$'
+           AND p.robots_terms_evidence_sha256 REGEXP '^[a-f0-9]{64}$'
+           AND p.transport_evidence_sha256 REGEXP '^[a-f0-9]{64}$'
+         ORDER BY c.candidate_id,o.observation_id LIMIT ?");
+    $q->bindValue(1,$limit,PDO::PARAM_INT);$q->execute();
+    foreach($q->fetchAll(PDO::FETCH_ASSOC) as $row){
+        $result['examined']++;
+        $id=(string)$row['candidate_id'];
+        $hash=(string)$row['content_sha256'];
+        $bytesCount=(int)$row['bytes_total'];
+        $key=(string)$row['private_object_key'];
+        if(!preg_match('/^[a-f0-9-]{36}$/iD',$id)||
+           !preg_match('/^[a-f0-9]{64}$/D',$hash)||
+           $key!==$hash.'.bin'){
+            $result['exceptions']++;continue;
+        }
+        $filename=$archive.DIRECTORY_SEPARATOR.$key;
+        $real=realpath($filename);
+        if($real===false||dirname($real)!==$archive||is_link($filename)||
+           !is_file($real)||!is_readable($real)||filesize($real)!==$bytesCount||
+           (string)hash_file('sha256',$real)!==$hash){
+            $result['technicalHolds']++;continue;
+        }
+        $bytes=file_get_contents($real);
+        if(!is_string($bytes)||strlen($bytes)!==$bytesCount){
+            $result['technicalHolds']++;continue;
+        }
+        $headline=jrNewsIndependentVisibleOfficialTitle($bytes);
+        $expected=jrNewsIndependentNormalizedHeadline((string)$row['headline']);
+        if($headline===null||
+           jrNewsIndependentNormalizedHeadline($headline)!==$expected||
+           mb_strlen($expected,'UTF-8')<12){
+            // Different headline or uncertain markup is not silently "true".
+            $result['exceptions']++;continue;
+        }
+        // A deterministic, reproducible audit receipt verifies ONLY exact
+        // original HEADLINE and public official URL, not dates in body or
+        // downstream generated conclusions. Separate generation QA still
+        // independently verifies every claim prior to public publishing.
+        $auditSha=hash('sha256',implode('|',[
+            'jr.jrei.original-deterministic-primary-headline.v1',
+            $id,(string)$row['approved_article_source_id'],
+            (string)$row['source_url'],$hash,$expected
+        ]));
+        $auditRef='primary-headline:'.$auditSha;
+        $attestation=[
+            'source'=>'ORIGINAL_JREI_INDEPENDENT_EVIDENCE_SERVICE',
+            'separateFromNewsModel'=>true,
+            'originalAcquisitionDigestVerified'=>true,
+            'currentOfficialIssuerChecked'=>true,
+            'noContradictoryPrimaryEvidence'=>true,
+            'licenceAndRobotsCurrent'=>true,
+            'serviceId'=>'JREI_ORIGINAL_DETERMINISTIC_HEADLINE_V1',
+            'evidenceAuditSha256'=>$auditSha,
+            'auditReference'=>$auditRef
+        ];
+        $proof=static function(array $request)use($pdo,$row,$hash,$auditSha):array{
+            if(($request['canonicalArticleUrl']??null)!==$row['source_url']||
+               ($request['originalArticleSourceId']??null)!==
+                    $row['approved_article_source_id']||
+               ($request['originalObservationSha256']??null)!==$hash||
+               ($request['independentEvidenceAuditSha256']??null)!==$auditSha)
+                throw new RuntimeException('news_evidence_original_hash_drift');
+            $fresh=jrNewsOriginalOfficialSourceSnapshot($pdo,
+                (string)$row['approved_article_source_id'],(string)$row['source_url']);
+            $valid=$fresh['registryState']==='AUTHORITATIVE_REVIEWED'&&
+                $fresh['issuerIdentityVerified']===true&&
+                $fresh['notRevoked']===true&&
+                $fresh['exactSourceUrlApproved']===true&&
+                $fresh['rightsForPublicNews']===true&&
+                $fresh['termsAndRobotsCurrent']===true;
+            if(!$valid)
+                throw new RuntimeException('news_evidence_original_rights_changed');
+            return [
+                'source'=>'ORIGINAL_JREI_PRIVATE_EVIDENCE_AUTHORITY',
+                'exactOriginalArticleObservationVerified'=>true,
+                'verifiedPrimaryIssuerAndFeed'=>true,
+                'independentOfGenerativeModel'=>true,
+                'usageRightsForIndependentNewsSummary'=>true,
+                'termsAndRobotsCurrent'=>true,
+                'noMaterialSourceContradictions'=>true,
+                'originalEvidenceSha256'=>$hash,
+                'independentEvidenceAuditSha256'=>$auditSha
+            ];
+        };
+        try{
+            $approved=jrNewsApproveAutomatedOfficialEvidence(
+                $pdo,$id,$attestation,$proof,$now);
+            if(($approved['alreadyReviewed']??false)===true)
+                $result['alreadyReviewed']++;
+            else $result['accepted']++;
+        }catch(Throwable $e){
+            $result['technicalHolds']++;
+        }
+    }
+    return $result;
+}
+
            AND p.rights_evidence_sha256 REGEXP '^[a-f0-9]{64}$'
            AND p.robots_terms_evidence_sha256 REGEXP '^[a-f0-9]{64}$'
            AND p.transport_evidence_sha256 REGEXP '^[a-f0-9]{64}$'
