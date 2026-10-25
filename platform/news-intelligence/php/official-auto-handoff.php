@@ -120,3 +120,100 @@ function jrNewsOfficialPublicationDecision(
         'originalServerMustIndependentlyReverifyAllProofs'=>true
     ];
 }
+
+/**
+ * Read-only original mother-DB binding for a candidate's exact article,
+ * immutable bilingual draft hash and independent evidence review. The only
+ * callback allowed is a server-owned, original JREI/CMS policy resolver;
+ * this is NOT an HTTP route and writes NO publication authorization.
+ * Every fact must be freshly rechecked by the future transactional publisher.
+ */
+function jrNewsOriginalAutoHandoffReadiness(
+    PDO $pdo,string $revisionId,callable $originalQualityAndCmsResolver
+): array {
+    if(preg_match('/^[a-f0-9-]{36}$/iD',$revisionId)!==1)
+        throw new InvalidArgumentException('news_official_revision_invalid');
+    $stmt=$pdo->prepare(
+        "SELECT v.revision_id,v.bilingual_editorial_json,v.approval_digest,
+                v.editorial_state,c.source_url,c.content_sha256,
+                d.approved_article_source_id,e.verification_state,
+                e.issuer_verified,e.usage_rights_verified,
+                e.content_sha256 AS reviewed_sha
+         FROM jrei_news_editorial_versions v
+         JOIN jrei_news_candidates c ON c.candidate_id=v.candidate_id
+         JOIN jrei_news_monitors m ON m.monitor_id=c.monitor_id
+             AND m.enabled=1
+         JOIN jrei_news_discovered_urls d
+             ON d.monitor_id=c.monitor_id
+            AND BINARY d.canonical_url_sha256=BINARY SHA2(c.source_url,256)
+            AND d.canonical_article_url=c.source_url
+            AND d.review_state='ORIGINAL_JREI_ARTICLE_APPROVED'
+         JOIN jrei_news_evidence_reviews e
+             ON e.review_id=v.evidence_review_id
+            AND e.candidate_id=c.candidate_id
+         WHERE v.revision_id=? LIMIT 1"
+    );
+    $stmt->execute([$revisionId]);
+    $row=$stmt->fetch(PDO::FETCH_ASSOC);
+    if(!is_array($row))return [
+        'decision'=>'SYSTEM_HOLD','reason'=>'CURRENT_PRIVATE_DRAFT_NOT_READY',
+        'published'=>false,'originalCmsWritePerformed'=>false
+    ];
+    $json=(string)$row['bilingual_editorial_json'];
+    $sha=(string)$row['content_sha256'];
+    if($row['editorial_state']!=='PENDING_OWNER_APPROVAL'||
+       !preg_match('/^[a-f0-9]{64}$/D',(string)$row['approval_digest'])||
+       !hash_equals((string)$row['approval_digest'],hash('sha256',$json))||
+       $row['verification_state']!=='APPROVED'||
+       (int)$row['issuer_verified']!==1||
+       (int)$row['usage_rights_verified']!==1||
+       !hash_equals($sha,(string)$row['reviewed_sha'])||
+       !preg_match('/^[a-f0-9]{64}$/D',$sha)){
+        return [
+            'decision'=>'SYSTEM_HOLD','reason'=>'PRIVATE_REVIEW_OR_DIGEST_INVALID',
+            'published'=>false,'originalCmsWritePerformed'=>false
+        ];
+    }
+    $draft=json_decode($json,true,24,JSON_THROW_ON_ERROR);
+    $routes=is_array($draft)?($draft['routeProposal']??null):null;
+    if(!is_array($routes)||
+       ($routes['schema']??null)!=='jr.jrei.news-bilingual-proposed-routes.v1'||
+       !preg_match('#^/fa/akhbar/[a-z0-9-]+/$#D',(string)($routes['faPath']??''))||
+       !preg_match('#^/en/news-insights/[a-z0-9-]+/$#D',
+            (string)($routes['enPath']??''))){
+        return [
+            'decision'=>'SYSTEM_HOLD','reason'=>'SIGNED_BILINGUAL_ROUTES_INVALID',
+            'published'=>false,'originalCmsWritePerformed'=>false
+        ];
+    }
+    $source=jrNewsOriginalOfficialSourceSnapshot(
+        $pdo,(string)$row['approved_article_source_id'],
+        (string)$row['source_url']
+    );
+    $resolved=$originalQualityAndCmsResolver([
+        'revisionId'=>$revisionId,
+        'approvalDigest'=>$row['approval_digest'],
+        'sourceId'=>$row['approved_article_source_id'],
+        'sourceUrl'=>$row['source_url'],
+        'evidenceSha256'=>$sha,
+        'faRoute'=>$routes['faPath'],'enRoute'=>$routes['enPath']
+    ]);
+    if(!is_array($resolved)||
+       ($resolved['source']??null)!=='ORIGINAL_JREI_PRIVATE_NEWS_POLICY'||
+       !is_array($resolved['evidence']??null)||
+       !is_array($resolved['editorial']??null)||
+       !is_array($resolved['publisher']??null)){
+        return [
+            'decision'=>'SYSTEM_HOLD','reason'=>'ORIGINAL_POLICY_PORT_UNAVAILABLE',
+            'published'=>false,'originalCmsWritePerformed'=>false
+        ];
+    }
+    $decision=jrNewsOfficialPublicationDecision(
+        ['evidenceSha256'=>$sha],$source,$resolved['evidence'],
+        $resolved['editorial'],$resolved['publisher']
+    );
+    $decision['revisionId']=$revisionId;
+    $decision['requiresTransactionalPublisherRecheck']=true;
+    $decision['standingOwnerPolicyMustBeRecordedByOriginalCms']=true;
+    return $decision;
+}
