@@ -1,3 +1,12 @@
+/* Public bilingual reading-flow support: no URL/canonical/robot changes. */
+(()=>{
+ const html=document.documentElement;
+ if(!['fa','en'].includes(html.lang)||!document.querySelector('main')||document.querySelector('link[data-jr-semantic-flow]'))return;
+ const link=document.createElement('link');
+ link.rel='stylesheet';link.href='/assets/css/jr-bilingual-semantic-flow-2026.css?v=20261026-r1';
+ link.dataset.jrSemanticFlow='1';document.head.appendChild(link);
+})();
+
 /* Deferred, non-critical site enhancements extracted from site.js to retain the 25 KiB navigation performance budget. */
 (()=>{let s=document.createElement('script');s.src='/assets/js/analytics-adapter.js?v=20261020-gtm-consent-v5';document.head.append(s)})();
 (function(){
@@ -84,8 +93,8 @@ area.append(button,note);footer.parentNode.insertBefore(area,footer);
 (()=>{
  const path=location.pathname.replace(/index\.html$/,'');
  if(!/^\/fa\/(?:akhbar|rahnamaha)\/[a-z0-9-]+\/$/.test(path)||document.querySelector('[data-jr-community-loader]'))return;
- const css=document.createElement('link');css.rel='stylesheet';css.href='/assets/css/community-comments.css?v=20261021-academic-v2';css.dataset.jrCommunityLoader='1';document.head.append(css);
- const script=document.createElement('script');script.src='/assets/js/community-comments.js?v=20261021-academic-v2';script.defer=true;document.head.append(script);
+ const css=document.createElement('link');css.rel='stylesheet';css.href='/assets/css/community-comments.css?v=20261026-semantic-r1';css.dataset.jrCommunityLoader='1';document.head.append(css);
+ const script=document.createElement('script');script.src='/assets/js/community-comments.js?v=20261026-semantic-r1';script.defer=true;document.head.append(script);
 })();
 
 /* Bilingual public USDT/toman calculator: informational only, never a money quote. */
