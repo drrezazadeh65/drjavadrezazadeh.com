@@ -562,6 +562,7 @@ function jrOperationsNewsReadiness(PDO $pdo,array $config): array {
                     if(!is_array($actual) ||
                        strtolower((string)($actual['DATA_TYPE']??''))!==$kind ||
                        ($length!==null &&
+                         in_array($kind,['char','varchar'],true) &&
                          (int)($actual['CHARACTER_MAXIMUM_LENGTH']??-1)!==$length) ||
                        (($actual['IS_NULLABLE']??null)==='YES')!==$nullable ||
                        (stripos((string)($actual['COLUMN_TYPE']??''),'unsigned')!==false)!==$unsigned ||
