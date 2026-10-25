@@ -454,6 +454,24 @@ try{
     );
     ensure(($snapshot['schema']??null)==='jr.jrei.news-owner-bounded-snapshot.v1',
         'owner snapshot schema');
+    if(($snapshot['allSectionsAvailable']??null)!==true) {
+        $expected=['queue','overview','monitors','available',
+                   'suggestions','jobs','backlog'];
+        $states=[];
+        foreach($expected as $key){
+            $states[$key]=[
+                'status'=>$snapshot['viewStatus'][$key]??'MISSING',
+                'schema'=>$snapshot['views'][$key]['schema']??'UNAVAILABLE'
+            ];
+        }
+        fwrite(STDERR,'Synthetic owner snapshot gaps: '.
+            json_encode($states,JSON_UNESCAPED_SLASHES).PHP_EOL);
+        if(($states['jobs']['status']??null)==='UNAVAILABLE'){
+            try {jrNewsOwnerOriginalAcquisitionSnapshot($pdo,$owner,50);}
+            catch(Throwable $e){fwrite(STDERR,'Synthetic jobs query: '.
+                get_class($e).' / '.$e->getMessage().PHP_EOL);}
+        }
+    }
     ensure(count($snapshot['views'])===7 &&
            count($snapshot['viewStatus'])===7 &&
            !in_array('UNAVAILABLE',$snapshot['viewStatus'],true) &&
