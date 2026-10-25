@@ -47,6 +47,7 @@ require_once __DIR__.'/exam-reminders.php';
 require_once __DIR__.'/topic-newsletter.php';
 require_once __DIR__.'/original-eco-compatibility.php';
 require_once __DIR__.'/eco-digest-composer.php';
+require_once __DIR__.'/original-eco-digest-delivery.php';
 require_once __DIR__.'/eco-reminder-composer.php';
 require_once __DIR__.'/preferences-replace.php';
 require_once __DIR__.'/digest-worker.php';
