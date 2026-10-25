@@ -184,6 +184,159 @@ function jrOperationsNewsReadiness(PDO $pdo,array $config): array {
         'jrei_ka_private_observations'=>['observation_id','job_id',
             'source_id','content_sha256','source_policy_revision']
     ];
+    // Exact column kind/length/nullability/signedness/charset/collation
+    // from the FOUR versioned News migrations. Original KA tables retain
+    // their established (potentially heterogeneous) schema and collation.
+    $requiredColumnShape=[
+        'jrei_news_monitors'=>[
+            'monitor_id'=>['char',36,false,false,'utf8mb4','utf8mb4_unicode_ci'],
+            'jrei_source_reference'=>['varchar',100,false,false,'utf8mb4','utf8mb4_unicode_ci'],
+            'source_url_sha256'=>['char',64,false,false,'ascii','ascii_bin'],
+            'category_code'=>['varchar',48,false,false,'utf8mb4','utf8mb4_unicode_ci'],
+            'priority_code'=>['varchar',2,false,false,'utf8mb4','utf8mb4_unicode_ci'],
+            'interval_minutes'=>['smallint',null,false,true,null,null],
+            'policy_revision'=>['bigint',null,false,true,null,null],
+            'enabled'=>['tinyint',1,false,false,null,null],
+            'last_success_at'=>['bigint',null,true,true,null,null],
+            'backoff_until'=>['bigint',null,true,true,null,null],
+            'created_at'=>['bigint',null,false,true,null,null],
+        ],
+        'jrei_news_candidates'=>[
+            'candidate_id'=>['char',36,false,false,'utf8mb4','utf8mb4_unicode_ci'],
+            'monitor_id'=>['char',36,false,false,'utf8mb4','utf8mb4_unicode_ci'],
+            'fingerprint_sha256'=>['char',64,false,false,'ascii','ascii_bin'],
+            'source_url'=>['varchar',1000,false,false,'utf8mb4','utf8mb4_unicode_ci'],
+            'content_sha256'=>['char',64,false,false,'ascii','ascii_bin'],
+            'headline'=>['varchar',240,false,false,'utf8mb4','utf8mb4_unicode_ci'],
+            'event_type'=>['varchar',64,false,false,'utf8mb4','utf8mb4_unicode_ci'],
+            'priority_code'=>['varchar',2,false,false,'utf8mb4','utf8mb4_unicode_ci'],
+            'source_published_at'=>['bigint',null,true,true,null,null],
+            'first_observed_at'=>['bigint',null,false,true,null,null],
+            'state'=>['varchar',56,false,false,'utf8mb4','utf8mb4_unicode_ci'],
+        ],
+        'jrei_news_evidence_reviews'=>[
+            'review_id'=>['char',36,false,false,'utf8mb4','utf8mb4_unicode_ci'],
+            'candidate_id'=>['char',36,false,false,'utf8mb4','utf8mb4_unicode_ci'],
+            'reviewer_account_id'=>['char',36,false,false,'utf8mb4','utf8mb4_unicode_ci'],
+            'content_sha256'=>['char',64,false,false,'ascii','ascii_bin'],
+            'verification_state'=>['varchar',48,false,false,'utf8mb4','utf8mb4_unicode_ci'],
+            'issuer_verified'=>['tinyint',1,false,false,null,null],
+            'usage_rights_verified'=>['tinyint',1,false,false,null,null],
+            'reviewed_at'=>['bigint',null,false,true,null,null],
+            'evidence_private_reference'=>['varchar',180,true,false,'utf8mb4','utf8mb4_unicode_ci'],
+        ],
+        'jrei_news_editorial_versions'=>[
+            'revision_id'=>['char',36,false,false,'utf8mb4','utf8mb4_unicode_ci'],
+            'candidate_id'=>['char',36,false,false,'utf8mb4','utf8mb4_unicode_ci'],
+            'evidence_review_id'=>['char',36,false,false,'utf8mb4','utf8mb4_unicode_ci'],
+            'revision_number'=>['int',null,false,true,null,null],
+            'bilingual_editorial_json'=>['longtext',null,false,false,'utf8mb4','utf8mb4_unicode_ci'],
+            'approved_image_ref'=>['varchar',500,true,false,'utf8mb4','utf8mb4_unicode_ci'],
+            'approval_digest'=>['char',64,false,false,'ascii','ascii_bin'],
+            'editorial_state'=>['varchar',48,false,false,'utf8mb4','utf8mb4_unicode_ci'],
+            'created_at'=>['bigint',null,false,true,null,null],
+        ],
+        'jrei_news_owner_decisions'=>[
+            'decision_id'=>['char',36,false,false,'utf8mb4','utf8mb4_unicode_ci'],
+            'revision_id'=>['char',36,false,false,'utf8mb4','utf8mb4_unicode_ci'],
+            'owner_account_id'=>['char',36,false,false,'utf8mb4','utf8mb4_unicode_ci'],
+            'approval_digest'=>['char',64,false,false,'ascii','ascii_bin'],
+            'action_code'=>['varchar',28,false,false,'utf8mb4','utf8mb4_unicode_ci'],
+            'owner_mfa_audit_ref'=>['varchar',100,false,false,'utf8mb4','utf8mb4_unicode_ci'],
+            'decided_at'=>['bigint',null,false,true,null,null],
+        ],
+        'jrei_news_publications'=>[
+            'publication_id'=>['char',36,false,false,'utf8mb4','utf8mb4_unicode_ci'],
+            'revision_id'=>['char',36,false,false,'utf8mb4','utf8mb4_unicode_ci'],
+            'approved_decision_id'=>['char',36,false,false,'utf8mb4','utf8mb4_unicode_ci'],
+            'fa_route'=>['varchar',260,false,false,'utf8mb4','utf8mb4_unicode_ci'],
+            'en_route'=>['varchar',260,false,false,'utf8mb4','utf8mb4_unicode_ci'],
+            'fa_content_sha256'=>['char',64,true,false,'ascii','ascii_bin'],
+            'en_content_sha256'=>['char',64,true,false,'ascii','ascii_bin'],
+            'publisher_state'=>['varchar',48,false,false,'utf8mb4','utf8mb4_unicode_ci'],
+            'publisher_receipt_reference'=>['varchar',200,true,false,'utf8mb4','utf8mb4_unicode_ci'],
+            'published_at'=>['bigint',null,true,true,null,null],
+        ],
+        'jrei_news_exam_milestones'=>[
+            'milestone_id'=>['char',36,false,false,'utf8mb4','utf8mb4_unicode_ci'],
+            'external_exam_key'=>['varchar',100,false,false,'utf8mb4','utf8mb4_unicode_ci'],
+            'milestone_type'=>['varchar',48,false,false,'utf8mb4','utf8mb4_unicode_ci'],
+            'title_fa'=>['varchar',220,false,false,'utf8mb4','utf8mb4_unicode_ci'],
+            'title_en'=>['varchar',220,false,false,'utf8mb4','utf8mb4_unicode_ci'],
+            'event_utc'=>['bigint',null,false,true,null,null],
+            'timezone_name'=>['varchar',60,false,false,'utf8mb4','utf8mb4_unicode_ci'],
+            'source_ref'=>['varchar',100,false,false,'utf8mb4','utf8mb4_unicode_ci'],
+            'source_evidence_sha256'=>['char',64,false,false,'ascii','ascii_bin'],
+            'version_number'=>['int',null,false,true,null,null],
+            'previous_milestone_id'=>['char',36,true,false,'utf8mb4','utf8mb4_unicode_ci'],
+            'review_state'=>['varchar',40,false,false,'utf8mb4','utf8mb4_unicode_ci'],
+            'owner_approved'=>['tinyint',1,false,false,null,null],
+            'created_at'=>['bigint',null,false,true,null,null],
+        ],
+        'jrei_news_exam_follows'=>[
+            'follow_id'=>['char',36,false,false,'utf8mb4','utf8mb4_unicode_ci'],
+            'account_id'=>['char',36,false,false,'utf8mb4','utf8mb4_unicode_ci'],
+            'milestone_id'=>['char',36,false,false,'utf8mb4','utf8mb4_unicode_ci'],
+            'days_before'=>['smallint',null,false,true,null,null],
+            'channel_code'=>['varchar',24,false,false,'utf8mb4','utf8mb4_unicode_ci'],
+            'consent_reference'=>['varchar',100,false,false,'utf8mb4','utf8mb4_unicode_ci'],
+            'follow_state'=>['varchar',24,false,false,'utf8mb4','utf8mb4_unicode_ci'],
+            'created_at'=>['bigint',null,false,true,null,null],
+        ],
+        'jrei_news_delivery_receipts'=>[
+            'delivery_id'=>['char',36,false,false,'utf8mb4','utf8mb4_unicode_ci'],
+            'publication_id'=>['char',36,false,false,'utf8mb4','utf8mb4_unicode_ci'],
+            'provider_code'=>['varchar',40,false,false,'utf8mb4','utf8mb4_unicode_ci'],
+            'provider_account_reference'=>['varchar',100,false,false,'utf8mb4','utf8mb4_unicode_ci'],
+            'idempotency_key'=>['char',64,false,false,'ascii','ascii_bin'],
+            'state'=>['varchar',30,false,false,'utf8mb4','utf8mb4_unicode_ci'],
+            'provider_receipt_reference'=>['varchar',200,true,false,'utf8mb4','utf8mb4_unicode_ci'],
+            'attempts'=>['smallint',null,false,true,null,null],
+            'created_at'=>['bigint',null,false,true,null,null],
+        ],
+        'jrei_news_discovered_urls'=>[
+            'discovery_id'=>['char',36,false,false,'utf8mb4','utf8mb4_unicode_ci'],
+            'monitor_id'=>['char',36,false,false,'utf8mb4','utf8mb4_unicode_ci'],
+            'source_registry_id'=>['char',36,false,false,'utf8mb4','utf8mb4_unicode_ci'],
+            'canonical_article_url'=>['varchar',1000,false,false,'utf8mb4','utf8mb4_unicode_ci'],
+            'canonical_url_sha256'=>['char',64,false,false,'ascii','ascii_bin'],
+            'latest_feed_sha256'=>['char',64,false,false,'ascii','ascii_bin'],
+            'discovered_headline'=>['varchar',240,false,false,'utf8mb4','utf8mb4_unicode_ci'],
+            'claimed_published_at'=>['bigint',null,true,true,null,null],
+            'first_seen_at'=>['bigint',null,false,true,null,null],
+            'last_seen_at'=>['bigint',null,false,true,null,null],
+            'review_state'=>['varchar',48,false,false,'utf8mb4','utf8mb4_unicode_ci'],
+            'approved_article_source_id'=>['char',36,true,false,'utf8mb4','utf8mb4_unicode_ci'],
+        ],
+        'jrei_news_search_documents'=>[
+            'document_id'=>['char',36,false,false,'utf8mb4','utf8mb4_unicode_ci'],
+            'publication_id'=>['char',36,false,false,'utf8mb4','utf8mb4_unicode_ci'],
+            'language_code'=>['char',2,false,false,'utf8mb4','utf8mb4_unicode_ci'],
+            'public_route'=>['varchar',260,false,false,'utf8mb4','utf8mb4_unicode_ci'],
+            'title'=>['varchar',240,false,false,'utf8mb4','utf8mb4_unicode_ci'],
+            'summary'=>['text',null,false,false,'utf8mb4','utf8mb4_unicode_ci'],
+            'searchable_body'=>['mediumtext',null,false,false,'utf8mb4','utf8mb4_unicode_ci'],
+            'country_code'=>['char',2,false,false,'utf8mb4','utf8mb4_unicode_ci'],
+            'category_code'=>['varchar',48,false,false,'utf8mb4','utf8mb4_unicode_ci'],
+            'event_code'=>['varchar',64,false,false,'utf8mb4','utf8mb4_unicode_ci'],
+            'owner_approval_digest'=>['char',64,false,false,'ascii','ascii_bin'],
+            'content_sha256'=>['char',64,false,false,'ascii','ascii_bin'],
+            'published_at'=>['bigint',null,false,true,null,null],
+            'indexed_at'=>['bigint',null,false,true,null,null],
+            'index_state'=>['varchar',28,false,false,'utf8mb4','utf8mb4_unicode_ci'],
+        ],
+        'jrei_news_topic_follows'=>[
+            'follow_id'=>['char',36,false,false,'utf8mb4','utf8mb4_unicode_ci'],
+            'account_id'=>['char',36,false,false,'utf8mb4','utf8mb4_unicode_ci'],
+            'topic_code'=>['varchar',40,false,false,'utf8mb4','utf8mb4_unicode_ci'],
+            'locale_code'=>['char',2,false,false,'utf8mb4','utf8mb4_unicode_ci'],
+            'digest_mode'=>['varchar',24,false,false,'utf8mb4','utf8mb4_unicode_ci'],
+            'channel_code'=>['varchar',24,false,false,'utf8mb4','utf8mb4_unicode_ci'],
+            'consent_reference'=>['varchar',100,false,false,'utf8mb4','utf8mb4_unicode_ci'],
+            'follow_state'=>['varchar',24,false,false,'utf8mb4','utf8mb4_unicode_ci'],
+            'updated_at'=>['bigint',null,false,true,null,null],
+        ],
+    ];
     // Existing columns alone cannot enforce unique draft revisions, owner
     // approvals, delivery idempotency or immutable bilingual public routes.
     $requiredUnique=[
@@ -280,7 +433,10 @@ function jrOperationsNewsReadiness(PDO $pdo,array $config): array {
         $names=array_keys($required);
         $marks=implode(',',array_fill(0,count($names),'?'));
         $q=$pdo->prepare(
-            "SELECT c.TABLE_NAME,c.COLUMN_NAME
+            "SELECT c.TABLE_NAME,c.COLUMN_NAME,c.DATA_TYPE,c.COLUMN_TYPE,
+                    c.IS_NULLABLE,c.CHARACTER_MAXIMUM_LENGTH,
+                    c.CHARACTER_SET_NAME,c.COLLATION_NAME,
+                    t.ENGINE,t.TABLE_COLLATION
              FROM information_schema.COLUMNS c
              JOIN information_schema.TABLES t
                ON t.TABLE_SCHEMA=c.TABLE_SCHEMA
@@ -290,12 +446,18 @@ function jrOperationsNewsReadiness(PDO $pdo,array $config): array {
                AND t.TABLE_TYPE='BASE TABLE'"
         );
         $q->execute($names);
-        $seen=[];
+        $seen=[];$columnDetails=[];$tableDetails=[];
         while($row=$q->fetch(PDO::FETCH_ASSOC)){
             $table=$row['TABLE_NAME']??null;
             $column=$row['COLUMN_NAME']??null;
             if(is_string($table)&&isset($required[$table])&&
-               is_string($column))$seen[$table][$column]=true;
+               is_string($column)){
+                $seen[$table][$column]=true;
+                $columnDetails[$table][$column]=$row;
+                $tableDetails[$table]=[
+                    $row['ENGINE']??null,$row['TABLE_COLLATION']??null
+                ];
+            }
         }
         // Bounded information_schema reads only; no customer/source rows.
         // CREATE TABLE IF NOT EXISTS must never be accepted as proof that
@@ -357,6 +519,26 @@ function jrOperationsNewsReadiness(PDO $pdo,array $config): array {
             $columnsPresent=count(array_filter($columns,
                 static fn(string $column):bool=>
                     isset($seen[$name][$column])))===count($columns);
+            $shapePresent=true;
+            if(isset($requiredColumnShape[$name])){
+                $tableShape=$tableDetails[$name]??null;
+                if($tableShape!==['InnoDB','utf8mb4_unicode_ci'])
+                    $shapePresent=false;
+                foreach($requiredColumnShape[$name] as $column=>$expectedShape){
+                    [$kind,$length,$nullable,$unsigned,$charset,$collation]=$expectedShape;
+                    $actual=$columnDetails[$name][$column]??null;
+                    if(!is_array($actual) ||
+                       strtolower((string)($actual['DATA_TYPE']??''))!==$kind ||
+                       ($length!==null &&
+                         (int)($actual['CHARACTER_MAXIMUM_LENGTH']??-1)!==$length) ||
+                       (($actual['IS_NULLABLE']??null)==='YES')!==$nullable ||
+                       (stripos((string)($actual['COLUMN_TYPE']??''),'unsigned')!==false)!==$unsigned ||
+                       ($charset!==null&&($actual['CHARACTER_SET_NAME']??null)!==$charset) ||
+                       ($collation!==null&&($actual['COLLATION_NAME']??null)!==$collation)){
+                        $shapePresent=false;break;
+                    }
+                }
+            }
             $uniquePresent=true;
             foreach($requiredUnique[$name]??[] as $expected){
                 $matched=false;
@@ -395,7 +577,7 @@ function jrOperationsNewsReadiness(PDO $pdo,array $config): array {
                 }
                 if(!$matched){$foreignKeysPresent=false;break;}
             }
-            if($columnsPresent&&$uniquePresent&&$secondaryIndexesPresent&&$foreignKeysPresent)
+            if($columnsPresent&&$shapePresent&&$uniquePresent&&$secondaryIndexesPresent&&$foreignKeysPresent)
                 $tables[$name]='AVAILABLE';
         }
     }catch(Throwable $e){
