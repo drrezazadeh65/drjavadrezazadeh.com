@@ -357,6 +357,35 @@ function jrOperationsNewsReadiness(PDO $pdo,array $config): array {
         'jrei_news_search_documents'=>[
             ['publication_id','language_code'],['public_route']]
     ];
+    // Uniqueness of business keys cannot replace the immutable row identity
+    // expected by the owner, source registry and publisher joins.
+    $requiredPrimaryKeys=[
+        'jrei_news_monitors'=>['monitor_id'],
+        'jrei_news_candidates'=>['candidate_id'],
+        'jrei_news_discovered_urls'=>['discovery_id'],
+        'jrei_news_evidence_reviews'=>['review_id'],
+        'jrei_news_editorial_versions'=>['revision_id'],
+        'jrei_news_owner_decisions'=>['decision_id'],
+        'jrei_news_publications'=>['publication_id'],
+        'jrei_news_exam_milestones'=>['milestone_id'],
+        'jrei_news_exam_follows'=>['follow_id'],
+        'jrei_news_delivery_receipts'=>['delivery_id'],
+        'jrei_news_topic_follows'=>['follow_id'],
+        'jrei_news_search_documents'=>['document_id']
+    ];
+    // Unsafe defaults may activate crawling, approval or outbox delivery
+    // despite a perfectly valid column type and FK inventory.
+    $requiredDefaults=[
+        'jrei_news_monitors'=>['enabled'=>'0'],
+        'jrei_news_exam_milestones'=>['owner_approved'=>'0'],
+        'jrei_news_delivery_receipts'=>['attempts'=>'0','state'=>'QUEUED'],
+        'jrei_news_publications'=>['publisher_state'=>'WAITING_FOR_PUBLISHER'],
+        'jrei_news_candidates'=>['state'=>'PENDING_EVIDENCE_VERIFICATION'],
+        'jrei_news_editorial_versions'=>['editorial_state'=>'PENDING_OWNER_APPROVAL'],
+        'jrei_news_exam_follows'=>['follow_state'=>'ACTIVE'],
+        'jrei_news_topic_follows'=>['follow_state'=>'ACTIVE'],
+        'jrei_news_search_documents'=>['index_state'=>'PUBLISHED']
+    ];
     // Required named non-unique indexes and FULLTEXT search capability.
     // Unlike UNIQUE keys, index order and type influence read performance.
     $requiredIndexes=[
@@ -434,7 +463,7 @@ function jrOperationsNewsReadiness(PDO $pdo,array $config): array {
         $marks=implode(',',array_fill(0,count($names),'?'));
         $q=$pdo->prepare(
             "SELECT c.TABLE_NAME,c.COLUMN_NAME,c.DATA_TYPE,c.COLUMN_TYPE,
-                    c.IS_NULLABLE,c.CHARACTER_MAXIMUM_LENGTH,
+                    c.IS_NULLABLE,c.CHARACTER_MAXIMUM_LENGTH,c.COLUMN_DEFAULT,
                     c.CHARACTER_SET_NAME,c.COLLATION_NAME,
                     t.ENGINE,t.TABLE_COLLATION
              FROM information_schema.COLUMNS c
@@ -552,6 +581,31 @@ function jrOperationsNewsReadiness(PDO $pdo,array $config): array {
                 }
                 if(!$matched){$uniquePresent=false;break;}
             }
+            $primaryKeyPresent=true;
+            if(isset($requiredPrimaryKeys[$name])){
+                $parts=$indexColumns[$name]['PRIMARY']??null;
+                if(!is_array($parts)||
+                   ($indexIsUnique[$name]['PRIMARY']??false)!==true ||
+                   isset($partialIndexes[$name]['PRIMARY'])){
+                    $primaryKeyPresent=false;
+                }else{
+                    ksort($parts,SORT_NUMERIC);
+                    $primaryKeyPresent=array_values($parts)===$requiredPrimaryKeys[$name];
+                }
+            }
+            $safeDefaultsPresent=true;
+            foreach($requiredDefaults[$name]??[] as $column=>$expectedDefault){
+                $actualDefault=$columnDetails[$name][$column]['COLUMN_DEFAULT']??null;
+                if(!is_string($actualDefault)){
+                    $safeDefaultsPresent=false;break;
+                }
+                // MariaDB may quote literal defaults in INFORMATION_SCHEMA,
+                // while MySQL often returns the unquoted representation.
+                $normalized=trim($actualDefault,"'");
+                if($normalized!==$expectedDefault){
+                    $safeDefaultsPresent=false;break;
+                }
+            }
             $secondaryIndexesPresent=true;
             foreach($requiredIndexes[$name]??[] as [$requiredName,$expected,$type]){
                 $parts=$indexColumns[$name][$requiredName]??null;
@@ -577,7 +631,7 @@ function jrOperationsNewsReadiness(PDO $pdo,array $config): array {
                 }
                 if(!$matched){$foreignKeysPresent=false;break;}
             }
-            if($columnsPresent&&$shapePresent&&$uniquePresent&&$secondaryIndexesPresent&&$foreignKeysPresent)
+            if($columnsPresent&&$shapePresent&&$uniquePresent&&$primaryKeyPresent&&$safeDefaultsPresent&&$secondaryIndexesPresent&&$foreignKeysPresent)
                 $tables[$name]='AVAILABLE';
         }
     }catch(Throwable $e){
