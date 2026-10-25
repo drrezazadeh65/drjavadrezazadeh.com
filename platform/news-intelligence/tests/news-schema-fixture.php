@@ -449,6 +449,12 @@ try{
     );
     ensure(($snapshot['schema']??null)==='jr.jrei.news-owner-bounded-snapshot.v1',
         'owner snapshot schema');
+    $snapshotStatuses=$snapshot['viewStatus']??[];
+    $snapshotSchemas=[];
+    foreach(($snapshot['views']??[]) as $key=>$view)
+        $snapshotSchemas[$key]=is_array($view)?($view['schema']??'NO_SCHEMA'):'UNAVAILABLE';
+    fwrite(STDERR,'Synthetic snapshot status '.json_encode(
+        ['status'=>$snapshotStatuses,'schemas'=>$snapshotSchemas],JSON_UNESCAPED_SLASHES).PHP_EOL);
     ensure(count($snapshot['views'])===7 &&
            count($snapshot['viewStatus'])===7 &&
            ($snapshot['views']['queue']['schema']??null)===
