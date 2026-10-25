@@ -115,8 +115,8 @@ export function mountNewsOwnerPanel({root,csrfResolver,
       if(readiness.packagedPrivateNewsLibraryAvailable!==true)
         messages.push(say('بستهٔ خصوصی ماژول یافت نشد','Private news library is missing'));
       if(readiness.requiredMotherSchemaAvailable!==true)
-        messages.push(say('جدول‌های پایگاه داده در دسترس نیستند: ',
-          'Unavailable mother-database tables: ')+
+        messages.push(say('جدول، ستون یا کلید یکتای لازم ناقص است: ',
+          'Missing mother-database table, column or UNIQUE index: ')+
           (missing.join('، ')||say('نامشخص','Unknown')));
       if(readiness.explicitOriginalApiFlagEnabled!==true)
         messages.push(say('مجوز API اصلی فعال نشده','Original API activation not approved'));
