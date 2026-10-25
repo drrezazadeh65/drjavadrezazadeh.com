@@ -1,3 +1,4 @@
+import {hasVerifiedPublicationAuthority} from './publication-authority.mjs';
 /** Social channel adapters: payloads only; existing AWOS engine sends. */
 import {assert,isHash,plain,publicHttps,safeText,sha256,utcInstant} from './contracts.mjs';
 export const SOCIAL_CHANNELS=Object.freeze({
@@ -15,7 +16,8 @@ export const SOCIAL_CHANNELS=Object.freeze({
 export function planChannelDelivery({publishedArticle,channel,caption,
   imageAsset=null,approvedAccount,nowUtc}={}){
   assert(plain(publishedArticle)&&publishedArticle.publicationState==='PUBLISHED'&&
-    publishedArticle.ownerApproved===true&&
+    hasVerifiedPublicationAuthority(publishedArticle)&&
+    publishedArticle.publisherReceiptVerified===true&&
     isHash(publishedArticle.approvalDigest)&&
     Object.hasOwn(SOCIAL_CHANNELS,channel)&&
     safeText(caption,10,SOCIAL_CHANNELS[channel].limit)&&
@@ -37,6 +39,8 @@ export function planChannelDelivery({publishedArticle,channel,caption,
     idempotencyKey:sha256([channel,approvedAccount.accountReference,
       publishedArticle.approvalDigest,url].join('|')),
     createdAt:nowUtc,state:'PENDING_EXISTING_AWOS_OUTBOX',
+    standingOfficialEditorialAuthority:
+      publishedArticle.standingOfficialPublicationVerified===true,
     sent:false,providerAccepted:false});
 }
 export function channelDeliveryResult({plan,providerReceipt,receivedAt}={}){
