@@ -60,6 +60,19 @@ jobs:
             tests/jrei-worker-error-code.test.mjs \
             tests/jrei-qwen-visible-answer.test.mjs \
             tests/jrei-node-a-local-artifacts.test.mjs
+      - name: Parse every Windows PowerShell AI launcher without executing commands
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          Get-ChildItem 'platform/jrei-v5/windows-worker' -Filter '*.ps1' -File | ForEach-Object {
+            $tokens = $null
+            $issues = $null
+            [System.Management.Automation.Language.Parser]::ParseFile(
+              $_.FullName, [ref]$tokens, [ref]$issues) | Out-Null
+            if ($issues.Count -gt 0) {
+              throw "Windows JREI source syntax unavailable: $($_.Name)"
+            }
+          }
       - name: Check JREI model worker syntax and model privacy firewall
         run: |
           set -euo pipefail
