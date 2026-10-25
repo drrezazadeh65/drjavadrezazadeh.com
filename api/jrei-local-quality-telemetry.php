@@ -22,8 +22,14 @@ function jrJreiLocalQualityTelemetryReady(PDO $pdo): bool {
 function jrJreiLocalQualityRecord(PDO $pdo,string $modelDigest,
     string $reason,int $now): bool {
     if(!preg_match('/^[a-f0-9]{64}$/D',$modelDigest)||
-       !in_array($reason,['NEGATIVE_QUALITY_GATE',
-           'INCOMPLETE_OR_UNTRUSTED_DRAFT'],true)||
+       !in_array($reason,[
+           'NEGATIVE_QUALITY_GATE','INCOMPLETE_OR_UNTRUSTED_DRAFT',
+           'CJK_SCRIPT_INTRUSION','NUMERIC_MISMATCH',
+           'FLAWED_PERSIAN_VALIDITY_DEFINITION',
+           'UNVERIFIED_REFERENCE_ASSURANCE','EXPOSED_INTERNAL_THINKING',
+           'TRUNCATED_COMPLETION','EMPTY_OR_OVERSIZED',
+           'UNSOURCED_ADMISSION_GUARANTEE'
+       ],true)||
        $now<=0||!jrJreiLocalQualityTelemetryReady($pdo))
         return false;
     try{
