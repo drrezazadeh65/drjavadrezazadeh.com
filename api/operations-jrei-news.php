@@ -166,6 +166,41 @@ function jrOperationsNewsReadiness(PDO $pdo,array $config): array {
         'jrei_news_search_documents'=>[
             ['publication_id','language_code'],['public_route']]
     ];
+    // All expected references must survive additive migrations. Missing FKs
+    // or a weakened ON DELETE action can otherwise admit orphaned evidence,
+    // owner decisions or public articles even when columns/UNIQUEs exist.
+    // Each expectation describes a single-column FK in the versioned SQL.
+    $requiredForeignKeys=[
+        'jrei_news_candidates'=>[
+            ['monitor_id','jrei_news_monitors','monitor_id','RESTRICT']],
+        'jrei_news_discovered_urls'=>[
+            ['monitor_id','jrei_news_monitors','monitor_id','RESTRICT'],
+            ['source_registry_id','jrei_exam_sources','source_id','RESTRICT'],
+            ['approved_article_source_id','jrei_exam_sources','source_id','SET NULL']],
+        'jrei_news_evidence_reviews'=>[
+            ['candidate_id','jrei_news_candidates','candidate_id','RESTRICT'],
+            ['reviewer_account_id','customer_accounts','id','RESTRICT']],
+        'jrei_news_editorial_versions'=>[
+            ['candidate_id','jrei_news_candidates','candidate_id','RESTRICT'],
+            ['evidence_review_id','jrei_news_evidence_reviews','review_id','RESTRICT']],
+        'jrei_news_owner_decisions'=>[
+            ['revision_id','jrei_news_editorial_versions','revision_id','RESTRICT'],
+            ['owner_account_id','customer_accounts','id','RESTRICT']],
+        'jrei_news_publications'=>[
+            ['revision_id','jrei_news_editorial_versions','revision_id','RESTRICT'],
+            ['approved_decision_id','jrei_news_owner_decisions','decision_id','RESTRICT']],
+        'jrei_news_exam_milestones'=>[
+            ['previous_milestone_id','jrei_news_exam_milestones','milestone_id','RESTRICT']],
+        'jrei_news_exam_follows'=>[
+            ['account_id','customer_accounts','id','CASCADE'],
+            ['milestone_id','jrei_news_exam_milestones','milestone_id','RESTRICT']],
+        'jrei_news_delivery_receipts'=>[
+            ['publication_id','jrei_news_publications','publication_id','RESTRICT']],
+        'jrei_news_topic_follows'=>[
+            ['account_id','customer_accounts','id','CASCADE']],
+        'jrei_news_search_documents'=>[
+            ['publication_id','jrei_news_publications','publication_id','RESTRICT']]
+    ];
     // Read bounded source-owned schema inventory rather than sending
     // sixteen individual SQL probes on every MFA newsroom refresh.
     $tables=array_fill_keys(array_keys($required),'UNAVAILABLE');
@@ -190,7 +225,7 @@ function jrOperationsNewsReadiness(PDO $pdo,array $config): array {
             if(is_string($table)&&isset($required[$table])&&
                is_string($column))$seen[$table][$column]=true;
         }
-        // Two bounded information_schema reads, no customer/source rows.
+        // Bounded information_schema reads only; no customer/source rows.
         // CREATE TABLE IF NOT EXISTS must never be accepted as proof that
         // UNIQUE constraints were added to a partially existing table.
         $indexQuery=$pdo->prepare(
@@ -213,6 +248,35 @@ function jrOperationsNewsReadiness(PDO $pdo,array $config): array {
             $indexColumns[$name][$index][$position]=$column;
             if($row['SUB_PART']!==null)$partialIndexes[$name][$index]=true;
         }
+        // One additional bounded metadata read verifies the actual foreign
+        // key target and deletion rule; names alone are not proof of integrity.
+        $fkQuery=$pdo->prepare(
+            "SELECT k.TABLE_NAME,k.CONSTRAINT_NAME,k.COLUMN_NAME,
+                    k.REFERENCED_TABLE_NAME,k.REFERENCED_COLUMN_NAME,
+                    r.DELETE_RULE
+             FROM information_schema.KEY_COLUMN_USAGE k
+             JOIN information_schema.REFERENTIAL_CONSTRAINTS r
+               ON r.CONSTRAINT_SCHEMA=k.CONSTRAINT_SCHEMA
+              AND r.CONSTRAINT_NAME=k.CONSTRAINT_NAME
+              AND r.TABLE_NAME=k.TABLE_NAME
+             WHERE k.TABLE_SCHEMA=DATABASE()
+               AND k.TABLE_NAME IN (".$marks.")
+               AND k.REFERENCED_TABLE_NAME IS NOT NULL"
+        );
+        $fkQuery->execute($names);
+        $foreignKeys=[];
+        while($row=$fkQuery->fetch(PDO::FETCH_ASSOC)){
+            $table=$row['TABLE_NAME']??null;
+            $constraint=$row['CONSTRAINT_NAME']??null;
+            if(!is_string($table)||!isset($required[$table])||
+               !is_string($constraint))continue;
+            $foreignKeys[$table][$constraint][]=[
+                $row['COLUMN_NAME']??null,
+                $row['REFERENCED_TABLE_NAME']??null,
+                $row['REFERENCED_COLUMN_NAME']??null,
+                $row['DELETE_RULE']??null
+            ];
+        }
         foreach($required as $name=>$columns){
             $columnsPresent=count(array_filter($columns,
                 static fn(string $column):bool=>
@@ -229,7 +293,19 @@ function jrOperationsNewsReadiness(PDO $pdo,array $config): array {
                 }
                 if(!$matched){$uniquePresent=false;break;}
             }
-            if($columnsPresent&&$uniquePresent)
+            $foreignKeysPresent=true;
+            foreach($requiredForeignKeys[$name]??[] as $expected){
+                $matched=false;
+                foreach($foreignKeys[$name]??[] as $parts){
+                    // Reject composite constraints masquerading as the
+                    // individual relationships specified by the migration.
+                    if(count($parts)===1 && $parts[0]===$expected){
+                        $matched=true;break;
+                    }
+                }
+                if(!$matched){$foreignKeysPresent=false;break;}
+            }
+            if($columnsPresent&&$uniquePresent&&$foreignKeysPresent)
                 $tables[$name]='AVAILABLE';
         }
     }catch(Throwable $e){
