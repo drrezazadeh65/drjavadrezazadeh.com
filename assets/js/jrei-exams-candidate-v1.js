@@ -186,7 +186,13 @@
      actions.replaceChildren();refreshClock();
      setStatus(T('بازیابی آزمون ممکن نشد. بدون تأیید سرور، پاسخ یا وضعیت ذخیره‌شده‌ای ادعا نمی‌شود.',
        'Exam recovery was not authorized. No answer is assumed saved without server confirmation.'));
-   }finally{busy=false;}
+   }finally{
+     // renderPaper() was initially called with busy=true during server
+     // restoration. Rebuild its controls after the read succeeds so a
+     // valid candidate can actually select a radio and submit answers.
+     busy=false;
+     if(active&&!recoveryRequired)renderPaper();
+   }
  }
  function renderPaper(){
    paper.replaceChildren();actions.replaceChildren();
