@@ -425,3 +425,43 @@ function jrNewsAdminApproveSuggestedInstitution(
         'published'=>false
     ];
 }
+
+/** Restore an owner-disabled source to its prior discovery approval only.
+ * Original acquisition authorization, actual monitor rights and publishing
+ * stay disabled until a separate current JREI policy recheck succeeds.
+ */
+function jrNewsAdminSourceRestore(
+    PDO $pdo,array $session,string $submissionId,int $now
+):array {
+    $owner=jrNewsOwnerAuthority($session);
+    if(preg_match('/^[a-f0-9-]{36}$/iD',$submissionId)!==1||$now<=0)
+        throw new InvalidArgumentException('news_admin_source_restore_invalid');
+    $pdo->beginTransaction();
+    try{
+        $q=$pdo->prepare(
+            'SELECT submission_id,submission_state,approved_at
+             FROM jrei_news_admin_source_submissions
+             WHERE submission_id=? FOR UPDATE');
+        $q->execute([$submissionId]);
+        $row=$q->fetch(PDO::FETCH_ASSOC);
+        if(!is_array($row)||$row['submission_state']!=='DISABLED')
+            throw new RuntimeException('news_admin_source_restore_requires_disabled');
+        $state=$row['approved_at']===null?
+            'PENDING_ADMIN_APPROVAL':'APPROVED_DISCOVERY';
+        $pdo->prepare(
+            'UPDATE jrei_news_admin_source_submissions SET
+             submission_state=?,linked_monitor_id=NULL,
+             last_issue_code=NULL,updated_at=? WHERE submission_id=?'
+        )->execute([$state,$now,$submissionId]);
+        if(function_exists('operationsAudit'))
+            operationsAudit($pdo,$owner['actor'],
+                'jrei_news_admin_source_restored',hash('sha256',$submissionId));
+        $pdo->commit();
+        return ['submissionId'=>$submissionId,'state'=>$state,
+            'originalMonitorEnabled'=>false,'approvalRecheckRequired'=>true,
+            'published'=>false,'perArticleOwnerApprovalRequired'=>false];
+    }catch(Throwable $e){
+        if($pdo->inTransaction())$pdo->rollBack();
+        throw $e;
+    }
+}
