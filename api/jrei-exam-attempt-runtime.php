@@ -244,6 +244,11 @@ function jrExamAttemptSave(PDO $pdo,string $account,array $request,int $at): arr
               WHERE session_id=? AND item_id=?');
             $q->execute([$attempt['assessment_session_id'],$itemId]);
         }
+        // Database work can cross the server deadline after the initial
+        // row-lock check. Expired answers must never commit even when the
+        // response insert itself succeeded earlier in this transaction.
+        if(time()>=(int)$attempt['deadline_at'])
+            throw new DomainException('exam_not_accepting_responses');
         $q=$pdo->prepare('UPDATE jrei_exam_commercial_attempts
           SET response_revision=response_revision+1,revision=revision+1,
             last_saved_at=?,updated_at=?
@@ -251,6 +256,8 @@ function jrExamAttemptSave(PDO $pdo,string $account,array $request,int $at): arr
         $q->execute([$at,$at,$attemptId,$revision,'IN_PROGRESS']);
         if($q->rowCount()!==1)
             throw new DomainException('exam_response_revision_conflict');
+        if(time()>=(int)$attempt['deadline_at'])
+            throw new DomainException('exam_not_accepting_responses');
         $pdo->commit();
         return [
           'ok'=>true,'attemptId'=>$attemptId,'savedItemId'=>$itemId,
@@ -327,6 +334,10 @@ function jrExamAttemptSubmit(PDO $pdo,string $account,array $request,int $at): a
         $digest=hash('sha256',$source);
         $output=json_encode($grade,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);
         $outputDigest=hash('sha256',$output);
+        // A slow source/key verification does not extend the explicitly
+        // bounded 120-second finalization grace period.
+        if(time()>$deadline+120)
+            throw new DomainException('exam_finalization_window_closed');
         $scoreId=uuidv4();
         $q=$pdo->prepare("INSERT INTO eco_score_runs
           (id,session_id,scoring_model_id,input_sha256,output_sha256,
@@ -368,6 +379,8 @@ function jrExamAttemptSubmit(PDO $pdo,string $account,array $request,int $at): a
         $q->execute([$at,$a['assessment_session_id']]);
         if($q->rowCount()!==1)
             throw new DomainException('exam_assessment_session_race');
+        if(time()>$deadline+120)
+            throw new DomainException('exam_finalization_window_closed');
         $pdo->commit();
         // Results remain private, preliminary, and owner-reviewable;
         // they are not psychometric ranks, certificates or public scorecards.
