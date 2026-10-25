@@ -13,6 +13,7 @@ define('BERTINA_API_BOOTSTRAPPED',true);
 require_once dirname(__DIR__).'/jrei-news-private-feed-bridge.php';
 require_once dirname(__DIR__).'/internal/jrei-news/delegated-official-source-enrollment.php';
 require_once dirname(__DIR__).'/internal/jrei-news/admin-source-management.php';
+require_once dirname(__DIR__).'/internal/jrei-news/original-official-source-bootstrap.php';
 try{
     $cfg=cfg();
     if(($cfg['jrei_news_feed_discovery_enabled']??false)!==true||
@@ -24,6 +25,19 @@ try{
     $pdo=db();
     if(!($pdo instanceof PDO))
         throw new RuntimeException('news_mother_database_unavailable');
+    // Bootstrap the owner's named official institutions into the ORIGINAL
+    // unreviewed source registry. These are DISCOVERED metadata only:
+    // neither robots/rights nor article authenticity are silently approved.
+    $institutionSeeds=['examined'=>0,'newDiscovered'=>0,
+        'sourcePermissionsGranted'=>0,'activeMonitorsAdded'=>0];
+    if(($cfg['jrei_news_official_catalogue_auto_seed_enabled']??false)===true){
+        $institutionSeeds=jrNewsOriginalSeedOfficialInstitutionSources(
+            $pdo,[
+              'source'=>'ORIGINAL_JREI_PRIVATE_NEWS_WORKER',
+              'originalCronLeaseVerified'=>true,
+              'institutionCatalogueSeedEnabled'=>true
+            ],time(),12);
+    }
     // Sources already approved through the manager dashboard should no
     // longer require a second manual "reconcile" click when the original
     // JREI-KA source and publisher-rights policies later become valid.
@@ -60,6 +74,7 @@ try{
     if(!preg_match('/^[A-Z_]{3,80}$/D',$state))$state='REQUIRES_REVIEW';
     fwrite(STDOUT,
       'JREI News private feed projection='.$state.
+      '; known official origins newly discovered='.(int)$institutionSeeds['newDiscovered'].
       '; private link suggestions='.(int)$summary['newPrivateLinksSuggested'].
       '; approved manager sources linked='.(int)$admin['linked'].
       '; monitored manager sources enabled='.(int)$admin['activated'].
