@@ -24,6 +24,7 @@ require_once __DIR__.'/editorial-draft-store.php';
 require_once __DIR__.'/original-ai-news-drafting.php';
 require_once __DIR__.'/original-model-draft-queue.php';
 require_once __DIR__.'/original-draft-runtime-adapter.php';
+require_once __DIR__.'/original-native-news-style-media.php';
 require_once __DIR__.'/independent-qa-ledger.php';
 require_once __DIR__.'/owner-editorial.php';
 require_once __DIR__.'/owner-preview.php';
