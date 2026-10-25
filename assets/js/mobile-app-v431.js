@@ -95,7 +95,12 @@ const sheet=isFa?[
 const originalHomeDock=needDockEligible&&isHomepage?
   q('.app-dock[data-jr-home-primary-dock]'):null;
 if(!originalHomeDock)q('.app-dock')?.remove();
-q('#mobile-app-menu')?.remove();
+// Preserve any live fallback dialog opened before this enhancement loaded.
+const priorSheet=q('#mobile-app-menu');
+const preserveSheetOpen=!!priorSheet&&!priorSheet.hidden&&
+  (priorSheet.classList.contains('is-open')||
+   document.documentElement.classList.contains('nav-open'));
+priorSheet?.remove();
 const header=q('.site-header');
 if(header&&!q('.mobile-menu-trigger',header)){
  const trigger=document.createElement('button');trigger.type='button';trigger.className='mobile-menu-trigger';trigger.setAttribute('data-nav-toggle','');trigger.setAttribute('aria-controls','mobile-app-menu');trigger.setAttribute('aria-expanded','false');trigger.setAttribute('aria-label',isFa?'بازکردن منو':'Open menu');trigger.innerHTML=icon('menu');header.appendChild(trigger);
@@ -138,6 +143,12 @@ if(needDockEligible){
 const panel=document.createElement('div');panel.className='mobile-app-sheet';panel.id='mobile-app-menu';panel.hidden=true;panel.setAttribute('role','dialog');panel.setAttribute('aria-modal','true');panel.setAttribute('aria-label',isFa?'دسترسی سریع':'Explore');
 panel.innerHTML='<div class="app-sheet-panel"><div class="app-sheet-head"><div><small>'+(isFa?'ناوبری اپ':'APP NAVIGATION')+'</small><strong>'+(isFa?'دسترسی سریع':'Explore')+'</strong></div><button type="button" class="app-sheet-close" data-nav-close aria-label="'+(isFa?'بستن منو':'Close menu')+'">×</button></div><div class="app-sheet-search"><label for="jr-mobile-quick-find">'+(isFa?'جست‌وجوی سریع در بخش‌های سایت':'Quickly find a site section')+'</label><input id="jr-mobile-quick-find" data-jr-mobile-quick-find type="search" autocomplete="off" spellcheck="false" placeholder="'+(isFa?'نام خدمت، کتاب یا بخش...':'Service, book or section...')+'" aria-controls="jr-mobile-quick-links"><span data-jr-mobile-search-count role="status" aria-live="polite"></span></div><div class="app-sheet-grid" id="jr-mobile-quick-links">'+sheet.map(([h,l])=>'<a href="'+h+'"><span class="sheet-icon">'+icon(iconFor(h,l))+'</span><b>'+l+'</b><span class="sheet-chevron" aria-hidden="true">›</span></a>').join('')+'</div><p class="app-sheet-empty" data-jr-mobile-empty hidden>'+(isFa?'بخشی با این عبارت پیدا نشد. عبارت دیگری وارد کنید.':'No section matched. Try another term.')+'</p>'+(installControl?'<div class="app-sheet-install">'+installControl+'</div>':'')+(isInstalled?'<div class="app-sheet-update"><button type="button" data-jr-app-update-check>'+icon('path')+'<span>'+(isFa?'بررسی نسخه جدید اپلیکیشن':'Check for app updates')+'</span></button><p data-jr-app-update-status role="status" aria-live="polite">'+(isFa?'در صورت انتشار نسخه جدید، به‌روزرسانی با تأیید شما انجام می‌شود.':'Updates are announced before you choose to refresh.')+'</p></div>':'')+'</div>';
 document.body.appendChild(panel);
+if(preserveSheetOpen){
+ panel.hidden=false;panel.classList.add('is-open');
+ document.documentElement.classList.add('nav-open');
+ qa('[data-nav-toggle]').forEach(t=>t.setAttribute('aria-expanded','true'));
+ q('[data-nav-close]',panel)?.focus({preventScroll:true});
+}
 
 if(installControl){
  const installButton=q('[data-jr-dock-install]',panel);
