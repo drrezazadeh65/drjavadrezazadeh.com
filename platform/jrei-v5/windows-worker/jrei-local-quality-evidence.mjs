@@ -12,6 +12,7 @@ import {createHash} from 'node:crypto';
 import {createReadStream} from 'node:fs';
 import {readFile,writeFile,mkdir,stat} from 'node:fs/promises';
 import {join,isAbsolute,resolve} from 'node:path';
+import {triageLocalQualityEvidence} from './jrei-local-quality-triage.mjs';
 
 const SHA=/^[a-f0-9]{64}$/;
 const ID=/^[A-Za-z0-9._:-]{1,100}$/;
@@ -78,10 +79,10 @@ async function infer(c,fixture) {
   const payload={
     model:c.modelId,
     messages:[
-      {role:'system',content:'This is a synthetic, local-only educational evaluation. Do not claim access to sources or tools. Reply visibly and concisely.'},
+      {role:'system',content:'This is a synthetic local educational capability evaluation, not a live knowledge lookup. Answer visibly, accurately and concisely in the language of the question. For Persian answers use Persian writing consistently; do not mix Chinese characters. Follow the requested number of sentences. For arithmetic verify the operation, then give exactly the requested numeric answer. Never claim access to outside sources or tools.'},
       {role:'user',content:fixture.prompt+' /no_think'}
     ],
-    max_tokens:120,temperature:0,stream:false,
+    max_tokens:256,temperature:0,stream:false,
     chat_template_kwargs:{enable_thinking:false}
   };
   const started=performance.now();
@@ -159,6 +160,9 @@ async function main() {
       ...x,prompt:fixtures.find(f=>f.id===x.fixtureId)?.prompt??''
     }))
   };
+  // Exact maths, truncation and Persian-script faults block promotion even
+  // when HTTP requests returned successfully. Independent review remains required.
+  report.negativeQualityTriage=triageLocalQualityEvidence(report);
   const outDir=join(ROOT,'quality-reviews');
   await mkdir(outDir,{recursive:true,mode:0o700});
   const reportJson=JSON.stringify(report,null,2)+'\n';
@@ -172,9 +176,15 @@ async function main() {
   process.stdout.write('[JREI] OBSERVED_OUTPUT_TOKENS_PER_TOTAL_SECOND='+
                        (report.observedOutputTokensPerTotalSecond??'UNKNOWN')+'\n');
   process.stdout.write('[JREI] PEAK_LLAMA_RAM_MB=UNKNOWN_NOT_MEASURED\n');
+  process.stdout.write('[JREI] NEGATIVE_QUALITY_TRIAGE='+report.negativeQualityTriage.result+'\\n');
+  process.stdout.write('[JREI] NEGATIVE_FINDINGS='+report.negativeQualityTriage.negativeFindings.length+'\\n');
+  for(const issue of report.negativeQualityTriage.negativeFindings){
+    process.stdout.write('[JREI] QUALITY_FAULT='+String(issue.fixtureId||'campaign')+':'+issue.kind+'\\n');
+  }
   process.stdout.write('[JREI] HUMAN_SCIENTIFIC_QUALITY_REVIEW_REQUIRED\n');
   process.stdout.write('[JREI] PUBLIC_ACTIVATION_OFF\n');
-  if(errors.length)process.exitCode=2;
+  if(errors.length||report.negativeQualityTriage.result==='BLOCKED_REMEDIATION_REQUIRED')
+    process.exitCode=2;
 }
 const isMain=process.argv[1]&&
   new URL('file:///'+process.argv[1].replaceAll('\\','/')).href===import.meta.url;
