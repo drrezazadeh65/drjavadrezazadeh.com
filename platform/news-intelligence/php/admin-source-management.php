@@ -465,3 +465,155 @@ function jrNewsAdminSourceRestore(
         throw $e;
     }
 }
+
+/**
+ * Original Cron reconciles sources PREVIOUSLY approved in the MFA dashboard
+ * against newly independently approved JREI-KA registry/policy rows. This
+ * avoids another manual "recheck" click after the source is verified.
+ * It never grants institutional identity, rights, robots permission or
+ * simulated MFA itself. A manually disabled monitor is never re-enabled.
+ */
+function jrNewsOriginalReconcileApprovedAdminSources(
+    PDO $pdo,array $cfg,array $privateContext,int $now,int $maxRows=20
+):array {
+    if(($privateContext['source']??null)!=='ORIGINAL_JREI_PRIVATE_NEWS_WORKER'||
+       ($privateContext['originalCronLeaseVerified']??null)!==true||
+       ($cfg['jrei_news_integrated_release_accepted']??null)!==true||
+       ($cfg['operations_cron_master_enabled']??null)!==true||
+       $now<=0||$maxRows<1||$maxRows>50)
+        throw new RuntimeException('news_admin_original_reconcile_not_authorized');
+    $q=$pdo->prepare(
+        "SELECT submission_id FROM jrei_news_admin_source_submissions
+          WHERE submission_state IN
+            ('APPROVED_DISCOVERY','ORIGINAL_POLICY_PENDING')
+            AND approved_by IS NOT NULL AND approved_at IS NOT NULL
+          ORDER BY updated_at,submission_id LIMIT ?"
+    );
+    $q->bindValue(1,$maxRows,PDO::PARAM_INT);
+    $q->execute();
+    $summary=['schema'=>'jr.jrei.news-original-admin-autolink.v1',
+        'examined'=>0,'linked'=>0,'activated'=>0,'pendingPolicy'=>0,
+        'technicalHolds'=>0,'dailyStoryQuota'=>null,
+        'syntheticSourceApprovals'=>0,'extraCronJobsStarted'=>0];
+    foreach($q->fetchAll(PDO::FETCH_COLUMN) as $id){
+        $summary['examined']++;
+        $pdo->beginTransaction();
+        try {
+            $s=$pdo->prepare(
+                "SELECT submission_id,submitted_by,approved_by,approved_at,
+                        source_url,source_category,news_priority,submission_state
+                 FROM jrei_news_admin_source_submissions
+                 WHERE submission_id=? FOR UPDATE"
+            );
+            $s->execute([$id]);
+            $row=$s->fetch(PDO::FETCH_ASSOC);
+            if(!is_array($row)||!in_array($row['submission_state'],
+                 ['APPROVED_DISCOVERY','ORIGINAL_POLICY_PENDING'],true)||
+               !preg_match('/^[a-f0-9-]{36}$/iD',(string)$row['approved_by'])||
+               (int)$row['approved_at']<=0||
+               (int)$row['approved_at']>$now){
+                $pdo->commit();continue;
+            }
+            $url=(string)$row['source_url'];
+            if(jrNewsAdminCanonicalSourceUrl($url)!==$url)
+                throw new RuntimeException('news_admin_original_source_url_changed');
+            $source=$pdo->prepare(
+                "SELECT s.source_id,s.review_state,s.rights_state,
+                        s.verified_at,s.reviewer_account_id,s.is_revoked,
+                        s.is_superseded,p.revision,p.scheduling_state,
+                        p.rights_reviewed,p.robots_terms_reviewed,
+                        p.transport_reviewed,p.rights_evidence_sha256,
+                        p.robots_terms_evidence_sha256,
+                        p.transport_evidence_sha256,p.refresh_interval_seconds
+                 FROM jrei_exam_sources s
+                 JOIN jrei_ka_source_policies p ON p.source_id=s.source_id
+                 WHERE BINARY s.source_locator_uri=BINARY ?
+                 ORDER BY s.source_id LIMIT 1 FOR UPDATE"
+            );
+            $source->execute([$url]);
+            $proof=$source->fetch(PDO::FETCH_ASSOC);
+            $approved=is_array($proof)&&
+                $proof['review_state']==='AUTHORITATIVE_REVIEWED'&&
+                in_array($proof['rights_state'],
+                    ['PERMITTED_PRIVATE_ANALYSIS','PERMITTED_REPRODUCTION'],true)&&
+                (int)$proof['is_revoked']===0&&
+                (int)$proof['is_superseded']===0&&
+                !empty($proof['reviewer_account_id'])&&
+                !empty($proof['verified_at'])&&
+                $proof['scheduling_state']==='APPROVED'&&
+                (int)$proof['revision']>0&&
+                (int)$proof['rights_reviewed']===1&&
+                (int)$proof['robots_terms_reviewed']===1&&
+                (int)$proof['transport_reviewed']===1&&
+                (int)$proof['refresh_interval_seconds']>=3600&&
+                (int)$proof['refresh_interval_seconds']<=86400;
+            foreach(['rights_evidence_sha256','robots_terms_evidence_sha256',
+                     'transport_evidence_sha256'] as $field)
+                $approved=$approved&&
+                    preg_match('/^[a-f0-9]{64}$/D',
+                        (string)($proof[$field]??''))===1;
+            if(!$approved){
+                $pdo->prepare(
+                    "UPDATE jrei_news_admin_source_submissions
+                     SET submission_state='ORIGINAL_POLICY_PENDING',
+                         last_issue_code='ORIGINAL_SOURCE_POLICY_REQUIRED',
+                         updated_at=? WHERE submission_id=?"
+                )->execute([$now,$id]);
+                $summary['pendingPolicy']++;
+                $pdo->commit();continue;
+            }
+            $hash=hash('sha256',$url);
+            $check=$pdo->prepare(
+                "SELECT monitor_id,enabled FROM jrei_news_monitors
+                 WHERE jrei_source_reference=?
+                   AND BINARY source_url_sha256=BINARY ? FOR UPDATE"
+            );
+            $check->execute([$proof['source_id'],$hash]);
+            $monitor=$check->fetch(PDO::FETCH_ASSOC);
+            $newMonitor=!is_array($monitor);
+            if($newMonitor){
+                $monitorId=jrNewsPrivateUuid();
+                $interval=(int)ceil((int)$proof['refresh_interval_seconds']/60);
+                // Never auto-enable merely because the domain is listed.
+                // Automatic start is a separate, explicit original
+                // production-release policy plus the recorded owner approval.
+                $enabled=($cfg['jrei_news_source_activation_accepted']??false)===true&&
+                    ($cfg['jrei_news_admin_source_auto_monitor_enabled']??false)===true;
+                $pdo->prepare(
+                    'INSERT INTO jrei_news_monitors
+                     (monitor_id,jrei_source_reference,source_url_sha256,
+                      category_code,priority_code,interval_minutes,
+                      policy_revision,enabled,created_at)
+                     VALUES(?,?,?,?,?,?,?,?,?)'
+                )->execute([
+                    $monitorId,$proof['source_id'],$hash,
+                    $row['source_category'],$row['news_priority'],
+                    $interval,$proof['revision'],$enabled?1:0,$now
+                ]);
+            }else{
+                $monitorId=(string)$monitor['monitor_id'];
+                // An operator may have paused the existing monitor: never
+                // silently reactivate it during a later Cron tick.
+                $enabled=(int)$monitor['enabled']===1;
+            }
+            $state=$enabled?'MONITOR_ACTIVE':'MONITOR_STAGED';
+            $pdo->prepare(
+                'UPDATE jrei_news_admin_source_submissions SET
+                  submission_state=?,matched_jrei_source_id=?,
+                  linked_monitor_id=?,last_issue_code=NULL,updated_at=?
+                  WHERE submission_id=? AND submission_state<>?'
+            )->execute([
+                $state,$proof['source_id'],$monitorId,$now,$id,'DISABLED'
+            ]);
+            $summary['linked']++;
+            if($enabled)$summary['activated']++;
+            $pdo->commit();
+        }catch(Throwable $e){
+            if($pdo->inTransaction())$pdo->rollBack();
+            // Isolate one malformed source; do not stop other institutions
+            // or claim that a technical failure is an owner news exception.
+            $summary['technicalHolds']++;
+        }
+    }
+    return $summary;
+}
