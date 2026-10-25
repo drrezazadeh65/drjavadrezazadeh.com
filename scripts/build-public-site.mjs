@@ -140,6 +140,30 @@ for(const [locale,route] of [
      !page.includes('/assets/css/jrei-news-archive-v1.css'))
     throw Error('JREI News bilingual public archive entry not packaged: '+route);
 }
+// Every ORIGINAL CMS news page references these first-party public assets.
+// A missing companion used to leave the on-page JREI button inert and the
+// public article unstyled even though isolated publisher SQL tests passed.
+const jreiNewsAssistant=fs.readFileSync(
+  path.join(root,'platform/news-intelligence/ui/news-assistant.js'),'utf8');
+const bundledArticleAssistant=path.join(out,'assets/js/jrei-news-assistant-v1.js');
+const bundledArticleCss=path.join(out,'assets/css/jrei-news-article-v1.css');
+if(!fs.existsSync(bundledArticleAssistant)||
+   fs.readFileSync(bundledArticleAssistant,'utf8')!==jreiNewsAssistant ||
+   !jreiNewsAssistant.includes('data-jrei-existing-assistant-slot')||
+   !jreiNewsAssistant.includes('openOriginalAssistant')||
+   !fs.existsSync(bundledArticleCss)||
+   !fs.readFileSync(bundledArticleCss,'utf8').includes('.ni-article')||
+   !fs.readFileSync(bundledArticleCss,'utf8').includes('[data-jrei-news-context]'))
+  throw Error('Original JREI News published article assistant/style assets missing');
+const originalNewsHtml=fs.readFileSync(
+  path.join(newsPhpSourceDir,'verified-news-page-render.php'),'utf8');
+for(const asset of ['/assets/js/assistant.js',
+                    '/assets/js/jrei-news-assistant-v1.js',
+                    '/assets/css/jrei-news-article-v1.css']){
+  if(!originalNewsHtml.includes(asset))throw Error(
+    'Original JREI News article HTML no longer references expected public asset: '+asset);
+}
+
 // The owner newsroom panel remains inside the established MFA dashboard;
 // no platform/ sources may be served and there is no unauthenticated API.
 // The source module carries only client code, never private account data.
