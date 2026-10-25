@@ -2,7 +2,10 @@
 declare(strict_types=1);
 if (!defined('BERTINA_API_BOOTSTRAPPED')) { http_response_code(404); exit; }
 
-const OPERATIONS_MFA_TTL = 600;
+// Persist owner MFA throughout a normal workday across page and tab navigation.
+// The existing signed session, account role, credential hash, revocation,
+// origin/CSRF and replay checks continue to apply on every request.
+const OPERATIONS_MFA_TTL = 43200;
 require_once __DIR__.'/publishing-onboarding.php';
 require_once __DIR__.'/publishing.php';
 require_once __DIR__.'/operations-reporting.php';
