@@ -68,7 +68,9 @@ try {
         $counts=$q->fetch(PDO::FETCH_ASSOC);
         $proposed=(int)($counts['candidate_total']??0);
         $approved=(int)($counts['owner_approved_count']??0);
-        $status=$proposed>0?'PROPOSAL_REVIEW_REQUIRED':'NO_APPROVED_EVALUATION';
+        $status=$readiness['available']!==true?
+            'EVIDENCE_SOURCE_UNAVAILABLE':
+            ($proposed>0?'PROPOSAL_REVIEW_REQUIRED':'NO_APPROVED_EVALUATION');
         $sources=$readiness['available']===true?
             (int)$readiness['approvedReviewSourceCount']:0;
         $cases=$readiness['available']===true?
