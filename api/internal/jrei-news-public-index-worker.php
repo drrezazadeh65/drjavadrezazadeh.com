@@ -21,8 +21,23 @@ try{
     if($root===false)
         throw new RuntimeException('news_original_index_root_missing');
     $out=jrNewsOriginalIndexVerifiedPublishedPages($pdo,$root,time(),6);
+    // Rebuild only JREI-owned RSS and sitemap after the ORIGINAL
+    // bilingual authenticated-CMS index has been reconciled.
+    $syndicated=0;
+    if(($cfg['jrei_news_verified_syndication_enabled']??false)===true&&
+       ($cfg['jrei_news_verified_restore_accepted']??false)===true&&
+       ($cfg['jrei_news_standing_official_publishing_enabled']??false)===true){
+        $receipt=jrNewsWriteOriginalSyndication(
+            $pdo,$root,time(),[
+                'source'=>'ORIGINAL_JREI_PRIVATE_INDEX_WORKER',
+                'actualPublishedCmsReceiptsRequired'=>true,
+                'originalSyndicationActivated'=>true
+            ]);
+        $syndicated=(int)$receipt['writtenAssets'];
+    }
     fwrite(STDOUT,'JREI original News index verified languages='.
-      (int)$out['indexedLanguages'].'; publication writes=0.'."\n");
+      (int)$out['indexedLanguages'].'; dedicated RSS/sitemap assets='.
+      $syndicated.'; article writes=0.'."\n");
 }catch(Throwable $e){
     fwrite(STDERR,"JREI original News index reconciliation requires review.\n");
     exit(1);
