@@ -75,18 +75,24 @@
     return Number.isFinite(ms)?String(Math.floor(ms/1000)):null;
   }
   form.addEventListener('submit',async function(event){
-    event.preventDefault();if(inflight)inflight.abort();
+    event.preventDefault();
+    var searchText=input.value.trim();
+    if(!searchText){
+      status.textContent=fa?'عبارت جست‌وجو را وارد کنید.':'Enter a search phrase.';
+      list.replaceChildren();return;
+    }
+    if(inflight)inflight.abort();
     const controller=new AbortController();inflight=controller;list.replaceChildren();
     submit.disabled=true;status.textContent=fa?'در حال جست‌وجو…':'Searching…';
     try{
       var params=new URLSearchParams();
-      params.set('q',input.value.trim());params.set('language',language);
+      params.set('q',searchText);params.set('language',language);
       if(topic.value)params.set('category',topic.value);
       if(country.value.trim())params.set('country',country.value.trim().toUpperCase());
       if(from.value)params.set('after',utcEpoch(from.value,false));
       if(to.value)params.set('before',utcEpoch(to.value,true));
       var response=await fetch('/api/news/v1/search?'+params.toString(),{
-        credentials:'same-origin',redirect:'error',cache:'no-store',
+        credentials:'omit',redirect:'error',cache:'no-store',
         signal:controller.signal,headers:{'Accept':'application/json'}});
       if(response.status===503)throw Error('ARCHIVE_NOT_ENABLED');
       if(!response.ok)throw Error('NOT_AVAILABLE');
@@ -94,19 +100,23 @@
       if(data.schema!=='jr.jrei.news-public-search.v1'||
         !Array.isArray(data.results))throw Error('RESULT_NOT_AUTHORIZED');
       status.textContent=data.results.length?
-        data.results.length+' '+copy.found:copy.none;
-      for(var i=0;i<data.results.length;i++){
+        Math.min(data.results.length,20)+' '+copy.found:copy.none;
+    var listCount=0;
+      for(var i=0;i<data.results.length&&i<20;i++){
         var item=data.results[i];
         var url;
         try{url=new URL(item.url,location.origin);}catch{continue;}
-        if(url.origin!==location.origin||
-          !url.pathname.startsWith('/'+language+'/'))continue;
+        var prefix=language==='fa'?'/fa/akhbar/':'/en/news-insights/';
+        if(url.origin!==location.origin||url.username||url.password||
+          url.search||url.hash||
+          !url.pathname.startsWith(prefix)||
+          !/^[a-z0-9-]+\/$/.test(url.pathname.slice(prefix.length)))continue;
         var card=element('article','ni-search-result');
         var h=element('h3');var a=element('a');
         a.href=url.pathname;a.textContent=String(item.headline||copy.read);
         h.append(a);
         var summary=element('p',null,String(item.summary||''));
-        card.append(h,summary);list.append(card);
+        card.append(h,summary);list.append(card);listCount++;
       }
     }catch(error){
       if(error.name!=='AbortError')

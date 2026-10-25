@@ -214,3 +214,14 @@ test('readiness validates all four additive migrations and original source table
   assert.match(php,/\$queueAccessible=\$apiFlag&&\$releaseFlag&&\$schemaReady&&\$privateLibraryReady/);
   assert.doesNotMatch(php,/ALTER TABLE|CREATE TABLE|DROP TABLE/);
 });
+
+test('public bilingual archive fetch uses no session cookies or unsafe result links',()=>{
+  const js=fs.readFileSync(path.join(out,'assets/js/jrei-news-archive-v1.js'),'utf8');
+  assert.ok(js.includes("credentials:'omit',redirect:'error'"));
+  assert.ok(js.includes("var searchText=input.value.trim()"));
+  assert.ok(js.includes("if(!searchText)"));
+  assert.ok(js.includes("url.search||url.hash"));
+  assert.ok(js.includes("'/fa/akhbar/'") && js.includes("'/en/news-insights/'"));
+  assert.ok(js.includes("i<20"),'public result rendering remains bounded');
+  assert.doesNotMatch(js,/credentials:'same-origin'/);
+});
