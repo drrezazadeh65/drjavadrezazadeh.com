@@ -6,6 +6,7 @@ const isArticle=/^\/fa\/(?:akhbar|rahnamaha)\/[a-z0-9-]+\/$/.test(page);
 const isService=/^\/(?:fa|en)\/services\/[a-z][a-z0-9_]{1,59}\/$/.test(page);
 if(!isArticle&&!isService)return;
 const en=document.documentElement.lang==='en';
+const locale=en?'en-US':'fa-IR';
 const tr=(fa,english)=>en?english:fa;
 const article=document.querySelector('main article');
 if(!article||article.querySelector('[data-jr-community]'))return;
@@ -28,6 +29,7 @@ const status=el('p','jr-community-status',tr('در حال دریافت دیدگ�
 status.setAttribute('role','status');status.setAttribute('aria-live','polite');
 host.append(identity,explanation,ratingSummary,listing,status);
 const form=el('form','jr-community-form');
+form.setAttribute('dir',en?'ltr':'rtl');
 form.innerHTML='<h3>دیدگاه خود را ثبت کنید</h3><fieldset class="jr-community-rating"><legend>امتیاز اختیاری به این مقاله</legend><div class="jr-community-rating-options"><label><input type="radio" name="rating" value="" checked><span>بدون امتیاز</span></label><label><input type="radio" name="rating" value="1"><span aria-label="۱ از ۵ ستاره">★</span></label><label><input type="radio" name="rating" value="2"><span aria-label="۲ از ۵ ستاره">★★</span></label><label><input type="radio" name="rating" value="3"><span aria-label="۳ از ۵ ستاره">★★★</span></label><label><input type="radio" name="rating" value="4"><span aria-label="۴ از ۵ ستاره">★★★★</span></label><label><input type="radio" name="rating" value="5"><span aria-label="۵ از ۵ ستاره">★★★★★</span></label></div></fieldset><label>متن دیدگاه<textarea name="body" required minlength="12" maxlength="2000" rows="5" placeholder="دیدگاه خود را محترمانه و مرتبط با این مقاله بنویسید."></textarea></label><p class="jr-community-privacy">لطفاً اطلاعات خصوصی دانش‌آموزان یا اشخاص دیگر را وارد نکنید. متن دیدگاه و امتیاز، فقط پس از تأیید مدیر، برای عموم قابل مشاهده است. <a href="/fa/harim-khosusi/">سیاست حریم خصوصی</a></p><label class="jr-community-consent"><input type="checkbox" name="consent" required> با بررسی و انتشار عمومی احتمالی دیدگاه و امتیاز خود پس از تأیید مدیر موافقم.</label><button type="submit">ارسال برای بررسی مدیر</button><p class="jr-community-form-status" role="status" aria-live="polite"></p>';
 if(isService){
  // Service Q&A is NOT a buyer-verified review. Never collect/display stars.
@@ -36,7 +38,7 @@ if(isService){
  form.innerHTML=faq;
 }
 // A quiet honeypot supplements verified accounts, server CSRF and rate limits.
-const honeypot=el('label','jr-community-honeypot','این قسمت باید خالی بماند');
+const honeypot=el('label','jr-community-honeypot',tr('این قسمت باید خالی بماند','Leave this field blank'));
 honeypot.setAttribute('aria-hidden','true');
 const honeypotInput=el('input','');honeypotInput.type='text';honeypotInput.name='website';
 honeypotInput.autocomplete='off';honeypotInput.tabIndex=-1;
@@ -46,7 +48,7 @@ formPanel.append(el('summary','',tr('ثبت دیدگاه یا پرسش علمی'
 formPanel.append(form);
 form.hidden=true;formPanel.hidden=true;host.append(formPanel);
 const login=el('p','jr-community-login');
-const signIn=el('a','',tr('برای ارسال دیدگاه، وارد حساب تأییدشده خود شوید.','Sign in to your verified account to ask a question.'));
+const signIn=el('a','',tr('برای ارسال دیدگاه، وارد حساب تأییدشده خود شوید.','Sign in to your verified account to submit a comment or question.'));
 signIn.href=en?'/en/login/':'/fa/login/';login.append(signIn);login.hidden=true;host.append(login);
 // Do not mount a community UI before the server confirms the gated feature.
 async function request(url,options={}){
@@ -58,6 +60,7 @@ async function load(){
  let result;try{result=await request(api+'comments?page='+encodeURIComponent(page));}catch(_){host.remove();return;}
  // Fail closed: do not advertise a feature until the backend + DB + owner flags are actually live.
  if(!result.ok||result.body?.schema!=='community-comments-v1'||!Array.isArray(result.body.comments)){host.remove();return;}
+ host.setAttribute('dir',en?'ltr':'rtl');
  article.append(host);
  const summary=result.body.ratingSummary;
  const count=summary?.count;
@@ -109,7 +112,7 @@ async function load(){
    button.disabled=true;feedback.textContent=tr('در حال ثبت امن…','Submitting securely…');
    try{
     const r=await request(api+'comments',{method:'POST',headers:{'Content-Type':'application/json','X-JR-Community-CSRF':token.body.csrfToken},body:JSON.stringify({page,body:value,rating,consentToPublication,website:String(form.elements.website?.value||'')})});
-    if(r.status===202&&r.body?.state==='pending'){feedback.textContent=tr('دیدگاه شما برای بررسی مدیر ثبت شد و هنوز عمومی نیست.','Your submission is awaiting moderation and is not public.');form.reset();button.disabled=true;}
+    if(r.status===202&&r.body?.state==='pending'){feedback.textContent=tr('دیدگاه شما برای بررسی مدیر ثبت شد و هنوز عمومی نیست.','Your submission is awaiting moderation and is not public.');form.reset();button.disabled=false;}
     else {feedback.textContent=r.status===409?tr('برای این صفحه قبلاً دیدگاه ثبت کرده‌اید.','You have already submitted a question or comment on this page.'):r.status===429?tr('لطفاً بعداً دوباره تلاش کنید.','Please try again later.'):tr('ثبت دیدگاه ممکن نشد. لطفاً دوباره تلاش کنید.','Your submission could not be saved. Please try again.');button.disabled=false;}
    }catch(_){feedback.textContent=tr('ارتباط برقرار نشد. دوباره تلاش کنید.','Could not connect. Please try again.');button.disabled=false;}
   });
