@@ -147,6 +147,7 @@ function cfg(): array {
         // Owned JREI-specific RSS and News Sitemap, gated independently.
         // It never overwrites the site's existing feed.xml or sitemap-news.xml.
         'jrei_news_verified_syndication_enabled' => getenv('JR_JREI_NEWS_VERIFIED_SYNDICATION_ENABLED') === 'true',
+        'jrei_news_original_digest_enabled' => getenv('JR_JREI_NEWS_ORIGINAL_DIGEST_ENABLED') === 'true',
 
         // Real AI inference: independent paid-provider credentials and
         // source-owned budget approval; entirely OFF until final acceptance.
