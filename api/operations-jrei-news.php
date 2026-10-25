@@ -788,6 +788,23 @@ function jrOperationsNewsReadiness(PDO $pdo,array $config): array {
             static fn(string $state):bool=>$state==='AVAILABLE')),
         'packagedPrivateNewsLibraryAvailable'=>$privateLibraryReady,
         'firstPartyModelAndEvidencePortReadiness'=>$modelPorts,
+        // The owner can inspect the newly coded automation switches without
+        // viewing host env values, tokens or mistaking a configured feature
+        // for a successfully executed production crawl or CMS write.
+        'sourceAdministrationAutomation'=>[
+            'approvedSourceAutolinkConfigured'=>
+                ($config['jrei_news_admin_source_autolink_enabled']??false)===true,
+            'newMonitorAutomaticStartConfigured'=>
+                ($config['jrei_news_admin_source_auto_monitor_enabled']??false)===true,
+            'originalSourceActivationAccepted'=>
+                ($config['jrei_news_source_activation_accepted']??false)===true,
+            'privatePublisherTickCapacity'=>
+                min(8,max(0,(int)($config['jrei_news_publish_batch_per_tick']??0))),
+            'crashRecoveryModulePackaged'=>$cmsPublisherPresent,
+            'actualCronSourceReconciliationObserved'=>false,
+            'actualPublisherRecoveryObserved'=>false,
+            'extraDatabaseOrUnboundedCrawlerCreated'=>false
+        ],
         'explicitOriginalApiFlagEnabled'=>$apiFlag,
         'integratedReleaseAccepted'=>$releaseFlag,
         'originalCmsPublisherConnected'=>false,
