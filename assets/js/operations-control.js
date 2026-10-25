@@ -2551,7 +2551,10 @@ function reportingDownload(format){
 
 $('ops-mfa-form').addEventListener('submit',async event=>{event.preventDefault();try{const code=$('ops-mfa-code').value;$('ops-mfa-code').value='';await api('/mfa',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-Token':csrf},body:JSON.stringify({code})});await load();}catch(error){notice(errorMessage(error),true);}});
 for(const id of ['ops-search','ops-engine','ops-priority'])$(id).addEventListener(id==='ops-search'?'input':'change',cards);
-$('ops-refresh').addEventListener('click',load);$('ops-refresh-data').addEventListener('click',load);$('ops-report').addEventListener('click',()=>download());$('ops-print').addEventListener('click',()=>window.print());$('ops-admin-detail').addEventListener('click',()=>show('ADM-01'));document.addEventListener('visibilitychange',()=>{if(document.hidden)lock(t('داده‌های مدیریت برای حفظ محرمانگی پنهان شدند.','Private management data hidden.'));else load();});
+$('ops-refresh').addEventListener('click',load);$('ops-refresh-data').addEventListener('click',load);$('ops-report').addEventListener('click',()=>download());$('ops-print').addEventListener('click',()=>window.print());$('ops-admin-detail').addEventListener('click',()=>show('ADM-01'));// Switching browser tabs must not destroy an authenticated owner workspace.
+// Recheck the server-side session when the page becomes visible. Server MFA
+// expiry, revocation, role checks, CSRF and explicit logout remain enforced.
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)void load();});
 // Stage 7: on-demand private audit history; never poll or imply live notifications.
 const auditPanel=el('details',undefined,'ops-panel');auditPanel.id='ops-audit-timeline';
 const auditSummary=el('summary',t('تاریخچهٔ حسابرسی مدیر (۵۰ رویداد اخیر)','Administrator audit history (latest 50 events)'));
