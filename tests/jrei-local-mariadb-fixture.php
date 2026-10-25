@@ -43,6 +43,23 @@ $db->prepare("INSERT INTO operations_cron_jobs
  VALUES ('jrei_local_chat_retention',1,300,0,'completed',?,?)")
  ->execute([$now,$now]);
 must(jrLocalChatReady($db,$c),'synthetic ready for fixture only');
+$health=jrLocalChatOwnerSnapshot($db,$c);
+must(($health['authorizedNodes']??null)===1&&
+     ($health['recentlySignedGenerativeWorkers']??null)===1,
+ 'owner health count requires genuine current approved node and signed poll');
+$db->prepare('UPDATE jrei_local_chat_node_authorizations
+ SET model_artifact_sha256=? WHERE node_id=? AND model_id=?')
+ ->execute([str_repeat('b',64),$node,$model]);
+$notApproved=jrLocalChatOwnerSnapshot($db,$c);
+must(($notApproved['authorizedNodes']??null)===0&&
+     in_array('authorized_generative_node',
+       $notApproved['readinessGates']['blockingGates']??[],true),
+ 'mismatched GGUF digest must block owner activation even when row enabled');
+$db->prepare('UPDATE jrei_local_chat_node_authorizations
+ SET model_artifact_sha256=? WHERE node_id=? AND model_id=?')
+ ->execute([$sha,$node,$model]);
+must(jrLocalChatReady($db,$c),
+ 'restore fixture-only worker model digest before encrypted queue test');
 $work=jrLocalChatEnqueue($db,$c,['message'=>'I need help with a reviewer response for my paper',
  'page'=>['lang'=>'en'],'history'=>[],'providerConsent'=>true]);
 must($work['pending']===true&&$work['notCloudApi']===true,'first-party encrypted queue');
