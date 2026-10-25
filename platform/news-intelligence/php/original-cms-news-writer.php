@@ -151,6 +151,23 @@ function jrNewsOriginalWriteVerifiedBilingualPages(
                !hash_equals((string)$article['contentSha256'],$hash))
                 throw new RuntimeException('news_cms_postpublication_hash_invalid');
         }
+        $postReview=$originalTrustedCmsRecheck([
+            'publicationId'=>$publicationId,'revisionId'=>$revisionId,
+            'approvalDigest'=>$row['approval_digest'],
+            'standingPolicyId'=>$row['standing_policy_id'],
+            'manualDecisionId'=>$row['approved_decision_id'],
+            'sourceUrl'=>$row['source_url'],
+            'evidenceSha256'=>$row['content_sha256'],
+            'imageRef'=>$row['approved_image_ref'],
+            'faRoute'=>$fa['route'],'enRoute'=>$en['route']
+        ]);
+        if(!is_array($postReview)||
+           ($postReview['signedOriginalPublicationAuthorityCurrent']??null)!==true||
+           ($postReview['sourceEvidenceAndUsageRightsCurrent']??null)!==true||
+           ($postReview['independentClaimReviewCurrent']??null)!==true||
+           ($postReview['licensedOriginalMediaCurrent']??null)!==true||
+           ($postReview['approvalDigest']??null)!==$row['approval_digest'])
+            throw new RuntimeException('news_cms_source_changed_after_write');
         $reference='jrei-original-bilingual:'.hash('sha256',implode('|',[
             $publicationId,$row['approval_digest'],
             $fa['contentSha256'],$en['contentSha256']
