@@ -12,6 +12,7 @@ require_once dirname(__DIR__).'/index.php';
 define('BERTINA_API_BOOTSTRAPPED',true);
 require_once dirname(__DIR__).'/jrei-news-private-feed-bridge.php';
 require_once dirname(__DIR__).'/internal/jrei-news/delegated-official-source-enrollment.php';
+require_once dirname(__DIR__).'/internal/jrei-news/admin-source-management.php';
 try{
     $cfg=cfg();
     if(($cfg['jrei_news_feed_discovery_enabled']??false)!==true||
@@ -23,6 +24,17 @@ try{
     $pdo=db();
     if(!($pdo instanceof PDO))
         throw new RuntimeException('news_mother_database_unavailable');
+    // Sources already approved through the manager dashboard should no
+    // longer require a second manual "reconcile" click when the original
+    // JREI-KA source and publisher-rights policies later become valid.
+    $admin=['linked'=>0,'activated'=>0,'pendingPolicy'=>0];
+    if(($cfg['jrei_news_admin_source_autolink_enabled']??false)===true){
+        $admin=jrNewsOriginalReconcileApprovedAdminSources(
+            $pdo,$cfg,[
+              'source'=>'ORIGINAL_JREI_PRIVATE_NEWS_WORKER',
+              'originalCronLeaseVerified'=>true
+            ],time(),20);
+    }
     $summary=jrNewsBridgeOriginalFeedObservation($pdo,$cfg,time());
     // Once the owner delegates a reviewed official HTTPS path, the original
     // JREI scheduler can register SAME-ORIGIN article URLs without another
@@ -49,6 +61,8 @@ try{
     fwrite(STDOUT,
       'JREI News private feed projection='.$state.
       '; private link suggestions='.(int)$summary['newPrivateLinksSuggested'].
+      '; approved manager sources linked='.(int)$admin['linked'].
+      '; monitored manager sources enabled='.(int)$admin['activated'].
       '; original delegated URL enrollments='.(int)$delegated['enrolled'].
       '; no independent downloads, no public publishing.'."\n");
 }catch(Throwable $e){
