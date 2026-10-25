@@ -580,6 +580,36 @@ $exactTypeRestored=jrOperationsNewsReadiness(
 ensure($exactTypeRestored['requiredMotherSchemaAvailable']===true,
     'restoring exact data type and NOT NULL returns readiness');
 
+// A different initial default must not silently activate monitoring.
+$pdo->exec('ALTER TABLE jrei_news_monitors
+    ALTER COLUMN enabled SET DEFAULT 1');
+$unsafeDefault=jrOperationsNewsReadiness(
+    $pdo,['jrei_news_integrated_release_accepted'=>true]
+);
+ensure($unsafeDefault['requiredMotherSchemaAvailable']===false &&
+       $unsafeDefault['originalNewsTables']['jrei_news_monitors']==='UNAVAILABLE',
+    'monitor default enabled=1 is not an approved migration');
+$pdo->exec('ALTER TABLE jrei_news_monitors
+    ALTER COLUMN enabled SET DEFAULT 0');
+ensure(jrOperationsNewsReadiness(
+    $pdo,['jrei_news_integrated_release_accepted'=>true]
+)['requiredMotherSchemaAvailable']===true,
+    'restored disabled monitor default passes');
+
+$pdo->exec('ALTER TABLE jrei_news_delivery_receipts DROP PRIMARY KEY');
+$missingPrimary=jrOperationsNewsReadiness(
+    $pdo,['jrei_news_integrated_release_accepted'=>true]
+);
+ensure($missingPrimary['requiredMotherSchemaAvailable']===false &&
+       $missingPrimary['originalNewsTables']['jrei_news_delivery_receipts']==='UNAVAILABLE',
+    'delivery receipt immutable primary key cannot be omitted');
+$pdo->exec('ALTER TABLE jrei_news_delivery_receipts
+    ADD PRIMARY KEY (delivery_id)');
+ensure(jrOperationsNewsReadiness(
+    $pdo,['jrei_news_integrated_release_accepted'=>true]
+)['requiredMotherSchemaAvailable']===true,
+    'restored receipt primary key passes');
+
 // All expected FKs must also exist: a permissive or dropped original
 // publisher reference is NOT a completed mother-database migration.
 $pdo->exec('ALTER TABLE jrei_news_search_documents
