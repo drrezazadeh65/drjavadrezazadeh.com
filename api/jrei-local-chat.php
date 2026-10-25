@@ -576,6 +576,43 @@ function jrLocalChatOwnerSetNode(PDO $pdo,array $cfg,string $actor,array $body):
         throw $e;
     }
 }
+/**
+ * JREI owner-only, read-only technical gating explanation. Reporting an
+ * obstacle never changes its authorisation, rights or scientific status.
+ */
+function jrLocalChatOwnerReadinessGates(array $snapshot,array $cfg): array {
+    $items=[
+      'mother_db_schema'=>$snapshot['motherDatabaseSchemaReady']??null,
+      'hybrid_private_switch'=>($cfg['jrei_hybrid_enabled']??false)===true,
+      'local_chat_private_switch'=>$snapshot['privateSwitchEnabled']??null,
+      'owner_public_release'=>$snapshot['ownerPublicReleaseAccepted']??null,
+      'private_queue_encryption'=>$snapshot['privateEncryptionKeyConfigured']??null,
+      'approved_public_evidence_index'=>$snapshot['approvedPublicEvidenceIndexReadable']??null,
+      'privacy_retention_worker'=>($snapshot['motherDatabaseSchemaReady']??false)
+          ?($snapshot['privateRetentionWorkerReady']??null):null,
+      'registered_local_model'=>isset($snapshot['registeredModelCount'])
+          ?$snapshot['registeredModelCount']>0:null,
+      'rights_reviewed_model'=>isset($snapshot['rightsReviewedModelCount'])
+          ?$snapshot['rightsReviewedModelCount']>0:null,
+      'independently_accepted_model'=>isset($snapshot['acceptedModelCount'])
+          ?$snapshot['acceptedModelCount']>0:null,
+      'authorized_generative_node'=>isset($snapshot['authorizedNodes'])
+          ?$snapshot['authorizedNodes']>0:null,
+      'recent_signed_generative_poll'=>isset($snapshot['recentlySignedGenerativeWorkers'])
+          ?$snapshot['recentlySignedGenerativeWorkers']>0:null
+    ];
+    $gates=[];$blocked=[];$unknown=[];
+    foreach($items as $id=>$passed){
+        $state=$passed===true?'PASS':($passed===false?'BLOCKED':'UNKNOWN');
+        $gates[]=['id'=>$id,'state'=>$state];
+        if($state==='BLOCKED')$blocked[]=$id;
+        if($state==='UNKNOWN')$unknown[]=$id;
+    }
+    return ['gates'=>$gates,'blockingGates'=>$blocked,
+      'unknownGates'=>$unknown,'allGatesPassed'=>!$blocked&&!$unknown,
+      'doesNotProveLiveInference'=>true,'changedAnything'=>false];
+}
+
 function jrLocalChatOwnerSnapshot(PDO $pdo,array $cfg): array {
     $ready=jrLocalChatSchemaReady($pdo);
     $result=[
@@ -602,11 +639,30 @@ function jrLocalChatOwnerSnapshot(PDO $pdo,array $cfg): array {
       'recentlySignedGenerativeWorkers'=>null,
       'pendingOrLeasedJobs'=>null,'provenModelQuality'=>false,
       'liveJobStates'=>null,
+      'registeredModelCount'=>null,
+      'rightsReviewedModelCount'=>null,'acceptedModelCount'=>null,
+      'readinessGates'=>null,
       'generativeWorkerStates'=>[],
       'externalCloudRequired'=>false
     ];
-    if(!$ready)return $result;
+    if(!$ready){
+        $result['readinessGates']=jrLocalChatOwnerReadinessGates($result,$cfg);
+        return $result;
+    }
     try{
+        $modelCounts=$pdo->query("SELECT COUNT(*) AS registered,
+          SUM(CASE WHEN status='RIGHTS_REVIEWED' AND suspended_at IS NULL
+                   THEN 1 ELSE 0 END) AS rights_reviewed,
+          SUM(CASE WHEN status='RIGHTS_REVIEWED' AND suspended_at IS NULL
+                   AND weights_installed_verified=1 AND runtime_verified=1
+                   AND independent_quality_accepted=1
+                 THEN 1 ELSE 0 END) AS accepted
+          FROM jrei_local_model_registry")->fetch(PDO::FETCH_ASSOC);
+        if(is_array($modelCounts)){
+          $result['registeredModelCount']=(int)$modelCounts['registered'];
+          $result['rightsReviewedModelCount']=(int)$modelCounts['rights_reviewed'];
+          $result['acceptedModelCount']=(int)$modelCounts['accepted'];
+        }
         // The cleanup Cron must have demonstrably completed recently.
         // Its presence or a setting by itself is never privacy readiness.
         $result['privateRetentionWorkerReady']=jrLocalChatRetentionReady($pdo,$cfg);
@@ -696,5 +752,6 @@ function jrLocalChatOwnerSnapshot(PDO $pdo,array $cfg): array {
         $result['pendingOrLeasedJobs']=$states['queued']+$states['leased'];
         $result['live']=jrLocalChatReady($pdo,$cfg);
     }catch(Throwable $e){}
+    $result['readinessGates']=jrLocalChatOwnerReadinessGates($result,$cfg);
     return $result;
 }
