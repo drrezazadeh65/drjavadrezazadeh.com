@@ -19,6 +19,7 @@ require_once __DIR__.'/original-auto-article-link.php';
 require_once __DIR__.'/candidate-intake.php';
 require_once __DIR__.'/evidence-review.php';
 require_once __DIR__.'/editorial-draft-store.php';
+require_once __DIR__.'/original-ai-news-drafting.php';
 require_once __DIR__.'/owner-editorial.php';
 require_once __DIR__.'/owner-preview.php';
 require_once __DIR__.'/owner-overview.php';
