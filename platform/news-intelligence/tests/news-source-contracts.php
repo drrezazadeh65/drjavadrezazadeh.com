@@ -62,4 +62,56 @@ newsThrows(static fn()=>jrNewsParseApprovedFeed(
     $feed,'application/rss+xml','university.example.edu',
     'source-authoritative-1','2026-10-24T05:00:00Z'),
     'RSS XXE safely rejected');
+
+$source=[
+    'source'=>'ORIGINAL_JREI_PRIVATE_SOURCE_REGISTRY',
+    'registryState'=>'AUTHORITATIVE_REVIEWED',
+    'issuerIdentityVerified'=>true,
+    'notRevoked'=>true,'exactSourceUrlApproved'=>true,
+    'rightsForPublicNews'=>true,'termsAndRobotsCurrent'=>true
+];
+$hash=hash('sha256','synthetic official JREI evidence');
+$evidence=[
+    'source'=>'ORIGINAL_JREI_VERIFIED_ARTICLE_EVIDENCE',
+    'currentIssuerEvidence'=>true,'verifiedContentSha256'=>$hash,
+    'claimsMatchPrimaryNotice'=>true,'noMaterialContradictions'=>true
+];
+$editorial=[
+    'source'=>'ORIGINAL_JREI_EDITORIAL_QA',
+    'bilingualComplete'=>true,'authorVoiceQualityPassed'=>true,
+    'newsGuidanceComplete'=>true,'internalLinksChecked'=>true,
+    'seoAndCanonicalChecked'=>true,'imageRightsCurrent'=>true,
+    'assistantContextGrounded'=>true
+];
+$publisher=[
+    'source'=>'ORIGINAL_AUTHENTICATED_CMS_POLICY',
+    'originalCmsConnected'=>true,'exactRoutesCollisionFree'=>true,
+    'authenticatedPublishReceiptSupported'=>true
+];
+$official=jrNewsOfficialPublicationDecision(
+    ['evidenceSha256'=>$hash],$source,$evidence,$editorial,$publisher);
+newsCheck($official['decision']==='ELIGIBLE_FOR_AUTOMATED_CMS_HANDOFF'&&
+    $official['humanPerArticleApprovalRequired']===false&&
+    $official['published']===false,
+    'verified official story only enters original CMS proposal');
+$uncertain=jrNewsOfficialPublicationDecision(
+    ['evidenceSha256'=>$hash],$source,
+    array_replace($evidence,['noMaterialContradictions'=>false]),
+    $editorial,$publisher);
+newsCheck($uncertain['decision']==='OWNER_EXCEPTION_QUEUE'&&
+    $uncertain['humanPerArticleApprovalRequired']===true,
+    'uncertain official claim requires owner review');
+$offline=jrNewsOfficialPublicationDecision(
+    ['evidenceSha256'=>$hash],$source,$evidence,$editorial,
+    array_replace($publisher,['originalCmsConnected'=>false]));
+newsCheck($offline['decision']==='SYSTEM_HOLD'&&
+    $offline['humanPerArticleApprovalRequired']===false,
+    'CMS outage must not create suspicious-news owner work');
+$spoof=jrNewsOfficialPublicationDecision(
+    ['evidenceSha256'=>$hash],
+    array_replace($source,['source'=>'BROWSER_SUBMITTED_TRUST']),$evidence,
+    $editorial,$publisher);
+newsCheck($spoof['decision']==='OWNER_EXCEPTION_QUEUE',
+    'browser-trusted source cannot authorize automatic publication');
+echo "PASS: PHP official auto-handoff versus owner exception and system hold\\n";
 echo "PASS: isolated news PHP input, authority, feed and consent contracts\n";
