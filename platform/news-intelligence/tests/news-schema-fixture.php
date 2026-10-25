@@ -24,14 +24,31 @@ $pdo->exec('CREATE TABLE customer_accounts (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci');
 $pdo->exec('CREATE TABLE jrei_exam_sources (
     source_id CHAR(36) PRIMARY KEY,
-    source_title VARCHAR(200) NOT NULL,
-    source_locator_uri VARCHAR(1000) NOT NULL,
+    source_authority_id VARCHAR(100) NOT NULL DEFAULT \'fixture\',
+    source_title VARCHAR(240) NOT NULL,
+    publication_date DATE NULL,
+    source_version VARCHAR(100) NOT NULL DEFAULT \'fixture-v1\',
+    original_sha256 CHAR(64) CHARACTER SET ascii COLLATE ascii_bin NULL,
+    source_locator_digest CHAR(64) CHARACTER SET ascii COLLATE ascii_bin NULL,
+    source_locator_uri VARCHAR(1200) NULL,
+    country_code CHAR(2) NOT NULL DEFAULT \'IR\',
+    educational_level VARCHAR(40) NOT NULL DEFAULT \'EDUCATIONAL_NEWS\',
+    exam_category VARCHAR(50) NOT NULL DEFAULT \'OFFICIAL_ANNOUNCEMENTS\',
+    curriculum_version VARCHAR(100) NOT NULL DEFAULT \'NEWS_CURRENT\',
+    subject_id VARCHAR(100) NOT NULL DEFAULT \'NEWS_SOURCE\',
+    examination_year SMALLINT UNSIGNED NOT NULL DEFAULT 2026,
+    source_kind VARCHAR(40) NOT NULL DEFAULT \'EXAM_PAPER\',
     review_state VARCHAR(40) NOT NULL,
     rights_state VARCHAR(50) NOT NULL,
-    reviewer_account_id CHAR(36) NOT NULL,
-    verified_at BIGINT UNSIGNED NOT NULL,
-    is_revoked TINYINT NOT NULL,
-    is_superseded TINYINT NOT NULL
+    extraction_state VARCHAR(40) NOT NULL DEFAULT \'NOT_STARTED\',
+    answer_key_state VARCHAR(40) NOT NULL DEFAULT \'UNKNOWN\',
+    reviewer_account_id CHAR(36) NULL,
+    verified_at BIGINT UNSIGNED NULL,
+    is_revoked TINYINT NOT NULL DEFAULT 0,
+    is_superseded TINYINT NOT NULL DEFAULT 0,
+    created_at BIGINT UNSIGNED NOT NULL DEFAULT 0,
+    updated_at BIGINT UNSIGNED NOT NULL DEFAULT 0,
+    UNIQUE KEY uq_jrei_candidate_uri_version(source_locator_digest,source_version)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci');
 $pdo->exec('CREATE TABLE jrei_ka_source_policies (
     source_id CHAR(36) PRIMARY KEY,
@@ -44,7 +61,9 @@ $pdo->exec('CREATE TABLE jrei_ka_source_policies (
     rights_evidence_sha256 CHAR(64) CHARACTER SET ascii COLLATE ascii_bin NULL,
     robots_terms_evidence_sha256 CHAR(64) CHARACTER SET ascii COLLATE ascii_bin NULL,
     transport_evidence_sha256 CHAR(64) CHARACTER SET ascii COLLATE ascii_bin NULL,
-    priority_tier VARCHAR(10) NOT NULL
+    priority_tier VARCHAR(10) NOT NULL,
+    next_due_at BIGINT UNSIGNED NOT NULL DEFAULT 0,
+    updated_at BIGINT UNSIGNED NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci');
 $dir=dirname(__DIR__,3).'/docs/migrations';
 foreach([
