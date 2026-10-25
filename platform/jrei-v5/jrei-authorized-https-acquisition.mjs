@@ -194,3 +194,6 @@ export async function acquireApprovedPublicSource({
     robotsPermissionChecked:true,contentSaved:false,
     sourceHttpStatus:200});
 }
+
+// Shared fail-closed transport primitives; exporting does not authorize downloads.
+export {pinnedPublicAddress,getPinned,robotsPermission};
