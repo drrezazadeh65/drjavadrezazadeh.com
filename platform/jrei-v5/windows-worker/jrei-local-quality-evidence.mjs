@@ -22,6 +22,9 @@ const MODEL_ENDPOINT=BASE+'/v1/chat/completions';
 const ROOT=process.env.LOCALAPPDATA?resolve(process.env.LOCALAPPDATA,'JREI'):null;
 const expectedConfig=ROOT?join(ROOT,'jrei-worker-config.json'):null;
 const digest=data=>createHash('sha256').update(data).digest('hex');
+const QUALITY_SUITE_VERSION='jrei-qwen-private-quality-v2';
+const QUALITY_MAX_TOKENS=256;
+const QUALITY_SYSTEM_PROMPT='This is a synthetic local educational capability evaluation, not a live knowledge lookup. Answer visibly, accurately and concisely in the language of the question. For Persian answers use Persian writing consistently; do not mix Chinese characters. Follow the requested number of sentences. For arithmetic verify the operation, then give exactly the requested numeric answer. Never claim access to outside sources or tools.';
 const fixtures=Object.freeze([
   {id:'fa-01',lang:'fa',prompt:'به زبان فارسی در دو جمله تفاوت یادگیری و حفظ کردن را توضیح بده.'},
   {id:'en-01',lang:'en',prompt:'In two English sentences, explain the difference between formative and summative assessment.'},
@@ -80,10 +83,10 @@ async function infer(c,fixture) {
   const payload={
     model:c.modelId,
     messages:[
-      {role:'system',content:'This is a synthetic local educational capability evaluation, not a live knowledge lookup. Answer visibly, accurately and concisely in the language of the question. For Persian answers use Persian writing consistently; do not mix Chinese characters. Follow the requested number of sentences. For arithmetic verify the operation, then give exactly the requested numeric answer. Never claim access to outside sources or tools.'},
+      {role:'system',content:QUALITY_SYSTEM_PROMPT},
       {role:'user',content:fixture.prompt+' /no_think'}
     ],
-    max_tokens:256,temperature:0,stream:false,
+    max_tokens:QUALITY_MAX_TOKENS,temperature:0,stream:false,
     chat_template_kwargs:{enable_thinking:false}
   };
   const started=performance.now();
@@ -137,7 +140,13 @@ async function main() {
   const times=results.map(x=>x.latencyMs);
   const totalTokens=results.reduce((n,x)=>n+(x.outputTokens??0),0);
   const totalLatency=times.reduce((n,x)=>n+x,0);
-  const fixtureBytes=JSON.stringify(fixtures);
+  // Hash the *entire* test protocol, not just user prompts. A change in
+  // maximum tokens or system guidance must invalidate the previous fixture SHA.
+  const fixtureBytes=JSON.stringify({
+    suite:QUALITY_SUITE_VERSION,systemPrompt:QUALITY_SYSTEM_PROMPT,
+    maxTokens:QUALITY_MAX_TOKENS,temperature:0,stream:false,
+    disableThinking:true,fixtures
+  });
   const report={
     schema:'jr.jrei.owner-local-evidence.v1',
     createdAtUtc:new Date().toISOString(),
