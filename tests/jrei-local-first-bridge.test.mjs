@@ -90,7 +90,7 @@ test('source-approved schema caretaker includes registry before queue and requir
   assert.match(caretaker,/jrei_local_model_registry/);
   assert.match(caretaker,/20261023_jrei_model_registry_mother_mysql\.sql/);
   assert.match(caretaker,/20261024_jrei_local_inference_queue_mother_mysql\.sql/);
-  assert.match(caretaker,/if\(count\(\$statements\)!==3\)/);
+  assert.match(caretaker,/if\(count\(\$(?:statements|stmts)\)!==3\)/);
   assert.match(caretaker,/'expectedTables'=>3/);
   assert.match(caretaker,/jrei_schema_wrong_database/);
   assert.match(caretaker,/jrJreiLocalSchemaBackupReady\(\$cfg\)/);
