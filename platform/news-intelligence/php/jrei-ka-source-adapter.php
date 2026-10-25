@@ -151,10 +151,10 @@ function jrNewsOwnerOriginalAcquisitionSnapshot(
                 o.source_id AS observation_source_id,
                 o.rights_state_at_acquisition
          FROM jrei_ka_jobs j
-         JOIN jrei_exam_sources s ON s.source_id=j.source_id
+         JOIN jrei_exam_sources s ON BINARY s.source_id=BINARY j.source_id
          JOIN jrei_news_monitors n ON BINARY n.jrei_source_reference=BINARY j.source_id
            AND BINARY n.source_url_sha256=BINARY SHA2(s.source_locator_uri,256)
-         LEFT JOIN jrei_ka_private_observations o ON o.job_id=j.job_id
+         LEFT JOIN jrei_ka_private_observations o ON BINARY o.job_id=BINARY j.job_id
          ORDER BY j.created_at DESC,j.job_id DESC LIMIT ?"
     );
     $q->bindValue(1,$limit,PDO::PARAM_INT);
