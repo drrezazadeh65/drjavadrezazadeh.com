@@ -25,7 +25,9 @@ test('pinned Windows process lifetime peak is parsed with bounded units, never i
 test('synthetic evidence does not silently approve a flawed model',()=>{
   assert.match(runner,/triageLocalQualityEvidence\(report\)/);
   assert.match(runner,/readPinnedWindowsPeakWorkingSetMb\(c\.backendExe\)/);
-  assert.match(runner,/max_tokens:256/);
+  assert.match(runner,/const QUALITY_MAX_TOKENS=256/);
+  assert.match(runner,/max_tokens:QUALITY_MAX_TOKENS/);
+  assert.match(runner,/suite:QUALITY_SUITE_VERSION,systemPrompt:QUALITY_SYSTEM_PROMPT/);
   assert.match(runner,/NEGATIVE_QUALITY_TRIAGE=/);
   assert.match(runner,/BLOCKED_REMEDIATION_REQUIRED/);
   assert.match(runner,/independentLanguageQualityAccepted:false/);
