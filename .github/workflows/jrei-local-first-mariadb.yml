@@ -7,6 +7,10 @@ on:
       - 'api/jrei-local-chat.php'
       - 'api/jrei-local-schema-caretaker.php'
       - 'api/internal/jrei-owner-one-shot-bootstrap.php'
+      - 'api/internal/jrei-mother-bootstrap-cli.php'
+      - 'api/jrei-local-private-backup.php'
+      - 'scripts/build-public-site.mjs'
+      - 'tests/jrei-local-first-bridge.test.mjs'
       - 'docs/migrations/20261023_jrei_model_registry_mother_mysql.sql'
       - 'api/internal/jrei-local-schema-caretaker-worker.php'
       - 'tests/jrei-local-schema-caretaker-fixture.php'
@@ -76,6 +80,9 @@ jobs:
           set -euo pipefail
           php -l api/jrei-local-schema-caretaker.php
           php -l api/internal/jrei-owner-one-shot-bootstrap.php
+          php -l api/internal/jrei-mother-bootstrap-cli.php
+          php -l api/jrei-local-private-backup.php
+          node --test tests/jrei-local-first-bridge.test.mjs
           php -l tests/jrei-local-schema-caretaker-fixture.php
           php tests/jrei-local-schema-caretaker-fixture.php
       - name: Test ephemeral encrypted conversation, model lease, citations and deletion
