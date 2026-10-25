@@ -7,6 +7,7 @@ declare(strict_types=1);
  */
 if (!defined('BERTINA_API_BOOTSTRAPPED')) { http_response_code(404); exit; }
 require_once __DIR__.'/candidate-intake.php';
+require_once __DIR__.'/official-html-discovery.php';
 
 function jrNewsStageVerifiedFeedLinkSuggestions(
     PDO $pdo,string $monitorId,array $originalObservation,
