@@ -124,8 +124,8 @@ test('academic brand, native accessible accordions, revision controls and SUPER_
   assert.match(html,/operations-community-moderation\.js\?v=20261021-academic-v2/);
   assert.match(html,/operations-community-moderation\.css\?v=20261021-academic-v2/);
  }
- assert.match(read('assets/js/site-extras.js'),/community-comments\.js\?v=20261021-academic-v2/);
- assert.match(read('assets/js/site-extras.js'),/community-comments\.css\?v=20261021-academic-v2/);
+ assert.match(read('assets/js/site-extras.js'),/community-comments\.js\?v=20261026-semantic-r1/);
+ assert.match(read('assets/js/site-extras.js'),/community-comments\.css\?v=20261026-semantic-r1/);
 });
 
 
@@ -158,4 +158,17 @@ test('reader rating summary counts only fully approved valid votes across the co
  assert.match(ui,/ratingSummary\.hidden=false/);
  assert.match(ui,/ratingSummary\.textContent=/);
  assert.doesNotMatch(ui,/JSON-LD|aggregateRating|ReviewCount/);
+});
+
+test('approved-only public pagination remains bounded and leaves rating aggregation independent',()=>{
+ const php=read('api/community.php');
+ const ui=read('assets/js/community-comments.js');
+ assert.match(php,/ORDER BY created_at DESC,id DESC LIMIT 21/);
+ assert.match(php,/nextCursor/);
+ assert.match(php,/validUuid\(\$rawId\)/);
+ assert.match(php,/state='approved'/);
+ assert.match(ui,/const renderComments=/);
+ assert.match(ui,/beforeCreatedAt=/);
+ assert.match(ui,/more\.hidden=!nextCursor/);
+ assert.match(ui,/Submitted for moderation/);
 });
