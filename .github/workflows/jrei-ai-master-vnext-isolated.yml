@@ -25,6 +25,13 @@ on:
       - 'assets/js/operations-jrei-hybrid-nodes-v1.js'
       - 'platform/jrei-v5/windows-worker/jrei-worker.mjs'
       - 'tests/jrei-model-production-gates.php'
+      - 'api/jrei-owner-private-pilot.php'
+      - 'api/operations.php'
+      - 'assets/js/operations-jrei-owner-pilot-v1.js'
+      - 'fa/app/admin/index.html'
+      - 'platform/jrei-v5/windows-worker/jrei-owner-pilot-worker.mjs'
+      - 'tests/jrei-owner-private-pilot.test.mjs'
+      - 'tests/jrei-owner-private-pilot-offline.php'
       - 'tests/jrei-ai-master-development-vnext.test.mjs'
       - '.github/workflows/jrei-ai-master-vnext-isolated.yml'
   workflow_dispatch:
@@ -63,6 +70,10 @@ jobs:
           php -l api/jrei-ai-improvement-sensors.php
           php -l api/internal/jrei-daily-learning-worker.php
           php -l api/index.php
+          php -l api/operations.php
+          php -l api/jrei-owner-private-pilot.php
+          node --check platform/jrei-v5/windows-worker/jrei-owner-pilot-worker.mjs
+          node --check assets/js/operations-jrei-owner-pilot-v1.js
           node --check platform/jrei-v5/windows-worker/jrei-worker.mjs
           node --check assets/js/assistant.js
           node --check assets/js/operations-jrei-hybrid-nodes-v1.js
@@ -74,6 +85,8 @@ jobs:
           node --test tests/jrei-local-quality-triage.test.mjs
           node --test tests/jrei-operational-apprentice.test.mjs
           php tests/jrei-model-production-gates.php
+          php tests/jrei-owner-private-pilot-offline.php
+          node --test tests/jrei-owner-private-pilot.test.mjs
           php -r 'define("BERTINA_API_BOOTSTRAPPED",true);require "api/jrei-local-answer-integrity.php";if(jrJreiSimpleArithmeticExpected("عدد ۱۲ را در ۷ ضرب کن و نتیجه را فقط با رقم بنویس.")!=="84")exit(1);if(jrJreiLocalDraftIntegrityFailure("عدد ۱۲ را در ۷ ضرب کن و نتیجه را فقط با رقم بنویس.","۴۸","fa")===null)exit(2);'
       - name: No deployment or backend activation
         run: |
