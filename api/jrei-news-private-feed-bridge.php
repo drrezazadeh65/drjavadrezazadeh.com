@@ -82,7 +82,7 @@ function jrNewsBridgeOriginalFeedObservation(
              ('PERMITTED_PRIVATE_ANALYSIS','PERMITTED_REPRODUCTION')
            AND o.mime_type IN
              ('application/rss+xml','application/atom+xml',
-              'application/xml','text/xml')
+              'application/xml','text/xml','text/html')
            AND o.bytes_total BETWEEN 50 AND 2097152
            AND o.private_object_key=CONCAT(o.content_sha256,'.bin')
            AND NOT EXISTS (
