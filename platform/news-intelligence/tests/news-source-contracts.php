@@ -182,7 +182,8 @@ newsCheck(jrNewsSameHostOfficialHtmlUrl(
     '//evil.example/announcement','https://pnu.ac.ir/news/','pnu.ac.ir'
 )===null,'protocol-relative malicious news link denied');
 newsThrows(static fn()=>jrNewsParseApprovedHtmlNoticeIndex(
-    '<!DOCTYPE html><html><main><a href="/news/a">Invalid DTD notice</a></main></html>',
+    '<!DOCTYPE html SYSTEM "https://evil.example/external.dtd">'.
+      '<html><main><a href="/news/a">Unsafe external DTD notice</a></main></html>',
     'text/html','https://pnu.ac.ir/news/',
     'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','2026-10-25T04:00:00Z'
 ),'untrusted HTML DTD is rejected');
