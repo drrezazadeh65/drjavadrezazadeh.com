@@ -252,6 +252,43 @@
    const quant=field(T('نسخه کم‌حجم‌سازی','Quantization'),'Q4_K_M','text',40);
    const ram=field(T('حداقل RAM بر حسب مگابایت','Required RAM (MB)'),'8192','number');
    ram.min='256';ram.max='131072';ram.step='1';
+   // This owner-PC candidate is sourced from the actual October 25
+   // SHA-256-verified GGUF and the official Qwen model/license pages.
+   // One click PREFILLS editable metadata only. It does not submit,
+   // certify licence compliance, or activate a model or public service.
+   const ownerCandidate=Object.freeze({
+     modelId:'jrei-qwen3-4b-q4km',
+     modelVersion:'qwen3-4b-q4km-20261025',
+     artifactSha256:'7485fe6f11af29433bc51cab58009521f205840f5b4ae3a32fa7f92e8534fdf5',
+     sourceUrl:'https://huggingface.co/Qwen/Qwen3-4B-GGUF',
+     licenceCode:'Apache-2.0',
+     licenceUrl:'https://huggingface.co/Qwen/Qwen3-4B-GGUF/blob/main/LICENSE',
+     quantization:'Q4_K_M',
+     // Conservative OWNER REVIEW estimate, not an observed process peak.
+     requiredRamMb:8192
+   });
+   const prefill=document.createElement('button');
+   prefill.type='button';
+   prefill.textContent=T(
+     'پرکردن فرم با مدل آزموده‌شدهٔ Qwen در رایانهٔ اول',
+     'Prefill the owner Node A Qwen candidate'
+   );
+   prefill.addEventListener('click',()=>{
+     if(!visible()||busy)return;
+     id.value=ownerCandidate.modelId;
+     version.value=ownerCandidate.modelVersion;
+     hash.value=ownerCandidate.artifactSha256;
+     source.value=ownerCandidate.sourceUrl;
+     licence.value=ownerCandidate.licenceCode;
+     licenceUrl.value=ownerCandidate.licenceUrl;
+     quant.value=ownerCandidate.quantization;
+     ram.value=String(ownerCandidate.requiredRamMb);
+   });
+   propose.append(prefill);
+   propose.append(el('p',T(
+     '۸۱۹۲ مگابایت صرفاً برآورد محافظه‌کارانهٔ RAM است، نه اندازه‌گیری واقعی. مجوز، منشأ فایل و گزارش کیفیت را پیش از ثبت نهایی جداگانه بررسی کنید.',
+     '8192 MB is a conservative RAM estimate, not a measured peak. Independently review licence, artifact provenance and quality before approval.'
+   )));
    const button=document.createElement('button');button.type='submit';
    button.textContent=T('ثبت پیشنهادی؛ بدون دانلود مدل','Propose metadata; do not download');
    propose.append(button);
