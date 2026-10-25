@@ -115,3 +115,30 @@ newsCheck($spoof['decision']==='OWNER_EXCEPTION_QUEUE',
     'browser-trusted source cannot authorize automatic publication');
 echo "PASS: PHP official auto-handoff versus owner exception and system hold\\n";
 echo "PASS: isolated news PHP input, authority, feed and consent contracts\n";
+
+$directory=jrNewsOfficialInstitutionDirectory();
+newsCheck(count($directory)>=9,'expected official institution bootstrap catalogue');
+$sanjesh=jrNewsOfficialDirectoryMatch('https://www.sanjesh.org/news/example');
+newsCheck(($sanjesh['institutionId']??null)==='sanjesh'&&
+    $sanjesh['robotsOrRightsGranted']===false&&
+    $sanjesh['actualUrlDownloadedOrVerified']===false,
+    'official host discovered but does not automatically obtain publishing rights');
+$pnu=jrNewsOfficialDirectoryMatch('https://pnu.ac.ir/news/item');
+newsCheck(($pnu['institutionId']??null)==='pnu',
+    'Payame Noor exact official host identified');
+foreach([
+    'https://sanjesh.org.evil.example/notice',
+    'https://evil.example/sanjesh.org',
+    'http://www.sanjesh.org/notice',
+    'https://www.sanjesh.org@evil.example/notice',
+    'https://user:pass@sanjesh.org/notice',
+    'https://api.pnu.ac.ir/notice',
+    'https://uast.ac.ir.evil.test/notice',
+    'https://127.0.0.1/notice',
+    'https://www.sanjesh.org:8443/notice',
+    'https://www.sanjesh.org/notice#fragment',
+    'https://www.sanjesh.org/notice'.chr(10)
+] as $lookalike)
+    newsCheck(jrNewsOfficialDirectoryMatch($lookalike)===null,
+        'spoofed or unreviewed subdomain cannot inherit institutional trust');
+echo "PASS: nine official institution discovery targets, lookalike rejection and no fabricated reuse rights\\n";
