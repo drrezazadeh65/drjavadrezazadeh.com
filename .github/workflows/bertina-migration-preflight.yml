@@ -18,6 +18,8 @@ on:
       - '.htaccess'
       # The complete release package also contains the protected PHP API.
       - 'api/**'
+      - 'platform/news-intelligence/**'
+      - 'docs/migrations/20261024_jrei_news_*.sql'
       - 'tests/**'
       - 'scripts/build-public-data.mjs'
       - 'scripts/build-public-site.mjs'
@@ -49,6 +51,26 @@ jobs:
 
       - name: Build sanitized public site
         run: node scripts/build-public-site.mjs
+
+      - name: Verify the exact packaged JREI News adapters and default-off activation
+        run: |
+          set -euo pipefail
+          node --test tests/jrei-news-private-release.test.mjs
+          php -l .public-site/api/operations-jrei-news.php
+          test -f .public-site/api/internal/jrei-news/news-library.php
+          test -f .public-site/api/internal/jrei-news/publication-readiness.php
+          test -f .public-site/assets/js/jrei-news-owner-panel-v1.mjs
+          test -f .public-site/assets/js/jrei-news-archive-v1.js
+          test ! -e .public-site/platform/news-intelligence
+
+      - name: Stamp exact owner-review candidate SHA (not a deployment)
+        run: |
+          set -euo pipefail
+          node scripts/stamp-bertina-release.mjs
+          grep -Fq "const CACHE_VERSION='jr-site-bertina-${GITHUB_SHA}';" .public-site/sw.js
+          grep -Fq "jr-deploy-revision\" content=\"${GITHUB_SHA}\"" .public-site/fa/shop/index.html
+          grep -Fq "jr-deploy-revision\" content=\"${GITHUB_SHA}\"" .public-site/en/shop/index.html
+          echo "Archive is source-locked to ${GITHUB_SHA}. This run NEVER deploys or applies SQL. The owner-only deployment workflow remains authoritative." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Apply Bertina/Apache deployment surface
         run: |

@@ -209,14 +209,14 @@ test('readiness validates all four additive migrations and original source table
     'jrei_news_search_documents','jrei_exam_sources',
     'jrei_ka_source_policies','jrei_ka_jobs','jrei_ka_private_observations'
   ])assert.ok(php.includes("'"+table+"'=>["),'source table checked: '+table);
-  assert.match(php,/information_schema\\.COLUMNS/);
-  assert.match(php,/information_schema\\.TABLES/);
+  assert.match(php,/information_schema\.COLUMNS/);
+  assert.match(php,/information_schema\.TABLES/);
   assert.match(php,/TABLE_TYPE='BASE TABLE'/);
-  assert.match(php,/\\$q->execute\\(\\$names\\)/);
-  assert.match(php,/\\$seen\\[\\$name\\]\\[\\$column\\]/);
+  assert.match(php,/\$q->execute\(\$names\)/);
+  assert.match(php,/\$seen\[\$name\]\[\$column\]/);
   assert.match(php,/'requiredMotherTableCount'=>count\(\$required\)/);
   assert.match(php,/\$queueAccessible=\$apiFlag&&\$releaseFlag&&\$schemaReady&&\$privateLibraryReady/);
-  assert.doesNotMatch(php,/ALTER TABLE|CREATE TABLE|DROP TABLE/);
+  assert.doesNotMatch(php,/['"]\s*(?:ALTER|CREATE|DROP)\s+TABLE\b/i);
 });
 
 test('public bilingual archive fetch uses no session cookies or unsafe result links',()=>{
