@@ -143,6 +143,18 @@ function jrNewsOriginalAutoHandoffReadiness(
          JOIN jrei_news_candidates c ON c.candidate_id=v.candidate_id
          JOIN jrei_news_monitors m ON m.monitor_id=c.monitor_id
              AND m.enabled=1
+         JOIN jrei_exam_sources feed ON feed.source_id=m.jrei_source_reference
+             AND BINARY m.source_url_sha256=BINARY SHA2(feed.source_locator_uri,256)
+             AND feed.review_state='AUTHORITATIVE_REVIEWED'
+             AND feed.is_revoked=0 AND feed.is_superseded=0
+             AND feed.verified_at IS NOT NULL
+             AND feed.reviewer_account_id IS NOT NULL
+         JOIN jrei_ka_source_policies fp ON fp.source_id=feed.source_id
+             AND fp.revision=m.policy_revision
+             AND fp.scheduling_state='APPROVED'
+             AND fp.rights_reviewed=1
+             AND fp.robots_terms_reviewed=1
+             AND fp.transport_reviewed=1
          JOIN jrei_news_discovered_urls d
              ON d.monitor_id=c.monitor_id
             AND BINARY d.canonical_url_sha256=BINARY SHA2(c.source_url,256)
