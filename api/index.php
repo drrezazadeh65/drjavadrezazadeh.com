@@ -133,6 +133,15 @@ function cfg(): array {
         // A separate SUPER_ADMIN decision. Creating news monitors or
         // approving original sources does not enable scheduled crawling.
         'jrei_news_source_activation_accepted' => getenv('JR_JREI_NEWS_SOURCE_ACTIVATION_ACCEPTED') === 'true',
+        // Superseding JREI News official-source policy. These are independent,
+        // opt-in private release flags: declaring them does not flip them on.
+        // Publishing must still have owner MFA policy, completed mother DB
+        // migrations, current source rights, independent QA and CMS receipt.
+        'jrei_news_model_drafting_enabled' => getenv('JR_JREI_NEWS_MODEL_DRAFTING_ENABLED') === 'true',
+        'jrei_news_original_cms_writer_enabled' => getenv('JR_JREI_NEWS_ORIGINAL_CMS_WRITER_ENABLED') === 'true',
+        'jrei_news_standing_official_publishing_enabled' => getenv('JR_JREI_NEWS_STANDING_OFFICIAL_PUBLISHING_ENABLED') === 'true',
+        'jrei_news_verified_restore_accepted' => getenv('JR_JREI_NEWS_VERIFIED_RESTORE_ACCEPTED') === 'true',
+
         // Real AI inference: independent paid-provider credentials and
         // source-owned budget approval; entirely OFF until final acceptance.
         'jrei_live_ai_enabled' => getenv('JR_JREI_LIVE_AI_ENABLED') === 'true',
