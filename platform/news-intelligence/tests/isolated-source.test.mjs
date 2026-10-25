@@ -5,7 +5,7 @@ import {normalizeNewsSource,stageNewsCandidate,sha256,prepareEditorialPreview,
 import {proposeImmutableBilingualNewsRoutes} from '../slug-routes.mjs';
 import {planIranNightNewsWindow} from '../scheduler-integration.mjs';
 import {planBalancedNewsDesk} from '../editorial-coverage-planner.mjs';
-import {decideOfficialNewsRoute} from '../official-publication-policy.mjs';
+import {decideOfficialNewsRoute,planOfficialNewsHandoffs} from '../official-publication-policy.mjs';
 import {ownerApprovedExamCalendarEvent} from '../calendar-authority.mjs';
 
 const sha=sha256('official reviewed article');
@@ -168,17 +168,21 @@ test('no arbitrary daily limit on verified official candidate selection',()=>{
 });
 test('only explicitly verified official notices get automatic handoff eligibility',()=>{
   const base={candidate:{evidenceSha256:sha},
-    source:{registryState:'AUTHORITATIVE_REVIEWED',
+    source:{source:'ORIGINAL_JREI_PRIVATE_SOURCE_REGISTRY',
+      registryState:'AUTHORITATIVE_REVIEWED',
       issuerIdentityVerified:true,notRevoked:true,
       exactSourceUrlApproved:true,rightsForPublicNews:true,
       termsAndRobotsCurrent:true},
-    evidence:{currentIssuerEvidence:true,verifiedContentSha256:sha,
+    evidence:{source:'ORIGINAL_JREI_VERIFIED_ARTICLE_EVIDENCE',
+      currentIssuerEvidence:true,verifiedContentSha256:sha,
       claimsMatchPrimaryNotice:true,noMaterialContradictions:true},
-    editorial:{bilingualComplete:true,authorVoiceQualityPassed:true,
+    editorial:{source:'ORIGINAL_JREI_EDITORIAL_QA',
+      bilingualComplete:true,authorVoiceQualityPassed:true,
       newsGuidanceComplete:true,internalLinksChecked:true,
       seoAndCanonicalChecked:true,imageRightsCurrent:true,
       assistantContextGrounded:true},
-    publisher:{originalCmsConnected:true,exactRoutesCollisionFree:true,
+    publisher:{source:'ORIGINAL_AUTHENTICATED_CMS_POLICY',
+      originalCmsConnected:true,exactRoutesCollisionFree:true,
       authenticatedPublishReceiptSupported:true}
   };
   const decision=decideOfficialNewsRoute(base);
@@ -196,5 +200,44 @@ test('only explicitly verified official notices get automatic handoff eligibilit
   const noCms=decideOfficialNewsRoute({...base,
     publisher:{...base.publisher,originalCmsConnected:false}});
   assert.equal(noCms.published,false);
-  assert.equal(noCms.decision,'OWNER_EXCEPTION_QUEUE');
+  assert.equal(noCms.decision,'SYSTEM_HOLD');
+  assert.equal(noCms.humanPerArticleApprovalRequired,false);
+});
+
+test('many verified official stories are routed without an arbitrary quota',()=>{
+  const payload={
+    candidate:{evidenceSha256:sha},
+    source:{source:'ORIGINAL_JREI_PRIVATE_SOURCE_REGISTRY',
+      registryState:'AUTHORITATIVE_REVIEWED',
+      issuerIdentityVerified:true,notRevoked:true,exactSourceUrlApproved:true,
+      rightsForPublicNews:true,termsAndRobotsCurrent:true},
+    evidence:{source:'ORIGINAL_JREI_VERIFIED_ARTICLE_EVIDENCE',
+      currentIssuerEvidence:true,verifiedContentSha256:sha,
+      claimsMatchPrimaryNotice:true,noMaterialContradictions:true},
+    editorial:{source:'ORIGINAL_JREI_EDITORIAL_QA',bilingualComplete:true,
+      authorVoiceQualityPassed:true,newsGuidanceComplete:true,
+      internalLinksChecked:true,seoAndCanonicalChecked:true,
+      imageRightsCurrent:true,assistantContextGrounded:true},
+    publisher:{source:'ORIGINAL_AUTHENTICATED_CMS_POLICY',
+      originalCmsConnected:true,exactRoutesCollisionFree:true,
+      authenticatedPublishReceiptSupported:true}
+  };
+  const items=Array.from({length:63},(_,i)=>({
+    ...payload,candidate:{...payload.candidate,
+      fingerprint:sha256('verified-official-story-'+i)}
+  }));
+  // The suspicious report belongs to the owner; missing CMS services do not.
+  items[3]={...items[3],evidence:{...items[3].evidence,
+    noMaterialContradictions:false}};
+  items[6]={...items[6],publisher:{...items[6].publisher,
+    originalCmsConnected:false}};
+  items.push(items[0]);
+  const batch=planOfficialNewsHandoffs({items});
+  assert.equal(batch.checkedUniqueCount,63);
+  assert.equal(batch.autoHandoff.length,61);
+  assert.equal(batch.ownerExceptions.length,1);
+  assert.equal(batch.systemHolds.length,1);
+  assert.equal(batch.duplicateFingerprints.length,1);
+  assert.equal(batch.dailyPublicationLimit,null);
+  assert.equal(batch.originalCmsWritePerformed,false);
 });
