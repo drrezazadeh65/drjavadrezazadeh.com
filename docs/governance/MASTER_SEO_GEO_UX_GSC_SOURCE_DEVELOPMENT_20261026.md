@@ -28,10 +28,12 @@ Search visibility is a search-engine decision, not a deterministic result of sou
 5. Updated `scripts/community-service-bundle.mjs` to reference the versioned community frontend assets without changing the opt-in/buyer-verification constraints.
 6. Added distinct evidence-oriented methodological sections to the six Persian and six English VIP description pages without inventing outcomes, payment readiness, validated psychometrics, review certificates or personal research data.
 7. Refined Persian VIP descriptions and linked the Persian standalone pages to the scoped semantic stylesheet.
-8. Changed the Persian news archive's fifteen linked story-card titles from H2 to H3 beneath the collection's H2 and retained appearance in `assets/css/editorial-launch-2026.css`.
-9. Updated only the modified VIP URLs' `<lastmod>` values in `sitemap-services.xml` and `sitemap-en.xml`, and the corresponding child sitemap dates in the root index. No route/canonical/sitemap membership was removed.
+8. Changed the Persian news archive's fifteen linked story-card titles from H2 to H3 beneath the collection's H2 and retained appearance in `assets/css/editorial-launch-2026.css` and `assets/css/jr-ecosystem-design-v2.css`.
+9. Updated `<lastmod>` for modified VIP pages and the English VIP hub in `sitemap-services.xml` and `sitemap-en.xml`, and the corresponding child sitemap dates in the root index. No route/canonical/sitemap membership was removed.
 10. Extended `llms.txt` with evidence-qualified public references to bilingual VIP and bookstore pages.
-11. Added `scripts/master-semantic-geo-audit.mjs` as a **staged, read-only** source inventory for one final acceptance window. This scanner is not a live test and has **not been executed**.
+11. Added `scripts/master-semantic-geo-audit.mjs` as a **staged, read-only** source inventory for one final acceptance window, and connected its strict mode to the existing Bertina master SEO acceptance workflow. The scanner has **not been executed**.
+12. Strengthened the English VIP hub's comparison and low-specificity VIP typography without changing established URLs. Versioned existing site/community resources and staged, but did not execute, compatible community pagination assertions.
+13. Future source-only commits use `[skip ci]` because the repository's existing Actions may otherwise start automatically on push. No intentional/manual test was invoked in this development phase; **automatic runs from earlier unmarked commits were not audited or ruled out**.
 
 ## Verification gates to run only after development
 
