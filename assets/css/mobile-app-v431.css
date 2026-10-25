@@ -620,3 +620,33 @@
  }
  .app-cart-badge[hidden]{display:none!important}
 }
+
+/* Accessible mobile native section search, visible before all links. */
+@media(max-width:900px){
+ .mobile-app-sheet .app-sheet-search{
+  display:grid;gap:7px;margin:0 0 14px;
+  padding:0 1px 10px;position:relative;z-index:1;
+ }
+ .mobile-app-sheet .app-sheet-search label{
+  display:block;color:#f0d694;font-size:13px;line-height:1.45;
+  font-weight:650;
+ }
+ .mobile-app-sheet .app-sheet-search input[type=search]{
+  display:block!important;width:100%;box-sizing:border-box;
+  min-height:48px;padding:10px 14px;border-radius:14px;
+  color:#fff5e6;background:#22211f;border:1px solid #9c8051;
+  font:inherit;font-size:16px;direction:inherit;
+  -webkit-appearance:none;appearance:none;
+ }
+ .mobile-app-sheet .app-sheet-search input[type=search]:focus-visible{
+  outline:3px solid #e7c788;outline-offset:2px;
+ }
+ .mobile-app-sheet .app-sheet-search [data-jr-mobile-search-count]{
+  display:block;min-height:1.3em;color:#d6c1a0;
+  font-size:12px;line-height:1.5;
+ }
+ .mobile-app-sheet .app-sheet-empty{
+  padding:12px;color:#f3ddab;line-height:1.7;
+ }
+ .mobile-app-sheet .app-sheet-grid a[hidden]{display:none!important}
+}
