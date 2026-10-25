@@ -18,16 +18,21 @@ if (!defined('BERTINA_API_BOOTSTRAPPED')) {
 }
 require_once __DIR__.'/official-institution-directory.php';
 require_once __DIR__.'/candidate-intake.php';
+require_once __DIR__.'/owner-editorial.php';
 
 /** One bounded private Cron iteration; idempotent and fail-closed. */
 function jrNewsOriginalSeedOfficialInstitutionSources(
     PDO $pdo,array $privateJob,int $nowEpoch,int $limit=12
 ):array {
-    if (($privateJob['source']??null)!=='ORIGINAL_JREI_PRIVATE_NEWS_WORKER'||
-        ($privateJob['originalCronLeaseVerified']??null)!==true||
-        ($privateJob['institutionCatalogueSeedEnabled']??null)!==true||
-        $nowEpoch<=0||$limit<1||$limit>20)
-        throw new RuntimeException('news_official_seed_private_cron_required');
+    $fromCron=($privateJob['source']??null)==='ORIGINAL_JREI_PRIVATE_NEWS_WORKER'&&
+        ($privateJob['originalCronLeaseVerified']??null)===true&&
+        ($privateJob['institutionCatalogueSeedEnabled']??null)===true;
+    $fromMfa=($privateJob['source']??null)==='EXISTING_OWNER_NEWS_OPERATIONS'&&
+        ($privateJob['confirmation']??null)==='DISCOVER_KNOWN_OFFICIAL_ORIGINS'&&
+        is_array($privateJob['ownerSession']??null);
+    if ((!$fromCron&&!$fromMfa)||$nowEpoch<=0||$limit<1||$limit>20)
+        throw new RuntimeException('news_official_seed_private_authority_required');
+    if($fromMfa)jrNewsOwnerAuthority($privateJob['ownerSession']);
 
     $summary=[
         'schema'=>'jr.jrei.news-original-institution-seed.v1',
