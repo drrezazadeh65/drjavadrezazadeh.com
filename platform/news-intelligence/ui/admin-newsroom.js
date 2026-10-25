@@ -14,8 +14,8 @@ export function mountNewsOwnerPanel({root,csrfResolver,
   const title=document.createElement('h2');
   title.textContent=say('تحریریه هوشمند JREI','JREI Newsroom');
   const info=document.createElement('p');
-  info.textContent=say('هر نسخه خبری پیش از انتشار عمومی به تأیید شما نیاز دارد.',
-    'Every exact news revision requires your approval before publication.');
+  info.textContent=say('اخبار رسمیِ تأییدشده به‌طور خودکار پردازش می‌شوند؛ فقط استثناها نیازمند بررسی مدیرند.',
+    'Verified official news uses standing authorization; only exceptions require owner review.');
   header.append(title,info);
   const refresh=document.createElement('button');refresh.type='button';
   refresh.className='ni-admin-refresh';
@@ -33,7 +33,9 @@ export function mountNewsOwnerPanel({root,csrfResolver,
   const publications=document.createElement('section');
   publications.className='ni-admin-publication-backlog';
   const list=document.createElement('div');list.className='ni-admin-queue';
-  root.replaceChildren(header,refresh,status,integration,metrics,sources,articles,acquisition,publications,list);
+  const customSources=document.createElement('section');
+  customSources.className='ni-admin-custom-source-manager';
+  root.replaceChildren(header,refresh,status,customSources,integration,metrics,sources,articles,acquisition,publications,list);
   const show=s=>{status.textContent=s;};
   const request=async (path,options)=>{
     const token=csrfResolver();
@@ -51,6 +53,128 @@ export function mountNewsOwnerPanel({root,csrfResolver,
   };
   const label=(value)=>{const node=document.createElement('span');
     node.textContent=String(value??'');return node;};
+
+  // Manager source intake is intentionally available before live publishing:
+  // it adds a discoverable official source, but never fabricates crawl rights.
+  const customTitle=document.createElement('h3');
+  customTitle.textContent=say('افزودن و مدیریت منابع دلخواه مدیر',
+    'Add and manage administrator-approved news sources');
+  const customInfo=document.createElement('p');
+  customInfo.textContent=say(
+    'مدیر نشانی رسمی را ثبت و تأیید می‌کند. منبع در فهرست کشف ثبت می‌شود؛ فعال‌سازی پایش تنها پس از اعتبار سیاست اصلی JREI ممکن است.',
+    'Approve new official sources here. They join discovery immediately; monitoring requires an existing verified JREI source and rights policy.');
+  const customForm=document.createElement('form');
+  const fields={};
+  for(const [key,caption,type,max] of [
+    ['title',say('نام مؤسسه','Institution name'),'text',200],
+    ['url',say('نشانی HTTPS رسمی','Official HTTPS URL'),'url',1000]]){
+    const wrapper=document.createElement('label');
+    wrapper.textContent=caption;
+    const input=document.createElement('input');
+    input.type=type;input.name=key;input.required=true;
+    input.autocomplete='off';input.maxLength=max;
+    fields[key]=input;
+    wrapper.append(input);customForm.append(wrapper);
+  }
+  const category=document.createElement('select');
+  for(const [code,caption] of [
+    ['universities',say('دانشگاه','University')],
+    ['examinations',say('سنجش و آزمون','Exams and admissions')],
+    ['school',say('مدرسه','School')],
+    ['research',say('پژوهش','Research')],
+    ['employment',say('استخدام','Employment')],
+    ['language',say('زبان','Language')],
+    ['international',say('بین‌الملل','International')]]){
+    const option=document.createElement('option');
+    option.value=code;option.textContent=caption;category.append(option);
+  }
+  const priority=document.createElement('select');
+  for(const code of ['P2','P1','P0']){
+    const option=document.createElement('option');
+    option.value=code;option.textContent=code;priority.append(option);
+  }
+  const addSource=document.createElement('button');
+  addSource.type='submit';
+  addSource.textContent=say('ثبت منبع','Submit source');
+  customForm.append(category,priority,addSource);
+  const customState=document.createElement('p');
+  customState.setAttribute('role','status');
+  const customRows=document.createElement('div');
+  customRows.className='ni-admin-custom-source-items';
+  customSources.append(customTitle,customInfo,customForm,customState,customRows);
+  let sourceActionPending=false;
+  async function mutateCustomSource(route,payload){
+    if(sourceActionPending)return;
+    sourceActionPending=true;addSource.disabled=true;
+    customState.textContent=say('در حال ثبت درخواست مدیر…','Saving administrator request…');
+    try{
+      await request(route,{method:'POST',body:JSON.stringify(payload)});
+      customState.textContent=say('درخواست ثبت شد.','Request recorded.');
+      await refreshCustomSources();
+    }catch(err){
+      customState.textContent=say(
+        'این درخواست هنوز انجام نشد؛ نشست مدیر، تنظیمات یا مهاجرت دیتابیس را بررسی کنید.',
+        'Not completed. Verify the administrator session, configuration and database migration.');
+    }finally{sourceActionPending=false;addSource.disabled=false;}
+  }
+  function customSourceButton(text,route,body){
+    const btn=document.createElement('button');btn.type='button';btn.textContent=text;
+    btn.addEventListener('click',()=>mutateCustomSource(route,body));
+    return btn;
+  }
+  async function refreshCustomSources(){
+    try{
+      const data=await request('/owner/admin-sources',{method:'GET'});
+      customRows.replaceChildren();
+      if(data.schema!=='jr.jrei.news-admin-source-list.v1'||!Array.isArray(data.entries))
+        throw Error('NEWS_ADMIN_SOURCE_RESPONSE_INVALID');
+      if(data.entries.length===0){
+        const empty=document.createElement('p');
+        empty.textContent=say('هنوز منبع سفارشی ثبت نشده است.','No custom source recorded yet.');
+        customRows.append(empty);
+      }
+      for(const item of data.entries){
+        const section=document.createElement('section');
+        const heading=document.createElement('h4');
+        heading.textContent=String(item.source_title??'');
+        const url=document.createElement('p');
+        url.textContent=String(item.source_url??'');
+        const state=document.createElement('p');
+        state.textContent=say('وضعیت: ','State: ')+String(item.submission_state??'');
+        section.append(heading,url,state);
+        const id=item.submission_id;
+        if(typeof id!=='string'||!/^[a-f0-9-]{36}$/i.test(id))continue;
+        if(item.submission_state==='PENDING_ADMIN_APPROVAL')
+          section.append(customSourceButton(say('تأیید و افزودن','Approve and add'),
+            '/owner/admin-sources/approve',{
+              submissionId:id,confirmation:'APPROVE_OFFICIAL_SOURCE_DISCOVERY'}));
+        if(['APPROVED_DISCOVERY','ORIGINAL_POLICY_PENDING','MONITOR_STAGED'].includes(item.submission_state))
+          section.append(customSourceButton(say('بررسی اتصال به پایشگر','Reconcile monitor'),
+            '/owner/admin-sources/reconcile',{submissionId:id}));
+        if(item.submission_state!=='DISABLED')
+          section.append(customSourceButton(say('توقف منبع','Disable source'),
+            '/owner/admin-sources/disable',{submissionId:id}));
+        if(item.last_issue_code){
+          const reason=document.createElement('p');
+          reason.textContent=String(item.last_issue_code);section.append(reason);
+        }
+        customRows.append(section);
+      }
+      return true;
+    }catch(error){
+      customState.textContent=say(
+        'مدیریت منابع سفارشی در نسخهٔ فعلی یا دیتابیس هنوز آماده نیست.',
+        'Custom source management is unavailable in this version or database.');
+      return false;
+    }
+  }
+  customForm.addEventListener('submit',event=>{
+    event.preventDefault();
+    mutateCustomSource('/owner/admin-sources/submit',{
+      title:fields.title.value.trim(),url:fields.url.value.trim(),
+      category:category.value,priority:priority.value
+    });
+  });
   const decisionsInFlight=new Set();
   async function decide(item,action,buttons){
     const id=item.revision_id;
@@ -89,6 +213,8 @@ export function mountNewsOwnerPanel({root,csrfResolver,
     acquisition.replaceChildren();
     publications.replaceChildren();
     integration.replaceChildren();
+    await refreshCustomSources();
+    if(readVersion!==loadRevision)return false;
     show(say('در حال بررسی وضعیت یکپارچگی…','Checking existing integrations…'));
     try{
       const readiness=await request('/owner/integration-readiness',{method:'GET'});
