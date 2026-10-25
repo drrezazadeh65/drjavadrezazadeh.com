@@ -4,10 +4,10 @@
  * No localStorage, no external network, no unreviewed HTML insertion.
  */
 export function mountNewsOwnerPanel({root,csrfResolver,
-  apiBase='/api/news/v1',locale='fa'}={}){
+  apiBase='/api/admin/operations/jrei-news',locale='fa'}={}){
   if(!(root instanceof HTMLElement)||typeof csrfResolver!=='function'||
     !['fa','en'].includes(locale)||
-    apiBase!=='/api/news/v1')throw Error('NEWS_OWNER_PANEL_SETUP_INVALID');
+    apiBase!=='/api/admin/operations/jrei-news')throw Error('NEWS_OWNER_PANEL_SETUP_INVALID');
   const fa=locale==='fa';
   const say=(persian,english)=>fa?persian:english;
   const header=document.createElement('div');header.className='ni-admin-heading';
@@ -35,12 +35,13 @@ export function mountNewsOwnerPanel({root,csrfResolver,
   const show=s=>{status.textContent=s;};
   const request=async (path,options)=>{
     const token=csrfResolver();
-    if(typeof token!=='string'||token.length<8)throw Error('NEWS_CSRF_MISSING');
+    if(typeof token!=='string'||!/^[a-f0-9]{64}$/i.test(token))throw Error('NEWS_CSRF_MISSING');
     const response=await fetch(apiBase+path,{
       credentials:'same-origin',cache:'no-store',redirect:'error',
       headers:{'Accept':'application/json',
         'Content-Type':'application/json','X-CSRF-Token':token},
       ...options});
+    if(response.status===409)throw Error('NEWS_OWNER_APPROVAL_PENDING');
     if(!response.ok)throw Error('NEWS_API_HTTP_'+response.status);
     const data=await response.json();
     if(!data||typeof data!=='object')throw Error('NEWS_API_RESPONSE_INVALID');
@@ -610,8 +611,11 @@ export function mountNewsOwnerPanel({root,csrfResolver,
       return true;
     }catch(error){
       if(readVersion===loadRevision)
-        show(say('صف بررسی قابل دریافت نیست. ',
-          'Unable to load queue. ')+error.message);
+        show(error.message==='NEWS_OWNER_APPROVAL_PENDING'?
+          say('تحریریه تا زمان پذیرش نهایی و فعال‌سازی رسمی مدیر غیرفعال است.',
+            'Newsroom activation awaits final verified owner acceptance.'):
+          say('صف بررسی قابل دریافت نیست. ',
+            'Unable to load queue. ')+error.message);
       return false;
     }finally{
       if(readVersion===loadRevision)refresh.disabled=false;

@@ -121,6 +121,26 @@ for(const [locale,route] of [
      !page.includes('/assets/css/jrei-news-archive-v1.css'))
     throw Error('JREI News bilingual public archive entry not packaged: '+route);
 }
+// The owner newsroom panel remains inside the established MFA dashboard;
+// no platform/ sources may be served and there is no unauthenticated API.
+// The source module carries only client code, never private account data.
+const ownerNewsroomSource=fs.readFileSync(
+  path.join(root,'platform/news-intelligence/ui/admin-newsroom.js'),'utf8');
+if(!ownerNewsroomSource.includes('export function mountNewsOwnerPanel') ||
+   !ownerNewsroomSource.includes("apiBase='/api/admin/operations/jrei-news'") ||
+   ownerNewsroomSource.includes("apiBase='/api/news/v1'"))
+  throw Error('JREI News owner module is not bound to the original MFA API');
+fs.writeFileSync(
+  path.join(out,'assets/js/jrei-news-owner-panel-v1.mjs'),ownerNewsroomSource,
+  {flag:'wx'});
+for(const pagePath of ['fa/app/admin/index.html','en/account/admin/index.html']){
+  const shell=fs.readFileSync(path.join(out,pagePath),'utf8');
+  if(!shell.includes('id="ops-workspace"') ||
+     !shell.includes('id="ops-jrei-newsroom"') ||
+     !shell.includes('/assets/js/operations-jrei-newsroom-v1.js') ||
+     !shell.includes('/assets/css/operations-jrei-newsroom-v1.css'))
+    throw Error('Original owner dashboard lost JREI Newsroom binding: '+pagePath);
+}
 // Insert an opt-in public Q&A surface only on catalogued public service detail pages.
 // Server deployment flags remain OFF unless separately approved after real QA.
 projectCommunityServicePages(root,out);

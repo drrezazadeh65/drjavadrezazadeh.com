@@ -96,3 +96,23 @@ test('both public knowledge hubs include the same reviewed-only news archive sea
     assert.ok(html.includes('</main>'),'existing content remains');
   }
 });
+
+test('MFA-only bilingual owner newsroom reuses existing operations identity and packaged module',()=>{
+  const source=fs.readFileSync(path.join(root,'platform/news-intelligence/ui/admin-newsroom.js'),'utf8');
+  const projected=fs.readFileSync(path.join(out,'assets/js/jrei-news-owner-panel-v1.mjs'),'utf8');
+  const loader=fs.readFileSync(path.join(out,'assets/js/operations-jrei-newsroom-v1.js'),'utf8');
+  assert.equal(projected,source,'owner client packaged from canonical module');
+  assert.ok(source.includes("apiBase='/api/admin/operations/jrei-news'"));
+  assert.doesNotMatch(source,/apiBase='\/api\/news\/v1'/);
+  assert.ok(loader.includes("fetch('/api/admin/operations/session'"));
+  assert.ok(loader.includes("auth.mfaRequired!==false"));
+  assert.ok(loader.includes("apiBase:'/api/admin/operations/jrei-news'"));
+  assert.ok(loader.includes('jr:operations-locked'));
+  for(const file of ['fa/app/admin/index.html','en/account/admin/index.html']){
+    const html=fs.readFileSync(path.join(out,file),'utf8');
+    assert.ok(html.includes('id="ops-workspace"'),'original dashboard maintained');
+    assert.ok(html.includes('id="ops-jrei-newsroom"'));
+    assert.ok(html.includes('/assets/js/operations-jrei-newsroom-v1.js'));
+    assert.ok(html.includes('/assets/css/operations-jrei-newsroom-v1.css'));
+  }
+});

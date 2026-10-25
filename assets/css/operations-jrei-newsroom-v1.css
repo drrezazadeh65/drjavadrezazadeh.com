@@ -1,0 +1,21 @@
+/* Readable mobile-first JREI News owner dashboard: existing MFA only. */
+#ops-jrei-newsroom{overflow-wrap:anywhere}
+#ops-jrei-newsroom [data-jrei-news-status]{line-height:1.7}
+#ops-jrei-newsroom .ni-admin-heading{margin-block:1rem}
+#ops-jrei-newsroom .ni-admin-metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:10px;margin-block:12px}
+#ops-jrei-newsroom .ni-admin-metric,#ops-jrei-newsroom .ni-admin-source-row,
+#ops-jrei-newsroom .ni-admin-unbound-row,#ops-jrei-newsroom .ni-admin-queue>article,
+#ops-jrei-newsroom .ni-admin-publication-backlog>article{display:flex;flex-direction:column;gap:8px;border:1px solid color-mix(in srgb,currentColor 25%,transparent);border-radius:12px;padding:12px;margin-block:8px;min-width:0}
+#ops-jrei-newsroom :is(button,input,select,textarea){max-width:100%;box-sizing:border-box;min-height:42px;font:inherit}
+#ops-jrei-newsroom :is(input,select,textarea){padding:7px;border-radius:7px}
+#ops-jrei-newsroom button{cursor:pointer;padding:7px 12px;border-radius:8px}
+#ops-jrei-newsroom button:disabled{cursor:not-allowed;opacity:.6}
+#ops-jrei-newsroom :is(a,button,input,select,textarea):focus-visible{outline:3px solid #d4b671;outline-offset:3px}
+#ops-jrei-newsroom .ni-admin-source-row{display:flex;flex-flow:row wrap;align-items:center}
+#ops-jrei-newsroom .ni-admin-source-row strong{flex:1 1 220px}
+#ops-jrei-newsroom .ni-admin-source-row span{flex:1 1 135px}
+#ops-jrei-newsroom .ni-admin-queue{display:grid;gap:12px}
+#ops-jrei-newsroom .ni-admin-queue pre{white-space:pre-wrap;max-width:100%;overflow-wrap:anywhere}
+#ops-jrei-newsroom .ni-admin-image{display:block;max-width:100%;height:auto}
+@media(max-width:600px){#ops-jrei-newsroom .ni-admin-metrics{grid-template-columns:1fr 1fr}#ops-jrei-newsroom .ni-admin-source-row{flex-direction:column;align-items:stretch}#ops-jrei-newsroom button{width:100%}}
+@media(max-width:370px){#ops-jrei-newsroom .ni-admin-metrics{grid-template-columns:1fr}}
