@@ -108,15 +108,26 @@ export function mountNewsOwnerPanel({root,csrfResolver,
       publishing.textContent=say('اتصال انتشار عمومی: تأییدنشده. هیچ خبری با این بررسی منتشر نمی‌شود.',
         'Public publishing: not connected. This diagnostic cannot publish.');
       const blockerDetails=document.createElement('p');
+      // Read only server-reported structural reason codes; never render
+      // raw SQL, table contents, diagnostic exceptions or private evidence.
+      const reasonMap=readiness.schemaBlockers||{};
       const missing=Object.entries(readiness.originalNewsTables||{})
         .filter(([name,state])=>/^[a-z0-9_]{3,60}$/.test(name)&&
-          state!=='AVAILABLE').slice(0,8).map(([name])=>name);
+          state!=='AVAILABLE').slice(0,8).map(([name])=>{
+          const codes=Array.isArray(reasonMap[name])?
+            reasonMap[name].filter(code=>typeof code==='string'&&
+              /^[A-Z_]{5,48}$/.test(code)).slice(0,5):[];
+          return name+(codes.length?' ['+codes.join(', ')+']':'');
+        });
       const messages=[];
       if(readiness.packagedPrivateNewsLibraryAvailable!==true)
         messages.push(say('بستهٔ خصوصی ماژول یافت نشد','Private news library is missing'));
+      if(readiness.schemaMetadataProbeSucceeded===false)
+        messages.push(say('دسترسی خواندن ساختار دیتابیس مادر قابل تأیید نیست',
+          'Mother database schema metadata could not be read'));
       if(readiness.requiredMotherSchemaAvailable!==true)
-        messages.push(say('جدول، ستون یا کلید یکتای لازم ناقص است: ',
-          'Missing mother-database table, column or UNIQUE index: ')+
+        messages.push(say('ساختار دیتابیس مادر یا روابط آن ناقص است: ',
+          'Missing or incompatible mother-database structures: ')+
           (missing.join('، ')||say('نامشخص','Unknown')));
       if(readiness.explicitOriginalApiFlagEnabled!==true)
         messages.push(say('مجوز API اصلی فعال نشده','Original API activation not approved'));
