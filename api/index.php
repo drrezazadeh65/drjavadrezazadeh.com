@@ -746,7 +746,8 @@ if ($path==='/exams/catalog' && $verb==='GET') {
 }
 if (str_starts_with($path, '/admin/operations')) operationsRoute($path, $verb);
 // Independent first-party Windows generative worker: no public machine port.
-if(in_array($path,['/jrei/v1/local-chat/poll','/jrei/v1/local-chat/complete'],true)){
+if(in_array($path,['/jrei/v1/local-chat/poll','/jrei/v1/local-chat/complete',
+   '/jrei/v1/local-chat/reject'],true)){
     require_once __DIR__.'/jrei-local-chat.php';
     header('Cache-Control: private, no-store, max-age=0');
     if($verb!=='POST')fail('local_worker_method_invalid',405);
@@ -779,6 +780,8 @@ if(in_array($path,['/jrei/v1/local-chat/poll','/jrei/v1/local-chat/complete'],tr
            (string)($body['modelId']??''),(string)($body['modelVersion']??''),
            (string)($body['modelSha256']??'')))
             fail('local_chat_model_approval_revoked',403);
+        if($path==='/jrei/v1/local-chat/reject')
+            respond(jrLocalChatWorkerReject($lp,$lc,$nodeId,$body));
         respond(jrLocalChatWorkerComplete($lp,$lc,$nodeId,$body));
     }catch(InvalidArgumentException $e){fail('local_worker_bad_request',422);}
      catch(DomainException $e){
