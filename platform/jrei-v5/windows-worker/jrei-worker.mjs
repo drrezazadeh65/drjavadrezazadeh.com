@@ -6,6 +6,7 @@
  *    node jrei-worker.mjs show-public
  *    node jrei-worker.mjs start [absolute-private-config.json]
  *    node jrei-worker.mjs start-chat [absolute-private-config.json]
+ *    node jrei-worker.mjs start-pilot [absolute-private-config.json]
  *
  * NO inbound listener, no remote shell, no arbitrary tool execution, no
  * unapproved model downloads, no cloud inference, and no filesystem upload.
@@ -35,6 +36,9 @@ const ENDPOINTS = Object.freeze({
   localChatPoll:'/api/jrei/v1/local-chat/poll',
   localChatComplete:'/api/jrei/v1/local-chat/complete',
   localChatReject:'/api/jrei/v1/local-chat/reject',
+  ownerPilotPoll:'/api/jrei/v1/owner-pilot/poll',
+  ownerPilotComplete:'/api/jrei/v1/owner-pilot/complete',
+  ownerPilotReject:'/api/jrei/v1/owner-pilot/reject',
   localPoll: '/api/jrei/v1/local-chat/poll',
   localComplete: '/api/jrei/v1/local-chat/complete'
 });
@@ -483,6 +487,23 @@ try {
     process.once('SIGINT',()=>stop.abort());
     process.once('SIGTERM',()=>stop.abort());
     await runLocalChatWorker(config,key,{post,log,signal:stop.signal});
+  }
+  else if(cmd==='start-pilot'&&process.argv.length===4){
+    const config=await loadConfig(process.argv[3]);
+    const {runOwnerPilotWorker,validateOwnerPilotConfig}=
+      await import('./jrei-owner-pilot-worker.mjs');
+    validateOwnerPilotConfig(config);
+    await verifyLocalModelArtifact(config.localChat);
+    await verifyLocalLlamaExecutable(config.localChat);
+    const pem=protectKey('unprotect',keyPath());
+    if(!pem)throw Error('WINDOWS_DPAPI_KEY_UNAVAILABLE');
+    const key=createPrivateKey(pem);
+    if(key.asymmetricKeyType!=='ed25519')
+      throw Error('PRIVATE_KEY_TYPE_UNAPPROVED');
+    const stop=new AbortController();
+    process.once('SIGINT',()=>stop.abort());
+    process.once('SIGTERM',()=>stop.abort());
+    await runOwnerPilotWorker(config,key,{post,log,signal:stop.signal});
   }
   else{
     process.stdout.write(
