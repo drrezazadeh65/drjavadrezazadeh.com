@@ -209,3 +209,40 @@ newsCheck(!array_key_exists('feed.xml',$syndication['files'])&&
     !array_key_exists('sitemap-news.xml',$syndication['files']),
     'legacy site RSS and sitemap remain completely untouched');
 echo "PASS: safe official HTML notice discovery and publication-receipt-only syndication templates\\n";
+
+/* The university notice page is ORIGINAL and previously archived by JREI-KA.
+ * No network request, automatic article trust or synthetic claim approval.
+ * RSS-free institutions must be able to yield safe, same-host candidates.
+ */
+$officialHtml='<!doctype html><html lang="fa"><head><title>Official university</title>'.
+    '</head><body><main><article>'.
+    '<a href="/news/notice-1405">اطلاعیه رسمی ثبت نام و مدارک دانشگاه</a>'.
+    '<a href="https://pnu.ac.ir/news/official-deadline">اعلام مهلت رسمی ثبت نام آزمون</a>'.
+    '<a href="https://pnu.ac.ir.evil.test/news/false">Fake institution news link</a>'.
+    '<a href="javascript:alert(1)">Suspicious injected official notice</a>'.
+    '<a href="/account/login">University account sign in</a>'.
+    '</article></main></body></html>';
+$actual=jrNewsParseApprovedHtmlNoticeIndex(
+    $officialHtml,'text/html; charset=UTF-8',
+    'https://pnu.ac.ir/news/','aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+    '2026-10-25T06:00:00Z');
+newsCheck($actual['indexWasHtml']===true &&
+    $actual['candidateCount']===2 &&
+    $actual['publicPublicationAllowed']===false &&
+    $actual['rightsToRedistributeNotEstablished']===true,
+    'RSS-free original university HTML index returns only same-host private leads');
+newsCheck($actual['candidates'][0]['url']==='https://pnu.ac.ir/news/notice-1405' &&
+    $actual['candidates'][0]['publicationAuthorized']===false,
+    'HTML page relative notice link carries no publication approval');
+newsCheck($actual['candidates'][1]['url']==='https://pnu.ac.ir/news/official-deadline',
+    'HTML page canonical absolute same-origin URL is retained');
+newsThrows(static fn()=>jrNewsParseApprovedHtmlNoticeIndex(
+    '<!DOCTYPE html PUBLIC "-//evil" "https://evil.test/bad.dtd">'.
+    $officialHtml,'text/html','https://pnu.ac.ir/news/',
+    'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','2026-10-25T06:00:00Z'),
+    'external DTD must not enter original university news link parser');
+newsCheck(jrNewsSameHostOfficialHtmlUrl(
+    'https://sanjesh.org.attacker.test/news/notice',
+    'https://sanjesh.org/news/','sanjesh.org')===null,
+    'institution lookalike must not inherit official source scope');
+echo "PASS: original RSS-free university notice pages discover only safe HTML metadata\\n";
