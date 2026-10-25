@@ -300,6 +300,14 @@ export function mountNewsOwnerPanel({root,csrfResolver,
   customInfo.textContent=say(
     'مدیر نشانی رسمی را ثبت و تأیید می‌کند. منبع در فهرست کشف ثبت می‌شود؛ فعال‌سازی پایش تنها پس از اعتبار سیاست اصلی JREI ممکن است.',
     'Approve new official sources here. They join discovery immediately; monitoring requires an existing verified JREI source and rights policy.');
+  const officialSeed=document.createElement('button');
+  officialSeed.type='button';
+  officialSeed.textContent=say(
+    'افزودن خودکار فهرست شناخته‌شدهٔ دانشگاه‌ها و سازمان سنجش',
+    'Register the known university and Sanjesh source catalogue');
+  officialSeed.title=say(
+    'فقط منابع را به رجیستری اصلی اضافه می‌کند؛ مجوز دسترسی، خزش یا انتشار جعل نمی‌شود.',
+    'Registers source origins only; never grants crawling, reuse or publishing permissions.');
   const customForm=document.createElement('form');
   const fields={};
   for(const [key,caption,type,max] of [
@@ -340,8 +348,8 @@ export function mountNewsOwnerPanel({root,csrfResolver,
   customSuggestions.className='ni-admin-custom-source-items';
   const customRows=document.createElement('div');
   customRows.className='ni-admin-custom-source-items';
-  customSources.append(customTitle,customInfo,customForm,customState,
-    customSuggestions,customRows);
+  customSources.append(customTitle,customInfo,officialSeed,customForm,
+    customState,customSuggestions,customRows);
   let sourceActionPending=false;
   async function mutateCustomSource(route,payload){
     if(sourceActionPending)return;
@@ -357,6 +365,11 @@ export function mountNewsOwnerPanel({root,csrfResolver,
         'Not completed. Verify the administrator session, configuration and database migration.');
     }finally{sourceActionPending=false;addSource.disabled=false;}
   }
+  officialSeed.addEventListener('click',()=>{
+    mutateCustomSource('/owner/admin-sources/seed-official',{
+      confirmation:'DISCOVER_KNOWN_OFFICIAL_ORIGINS'
+    });
+  });
   function customSourceButton(text,route,body){
     const btn=document.createElement('button');btn.type='button';btn.textContent=text;
     btn.addEventListener('click',()=>mutateCustomSource(route,body));
