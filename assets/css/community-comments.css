@@ -96,3 +96,22 @@
   line-height:1.9;overflow-wrap:anywhere;color:var(--jr-c-ink);
   border:1px solid rgba(199,163,91,.3);border-radius:12px;
   padding:9px 14px;background:rgba(199,163,91,.07);font-weight:600;font-size:.9rem}
+
+/* Bilingual reading alignment and controlled pagination (2026-10-26). */
+.jr-community{direction:inherit;text-align:start}
+.jr-community :is(h2,h3,.jr-community-intro,.jr-community-privacy,.jr-community-status,.jr-community-form-status,.jr-community-body,.jr-community-official-body,.jr-community-login){text-align:start}
+.jr-community-form :is(textarea,input:not([type=radio]):not([type=checkbox])){direction:inherit;text-align:start}
+.jr-community-rating-options{direction:ltr;justify-content:flex-start}
+.jr-community-rating-options span{unicode-bidi:isolate}
+.jr-community-more{
+ display:inline-flex;align-items:center;justify-content:center;
+ min-height:48px;padding:10px 21px;margin-block:6px 16px;
+ background:transparent;border:1px solid var(--jr-c-gold);
+ color:var(--jr-c-gold);border-radius:12px;cursor:pointer;
+ font:600 .92rem/1.6 Tahoma,Arial,sans-serif;
+}
+.jr-community-more:hover{background:rgba(199,163,91,.08)}
+.jr-community-more:disabled{opacity:.6;cursor:wait}
+.jr-community-more:focus-visible{outline:3px solid var(--jr-c-gold);outline-offset:3px}
+.jr-community-more[hidden]{display:none!important}
+@media(max-width:600px){.jr-community-more{width:100%}}
