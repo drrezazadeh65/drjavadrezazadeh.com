@@ -1,0 +1,71 @@
+name: Download JREI Qwen Private Quality V2 (No Deployment)
+on:
+  push:
+    branches:
+      - tooling/jrei-qwen-v2-private-test-bundle
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  package-approved-local-quality-code:
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify exact local-only JREI quality scripts
+        run: |
+          set -euo pipefail
+          node --check platform/jrei-v5/windows-worker/jrei-local-quality-evidence.mjs
+          node --check platform/jrei-v5/windows-worker/jrei-local-quality-triage.mjs
+          node --check platform/jrei-v5/windows-worker/jrei-local-ram-observer.mjs
+          node --test tests/jrei-local-quality-evidence.test.mjs tests/jrei-local-quality-triage.test.mjs tests/jrei-single-release-chat-readiness.test.mjs
+      - name: Package only reviewed scripts without secrets, model or configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p packet
+          for filename in JREI-QUALITY-EVIDENCE.cmd jrei-local-quality-evidence.mjs jrei-local-quality-triage.mjs jrei-local-ram-observer.mjs; do
+            cp "platform/jrei-v5/windows-worker/$filename" packet/
+          done
+          cat > packet/README-FA.txt <<'EOF'
+          JREI Qwen Private Quality V2 - Windows Node A
+          ------------------------------------------------
+          This is NOT a public-activation kit and does not install a model.
+          It never uploads prompts, local reports, private keys or configuration.
+
+          1. Extract these files together to a new folder on Node A (32 GB PC).
+          2. Keep the original JREI private configuration where it already is.
+             Do not copy jrei-worker-config.json or jrei-worker-key.dpapi.
+          3. Verify that the previously working local Qwen server is already
+             available at http://127.0.0.1:8081.
+          4. Double-click JREI-QUALITY-EVIDENCE.cmd and press Y.
+          5. When finished, inspect %LOCALAPPDATA%\JREI\quality-reviews\
+             and share ONLY the latest jrei-qwen-acceptance-*.json report.
+          6. A BLOCKED quality result is not a Windows/installer error:
+             do not attest independent quality or activate public AI.
+          7. If the check reports LOCAL_QUALITY_CONFIG_NOT_APPROVED, do not
+             change private settings or claim approval. Report just the error code.
+          8. If localhost is unreachable, report the code. Do not reinstall Qwen.
+
+          Build source: drrezazadeh65/drjavadrezazadeh.com
+          Expected baseline: d555bcff8deb26450e29c79fb4e278644046cc01
+          This source package changes no deployment, database or Windows files
+          until you expressly choose to run the existing local CMD.
+          EOF
+          (cd packet && sha256sum JREI-QUALITY-EVIDENCE.cmd jrei-local-quality-evidence.mjs jrei-local-quality-triage.mjs jrei-local-ram-observer.mjs > SHA256SUMS.txt)
+          if [ "$(find packet -maxdepth 1 -type f | wc -l)" != "6" ]; then
+            echo 'Unexpected private script package inventory' >&2
+            exit 1
+          fi
+      - name: Upload owner-downloadable private quality kit (not a website deploy)
+        uses: actions/upload-artifact@v4
+        with:
+          name: JREI-QWEN-PRIVATE-QUALITY-V2-WINDOWS
+          path: packet/
+          retention-days: 30
+          if-no-files-found: error
