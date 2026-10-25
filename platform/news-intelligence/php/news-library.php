@@ -17,6 +17,7 @@ require_once __DIR__.'/official-html-discovery.php';
 require_once __DIR__.'/feed-discovery.php';
 require_once __DIR__.'/approved-feed-item-link.php';
 require_once __DIR__.'/original-auto-article-link.php';
+require_once __DIR__.'/delegated-official-source-enrollment.php';
 require_once __DIR__.'/candidate-intake.php';
 require_once __DIR__.'/evidence-review.php';
 require_once __DIR__.'/editorial-draft-store.php';
