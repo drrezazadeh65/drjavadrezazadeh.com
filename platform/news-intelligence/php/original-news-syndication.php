@@ -10,7 +10,10 @@ declare(strict_types=1);
 if(!defined('BERTINA_API_BOOTSTRAPPED')){http_response_code(404);exit;}
 
 function jrNewsSyndicationXml(string $value):string{
-    return htmlspecialchars($value,ENT_QUOTES|ENT_XML1|ENT_SUBSTITUTE,'UTF-8');
+    // XML 1.0 forbids most C0 controls even in otherwise valid UTF-8.
+    $clean=preg_replace('/[\\x00-\\x08\\x0B\\x0C\\x0E-\\x1F]/u','',$value);
+    return htmlspecialchars(is_string($clean)?$clean:'',
+        ENT_QUOTES|ENT_XML1|ENT_SUBSTITUTE,'UTF-8');
 }
 function jrNewsSyndicationReadVerified(PDO $pdo,string $siteRoot,int $now):array{
     if($now<=0)throw new InvalidArgumentException('news_syndication_time_invalid');
@@ -75,14 +78,21 @@ function jrNewsSyndicationReadVerified(PDO $pdo,string $siteRoot,int $now):array
             }
         }
         if(!$valid)continue;
+        // A bilingual receipt must not yield a single orphan-language item.
+        $textValid=true;
+        foreach(['fa','en'] as $language){
+            $title=trim((string)$row[$language.'_title']);
+            $summary=trim((string)$row[$language.'_summary']);
+            if($title===''||$summary===''||
+               strlen($title)>1000||strlen($summary)>9000||
+               preg_match('//u',$title)!==1||
+               preg_match('//u',$summary)!==1)$textValid=false;
+        }
+        if(!$textValid)continue;
         foreach(['fa','en'] as $lang){
             $route=$lang==='fa'?$fa:$en;
             $title=trim((string)$row[$lang.'_title']);
             $summary=trim((string)$row[$lang.'_summary']);
-            if($title===''||$summary===''||
-               strlen($title)>1000||strlen($summary)>9000||
-               preg_match('//u',$title)!==1||
-               preg_match('//u',$summary)!==1)continue;
             $verified[]=[
                 'publicationId'=>$pid,'language'=>$lang,
                 'url'=>'https://drjavadrezazadeh.com'.$route,
