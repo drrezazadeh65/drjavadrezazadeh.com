@@ -801,6 +801,8 @@ function jrOperationsNewsDispatch(
             return jrNewsAdminSourceReconcile($pdo,$owner,$id,time(),
                 ($config['jrei_news_source_activation_accepted']??false)===true &&
                 ($config['jrei_news_integrated_release_accepted']??false)===true);
+        if($method==='POST'&&$route==='/owner/admin-sources/edit')
+            return jrNewsAdminSourceEdit($pdo,$owner,$id,$body,time());
         if($method==='POST'&&$route==='/owner/admin-sources/disable')
             return jrNewsAdminSourceDisable($pdo,$owner,$id,time());
         throw new InvalidArgumentException('news_admin_source_unknown_route');
