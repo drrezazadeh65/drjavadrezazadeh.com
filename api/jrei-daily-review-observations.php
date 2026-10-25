@@ -21,6 +21,8 @@ function jrJreiDailyReviewObservations(PDO $pdo): array {
           jrei_ai_governed_benchmark_cases
           WHERE case_state='APPROVED'
             AND independent_reviewer_account_id IS NOT NULL
+            AND (author_account_id IS NULL OR
+                 independent_reviewer_account_id<>author_account_id)
             AND reviewed_at IS NOT NULL
             AND source_evidence_sha256 IS NOT NULL
             AND benchmark_spec_sha256 IS NOT NULL")->fetchColumn();
@@ -31,6 +33,10 @@ function jrJreiDailyReviewObservations(PDO $pdo): array {
           JOIN jrei_ka_source_policies policy ON policy.source_id=s.source_id
           WHERE a.decision='APPROVE_PUBLIC_QUOTE'
             AND a.reviewer_account_id IS NOT NULL
+            AND p.reviewer_account_id=a.reviewer_account_id
+            AND a.reviewer_account_id<>s.reviewer_account_id
+            AND a.source_id=p.source_id
+            AND a.quoted_passage_sha256=p.passage_sha256
             AND a.independent_review_evidence_sha256 IS NOT NULL
             AND a.reviewed_source_rights_sha256=policy.rights_evidence_sha256
             AND p.passage_state='APPROVED_PUBLIC_AI_EVIDENCE'
