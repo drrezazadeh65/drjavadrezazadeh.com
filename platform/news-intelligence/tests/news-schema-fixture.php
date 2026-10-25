@@ -1365,3 +1365,55 @@ try {
 ensure($forbiddenReconcile,
     'private autolink refuses deployment policy that is not actually enabled');
 echo "PASS: automatic owner-approved source reconciliation under original authority, zero fake rights, emergency stop preserved\\n";
+
+/* Original first-party institution catalogue bootstrap. These assertions
+ * run only in the disposable MariaDB acceptance fixture at the FINAL QA
+ * phase, never from an HTTP request or production seeding side effect.
+ */
+$seedContext=[
+    'source'=>'ORIGINAL_JREI_PRIVATE_NEWS_WORKER',
+    'originalCronLeaseVerified'=>true,
+    'institutionCatalogueSeedEnabled'=>true
+];
+$seedBefore=(int)$pdo->query(
+    "SELECT COUNT(*) FROM jrei_news_publications")->fetchColumn();
+$officialSeed=jrNewsOriginalSeedOfficialInstitutionSources(
+    $pdo,$seedContext,1792823500,12);
+ensure($officialSeed['examined']>=9&&
+       $officialSeed['newDiscovered']>=7&&
+       $officialSeed['sourcePermissionsGranted']===0&&
+       $officialSeed['activeMonitorsAdded']===0,
+    'official Sanjesh and university origins may be discovered automatically but never approved');
+$seedRepeated=jrNewsOriginalSeedOfficialInstitutionSources(
+    $pdo,$seedContext,1792823501,12);
+ensure($seedRepeated['newDiscovered']===0&&
+       $seedRepeated['alreadyRegistered']>=8,
+    'repeat original JREI institution bootstrap is idempotent');
+$badSeed=false;
+try {
+    jrNewsOriginalSeedOfficialInstitutionSources($pdo,[
+        'source'=>'PUBLIC_BROWSER','originalCronLeaseVerified'=>true,
+        'institutionCatalogueSeedEnabled'=>true
+    ],1792823502,12);
+}catch(RuntimeException $e){$badSeed=true;}
+ensure($badSeed,'public/browsed source cannot seed original JREI mother registry');
+$registeredDirectory=$pdo->prepare(
+    'SELECT s.source_id,s.review_state,s.rights_state,p.scheduling_state,
+            s.reviewer_account_id,s.verified_at
+       FROM jrei_exam_sources s
+       JOIN jrei_ka_source_policies p ON p.source_id=s.source_id
+      WHERE BINARY s.source_locator_uri=BINARY ? LIMIT 1');
+$registeredDirectory->execute(['https://ut.ac.ir/']);
+$utOriginal=$registeredDirectory->fetch(PDO::FETCH_ASSOC);
+ensure(is_array($utOriginal)&&
+       $utOriginal['review_state']==='DISCOVERED'&&
+       $utOriginal['rights_state']==='PERMISSION_UNVERIFIED'&&
+       $utOriginal['scheduling_state']==='PENDING_REVIEW'&&
+       $utOriginal['verified_at']===null&&
+       $utOriginal['reviewer_account_id']===null,
+    'curated original university has neither synthetic reviewer nor approved reuse rights');
+ensure((int)$pdo->query(
+    "SELECT COUNT(*) FROM jrei_news_publications")->fetchColumn()
+    ===$seedBefore,
+    'directory seeding never creates a public news publication');
+echo "PASS: original curated university catalogue idempotent discovery, strict no-rights and no-publication contract\\n";
