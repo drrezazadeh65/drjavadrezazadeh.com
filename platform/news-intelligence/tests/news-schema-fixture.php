@@ -191,6 +191,9 @@ require_once dirname(__DIR__,3).'/api/operations-jrei-news.php';
 $integration=jrOperationsNewsReadiness(
     $pdo,['jrei_news_integrated_release_accepted'=>false]
 );
+if(($integration['requiredMotherSchemaAvailable']??false)!==true)
+    fwrite(STDERR,"News schema integrity categories: ".
+        json_encode($integration['schemaBlockers']??[],JSON_UNESCAPED_SLASHES)."\n");
 ensure($integration['ownerQueueAccessible']===false &&
        $integration['requiredMotherSchemaAvailable']===true &&
        $integration['publicPublicationActivatedByCheck']===false &&
