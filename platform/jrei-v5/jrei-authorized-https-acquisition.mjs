@@ -59,7 +59,11 @@ async function getPinned(url,ip,maxBytes) {
       lookup:(host,options,cb)=>{
         if(host!==target.hostname||!isPublicIpv4(ip))
           return cb(Error('DNS_PIN_REJECTED'));
-        cb(null,ip,4);
+        // Node 20+ may request all DNS answers for auto-family selection.
+        // Return only the single previously pinned, public IPv4 address.
+        if(options?.all===true)
+          cb(null,[{address:ip,family:4}]);
+        else cb(null,ip,4);
       },
       headers:{'User-Agent':AGENT,'Accept-Encoding':'identity',
         'Accept':'application/pdf,text/html,application/json,text/plain'}
