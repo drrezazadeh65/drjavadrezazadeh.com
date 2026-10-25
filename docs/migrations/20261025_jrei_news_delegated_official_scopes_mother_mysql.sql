@@ -30,3 +30,21 @@ CREATE TABLE IF NOT EXISTS jrei_news_delegated_scopes (
  CONSTRAINT ck_jrei_news_scope_period CHECK(expires_at>effective_at),
  CONSTRAINT ck_jrei_news_scope_limit CHECK(maximum_articles_per_cycle BETWEEN 1 AND 40)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Immutable enrollment provenance binds each article to the delegated scope;
+-- a feed policy edit or scope revocation halts further enrollment.
+CREATE TABLE IF NOT EXISTS jrei_news_delegated_enrollments (
+ discovery_id CHAR(36) NOT NULL PRIMARY KEY,
+ scope_id CHAR(36) NOT NULL,
+ article_source_id CHAR(36) NOT NULL,
+ source_url_sha256 CHAR(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
+ scope_policy_revision BIGINT UNSIGNED NOT NULL,
+ enrolled_at BIGINT UNSIGNED NOT NULL,
+ UNIQUE KEY uq_jrei_news_delegated_source(article_source_id),
+ CONSTRAINT fk_jrei_news_delegated_discovery FOREIGN KEY(discovery_id)
+    REFERENCES jrei_news_discovered_urls(discovery_id) ON DELETE RESTRICT,
+ CONSTRAINT fk_jrei_news_delegated_scope FOREIGN KEY(scope_id)
+    REFERENCES jrei_news_delegated_scopes(scope_id) ON DELETE RESTRICT,
+ CONSTRAINT fk_jrei_news_delegated_article FOREIGN KEY(article_source_id)
+    REFERENCES jrei_exam_sources(source_id) ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
