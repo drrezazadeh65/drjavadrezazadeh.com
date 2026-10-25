@@ -34,6 +34,7 @@ const ENDPOINTS = Object.freeze({
   complete: '/api/jrei/v1/worker/complete',
   localChatPoll:'/api/jrei/v1/local-chat/poll',
   localChatComplete:'/api/jrei/v1/local-chat/complete',
+  localChatReject:'/api/jrei/v1/local-chat/reject',
   localPoll: '/api/jrei/v1/local-chat/poll',
   localComplete: '/api/jrei/v1/local-chat/complete'
 });
