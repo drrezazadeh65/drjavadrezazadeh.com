@@ -16,6 +16,7 @@ define('BERTINA_MAIL_SMOKE_CONTEXT',true);
 require_once dirname(__DIR__).'/index.php';
 define('BERTINA_API_BOOTSTRAPPED',true);
 require_once dirname(__DIR__).'/jrei-learning-operations.php';
+require_once dirname(__DIR__).'/jrei-daily-review-observations.php';
 
 try {
     $configuration=cfg();
@@ -30,6 +31,9 @@ try {
     }
     $day=gmdate('Y-m-d');
     $at=time();
+    // Actual independently accepted source/case metadata only. A missing
+    // mother-DB review table means UNKNOWN; never create model scores.
+    $readiness=jrJreiDailyReviewObservations($pdo);
     $pdo->beginTransaction();
     try {
         $q=$pdo->query('SELECT enabled,auto_promote_low_risk
@@ -65,12 +69,17 @@ try {
         $proposed=(int)($counts['candidate_total']??0);
         $approved=(int)($counts['owner_approved_count']??0);
         $status=$proposed>0?'PROPOSAL_REVIEW_REQUIRED':'NO_APPROVED_EVALUATION';
+        $sources=$readiness['available']===true?
+            (int)$readiness['approvedReviewSourceCount']:0;
+        $cases=$readiness['available']===true?
+            (int)$readiness['approvedIndependentCaseCount']:0;
         // Approval of a proposal is not a certificate that a model learned
         // or that an experimental educational outcome was validated.
         $q=$pdo->prepare('UPDATE jrei_learning_daily_cycles
-            SET status=?,candidate_count=?,accepted_candidate_count=?,
+            SET status=?,reviewed_source_count=?,approved_holdout_case_count=?,
+                candidate_count=?,accepted_candidate_count=?,
                 last_finished_at=?,revision=revision+1 WHERE cycle_day=?');
-        $q->execute([$status,$proposed,$approved,time(),$day]);
+        $q->execute([$status,$sources,$cases,$proposed,$approved,time(),$day]);
         $pdo->commit();
         fwrite(STDOUT,"JREI daily metadata cycle recorded; no model weights or scientific rules changed.\n");
         exit(0);
