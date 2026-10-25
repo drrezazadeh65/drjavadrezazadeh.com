@@ -234,6 +234,46 @@ function operationsCronOwnerChange(PDO $pdo,array $config,
     string $accountId,array $body): array {
     if(!operationsCronSchemaReady($pdo))
         throw new DomainException('operations_cron_migration_required');
+    // Single MFA administrator action registers ALL first-party News
+    // workers in the ORIGINAL mother DB. Never activates any of them,
+    // installs host Cron, publishes a news item or creates shell commands.
+    if(($body['action']??null)==='register_news_bundle'){
+        if(($body['confirmation']??null)!=='REGISTER_NEWS_WORKERS_DISABLED')
+            throw new InvalidArgumentException('cron_news_bundle_confirmation_required');
+        $newsIds=array_keys(array_filter(operationsCronRegistry(),
+            static fn(array $job,string $id):bool=>
+                str_starts_with($id,'jrei_news_original_'),
+            ARRAY_FILTER_USE_BOTH));
+        if(!$newsIds)throw new DomainException('cron_news_bundle_registry_empty');
+        foreach($newsIds as $id)
+            if(operationsCronSourcePath($id)===null)
+                throw new DomainException('cron_source_unavailable');
+        $pdo->beginTransaction();
+        try{
+            $stmt=$pdo->prepare('INSERT IGNORE INTO operations_cron_jobs
+              (job_id,enabled,cadence_seconds,next_due_at,updated_at,updated_by_account_id)
+              VALUES(?,0,?,0,?,?)');
+            $inserted=0;
+            $now=time();
+            foreach($newsIds as $id){
+                $job=operationsCronRegistry()[$id];
+                $stmt->execute([$id,$job['defaultCadence'],$now,$accountId]);
+                $inserted+=$stmt->rowCount();
+            }
+            operationsAudit($pdo,$accountId,'cron_news_bundle_registered',
+                'jrei_news_original_bundle_v1');
+            $pdo->commit();
+        }catch(Throwable $e){
+            if($pdo->inTransaction())$pdo->rollBack();
+            throw $e;
+        }
+        $snapshot=operationsCronOwnerSnapshot($pdo,$config);
+        $snapshot['newsBundleRegisteredCount']=count($newsIds);
+        $snapshot['newRowsCreated']=$inserted;
+        $snapshot['allNewsWorkersInitiallyDisabled']=true;
+        $snapshot['automaticCronOrNewsPublicationActivated']=false;
+        return $snapshot;
+    }
     $jobId=$body['jobId']??null;
     $action=$body['action']??null;
     if(!is_string($jobId)||!isset(operationsCronRegistry()[$jobId])||
