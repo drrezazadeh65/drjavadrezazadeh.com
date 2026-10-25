@@ -146,7 +146,27 @@ function jrOperationsNewsReadiness(PDO $pdo,array $config): array {
         'jrei_ka_private_observations'=>['observation_id','job_id',
             'source_id','content_sha256','source_policy_revision']
     ];
-    // Read one bounded, source-owned schema inventory rather than sending
+    // Existing columns alone cannot enforce unique draft revisions, owner
+    // approvals, delivery idempotency or immutable bilingual public routes.
+    $requiredUnique=[
+        'jrei_news_monitors'=>[['jrei_source_reference','source_url_sha256']],
+        'jrei_news_candidates'=>[['fingerprint_sha256']],
+        'jrei_news_discovered_urls'=>[['monitor_id','canonical_url_sha256']],
+        'jrei_news_editorial_versions'=>[
+            ['candidate_id','revision_number'],['approval_digest']],
+        'jrei_news_owner_decisions'=>[
+            ['revision_id','owner_account_id','action_code','approval_digest']],
+        'jrei_news_publications'=>[['revision_id'],['fa_route'],['en_route']],
+        'jrei_news_exam_milestones'=>[
+            ['external_exam_key','milestone_type','version_number']],
+        'jrei_news_exam_follows'=>[
+            ['account_id','milestone_id','days_before','channel_code']],
+        'jrei_news_delivery_receipts'=>[['idempotency_key']],
+        'jrei_news_topic_follows'=>[['account_id','topic_code','channel_code']],
+        'jrei_news_search_documents'=>[
+            ['publication_id','language_code'],['public_route']]
+    ];
+    // Read bounded source-owned schema inventory rather than sending
     // sixteen individual SQL probes on every MFA newsroom refresh.
     $tables=array_fill_keys(array_keys($required),'UNAVAILABLE');
     try{
@@ -170,10 +190,46 @@ function jrOperationsNewsReadiness(PDO $pdo,array $config): array {
             if(is_string($table)&&isset($required[$table])&&
                is_string($column))$seen[$table][$column]=true;
         }
+        // Two bounded information_schema reads, no customer/source rows.
+        // CREATE TABLE IF NOT EXISTS must never be accepted as proof that
+        // UNIQUE constraints were added to a partially existing table.
+        $indexQuery=$pdo->prepare(
+            "SELECT TABLE_NAME,INDEX_NAME,SEQ_IN_INDEX,COLUMN_NAME,SUB_PART
+             FROM information_schema.STATISTICS
+             WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME IN (".$marks.")
+               AND NON_UNIQUE=0
+             ORDER BY TABLE_NAME,INDEX_NAME,SEQ_IN_INDEX"
+        );
+        $indexQuery->execute($names);
+        $indexColumns=[];$partialIndexes=[];
+        while($row=$indexQuery->fetch(PDO::FETCH_ASSOC)){
+            $name=$row['TABLE_NAME']??null;
+            $index=$row['INDEX_NAME']??null;
+            $column=$row['COLUMN_NAME']??null;
+            $position=(int)($row['SEQ_IN_INDEX']??0);
+            if(!is_string($name)||!isset($required[$name])||
+               !is_string($index)||!is_string($column)||
+               $position<1||$position>16)continue;
+            $indexColumns[$name][$index][$position]=$column;
+            if($row['SUB_PART']!==null)$partialIndexes[$name][$index]=true;
+        }
         foreach($required as $name=>$columns){
-            if(count(array_filter($columns,
+            $columnsPresent=count(array_filter($columns,
                 static fn(string $column):bool=>
-                    isset($seen[$name][$column])))===count($columns))
+                    isset($seen[$name][$column])))===count($columns);
+            $uniquePresent=true;
+            foreach($requiredUnique[$name]??[] as $expected){
+                $matched=false;
+                foreach($indexColumns[$name]??[] as $index=>$parts){
+                    if(isset($partialIndexes[$name][$index]))continue;
+                    ksort($parts,SORT_NUMERIC);
+                    if(array_values($parts)===$expected){
+                        $matched=true;break;
+                    }
+                }
+                if(!$matched){$uniquePresent=false;break;}
+            }
+            if($columnsPresent&&$uniquePresent)
                 $tables[$name]='AVAILABLE';
         }
     }catch(Throwable $e){

@@ -245,3 +245,20 @@ test('news correction can only retract after independently verified original CMS
   assert.doesNotMatch(php,/array \$originalCmsRetractionReceipt/);
   assert.doesNotMatch(php,/file_put_contents|curl_exec|rename\(|unlink\(/);
 });
+
+test('News mother-schema readiness rejects partial UNIQUE route and idempotency migrations',()=>{
+  const php=fs.readFileSync(path.join(out,'api/operations-jrei-news.php'),'utf8');
+  const fixture=fs.readFileSync(path.join(root,
+    'platform/news-intelligence/tests/news-schema-fixture.php'),'utf8');
+  assert.match(php,/information_schema\.STATISTICS/);
+  assert.match(php,/NON_UNIQUE=0/);
+  assert.match(php,/SUB_PART/);
+  assert.match(php,/ksort\(\$parts,SORT_NUMERIC\)/);
+  for(const columns of ["['fa_route']","['en_route']",
+    "['publication_id','language_code']","['public_route']",
+    "['idempotency_key']","['fingerprint_sha256']"])
+    assert.ok(php.includes(columns),'mandatory unique '+columns);
+  assert.match(fixture,/DROP INDEX uq_jrei_news_search_route/);
+  assert.match(fixture,/ADD UNIQUE KEY uq_jrei_news_search_route\(public_route\)/);
+  assert.doesNotMatch(php,/\$pdo->exec\(/);
+});

@@ -499,6 +499,26 @@ ensure($complete['requiredMotherTableCount']===16 &&
        $complete['originalCmsPublisherConnected']===false &&
        $complete['publisherReceiptVerified']===false,
     'complete disposable mother schema is measured, not a CMS receipt');
+// A partial migration may have ALL the expected columns but lack the
+// uniqueness constraints that prevent canonical-route reuse.
+$pdo->exec('ALTER TABLE jrei_news_search_documents
+    DROP INDEX uq_jrei_news_search_route');
+$missingUnique=jrOperationsNewsReadiness(
+    $pdo,['jrei_news_integrated_release_accepted'=>true]
+);
+ensure($missingUnique['requiredMotherSchemaAvailable']===false &&
+       $missingUnique['verifiedMotherTableCount']===15 &&
+       $missingUnique['originalNewsTables']['jrei_news_search_documents']==='UNAVAILABLE' &&
+       $missingUnique['ownerQueueAccessible']===false,
+    'missing UNIQUE canonical route constraint blocks activation');
+$pdo->exec('ALTER TABLE jrei_news_search_documents
+    ADD UNIQUE KEY uq_jrei_news_search_route(public_route)');
+$uniqueRestored=jrOperationsNewsReadiness(
+    $pdo,['jrei_news_integrated_release_accepted'=>true]
+);
+ensure($uniqueRestored['requiredMotherSchemaAvailable']===true,
+    'restored unique canonical index returns readiness');
+
 $pdo->exec('DROP TABLE jrei_news_topic_follows');
 $incomplete=jrOperationsNewsReadiness(
     $pdo,['jrei_news_integrated_release_accepted'=>true]
