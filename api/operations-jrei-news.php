@@ -376,15 +376,22 @@ function jrOperationsNewsReadiness(PDO $pdo,array $config): array {
     // Unsafe defaults may activate crawling, approval or outbox delivery
     // despite a perfectly valid column type and FK inventory.
     $requiredDefaults=[
-        'jrei_news_monitors'=>['enabled'=>'0'],
-        'jrei_news_exam_milestones'=>['owner_approved'=>'0'],
-        'jrei_news_delivery_receipts'=>['attempts'=>'0','state'=>'QUEUED'],
-        'jrei_news_publications'=>['publisher_state'=>'WAITING_FOR_PUBLISHER'],
+        'jrei_news_monitors'=>[
+            'enabled'=>'0','priority_code'=>'P2','interval_minutes'=>'60'],
         'jrei_news_candidates'=>['state'=>'PENDING_EVIDENCE_VERIFICATION'],
+        'jrei_news_evidence_reviews'=>[
+            'verification_state'=>'PENDING','issuer_verified'=>'0',
+            'usage_rights_verified'=>'0'],
         'jrei_news_editorial_versions'=>['editorial_state'=>'PENDING_OWNER_APPROVAL'],
+        'jrei_news_publications'=>['publisher_state'=>'WAITING_FOR_PUBLISHER'],
+        'jrei_news_exam_milestones'=>[
+            'review_state'=>'PENDING_OFFICIAL_REVIEW','owner_approved'=>'0'],
         'jrei_news_exam_follows'=>['follow_state'=>'ACTIVE'],
-        'jrei_news_topic_follows'=>['follow_state'=>'ACTIVE'],
-        'jrei_news_search_documents'=>['index_state'=>'PUBLISHED']
+        'jrei_news_delivery_receipts'=>['attempts'=>'0','state'=>'QUEUED'],
+        'jrei_news_topic_follows'=>[
+            'channel_code'=>'EMAIL','follow_state'=>'ACTIVE'],
+        'jrei_news_search_documents'=>[
+            'country_code'=>'ZZ','index_state'=>'PUBLISHED']
     ];
     // Required named non-unique indexes and FULLTEXT search capability.
     // Unlike UNIQUE keys, index order and type influence read performance.
