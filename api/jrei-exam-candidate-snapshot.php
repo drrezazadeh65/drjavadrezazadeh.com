@@ -49,7 +49,11 @@ function jrExamCandidateStartOptions(PDO $pdo,string $accountId,int $now): array
         p.title_fa,p.title_en,p.division,
         (SELECT COUNT(*) FROM jrei_exam_commercial_attempts a
          WHERE a.account_id=e.account_id AND a.offering_id=e.offering_id)
-         AS attempts_used
+         AS attempts_used,
+        (SELECT COUNT(*) FROM jrei_exam_commercial_attempts active
+         WHERE active.account_id=e.account_id
+           AND active.offering_id=e.offering_id
+           AND active.attempt_state='IN_PROGRESS') AS running_attempts
       FROM jrei_exam_commercial_entitlements e
       JOIN jrei_exam_commercial_offerings o ON o.offering_id=e.offering_id
       JOIN jrei_exam_commercial_products p ON p.product_id=o.product_id
@@ -65,6 +69,7 @@ function jrExamCandidateStartOptions(PDO $pdo,string $accountId,int $now): array
         $seen[$id]=true;
         $allowed=(int)$row['max_attempts'];
         if($allowed<1||$allowed>10||(int)$row['attempts_used']>=$allowed||
+           (int)$row['running_attempts']>0||
            (int)$row['duration_seconds']<60||
            (int)$row['duration_seconds']>28800)continue;
         $options[]=[
