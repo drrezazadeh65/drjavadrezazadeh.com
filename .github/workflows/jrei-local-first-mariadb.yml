@@ -6,6 +6,7 @@ on:
       - '.github/workflows/jrei-local-first-mariadb.yml'
       - 'api/jrei-local-chat.php'
       - 'api/jrei-local-schema-caretaker.php'
+      - 'api/internal/jrei-owner-one-shot-bootstrap.php'
       - 'docs/migrations/20261023_jrei_model_registry_mother_mysql.sql'
       - 'api/internal/jrei-local-schema-caretaker-worker.php'
       - 'tests/jrei-local-schema-caretaker-fixture.php'
@@ -74,6 +75,7 @@ jobs:
         run: |
           set -euo pipefail
           php -l api/jrei-local-schema-caretaker.php
+          php -l api/internal/jrei-owner-one-shot-bootstrap.php
           php -l tests/jrei-local-schema-caretaker-fixture.php
           php tests/jrei-local-schema-caretaker-fixture.php
       - name: Test ephemeral encrypted conversation, model lease, citations and deletion
