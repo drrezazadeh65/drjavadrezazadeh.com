@@ -1,0 +1,56 @@
+/* Bilingual semantic text flow, additive to the frozen visual system.
+   This file deliberately avoids site-wide text-align overrides on art-directed heroes. */
+:where(html[lang="fa"][dir="rtl"], html[lang="en"][dir="ltr"]) {
+  text-size-adjust: 100%;
+  -webkit-text-size-adjust: 100%;
+}
+:where(main article, main .article-shell, main .content-body, main .entry-content,
+       main .service-description, main .panel) :where(p, li, dt, dd, blockquote) {
+  text-align: start;
+  overflow-wrap: anywhere;
+  hyphens: manual;
+}
+:where(html[lang="fa"][dir="rtl"]) :where(main article, main .article-shell, main .content-body) {
+  direction: rtl;
+}
+:where(html[lang="en"][dir="ltr"]) :where(main article, main .article-shell, main .content-body) {
+  direction: ltr;
+}
+:where(main article, main .article-shell, main .content-body) :where(h1,h2,h3,h4,h5,h6) {
+  overflow-wrap: break-word;
+  text-wrap: balance;
+  scroll-margin-block-start: 6rem;
+}
+:where(main article, main .article-shell, main .content-body) :where(p,li,blockquote) {
+  text-wrap: pretty;
+}
+:where(main article, main .article-shell) :where(pre,code,kbd,samp,[dir="ltr"],[lang="en"]) {
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+:where(main article, main .article-shell) :where([dir="rtl"],[lang="fa"]) {
+  direction: rtl;
+  unicode-bidi: isolate;
+}
+:where(main article, main .article-shell) :where(pre,table,.table-scroll) {
+  max-width: 100%;
+}
+:where(main article, main .article-shell) pre {
+  overflow-x: auto;
+  white-space: pre;
+}
+:where(main article, main .article-shell) :where(img,video,svg,iframe) {
+  max-width: 100%;
+}
+:where(main article, main .article-shell) :where(input,textarea,select) {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+:where(main article, main .article-shell) :where(textarea,input:not([type="hidden"])) {
+  text-align: start;
+}
+@media (max-width: 600px) {
+  :where(main article, main .article-shell, main .content-body) :where(h1,h2,h3,h4,h5,h6) {
+    max-width: 100%;
+  }
+}
