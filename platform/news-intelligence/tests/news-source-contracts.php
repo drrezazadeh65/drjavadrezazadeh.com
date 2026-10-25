@@ -159,3 +159,52 @@ foreach([
     newsThrows(static fn()=>jrNewsAdminCanonicalSourceUrl($bad),
         'owner-submitted URL must not bypass safe transport policy');
 echo "PASS: original owner source URL form rejects private targets, credentials and unsafe redirects\\n";
+
+$officialHtml='<!doctype html><html lang="fa"><body><main><section>'.
+    '<a href="/fa/news/academic-results-1405/">اطلاعیه رسمی درباره نتایج پذیرش دانشگاه</a>'.
+    '<a href="https://bad.invalid/fa/news/fake/">این دامنه رسمی نیست و نباید پذیرفته شود</a>'.
+    '<a href="https://pnu.ac.ir/en/news/education-changes-2026/">'.
+    'Official update on university course registration 2026</a>'.
+    '<a href="javascript:alert(1)">سوءاستفاده از لینک جاوااسکریپت</a>'.
+    '</section></main></body></html>';
+$observed=jrNewsParseApprovedHtmlNoticeIndex(
+    $officialHtml,'text/html; charset=UTF-8','https://pnu.ac.ir/news/',
+    'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','2026-10-25T04:00:00Z'
+);
+newsCheck($observed['candidateCount']===2&&
+    $observed['publicPublicationAllowed']===false&&
+    $observed['indexWasHtml']===true,
+    'only same-host official HTML links are privately discovered without publication');
+newsCheck($observed['candidates'][0]['url']===
+    'https://pnu.ac.ir/fa/news/academic-results-1405/',
+    'relative official HTML link resolves to approved origin');
+newsCheck(jrNewsSameHostOfficialHtmlUrl(
+    '//evil.example/announcement','https://pnu.ac.ir/news/','pnu.ac.ir'
+)===null,'protocol-relative malicious news link denied');
+newsThrows(static fn()=>jrNewsParseApprovedHtmlNoticeIndex(
+    '<!DOCTYPE html><html><main><a href="/news/a">Invalid DTD notice</a></main></html>',
+    'text/html','https://pnu.ac.ir/news/',
+    'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','2026-10-25T04:00:00Z'
+),'untrusted HTML DTD is rejected');
+$syndication=jrNewsBuildSyndicationFiles([
+    ['publicationId'=>'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+     'language'=>'fa','url'=>'https://drjavadrezazadeh.com/fa/akhbar/official-update/',
+     'title'=>'اطلاعیه پذیرش آزمون رسمی','summary'=>'راهنمای معتبر برای داوطلبان',
+     'publishedAt'=>1792891200],
+    ['publicationId'=>'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+     'language'=>'en','url'=>'https://drjavadrezazadeh.com/en/news-insights/official-update/',
+     'title'=>'Official university admissions update',
+     'summary'=>'Verified instructions for prospective applicants',
+     'publishedAt'=>1792891200]
+],1792891200);
+newsCheck(count($syndication['files'])===3&&
+    str_contains($syndication['files']['fa/akhbar/jrei-news.xml'],
+        'اطلاعیه پذیرش آزمون رسمی')&&
+    str_contains($syndication['files']['en/news-insights/jrei-news.xml'],
+        'Official university admissions update')&&
+    $syndication['recentSitemapEntries']===2,
+    'both official language RSS files and separate Google news sitemap generated');
+newsCheck(!array_key_exists('feed.xml',$syndication['files'])&&
+    !array_key_exists('sitemap-news.xml',$syndication['files']),
+    'legacy site RSS and sitemap remain completely untouched');
+echo "PASS: safe official HTML notice discovery and publication-receipt-only syndication templates\\n";
