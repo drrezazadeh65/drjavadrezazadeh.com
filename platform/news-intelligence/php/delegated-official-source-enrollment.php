@@ -122,16 +122,40 @@ function jrNewsRevokeOfficialSourceScope(PDO $pdo,array $ownerSession,
     $owner=jrNewsOwnerAuthority($ownerSession);
     if(!preg_match('/^[a-f0-9-]{36}$/iD',$scopeId)||$now<=0)
         throw new InvalidArgumentException('news_delegated_revoke_invalid');
-    $q=$pdo->prepare('UPDATE jrei_news_delegated_scopes
-        SET revoked_at=? WHERE scope_id=? AND owner_account_id=?
-          AND revoked_at IS NULL');
-    $q->execute([$now,$scopeId,$owner['actor']]);
-    if(function_exists('operationsAudit')&&$q->rowCount()===1)
-        operationsAudit($pdo,$owner['actor'],'jrei_news_official_path_scope_revoked',
-            hash('sha256',$scopeId));
-    return ['scopeId'=>$scopeId,'revoked'=>$q->rowCount()===1,
-        'newArticleEnrollmentStopped'=>true,
-        'alreadyPublishedNewsRemoved'=>false];
+    $pdo->beginTransaction();
+    try{
+        $q=$pdo->prepare('SELECT scope_id FROM jrei_news_delegated_scopes
+             WHERE scope_id=? AND owner_account_id=? AND revoked_at IS NULL
+             FOR UPDATE');
+        $q->execute([$scopeId,$owner['actor']]);
+        $exists=$q->fetchColumn()!==false;
+        if($exists){
+            // Existing delegated ARTICLE sources are affected. Never revoke
+            // unrelated approved JREI sources or retract public articles.
+            $pdo->prepare('UPDATE jrei_exam_sources s
+               JOIN jrei_news_delegated_enrollments e
+                 ON e.article_source_id=s.source_id
+               SET s.is_revoked=1,s.updated_at=?
+               WHERE e.scope_id=? AND s.source_version=?
+                 AND s.is_revoked=0')
+              ->execute([$now,$scopeId,'NEWS_DELEGATED_V1']);
+            $pdo->prepare('UPDATE jrei_news_delegated_scopes
+                SET revoked_at=? WHERE scope_id=? AND revoked_at IS NULL')
+              ->execute([$now,$scopeId]);
+            if(function_exists('operationsAudit'))
+                operationsAudit($pdo,$owner['actor'],
+                    'jrei_news_official_path_scope_revoked',
+                    hash('sha256',$scopeId));
+        }
+        $pdo->commit();
+        return ['scopeId'=>$scopeId,'revoked'=>$exists,
+            'newArticleEnrollmentStopped'=>true,
+            'delegatedArticleAcquisitionStopped'=>true,
+            'alreadyPublishedNewsRemoved'=>false];
+    }catch(Throwable $e){
+        if($pdo->inTransaction())$pdo->rollBack();
+        throw $e;
+    }
 }
 
 function jrNewsOwnerOfficialSourceScopes(PDO $pdo,array $ownerSession,int $limit=40):array{
@@ -354,4 +378,61 @@ function jrNewsOriginalEnrollDelegatedOfficialArticles(PDO $pdo,array $ctx,
         }
     }
     return $summary;
+}
+
+/**
+ * Private Cron expiry reconciliation: not an arbitrary periodic rights
+ * extension. The owner can only re-authorize through original MFA with a
+ * NEW evidence-bound scope. A revoked/expired delegated scope cannot keep
+ * silently acquiring article content through old inherited source records.
+ */
+function jrNewsRevokeExpiredOfficialSourceEnrollments(
+    PDO $pdo,array $ctx,int $now,int $limit=50
+):array{
+    if(($ctx['source']??null)!=='ORIGINAL_JREI_PRIVATE_NEWS_WORKER'||
+       ($ctx['originalServerSessionVerified']??null)!==true||
+       ($ctx['delegatedOfficialScopesEnabled']??null)!==true||
+       $now<=0||$limit<1||$limit>100)
+       throw new RuntimeException('news_delegated_expiry_private_worker_required');
+    $q=$pdo->prepare(
+        'SELECT g.scope_id
+           FROM jrei_news_delegated_scopes g
+           WHERE (g.expires_at<=? OR g.revoked_at IS NOT NULL)
+             AND EXISTS (
+               SELECT 1 FROM jrei_news_delegated_enrollments e
+               JOIN jrei_exam_sources s ON s.source_id=e.article_source_id
+               WHERE e.scope_id=g.scope_id AND s.is_revoked=0
+             )
+           ORDER BY g.expires_at,g.scope_id LIMIT ?'
+    );
+    $q->bindValue(1,$now,PDO::PARAM_INT);
+    $q->bindValue(2,$limit,PDO::PARAM_INT);
+    $q->execute();
+    $stopped=0;
+    $scopes=$q->fetchAll(PDO::FETCH_COLUMN);
+    foreach($scopes as $scope){
+        $pdo->beginTransaction();
+        try{
+            $up=$pdo->prepare(
+                'UPDATE jrei_exam_sources s
+                  JOIN jrei_news_delegated_enrollments e
+                    ON e.article_source_id=s.source_id
+                  JOIN jrei_news_delegated_scopes g ON g.scope_id=e.scope_id
+                   SET s.is_revoked=1,s.updated_at=?
+                 WHERE e.scope_id=?
+                   AND s.source_version=?
+                   AND s.is_revoked=0
+                   AND (g.expires_at<=? OR g.revoked_at IS NOT NULL)'
+            );
+            $up->execute([$now,$scope,'NEWS_DELEGATED_V1',$now]);
+            $stopped+=$up->rowCount();
+            $pdo->commit();
+        }catch(Throwable $e){
+            if($pdo->inTransaction())$pdo->rollBack();
+            throw $e;
+        }
+    }
+    return ['checkedScopes'=>count($scopes),
+        'revokedDelegatedArticleSources'=>$stopped,
+        'historicallyPublishedPagesRetracted'=>false];
 }
