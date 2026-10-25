@@ -669,6 +669,68 @@
          cell(summary,T(label[0],label[1]),
            states[gate.state]||states.UNKNOWN);
        }
+       // Show actionable dependency order instead of asking the owner
+       // to repeat Windows/PHPMyAdmin tasks or guess missing secrets.
+       // This panel is READ ONLY and cannot accept rights/quality on behalf
+       // of its owner or automatically run a Windows model.
+       if(blockers.length){
+         const gateStatus=Object.fromEntries(readiness.gates
+           .filter(x=>x&&typeof x.id==='string')
+           .map(x=>[x.id,x.state]));
+         const phases=[
+           {id:'infrastructure',
+             ids:['mother_db_schema','private_queue_encryption','approved_public_evidence_index'],
+             fa:'۱. زیرساخت موجود برتینا',
+             en:'1. Existing Bertina infrastructure',
+             faHelp:'فقط موارد مسدود یا نامعلوم را بررسی کنید؛ جداول سالم را دوباره نسازید.',
+             enHelp:'Inspect blocked/unknown gates; do not recreate healthy tables.'},
+           {id:'model',
+             ids:['registered_local_model','rights_reviewed_model','independently_accepted_model'],
+             fa:'۲. شواهد واقعی مدل Qwen',
+             en:'2. Actual Qwen model evidence',
+             faHelp:'گزارش کیفیت مدل و RAM اندازه‌گیری‌شده لازم است؛ تکمیل همه درخواست‌ها به معنای تأیید علمی نیست.',
+             enHelp:'Independent quality and measured RAM are required; completed prompts are not proof of scientific quality.'},
+           {id:'private',
+             ids:['hybrid_private_switch','local_chat_private_switch'],
+             fa:'۳. مجوزهای خصوصی موجود',
+             en:'3. Existing private opt-ins',
+             faHelp:'این موارد از تنظیمات خصوصی برتینا خوانده می‌شوند و صرفِ دیپلوی تغییرشان نمی‌دهد.',
+             enHelp:'These are read from private Bertina config; deployment cannot silently turn them on.'},
+           {id:'retention',
+             ids:['privacy_retention_worker'],
+             fa:'۴. اجرای واقعی پاک‌سازی صف',
+             en:'4. Actual queue retention cleanup',
+             faHelp:'Worker مجاز باید یک اجرای کامل و تازه در Cron اصلی داشته باشد.',
+             enHelp:'The original approved Cron must show a recent successful worker run.'},
+           {id:'node',
+             ids:['authorized_generative_node','recent_signed_generative_poll'],
+             fa:'۵. اتصال اختصاصی مکالمه Node A',
+             en:'5. Node A signed conversational transport',
+             faHelp:'ثبت نود کافی نیست؛ مجوز مکالمه و درخواست امضاشده جدید از Worker لازم است.',
+             enHelp:'Registration is not enough; the separately authorised chat worker must poll with a fresh signed request.'},
+           {id:'publication',
+             ids:['owner_public_release'],
+             fa:'۶. پذیرش نهایی انتشار عمومی',
+             en:'6. Final public release acceptance',
+             faHelp:'فقط بعد از موفقیت مکالمه واقعی و کنترل کیفیت فعال شود.',
+             enHelp:'Enable only after real dialogue verification and quality review.'}
+         ];
+         const guidance=el('details',undefined,'jr-hybrid-jobs');
+         guidance.append(el('summary',T(
+           'مسیر کوتاه فعال‌سازی JREI؛ بدون دست‌کاری تنظیمات سالم',
+           'JREI activation path; no changes to healthy settings')));
+         const detailsList=el('ol');
+         for(const phase of phases){
+           const open=phase.ids.filter(id=>gateStatus[id]!=='PASS');
+           const li=el('li');
+           li.append(el('strong',T(phase.fa,phase.en)+': '+
+             (open.length?T('نیازمند تکمیل','Pending'):T('آماده','Ready'))));
+           if(open.length)li.append(el('p',T(phase.faHelp,phase.enHelp)));
+           detailsList.append(li);
+         }
+         guidance.append(detailsList);
+         listing.append(guidance);
+       }
      }
      cell(summary,T('مجوزهای Worker گفت‌وگو','Approved generative nodes'),
        number(lm.authorizedNodes));
