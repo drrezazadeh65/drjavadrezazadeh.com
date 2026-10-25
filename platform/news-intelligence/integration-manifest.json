@@ -80,7 +80,8 @@
     "docs/migrations/20261025_jrei_news_admin_source_submissions_mother_mysql.sql",
     "docs/migrations/20261025_jrei_news_independent_automated_evidence_mother_mysql.sql",
     "docs/migrations/20261025_jrei_news_independent_qa_mother_mysql.sql",
-    "docs/migrations/20261025_jrei_news_owner_exception_queue_mother_mysql.sql"
+    "docs/migrations/20261025_jrei_news_owner_exception_queue_mother_mysql.sql",
+    "docs/migrations/20261025_jrei_news_delegated_official_scopes_mother_mysql.sql"
   ],
   "finalAcceptanceDeferred": [
     "source legality publisher permissions and robots policy",
@@ -133,7 +134,8 @@
     "php/official-html-discovery.php",
     "php/original-news-owner-exceptions.php",
     "php/admin-source-management.php",
-    "php/original-private-publishing-pipeline.php"
+    "php/original-private-publishing-pipeline.php",
+    "php/delegated-official-source-enrollment.php"
   ],
   "criticalInteroperabilityNotes": [
     "Original JREI-KA approved source policy currently requires at least 3600-second refresh intervals; faster official P0 radar needs separately authorized original-scheduler extension",
@@ -228,7 +230,12 @@
     "originalJreiModelSourceRouterVerifiedInProduction": false,
     "productionStandingSchemaApplied": false,
     "ownerExceptionAutoNotificationsActive": false,
-    "deploymentApproved": false
+    "deploymentApproved": false,
+    "perArticleSourceOwnerReviewSuperseded": true,
+    "delegatedExactPathOriginalSourceRegistration": "SOURCE_STAGED_DISABLED_BY_DEFAULT",
+    "delegatedSourceSchemaAppliedOnBertina": false,
+    "originalSourceRightsIndependentReviewStillRequired": true,
+    "originalJreiSchedulerDelegatedArticleEnrollmentWiredInCode": true
   },
   "latestCodeWork": {
     "dedicatedVerifiedOriginalCmsRssAndGoogleNewsSitemap": true,
