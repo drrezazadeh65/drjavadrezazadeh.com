@@ -190,6 +190,22 @@ function jrNewsOriginalAutoHandoffReadiness(
         $pdo,(string)$row['approved_article_source_id'],
         (string)$row['source_url']
     );
+    // Do not invoke the model, CMS or quality resolver for a source whose
+    // original article-specific acquisition/public rights are not current.
+    // This is the only point at which a doubtful source enters owner review.
+    if($source['registryState']!=='AUTHORITATIVE_REVIEWED'||
+       $source['issuerIdentityVerified']!==true||
+       $source['notRevoked']!==true||
+       $source['exactSourceUrlApproved']!==true||
+       $source['rightsForPublicNews']!==true||
+       $source['termsAndRobotsCurrent']!==true){
+        $blocked=jrNewsOfficialPublicationDecision(
+            ['evidenceSha256'=>$sha],$source,[],[],[]
+        );
+        $blocked['revisionId']=$revisionId;
+        $blocked['requiresTransactionalPublisherRecheck']=true;
+        return $blocked;
+    }
     $resolved=$originalQualityAndCmsResolver([
         'revisionId'=>$revisionId,
         'approvalDigest'=>$row['approval_digest'],
