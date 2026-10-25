@@ -51,7 +51,8 @@ jobs:
             tests/jrei-local-chat-worker-offline.test.mjs \
             tests/jrei-local-model-activation.test.mjs \
             tests/jrei-existing-worker-public-key.test.mjs \
-            tests/jrei-local-doctor.test.mjs
+            tests/jrei-local-doctor.test.mjs \
+            tests/jrei-local-model-benchmark.test.mjs
       - name: Check JREI model worker syntax and model privacy firewall
         run: |
           set -euo pipefail
