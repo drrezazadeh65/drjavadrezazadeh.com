@@ -39,4 +39,39 @@ assertLocal(jrLocalChatCanonical(['a'=>1,'b'=>2])===
 $reflection=new ReflectionFunction('jrLocalChatEnqueue');
 assertLocal($reflection->getNumberOfRequiredParameters()===3,
   'queue uses existing mother database and private config');
+// Owner dashboard must give exact explanatory blockers without changing
+// private flags or treating an absent mother-DB table as a positive status.
+$noDb=jrLocalChatOwnerReadinessGates([
+ 'motherDatabaseSchemaReady'=>false,
+ 'privateSwitchEnabled'=>false,
+ 'ownerPublicReleaseAccepted'=>false,
+ 'privateEncryptionKeyConfigured'=>true,
+ 'approvedPublicEvidenceIndexReadable'=>true,
+ 'privateRetentionWorkerReady'=>false,
+ 'authorizedNodes'=>null,'recentlySignedGenerativeWorkers'=>null,
+ 'registeredModelCount'=>null,'rightsReviewedModelCount'=>null,
+ 'acceptedModelCount'=>null
+],['jrei_hybrid_enabled'=>false]);
+assertLocal($noDb['allGatesPassed']===false&&
+ in_array('mother_db_schema',$noDb['blockingGates'],true)&&
+ in_array('registered_local_model',$noDb['unknownGates'],true)&&
+ !in_array('private_queue_encryption',$noDb['blockingGates'],true),
+ 'unavailable DB is diagnosed without concealing other readiness gates');
+$readySnapshot=[
+ 'motherDatabaseSchemaReady'=>true,'privateSwitchEnabled'=>true,
+ 'ownerPublicReleaseAccepted'=>true,'privateEncryptionKeyConfigured'=>true,
+ 'approvedPublicEvidenceIndexReadable'=>true,'privateRetentionWorkerReady'=>true,
+ 'registeredModelCount'=>1,'rightsReviewedModelCount'=>1,
+ 'acceptedModelCount'=>1,'authorizedNodes'=>1,
+ 'recentlySignedGenerativeWorkers'=>1
+];
+$all=jrLocalChatOwnerReadinessGates($readySnapshot,['jrei_hybrid_enabled'=>true]);
+assertLocal($all['allGatesPassed']===true&&$all['blockingGates']===[]&&
+ $all['unknownGates']===[]&&$all['doesNotProveLiveInference']===true,
+ 'pass on all server gates is NOT proof of real end-to-end inference');
+$notSigned=$readySnapshot;$notSigned['recentlySignedGenerativeWorkers']=0;
+$missingPoll=jrLocalChatOwnerReadinessGates($notSigned,['jrei_hybrid_enabled'=>true]);
+assertLocal(in_array('recent_signed_generative_poll',$missingPoll['blockingGates'],true),
+ 'offline signed-chat worker must block claimed availability');
+
 echo "JREI private local first-party inference encryption checks passed\n";
