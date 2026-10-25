@@ -45,8 +45,30 @@ function jrJreiApprovedMeasuredNewsAuthorStyle(string $language):array {
     ];
 }
 
-/** Only licensed, first-party EXISTING site artwork may be returned; when
- * disabled or missing, keep news in SYSTEM_HOLD. No remote image copying.
+/**
+ * Select an existing, independently rights-approved conceptual illustration
+ * when the owner has not pinned a specific image. No remote copying, paid
+ * image generation or AI-created fake photographs of an actual news event.
+ * Only original owner-controlled first-party registry entries are accepted.
+ * This is presentation media, never proof of an official announcement.
+ */
+function jrNewsDefaultIllustrationCandidates(string $headline):array {
+    $academic='assets/images/editorial-launch/academic-ecosystem-network-20261011.webp';
+    $research='assets/images/editorial-launch/academic-research-editing-20261011.webp';
+    $international='assets/images/editorial-launch/international-research-collaboration-20261011.webp';
+    $assessment='assets/images/editorial-launch/humanability-educational-assessment-20261011.webp';
+    $headline=mb_strtolower($headline,'UTF-8');
+    if(preg_match('/آزمون|کنکور|سنجش|ارزیابی|نتایج|assessment|exam|admission|results/u',$headline))
+        return [$assessment,$academic,$research,$international];
+    if(preg_match('/بورسیه|بین.الملل|همکاری|scholarship|international|exchange|collaboration/u',$headline))
+        return [$international,$academic,$research,$assessment];
+    if(preg_match('/پژوهش|مقاله|تحقیق|research|academic|publication/u',$headline))
+        return [$research,$academic,$assessment,$international];
+    return [$academic,$research,$assessment,$international];
+}
+
+/** Resolve local media using a verified owner-pinned reference, then a
+ * deterministic rights-checked branded fallback from the existing registry.
  */
 function jrJreiOriginalLicensedNewsMedia(array $request):array {
     $candidate=$request['candidateId']??null;
@@ -55,15 +77,27 @@ function jrJreiOriginalLicensedNewsMedia(array $request):array {
        !is_string($review)||!preg_match('/^[a-f0-9-]{36}$/iD',$review))
         throw new InvalidArgumentException('news_original_media_context_invalid');
     $cfg=cfg();
-    $asset=$cfg['jrei_news_approved_brand_media_ref']??null;
-    if(!is_string($asset)||$asset==='')
-        throw new RuntimeException('news_original_media_policy_unavailable');
     $root=realpath(dirname(__DIR__,3));
     if($root===false)throw new RuntimeException('news_original_media_root_missing');
-    $media=jrNewsOriginalLicensedMediaSnapshot($root,$asset);
-    if(($media['rightsVerified']??false)!==true||
-       !preg_match('/^[a-f0-9]{64}$/D',
-           (string)($media['physicalContentSha256']??'')))
+    $pinned=$cfg['jrei_news_approved_brand_media_ref']??null;
+    $candidates=[];
+    if(is_string($pinned)&&$pinned!=='')$candidates[]=$pinned;
+    $subject=$request['newsHeadline']??'';
+    if(!is_string($subject)||strlen($subject)>500)$subject='';
+    foreach(jrNewsDefaultIllustrationCandidates($subject) as $illustration){
+        if(!in_array($illustration,$candidates,true))
+            $candidates[]=$illustration;
+    }
+    $media=null;$asset=null;
+    foreach($candidates as $reference){
+        $probe=jrNewsOriginalLicensedMediaSnapshot($root,$reference);
+        if(($probe['rightsVerified']??false)===true&&
+           preg_match('/^[a-f0-9]{64}$/D',
+               (string)($probe['physicalContentSha256']??''))===1){
+            $asset=$reference;$media=$probe;break;
+        }
+    }
+    if(!is_array($media)||!is_string($asset))
         throw new RuntimeException('news_original_media_current_rights_missing');
     return [
        'source'=>'ORIGINAL_APPROVED_SITE_MEDIA_REGISTRY',
@@ -72,6 +106,8 @@ function jrJreiOriginalLicensedNewsMedia(array $request):array {
        'physicalContentSha256'=>$media['physicalContentSha256'],
        'altFa'=>$media['altFa'],
        'altEn'=>$media['altEn'],
-       'sameSiteOnly'=>true
+       'sameSiteOnly'=>true,
+       'automaticallySelected'=>!is_string($pinned)||$asset!==$pinned,
+       'imageIsIllustrativeNotOfficialEventEvidence'=>true
     ];
 }
