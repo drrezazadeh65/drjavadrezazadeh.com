@@ -776,6 +776,11 @@ if ($path==='/news/v1/search') {
     require_once __DIR__.'/news-public-search.php';
     jrNewsPublicSearchRoute($verb);
 }
+if ($path==='/news/v1/rss' || $path==='/news/v1/google-news') {
+    require_once __DIR__.'/news-public-feeds.php';
+    jrNewsPublicFeedRoute(
+        $path==='/news/v1/rss'?'rss':'google-news',$verb);
+}
 // First-party newsletter preferences, verified account only, independent of transactional mail.
 if(str_starts_with($path, '/newsletter/')) { require_once __DIR__.'/newsletter-preferences.php'; jrNewsletterRoute($path,$verb); }
 // Owner-gated community pilot: schema and privacy approval required.
