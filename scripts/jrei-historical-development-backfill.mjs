@@ -3,6 +3,8 @@ import {writeFile,mkdir} from 'node:fs/promises';
 import {join} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {createHash} from 'node:crypto';
+import {execFileSync} from 'node:child_process';
+import {classifySiteWork} from '../platform/jrei-v5/jrei-site-apprentice.mjs';
 const REPO='drrezazadeh65/drjavadrezazadeh.com';
 const SHA=/^[a-f0-9]{40}$/i;
 const safeName=s=>typeof s==='string'?s.replace(/[\r\n\x00-\x1f]/g,' ').slice(0,120):'UNKNOWN';
@@ -79,6 +81,40 @@ async function paged(path,token,limitPages=250){
  }
  return {all,complete,pagesRead:page};
 }
+
+/** All reachable original Git commits, even when ancient Actions logs expired.
+ * Strictly FILE-NAME categories only, no messages, patches or code contents.
+ */
+export function inventoryFullGitHistory(){
+ const raw=execFileSync('git',[
+  'log','--all','--name-only','--format=JREI_GIT|%H|%cI'
+ ],{encoding:'utf8',timeout:120000,maxBuffer:134217728,
+  stdio:['ignore','pipe','pipe']});
+ const rows=[],counts={};let item=null;
+ const push=()=>{if(item){
+   item.categories=Object.fromEntries(Object.entries(counts)
+     .filter(([,v])=>v>0));
+   rows.push(item);
+ }};
+ for(const line of raw.split(/\r?\n/)){
+  if(line.startsWith('JREI_GIT|')){
+   push();
+   const m=line.match(/^JREI_GIT\|([a-f0-9]{40})\|(\S+)$/i);
+   item=m?{commitSha:m[1].toLowerCase(),committedAt:m[2],
+     fileCount:0,categories:{},source:'ORIGINAL_GIT_FILENAME_ONLY'}:null;
+   for(const k of Object.keys(counts))delete counts[k];
+  }else if(item&&line.trim()){
+   item.fileCount++;
+   for(const domain of classifySiteWork(line.trim()))counts[domain]=(counts[domain]||0)+1;
+  }
+ }
+ push();
+ return {reachableGitCommitCount:rows.length,gitHistoryComplete:true,
+  earliestObservedCommit:rows.at(-1)?.commitSha??null,
+  latestObservedCommit:rows[0]?.commitSha??null,
+  gitCommitObservations:rows};
+}
+
 async function main(){
  const token=process.env.GITHUB_TOKEN;
  if(process.env.GITHUB_REPOSITORY!==REPO||typeof token!=='string'||token.length<20)
@@ -87,6 +123,7 @@ async function main(){
  const workflows=await paged('/actions/runs?exclude_pull_requests=false',token,250);
  const deployments=await paged('/deployments',token,100);
  const parsed=workflows.all.map(classifyHistoricalRun);
+ const git=inventoryFullGitHistory();
  const dep=deployments.all.map(d=>({
    deploymentId:d.id,sha:SHA.test(d.sha??'')?d.sha.toLowerCase():null,
    environment:safeName(d.environment),createdAt:d.created_at??null,
@@ -98,12 +135,14 @@ async function main(){
    workflowPagesRead:workflows.pagesRead,
    deploymentPagesRead:deployments.pagesRead
  });
- const serialized=JSON.stringify(report,null,2)+'\n';
+ const full={...report,...git,historyLearningScope:'READ_ONLY_COMMIT_METADATA_AND_ACCESSIBLE_ACTIONS'};
+ const serialized=JSON.stringify(full,null,2)+'\n';
  const sha=createHash('sha256').update(serialized).digest('hex');
  const dir=join(process.env.RUNNER_TEMP||'/tmp','jrei-website-historical-backfill');
  await mkdir(dir,{recursive:true,mode:0o700});
  await writeFile(join(dir,'read-only-github-history.json'),serialized,{mode:0o600,flag:'w'});
  process.stdout.write('[JREI] HISTORICAL_RUNS='+parsed.length+'\n');
+ process.stdout.write('[JREI] ALL_REACHABLE_GIT_COMMITS='+git.reachableGitCommitCount+'\n');
  process.stdout.write('[JREI] GITHUB_DEPLOYMENTS='+dep.length+'\n');
  process.stdout.write('[JREI] COMPLETE='+String(workflows.complete&&deployments.complete)+'\n');
  process.stdout.write('[JREI] UNVERIFIED_HISTORY_SHA256='+sha+'\n');
