@@ -23,22 +23,57 @@ function jrJreiLocalSchemaStatements(): array {
       ['20261024_jrei_local_inference_queue_mother_mysql.sql',
         ['jrei_local_chat_node_authorizations','jrei_local_chat_jobs']]
     ];
+    $sourceDir=dirname(__DIR__).'/docs/migrations';
+    $sourcesPresent=is_readable($sourceDir.'/'.$files[0][0])&&
+        is_readable($sourceDir.'/'.$files[1][0]);
+    $bundle=null;
+    if(!$sourcesPresent){
+        // The production bundle deliberately excludes docs/ SQL source.
+        // The build projects ONLY these reviewed statements into the
+        // HTTP-denied API internal directory; never load caller-supplied SQL.
+        $safe=__DIR__.'/internal/jrei-approved-schema-v1.json';
+        if(!is_file($safe)||!is_readable($safe)||filesize($safe)>30000)
+            throw new DomainException('jrei_schema_source_unavailable');
+        try{$bundle=json_decode((string)file_get_contents($safe),
+            true,16,JSON_THROW_ON_ERROR);}
+        catch(Throwable $e){
+            throw new DomainException('jrei_schema_source_unavailable');
+        }
+        if(!is_array($bundle)||
+            ($bundle['schema']??null)!=='jr.jrei.owner-reviewed-additive-migrations.v1'||
+            ($bundle['database']??null)!=='drjavad1_store'||
+            !is_array($bundle['files']??null)||
+            !array_is_list($bundle['files'])||count($bundle['files'])!==2)
+            throw new DomainException('jrei_schema_bundle_invalid');
+    }
     $statements=[];
-    foreach($files as [$filename,$names]){
-        $file=dirname(__DIR__).'/docs/migrations/'.$filename;
-        if(!is_file($file)||!is_readable($file)||filesize($file)>20000)
-            throw new DomainException('jrei_schema_source_unavailable');
-        $sql=file_get_contents($file);
-        if(!is_string($sql)||strlen($sql)>20000)
-            throw new DomainException('jrei_schema_source_unavailable');
-        $sql=preg_replace('/^\s*--[^\r\n]*$/m','',$sql);
-        if(!is_string($sql))
-            throw new DomainException('jrei_schema_comment_parsing_failed');
-        $parts=array_values(array_filter(array_map('trim',explode(';',$sql))));
+    foreach($files as $fileIndex=>[$filename,$names]){
+        if($sourcesPresent){
+            $file=$sourceDir.'/'.$filename;
+            if(!is_file($file)||!is_readable($file)||filesize($file)>20000)
+                throw new DomainException('jrei_schema_source_unavailable');
+            $sql=file_get_contents($file);
+            if(!is_string($sql)||strlen($sql)>20000)
+                throw new DomainException('jrei_schema_source_unavailable');
+            $sql=preg_replace('/^\s*--[^\r\n]*$/m','',$sql);
+            if(!is_string($sql))
+                throw new DomainException('jrei_schema_comment_parsing_failed');
+            $parts=array_values(array_filter(array_map('trim',explode(';',$sql))));
+        }else{
+            $file=$bundle['files'][$fileIndex]??null;
+            if(!is_array($file)||
+               ($file['source']??null)!==$filename||
+               ($file['tables']??null)!==$names||
+               !is_array($file['statements']??null)||
+               !array_is_list($file['statements']))
+                throw new DomainException('jrei_schema_bundle_invalid');
+            $parts=$file['statements'];
+        }
         if(count($parts)!==count($names))
             throw new DomainException('jrei_schema_whitelist_changed');
         foreach($parts as $i=>$stmt){
-            if(!preg_match('/^CREATE TABLE IF NOT EXISTS ([a-z_]+)\s*\(/i',$stmt,$m)||
+            if(!is_string($stmt)||strlen($stmt)>20000||
+               !preg_match('/^CREATE TABLE IF NOT EXISTS ([a-z_]+)\s*\(/i',$stmt,$m)||
                $m[1]!==$names[$i]||
                !preg_match('/\) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci$/',$stmt)||
                preg_match('/\b(?:DROP|ALTER|TRUNCATE|GRANT|REVOKE|CREATE\s+DATABASE|FOREIGN_KEY_CHECKS)\b/i',$stmt))
