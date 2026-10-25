@@ -24,6 +24,7 @@ require_once __DIR__.'/owner-overview.php';
 require_once __DIR__.'/owner-review-outbox.php';
 require_once __DIR__.'/official-auto-handoff.php';
 require_once __DIR__.'/official-institution-directory.php';
+require_once __DIR__.'/admin-source-management.php';
 require_once __DIR__.'/standing-official-publication.php';
 require_once __DIR__.'/publication-dispatch.php';
 require_once __DIR__.'/publication-readiness.php';
