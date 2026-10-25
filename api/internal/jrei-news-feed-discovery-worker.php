@@ -11,6 +11,7 @@ define('BERTINA_MAIL_SMOKE_CONTEXT',true);
 require_once dirname(__DIR__).'/index.php';
 define('BERTINA_API_BOOTSTRAPPED',true);
 require_once dirname(__DIR__).'/jrei-news-private-feed-bridge.php';
+require_once dirname(__DIR__).'/internal/jrei-news/delegated-official-source-enrollment.php';
 try{
     $cfg=cfg();
     if(($cfg['jrei_news_feed_discovery_enabled']??false)!==true||
@@ -23,11 +24,26 @@ try{
     if(!($pdo instanceof PDO))
         throw new RuntimeException('news_mother_database_unavailable');
     $summary=jrNewsBridgeOriginalFeedObservation($pdo,$cfg,time());
+    // Once the owner delegates a reviewed official HTTPS path, the original
+    // JREI scheduler can register SAME-ORIGIN article URLs without another
+    // MFA prompt for every notice. It must never inherit unreviewed rights.
+    $delegated=['enrolled'=>0,'pending'=>0];
+    if(($cfg['jrei_news_delegated_scopes_enabled']??false)===true&&
+       ($cfg['jrei_news_source_activation_accepted']??false)===true){
+        $delegated=jrNewsOriginalEnrollDelegatedOfficialArticles(
+            $pdo,[
+              'source'=>'ORIGINAL_JREI_PRIVATE_NEWS_WORKER',
+              'originalServerSessionVerified'=>true,
+              'delegatedOfficialScopesEnabled'=>true
+            ],time(),20);
+    }
+
     $state=(string)($summary['state']??'UNKNOWN');
     if(!preg_match('/^[A-Z_]{3,80}$/D',$state))$state='REQUIRES_REVIEW';
     fwrite(STDOUT,
       'JREI News private feed projection='.$state.
       '; private link suggestions='.(int)$summary['newPrivateLinksSuggested'].
+      '; original delegated URL enrollments='.(int)$delegated['enrolled'].
       '; no independent downloads, no public publishing.'."\n");
 }catch(Throwable $e){
     // Do not print original source URLs, private archive paths, personal
