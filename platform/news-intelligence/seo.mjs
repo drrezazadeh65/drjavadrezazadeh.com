@@ -3,12 +3,13 @@
  * Canonical paths must be owner-approved and consistent with frozen URL policy.
  */
 import {assert,plain,publicHttps,safeText,utcInstant} from './contracts.mjs';
+import {hasVerifiedPublicationAuthority} from './publication-authority.mjs';
 const ORIGIN='https://drjavadrezazadeh.com';
 const route=p=>typeof p==='string'&&/^\/(?:fa|en)\/[a-z0-9/-]+\/$/.test(p)&&
   !p.includes('//');
 export function articleSeoDescriptor({article,faPath,enPath,organizationName,
   imageUrl,publishedAt,modifiedAt}={}){
-  assert(plain(article)&&article.ownerApproved===true&&
+  assert(plain(article)&&hasVerifiedPublicationAuthority(article)&&
     article.publicationState==='PUBLISHED'&&route(faPath)&&route(enPath)&&
     faPath.startsWith('/fa/')&&enPath.startsWith('/en/')&&
     safeText(organizationName,3,160)&&utcInstant(publishedAt)&&
