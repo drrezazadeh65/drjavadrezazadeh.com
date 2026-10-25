@@ -375,6 +375,28 @@ ensure(($revokedAuto['decision']??null)==='OWNER_EXCEPTION_QUEUE'&&
        in_array('SOURCE_AUTHORITY_UNCONFIRMED',
            $revokedAuto['concerns']??[],true),
     'revoked source is held for review without any external QA model call');
+
+$pdo->prepare('UPDATE jrei_exam_sources SET is_revoked=1 WHERE source_id=?')
+    ->execute([$feedId]);
+$revokedFeed=jrNewsOriginalAutoHandoffReadiness(
+    $pdo,$draft['revisionId'],
+    static fn():never=>throw new RuntimeException(
+        'Revoked feed must never reach model or CMS'));
+ensure(($revokedFeed['decision']??null)==='SYSTEM_HOLD',
+    'revoked upstream original feed blocks downstream article publication');
+$pdo->prepare('UPDATE jrei_exam_sources SET is_revoked=0 WHERE source_id=?')
+    ->execute([$feedId]);
+$pdo->prepare('UPDATE jrei_ka_source_policies SET revision=2 WHERE source_id=?')
+    ->execute([$feedId]);
+$staleFeedPolicy=jrNewsOriginalAutoHandoffReadiness(
+    $pdo,$draft['revisionId'],
+    static fn():never=>throw new RuntimeException(
+        'Stale feed policy must never reach model or CMS'));
+ensure(($staleFeedPolicy['decision']??null)==='SYSTEM_HOLD',
+    'stale original JREI feed policy blocks automated news flow');
+$pdo->prepare('UPDATE jrei_ka_source_policies SET revision=1 WHERE source_id=?')
+    ->execute([$feedId]);
+
 $pdo->prepare('UPDATE jrei_exam_sources SET is_revoked=0 WHERE source_id=?')
     ->execute([$itemId]);
 
