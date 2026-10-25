@@ -697,6 +697,41 @@ export function mountNewsOwnerPanel({root,csrfResolver,
         'وجود این اجزا به معنی اجرای مدل، ممیزی واقعی یا انتشار خبر روی سایت نیست.',
         'Component presence does not prove actual model review or live publication.');
       modelStatus.append(warning);
+      // Release flags are NOT live status. Expose exactly which autonomous
+      // manager-to-JREI and CMS safety functions are configured without
+      // suggesting that source permissions or publication have been granted.
+      const automation=readiness.sourceAdministrationAutomation||{};
+      const flowTitle=document.createElement('h4');
+      flowTitle.textContent=say('وضعیت اتصال خودکار منابع و بازیابی انتشار',
+        'Automatic source linking and publisher recovery');
+      modelStatus.append(flowTitle);
+      for(const [key,faText,enText] of [
+        ['approvedSourceAutolinkConfigured',
+          'اتصال خودکار منابع تأییدشدهٔ مدیر',
+          'Automatic manager-approved source linkage'],
+        ['newMonitorAutomaticStartConfigured',
+          'شروع خودکار پایشگر جدید، پس از تأیید سیاست اصلی',
+          'First-time monitor activation under original policy'],
+        ['originalSourceActivationAccepted',
+          'مجوز اصلی شروع پایش',
+          'Original acquisition activation authorization'],
+        ['crashRecoveryModulePackaged',
+          'بازیابی صفحات دوزبانه پس از قطع ناگهانی',
+          'Signed bilingual publication recovery module']]){
+        const line=document.createElement('p');
+        line.textContent=(automation[key]===true?'✓ ':'○ ')+
+          say(faText,enText)+' — '+
+          (automation[key]===true?say('تنظیم/کد آماده','Configured/source present'):
+            say('غیرفعال یا آماده‌نشده','Disabled or unavailable'));
+        modelStatus.append(line);
+      }
+      const batch=document.createElement('p');
+      const capacity=Number(automation.privatePublisherTickCapacity);
+      batch.textContent=say('حد پردازش امن در هر نوبت: ','Bounded per-tick publication capacity: ')+
+        (Number.isInteger(capacity)&&capacity>=1&&capacity<=8?
+          String(capacity):say('تنظیم‌نشده','Not configured'))+
+        say('؛ بدون سهمیهٔ روزانه','; no daily editorial quota');
+      modelStatus.append(batch);
       blockerDetails.textContent=messages.length?messages.join(' · '):
         say('اتصال صف بررسی آماده است؛ اتصال ناشر عمومی هنوز اثبات نشده.',
           'Review queue is configured; original publisher acceptance is still missing.');
