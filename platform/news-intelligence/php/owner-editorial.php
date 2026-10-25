@@ -89,7 +89,7 @@ function jrNewsPrivateOwnerQueue(PDO $pdo,array $session,
            AND e.content_sha256=c.content_sha256
            AND d.review_state='ORIGINAL_JREI_ARTICLE_APPROVED'
            AND d.approved_article_source_id IS NOT NULL
-           AND v.approval_digest=SHA2(v.bilingual_editorial_json,256)
+           AND BINARY v.approval_digest=BINARY SHA2(v.bilingual_editorial_json,256)
          ORDER BY c.priority_code ASC, v.created_at ASC LIMIT :lim"
     );
     $stmt->bindValue(':lim',$limit,PDO::PARAM_INT);
