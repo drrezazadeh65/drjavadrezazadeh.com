@@ -1027,6 +1027,46 @@ ensure(($standingReceipt['status']??null)==='PUBLISHED'&&
 ensure((int)$pdo->query(
     "SELECT COUNT(*) FROM jrei_news_publications WHERE publisher_state='PUBLISHED'"
 )->fetchColumn()===1,'verified standing story alone is published in disposable fixture');
+
+$standingPublisherProof=static function(string $reference,string $path,string $digest)
+    use($autoDraft):array {
+    ensure($reference==='fixture-standing-original-auth-cms',
+        'standing source receipt must match authenticated CMS');
+    return [
+        'source'=>'ORIGINAL_AUTHENTICATED_CMS','verified'=>true,
+        'route'=>$path,'contentSha256'=>$digest,
+        'ownerApprovalDigest'=>$autoDraft['approvalDigest']
+    ];
+};
+$standingCountry=static function(string $url,string $hash,string $publication)
+    use($articleUrl,$contentHash,$autoStage):array{
+    ensure($url===$articleUrl && $hash===$contentHash &&
+           $publication===$autoStage['publicationId'],
+        'standing source country must derive from original verified article');
+    return [
+        'source'=>'ORIGINAL_JREI_REVIEWED_SOURCE_REGISTRY','current'=>true,
+        'contentSha256'=>$contentHash,'countryCode'=>'ZZ'
+    ];
+};
+foreach(['fa','en'] as $locale){
+    $result=jrNewsIndexApprovedPublication(
+        $pdo,$autoStage['publicationId'],$locale,
+        $standingPublisherProof,$standingCountry,1792822440);
+    ensure($result['publicSearchEligible']===true,
+        'signed standing news indexed in BOTH published languages');
+}
+$standingEnglish=jrNewsPublishedSearch(
+    $pdo,'scholarship','en',20,['country'=>'ZZ']);
+ensure($standingEnglish['result_count']===1,
+    'search must include verified standing-policy scholarship announcement');
+$standingPersian=jrNewsPublishedSearch($pdo,'دانشگاه','fa',20);
+ensure($standingPersian['result_count']===1,
+    'Persian standing-policy official article is searchable');
+ensure((int)$pdo->query(
+    "SELECT COUNT(*) FROM jrei_news_search_documents WHERE index_state='PUBLISHED'"
+)->fetchColumn()===2,'standing story indexed only after authenticated bilingual receipt');
+echo "PASS: signed original CMS standing article appears in FA/EN public search\\n";
+
 $revocation=jrNewsRevokeStandingOfficialPolicy(
     $pdo,$owner,$policy['policyId'],1792822450);
 ensure($revocation['revoked']===true,'owner can revoke official standing policy');
