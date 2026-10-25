@@ -7,6 +7,7 @@ declare(strict_types=1);
  */
 if (!defined('BERTINA_API_BOOTSTRAPPED')) { http_response_code(404); exit; }
 require_once __DIR__.'/owner-editorial.php';
+require_once __DIR__.'/standing-official-publication.php';
 
 function jrNewsOwnerOperationalOverview(PDO $pdo,array $ownerSession,
     int $nowEpoch): array {
@@ -55,29 +56,53 @@ function jrNewsOwnerOperationalOverview(PDO $pdo,array $ownerSession,
                   FROM jrei_news_candidates"
         ],
         [
-            'keys'=>['ownerApprovalQueue','ownerApprovedRevisions'],
+            'keys'=>['legacyManualDraftQueue','ownerApprovedRevisions'],
             'sql'=>"SELECT
                   COALESCE(SUM(editorial_state='PENDING_OWNER_APPROVAL'),0)
-                     AS ownerApprovalQueue,
+                     AS legacyManualDraftQueue,
                   COALESCE(SUM(editorial_state='OWNER_APPROVED'),0)
                      AS ownerApprovedRevisions
                   FROM jrei_news_editorial_versions"
+        ],
+        [
+            'keys'=>['ownerApprovalQueue','ownerEvidenceExceptions'],
+            'sql'=>"SELECT
+                  COUNT(*) AS ownerApprovalQueue,
+                  COUNT(*) AS ownerEvidenceExceptions
+                  FROM jrei_news_owner_exceptions
+                  WHERE state_code IN ('PENDING','ACKNOWLEDGED')"
+        ],
+        [
+            'keys'=>['activeDelegatedOfficialSourceScopes'],
+            'sql'=>"SELECT COUNT(*) AS activeDelegatedOfficialSourceScopes
+                    FROM jrei_news_delegated_scopes WHERE
+                    revoked_at IS NULL AND effective_at<=".$nowEpoch."
+                    AND expires_at>".$nowEpoch
+        ],
+        [
+            'keys'=>['delegatedOfficialArticleEnrollments'],
+            'sql'=>"SELECT COUNT(*) AS delegatedOfficialArticleEnrollments
+                    FROM jrei_news_delegated_enrollments"
         ],
         [
             'keys'=>['actuallyPublishedBilingualItems'],
             'sql'=>"SELECT COUNT(*) AS actuallyPublishedBilingualItems
                   FROM jrei_news_publications p
                   JOIN jrei_news_editorial_versions v ON v.revision_id=p.revision_id
-                  JOIN jrei_news_owner_decisions d ON d.decision_id=p.approved_decision_id
+                  ".(jrNewsStandingPublicSchemaInstalled($pdo)?
+                    'LEFT JOIN jrei_news_owner_decisions d
+                      ON d.decision_id=p.approved_decision_id
+                     LEFT JOIN jrei_news_standing_policies pol
+                      ON pol.policy_id=p.standing_policy_id':
+                    'JOIN jrei_news_owner_decisions d
+                      ON d.decision_id=p.approved_decision_id')."
                   WHERE p.publisher_state='PUBLISHED'
                     AND p.published_at IS NOT NULL
                     AND p.publisher_receipt_reference IS NOT NULL
-                    AND d.action_code='APPROVE'
-                    AND d.revision_id=v.revision_id
-                    AND v.editorial_state='OWNER_APPROVED'
-                    AND d.approval_digest=v.approval_digest
                     AND p.fa_content_sha256 IS NOT NULL
-                    AND p.en_content_sha256 IS NOT NULL"
+                    AND p.en_content_sha256 IS NOT NULL
+                    AND ".jrNewsPublicationAuthorityPredicate(
+                      jrNewsStandingPublicSchemaInstalled($pdo))
         ],
         [
             'keys'=>['socialDeliveryFailures'],
