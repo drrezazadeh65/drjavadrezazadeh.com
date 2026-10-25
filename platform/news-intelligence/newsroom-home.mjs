@@ -4,6 +4,7 @@
  * Uses a client-side filter ONLY for the currently displayed story cards.
  */
 import {assert,plain,safeText,utcInstant,publicHttps} from './contracts.mjs';
+import {hasVerifiedPublicationAuthority} from './publication-authority.mjs';
 import {NEWS_CATEGORIES} from './taxonomy.mjs';
 const SITE='https://drjavadrezazadeh.com';
 const e=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;')
@@ -22,7 +23,7 @@ function validOfficialLink(url){
   catch{return false;}
 }
 function safeStory(s,lang){
-  return plain(s)&&s.ownerApproved===true&&s.publicationState==='PUBLISHED'&&
+  return plain(s)&&hasVerifiedPublicationAuthority(s)&&s.publicationState==='PUBLISHED'&&
     s.language===lang&&path(s.path)&&s.path.startsWith('/'+lang+'/')&&
     safeText(s.headline,8,180)&&safeText(s.summary,20,600)&&
     asset(s.featuredImage)&&safeText(s.imageAlt,5,300)&&
