@@ -8,6 +8,7 @@
  * one local model and one in-flight inference per Windows node.
  */
 import {createLocalLlamaAdapter} from './jrei-loopback-model-adapter.mjs';
+import {inspectJreiEducationalDraft} from '../jrei-educational-answer-review.mjs';
 import os from 'node:os';
 
 const ID=/^[A-Za-z0-9._:-]{1,64}$/;
@@ -221,6 +222,22 @@ export async function runLocalChatWorker(config,key,{post,log,signal,fetchImpl}=
                typeof draft.text!=='string'||draft.text.length<12||
                draft.text.length>4000)
               throw Error('LOCAL_CHAT_MODEL_OUTPUT_NOT_ACCEPTABLE');
+            // Negative-only multilingual guard. It can veto unsafe drafts
+            // but cannot certify math, education quality or public release.
+            // No response text or learner question is logged locally.
+            const lastUser=[...job.messages].reverse()
+              .find(message=>message?.role==='user');
+            const rawQuestion=lastUser?.content??'';
+            const language=/[\u0600-\u06ff]/u.test(rawQuestion)?'fa':'en';
+            const quality=inspectJreiEducationalDraft({
+              question:rawQuestion,answer:draft.text,
+              stopReason:draft.stopReason,language,scope:'PUBLIC_CHAT'
+            });
+            if(quality.status==='REJECT'){
+              for(const reason of quality.reasonCodes)
+                log('LOCAL_CHAT_QUALITY_BLOCK_'+reason);
+              throw Error('LOCAL_CHAT_QUALITY_REVIEW_REJECTED');
+            }
             const receipt=await post(config,key,completeEndpoint,{
               jobId:job.jobId,leaseToken:job.leaseToken,
               modelId:model.modelId,modelVersion:model.modelVersion,
