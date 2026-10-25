@@ -458,6 +458,8 @@ function jrOperationsNewsReadiness(PDO $pdo,array $config): array {
     // Read bounded source-owned schema inventory rather than sending
     // sixteen individual SQL probes on every MFA newsroom refresh.
     $tables=array_fill_keys(array_keys($required),'UNAVAILABLE');
+    $schemaBlockers=[];
+    $metadataReadSucceeded=false;
     try{
         $names=array_keys($required);
         $marks=implode(',',array_fill(0,count($names),'?'));
@@ -544,6 +546,7 @@ function jrOperationsNewsReadiness(PDO $pdo,array $config): array {
                 $row['DELETE_RULE']??null
             ];
         }
+        $metadataReadSucceeded=true;
         foreach($required as $name=>$columns){
             $columnsPresent=count(array_filter($columns,
                 static fn(string $column):bool=>
@@ -631,8 +634,16 @@ function jrOperationsNewsReadiness(PDO $pdo,array $config): array {
                 }
                 if(!$matched){$foreignKeysPresent=false;break;}
             }
-            if($columnsPresent&&$shapePresent&&$uniquePresent&&$primaryKeyPresent&&$safeDefaultsPresent&&$secondaryIndexesPresent&&$foreignKeysPresent)
-                $tables[$name]='AVAILABLE';
+            $reasons=[];
+            if(!$columnsPresent)$reasons[]='MISSING_COLUMN';
+            if(!$shapePresent)$reasons[]='COLUMN_OR_TABLE_SHAPE';
+            if(!$uniquePresent)$reasons[]='MISSING_UNIQUE_CONSTRAINT';
+            if(!$primaryKeyPresent)$reasons[]='MISSING_PRIMARY_KEY';
+            if(!$safeDefaultsPresent)$reasons[]='UNSAFE_COLUMN_DEFAULT';
+            if(!$secondaryIndexesPresent)$reasons[]='MISSING_OR_WRONG_SEARCH_INDEX';
+            if(!$foreignKeysPresent)$reasons[]='MISSING_OR_WRONG_FOREIGN_KEY';
+            if($reasons===[])$tables[$name]='AVAILABLE';
+            else $schemaBlockers[$name]=$reasons;
         }
     }catch(Throwable $e){
         // Metadata failure never becomes a successful release assertion.
@@ -648,6 +659,8 @@ function jrOperationsNewsReadiness(PDO $pdo,array $config): array {
         'state'=>$queueAccessible?'OWNER_QUEUE_CONFIGURED':'SOURCE_ONLY_BLOCKED',
         'ownerQueueAccessible'=>$queueAccessible,
         'originalNewsTables'=>$tables,
+        'schemaBlockers'=>$schemaBlockers,
+        'schemaMetadataProbeSucceeded'=>$metadataReadSucceeded,
         'requiredMotherSchemaAvailable'=>$schemaReady,
         'requiredMotherTableCount'=>count($required),
         'verifiedMotherTableCount'=>count(array_filter($tables,
