@@ -499,6 +499,40 @@ ensure($complete['requiredMotherTableCount']===16 &&
        $complete['originalCmsPublisherConnected']===false &&
        $complete['publisherReceiptVerified']===false,
     'complete disposable mother schema is measured, not a CMS receipt');
+// All expected FKs must also exist: a permissive or dropped original
+// publisher reference is NOT a completed mother-database migration.
+$pdo->exec('ALTER TABLE jrei_news_search_documents
+    DROP FOREIGN KEY fk_jrei_news_search_pub');
+$missingForeignKey=jrOperationsNewsReadiness(
+    $pdo,['jrei_news_integrated_release_accepted'=>true]
+);
+ensure($missingForeignKey['requiredMotherSchemaAvailable']===false &&
+       $missingForeignKey['verifiedMotherTableCount']===15 &&
+       $missingForeignKey['originalNewsTables']['jrei_news_search_documents']==='UNAVAILABLE' &&
+       $missingForeignKey['ownerQueueAccessible']===false,
+    'missing original publisher foreign key blocks activation');
+$pdo->exec('ALTER TABLE jrei_news_search_documents
+    ADD CONSTRAINT fk_jrei_news_search_pub
+    FOREIGN KEY(publication_id)
+    REFERENCES jrei_news_publications(publication_id) ON DELETE CASCADE');
+$weakenedForeignKey=jrOperationsNewsReadiness(
+    $pdo,['jrei_news_integrated_release_accepted'=>true]
+);
+ensure($weakenedForeignKey['requiredMotherSchemaAvailable']===false &&
+       $weakenedForeignKey['originalNewsTables']['jrei_news_search_documents']==='UNAVAILABLE',
+    'incorrect ON DELETE CASCADE cannot pass immutable publication linkage');
+$pdo->exec('ALTER TABLE jrei_news_search_documents
+    DROP FOREIGN KEY fk_jrei_news_search_pub');
+$pdo->exec('ALTER TABLE jrei_news_search_documents
+    ADD CONSTRAINT fk_jrei_news_search_pub
+    FOREIGN KEY(publication_id)
+    REFERENCES jrei_news_publications(publication_id) ON DELETE RESTRICT');
+$foreignKeyRestored=jrOperationsNewsReadiness(
+    $pdo,['jrei_news_integrated_release_accepted'=>true]
+);
+ensure($foreignKeyRestored['requiredMotherSchemaAvailable']===true,
+    'restored exact original publisher foreign key returns readiness');
+
 // A partial migration may have ALL the expected columns but lack the
 // uniqueness constraints that prevent canonical-route reuse.
 $pdo->exec('ALTER TABLE jrei_news_search_documents
@@ -539,7 +573,7 @@ ensure($partial['originalNewsTables']['jrei_news_topic_follows']==='UNAVAILABLE'
        $partial['verifiedMotherTableCount']===15 &&
        $partial['ownerQueueAccessible']===false,
     'existing table with missing columns is NOT a completed migration');
-echo "PASS: 16-column-aware mother-schema readiness rejects incomplete tables and columns\\n";
+echo "PASS: mother-schema readiness rejects missing foreign keys, weakened actions and incomplete columns\\n";
 
 
 /* Retraction must not trust caller-supplied claims about a publisher.
