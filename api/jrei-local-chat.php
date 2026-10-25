@@ -435,7 +435,7 @@ function jrLocalChatWorkerComplete(PDO $pdo,array $cfg,string $node,array $body)
         throw new InvalidArgumentException('local_chat_model_receipt_invalid');
     if(!jrHybridUuid($id)||!is_string($token)||
        preg_match('/^[a-f0-9]{64}$/D',$token)!==1||
-       !is_string($answer)||strlen($answer)<12||strlen($answer)>4000||
+       !is_string($answer)||trim($answer)===''||strlen($answer)>4000||
        preg_match('/<\\/?think(?:\\s|>)/i',$answer)===1||
        jrLocalChatKey($cfg)===null)
         throw new InvalidArgumentException('local_chat_worker_reply_invalid');
@@ -459,19 +459,39 @@ function jrLocalChatWorkerComplete(PDO $pdo,array $cfg,string $node,array $body)
                (string)jrLocalChatKey($cfg)),true,18,JSON_THROW_ON_ERROR);
         $query=$payload['query'];$lang=$payload['lang'];
         $old=$payload['selection'];
+        // Server independently recomputes the exact integer task against
+        // the last bounded user message, not model text or history summaries.
+        $lastMessage=end($payload['messages']);
+        $lastQuestion=is_array($lastMessage)&&
+            ($lastMessage['role']??null)==='user'&&
+            is_string($lastMessage['content']??null)
+            ?$lastMessage['content']:'';
+        $expectedInteger=jrJreiSimpleArithmeticExpected($lastQuestion);
+        $exactInteger=$expectedInteger!==null&&
+            jrJreiNumeralAscii(trim($answer))===$expectedInteger;
+        // Other responses must meet the original minimum-length bound.
+        if(!$exactInteger&&strlen($answer)<12)
+            throw new DomainException('local_chat_nondeterministic_short_reply');
         $new=jrLocalChatEvidence($pdo,$cfg,$query,$lang);
         $safe=jrLocalChatCanonical($new)===jrLocalChatCanonical($old);
-        $gate=$safe?($old['sources']?
-           jrAiPublicAnswerGate($answer,$old['sources'],$lang):
-           jrAiPublicUncitedAnswerGate($answer,$lang)):['publiclyRenderable'=>false];
+        // Deterministic numeric answers are source-free calculations, not
+        // attributed educational claims. All other answers retain the
+        // original public evidence/uncited-answer review gate unchanged.
+        $gate=$safe&&$exactInteger
+            ?['publiclyRenderable'=>true,'usedSourceIds'=>[]]
+            :($safe?($old['sources']?
+               jrAiPublicAnswerGate($answer,$old['sources'],$lang):
+               jrAiPublicUncitedAnswerGate($answer,$lang)):
+               ['publiclyRenderable'=>false]);
         // Independent, code-reviewed negative guard in addition to the
         // source-evidence gate. This cannot grant acceptance and has no
         // access to learner records or model training. Only a reason code
         // is retained in this transaction, never a draft transcript.
-        $negative=jrJreiLocalDraftIntegrityFailure($payload['query'],
+        $negative=jrJreiLocalDraftIntegrityFailure($lastQuestion,
             $answer,$lang);
         $accepted=($gate['publiclyRenderable']??false)===true&&
-            $negative===null;
+            $negative===null&&
+            ($expectedInteger===null||$exactInteger);
         $links=[];
         if($accepted){
             $used=array_fill_keys($gate['usedSourceIds']??[],true);
@@ -481,9 +501,11 @@ function jrLocalChatWorkerComplete(PDO $pdo,array $cfg,string $node,array $body)
         }
         $result=$accepted?[
           'schema'=>'jr.jrei.local-chat-answer.v1',
-          'answer'=>$answer,'links'=>$links,'runtime'=>'JREI_LM_LOCAL_WINDOWS',
-          'sourceScope'=>$old['scope'],'independentScientificValidation'=>false,
-          'provider'=>'OWNER_WINDOWS_LOCAL_MODEL',
+          'answer'=>$answer,'links'=>$links,
+          'runtime'=>$exactInteger?'JREI_DETERMINISTIC_INTEGER':'JREI_LM_LOCAL_WINDOWS',
+          'sourceScope'=>$exactInteger?'deterministic_integer':$old['scope'],
+          'independentScientificValidation'=>false,
+          'provider'=>$exactInteger?'SIGNED_JREI_INTEGER_VERIFIER':'OWNER_WINDOWS_LOCAL_MODEL',
           'conversationStoredByJrei'=>false,'cloudModelInvoked'=>false,
           'ephemeralEncryptedQueueUsed'=>true,
           'queuePayloadDeletedOnSuccessfulCollection'=>true,
