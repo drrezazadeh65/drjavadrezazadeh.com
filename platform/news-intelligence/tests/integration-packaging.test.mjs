@@ -40,3 +40,24 @@ test('published search SQL enforces both CMS and indexing receipts without priva
   assert.match(code,/s\.content_sha256=IF/);
   assert.doesNotMatch(code,/SELECT \* FROM jrei_news_editorial_versions/);
 });
+
+test('original CMS article dependencies survive the sanitized Bertina build',()=>{
+  const original=text('../ui/news-assistant.js');
+  const shipped=text('../../../assets/js/jrei-news-assistant-v1.js');
+  const css=text('../../../assets/css/jrei-news-article-v1.css');
+  const render=text('../php/verified-news-page-render.php');
+  const build=text('../../../scripts/build-public-site.mjs');
+  assert.equal(shipped,original,'shipping assistant must be exact reviewed source');
+  assert.match(render,/jrei-news-article-v1\\.css/);
+  assert.match(render,/jrei-news-assistant-v1\\.js/);
+  assert.match(render,/assets\\/js\\/assistant\\.js/);
+  assert.match(render,/data-jrei-existing-assistant-slot/);
+  assert.match(shipped,/openOriginalAssistant/);
+  assert.match(shipped,/var articleUrl=location\\.origin/);
+  assert.match(shipped,/textarea\\.value=safe/);
+  assert.doesNotMatch(shipped,/form\\.submit\\(|fetch\\(/);
+  assert.match(css,/\\.ni-article/);
+  assert.match(css,/data-jrei-news-context/);
+  assert.match(css,/@media\\(max-width:600px\\)/);
+  assert.match(build,/Original JREI News published article assistant\\/style assets missing/);
+});
