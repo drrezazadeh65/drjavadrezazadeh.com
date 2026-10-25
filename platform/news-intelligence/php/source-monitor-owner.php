@@ -348,8 +348,8 @@ function jrNewsOwnerStageableOriginalSources(
          FROM jrei_exam_sources s
          JOIN jrei_ka_source_policies p ON p.source_id=s.source_id
          LEFT JOIN jrei_news_monitors n
-           ON n.jrei_source_reference=s.source_id
-          AND n.source_url_sha256=SHA2(s.source_locator_uri,256)
+           ON BINARY n.jrei_source_reference=BINARY s.source_id
+          AND BINARY n.source_url_sha256=BINARY SHA2(s.source_locator_uri,256)
          WHERE n.monitor_id IS NULL
            AND s.review_state='AUTHORITATIVE_REVIEWED'
            AND s.rights_state IN

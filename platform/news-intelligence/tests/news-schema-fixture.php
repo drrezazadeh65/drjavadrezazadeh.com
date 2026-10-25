@@ -455,6 +455,16 @@ try{
         $snapshotSchemas[$key]=is_array($view)?($view['schema']??'NO_SCHEMA'):'UNAVAILABLE';
     fwrite(STDERR,'Synthetic snapshot status '.json_encode(
         ['status'=>$snapshotStatuses,'schemas'=>$snapshotSchemas],JSON_UNESCAPED_SLASHES).PHP_EOL);
+    if(($snapshot['viewStatus']['queue']??null)!=='AVAILABLE'){
+        try{jrNewsPrivateOwnerQueue($pdo,$owner,40);}
+        catch(Throwable $e){fwrite(STDERR,'fixture_queue_error: '.
+            get_class($e).' / '.$e->getMessage().PHP_EOL);}
+    }
+    if(($snapshot['viewStatus']['backlog']??null)!=='AVAILABLE'){
+        try{jrNewsOwnerPublicationBacklog($pdo,$owner,40);}
+        catch(Throwable $e){fwrite(STDERR,'fixture_backlog_error: '.
+            get_class($e).' / '.$e->getMessage().PHP_EOL);}
+    }
     ensure(count($snapshot['views'])===7 &&
            count($snapshot['viewStatus'])===7 &&
            ($snapshot['views']['queue']['schema']??null)===

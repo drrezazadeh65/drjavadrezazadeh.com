@@ -152,8 +152,8 @@ function jrNewsOwnerOriginalAcquisitionSnapshot(
                 o.rights_state_at_acquisition
          FROM jrei_ka_jobs j
          JOIN jrei_exam_sources s ON s.source_id=j.source_id
-         JOIN jrei_news_monitors n ON n.jrei_source_reference=j.source_id
-           AND n.source_url_sha256=SHA2(s.source_locator_uri,256)
+         JOIN jrei_news_monitors n ON BINARY n.jrei_source_reference=BINARY j.source_id
+           AND BINARY n.source_url_sha256=BINARY SHA2(s.source_locator_uri,256)
          LEFT JOIN jrei_ka_private_observations o ON o.job_id=j.job_id
          ORDER BY j.created_at DESC,j.job_id DESC LIMIT ?"
     );

@@ -43,7 +43,7 @@ function jrNewsPrivateOwnerQueue(PDO $pdo,array $session,
          JOIN jrei_news_monitors n
            ON n.monitor_id=c.monitor_id AND n.enabled=1
          JOIN jrei_exam_sources feed
-           ON feed.source_id=n.jrei_source_reference
+           ON BINARY feed.source_id=BINARY n.jrei_source_reference
           AND BINARY n.source_url_sha256=BINARY SHA2(feed.source_locator_uri,256)
           AND feed.review_state='AUTHORITATIVE_REVIEWED'
           AND feed.rights_state IN
@@ -66,8 +66,8 @@ function jrNewsPrivateOwnerQueue(PDO $pdo,array $session,
            ON d.monitor_id=c.monitor_id
           AND BINARY d.canonical_url_sha256=BINARY SHA2(c.source_url,256)
          JOIN jrei_exam_sources article
-           ON article.source_id=d.approved_article_source_id
-          AND article.source_locator_uri=c.source_url
+           ON BINARY article.source_id=BINARY d.approved_article_source_id
+          AND BINARY article.source_locator_uri=BINARY c.source_url
           AND article.review_state='AUTHORITATIVE_REVIEWED'
           AND article.rights_state IN
             ('PERMITTED_PRIVATE_ANALYSIS','PERMITTED_REPRODUCTION')

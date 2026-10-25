@@ -314,13 +314,13 @@ function jrNewsOwnerPublicationBacklog(
         "SELECT v.revision_id,v.revision_number,c.headline,
                 d.decided_at,p.publication_id,p.publisher_state
          FROM jrei_news_editorial_versions v
-         JOIN jrei_news_candidates c ON c.candidate_id=v.candidate_id
+         JOIN jrei_news_candidates c ON BINARY c.candidate_id=BINARY v.candidate_id
          JOIN jrei_news_owner_decisions d
-           ON d.revision_id=v.revision_id AND d.action_code='APPROVE'
-          AND d.approval_digest=v.approval_digest
-         LEFT JOIN jrei_news_publications p ON p.revision_id=v.revision_id
+           ON BINARY d.revision_id=BINARY v.revision_id AND d.action_code='APPROVE'
+          AND BINARY d.approval_digest=BINARY v.approval_digest
+         LEFT JOIN jrei_news_publications p ON BINARY p.revision_id=BINARY v.revision_id
          WHERE v.editorial_state='OWNER_APPROVED'
-           AND v.approval_digest=SHA2(v.bilingual_editorial_json,256)
+           AND BINARY v.approval_digest=BINARY SHA2(v.bilingual_editorial_json,256)
            AND d.owner_account_id=?
            AND (p.publication_id IS NULL
              OR p.publisher_state='WAITING_FOR_PUBLISHER')
