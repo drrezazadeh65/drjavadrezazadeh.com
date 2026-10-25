@@ -214,7 +214,7 @@ function jrNewsAdminRegisterOriginalPendingSource(
              WHERE submission_id=? AND submission_state<>'DISABLED'"
         )->execute([$id,$now,$submissionId]);
         if(function_exists('operationsAudit'))
-            operationsAudit($pdo,$owner['accountId'],
+            operationsAudit($pdo,$owner['actor'],
                 'jrei_news_original_source_registered',
                 hash('sha256',$submissionId.'|'.$id));
         $pdo->commit();
