@@ -107,18 +107,49 @@ SQL;
  * diagnostic, and no mutation or secret value is returned.
  */
 function jrOperationsNewsReadiness(PDO $pdo,array $config): array {
-    $core=[
-        'jrei_news_monitors',
-        'jrei_news_candidates',
-        'jrei_news_discovered_urls',
-        'jrei_news_evidence_reviews',
-        'jrei_news_editorial_versions',
-        'jrei_news_owner_decisions'
+    // All FOUR additive news migrations and the original JREI-KA mother
+    // tables are required for a complete owner newsroom. A preexisting table
+    // missing new columns must not be mistaken for a completed migration.
+    // Literal allowlisted names only; no account data, expensive counts,
+    // migration writes or schema mutation occurs in this read-only probe.
+    $required=[
+        'jrei_news_monitors'=>['monitor_id','jrei_source_reference',
+            'policy_revision','source_url_sha256','enabled'],
+        'jrei_news_candidates'=>['candidate_id','monitor_id','source_url',
+            'content_sha256','state'],
+        'jrei_news_discovered_urls'=>['discovery_id','monitor_id',
+            'canonical_url_sha256','approved_article_source_id','review_state'],
+        'jrei_news_evidence_reviews'=>['review_id','candidate_id',
+            'reviewer_account_id','verification_state'],
+        'jrei_news_editorial_versions'=>['revision_id','candidate_id',
+            'approval_digest','bilingual_editorial_json','editorial_state'],
+        'jrei_news_owner_decisions'=>['decision_id','revision_id',
+            'owner_account_id','approval_digest','action_code'],
+        'jrei_news_publications'=>['publication_id','revision_id',
+            'publisher_state','publisher_receipt_reference'],
+        'jrei_news_exam_milestones'=>['milestone_id','review_state',
+            'owner_approved'],
+        'jrei_news_exam_follows'=>['follow_id','follow_state',
+            'consent_reference'],
+        'jrei_news_delivery_receipts'=>['delivery_id','state',
+            'idempotency_key'],
+        'jrei_news_topic_follows'=>['follow_id','follow_state',
+            'consent_reference'],
+        'jrei_news_search_documents'=>['document_id','public_route',
+            'language_code','owner_approval_digest','index_state'],
+        'jrei_exam_sources'=>['source_id','source_locator_uri',
+            'review_state','rights_state','is_revoked'],
+        'jrei_ka_source_policies'=>['source_id','revision',
+            'scheduling_state','rights_reviewed'],
+        'jrei_ka_jobs'=>['job_id','source_id','job_state',
+            'source_policy_revision'],
+        'jrei_ka_private_observations'=>['observation_id','job_id',
+            'source_id','content_sha256','source_policy_revision']
     ];
     $tables=[];
-    foreach($core as $name){
+    foreach($required as $name=>$columns){
         try{
-            $pdo->query('SELECT 1 FROM '.$name.' LIMIT 0');
+            $pdo->query('SELECT '.implode(',',$columns).' FROM '.$name.' LIMIT 0');
             $tables[$name]='AVAILABLE';
         }catch(Throwable $e){$tables[$name]='UNAVAILABLE';}
     }
@@ -134,6 +165,9 @@ function jrOperationsNewsReadiness(PDO $pdo,array $config): array {
         'ownerQueueAccessible'=>$queueAccessible,
         'originalNewsTables'=>$tables,
         'requiredMotherSchemaAvailable'=>$schemaReady,
+        'requiredMotherTableCount'=>count($required),
+        'verifiedMotherTableCount'=>count(array_filter($tables,
+            static fn(string $state):bool=>$state==='AVAILABLE')),
         'packagedPrivateNewsLibraryAvailable'=>$privateLibraryReady,
         'explicitOriginalApiFlagEnabled'=>$apiFlag,
         'integratedReleaseAccepted'=>$releaseFlag,

@@ -486,3 +486,27 @@ try{
 } finally {
     putenv('JR_JREI_NEWS_API_ENABLED');
 }
+
+
+// Schema readiness must fail closed if a REQUIRED migration has not landed,
+// even if six older newsroom tables and every activation flag exist.
+$complete=jrOperationsNewsReadiness(
+    $pdo,['jrei_news_integrated_release_accepted'=>true]
+);
+ensure($complete['requiredMotherTableCount']===16 &&
+       $complete['verifiedMotherTableCount']===16 &&
+       $complete['requiredMotherSchemaAvailable']===true &&
+       $complete['originalCmsPublisherConnected']===false &&
+       $complete['publisherReceiptVerified']===false,
+    'complete disposable mother schema is measured, not a CMS receipt');
+$pdo->exec('DROP TABLE jrei_news_topic_follows');
+$incomplete=jrOperationsNewsReadiness(
+    $pdo,['jrei_news_integrated_release_accepted'=>true]
+);
+ensure($incomplete['requiredMotherSchemaAvailable']===false &&
+       $incomplete['verifiedMotherTableCount']===15 &&
+       $incomplete['originalNewsTables']['jrei_news_topic_follows']==='UNAVAILABLE' &&
+       $incomplete['ownerQueueAccessible']===false &&
+       $incomplete['publicPublicationActivatedByCheck']===false,
+    'partial migration fails closed even when release flag is asserted');
+echo "PASS: 16-column-aware mother-schema readiness rejects incomplete migration\\n";

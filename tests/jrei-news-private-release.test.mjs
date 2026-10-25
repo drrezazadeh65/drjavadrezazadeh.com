@@ -197,3 +197,20 @@ test('MFA owner dashboard bundles seven existing guarded reads into one request'
   assert.ok(source.includes("request('/owner/publication/preflight?revisionId="),
     'source-dependent publication preflight still fetched freshly');
 });
+
+test('readiness validates all four additive migrations and original source tables',()=>{
+  const php=fs.readFileSync(path.join(out,'api/operations-jrei-news.php'),'utf8');
+  for(const table of [
+    'jrei_news_monitors','jrei_news_candidates','jrei_news_discovered_urls',
+    'jrei_news_evidence_reviews','jrei_news_editorial_versions',
+    'jrei_news_owner_decisions','jrei_news_publications',
+    'jrei_news_exam_milestones','jrei_news_exam_follows',
+    'jrei_news_delivery_receipts','jrei_news_topic_follows',
+    'jrei_news_search_documents','jrei_exam_sources',
+    'jrei_ka_source_policies','jrei_ka_jobs','jrei_ka_private_observations'
+  ])assert.ok(php.includes("'"+table+"'=>["),'source table checked: '+table);
+  assert.match(php,/SELECT '\.implode\(',',\$columns\)\.' FROM '\.\$name\.' LIMIT 0'/);
+  assert.match(php,/'requiredMotherTableCount'=>count\(\$required\)/);
+  assert.match(php,/\$queueAccessible=\$apiFlag&&\$releaseFlag&&\$schemaReady&&\$privateLibraryReady/);
+  assert.doesNotMatch(php,/ALTER TABLE|CREATE TABLE|DROP TABLE/);
+});
