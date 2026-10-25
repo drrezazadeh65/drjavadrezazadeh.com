@@ -29,7 +29,7 @@ export function planReviewedStudyCycle({learner,receipts=[],nowUtc,
    return deny('LEARNER_OR_GUARDIAN_CONSENT_REQUIRED');
  if(policy?.ownerReleasedReviewedAssessments!==true||
     policy?.privateStudyDataAllowed!==true||
-    policy?.originalMotherDatabase===false)
+    policy?.originalMotherDatabase!==true)
    return deny('EXISTING_STUDY_POLICY_NOT_APPROVED');
  const cleaned=[];
  for(const x of receipts){
@@ -80,7 +80,7 @@ export function planReviewedStudyCycle({learner,receipts=[],nowUtc,
    psychologicalDiagnosis:null,trainingWithoutSeparateConsent:false,
    studyRecordWritten:false,paidAttemptCreated:false
  };
- return Object.freeze({...result,planDigestSha256:hash(result)});
+ return Object.freeze({...result,eligible:true,planDigestSha256:hash(result)});
 }
 export function recordAdaptiveReviewProposal({currentPlan,learnerConsentCurrent,
  reviewerId,reviewReceiptSha256,correctionCode}={}){
