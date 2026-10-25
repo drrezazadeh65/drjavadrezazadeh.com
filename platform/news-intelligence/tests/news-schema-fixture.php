@@ -893,3 +893,86 @@ $repeat=jrNewsConfirmReviewedRetraction($pdo,$owner,$publicationId,$reason,
 ensure(($repeat['state']??null)==='ALREADY_RETRACTED',
     'duplicate original retraction is idempotent');
 echo "PASS: forged CMS retraction denied; verified bilingual withdrawal hides both search results\n";
+
+
+/*
+ * Second, deliberately ADDITIVE policy migration is applied only to the
+ * disposable news_fixture database after legacy manual publishing tests.
+ * No production SQL. Existing owner decision/retraction rows must survive.
+ */
+$migration=file_get_contents(dirname(__DIR__,3).
+    '/docs/migrations/20261025_jrei_news_standing_official_publication_mother_mysql.sql');
+ensure(is_string($migration),'standing policy migration source exists');
+$migration=preg_replace('/^\s*--[^\r\n]*/m','',$migration);
+foreach(explode(';',(string)$migration) as $statement){
+    $statement=trim($statement);
+    if($statement!=='')$pdo->exec($statement);
+}
+ensure((int)$pdo->query(
+    'SELECT COUNT(*) FROM jrei_news_publications WHERE approved_decision_id IS NOT NULL'
+)->fetchColumn()===1,'old manually approved published story remains intact');
+
+$incorrectGrant=false;
+try{
+    jrNewsGrantStandingOfficialPolicy($pdo,$owner,'ALLOW_ALL_NEWS',1792822100);
+}catch(RuntimeException $e){$incorrectGrant=true;}
+ensure($incorrectGrant,'unauthorized blanket policy grant is rejected');
+$policy=jrNewsGrantStandingOfficialPolicy($pdo,$owner,
+    'AUTHORIZE_VERIFIED_PRIMARY_OFFICIAL_NEWS',1792822200,30);
+ensure($policy['individualNewsApproved']===false&&
+       $policy['ownerMfaAuditRecorded']===true,
+    'owner standing policy is durable, MFA-bound and not an article decision');
+
+$updatedEnglish=$en;
+$updatedEnglish['headline']='Official university scholarship deadline update for applicants';
+$updatedEnglish['body']=$en['body'].' The new notice provides official scholarship details.';
+$autoDraft=jrNewsStoreEvidenceReviewedDraft(
+    $pdo,$receipt['candidateId'],$review['reviewId'],[
+        'fa'=>$fa,'en'=>$updatedEnglish,
+        'imageAssetReference'=>'assets/images/news/university.webp',
+        'internalLinks'=>[]
+    ],static fn(string $action):bool=>$action==='NEWS_PRIVATE_DRAFT',
+      static fn(string $asset):bool=>
+        $asset==='assets/images/news/university.webp',1792822300);
+$autoStage=jrNewsStageStandingOfficialPublication(
+    $pdo,$autoDraft['revisionId'],$policy['policyId'],
+    $officialPolicy,1792822400);
+ensure($autoStage['state']==='WAITING_FOR_PUBLISHER'&&
+       $autoStage['publishedByThisCall']===false,
+    'auto publication is staged under standing policy but never self-published');
+$raw=$pdo->prepare(
+    'SELECT approved_decision_id,standing_policy_id,publisher_state
+     FROM jrei_news_publications WHERE publication_id=?');
+$raw->execute([$autoStage['publicationId']]);
+$storedAuto=$raw->fetch(PDO::FETCH_ASSOC);
+ensure($storedAuto['approved_decision_id']===null&&
+       $storedAuto['standing_policy_id']===$policy['policyId']&&
+       $storedAuto['publisher_state']==='WAITING_FOR_PUBLISHER',
+    'no per-article owner decision is fabricated');
+$second=jrNewsStageStandingOfficialPublication(
+    $pdo,$autoDraft['revisionId'],$policy['policyId'],
+    $officialPolicy,1792822401);
+ensure($second['alreadyStaged']===true&&
+       $second['publicationId']===$autoStage['publicationId'],
+    'automated stage is exactly once for same revision');
+$fakeBothRejected=false;
+try{
+    $q=$pdo->prepare('UPDATE jrei_news_publications
+        SET approved_decision_id=? WHERE publication_id=?');
+    $q->execute([$decision['decisionId'],$autoStage['publicationId']]);
+}catch(PDOException $e){$fakeBothRejected=true;}
+ensure($fakeBothRejected,'manual and standing policy cannot both authorize one record');
+$revocation=jrNewsRevokeStandingOfficialPolicy(
+    $pdo,$owner,$policy['policyId'],1792822450);
+ensure($revocation['revoked']===true,'owner can revoke official standing policy');
+$revokedRejected=false;
+try{
+    jrNewsStageStandingOfficialPublication(
+        $pdo,$autoDraft['revisionId'],$policy['policyId'],
+        $officialPolicy,1792822500);
+}catch(RuntimeException $e){$revokedRejected=true;}
+ensure($revokedRejected,'revoked policy prevents subsequent automatic staging');
+ensure((int)$pdo->query(
+    "SELECT COUNT(*) FROM jrei_news_publications WHERE publisher_state='PUBLISHED'"
+)->fetchColumn()===0,'no new production or synthetic public publication was inferred');
+echo "PASS: additive MariaDB standing-policy authorization, XOR integrity, idempotency, revocation and legacy survival\n";
