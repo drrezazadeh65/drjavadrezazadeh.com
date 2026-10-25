@@ -1,3 +1,4 @@
+import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import {isOwnershipVerificationArtifact,verifyOwnershipArtifact} from './site-ownership-verification.mjs';
@@ -82,6 +83,36 @@ const jreiMigrationBundle={
 };
 fs.writeFileSync(path.join(jreiPrivateDir,'jrei-approved-schema-v1.json'),
   JSON.stringify(jreiMigrationBundle)+'\n',{flag:'wx'});
+// JREI-LM needs THREE fixed reviewed DDL statements on Bertina.
+// docs/ is deliberately excluded from the production package. Project only
+// these exact SQL sources into the original HTTP-denied api/internal folder,
+// retaining source hashes; NEVER ship docs/, plaintext backups or credentials.
+const jreiSqlMigrations=[
+  '20261023_jrei_model_registry_mother_mysql.sql',
+  '20261024_jrei_local_inference_queue_mother_mysql.sql'
+];
+const jreiSqlOut=path.join(out,'api/internal/jrei-reviewed-ddl-v1.json');
+const jreiSqlDeny=path.join(out,'api/internal/.htaccess');
+if(!fs.existsSync(jreiSqlDeny)||
+   !/Require\s+all\s+denied/i.test(fs.readFileSync(jreiSqlDeny,'utf8')))
+  throw Error('JREI private DDL cannot be packaged without HTTP deny policy');
+const jreiSqlEntries=jreiSqlMigrations.map(name=>{
+  const file=path.join(root,'docs/migrations',name);
+  const sql=fs.readFileSync(file,'utf8');
+  if(sql.length>20000||!/CREATE TABLE IF NOT EXISTS jrei_local_/i.test(sql)||
+     /\b(DROP|ALTER|TRUNCATE|GRANT|REVOKE|CREATE\s+DATABASE)\b/i.test(sql))
+    throw Error('JREI reviewed DDL source unexpected');
+  return {name,sha256:(awaitHashSql(sql)),sql};
+});
+function awaitHashSql(data){
+  return crypto.createHash('sha256').update(data).digest('hex');
+}
+fs.writeFileSync(jreiSqlOut,JSON.stringify({
+  schema:'jr.jrei.owner-reviewed-local-ddl.v1',
+  entries:jreiSqlEntries
+})+'\n',{flag:'wx',mode:0o600});
+// End private JREI SQL source projection.
+
 // Bundle the original MFA-gated JREI News PHP dependency closure only inside
 // the EXISTING api/internal/ HTTP-denied private directory. Never copy the
 // platform/ source tree or expose a new public entrypoint. All features remain
