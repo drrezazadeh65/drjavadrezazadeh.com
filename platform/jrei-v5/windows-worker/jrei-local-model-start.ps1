@@ -120,6 +120,10 @@ try {
     try {$process.PriorityClass='BelowNormal'}catch {}
     $process.WaitForExit()
     if($process.ExitCode -ne 0){throw 'LOCAL_MODEL_RUNTIME_FAILED'}
+    # This is an always-on owner model when launched by Task Scheduler.
+    # An unexpected clean exit is still lost inference availability; return
+    # failure so the pre-registered bounded Windows restart policy applies.
+    throw 'LOCAL_MODEL_RUNTIME_EXITED_RESTART_REQUIRED'
   } finally {
     if(-not $process.HasExited){
       Stop-Process -Id $process.Id -Force -ErrorAction SilentlyContinue
