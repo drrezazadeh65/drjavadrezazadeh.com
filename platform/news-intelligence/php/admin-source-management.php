@@ -528,7 +528,17 @@ function jrNewsOriginalReconcileApprovedAdminSources(
                  FROM jrei_exam_sources s
                  JOIN jrei_ka_source_policies p ON p.source_id=s.source_id
                  WHERE BINARY s.source_locator_uri=BINARY ?
-                 ORDER BY s.source_id LIMIT 1 FOR UPDATE"
+                   AND s.review_state='AUTHORITATIVE_REVIEWED'
+                   AND s.rights_state IN
+                       ('PERMITTED_PRIVATE_ANALYSIS','PERMITTED_REPRODUCTION')
+                   AND s.is_revoked=0 AND s.is_superseded=0
+                   AND s.reviewer_account_id IS NOT NULL
+                   AND s.verified_at IS NOT NULL
+                   AND p.scheduling_state='APPROVED'
+                   AND p.rights_reviewed=1
+                   AND p.robots_terms_reviewed=1
+                   AND p.transport_reviewed=1
+                 ORDER BY s.verified_at DESC,s.source_id LIMIT 1 FOR UPDATE"
             );
             $source->execute([$url]);
             $proof=$source->fetch(PDO::FETCH_ASSOC);
