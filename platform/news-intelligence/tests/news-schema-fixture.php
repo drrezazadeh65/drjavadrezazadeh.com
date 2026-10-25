@@ -913,6 +913,14 @@ ensure((int)$pdo->query(
 )->fetchColumn()===1,'old manually approved published story remains intact');
 $upgradedReadiness=jrOperationsNewsReadiness($pdo,
     ['jrei_news_integrated_release_accepted'=>false]);
+if(($upgradedReadiness['standingOfficialPolicySchemaAvailable']??false)!==true ||
+   ($upgradedReadiness['requiredMotherSchemaAvailable']??false)!==true)
+    fwrite(STDERR,'Standing upgrade metadata: '.
+        json_encode([
+            'standing'=>$upgradedReadiness['standingOfficialPolicySchemaAvailable']??null,
+            'blockers'=>$upgradedReadiness['schemaBlockers']??[],
+            'verified'=>$upgradedReadiness['verifiedMotherTableCount']??null
+        ],JSON_UNESCAPED_SLASHES)."\\n");
 ensure(($upgradedReadiness['standingOfficialPolicySchemaAvailable']??false)===true &&
        $upgradedReadiness['requiredMotherSchemaAvailable']===true &&
        $upgradedReadiness['verifiedMotherTableCount']===16,
