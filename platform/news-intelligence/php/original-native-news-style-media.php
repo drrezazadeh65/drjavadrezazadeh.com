@@ -57,7 +57,7 @@ function jrNewsDefaultIllustrationCandidates(string $headline):array {
     $research='assets/images/editorial-launch/academic-research-editing-20261011.webp';
     $international='assets/images/editorial-launch/international-research-collaboration-20261011.webp';
     $assessment='assets/images/editorial-launch/humanability-educational-assessment-20261011.webp';
-    $headline=mb_strtolower($headline,'UTF-8');
+    $headline=strtolower($headline);
     if(preg_match('/آزمون|کنکور|سنجش|ارزیابی|نتایج|assessment|exam|admission|results/u',$headline))
         return [$assessment,$academic,$research,$international];
     if(preg_match('/بورسیه|بین.الملل|همکاری|scholarship|international|exchange|collaboration/u',$headline))
