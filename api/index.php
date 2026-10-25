@@ -133,6 +133,9 @@ function cfg(): array {
         // A separate SUPER_ADMIN decision. Creating news monitors or
         // approving original sources does not enable scheduled crawling.
         'jrei_news_source_activation_accepted' => getenv('JR_JREI_NEWS_SOURCE_ACTIVATION_ACCEPTED') === 'true',
+        // Explicit owner-approved, exact-path delegation for official articles.
+        // Disabled until original JREI migration, policy and backup acceptance.
+        'jrei_news_delegated_scopes_enabled' => getenv('JR_JREI_NEWS_DELEGATED_SCOPES_ENABLED') === 'true',
         // Superseding JREI News official-source policy. These are independent,
         // opt-in private release flags: declaring them does not flip them on.
         // Publishing must still have owner MFA policy, completed mother DB
