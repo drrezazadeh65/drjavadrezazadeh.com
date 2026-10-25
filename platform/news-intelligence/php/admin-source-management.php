@@ -8,6 +8,7 @@ declare(strict_types=1);
 if(!defined('BERTINA_API_BOOTSTRAPPED')){http_response_code(404);exit;}
 require_once __DIR__.'/owner-editorial.php';
 require_once __DIR__.'/source-monitor-owner.php';
+require_once __DIR__.'/official-institution-directory.php';
 
 function jrNewsAdminCanonicalSourceUrl(string $raw):string {
     if(strlen($raw)<12||strlen($raw)>1000||
@@ -48,6 +49,14 @@ function jrNewsAdminSourceList(PDO $pdo,array $session,int $limit=50):array {
     $stmt->execute();
     return ['schema'=>'jr.jrei.news-admin-source-list.v1',
         'entries'=>$stmt->fetchAll(PDO::FETCH_ASSOC),
+        'suggestedInstitutions'=>array_map(
+            static fn(array $item):array=>[
+                'institutionId'=>$item['id'],
+                'titleFa'=>$item['nameFa'],'titleEn'=>$item['nameEn'],
+                'origin'=>$item['origin'],'category'=>$item['category'],
+                'priority'=>$item['priority'],
+                'validationState'=>'PENDING_ORIGINAL_JREI_CHECK'
+            ],jrNewsOfficialInstitutionDirectory()),
         'originalSourceRegistry'=>'jrei_exam_sources',
         'approvalDoesNotGrantContentReuseRights'=>true,
         'allChangesRequireExistingOwnerMfa'=>true];
@@ -375,4 +384,44 @@ function jrNewsAdminSourceEdit(PDO $pdo,array $session,string $submissionId,
         if($pdo->inTransaction())$pdo->rollBack();
         throw $e;
     }
+}
+
+/**
+ * A single explicit MFA manager action adds an institution from the curated
+ * *candidate* directory to the original source discovery queue. This is NOT
+ * proof of a live source, legal re-publication rights, or an operational crawl.
+ */
+function jrNewsAdminApproveSuggestedInstitution(
+    PDO $pdo,array $session,string $institutionId,string $confirmation,int $now
+):array {
+    jrNewsOwnerAuthority($session);
+    if($confirmation!=='APPROVE_OFFICIAL_SOURCE_DISCOVERY')
+        throw new InvalidArgumentException('news_admin_institution_confirmation_required');
+    $selected=null;
+    foreach(jrNewsOfficialInstitutionDirectory() as $institution){
+        if($institution['id']===$institutionId){$selected=$institution;break;}
+    }
+    if(!is_array($selected))
+        throw new InvalidArgumentException('news_admin_institution_not_in_directory');
+    $submission=jrNewsAdminSourceSubmit($pdo,$session,[
+        'title'=>$selected['nameFa'],
+        'url'=>$selected['origin'],
+        'category'=>$selected['category'],
+        'priority'=>$selected['priority']
+    ],$now);
+    $result=jrNewsAdminSourceApprove(
+        $pdo,$session,$submission['submissionId'],
+        $confirmation,$now,true);
+    return [
+        'schema'=>'jr.jrei.news-admin-suggested-institution.v1',
+        'institutionId'=>$institutionId,
+        'submissionId'=>$submission['submissionId'],
+        'discoveryStatus'=>$result['state'],
+        'originalSourceId'=>$result['originalSourceId']??null,
+        'monitorId'=>$result['monitorId']??null,
+        'sourceAuthorityAndRightsMustBeIndependentlyVerified'=>true,
+        'perArticleOwnerApprovalRequired'=>false,
+        'actualCrawlerStartedByThisCall'=>false,
+        'published'=>false
+    ];
 }
