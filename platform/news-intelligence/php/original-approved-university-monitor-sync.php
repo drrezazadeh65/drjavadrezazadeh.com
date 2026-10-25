@@ -52,6 +52,10 @@ function jrNewsOriginalSyncReviewedUniversityMonitors(
                     p.robots_terms_evidence_sha256,p.transport_evidence_sha256
              FROM jrei_exam_sources s
              JOIN jrei_ka_source_policies p ON p.source_id=s.source_id
+             LEFT JOIN jrei_news_monitors existing
+               ON existing.jrei_source_reference=s.source_id
+              AND BINARY existing.source_url_sha256=
+                  BINARY SHA2(s.source_locator_uri,256)
              WHERE s.review_state='AUTHORITATIVE_REVIEWED'
                AND s.rights_state IN
                    ('PERMITTED_PRIVATE_ANALYSIS','PERMITTED_REPRODUCTION')
@@ -64,7 +68,11 @@ function jrNewsOriginalSyncReviewedUniversityMonitors(
                AND p.scheduling_state='APPROVED'
                AND p.rights_reviewed=1 AND p.robots_terms_reviewed=1
                AND p.transport_reviewed=1
-             ORDER BY s.verified_at,s.source_id LIMIT ?"
+             -- Unmonitored official universities ALWAYS lead the next
+             -- bounded Cron batch. Without this order, the first 50 old
+             -- monitored universities would starve every subsequent source.
+             ORDER BY (existing.monitor_id IS NULL) DESC,
+                      s.verified_at,s.source_id LIMIT ?"
         );
         $q->bindValue(1,$limit,PDO::PARAM_INT);
         $q->execute();
