@@ -116,3 +116,24 @@ test('MFA-only bilingual owner newsroom reuses existing operations identity and 
     assert.ok(html.includes('/assets/css/operations-jrei-newsroom-v1.css'));
   }
 });
+
+test('owner approval must recheck the original KA receipt and current rights',()=>{
+  const php=fs.readFileSync(path.join(out,'api/operations-jrei-news.php'),'utf8');
+  assert.match(php,/function jrNewsRecheckOriginalArticleReceipt\(/);
+  assert.match(php,/jrNewsRecheckOriginalArticleReceipt\(\$pdo,\$sourceId,\$uri,\$digest\)/);
+  for(const condition of [
+    "n.enabled=1","f.review_state='AUTHORITATIVE_REVIEWED'",
+    "a.review_state='AUTHORITATIVE_REVIEWED'",
+    "d.review_state='ORIGINAL_JREI_ARTICLE_APPROVED'",
+    "f.is_revoked=0","a.is_revoked=0",
+    "fp.scheduling_state='APPROVED'","ap.scheduling_state='APPROVED'",
+    "o.source_policy_revision=ap.revision",
+    "j.job_state='ACQUIRED_REVIEW'",
+    "o.mime_type='text/html'",
+    "o.private_object_key=BINARY CONCAT(o.content_sha256,'.bin')"
+  ])assert.ok(php.includes(condition),'original evidence gate: '+condition);
+  assert.match(php,/\$q->execute\(\[\$articleSourceId,\$articleUrl,\$contentSha256\]\)/);
+  assert.match(php,/catch\(Throwable \$e\)/);
+  assert.match(php,/\$sourceCurrent,\$unavailable,\$ports/);
+  assert.doesNotMatch(php,/file_get_contents\s*\(\s*['"]https?:/i);
+});
