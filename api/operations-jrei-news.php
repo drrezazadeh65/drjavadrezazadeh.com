@@ -821,6 +821,33 @@ function jrOperationsNewsDispatch(
         throw new InvalidArgumentException('news_unknown_standing_policy_route');
     }
 
+    // Only genuinely uncertain evidence gets owner review. The owner can
+    // acknowledge/close alerts but doing so NEVER authorizes publication.
+    if(str_starts_with($route,'/owner/evidence-exceptions')){
+        $module=__DIR__.'/internal/jrei-news/original-news-owner-exceptions.php';
+        if(!is_file($module)||!is_readable($module))
+            throw new DomainException('news_owner_exception_module_not_packaged');
+        require_once $module;
+        $owner=[
+            'source'=>'EXISTING_OPERATIONS_SESSION',
+            'ownerAuthenticated'=>true,'mfaVerified'=>true,
+            'csrfVerified'=>true,'scope'=>'JREI_NEWS_EDITORIAL',
+            'accountId'=>$ownerId,
+            'mfaAuditReference'=>'operations-mfa:'.substr($mfaSessionHash,0,64)
+        ];
+        if($method==='GET'&&$route==='/owner/evidence-exceptions')
+            return jrNewsOwnerEvidenceExceptionQueue($pdo,$owner,50);
+        if($method==='POST'&&$route==='/owner/evidence-exceptions/resolve'){
+            $id=$body['exceptionId']??null;
+            $state=$body['state']??null;
+            if(!is_string($id)||!is_string($state))
+                throw new InvalidArgumentException('news_owner_exception_input_invalid');
+            return jrNewsOwnerResolveEvidenceException(
+                $pdo,$owner,$id,$state,time());
+        }
+        throw new InvalidArgumentException('news_owner_exception_unknown_route');
+    }
+
     // Owner source intake stays available BEFORE general news activation.
     // This is only discovery and registered-original-source reconciliation;
     // no crawler, LLM, auto article authorization or public CMS activation.
