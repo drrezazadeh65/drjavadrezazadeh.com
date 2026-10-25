@@ -64,7 +64,8 @@ export async function benchmark(config,{fetchImpl=globalThis.fetch}={}){
   const adapter=createLocalLlamaAdapter({
     model:c.modelId,modelVersion:c.modelVersion,
     modelArtifactSha256:c.modelSha256,licenceReviewed:true,
-    ownerApproved:true,endpoint:c.endpoint,fetchImpl,timeoutMs:30000
+    ownerApproved:true,endpoint:c.endpoint,fetchImpl,timeoutMs:30000,
+    disableThinking:c.disableThinking===true
   });
   await adapter.probe();
   const prompts=[
