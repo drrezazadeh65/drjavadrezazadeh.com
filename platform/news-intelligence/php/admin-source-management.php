@@ -144,6 +144,88 @@ function jrNewsAdminSourceApprove(PDO $pdo,array $session,string $submissionId,
     return jrNewsAdminSourceReconcile($pdo,$session,$submissionId,$now,false);
 }
 
+/**
+ * One-click admin approval registers metadata in the ORIGINAL JREI-KA
+ * registry, never a second crawler or unverified acquisition right.
+ * New source+policy start PENDING review; original scheduler performs
+ * actual rights/robots checks before permitting network acquisition.
+ */
+function jrNewsAdminRegisterOriginalPendingSource(
+    PDO $pdo,array $owner,string $submissionId,int $now
+):array {
+    jrNewsOwnerAuthority($owner);
+    $pdo->beginTransaction();
+    try{
+        $q=$pdo->prepare(
+            "SELECT submission_id,source_title,source_url,source_category,
+                    news_priority,submission_state,matched_jrei_source_id
+             FROM jrei_news_admin_source_submissions
+             WHERE submission_id=? FOR UPDATE");
+        $q->execute([$submissionId]);
+        $r=$q->fetch(PDO::FETCH_ASSOC);
+        if(!is_array($r)||!in_array($r['submission_state'],[
+              'APPROVED_DISCOVERY','ORIGINAL_POLICY_PENDING'
+            ],true))
+            throw new RuntimeException('news_admin_original_source_not_authorized');
+        $registered=$pdo->prepare(
+            'SELECT source_id FROM jrei_exam_sources
+             WHERE BINARY source_locator_uri=BINARY ?
+               AND is_revoked=0 AND is_superseded=0
+             ORDER BY created_at DESC LIMIT 1 FOR UPDATE');
+        $registered->execute([$r['source_url']]);
+        $id=$registered->fetchColumn();
+        if(!is_string($id)){
+            $id=jrNewsPrivateUuid();
+            $sha=hash('sha256',$r['source_url']);
+            $type=match($r['source_category']){
+                'examinations'=>'OFFICIAL_EXAM_NOTICE',
+                'universities'=>'OFFICIAL_UNIVERSITY_NEWS',
+                default=>'OFFICIAL_EDUCATION_NEWS'
+            };
+            $year=(int)gmdate('Y',$now);
+            $stmt=$pdo->prepare(
+                "INSERT INTO jrei_exam_sources(
+                   source_id,source_authority_id,source_title,source_version,
+                   source_locator_digest,source_locator_uri,country_code,
+                   educational_level,exam_category,curriculum_version,
+                   subject_id,examination_year,source_kind,rights_state,
+                   review_state,created_at,updated_at
+                 ) VALUES(?,?,?,'ADMIN_NEWS_V1',?,?,'IR',
+                          'EDUCATIONAL_NEWS','OFFICIAL_ANNOUNCEMENTS',
+                          'NEWS_CURRENT','NEWS_SOURCE',?,
+                          ?,'PERMISSION_UNVERIFIED','DISCOVERED',?,?)"
+            );
+            $stmt->execute([$id,'official-news-'.$id,
+                $r['source_title'],$sha,$r['source_url'],$year,
+                $type,$now,$now]);
+        }
+        // Existing original policy wins, never overwrite reviewed rights.
+        $pdo->prepare(
+            "INSERT IGNORE INTO jrei_ka_source_policies
+             (source_id,priority_tier,refresh_interval_seconds,
+              next_due_at,updated_at,scheduling_state)
+             VALUES(?,?,3600,?,?,'PENDING_REVIEW')"
+        )->execute([$id,$r['news_priority'],$now,$now]);
+        $pdo->prepare(
+            "UPDATE jrei_news_admin_source_submissions SET
+             matched_jrei_source_id=?,submission_state='ORIGINAL_POLICY_PENDING',
+             last_issue_code='ORIGINAL_RIGHTS_AND_ROBOTS_REVIEW_PENDING',
+             updated_at=?
+             WHERE submission_id=? AND submission_state<>'DISABLED'"
+        )->execute([$id,$now,$submissionId]);
+        if(function_exists('operationsAudit'))
+            operationsAudit($pdo,$owner['accountId'],
+                'jrei_news_original_source_registered',
+                hash('sha256',$submissionId.'|'.$id));
+        $pdo->commit();
+        return ['sourceId'=>$id,'registeredInOriginalMotherDb'=>true,
+            'acquisitionRightsInvented'=>false,
+            'sourceRegistrationPendingReview'=>true];
+    }catch(Throwable $e){
+        if($pdo->inTransaction())$pdo->rollBack();
+        throw $e;
+    }
+}
 function jrNewsAdminSourceReconcile(PDO $pdo,array $session,
     string $submissionId,int $now,bool $monitorActivationAccepted):array {
     $owner=jrNewsOwnerAuthority($session);
@@ -176,14 +258,12 @@ function jrNewsAdminSourceReconcile(PDO $pdo,array $session,
     $find->execute([$row['source_url']]);
     $original=$find->fetchColumn();
     if(!is_string($original)){
-        $pdo->prepare(
-            "UPDATE jrei_news_admin_source_submissions SET
-             submission_state='ORIGINAL_POLICY_PENDING',updated_at=?,
-             last_issue_code='ORIGINAL_SOURCE_POLICY_REQUIRED'
-             WHERE submission_id=? AND submission_state<>'DISABLED'"
-        )->execute([$now,$submissionId]);
+        $linked=jrNewsAdminRegisterOriginalPendingSource(
+            $pdo,$session,$submissionId,$now);
         return ['submissionId'=>$submissionId,'state'=>'ORIGINAL_POLICY_PENDING',
-            'nextStep'=>'AUTOMATIC_ORIGINAL_SOURCE_REGISTRATION_INTEGRATION',
+            'originalSourceId'=>$linked['sourceId'],
+            'registeredInOriginalMotherDb'=>true,
+            'nextStep'=>'ORIGINAL_JREI_ACQUISITION_RIGHTS_AND_ROBOTS_ASSESSMENT',
             'ownerPerArticleReviewRequired'=>false,
             'newsMonitorEnabled'=>false,'sourcePublished'=>false];
     }
