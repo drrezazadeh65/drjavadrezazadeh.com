@@ -21,6 +21,9 @@ on:
       - "en/account/admin/index.html"
       - "tests/jrei-*.test.mjs"
       - "tests/jrei*.test.mjs"
+      - "tests/admin-session-persistence.test.mjs"
+      - "api/operations.php"
+      - "assets/js/operations-control.js"
       - "tests/jrei-*.php"
       - "tests/educational-intelligence-*.test.mjs"
   workflow_dispatch:
@@ -40,6 +43,7 @@ jobs:
           node-version: '22'
       - name: Verify all JREI v3 and v5 source tests; no HTTP or models
         run: |
+          node --test tests/admin-session-persistence.test.mjs
           node --test \
             tests/educational-intelligence-*.test.mjs \
             tests/jrei-examination-testly-research.test.mjs \
