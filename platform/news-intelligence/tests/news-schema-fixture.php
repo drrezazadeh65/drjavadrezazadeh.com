@@ -1081,3 +1081,67 @@ ensure((int)$pdo->query(
     "SELECT COUNT(*) FROM jrei_news_publications WHERE publisher_state='PUBLISHED'"
 )->fetchColumn()===1,'verified fixture CMS receipt stays recorded without any production write');
 echo "PASS: additive MariaDB standing-policy authorization, XOR integrity, idempotency, revocation and legacy survival\n";
+
+/* Owner-submitted News source management: only the ORIGINAL mother DB.
+ * Applied exclusively to ephemeral fixture after all legacy/standing tests.
+ */
+$adminMigration=file_get_contents(dirname(__DIR__,3).
+    '/docs/migrations/20261025_jrei_news_admin_source_submissions_mother_mysql.sql');
+ensure(is_string($adminMigration),'admin source additive SQL exists');
+$adminMigration=preg_replace('/^\\s*--[^\\r\\n]*/m','',$adminMigration);
+foreach(explode(';',(string)$adminMigration) as $statement)
+    if(trim($statement)!=='')$pdo->exec(trim($statement));
+$newFeedSource='dddddddd-dddd-4ddd-8ddd-dddddddddddd';
+$externalOfficialFeed='https://news.otheruniversity.edu/rss';
+$insertSource->execute([$newFeedSource,
+    'External university official RSS',$externalOfficialFeed,$account,1792823000]);
+$insertPolicy->execute([
+    $newFeedSource,$newFeedSource,$newFeedSource,$newFeedSource
+]);
+$adminNoAuthority=jrNewsAdminSourceSubmit($pdo,$owner,[
+    'title'=>'Not yet JREI verified','url'=>'https://uast.ac.ir/news/',
+    'category'=>'universities','priority'=>'P1'
+],1792823000);
+ensure($adminNoAuthority['state']==='PENDING_ADMIN_APPROVAL',
+    'submit only stages a proposed source; no implicit crawl authority');
+$adminApproved=jrNewsAdminSourceApprove($pdo,$owner,
+    $adminNoAuthority['submissionId'],
+    'APPROVE_OFFICIAL_SOURCE_DISCOVERY',1792823001);
+ensure($adminApproved['state']==='ORIGINAL_POLICY_PENDING'&&
+       $adminApproved['newsMonitorEnabled']===false,
+    'administrator source approval does not invent original robots or rights');
+$adminMatched=jrNewsAdminSourceSubmit($pdo,$owner,[
+    'title'=>'Verified original university feed',
+    'url'=>$externalOfficialFeed,'category'=>'universities','priority'=>'P1'
+],1792823020);
+$linked=jrNewsAdminSourceApprove($pdo,$owner,
+    $adminMatched['submissionId'],
+    'APPROVE_OFFICIAL_SOURCE_DISCOVERY',1792823030);
+ensure($linked['state']==='MONITOR_STAGED'&&
+       $linked['newsMonitorEnabled']===false,
+    'verified original source is linked without any manual SQL or fabricated crawl');
+$duplicate=jrNewsAdminSourceSubmit($pdo,$owner,[
+    'title'=>'Duplicate feed','url'=>$externalOfficialFeed,
+    'category'=>'universities','priority'=>'P1'
+],1792823031);
+ensure($duplicate['alreadyRecorded']===true &&
+       $duplicate['submissionId']===$adminMatched['submissionId'],
+    'administrator source URL dedupe retains existing review state');
+$activated=jrNewsAdminSourceReconcile(
+    $pdo,$owner,$adminMatched['submissionId'],1792823040,true);
+ensure($activated['state']==='MONITOR_ACTIVE'&&
+       $activated['newsMonitorEnabled']===true,
+    'full verified original JREI policy permits admin-initiated monitor start');
+$inventory=jrNewsAdminSourceList($pdo,$owner);
+ensure(count($inventory['entries'])===2 &&
+       $inventory['entries'][0]['submission_state']==='MONITOR_ACTIVE',
+    'newly approved custom source and pending source visible to manager');
+$paused=jrNewsAdminSourceDisable(
+    $pdo,$owner,$adminMatched['submissionId'],1792823050);
+ensure($paused['state']==='DISABLED',
+    'manager can stop a source from the original dashboard');
+$monitorCheck=$pdo->prepare('SELECT enabled FROM jrei_news_monitors WHERE monitor_id=?');
+$monitorCheck->execute([$activated['monitorId']]);
+ensure((int)$monitorCheck->fetchColumn()===0,
+    'emergency admin pause also stops the existing original News monitor');
+echo "PASS: admin custom source MFA CRUD, status, approved original monitor activation and pause on disposable mother DB\\n";
