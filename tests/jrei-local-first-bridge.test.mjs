@@ -8,6 +8,9 @@ const queue=read('api/jrei-local-chat.php');
 const sql=read('docs/migrations/20261024_jrei_local_inference_queue_mother_mysql.sql');
 const caretaker=read('api/jrei-local-schema-caretaker.php');
 const registrySql=read('docs/migrations/20261023_jrei_model_registry_mother_mysql.sql');
+const backupSource=read('api/jrei-local-private-backup.php');
+const bootstrapCli=read('api/internal/jrei-mother-bootstrap-cli.php');
+const builder=read('scripts/build-public-site.mjs');
 const js=read('assets/js/assistant.js');
 const windows=read('platform/jrei-v5/windows-worker/jrei-worker.mjs');
 const model=read('platform/jrei-v5/windows-worker/jrei-loopback-model-adapter.mjs');
@@ -103,4 +106,31 @@ test('JREI-LM owner console reports missing schema caretaker switch and configur
   assert.match(consoleJs,/lm\.schemaCaretakerEnabled===true/);
   assert.match(consoleJs,/lm\.schemaCaretakerBackupReferenceConfigured===true/);
   assert.doesNotThrow(()=>new vm.Script(consoleJs));
+});
+
+test('JREI CLI owner bootstrap is exactly three additive tables and requires a host-private verified dump',()=>{
+  assert.match(bootstrapCli,/--jrei-lm-three-tables/);
+  assert.match(bootstrapCli,/PHP_SAPI!=='cli'/);
+  assert.match(bootstrapCli,/jrei_local_schema_caretaker_enabled'\]=true/);
+  assert.match(bootstrapCli,/jrJreiLocalSchemaApply\(\$pdo,\$config\)/);
+  assert.match(bootstrapCli,/jrLocalChatSchemaReady\(\$pdo\)/);
+  assert.match(bootstrapCli,/PUBLIC_CHAT_STILL_OFF/);
+  assert.match(backupSource,/jrei-private-mother-backups/);
+  assert.match(backupSource,/--single-transaction/);
+  assert.match(backupSource,/--defaults-extra-file/);
+  assert.match(backupSource,/GET_LOCK|JREI|jrei_backup/);
+  assert.match(caretaker,/jrJreiPrivateBackupCreate\(\$pdo,\$cfg\)/);
+  assert.match(caretaker,/jrJreiLocalSchemaBackupReady\(\$cfg\)/);
+  assert.match(caretaker,/!empty\(\$cfg\['jrei_local_schema_backup_file'\]\)/);
+  assert.doesNotMatch(bootstrapCli,/DROP TABLE|TRUNCATE TABLE|ALTER TABLE/);
+});
+test('Bertina release excludes public source SQL but packages fixed vetted SQL as private denied JSON',()=>{
+  assert.match(builder,/jrei-approved-schema-v1\.json/);
+  assert.match(builder,/jreiMigrationSpecs/);
+  assert.match(builder,/jreiMigrationBundle/);
+  assert.match(builder,/jreiPrivateDeny/);
+  assert.match(builder,/Require\\s\+all\\s\+denied/);
+  assert.match(caretaker,/jrei-approved-schema-v1\.json/);
+  assert.match(caretaker,/jrei_schema_unsafe_ddl/);
+  assert.doesNotMatch(builder,/copy\(.*docs.migrations/);
 });
