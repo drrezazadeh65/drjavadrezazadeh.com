@@ -46,3 +46,35 @@ test('packaged guarded News runtime resolves every PHP import without a platform
   ].join(' ')],{cwd:root,encoding:'utf8',timeout:10000});
   assert.equal(result.status,0,result.stderr||result.stdout);
 });
+
+test('the feed and article bridges resolve only the packaged private PHP modules',()=>{
+  const pairs=[
+    ['jrei-news-private-feed-bridge.php','feed-discovery.php',
+      'jrNewsBridgeOriginalFeedObservation'],
+    ['jrei-news-private-article-bridge.php','candidate-intake.php',
+      'jrNewsBridgeOriginalArticleObservation']
+  ];
+  for(const [bridge,module,fn] of pairs){
+    const file=path.join(out,'api',bridge);
+    const body=fs.readFileSync(file,'utf8');
+    assert.ok(body.includes("require_once __DIR__.'/internal/jrei-news/"+module+"';"),
+      'exact private runtime import: '+bridge);
+    assert.doesNotMatch(body,/dirname\(__DIR__\).*platform\/news-intelligence\/php/);
+    assert.ok(fs.existsSync(path.join(privateDir,module)),'packaged module '+module);
+    const result=spawnSync('php',['-r',[
+      "define('BERTINA_API_BOOTSTRAPPED',true);",
+      "require '.public-site/api/"+bridge+"';",
+      "if(!function_exists('"+fn+"'))exit(2);"
+    ].join(' ')],{cwd:root,encoding:'utf8',timeout:10000});
+    assert.equal(result.status,0,bridge+': '+(result.stderr||result.stdout));
+  }
+});
+
+test('news search requires two independent default-off private configuration gates',()=>{
+  const api=fs.readFileSync(path.join(out,'api/index.php'),'utf8');
+  const route=fs.readFileSync(path.join(out,'api/news-public-search.php'),'utf8');
+  assert.match(api,/'jrei_news_search_enabled'\s*=>\s*getenv\('JR_JREI_NEWS_SEARCH_ENABLED'\)\s*===\s*'true'/);
+  assert.match(api,/'jrei_news_publisher_receipts_accepted'\s*=>\s*getenv\('JR_JREI_NEWS_PUBLISHER_RECEIPTS_ACCEPTED'\)\s*===\s*'true'/);
+  assert.match(route,/\['jrei_news_search_enabled'\]/);
+  assert.match(route,/\['jrei_news_publisher_receipts_accepted'\]/);
+});

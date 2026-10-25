@@ -86,6 +86,21 @@ for(const name of ['news-library.php',...requiredNewsPhp]){
     fs.writeFileSync(output,body,{flag:'wx'});
   }
 }
+// A working source tree is NOT evidence that deployable PHP can resolve imports.
+// Assert the two private news bridges use exactly the bundled HTTP-denied
+// dependency closure, never the excluded platform/ source directory.
+for(const [bridge,module] of [
+  ['jrei-news-private-feed-bridge.php','feed-discovery.php'],
+  ['jrei-news-private-article-bridge.php','candidate-intake.php']
+]){
+  const bridgePath=path.join(out,'api',bridge);
+  const bridgeBody=fs.readFileSync(bridgePath,'utf8');
+  const bundledImport="require_once __DIR__.'/internal/jrei-news/"+module+"';";
+  if(!bridgeBody.includes(bundledImport) ||
+     bridgeBody.includes("dirname(__DIR__).'/platform/news-intelligence/php/") ||
+     !fs.existsSync(path.join(newsPrivateDir,module)))
+    throw Error('JREI News bridge cannot resolve packaged private PHP: '+bridge);
+}
 // Insert an opt-in public Q&A surface only on catalogued public service detail pages.
 // Server deployment flags remain OFF unless separately approved after real QA.
 projectCommunityServicePages(root,out);

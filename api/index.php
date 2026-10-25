@@ -123,6 +123,12 @@ function cfg(): array {
         // neither switch starts a new crawler or authorizes publication.
         'jrei_news_feed_discovery_enabled' => getenv('JR_JREI_NEWS_FEED_DISCOVERY_ENABLED') === 'true',
         'jrei_news_article_intake_enabled' => getenv('JR_JREI_NEWS_ARTICLE_INTAKE_ENABLED') === 'true',
+        // The public index is always restricted to owner-approved PUBLISHED
+        // documents. Neither key activates publication or ingestion.
+        // Both remain OFF until the live schema and publication receipts
+        // have been independently accepted by the owner.
+        'jrei_news_search_enabled' => getenv('JR_JREI_NEWS_SEARCH_ENABLED') === 'true',
+        'jrei_news_publisher_receipts_accepted' => getenv('JR_JREI_NEWS_PUBLISHER_RECEIPTS_ACCEPTED') === 'true',
         'jrei_news_integrated_release_accepted' => getenv('JR_JREI_NEWS_INTEGRATED_RELEASE_ACCEPTED') === 'true',
         // A separate SUPER_ADMIN decision. Creating news monitors or
         // approving original sources does not enable scheduled crawling.
