@@ -745,6 +745,38 @@ if ($path==='/exams/catalog' && $verb==='GET') {
     }catch(Throwable $e){fail('exam_catalogue_read_unavailable',503);}
 }
 if (str_starts_with($path, '/admin/operations')) operationsRoute($path, $verb);
+// Private SUPER_ADMIN test worker is deliberately distinct from public
+// chat. No model-quality claim, public release or inbound Windows port.
+if(in_array($path,['/jrei/v1/owner-pilot/poll',
+  '/jrei/v1/owner-pilot/complete','/jrei/v1/owner-pilot/reject'],true)){
+    require_once __DIR__.'/jrei-owner-private-pilot.php';
+    header('Cache-Control: no-store, private, max-age=0');
+    if($verb!=='POST'||!jrHybridHttps($_SERVER))
+        fail('pilot_signed_https_required',403);
+    $pc=cfg();$pp=db();
+    if(!($pp instanceof PDO)||!jrOwnerPilotReady($pp,$pc))
+        fail('pilot_private_queue_not_ready',503);
+    $raw=jrHybridReadBody($_SERVER);
+    if($raw===null)fail('pilot_request_invalid',422);
+    try{
+        $signed=jrHybridAuthenticate($pp,'POST',$path,$raw,$_SERVER,time());
+        if(!is_array($signed))fail('pilot_node_auth_denied',403);
+        if(!rateAllowed($pp,'jrei_owner_pilot_signed',
+           (string)$signed['node_id'],90,300))
+            fail('pilot_rate_limit',429);
+        $body=jrHybridDecode($raw);
+        if(!is_array($body))fail('pilot_request_invalid',422);
+        $node=(string)$signed['node_id'];
+        if(!jrOwnerPilotModel($pp,$node,$body))
+            fail('pilot_unapproved_node_or_model',403);
+        if($path==='/jrei/v1/owner-pilot/poll')
+            respond(jrOwnerPilotWorkerPoll($pp,$pc,$node,$body));
+        respond(jrOwnerPilotWorkerFinish($pp,$pc,$node,$body,
+          $path==='/jrei/v1/owner-pilot/reject'));
+    }catch(InvalidArgumentException $e){fail('pilot_request_invalid',422);}
+     catch(DomainException $e){fail('pilot_not_ready_or_revoked',409);}
+     catch(Throwable $e){fail('pilot_temporary_error',503);}
+}
 // Independent first-party Windows generative worker: no public machine port.
 if(in_array($path,['/jrei/v1/local-chat/poll','/jrei/v1/local-chat/complete',
    '/jrei/v1/local-chat/reject'],true)){
