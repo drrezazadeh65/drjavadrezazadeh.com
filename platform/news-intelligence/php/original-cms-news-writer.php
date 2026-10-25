@@ -87,7 +87,17 @@ function jrNewsOriginalWriteVerifiedBilingualPages(
        ($policy['zeroPublicRouteCollisions']??null)!==true||
        ($policy['approvalDigest']??null)!==$row['approval_digest'])
         throw new RuntimeException('news_cms_verified_original_policy_unavailable');
+    // The original site registry, NOT the LLM, supplies genuine bilingual
+    // artwork accessibility text and current reuse permission.
+    $originalMedia=jrNewsOriginalLicensedMediaSnapshot(
+        $siteRoot,(string)$row['approved_image_ref']);
+    if(($originalMedia['rightsVerified']??false)!==true||
+       trim((string)($originalMedia['altFa']??''))===''||
+       trim((string)($originalMedia['altEn']??''))==='')
+        throw new RuntimeException('news_cms_original_illustration_rights_changed');
     $ctx=[
+        'verifiedImageAltFa'=>$originalMedia['altFa'],
+        'verifiedImageAltEn'=>$originalMedia['altEn'],
         'source'=>'ORIGINAL_AUTHENTICATED_CMS',
         'originalNewsroomReleaseAccepted'=>true,
         'currentOfficialEvidenceAndClaimsReviewed'=>true,
