@@ -774,6 +774,53 @@ function jrOperationsNewsDispatch(
         throw new InvalidArgumentException('news_owner_original_route_invalid');
     if($method==='GET'&&$route==='/owner/integration-readiness')
         return jrOperationsNewsReadiness($pdo,$config);
+    // Superseding owner directive: durable standing authority for independently
+    // verified official primary sources. Never require per-article MFA for this
+    // class. Only SUPER_ADMIN session/MFA/CSRF in operations.php can get here.
+    if(str_starts_with($route,'/owner/standing-policy')){
+        if(!jrOperationsNewsReadiness($pdo,$config)['standingOfficialPolicySchemaAvailable'])
+            throw new DomainException('news_standing_schema_not_migrated');
+        $file=__DIR__.'/internal/jrei-news/standing-official-publication.php';
+        if(!is_file($file)||!is_readable($file))
+            throw new DomainException('news_standing_runtime_not_packaged');
+        require_once $file;
+        $owner=[
+            'source'=>'EXISTING_OPERATIONS_SESSION',
+            'ownerAuthenticated'=>true,'mfaVerified'=>true,
+            'csrfVerified'=>true,'scope'=>'JREI_NEWS_EDITORIAL',
+            'accountId'=>$ownerId,
+            'mfaAuditReference'=>'operations-mfa:'.substr($mfaSessionHash,0,64)
+        ];
+        if($method==='GET'&&$route==='/owner/standing-policy'){
+            jrNewsOwnerAuthority($owner);
+            $q=$pdo->prepare(
+                "SELECT policy_id,revision_number,effective_at,expires_at,
+                        revoked_at,created_at
+                 FROM jrei_news_standing_policies
+                 WHERE owner_account_id=? AND policy_code='OFFICIAL_PRIMARY_AUTO_NEWS'
+                 ORDER BY revision_number DESC LIMIT 25");
+            $q->execute([$ownerId]);
+            return [
+                'schema'=>'jr.jrei.news-owner-standing-policies.v1',
+                'policies'=>$q->fetchAll(PDO::FETCH_ASSOC),
+                'policyCode'=>'OFFICIAL_PRIMARY_AUTO_NEWS',
+                'perArticleApprovalRequired'=>false,
+                'livePublishingActivatedByRead'=>false
+            ];
+        }
+        if($method==='POST'&&$route==='/owner/standing-policy/grant')
+            return jrNewsGrantStandingOfficialPolicy($pdo,$owner,
+                (string)($body['confirmation']??''),time(),
+                (int)($body['durationDays']??90));
+        if($method==='POST'&&$route==='/owner/standing-policy/revoke'){
+            $id=$body['policyId']??null;
+            if(!is_string($id))
+                throw new InvalidArgumentException('news_policy_id_required');
+            return jrNewsRevokeStandingOfficialPolicy($pdo,$owner,$id,time());
+        }
+        throw new InvalidArgumentException('news_unknown_standing_policy_route');
+    }
+
     // Owner source intake stays available BEFORE general news activation.
     // This is only discovery and registered-original-source reconciliation;
     // no crawler, LLM, auto article authorization or public CMS activation.
