@@ -84,6 +84,11 @@ function operationsCronRegistry(): array {
         'en'=>'JREI News approved original article receipt intake',
         'relative'=>'internal/jrei-news-article-intake-worker.php',
         'defaultCadence'=>3600,'minimumCadence'=>3600,'sensitive'=>true],
+      'jrei_news_original_private_publisher'=>[
+        'fa'=>'انتشار خودکار اخبار رسمی با مجوز دائمی و رسید دوزبانه',
+        'en'=>'Verified official standing-policy bilingual newsroom publisher',
+        'relative'=>'internal/jrei-news-private-publisher-worker.php',
+        'defaultCadence'=>300,'minimumCadence'=>300,'sensitive'=>true],
       'jrei_ka_private_text_extraction'=>[
         'fa'=>'استخراج متنی اولیهٔ خصوصی JREI-KA',
         'en'=>'JREI-KA first-pass private text extraction',
