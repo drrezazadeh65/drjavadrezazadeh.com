@@ -16,6 +16,15 @@ on:
       - 'platform/news-intelligence/jrei-official-news-correction.mjs'
       - 'api/jrei-local-answer-integrity.php'
       - 'api/jrei-local-chat.php'
+      - 'api/jrei-local-quality-telemetry.php'
+      - 'api/jrei-daily-review-observations.php'
+      - 'api/jrei-ai-improvement-sensors.php'
+      - 'api/internal/jrei-daily-learning-worker.php'
+      - 'api/index.php'
+      - 'assets/js/assistant.js'
+      - 'assets/js/operations-jrei-hybrid-nodes-v1.js'
+      - 'platform/jrei-v5/windows-worker/jrei-worker.mjs'
+      - 'tests/jrei-model-production-gates.php'
       - 'tests/jrei-ai-master-development-vnext.test.mjs'
       - '.github/workflows/jrei-ai-master-vnext-isolated.yml'
   workflow_dispatch:
@@ -49,12 +58,22 @@ jobs:
           do node --check "$file"; done
           php -l api/jrei-local-answer-integrity.php
           php -l api/jrei-local-chat.php
+          php -l api/jrei-local-quality-telemetry.php
+          php -l api/jrei-daily-review-observations.php
+          php -l api/jrei-ai-improvement-sensors.php
+          php -l api/internal/jrei-daily-learning-worker.php
+          php -l api/index.php
+          node --check platform/jrei-v5/windows-worker/jrei-worker.mjs
+          node --check assets/js/assistant.js
+          node --check assets/js/operations-jrei-hybrid-nodes-v1.js
       - name: Execute isolated source contracts; no live database, worker or model
         run: |
           set -euo pipefail
           node --test tests/jrei-ai-master-development-vnext.test.mjs
           node --test tests/jrei-local-chat-worker-offline.test.mjs
           node --test tests/jrei-local-quality-triage.test.mjs
+          node --test tests/jrei-operational-apprentice.test.mjs
+          php tests/jrei-model-production-gates.php
           php -r 'define("BERTINA_API_BOOTSTRAPPED",true);require "api/jrei-local-answer-integrity.php";if(jrJreiSimpleArithmeticExpected("عدد ۱۲ را در ۷ ضرب کن و نتیجه را فقط با رقم بنویس.")!=="84")exit(1);if(jrJreiLocalDraftIntegrityFailure("عدد ۱۲ را در ۷ ضرب کن و نتیجه را فقط با رقم بنویس.","۴۸","fa")===null)exit(2);'
       - name: No deployment or backend activation
         run: |
