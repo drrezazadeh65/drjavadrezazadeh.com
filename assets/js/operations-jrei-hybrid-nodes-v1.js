@@ -777,6 +777,28 @@
            number(count):T('نامعلوم','Unknown'));
        }
      }
+     // Actual seven-day aggregate model rejections from Bertina.
+     // Never exposes visitor text or treats rejection counts as learning.
+     const quality=lm.qualityNegativeAggregate;
+     if(quality?.schema==='jr.jrei.aggregate-private-quality.v1'){
+       cell(summary,T('پایش کیفیت ناشناس JREI','Anonymous JREI quality signals'),
+         quality.availability==='MEASURED_AGGREGATE_ONLY'?
+           T('آمار واقعی؛ بدون ذخیره متن گفتگو','Measured counts; no chat transcripts'):
+           quality.availability==='MOTHER_DB_MIGRATION_REQUIRED'?
+           T('مهاجرت افزایشی پایش کیفیت انجام نشده','Quality migration pending'):
+           T('وضعیت پایش کیفیت نامعلوم','Quality telemetry unavailable'));
+       if(Array.isArray(quality.lastSevenDays)){
+         for(const item of quality.lastSevenDays.slice(0,8)){
+           if(typeof item.modelArtifactSha256!=='string'||
+              !Number.isSafeInteger(item.rejectedCount))continue;
+           const category=item.category==='NEGATIVE_QUALITY_GATE'?
+             T('پاسخ نامعتبر مسدودشده','Failed model quality gate'):
+             T('خروجی ناقص یا غیرقابل اعتماد','Incomplete or untrusted output');
+           cell(summary,category+' ('+item.modelArtifactSha256.slice(0,8)+')',
+             number(item.rejectedCount)+T(' طی هفت روز',' over seven days'));
+         }
+       }
+     }
      cell(summary,T('کلید رمزگذاری خصوصی','Private message encryption key'),
        lm.privateEncryptionKeyConfigured===true?
          T('پیکربندی شده؛ اعتبارسنجی محیط هنوز مستقل است',
