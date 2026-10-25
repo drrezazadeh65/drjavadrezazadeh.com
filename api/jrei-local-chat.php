@@ -461,7 +461,9 @@ function jrLocalChatWorkerComplete(PDO $pdo,array $cfg,string $node,array $body)
         $old=$payload['selection'];
         // Server independently recomputes the exact integer task against
         // the last bounded user message, not model text or history summaries.
-        $lastMessage=end($payload['messages']);
+        $validatedMessages=$payload['messages']??[];
+        $lastMessage=is_array($validatedMessages)?
+            end($validatedMessages):false;
         $lastQuestion=is_array($lastMessage)&&
             ($lastMessage['role']??null)==='user'&&
             is_string($lastMessage['content']??null)
