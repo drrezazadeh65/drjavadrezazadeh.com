@@ -64,6 +64,61 @@ if((Get-FileHash -LiteralPath $exe -Algorithm SHA256).Hash.ToLowerInvariant() -c
 if((Get-FileHash -LiteralPath $model -Algorithm SHA256).Hash.ToLowerInvariant() -cne $expectedModel){
   throw 'LOCAL_MODEL_GGUF_SHA256_MISMATCH'
 }
+$modelAlias=[string]$c.modelId
+if($modelAlias -cnotmatch '^[A-Za-z0-9._:-]{1,100} -or $uri.Host -ne '127.0.0.1' -or
+   $uri.AbsolutePath -ne '/v1/chat/completions' -or
+   $uri.Query -ne '' -or $uri.Fragment -ne '' -or
+   $uri.Port -lt 1024 -or $uri.Port -gt 65535){
+  throw 'LOCAL_MODEL_LOOPBACK_ONLY'
+}
+# Runtime/driver probing must precede GPU use; CPU mode only on both
+# Ryzen desktops until an owner-reviewed AMD Vulkan/backend benchmark.
+# The prior fixed six CPU threads could monopolise small Windows desktops
+# when the independent evaluation worker is active. Never use more than half
+# the logical processors or four inference threads by default.
+$logicalCores=[Environment]::ProcessorCount
+$threads=[Math]::Max(1,[Math]::Min(4,[Math]::Floor($logicalCores/2)))
+if($null -ne $c.cpuThreads){
+  $requestedThreads=0
+  if(-not [int]::TryParse([string]$c.cpuThreads,[ref]$requestedThreads) -or
+     $requestedThreads -lt 1 -or $requestedThreads -gt $threads){
+    throw 'LOCAL_MODEL_CPU_THREAD_BUDGET_INVALID'
+  }
+  $threads=$requestedThreads
+}
+$context=2048
+# Quoting paths as individual fixed arguments prevents arbitrary CLI flags.
+$arguments=@(
+  '--model', ('"'+$model.Replace('"','')+'"'),
+  # Match llama.cpp's public model ID to the pinned JREI model registry ID.
+  # Without --alias, /v1/models exposes a filesystem path; a signed
+  # JREI-LM client then requests a different (unroutable) model identifier.
+  '--alias', $modelAlias,
+  '--host','127.0.0.1',
+  '--port', [string]$uri.Port,
+  '--ctx-size',[string]$context,
+  '--threads',[string]$threads,
+  '--n-gpu-layers','0'
+)
+Write-Output 'JREI-LM verified local model and binary SHA-256; starting CPU-only loopback.'
+$process=Start-Process -FilePath $exe -ArgumentList $arguments -PassThru -NoNewWindow
+if($null -eq $process){throw 'LOCAL_MODEL_START_FAILED'}
+try{
+  # Deprioritise local inference relative to interactive desktop work.
+  # Failure to change priority does not bypass the pinned model checks.
+  try { $process.PriorityClass='BelowNormal' } catch {}
+  $process.WaitForExit()
+  if($process.ExitCode -ne 0){throw 'LOCAL_MODEL_RUNTIME_FAILED'}
+}finally{
+  if(-not $process.HasExited){Stop-Process -Id $process.Id -Force -ErrorAction SilentlyContinue}
+}
+} finally {
+  if($mutexHeld){$singleInstance.ReleaseMutex()}
+  $singleInstance.Dispose()
+}
+){
+  throw 'LOCAL_MODEL_ALIAS_INVALID'
+}
 $uri=[uri]([string]$c.endpoint)
 if($uri.Scheme -ne 'http' -or $uri.Host -ne '127.0.0.1' -or
    $uri.AbsolutePath -ne '/v1/chat/completions' -or
