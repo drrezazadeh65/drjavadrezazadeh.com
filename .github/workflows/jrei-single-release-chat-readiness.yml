@@ -1,0 +1,42 @@
+name: JREI Single Release - Local Chat Diagnostic and Honest Guide
+on:
+  push:
+    branches: [feature/jrei-single-release-chat-readiness]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  audit-one-release-readiness:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check all changed ESM and browser source
+        run: |
+          set -euo pipefail
+          node --check platform/jrei-v5/windows-worker/jrei-local-quality-evidence.mjs
+          node --check platform/jrei-v5/windows-worker/jrei-local-quality-triage.mjs
+          node --check platform/jrei-v5/windows-worker/jrei-local-ram-observer.mjs
+          node --check assets/js/assistant.js
+          node --check assets/js/operations-jrei-hybrid-nodes-v1.js
+      - name: Run live-status boundaries, language and QA evidence tests
+        run: |
+          set -euo pipefail
+          node --test \
+            tests/jrei-single-release-chat-readiness.test.mjs \
+            tests/jrei-local-quality-triage.test.mjs \
+            tests/jrei-local-quality-evidence.test.mjs \
+            tests/jrei-offline-self-introduction.test.mjs \
+            tests/jrei-chat-experience.test.mjs \
+            tests/jrei-local-first-bridge.test.mjs \
+            tests/jrei-local-model-activation.test.mjs
+      - name: Check PHP inference gateway syntax
+        run: php -l api/jrei-local-chat.php
+      - name: Confirm no model, schema, flags or production changed by tests
+        run: |
+          echo 'READ_ONLY_CI_ONLY; no public model authorization, no private config editing, no Windows commands, no deployment.'
