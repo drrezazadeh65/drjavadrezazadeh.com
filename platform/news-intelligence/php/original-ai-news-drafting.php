@@ -8,6 +8,7 @@ declare(strict_types=1);
  */
 if(!defined('BERTINA_API_BOOTSTRAPPED')){http_response_code(404);exit;}
 require_once __DIR__.'/editorial-draft-store.php';
+require_once __DIR__.'/independent-qa-ledger.php';
 require_once dirname(__DIR__,3).'/api/jrei-ai-cloud-provider.php';
 
 function jrNewsOriginalAiDraftObject(string $text):array {
@@ -41,7 +42,7 @@ function jrNewsOriginalGenerateReviewedBilingualDraft(
     PDO $pdo,array $originalCfg,string $candidateId,string $reviewId,
     callable $originalEvidence,callable $styleProfile,
     callable $independentFactAndStyleAudit,callable $approvedMedia,
-    int $nowEpoch
+    callable $originalAuditorSignatureVerifier,int $nowEpoch
 ):array {
     if(($originalCfg['jrei_news_model_drafting_enabled']??false)!==true||
        ($originalCfg['jrei_news_integrated_release_accepted']??false)!==true||
@@ -161,7 +162,7 @@ function jrNewsOriginalGenerateReviewedBilingualDraft(
        !is_string($media['assetReference']??null))
         throw new RuntimeException('news_original_ai_media_not_approved');
     $draft['imageAssetReference']=$media['assetReference'];
-    return jrNewsStoreEvidenceReviewedDraft(
+    $stored=jrNewsStoreEvidenceReviewedDraft(
         $pdo,$candidateId,$reviewId,$draft,
         static fn(string $task):bool=>$task==='NEWS_PRIVATE_DRAFT',
         static fn(string $asset):bool=>
@@ -169,4 +170,34 @@ function jrNewsOriginalGenerateReviewedBilingualDraft(
             ($media['rightsCurrent']??null)===true,
         $nowEpoch
     );
+    // Independent verification must bind precisely the persisted bilingual
+    // bytes and evidence digest. This cannot be self-signed by the generator.
+    $receipt=[
+        'source'=>'ORIGINAL_INDEPENDENT_JREI_QA',
+        'auditorKind'=>$audit['auditorKind']??null,
+        'humanReviewerId'=>$audit['humanReviewerId']??null,
+        'independentServiceId'=>$audit['independentServiceId']??null,
+        'auditEvidenceSha256'=>$audit['auditEvidenceSha256']??null,
+        'editorialSha256'=>$stored['approvalDigest'],
+        'sourceEvidenceSha256'=>$r['content_sha256'],
+        'approvedMediaRef'=>$media['assetReference'],
+        'expiresAt'=>$audit['expiresAt']??null,
+        'currentSourceVerified'=>($audit['evidenceStillCurrent']??null)===true,
+        'allFactualClaimsSupported'=>($audit['allFactualClaimsSupported']??null)===true,
+        'noContradictions'=>($audit['noMaterialContradictions']??null)===true,
+        'bothLanguagesComplete'=>($audit['bilingualCompletenessVerified']??null)===true,
+        'realAuthorCorpusStylePassed'=>($audit['authorialStyleMeasuredAndPassed']??null)===true,
+        'nextStepsGrounded'=>($audit['nextStepsGrounded']??null)===true
+    ];
+    $signed=jrNewsRecordIndependentOriginalQa(
+        $pdo,$stored['revisionId'],$receipt,
+        $originalAuditorSignatureVerifier,$nowEpoch
+    );
+    if(($signed['independentlyAudited']??false)!==true&&
+       ($signed['alreadyRecorded']??false)!==true)
+        throw new RuntimeException('news_independent_qa_receipt_not_recorded');
+    $stored['independentQaId']=$signed['qaId'];
+    $stored['requiresIndividualOwnerApproval']=false;
+    $stored['requiresActiveStandingNewsPolicy']=true;
+    return $stored;
 }
