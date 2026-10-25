@@ -43,9 +43,9 @@ function jrNewsRecordOriginalEvidenceException(
              ON DUPLICATE KEY UPDATE
                last_seen_at=VALUES(last_seen_at),
                occurrence_count=LEAST(1000000000,occurrence_count+1),
-               state_code=IF(state_code='RESOLVED','PENDING',state_code),
                reviewed_by=IF(state_code='RESOLVED',NULL,reviewed_by),
-               reviewed_at=IF(state_code='RESOLVED',NULL,reviewed_at)"
+               reviewed_at=IF(state_code='RESOLVED',NULL,reviewed_at),
+               state_code=IF(state_code='RESOLVED','PENDING',state_code)"
         );
         foreach($issues as $code)
             $ins->execute([jrNewsPrivateUuid(),$revisionId,$code,
