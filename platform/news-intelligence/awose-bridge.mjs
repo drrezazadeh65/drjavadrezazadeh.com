@@ -1,3 +1,4 @@
+import {hasVerifiedPublicationAuthority} from './publication-authority.mjs';
 /**
  * Exact source compatibility bridge to the EXISTING AWOSE social publisher.
  * Builds the original engine's per-channel variant() and binding digest.
@@ -26,11 +27,19 @@ export function planExistingAwoseCampaign({
   campaign='jrei_education_news'
 }={}){
   assert(plain(article)&&article.publicationState==='PUBLISHED'&&
-    article.ownerApproved===true&&article.publisherReceiptVerified===true&&
+    hasVerifiedPublicationAuthority(article)&&
+    article.publisherReceiptVerified===true&&
     isHash(article.approvalDigest)&&
     safeText(article.title,8,180)&&safeText(article.description,20,1000)&&
-    plain(ownerApproval)&&ownerApproval.approvalDigest===article.approvalDigest&&
-    ownerApproval.revoked!==true&&ownerApproval.ownerMfaVerified===true&&
+    ((
+      plain(ownerApproval)&&
+      ownerApproval.approvalDigest===article.approvalDigest&&
+      ownerApproval.revoked!==true&&ownerApproval.ownerMfaVerified===true
+    )||(
+      article.standingOfficialPublicationVerified===true&&
+      article.originalCmsReceiptVerified===true&&
+      (ownerApproval===undefined||ownerApproval===null)
+    ))&&
     Array.isArray(channels)&&channels.length>=1&&channels.length<=12&&
     channels.every(x=>Object.hasOwn(CURRENT_PROVIDER_SUPPORT,x)),
     'NEWS_AWOSE_PUBLICATION_NOT_APPROVED');
@@ -56,6 +65,7 @@ export function planExistingAwoseCampaign({
       requiresSeparateAwoseRecipientSpecificHumanApproval:true,
       approvalDigestFromAwose:post.approvalDigest,
       originalJreiEditorialDigest:article.approvalDigest,
+      verifiedStandingNewsEditorialAuthority:article.standingOfficialPublicationVerified===true,
       canonicalArticleUrl:url,
       idempotencyKey:sha256([article.approvalDigest,
         post.approvalDigest,name].join('|')),
