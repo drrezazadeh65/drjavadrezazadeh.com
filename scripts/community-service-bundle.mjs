@@ -10,8 +10,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import assert from 'node:assert/strict';
 
-const CSS='<link rel="stylesheet" href="/assets/css/community-comments.css?v=20261021-academic-v2">';
-const JS='<script src="/assets/js/community-comments.js?v=20261021-academic-v2" defer></script>';
+const CSS='<link rel="stylesheet" href="/assets/css/community-comments.css?v=20261026-semantic-r1">';
+const JS='<script src="/assets/js/community-comments.js?v=20261026-semantic-r1" defer></script>';
 
 export function projectCommunityServicePages(root,out,{write=true}={}){
  const catalog=JSON.parse(fs.readFileSync(path.join(root,'assets/data/service-catalog.json'),'utf8'));
