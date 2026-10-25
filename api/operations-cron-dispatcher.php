@@ -89,6 +89,11 @@ function operationsCronRegistry(): array {
         'en'=>'Verified official standing-policy bilingual newsroom publisher',
         'relative'=>'internal/jrei-news-private-publisher-worker.php',
         'defaultCadence'=>300,'minimumCadence'=>300,'sensitive'=>true],
+      'jrei_news_original_consent_digest'=>[
+        'fa'=>'خبرنامهٔ دوزبانهٔ JREI از طریق رضایت‌نامه و ایمیل اصلی',
+        'en'=>'JREI original eco consented bilingual official-news digest',
+        'relative'=>'internal/jrei-news-private-digest-worker.php',
+        'defaultCadence'=>3600,'minimumCadence'=>3600,'sensitive'=>true],
       'jrei_news_original_public_index'=>[
         'fa'=>'بازسازی و نمایه‌سازی دو زبان اخبار منتشرشده با رسید معتبر',
         'en'=>'JREI News original bilingual CMS receipt index reconciliation',
