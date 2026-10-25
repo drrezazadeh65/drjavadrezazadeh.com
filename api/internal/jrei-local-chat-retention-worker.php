@@ -27,7 +27,18 @@ try{
       WHERE expires_at<? LIMIT 250");
     $q->execute([$now-120]);
     $count=$q->rowCount();
-    fwrite(STDOUT,"JREI-LM expired encrypted chat rows deleted: ".$count."\n");
+    // Optional aggregate-only safety observations are deleted on an
+    // independent short retention schedule; no raw chat is retained.
+    // Missing additive table leaves the original queue cleanup successful.
+    $qualityExpired=null;
+    if(jrJreiLocalQualityTelemetryReady($pdo)){
+        $cleanup=$pdo->prepare("DELETE FROM jrei_local_chat_quality_daily
+          WHERE day_utc<DATE_SUB(UTC_DATE(),INTERVAL 30 DAY) LIMIT 100");
+        $cleanup->execute();
+        $qualityExpired=$cleanup->rowCount();
+    }
+    fwrite(STDOUT,"JREI-LM expired encrypted chat rows deleted: ".$count.
+      "; expired aggregate quality rows: ".($qualityExpired??'UNKNOWN')."\n");
 }catch(Throwable $error){
     fwrite(STDERR,"JREI-LM retention failed, owner review required.\n");
     exit(1);
