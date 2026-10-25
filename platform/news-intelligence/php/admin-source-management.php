@@ -149,7 +149,8 @@ function jrNewsAdminSourceReconcile(PDO $pdo,array $session,
     $owner=jrNewsOwnerAuthority($session);
     if(!preg_match('/^[a-f0-9-]{36}$/iD',$submissionId)||$now<=0)
         throw new InvalidArgumentException('news_admin_source_reconcile_invalid');
-    $q=$pdo->prepare('SELECT submission_state,source_url,source_category,news_priority
+    $q=$pdo->prepare('SELECT submission_state,source_url,source_category,
+        news_priority,linked_monitor_id
         FROM jrei_news_admin_source_submissions WHERE submission_id=?');
     $q->execute([$submissionId]);
     $row=$q->fetch(PDO::FETCH_ASSOC);
@@ -186,19 +187,32 @@ function jrNewsAdminSourceReconcile(PDO $pdo,array $session,
             'ownerPerArticleReviewRequired'=>false,
             'newsMonitorEnabled'=>false,'sourcePublished'=>false];
     }
-    // The ORIGINAL monitor workflow verifies all current policies again,
-    // transactionally. Admin source approval never grants rights itself.
-    $monitor=jrNewsOwnerStageSourceMonitor($pdo,$session,$original,
-        $row['source_category'],$row['news_priority'],$now);
-    $active=false;
-    if($monitorActivationAccepted){
-        $enabled=jrNewsOwnerEnableSourceMonitor($pdo,$session,
-            $monitor['monitorId'],[
-                'source'=>'ORIGINAL_OWNER_APPROVED_JREI_RELEASE',
-                'finalIntegratedAcceptanceVerified'=>true,
-                'newsMonitoringActivatedByOwner'=>true
-            ],$now);
-        $active=$enabled['enabled']===true;
+    // An existing original approved monitor must be reusable without a
+    // second enable or a fake new monitor. Original source rights were
+    // revalidated above; no admin URL alone can grant acquisition.
+    $originalMonitor=$pdo->prepare(
+        'SELECT monitor_id,enabled FROM jrei_news_monitors
+         WHERE jrei_source_reference=? AND BINARY source_url_sha256=BINARY ?
+         LIMIT 1'
+    );
+    $originalMonitor->execute([$original,hash('sha256',$row['source_url'])]);
+    $linked=$originalMonitor->fetch(PDO::FETCH_ASSOC);
+    if(is_array($linked)&&(int)$linked['enabled']===1){
+        $monitor=['monitorId'=>$linked['monitor_id']];
+        $active=true;
+    }else{
+        $monitor=jrNewsOwnerStageSourceMonitor($pdo,$session,$original,
+            $row['source_category'],$row['news_priority'],$now);
+        $active=false;
+        if($monitorActivationAccepted){
+            $enabled=jrNewsOwnerEnableSourceMonitor($pdo,$session,
+                $monitor['monitorId'],[
+                    'source'=>'ORIGINAL_OWNER_APPROVED_JREI_RELEASE',
+                    'finalIntegratedAcceptanceVerified'=>true,
+                    'newsMonitoringActivatedByOwner'=>true
+                ],$now);
+            $active=$enabled['enabled']===true;
+        }
     }
     $state=$active?'MONITOR_ACTIVE':'MONITOR_STAGED';
     $pdo->prepare(
@@ -235,4 +249,50 @@ function jrNewsAdminSourceDisable(PDO $pdo,array $session,string $submissionId,
             'jrei_news_admin_source_disabled',hash('sha256',$submissionId));
     return ['submissionId'=>$submissionId,'state'=>'DISABLED',
         'originalMonitorStopRequested'=>true,'publishedPagesRemoved'=>false];
+}
+
+/** Administrator may edit metadata, but may not change an approved URL to
+ * hijack an existing source authorization. For a new URL, submit a new
+ * proposal so the original rights and reviewer history stay intact.
+ */
+function jrNewsAdminSourceEdit(PDO $pdo,array $session,string $submissionId,
+    array $changes,int $now):array {
+    $owner=jrNewsOwnerAuthority($session);
+    if(!preg_match('/^[a-f0-9-]{36}$/iD',$submissionId)||$now<=0)
+        throw new InvalidArgumentException('news_admin_source_edit_invalid');
+    $title=$changes['title']??null;
+    $category=$changes['category']??null;
+    $priority=$changes['priority']??null;
+    if(!is_string($title)||trim($title)===''||strlen($title)>200||
+       preg_match('//u',$title)!==1||
+       preg_match('/[\\x00-\\x1f\\x7f]/',$title)||
+       !in_array($category,['school','examinations','universities',
+          'employment','language','international','research'],true)||
+       !in_array($priority,['P0','P1','P2'],true))
+        throw new InvalidArgumentException('news_admin_source_edit_fields_invalid');
+    $pdo->beginTransaction();
+    try{
+        $stmt=$pdo->prepare(
+            'SELECT submission_state FROM jrei_news_admin_source_submissions
+              WHERE submission_id=? FOR UPDATE');
+        $stmt->execute([$submissionId]);
+        $state=$stmt->fetchColumn();
+        if(!in_array($state,[
+            'PENDING_ADMIN_APPROVAL','APPROVED_DISCOVERY','ORIGINAL_POLICY_PENDING'
+        ],true))throw new RuntimeException('news_admin_source_edit_requires_pause');
+        $pdo->prepare(
+            'UPDATE jrei_news_admin_source_submissions
+             SET source_title=?,source_category=?,news_priority=?,updated_at=?
+             WHERE submission_id=?'
+        )->execute([trim($title),$category,$priority,$now,$submissionId]);
+        if(function_exists('operationsAudit'))
+            operationsAudit($pdo,$owner['actor'],
+                'jrei_news_admin_source_edited',hash('sha256',$submissionId));
+        $pdo->commit();
+        return ['submissionId'=>$submissionId,'state'=>$state,
+            'updated'=>true,'originalSourceRightsChanged'=>false];
+    }catch(Throwable $e){
+        if($pdo->inTransaction())$pdo->rollBack();
+        throw $e;
+    }
 }
