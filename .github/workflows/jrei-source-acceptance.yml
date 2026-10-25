@@ -81,6 +81,7 @@ jobs:
           php tests/jrei-public-service-route-offline.php
           php tests/jrei-public-uncited-answer-offline.php
           php tests/jrei-local-chat-offline.php
+          php tests/jrei-exam-scoring-offline.php
           php tests/jrei-cron-registry-separation-offline.php
       - name: Assert private worker is outbound and nothing is deployed
         run: |
