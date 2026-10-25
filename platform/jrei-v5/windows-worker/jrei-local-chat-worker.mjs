@@ -70,6 +70,7 @@ export function validateLocalChatConfig(config){
      !SHA.test(c.modelSha256??'')||c.rightsReviewed!==true||
      c.ownerApproved!==true||c.modelRuntimeVerified!==true||
      c.independentQualityAccepted!==true||
+     (c.disableThinking!==undefined&&typeof c.disableThinking!=='boolean')||
      typeof c.endpoint!=='string'||
      !Number.isInteger(c.pollSeconds)||c.pollSeconds<2||c.pollSeconds>10||
      !Number.isInteger(c.modelTimeoutMs)||c.modelTimeoutMs<5000||
@@ -100,7 +101,8 @@ export async function runLocalChatWorker(config,key,{post,log,signal,fetchImpl}=
     id:'jrei-owner-local-chat',model:model.modelId,
     modelVersion:model.modelVersion,modelArtifactSha256:model.modelSha256,
     ownerApproved:true,licenceReviewed:true,endpoint:model.endpoint,
-    fetchImpl,timeoutMs:model.modelTimeoutMs
+    fetchImpl,timeoutMs:model.modelTimeoutMs,
+    disableThinking:model.disableThinking===true
   });
   const pollEndpoint='/api/jrei/v1/local-chat/poll';
   const completeEndpoint='/api/jrei/v1/local-chat/complete';
