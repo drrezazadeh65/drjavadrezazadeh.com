@@ -581,6 +581,18 @@ function jrLocalChatOwnerSnapshot(PDO $pdo,array $cfg): array {
     $result=[
       'schema'=>'jr.jrei.local-generative-owner.v1',
       'motherDatabaseSchemaReady'=>$ready,
+      // Read-only operator diagnostics; configured reference is NOT a backup
+      // integrity check. The caretaker itself rechecks the real private
+      // backup file, freshness and SHA-256 immediately before any DDL.
+      'schemaCaretakerEnabled'=>
+          ($cfg['jrei_local_schema_caretaker_enabled']??false)===true,
+      'schemaCaretakerBackupReferenceConfigured'=>
+          is_string($cfg['jrei_local_schema_backup_file']??null)&&
+          ($cfg['jrei_local_schema_backup_file']??'')!==''&&
+          is_string($cfg['jrei_local_schema_backup_sha256']??null)&&
+          preg_match('/^[a-f0-9]{64}$/D',
+            $cfg['jrei_local_schema_backup_sha256'])===1,
+      'schemaCaretakerBackupVerified'=>false,
       'privateSwitchEnabled'=>($cfg['jrei_local_chat_enabled']??false)===true,
       'ownerPublicReleaseAccepted'=>($cfg['jrei_local_public_release_accepted']??false)===true,
       'privateEncryptionKeyConfigured'=>jrLocalChatKey($cfg)!==null,
