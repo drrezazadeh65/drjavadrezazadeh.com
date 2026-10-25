@@ -7,6 +7,7 @@ declare(strict_types=1);
  */
 if (!defined('BERTINA_API_BOOTSTRAPPED')) { http_response_code(404); exit; }
 require_once __DIR__.'/candidate-intake.php';
+require_once __DIR__.'/standing-official-publication.php';
 
 function jrNewsIndexApprovedPublication(
     PDO $pdo,string $publicationId,string $language,
@@ -21,6 +22,7 @@ function jrNewsIndexApprovedPublication(
     // public site's mother DB while checking external CMS/source receipts.
     // The same row is re-read and locked after expensive verification.
     try {
+        $standing=jrNewsStandingPublicSchemaInstalled($pdo);
         $sourceSql="SELECT p.publication_id,p.publisher_state,p.published_at,
                     p.fa_route,p.en_route,p.fa_content_sha256,
                     p.en_content_sha256,p.publisher_receipt_reference,
@@ -30,22 +32,25 @@ function jrNewsIndexApprovedPublication(
                     m.category_code,d.action_code,
                     d.revision_id AS decision_revision_id,
                     d.approval_digest AS decision_approval_digest,
-                    p.revision_id AS published_revision_id
-             FROM jrei_news_publications p
+                    p.revision_id AS published_revision_id".
+             ($standing?",p.approved_decision_id,p.standing_policy_id,
+                   pol.policy_id,pol.owner_account_id AS standing_owner_id,
+                   pol.policy_code,pol.policy_digest,pol.revision_number,
+                   pol.effective_at,pol.expires_at,pol.revoked_at":"").
+             " FROM jrei_news_publications p
              JOIN jrei_news_editorial_versions v ON v.revision_id=p.revision_id
              JOIN jrei_news_candidates c ON c.candidate_id=v.candidate_id
              JOIN jrei_news_monitors m ON m.monitor_id=c.monitor_id
-             JOIN jrei_news_owner_decisions d ON d.decision_id=p.approved_decision_id
-             WHERE p.publication_id=?";
+             ".($standing?
+               "LEFT JOIN jrei_news_owner_decisions d ON d.decision_id=p.approved_decision_id
+                LEFT JOIN jrei_news_standing_policies pol ON pol.policy_id=p.standing_policy_id":
+               "JOIN jrei_news_owner_decisions d ON d.decision_id=p.approved_decision_id").
+             " WHERE p.publication_id=? AND ".
+             jrNewsPublicationAuthorityPredicate($standing);
         $stmt=$pdo->prepare($sourceSql);
         $stmt->execute([$publicationId]);
         $row=$stmt->fetch(PDO::FETCH_ASSOC);
         if (!$row||$row['publisher_state']!=='PUBLISHED'||
-            $row['action_code']!=='APPROVE'||
-            $row['editorial_state']!=='OWNER_APPROVED'||
-            $row['decision_revision_id']!==$row['published_revision_id']||
-            !hash_equals((string)$row['approval_digest'],
-                (string)$row['decision_approval_digest'])||
             empty($row['publisher_receipt_reference'])||
             empty($row['published_at'])) {
             throw new RuntimeException('news_search_unpublished_or_unapproved');
