@@ -142,3 +142,20 @@ foreach([
     newsCheck(jrNewsOfficialDirectoryMatch($lookalike)===null,
         'spoofed or unreviewed subdomain cannot inherit institutional trust');
 echo "PASS: nine official institution discovery targets, lookalike rejection and no fabricated reuse rights\\n";
+
+$canonical=jrNewsAdminCanonicalSourceUrl('https://www.sanjesh.org');
+newsCheck($canonical==='https://www.sanjesh.org/',
+    'administrator sources canonically normalized to exact HTTPS authority');
+foreach([
+  'http://www.sanjesh.org/news',
+  'https://127.0.0.1/news',
+  'https://localhost/news',
+  'https://user:password@pnu.ac.ir/notice',
+  'https://sanjesh.org:8443/notice',
+  'https://pnu.ac.ir/notice#fragment',
+  'https://gov.example/news',
+  'https://pnu.ac.ir/%2e%2e/admin'
+] as $bad)
+    newsThrows(static fn()=>jrNewsAdminCanonicalSourceUrl($bad),
+        'owner-submitted URL must not bypass safe transport policy');
+echo "PASS: original owner source URL form rejects private targets, credentials and unsafe redirects\\n";
