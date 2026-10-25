@@ -65,9 +65,13 @@ try {
      $actualModel.Length -gt 512){throw 'BAD_ID'}
 } catch {throw 'JREI_SMOKE_MODEL_DISCOVERY_FAILED'}
 $aliasMatched=($actualModel -ceq [string]$c.modelId)
+# Construct the Persian test phrase at runtime. The checked-in .ps1 file
+# remains strictly ASCII because Windows PowerShell 5.1 reads UTF-8 without
+# a BOM as an ANSI codepage, otherwise corrupting non-ASCII string literals.
+$faPrompt=(-join @([char]0x0641,[char]0x0642,[char]0x0637,[char]0x0020,[char]0x0628,[char]0x0646,[char]0x0648,[char]0x06cc,[char]0x0633,[char]0x003a,[char]0x0020,[char]0x0633,[char]0x0644,[char]0x0627,[char]0x0645))+' /no_think'
 $body=@{
   model=$actualModel
-  messages=@(@{role='user';content='فقط بنویس: سلام /no_think'})
+  messages=@(@{role='user';content=$faPrompt})
   max_tokens=80
   temperature=0
   stream=$false
