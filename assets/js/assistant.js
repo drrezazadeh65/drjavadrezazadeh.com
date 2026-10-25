@@ -45,9 +45,50 @@
     chips:['Which service fits my needs?','What is Golden Talent?','What professional services do you offer?']
   };
 
+  // Only PUBLIC URL context; never infer identity, learning level or private records.
+  const publicContext=(()=>{
+    if(/\/(?:exams|konkur-ai-lab|entekhab-reshteh|student-guidance|moshavere-tahsili)\//.test(route))
+      return isFa?'آزمون‌ها و راهنمای تحصیلی':'exams and student guidance';
+    if(/\/(?:akhbar|news-insights|news)\//.test(route))
+      return isFa?'اخبار آموزشی':'educational news';
+    if(/\/(?:golden-talent|bahar|rcas)\//.test(route))
+      return isFa?'رشد و یادگیری':'learning and development';
+    if(/\/(?:services)\//.test(route))
+      return isFa?'خدمات تخصصی':'professional services';
+    if(/\/(?:journal|publications|research)\//.test(route))
+      return isFa?'پژوهش و انتشارات':'research and publications';
+    return isFa?'بخش‌های عمومی سایت':'the public website';
+  })();
+  const contextIntroduction=isFa?
+    ' اگر دربارهٔ '+publicContext+' پرسشی دارید، می‌توانم راهنمایی‌تان کنم.':
+    ' I can help you explore '+publicContext+'.';
+  // Local-only consent preference: NOT a server consent ledger, permission
+  // to ingest transcripts, consent for minors or an activated learning pipeline.
+  const CONSENT_KEY='jr.jrei.feedback-preference.v1';
+  const CONSENT_POLICY='jr.jrei.feedback-notice.v1';
+  const CONSENT_MAX_AGE_MS=180*24*60*60*1000;
+  const readConsentPreference=()=>{
+    try{
+      const raw=localStorage.getItem(CONSENT_KEY);
+      if(!raw)return null;
+      const c=JSON.parse(raw);
+      return c?.version===CONSENT_POLICY&&
+        ['ACCEPTED','DECLINED'].includes(c.choice)&&
+        Number.isSafeInteger(c.at)&&c.at<=Date.now()&&
+        Date.now()-c.at<CONSENT_MAX_AGE_MS?c.choice:null;
+    }catch{return null;}
+  };
+  const saveConsentPreference=choice=>{
+    try{
+      localStorage.setItem(CONSENT_KEY,JSON.stringify({
+        version:CONSENT_POLICY,choice,at:Date.now()
+      }));
+    }catch(_){/* Private browsing can refuse storage: keep choice only this page. */}
+  };
   const staticGreeting=isFa
-    ?'سلام. من JREI هستم. اکنون راهنمای صفحات عمومی سایت فعال است؛ اتصال مدل گفت‌وگوی زنده هنوز تأیید نشده است. می‌توانید درباره خدمات و مسیرهای منتشرشده سایت سؤال کنید.'
-    :'Hello, I am JREI. The public-site navigation guide is available; live AI inference has not been confirmed. Ask about published services and educational pathways.';
+    ?'سلام. من JREI هستم. اکنون راهنمای صفحات عمومی سایت فعال است؛ اتصال مدل گفت‌وگوی زنده هنوز تأیید نشده است. می‌توانید درباره خدمات و مسیرهای منتشرشده سایت سؤال کنید.'+contextIntroduction
+    :'Hello, I am JREI. The public-site navigation guide is available; live AI inference has not been confirmed. Ask about published services and educational pathways.'+contextIntroduction;
+  // Topic cues are derived only from the published page route.
   const liveGreeting=isFa
     ?'JREI به یک مدل گفت‌وگوی زنده متصل شده است. پس از رضایت آگاهانه می‌توانید پرسش عمومی بپرسید. پاسخ مدل ممکن است خطا داشته باشد و تأیید علمی محسوب نمی‌شود.'
     :'JREI has an available live inference provider. With informed consent, ask general questions; generated replies can be inaccurate and are not independently scientifically verified.';
@@ -121,6 +162,70 @@
       '<p class="jr-assistant-privacy">'+labels.notice+'</p>'+
     '</section>';
   document.body.appendChild(wrap);
+
+  // One gentle invitation on first PUBLIC visit; no forced modal and no
+  // collection of conversations, user identity, scorecards or minors' data.
+  // Actual data use needs separate server-enforced, scoped age/guardian,
+  // retention/deletion, security and consent gates.
+  const welcome=document.createElement('section');
+  welcome.className='jr-assistant-onboarding';
+  welcome.hidden=true;
+  welcome.setAttribute('role','dialog');
+  welcome.setAttribute('aria-modal','false');
+  welcome.setAttribute('aria-label',isFa?'آشنایی با JREI و انتخاب حریم خصوصی':'Meet JREI and privacy choice');
+  const welcomeHeading=document.createElement('strong');
+  welcomeHeading.textContent=isFa?'سلام، من JREI هستم ✦':'Hello, I am JREI ✦';
+  const welcomeCopy=document.createElement('p');
+  welcomeCopy.textContent=isFa?
+    'در '+publicContext+' کمکی لازم دارید؟ می‌توانید رایگان از راهنمای سایت بپرسید. اگر مایل باشید، در آینده می‌توانیم از بازخورد مجاز و بررسی‌شده برای بهترشدن JREI استفاده کنیم.':
+    'Need help with '+publicContext+'? Ask the site guide for free. You may opt in to future use of permitted, reviewed feedback to improve JREI.';
+  const welcomeDetails=document.createElement('details');
+  const detailsTitle=document.createElement('summary');
+  detailsTitle.textContent=isFa?'جزئیات حریم خصوصی و استفاده از داده':'Privacy and data-use details';
+  const detailsBody=document.createElement('p');
+  detailsBody.textContent=isFa?
+    'انتخاب شما فعلاً فقط در این مرورگر ذخیره می‌شود؛ هیچ متن گفت‌وگویی برای آموزش مدل جمع‌آوری یا به حافظه JREI ارسال نمی‌شود. گفت‌وگوی زنده، در صورت فعال‌شدن، رضایت پردازش جداگانه دارد. استفاده پژوهشی از متن گفتگو یا اطلاعات شخصی مستلزم اطلاع‌رسانی، رضایت معتبر جداگانه و کنترل‌های حفاظتی است. لطفاً اطلاعات حساس نفرستید؛ می‌توانید این انتخاب را تغییر دهید.':
+    'This preference is stored only in this browser. No chat transcripts are currently collected for model training or sent to the JREI memory. Live inference, if available, requests separate processing consent. Using personal details or conversation text for research requires a separate valid notice and permission with safeguards. Do not share sensitive details. You can change this preference.';
+  welcomeDetails.append(detailsTitle,detailsBody);
+  const choiceActions=document.createElement('div');
+  choiceActions.className='jr-assistant-onboarding-actions';
+  const agree=document.createElement('button'),decline=document.createElement('button');
+  agree.type='button';decline.type='button';
+  agree.textContent=isFa?'مایلم؛ فعلاً راهنمای سایت را باز کن':'I agree; open the site guide';
+  decline.textContent=isFa?'فعلاً خیر؛ ادامه بدون مشارکت':'Not now; continue without sharing';
+  choiceActions.append(agree,decline);
+  welcome.append(welcomeHeading,welcomeCopy,welcomeDetails,choiceActions);
+  wrap.append(welcome);
+  const openWelcome=()=>{welcome.hidden=false;};
+  const hideWelcome=()=>{welcome.hidden=true;};
+  const recordPreference=choice=>{
+    saveConsentPreference(choice);
+    hideWelcome();
+    if(choice==='ACCEPTED'&&panel.hidden)launcher.click();
+  };
+  agree.addEventListener('click',()=>recordPreference('ACCEPTED'));
+  decline.addEventListener('click',()=>recordPreference('DECLINED'));
+  // A user may review/revoke a previous preference without withdrawing
+  // their free access or changing independent cloud/local inference consent.
+  const privacyChoice=document.createElement('button');
+  privacyChoice.type='button';privacyChoice.className='jr-assistant-privacy-choice';
+  privacyChoice.textContent=isFa?'تنظیم مشارکت در بهبود JREI':'JREI feedback preference';
+  privacyChoice.addEventListener('click',openWelcome);
+  wrap.querySelector('.jr-assistant-privacy').after(privacyChoice);
+  let privateNoStorageChoice=null;
+  const initialPreference=readConsentPreference();
+  if(initialPreference===null){
+    const timer=setTimeout(()=>{
+      if(!document.hidden&&panel.hidden&&welcome.isConnected&&!privateNoStorageChoice)
+        openWelcome();
+    },1700);
+    agree.addEventListener('click',()=>clearTimeout(timer),{once:true});
+    decline.addEventListener('click',()=>clearTimeout(timer),{once:true});
+  }
+  // If storage is unavailable, a choice still suppresses repeated prompts
+  // within the same page lifetime.
+  for(const button of [agree,decline])
+    button.addEventListener('click',()=>{privateNoStorageChoice=true;});
 
   const launcher=wrap.querySelector('.jr-assistant-launcher');
   const panel=wrap.querySelector('.jr-assistant-panel');
