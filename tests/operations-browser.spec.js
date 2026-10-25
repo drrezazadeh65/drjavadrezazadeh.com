@@ -78,6 +78,28 @@ test('worker registration clearly distinguishes active submit from disabled work
  expect(file).toContain('worker stays OFF');
 });
 
+test('temporary report failure does not log out an otherwise verified administrator',async({page})=>{
+ let reportReads=0;
+ await page.route('**/api/admin/operations**',async route=>{
+  const p=new URL(route.request().url()).pathname;
+  if(p.endsWith('/session'))return route.fulfill({json:{
+    ok:true,mfaRequired:false,csrfToken:'c'.repeat(64),mfaExpiresIn:600
+  }});
+  reportReads++;
+  if(reportReads>1)return route.fulfill({status:503,json:{
+    ok:false,error:'operations_report_unavailable'
+  }});
+  return route.fulfill({json:fixture()});
+ });
+ await page.goto(base+'/fa/app/admin/');
+ await expect(page.locator('#ops-workspace')).toBeVisible();
+ await page.locator('#ops-refresh-data').click();
+ await expect(page.locator('#ops-notice')).toHaveClass(/ops-error/);
+ await expect(page.locator('#ops-workspace')).toBeVisible();
+ await expect(page.locator('#ops-mfa-form')).toBeHidden();
+ await expect(page.locator('#ops-cards article')).toHaveCount(36);
+});
+
 test('Expired MFA clears previously loaded reports',async({page})=>{
  // One second can expire before a loaded CI browser paints the authenticated workspace.
  await authorized(page,{expiry:3});await page.goto(base+'/fa/app/admin/');await expect(page.locator('#ops-workspace')).toBeVisible();await expect(page.locator('#ops-workspace')).toBeHidden({timeout:5500});await expect(page.locator('#ops-cards article')).toHaveCount(0);
