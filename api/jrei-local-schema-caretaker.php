@@ -89,6 +89,29 @@ function jrJreiLocalSchemaBackupReady(array $cfg): bool {
     $got=hash_file('sha256',$path);
     return is_string($got)&&hash_equals($sha,$got);
 }
+/**
+ * Reconcile the ONE reviewed column introduced in the signed chat poll
+ * contract when an older installation already contains the three tables.
+ * No user-provided SQL, table names or model-generated schema changes.
+ * The caller holds the mother-DB advisory lock and a verified private backup.
+ * MySQL 8 and MariaDB both support this plain fixed ADD COLUMN.
+ */
+function jrJreiLocalSchemaRepairSignedChatFreshness(PDO $pdo): bool {
+    $q=$pdo->query("SELECT COUNT(*) FROM information_schema.COLUMNS
+       WHERE TABLE_SCHEMA='drjavad1_store'
+         AND TABLE_NAME='jrei_local_chat_node_authorizations'
+         AND COLUMN_NAME='last_signed_chat_seen_at'");
+    if((int)$q->fetchColumn()!==0)return false;
+    $q=$pdo->query("SELECT COUNT(*) FROM information_schema.TABLES
+       WHERE TABLE_SCHEMA='drjavad1_store'
+         AND TABLE_NAME='jrei_local_chat_node_authorizations'
+         AND TABLE_TYPE='BASE TABLE'");
+    if((int)$q->fetchColumn()!==1)
+        throw new DomainException('jrei_schema_authorization_table_missing');
+    $pdo->exec('ALTER TABLE jrei_local_chat_node_authorizations
+       ADD COLUMN last_signed_chat_seen_at BIGINT UNSIGNED NULL DEFAULT NULL');
+    return true;
+}
 function jrJreiLocalSchemaApply(PDO $pdo,array $cfg): array {
     if(($cfg['jrei_local_schema_caretaker_enabled']??false)!==true||
        ($cfg['operations_cron_master_enabled']??false)!==true)
@@ -117,7 +140,7 @@ function jrJreiLocalSchemaApply(PDO $pdo,array $cfg): array {
             // tables are already installed and their columns are usable.
             return ['schema'=>'jr.jrei.local-schema-caretaker.v1',
               'state'=>'ADDITIVE_SCHEMA_READY','database'=>'drjavad1_store',
-              'expectedTables'=>3,'newTables'=>0,
+              'expectedTables'=>3,'newTables'=>0,'newColumns'=>0,
               'paymentsChanged'=>false,'parallelDatabaseCreated'=>false,
               'modelActivated'=>false];
         }
@@ -138,11 +161,16 @@ function jrJreiLocalSchemaApply(PDO $pdo,array $cfg): array {
         // Only reviewed CREATE TABLE IF NOT EXISTS: model registry first,
         // followed by grants and queue with original foreign keys.
         foreach($stmts as $sql)$pdo->exec($sql);
+        // CREATE TABLE IF NOT EXISTS does not reconcile legacy missing
+        // columns; doing so under the SAME checked-backup gate avoids
+        // repeating owner phpMyAdmin work after later releases.
+        $freshnessColumnAdded=jrJreiLocalSchemaRepairSignedChatFreshness($pdo);
         if(!jrHybridModelRegistryReady($pdo)||!jrLocalChatSchemaReady($pdo))
             throw new DomainException('jrei_schema_postflight_incompatible');
         return ['schema'=>'jr.jrei.local-schema-caretaker.v1',
           'state'=>'ADDITIVE_SCHEMA_READY','database'=>'drjavad1_store',
           'expectedTables'=>3,'newTables'=>3-$already,
+          'newColumns'=>$freshnessColumnAdded?1:0,
           'paymentsChanged'=>false,'parallelDatabaseCreated'=>false,
           'modelActivated'=>false];
     }finally{
