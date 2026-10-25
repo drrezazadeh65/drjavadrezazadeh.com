@@ -122,6 +122,148 @@ function jrNewsOriginalPublishedReceiptFromDisk(
     }
     return $receipt;
 }
+/**
+ * Recover a real, already-written ORIGINAL bilingual CMS publication after a
+ * process crash before the corresponding database receipt was committed.
+ * This does not generate pages or trust client/model supplied receipts. It
+ * rechecks current official provenance/QA/standing authority AND verifies
+ * that BOTH immutable on-disk files exactly match a fresh deterministic
+ * rendering of the original signed editorial payload at its own timestamp.
+ * If only one page exists or content differs, fail closed rather than
+ * overwriting/restoring a foreign canonical page.
+ */
+function jrNewsOriginalRecoverVerifiedCmsPages(
+    PDO $pdo,array $cfg,string $siteRoot,string $publicationId,
+    string $revisionId,int $now
+):?array {
+    $stmt=$pdo->prepare(
+        "SELECT p.publication_id,p.revision_id,p.fa_route,p.en_route,
+                p.standing_policy_id,p.approved_decision_id,p.publisher_state,
+                v.bilingual_editorial_json,v.approval_digest,
+                v.approved_image_ref,c.source_url,c.content_sha256
+         FROM jrei_news_publications p
+         JOIN jrei_news_editorial_versions v ON v.revision_id=p.revision_id
+         JOIN jrei_news_candidates c ON c.candidate_id=v.candidate_id
+         WHERE p.publication_id=? AND p.revision_id=?
+           AND p.publisher_state='WAITING_FOR_PUBLISHER'"
+    );
+    $stmt->execute([$publicationId,$revisionId]);
+    $row=$stmt->fetch(PDO::FETCH_ASSOC);
+    if(!is_array($row)||$row['approved_decision_id']!==null||
+       !preg_match('/^[a-f0-9]{64}$/D',(string)$row['approval_digest'])||
+       !hash_equals((string)$row['approval_digest'],
+           hash('sha256',(string)$row['bilingual_editorial_json'])))
+        throw new RuntimeException('news_recovery_original_revision_unavailable');
+    $root=realpath($siteRoot);
+    if($root===false||is_link($siteRoot)||
+       $root!==realpath(dirname(__DIR__,3)))
+        throw new RuntimeException('news_recovery_original_root_invalid');
+    $files=[];
+    foreach(['fa','en'] as $language){
+        $route=(string)$row[$language.'_route'];
+        $prefix=$language==='fa'?'fa/akhbar':'en/news-insights';
+        if(preg_match('#^/'.$prefix.'/[a-z0-9-]{5,100}/$#D',$route)!==1)
+            throw new RuntimeException('news_recovery_immutable_route_invalid');
+        $relative=trim($route,'/');
+        $path=$root.DIRECTORY_SEPARATOR.
+            str_replace('/',DIRECTORY_SEPARATOR,$relative).
+            DIRECTORY_SEPARATOR.'index.html';
+        $parent=dirname($path);
+        // A symlink in any component must never escape the original CMS.
+        if((file_exists($parent)||is_link($parent))&&
+           (is_link($parent)||realpath($parent)!==$parent))
+            throw new RuntimeException('news_recovery_cms_directory_unsafe');
+        foreach(explode('/', $relative) as $component){
+            // Checked again below against original absolute root and prefix.
+            if($component===''||$component==='.'||$component==='..')
+                throw new RuntimeException('news_recovery_cms_path_unsafe');
+        }
+        $files[$language]=$path;
+    }
+    $faExists=is_file($files['fa'])||is_link($files['fa']);
+    $enExists=is_file($files['en'])||is_link($files['en']);
+    if(!$faExists&&!$enExists)return null;
+    if(!$faExists||!$enExists)
+        throw new RuntimeException('news_recovery_partial_bilingual_write_hold');
+    $bytes=[];$dates=[];
+    foreach(['fa','en'] as $language){
+        $path=$files[$language];
+        if(is_link($path)||!is_file($path)||!is_readable($path)||
+           ($length=filesize($path))===false||$length<256||$length>440000)
+            throw new RuntimeException('news_recovery_original_page_invalid');
+        $body=file_get_contents($path);
+        if(!is_string($body)||strlen($body)!==$length||
+           preg_match('/<time datetime="([0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z)">/',
+              $body,$m)!==1)
+            throw new RuntimeException('news_recovery_original_time_missing');
+        $timestamp=strtotime($m[1]);
+        if($timestamp===false||$timestamp<=0||$timestamp>$now||
+           gmdate('Y-m-d\\TH:i:s\\Z',$timestamp)!==$m[1])
+            throw new RuntimeException('news_recovery_original_time_invalid');
+        $dates[$language]=$timestamp;
+        $bytes[$language]=$body;
+    }
+    if($dates['fa']!==$dates['en'])
+        throw new RuntimeException('news_recovery_bilingual_timestamp_mismatch');
+    $ctx=[
+        'publicationId'=>$publicationId,'revisionId'=>$revisionId,
+        'standingPolicyId'=>$row['standing_policy_id'],
+        'approvalDigest'=>$row['approval_digest'],
+        'sourceUrl'=>$row['source_url'],
+        'evidenceSha256'=>$row['content_sha256'],
+        'faRoute'=>$row['fa_route'],'enRoute'=>$row['en_route']
+    ];
+    $policy=jrNewsPrivateCmsContextPolicy(
+        $pdo,$cfg,$root,$ctx,$now,true);
+    foreach(['signedOriginalPublicationAuthorityCurrent',
+             'sourceEvidenceAndUsageRightsCurrent',
+             'independentClaimReviewCurrent',
+             'newsLanguageAndSeoQualityCurrent',
+             'licensedOriginalMediaCurrent',
+             'zeroPublicRouteCollisions'] as $gate){
+        if(($policy[$gate]??null)!==true)
+            throw new RuntimeException('news_recovery_current_policy_unavailable');
+    }
+    $renderContext=[
+        'source'=>'ORIGINAL_AUTHENTICATED_CMS',
+        'originalNewsroomReleaseAccepted'=>true,
+        'currentOfficialEvidenceAndClaimsReviewed'=>true,
+        'mediaRightsVerified'=>true,'verifiedOriginalCmsPolicy'=>true,
+        'verifiedImageRef'=>$row['approved_image_ref'],
+        'originalSourceUrl'=>$row['source_url']
+    ];
+    $hashes=[];
+    foreach(['fa','en'] as $language){
+        $expected=jrNewsOriginalPublicNewsHtml(
+            (string)$row['bilingual_editorial_json'],
+            (string)$row['approval_digest'],$renderContext,
+            $language,$dates[$language]);
+        if($expected['route']!==$row[$language.'_route']||
+           !hash_equals((string)$expected['contentSha256'],
+              hash('sha256',$bytes[$language])))
+            throw new RuntimeException('news_recovery_original_page_hash_mismatch');
+        $hashes[$language]=$expected['contentSha256'];
+    }
+    $reference='jrei-original-bilingual:'.hash('sha256',implode('|',[
+        $publicationId,$row['approval_digest'],$hashes['fa'],$hashes['en']
+    ]));
+    return [
+        'source'=>'ORIGINAL_AUTHENTICATED_CMS','verified'=>true,
+        'bothCanonicalDocumentsVerified'=>true,
+        'sourceRecheckedAfterPublication'=>true,
+        'publicationId'=>$publicationId,'revisionId'=>$revisionId,
+        'standingPolicyId'=>$row['standing_policy_id'],
+        'approvalDigest'=>$row['approval_digest'],
+        'faRoute'=>$row['fa_route'],'enRoute'=>$row['en_route'],
+        'faContentSha256'=>$hashes['fa'],
+        'enContentSha256'=>$hashes['en'],
+        'receiptReference'=>$reference,
+        'requiresOriginalDbReceiptCommit'=>true,
+        'restoredFromAlreadyPublishedOriginalFiles'=>true,
+        'newFilesystemWrites'=>0
+    ];
+}
+
 function jrNewsOriginalPrivateCmsPublishBatch(
     PDO $pdo,array $cfg,string $siteRoot,int $at,int $maxPerTick=3
 ):array {
@@ -154,6 +296,7 @@ function jrNewsOriginalPrivateCmsPublishBatch(
     $q->execute();
     $ready=$q->fetchAll(PDO::FETCH_COLUMN);
     $summary=['schema'=>'jr.jrei.original-private-publishing-batch.v1',
+        'recoveredReceipts'=>0,
         'state'=>'NO_ELIGIBLE_REVISIONS','examined'=>0,'staged'=>0,
         'published'=>0,'publicWrites'=>0,'technicalHolds'=>0,
         'exceptions'=>0,'dailyNewsQuota'=>null];
@@ -199,14 +342,22 @@ function jrNewsOriginalPrivateCmsPublishBatch(
             return jrNewsPrivateCmsContextPolicy(
                 $pdo,$cfg,$siteRoot,$context,$at,$after);
         };
-        $proof=jrNewsOriginalWriteVerifiedBilingualPages(
-            $pdo,$rev,$pubId,$siteRoot,$cmsPolicy,[
-              'source'=>'ORIGINAL_JREI_PRIVATE_CMS_WORKER',
-              'productionNewsWriteEnabled'=>true,
-              'finalIntegratedAcceptanceVerified'=>true,
-              'originalCmsRecoveredBackupVerified'=>
-                ($cfg['jrei_news_verified_restore_accepted']??false)===true
-            ],$at);
+        // A prior crash may have completed the original two-page write
+        // without committing the durable publication receipt. Reconcile
+        // exact original signed bytes first; never overwrite a canonical URL.
+        $proof=jrNewsOriginalRecoverVerifiedCmsPages(
+            $pdo,$cfg,$siteRoot,$pubId,$rev,$at);
+        $recovered=$proof!==null;
+        if(!$recovered){
+            $proof=jrNewsOriginalWriteVerifiedBilingualPages(
+                $pdo,$rev,$pubId,$siteRoot,$cmsPolicy,[
+                  'source'=>'ORIGINAL_JREI_PRIVATE_CMS_WORKER',
+                  'productionNewsWriteEnabled'=>true,
+                  'finalIntegratedAcceptanceVerified'=>true,
+                  'originalCmsRecoveredBackupVerified'=>
+                    ($cfg['jrei_news_verified_restore_accepted']??false)===true
+                ],$at);
+        }
         $verify=static function(array $context)use($siteRoot,$proof):array {
             return jrNewsOriginalPublishedReceiptFromDisk(
                 $siteRoot,$context,$proof);
@@ -224,7 +375,8 @@ function jrNewsOriginalPrivateCmsPublishBatch(
         if(($confirm['status']??null)!=='PUBLISHED')
             throw new RuntimeException('news_private_publication_receipt_not_committed');
         $summary['published']++;
-        $summary['publicWrites']+=2;
+        if($recovered)$summary['recoveredReceipts']++;
+        $summary['publicWrites']+=$recovered?0:2;
         $summary['state']='BILINGUAL_ORIGINAL_CMS_PUBLISHED';
     }
     return $summary;
