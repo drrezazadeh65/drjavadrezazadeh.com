@@ -849,3 +849,27 @@ html:lang(en):not([dir]){direction:ltr}
 /* MFA-UNLOCKED ADMIN OVERLAY: preserve access to approval buttons on 320–430px screens.
    Hide the unrelated public assistant only while the verified editorial workspace is unlocked. */
 body:has(#ops-workspace:not([hidden])) .jr-assistant{display:none}
+
+/* 2026-10-26 bilingual content-reading baseline; zero-specificity so intentional
+   centred title/art-direction rules remain authoritative. */
+:where(html[lang="fa"][dir="rtl"] main article,html[lang="fa"][dir="rtl"] main .article-shell){
+ direction:rtl;
+}
+:where(html[lang="en"][dir="ltr"] main article,html[lang="en"][dir="ltr"] main .article-shell){
+ direction:ltr;
+}
+:where(main article,main .article-shell) :where(p,li,blockquote,dd,dt){
+ text-align:start;overflow-wrap:anywhere;
+}
+:where(main article,main .article-shell) :where(h1,h2,h3,h4,h5,h6){
+ overflow-wrap:break-word;scroll-margin-block-start:6rem;
+}
+:where(main article,main .article-shell) :where(pre,table){
+ max-width:100%;overflow-x:auto;
+}
+:where(main article,main .article-shell) :where([lang="en"],[dir="ltr"]){
+ direction:ltr;unicode-bidi:isolate;
+}
+:where(main article,main .article-shell) :where([lang="fa"],[dir="rtl"]){
+ direction:rtl;unicode-bidi:isolate;
+}
