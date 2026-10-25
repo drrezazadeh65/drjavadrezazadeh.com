@@ -54,7 +54,8 @@ jobs:
             tests/jrei-local-doctor.test.mjs \
             tests/jrei-local-model-benchmark.test.mjs \
             tests/jrei-worker-error-code.test.mjs \
-            tests/jrei-qwen-visible-answer.test.mjs
+            tests/jrei-qwen-visible-answer.test.mjs \
+            tests/jrei-node-a-local-artifacts.test.mjs
       - name: Check JREI model worker syntax and model privacy firewall
         run: |
           set -euo pipefail
