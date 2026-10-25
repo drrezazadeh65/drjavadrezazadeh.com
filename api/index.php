@@ -159,6 +159,10 @@ function cfg(): array {
         'jrei_news_original_fact_signing_secret' => (string)(getenv('JR_JREI_NEWS_ORIGINAL_FACT_SIGNING_SECRET') ?: ''),
         'jrei_news_independent_qa_dir' => (string)(getenv('JR_JREI_NEWS_INDEPENDENT_QA_DIR') ?: ''),
         'jrei_news_independent_qa_secret' => (string)(getenv('JR_JREI_NEWS_INDEPENDENT_QA_SECRET') ?: ''),
+        // Independent QA is a separate, deliberately selected reviewing model.
+        // No change to the source-owned budget, credential or public permissions.
+        'jrei_news_independent_second_pass_enabled' => getenv('JR_JREI_NEWS_INDEPENDENT_SECOND_PASS_ENABLED') === 'true',
+        'jrei_news_independent_qa_model' => (string)(getenv('JR_JREI_NEWS_INDEPENDENT_QA_MODEL') ?: ''),
 
 
         // Real AI inference: independent paid-provider credentials and
