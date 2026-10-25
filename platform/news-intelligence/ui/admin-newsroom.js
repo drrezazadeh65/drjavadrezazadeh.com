@@ -37,8 +37,10 @@ export function mountNewsOwnerPanel({root,csrfResolver,
   customSources.className='ni-admin-custom-source-manager';
   const standingControls=document.createElement('section');
   standingControls.className='ni-admin-custom-source-manager';
+  const exceptionDesk=document.createElement('section');
+  exceptionDesk.className='ni-admin-custom-source-manager';
   root.replaceChildren(header,refresh,status,standingControls,customSources,
-    integration,metrics,sources,articles,acquisition,publications,list);
+    exceptionDesk,integration,metrics,sources,articles,acquisition,publications,list);
   const show=s=>{status.textContent=s;};
   const request=async (path,options)=>{
     const token=csrfResolver();
@@ -317,6 +319,83 @@ export function mountNewsOwnerPanel({root,csrfResolver,
       category:category.value,priority:priority.value
     });
   });
+
+  // Only contested official source/claims appear here. No owner's action
+  // on this desk can fabricate article approval or suppress source policy.
+  const exceptionTitle=document.createElement('h3');
+  exceptionTitle.textContent=say('اخبار دارای ابهام واقعی','Genuinely disputed news');
+  const exceptionInfo=document.createElement('p');
+  exceptionInfo.textContent=say(
+    'فقط ابهام منبع، مجوز استفاده یا تناقض ادعا به این بخش می‌رسد. تأیید خبرهای رسمی عادی خودکار است.',
+    'Only uncertain source identity, reuse rights or contradicted claims appear here. Normal verified official news does not require article-by-article approval.');
+  const exceptionStatus=document.createElement('p');
+  exceptionStatus.setAttribute('role','status');
+  const exceptionItems=document.createElement('div');
+  exceptionItems.className='ni-admin-custom-source-items';
+  exceptionDesk.append(exceptionTitle,exceptionInfo,exceptionStatus,exceptionItems);
+  let exceptionWritePending=false;
+  async function updateEvidenceException(id,state){
+    if(exceptionWritePending)return;
+    exceptionWritePending=true;
+    exceptionStatus.textContent=say('در حال ثبت تصمیم…','Saving review…');
+    try{
+      const result=await request('/owner/evidence-exceptions/resolve',{
+        method:'POST',body:JSON.stringify({exceptionId:id,state})
+      });
+      if(result.articleApproved!==false||result.published!==false)
+        throw Error('NEWS_OWNER_EXCEPTION_UNEXPECTED_PUBLICATION');
+      await refreshEvidenceExceptions();
+      exceptionStatus.textContent=say(
+        'نتیجهٔ بررسی ثبت شد؛ این اقدام مجوز انتشار نیست.',
+        'Review recorded; this action did not authorize publication.');
+    }catch(err){
+      exceptionStatus.textContent=say(
+        'عملیات بررسی انجام نشد. نشست مدیریت و مهاجرت را بررسی کنید.',
+        'Review failed. Check the owner session and database migration.');
+    }finally{exceptionWritePending=false;}
+  }
+  async function refreshEvidenceExceptions(){
+    try{
+      const result=await request('/owner/evidence-exceptions',{method:'GET'});
+      if(result.schema!=='jr.jrei.news-owner-evidence-queue.v1'||
+         !Array.isArray(result.items))throw Error('NEWS_EXCEPTION_SCHEMA_INVALID');
+      exceptionItems.replaceChildren();
+      if(result.items.length===0){
+        const none=document.createElement('p');
+        none.textContent=say('خبر مشکوکِ در انتظار بررسی وجود ندارد.',
+          'No genuinely disputed news waiting for review.');
+        exceptionItems.append(none);
+      }
+      for(const row of result.items){
+        if(typeof row.exception_id!=='string'||
+           !/^[a-f0-9-]{36}$/i.test(row.exception_id))continue;
+        const card=document.createElement('article');
+        const title=document.createElement('h4');
+        title.textContent=String(row.headline??'');
+        const issue=document.createElement('p');
+        issue.textContent=say('علت بررسی: ','Review reason: ')+String(row.issue_code??'');
+        const source=document.createElement('p');
+        source.textContent=String(row.source_url??'');
+        card.append(title,issue,source);
+        for(const [code,fa,en] of [
+          ['ACKNOWLEDGED','مشاهده شد','Acknowledge'],
+          ['RESOLVED','بستن هشدار','Close alert']]){
+          const btn=document.createElement('button');btn.type='button';
+          btn.textContent=say(fa,en);
+          btn.addEventListener('click',()=>updateEvidenceException(
+            row.exception_id,code));
+          card.append(btn);
+        }
+        exceptionItems.append(card);
+      }
+      return true;
+    }catch(err){
+      exceptionStatus.textContent=say(
+        'صف استثناها در این نسخه یا دیتابیس هنوز در دسترس نیست.',
+        'The owner exception desk is not available in this version or database.');
+      return false;
+    }
+  }
   const decisionsInFlight=new Set();
   async function decide(item,action,buttons){
     const id=item.revision_id;
@@ -355,7 +434,10 @@ export function mountNewsOwnerPanel({root,csrfResolver,
     acquisition.replaceChildren();
     publications.replaceChildren();
     integration.replaceChildren();
-    await Promise.all([refreshCustomSources(),refreshStandingPolicy()]);
+    await Promise.all([
+      refreshCustomSources(),refreshStandingPolicy(),
+      refreshEvidenceExceptions()
+    ]);
     if(readVersion!==loadRevision)return false;
     show(say('در حال بررسی وضعیت یکپارچگی…','Checking existing integrations…'));
     try{
