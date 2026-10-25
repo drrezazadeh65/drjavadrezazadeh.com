@@ -4,11 +4,12 @@
  * Pure, no filesystem write, IndexNow ping or deployment.
  */
 import {assert,plain,publicHttps,safeText,utcInstant} from './contracts.mjs';
+import {hasVerifiedPublicationAuthority} from './publication-authority.mjs';
 const SITE='https://drjavadrezazadeh.com';
 const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;')
   .replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&apos;');
 function normalizedPublicArticle(a,nowUtc){
-  assert(plain(a)&&a.ownerApproved===true&&
+  assert(plain(a)&&hasVerifiedPublicationAuthority(a)&&
     a.publicationState==='PUBLISHED'&&
     a.publisherReceiptVerified===true&&
     ['fa','en'].includes(a.language)&&
@@ -35,7 +36,7 @@ export function generateNewsRss({
     .slice(0,maxItems);
   const channel=language==='fa'?'اخبار آموزش و آزمون‌ها | JREI':
     'JREI Education News & Intelligence';
-  const root=language==='fa'?SITE+'/fa/akhbar/':SITE+'/en/news/';
+  const root=language==='fa'?SITE+'/fa/akhbar/':SITE+'/en/news-insights/';
   const xml='<?xml version="1.0" encoding="UTF-8"?>\n'+
     '<rss version="2.0"><channel>'+
     '<title>'+esc(channel)+'</title><link>'+esc(root)+'</link>'+
