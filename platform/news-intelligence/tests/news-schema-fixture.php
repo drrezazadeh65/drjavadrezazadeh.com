@@ -1303,3 +1303,65 @@ ensure($noModelCredentials['state']==='SYSTEM_HOLD_ORIGINAL_JREI_SERVICE_MISSING
        $noModelCredentials['individualOwnerApprovalsRequested']===0,
     'missing actual author corpus/independent QA is a system hold, not owner per-story review');
 echo "PASS: owner source restore/one-click known institution original registration; model pipeline fail closed\\n";
+
+/* No more second owner click after the manager has approved a source.
+ * The original JREI registry must STILL independently authorize its exact
+ * URL and robots/rights before the private Cron can add an active monitor.
+ */
+$autoAdminContext=[
+    'source'=>'ORIGINAL_JREI_PRIVATE_NEWS_WORKER',
+    'originalCronLeaseVerified'=>true
+];
+$autoAdminCfg=[
+    'jrei_news_integrated_release_accepted'=>true,
+    'operations_cron_master_enabled'=>true,
+    'jrei_news_source_activation_accepted'=>true,
+    'jrei_news_admin_source_auto_monitor_enabled'=>true
+];
+$noPrematureOriginal=jrNewsOriginalReconcileApprovedAdminSources(
+    $pdo,$autoAdminCfg,$autoAdminContext,1792823290,20);
+ensure($noPrematureOriginal['activated']===0,
+    'prior manager approval cannot start a source without original JREI rights');
+$appliedScienceSource='eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee';
+$insertSource->execute([$appliedScienceSource,
+    'Applied science university approved original feed',
+    'https://uast.ac.ir/news/',$account,1792823300]);
+$insertPolicy->execute([
+    $appliedScienceSource,$appliedScienceSource,
+    $appliedScienceSource,$appliedScienceSource
+]);
+$autoLinked=jrNewsOriginalReconcileApprovedAdminSources(
+    $pdo,$autoAdminCfg,$autoAdminContext,1792823310,20);
+ensure($autoLinked['linked']>=1&&$autoLinked['activated']>=1&&
+       $autoLinked['syntheticSourceApprovals']===0,
+    'previously MFA-approved source is linked automatically only after actual JREI policy becomes valid');
+$q=$pdo->prepare(
+    'SELECT submission_state,matched_jrei_source_id,linked_monitor_id
+       FROM jrei_news_admin_source_submissions WHERE submission_id=?');
+$q->execute([$adminNoAuthority['submissionId']]);
+$autoRow=$q->fetch(PDO::FETCH_ASSOC);
+ensure(is_array($autoRow)&&
+       $autoRow['submission_state']==='MONITOR_ACTIVE'&&
+       $autoRow['matched_jrei_source_id']===$appliedScienceSource,
+    'autolink writes a real original source and monitor association');
+$autoMonitor=$pdo->prepare(
+    'SELECT enabled FROM jrei_news_monitors WHERE monitor_id=?');
+$autoMonitor->execute([$autoRow['linked_monitor_id']]);
+ensure((int)$autoMonitor->fetchColumn()===1,
+    'explicit production policy activates a newly created original news monitor');
+$disabledAuto=jrNewsAdminSourceDisable(
+    $pdo,$owner,$adminNoAuthority['submissionId'],1792823320);
+$repeatAuto=jrNewsOriginalReconcileApprovedAdminSources(
+    $pdo,$autoAdminCfg,$autoAdminContext,1792823330,20);
+$autoMonitor->execute([$autoRow['linked_monitor_id']]);
+ensure($disabledAuto['state']==='DISABLED'&&
+       (int)$autoMonitor->fetchColumn()===0,
+    'Cron never silently reenables the administrators manually disabled institution');
+$forbiddenReconcile=false;
+try {
+    jrNewsOriginalReconcileApprovedAdminSources($pdo,[],
+        $autoAdminContext,1792823340,20);
+} catch(RuntimeException $e) { $forbiddenReconcile=true; }
+ensure($forbiddenReconcile,
+    'private autolink refuses deployment policy that is not actually enabled');
+echo "PASS: automatic owner-approved source reconciliation under original authority, zero fake rights, emergency stop preserved\\n";
