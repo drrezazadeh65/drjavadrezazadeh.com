@@ -212,9 +212,14 @@ export function inspectGeneratedItem({
     'noCopyrightInfringement','curriculumVersionConfirmed',
     'sourceProvenanceReviewed','subjectExpertSigned'
   ];
+  // A reviewer cannot be independent of an UNKNOWN author. Record both
+  // source and generated authors and reject review by either. This gate
+  // documents a human decision; it does not prove scientific validity.
   if(required.some(k=>qualityReview[k]!==true)||
+     !ident(original.authorAccountId)||!ident(candidate.authorAccountId)||
      !ident(qualityReview.reviewerAccountId)||
-     qualityReview.reviewerAccountId===candidate.authorAccountId)
+     qualityReview.reviewerAccountId===candidate.authorAccountId||
+     qualityReview.reviewerAccountId===original.authorAccountId)
     return result('GENERATED_ITEM_AWAITS_INDEPENDENT_REVIEW');
   return success({generatedItemStatus:'INDEPENDENT_REVIEW',
     noveltyMethod:'HUMAN_ATTESTED_SOURCE_PLUS_FINGERPRINT',
