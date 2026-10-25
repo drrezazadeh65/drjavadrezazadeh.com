@@ -911,6 +911,13 @@ foreach(explode(';',(string)$migration) as $statement){
 ensure((int)$pdo->query(
     'SELECT COUNT(*) FROM jrei_news_publications WHERE approved_decision_id IS NOT NULL'
 )->fetchColumn()===1,'old manually approved published story remains intact');
+$upgradedReadiness=jrOperationsNewsReadiness($pdo,
+    ['jrei_news_integrated_release_accepted'=>false]);
+ensure(($upgradedReadiness['standingOfficialPolicySchemaAvailable']??false)===true &&
+       $upgradedReadiness['requiredMotherSchemaAvailable']===true &&
+       $upgradedReadiness['verifiedMotherTableCount']===16,
+    'additive standing policy migration preserves all sixteen original schema checks');
+
 
 $incorrectGrant=false;
 try{
