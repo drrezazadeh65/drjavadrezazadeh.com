@@ -1164,3 +1164,52 @@ $monitorCheck->execute([$activated['monitorId']]);
 ensure((int)$monitorCheck->fetchColumn()===0,
     'emergency admin pause also stops the existing original News monitor');
 echo "PASS: admin custom source MFA CRUD, status, approved original monitor activation and pause on disposable mother DB\\n";
+
+/* Genuine source/claim exceptions are a dedicated owner MFA worklist.
+ * Pending system outages MUST NOT appear in the owner's manual news queue.
+ * This migration is executed against the DISPOSABLE news_fixture only.
+ */
+$exceptionSql=file_get_contents(dirname(__DIR__,3).
+    '/docs/migrations/20261025_jrei_news_owner_exception_queue_mother_mysql.sql');
+ensure(is_string($exceptionSql),'news owner exception additive migration exists');
+$exceptionSql=preg_replace('/^\\s*--[^\\r\\n]*/m','',$exceptionSql);
+foreach(explode(';',(string)$exceptionSql) as $statement){
+    $statement=trim($statement);
+    if($statement!=='')$pdo->exec($statement);
+}
+$decisionReview=[
+    'decision'=>'OWNER_EXCEPTION_QUEUE',
+    'reasons'=>['CLAIMS_UNVERIFIED_OR_CONTRADICTED',
+       'SOURCE_AUTHORITY_UNCONFIRMED','CMS_PUBLICATION_UNAVAILABLE']
+];
+$exception=jrNewsRecordOriginalEvidenceException(
+    $pdo,$autoDraft['revisionId'],$decisionReview,1792823200);
+ensure($exception['issueCount']===2&&
+       $exception['publicationPerformed']===false,
+    'only source/claim issues create owner exceptions; CMS errors are excluded');
+jrNewsRecordOriginalEvidenceException(
+    $pdo,$autoDraft['revisionId'],$decisionReview,1792823210);
+$pending=jrNewsOwnerEvidenceExceptionQueue($pdo,$owner);
+ensure(count($pending['items'])===2&&
+       (int)$pending['items'][0]['occurrence_count']===2,
+    'owner queue deduplicates the same suspect revision and issue');
+$id=$pending['items'][0]['exception_id'];
+$ack=jrNewsOwnerResolveEvidenceException(
+    $pdo,$owner,$id,'ACKNOWLEDGED',1792823230);
+ensure($ack['articleApproved']===false&&$ack['published']===false,
+    'acknowledging uncertain official news cannot publish it');
+$closed=jrNewsOwnerResolveEvidenceException(
+    $pdo,$owner,$id,'RESOLVED',1792823240);
+ensure($closed['sourceAuthorizationChanged']===false,
+    'closing a questionable news item does not authorize original source');
+$after=jrNewsOwnerEvidenceExceptionQueue($pdo,$owner);
+ensure(count($after['items'])===1,
+    'resolved issue is hidden while other unresolved facts remain');
+$technicalCannotQueue=false;
+try{
+    jrNewsRecordOriginalEvidenceException($pdo,$autoDraft['revisionId'],[
+        'decision'=>'SYSTEM_HOLD','reasons'=>['CMS_PUBLICATION_UNAVAILABLE']
+    ],1792823250);
+}catch(InvalidArgumentException $e){$technicalCannotQueue=true;}
+ensure($technicalCannotQueue,'technical CMS outage never enters manual owner evidence queue');
+echo "PASS: real MariaDB owner evidence exceptions dedupe, MFA review, no fake approvals\\n";
