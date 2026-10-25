@@ -33,6 +33,7 @@ require_once __DIR__.'/verified-news-page-render.php';
 require_once __DIR__.'/original-cms-news-writer.php';
 require_once __DIR__.'/original-news-policy-resolver.php';
 require_once __DIR__.'/original-private-publishing-pipeline.php';
+require_once __DIR__.'/original-public-index-runner.php';
 require_once __DIR__.'/publication-dispatch.php';
 require_once __DIR__.'/publication-readiness.php';
 require_once __DIR__.'/calendar-read.php';
