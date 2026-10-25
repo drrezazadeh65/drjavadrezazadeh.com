@@ -5,6 +5,7 @@
  */
 import {assert,isHash,plain,publicHttps,safeText,sha256,utcInstant} from './contracts.mjs';
 import {renderPublicNewsPage} from './render-public.mjs';
+import {hasPublisherAuthorizationForArtifacts} from './publication-authority.mjs';
 const ORIGIN='https://drjavadrezazadeh.com';
 export function prepareExactNewsPublisherArtifacts({
   exactPersistedEditorialJson,publicationPlan,publisherAuthority,
@@ -18,11 +19,7 @@ export function prepareExactNewsPublisherArtifacts({
     isHash(publicationPlan.approvalDigest)&&
     sha256(exactPersistedEditorialJson)===publicationPlan.approvalDigest&&
     plain(publisherAuthority)&&
-    publisherAuthority.source==='ORIGINAL_AUTHENTICATED_CMS'&&
-    publisherAuthority.ownerMfaDecisionVerified===true&&
-    publisherAuthority.currentSourceEvidenceVerified===true&&
-    publisherAuthority.licensedMediaVerified===true&&
-    publisherAuthority.publicReleaseActivated===true&&
+    hasPublisherAuthorizationForArtifacts(publisherAuthority)&&
     plain(verifiedSource)&&
     verifiedSource.source==='ORIGINAL_JREI_REVIEWED_SOURCE'&&
     verifiedSource.current===true&&verifiedSource.republicationRightsCurrent===true&&
@@ -68,8 +65,13 @@ export function prepareExactNewsPublisherArtifacts({
   const article={
     id:persisted.candidateId,
     approvalDigest:publicationPlan.approvalDigest,
-    publicationState:'OWNER_APPROVED_FOR_PUBLICATION',
-    ownerApproved:true,sourceUrl,
+    publicationState:publisherAuthority.ownerMfaDecisionVerified===true?
+      'OWNER_APPROVED_FOR_PUBLICATION':'STANDING_POLICY_READY_FOR_PUBLICATION',
+    ownerApproved:publisherAuthority.ownerMfaDecisionVerified===true,
+    standingOfficialPublicationVerified:publisherAuthority.standingOfficialPublicationVerified===true,
+    standingPolicyId:publisherAuthority.standingPolicyId,
+    standingPolicyDigest:publisherAuthority.standingPolicyDigest,
+    originalCmsReceiptVerified:false,sourceUrl,
     priority:verifiedSource.priority,
     fa:{...persisted.fa,imageAlt:verifiedMedia.altFa},
     en:{...persisted.en,imageAlt:verifiedMedia.altEn}
@@ -79,7 +81,11 @@ export function prepareExactNewsPublisherArtifacts({
     exactStoredApprovalDigest:publicationPlan.approvalDigest,
     sourceAndRightsRechecked:true,
     bilingualRouteReservationsVerified:true,
-    publicActivationApproved:true
+    publicActivationApproved:true,
+    standingOfficialPublicationVerified:publisherAuthority.standingOfficialPublicationVerified===true,
+    originalStandingPolicyCurrent:publisherAuthority.originalStandingPolicyCurrent===true,
+    standingPolicyId:publisherAuthority.standingPolicyId,
+    standingPolicyDigest:publisherAuthority.standingPolicyDigest
   };
   const paths=publicationPlan.languagePaths;
   const rendered=[
@@ -109,6 +115,8 @@ export function prepareExactNewsPublisherArtifacts({
       mimeType:'text/html; charset=utf-8',utf8Content:result.html,
       sha256:sha256(result.html),
       originalCmsOwnerApprovalDigest:publicationPlan.approvalDigest,
+      authorityKind:publisherAuthority.ownerMfaDecisionVerified===true?
+        'MANUAL_MFA_DECISION':'OFFICIAL_STANDING_POLICY',
       currentlyPublic:false
     });
   });
