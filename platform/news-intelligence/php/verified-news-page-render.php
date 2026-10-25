@@ -121,11 +121,13 @@ function jrNewsOriginalPublicNewsHtml(
       '<meta property="og:description" content="'.$description.'">'.
       '<meta property="og:image" content="'.jrNewsHtmlEscape($site.$image).'">'.
       '<link rel="stylesheet" href="/assets/css/style.css">'.
+      '<link rel="stylesheet" href="/assets/css/jrei-news-article-v1.css">'.
+      '<meta name="jr-assistant-endpoint" content="/api/assistant/v1/chat">'.
       '<script type="application/ld+json">'.$jsonld.'</script></head><body>'.
       '<a class="skip-link" href="#main">'.
       ($language==='fa'?'رفتن به متن':'Skip to article').'</a>'.
       '<header class="site-header"><a href="'.$home.'">JREI News</a></header>'.
-      '<main id="main"><article><header><h1>'.$title.'</h1>'.
+      '<main id="main"><article class="ni-article"><header><h1>'.$title.'</h1>'.
       '<p>'.$summary.'</p><time datetime="'.$date.'">'.substr($date,0,10).'</time></header>'.
       '<figure><img src="'.jrNewsHtmlEscape($image).'" alt="'.$title.'" loading="lazy"></figure>'.
       '<section>'.$sections['body'].'</section>'.
@@ -134,7 +136,14 @@ function jrNewsOriginalPublicNewsHtml(
       '<p><a rel="noopener external" href="'.$sourceUrl.'">'.
       jrNewsHtmlEscape($sourceLabel).'</a></p>'.$related.
       '<p><a href="'.$home.'">'.($language==='fa'?'بازگشت به اخبار':'More news').'</a></p>'.
-      '</article></main></body></html>';
+      '<section class="ni-article-jrei" data-jrei-news-context aria-label="'.
+      ($language==='fa'?'دستیار آموزشی JREI':'JREI educational assistant').'">'.
+      '<h2>'.($language==='fa'?'گفت‌وگو دربارهٔ این خبر':'Discuss this announcement').'</h2>'.
+      '<div data-jrei-existing-assistant-slot></div></section>'.
+      '</article></main>'.
+      '<script src="/assets/js/assistant.js" defer></script>'.
+      '<script src="/assets/js/jrei-news-assistant-v1.js" defer></script>'.
+      '</body></html>';
     if(strlen($html)>440000)
         throw new RuntimeException('news_verified_html_output_too_large');
     return ['schema'=>'jr.jrei.original-verified-public-html.v1',
