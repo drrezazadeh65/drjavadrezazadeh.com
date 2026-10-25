@@ -129,3 +129,22 @@ html[dir="rtl"] .jr-assistant-panel{right:auto;left:0}
   .jr-assistant-form-actions{gap:4px}
   .jr-assistant-form-actions button{min-width:50px;padding-inline:7px}
 }
+
+
+/* JREI welcome and independent feedback preference, not transcript capture. */
+.jr-assistant-onboarding{position:absolute;bottom:66px;inset-inline-end:0;width:min(390px,calc(100vw - 28px));max-height:min(80dvh,580px);overflow:auto;box-sizing:border-box;padding:18px;border-radius:22px;border:1px solid rgba(198,161,90,.52);background:#12100d;box-shadow:0 26px 75px rgba(0,0,0,.55);direction:inherit;color:#ece1cd;line-height:1.85}
+.jr-assistant-onboarding[hidden]{display:none!important}
+.jr-assistant-onboarding strong{display:block;font-size:16px;line-height:1.65}
+.jr-assistant-onboarding p{font-size:13px;line-height:1.8;margin:10px 0}
+.jr-assistant-onboarding details{border-top:1px solid rgba(198,161,90,.25);margin-top:10px;padding-top:9px}
+.jr-assistant-onboarding details p{font-size:12px;color:#ddd0bc}
+.jr-assistant-onboarding summary{font-size:12px;color:#e8c78a;cursor:pointer}
+.jr-assistant-onboarding-actions{display:grid;gap:8px;margin-top:15px}
+.jr-assistant-onboarding-actions button{width:100%;min-height:44px;border-radius:12px;border:1px solid rgba(198,161,90,.45);padding:9px 12px;background:#d0ac68;color:#16110b;font:700 13px/1.4 inherit;cursor:pointer}
+.jr-assistant-onboarding-actions button:last-child{background:transparent;color:#ead7b3}
+.jr-assistant-onboarding button:focus-visible,.jr-assistant-onboarding summary:focus-visible,.jr-assistant-privacy-choice:focus-visible{outline:3px solid #e8c78a;outline-offset:3px}
+.jr-assistant-privacy-choice{justify-self:start;min-height:38px;margin:0 12px 12px;border:0;background:none;color:#e8c78a;font:600 11px/1.4 inherit;text-decoration:underline;cursor:pointer}
+@media(max-width:900px){
+ .jr-assistant-onboarding{position:fixed;bottom:calc(142px + env(safe-area-inset-bottom));inset-inline-start:10px;inset-inline-end:10px;width:auto;max-height:min(70dvh,580px);padding:16px}
+ body:has(.pwa-install) .jr-assistant-onboarding{visibility:hidden;pointer-events:none}
+}
