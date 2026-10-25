@@ -1,0 +1,41 @@
+name: JREI Site Apprentice - read-only development observer
+on:
+  push:
+    branches:
+      - migration/bertina-linux6
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: jrei-site-apprentice-${{ github.ref }}-${{ github.sha }}
+  cancel-in-progress: false
+
+jobs:
+  observe-work:
+    name: Verify and observe GitHub work (NONDEPLOYING)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check apprenticeship boundaries
+        run: node --test tests/jrei-site-apprentice.test.mjs
+      - name: Observe the real checked-out commit without patches or chat
+        env:
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_SHA: ${{ github.sha }}
+        run: node scripts/jrei-site-apprentice-observer.mjs
+      - name: Retain short-lived source observation (no deployment)
+        uses: actions/upload-artifact@v4
+        with:
+          name: jrei-site-apprentice-${{ github.sha }}
+          path: ${{ runner.temp }}/jrei-site-apprentice/git-work-observation.json
+          retention-days: 14
+          if-no-files-found: error
