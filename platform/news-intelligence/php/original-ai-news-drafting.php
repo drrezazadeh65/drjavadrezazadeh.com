@@ -154,7 +154,8 @@ function jrNewsOriginalGenerateReviewedBilingualDraft(
         throw new RuntimeException('news_original_ai_independent_qa_not_accepted');
     $media=$approvedMedia([
         'candidateId'=>$candidateId,'reviewId'=>$reviewId,
-        'sourceUrl'=>$r['source_url'],'qaReceipt'=>$audit
+        'sourceUrl'=>$r['source_url'],
+        'newsHeadline'=>(string)$r['headline'],'qaReceipt'=>$audit
     ]);
     if(!is_array($media)||
        ($media['source']??null)!=='ORIGINAL_APPROVED_SITE_MEDIA_REGISTRY'||
