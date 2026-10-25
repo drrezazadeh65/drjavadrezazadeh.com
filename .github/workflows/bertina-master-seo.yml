@@ -75,6 +75,7 @@ jobs:
           run_audit "Metadata uniqueness" node scripts/metadata-uniqueness-audit.mjs
           run_audit "Accessibility source" node scripts/accessibility-source-audit.mjs
           run_audit "Performance source" node scripts/performance-source-audit.mjs
+          run_audit "Public HTML transport and PageSpeed authenticity" node --test tests/performance-production-contract.test.mjs
           run_audit "Public secret exposure" node scripts/public-secret-audit.mjs
           run_audit "PWA private cache" node scripts/pwa-private-cache-audit.mjs
           run_audit "Admin keyword privacy" node --test tests/admin-intelligence-private.test.mjs
