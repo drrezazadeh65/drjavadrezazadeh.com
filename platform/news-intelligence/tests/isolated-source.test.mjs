@@ -6,6 +6,7 @@ import {proposeImmutableBilingualNewsRoutes} from '../slug-routes.mjs';
 import {planIranNightNewsWindow} from '../scheduler-integration.mjs';
 import {planBalancedNewsDesk} from '../editorial-coverage-planner.mjs';
 import {decideOfficialNewsRoute,planOfficialNewsHandoffs} from '../official-publication-policy.mjs';
+import {planNewsroomOfficialHandoffs} from '../newsroom.mjs';
 import {ownerApprovedExamCalendarEvent} from '../calendar-authority.mjs';
 
 const sha=sha256('official reviewed article');
@@ -240,4 +241,14 @@ test('many verified official stories are routed without an arbitrary quota',()=>
   assert.equal(batch.duplicateFingerprints.length,1);
   assert.equal(batch.dailyPublicationLimit,null);
   assert.equal(batch.originalCmsWritePerformed,false);
+});
+
+test('existing newsroom refuses unauthenticated automated publication planning',()=>{
+  assert.throws(()=>planNewsroomOfficialHandoffs({items:[]}),
+    /NEWS_ORIGINAL_PRIVATE_HANDOFF_CONTEXT_REQUIRED/);
+  const result=planNewsroomOfficialHandoffs({items:[],
+    originalPrivateContext:{source:'EXISTING_JREI_PRIVATE_NEWS_WORKER',
+      originalServerSessionVerified:true,newsPipelineEnabled:true}});
+  assert.equal(result.autoHandoff.length,0);
+  assert.equal(result.originalCmsWritePerformed,false);
 });
