@@ -32,6 +32,8 @@ on:
       - 'platform/jrei-v5/windows-worker/jrei-owner-pilot-worker.mjs'
       - 'tests/jrei-owner-private-pilot.test.mjs'
       - 'tests/jrei-owner-private-pilot-offline.php'
+      - 'api/internal/jrei-local-chat-retention-worker.php'
+      - 'platform/jrei-v5/windows-worker/JREI-OWNER-PRIVATE-PILOT.cmd'
       - 'tests/jrei-ai-master-development-vnext.test.mjs'
       - '.github/workflows/jrei-ai-master-vnext-isolated.yml'
   workflow_dispatch:
@@ -72,6 +74,7 @@ jobs:
           php -l api/index.php
           php -l api/operations.php
           php -l api/jrei-owner-private-pilot.php
+          php -l api/internal/jrei-local-chat-retention-worker.php
           node --check platform/jrei-v5/windows-worker/jrei-owner-pilot-worker.mjs
           node --check assets/js/operations-jrei-owner-pilot-v1.js
           node --check platform/jrei-v5/windows-worker/jrei-worker.mjs
