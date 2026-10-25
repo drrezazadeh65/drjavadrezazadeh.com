@@ -82,6 +82,7 @@ async function main(){
   noQuestionPdfDownloaded:true,noRightsClaim:true,
   noCommercialItemAuthorization:true,noExamSalesEnabled:true,
   noStudentData:true,noBypassedAccessControls:true,
+  noCredentialExfiltration:true,sourceAccessFailuresAreNotSuccessfulCrawls:true,
   nextStep:'INDEPENDENT_REVIEW_AND_AUTHORIZED_PRIVATE_QUESTION_ACQUISITION'};
  const dir=join(process.env.RUNNER_TEMP||'/tmp','jrei-exam-scouter');
  await mkdir(dir,{recursive:true,mode:0o700});
