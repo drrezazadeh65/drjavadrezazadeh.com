@@ -520,3 +520,76 @@ ensure($partial['originalNewsTables']['jrei_news_topic_follows']==='UNAVAILABLE'
        $partial['ownerQueueAccessible']===false,
     'existing table with missing columns is NOT a completed migration');
 echo "PASS: 16-column-aware mother-schema readiness rejects incomplete tables and columns\\n";
+
+
+/* Retraction must not trust caller-supplied claims about a publisher.
+ * Both canonical languages and the original receipt must be independently
+ * checked before transactional search/distribution withdrawal.
+ */
+$retractionAt=1792821200;
+$reason='The source notice was withdrawn and requires a transparent correction.';
+$distributionPort=static function(PDO $db,string $id,string $reason)
+    use($publicationId):int {
+    ensure($db->inTransaction()&&$id===$publicationId&&
+        $reason==='NEWS_RETRACTED','existing queue suppression is transactional');
+    return 0;
+};
+$forgeryRejected=false;
+try{
+    jrNewsConfirmReviewedRetraction($pdo,$owner,$publicationId,$reason,
+        static fn(array $ctx):array=>[
+            'source'=>'BROWSER_SUPPLIED_CMS',
+            'verified'=>true,'publicationId'=>$ctx['publicationId']
+        ],$distributionPort,$retractionAt);
+}catch(RuntimeException $e){$forgeryRejected=true;}
+ensure($forgeryRejected,'forged original CMS retraction denied');
+ensure((int)$pdo->query(
+    "SELECT COUNT(*) FROM jrei_news_publications WHERE publisher_state='PUBLISHED'"
+)->fetchColumn()===1,'forged retraction left publication unchanged');
+ensure((int)$pdo->query(
+    "SELECT COUNT(*) FROM jrei_news_search_documents WHERE index_state='PUBLISHED'"
+)->fetchColumn()===2,'forged retraction left both public search languages unchanged');
+$verifiedRetraction=static function(array $ctx)use($retractionAt):array{
+    return [
+        'source'=>'ORIGINAL_AUTHENTICATED_CMS','verified'=>true,
+        'originalOwnerApprovalCurrent'=>true,
+        'bothCanonicalRoutesVerified'=>true,
+        'canonicalAndSitemapUpdated'=>true,
+        'publicationId'=>$ctx['publicationId'],
+        'originalPublisherReceipt'=>$ctx['originalPublisherReceipt'],
+        'faRoute'=>$ctx['faRoute'],'enRoute'=>$ctx['enRoute'],
+        'faOutcome'=>'RETRACTION_NOTICE','enOutcome'=>'VERIFIED_404',
+        'faVerifiedContentSha256'=>hash('sha256','synthetic Persian retraction notice'),
+        'enVerifiedContentSha256'=>hash('sha256','synthetic English verified 404'),
+        'verifiedAtEpoch'=>$retractionAt,
+        'receiptReference'=>'test-original-CMS-two-language-retraction-receipt'
+    ];
+};
+$wrongLanguageRejected=false;
+try{
+    jrNewsConfirmReviewedRetraction($pdo,$owner,$publicationId,$reason,
+        static function(array $ctx)use($verifiedRetraction):array{
+            $proof=$verifiedRetraction($ctx);
+            $proof['enRoute']='/en/news-insights/other-story/';
+            return $proof;
+        },$distributionPort,$retractionAt);
+}catch(RuntimeException $e){$wrongLanguageRejected=true;}
+ensure($wrongLanguageRejected,'one-language forged canonical rejected');
+$retracted=jrNewsConfirmReviewedRetraction($pdo,$owner,$publicationId,
+    $reason,$verifiedRetraction,$distributionPort,$retractionAt);
+ensure(($retracted['state']??null)==='RETRACTED'&&
+       ($retracted['bothOriginalCmsLanguageRoutesVerified']??null)===true,
+       'authentic bilingual CMS receipt required for retraction');
+ensure((int)$pdo->query(
+    "SELECT COUNT(*) FROM jrei_news_search_documents WHERE index_state='RETRACTED'"
+)->fetchColumn()===2,'both language search projections retracted');
+ensure(jrNewsPublishedSearch($pdo,'university','en')['result_count']===0 &&
+       jrNewsPublishedSearch($pdo,'دانشگاه','fa')['result_count']===0,
+       'retracted stories vanish from public search in both languages');
+$repeat=jrNewsConfirmReviewedRetraction($pdo,$owner,$publicationId,$reason,
+    static fn(array $ctx):never=>
+        throw new RuntimeException('duplicate must not trigger CMS call'),
+    $distributionPort,$retractionAt);
+ensure(($repeat['state']??null)==='ALREADY_RETRACTED',
+    'duplicate original retraction is idempotent');
+echo "PASS: forged CMS retraction denied; verified bilingual withdrawal hides both search results\n";

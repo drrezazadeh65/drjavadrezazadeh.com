@@ -229,3 +229,19 @@ test('public bilingual archive fetch uses no session cookies or unsafe result li
   assert.ok(js.includes("i<20"),'public result rendering remains bounded');
   assert.doesNotMatch(js,/credentials:'same-origin'/);
 });
+
+test('news correction can only retract after independently verified original CMS bilingual evidence',()=>{
+  const php=fs.readFileSync(path.join(privateDir,'retraction.php'),'utf8');
+  assert.match(php,/callable \$readAndVerifyOriginalCmsRetraction/);
+  assert.match(php,/\$receipt=\$readAndVerifyOriginalCmsRetraction\(/);
+  assert.match(php,/\$receipt\['faRoute'\].*\$observed\['fa_route'\]/);
+  assert.match(php,/\$receipt\['enRoute'\].*\$observed\['en_route'\]/);
+  assert.match(php,/ORIGINAL_AUTHENTICATED_CMS/);
+  assert.match(php,/bothCanonicalRoutesVerified/);
+  assert.match(php,/canonicalAndSitemapUpdated/);
+  assert.match(php,/news_retraction_changed_during_cms_review/);
+  assert.match(php,/publisher_state='RETRACTED'/);
+  assert.match(php,/index_state='RETRACTED'/);
+  assert.doesNotMatch(php,/array \$originalCmsRetractionReceipt/);
+  assert.doesNotMatch(php,/file_put_contents|curl_exec|rename\(|unlink\(/);
+});
