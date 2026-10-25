@@ -264,7 +264,7 @@ function jrNewsOriginalRecoverVerifiedCmsPages(
     ];
 }
 
-function jrNewsOriginalPrivateCmsPublishBatch(
+function jrNewsOriginalPrivateCmsPublishBatchUnlocked(
     PDO $pdo,array $cfg,string $siteRoot,int $at,int $maxPerTick=3
 ):array {
     if(($cfg['jrei_news_integrated_release_accepted']??false)!==true||
@@ -380,4 +380,33 @@ function jrNewsOriginalPrivateCmsPublishBatch(
         $summary['state']='BILINGUAL_ORIGINAL_CMS_PUBLISHED';
     }
     return $summary;
+}
+
+/**
+ * A second Cron invocation, a manually started private CLI job or a slow
+ * first worker must not publish the same revision in parallel. MySQL
+ * advisory locks are scoped to this one mother-DB connection and released
+ * even if the source/model/CMS step throws; no second job infrastructure.
+ */
+function jrNewsOriginalPrivateCmsPublishBatch(
+    PDO $pdo,array $cfg,string $siteRoot,int $at,int $maxPerTick=3
+):array {
+    if($at<=0||$maxPerTick<1||$maxPerTick>8)
+        throw new InvalidArgumentException('news_private_publisher_batch_invalid');
+    $lockName='jrei-news-original-bilingual-cms';
+    $lock=$pdo->prepare('SELECT GET_LOCK(?,0)');
+    $lock->execute([$lockName]);
+    if((int)$lock->fetchColumn()!==1)
+        return ['schema'=>'jr.jrei.original-private-publishing-batch.v1',
+            'state'=>'PUBLISHER_BUSY','examined'=>0,'staged'=>0,
+            'published'=>0,'publicWrites'=>0,'recoveredReceipts'=>0,
+            'dailyNewsQuota'=>null];
+    try {
+        return jrNewsOriginalPrivateCmsPublishBatchUnlocked(
+            $pdo,$cfg,$siteRoot,$at,$maxPerTick);
+    } finally {
+        $release=$pdo->prepare('SELECT RELEASE_LOCK(?)');
+        $release->execute([$lockName]);
+        $release->fetchColumn();
+    }
 }
