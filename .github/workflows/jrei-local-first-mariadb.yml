@@ -6,6 +6,7 @@ on:
       - '.github/workflows/jrei-local-first-mariadb.yml'
       - 'api/jrei-local-chat.php'
       - 'api/jrei-local-schema-caretaker.php'
+      - 'docs/migrations/20261023_jrei_model_registry_mother_mysql.sql'
       - 'api/internal/jrei-local-schema-caretaker-worker.php'
       - 'tests/jrei-local-schema-caretaker-fixture.php'
       - 'api/jrei-ai-public-service-route.php'
@@ -52,7 +53,7 @@ jobs:
             sleep 2
           done
           php -r 'exit((extension_loaded("pdo_mysql") && extension_loaded("sodium")) ? 0 : 1);'
-      - name: Install only base identity and approved additive SQL in test DB
+      - name: Install only original identity and hybrid dependencies (omit JREI-LM registry and queue)
         run: |
           set -euo pipefail
           db() { mariadb -h127.0.0.1 -P3306 -uroot drjavad1_store "$@"; }
@@ -60,7 +61,6 @@ jobs:
           db < database/unified/001_core_governance.sql
           for file in \
             docs/migrations/20261023_jrei_hybrid_worker_mother_mysql.sql \
-            docs/migrations/20261023_jrei_model_registry_mother_mysql.sql \
             docs/migrations/20261023_operations_cron_master_mysql.sql; do
             db < "$file"
           done
