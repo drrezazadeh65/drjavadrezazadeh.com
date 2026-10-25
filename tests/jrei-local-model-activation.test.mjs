@@ -48,3 +48,19 @@ test('OpenAI is optional, never a prerequisite for the JREI-LM route',()=>{
   assert.match(api,/if\(\$optionalCloud\)respond\(jrAiPublicChat/);
   assert.match(api,/JREI_LM_LOCAL_WINDOWS/);
 });
+
+test('Node A local Qwen model form only prefills reviewed source metadata',()=>{
+  assert.match(admin,/jrei-qwen3-4b-q4km/);
+  assert.match(admin,/qwen3-4b-q4km-20261025/);
+  assert.match(admin,/7485fe6f11af29433bc51cab58009521f205840f5b4ae3a32fa7f92e8534fdf5/);
+  assert.match(admin,/https:\/\/huggingface\.co\/Qwen\/Qwen3-4B-GGUF/);
+  assert.match(admin,/licenceCode:'Apache-2\.0'/);
+  assert.match(admin,/requiredRamMb:8192/);
+  assert.match(admin,/prefill\.type='button'/);
+  assert.match(admin,/prefill\.addEventListener\('click'/);
+  assert.match(admin,/Prefill the owner Node A Qwen candidate/);
+  assert.match(admin,/Propose metadata; do not download/);
+  assert.match(admin,/PROPOSE_LICENSED_LOCAL_MODEL_METADATA/);
+  assert.match(admin,/independent quality|quality before approval/i);
+  assert.doesNotThrow(()=>new vm.Script(admin,{filename:'operations-jrei-hybrid-nodes-v1.js'}));
+});
