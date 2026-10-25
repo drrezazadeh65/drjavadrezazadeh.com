@@ -1,0 +1,38 @@
+name: JREI - Historical GitHub Learning Backfill (read only)
+on:
+  push:
+    branches: [migration/bertina-linux6]
+    paths:
+      - 'scripts/jrei-historical-development-backfill.mjs'
+      - 'tests/jrei-historical-development-backfill.test.mjs'
+      - '.github/workflows/jrei-history-learning-backfill.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+  deployments: read
+jobs:
+  observe-original-history:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate historical observation rules
+        run: node --test tests/jrei-historical-development-backfill.test.mjs
+      - name: Read all accessible historical Actions and deployment records
+        env:
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node scripts/jrei-historical-development-backfill.mjs
+      - name: Retain private read-only learning evidence for owner review
+        uses: actions/upload-artifact@v4
+        with:
+          name: jrei-historical-learning-${{ github.sha }}
+          path: ${{ runner.temp }}/jrei-website-historical-backfill/read-only-github-history.json
+          retention-days: 30
+          if-no-files-found: error
