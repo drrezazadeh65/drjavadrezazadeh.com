@@ -207,9 +207,12 @@ export function mountNewsOwnerPanel({root,csrfResolver,
   customForm.append(category,priority,addSource);
   const customState=document.createElement('p');
   customState.setAttribute('role','status');
+  const customSuggestions=document.createElement('div');
+  customSuggestions.className='ni-admin-custom-source-items';
   const customRows=document.createElement('div');
   customRows.className='ni-admin-custom-source-items';
-  customSources.append(customTitle,customInfo,customForm,customState,customRows);
+  customSources.append(customTitle,customInfo,customForm,customState,
+    customSuggestions,customRows);
   let sourceActionPending=false;
   async function mutateCustomSource(route,payload){
     if(sourceActionPending)return;
@@ -236,6 +239,45 @@ export function mountNewsOwnerPanel({root,csrfResolver,
       customRows.replaceChildren();
       if(data.schema!=='jr.jrei.news-admin-source-list.v1'||!Array.isArray(data.entries))
         throw Error('NEWS_ADMIN_SOURCE_RESPONSE_INVALID');
+      customSuggestions.replaceChildren();
+      const suggested=Array.isArray(data.suggestedInstitutions)?
+        data.suggestedInstitutions.slice(0,30):[];
+      if(suggested.length){
+        const heading=document.createElement('h4');
+        heading.textContent=say('فهرست پیشنهادی نهادهای آموزشی رسمی',
+          'Suggested institutional source directory');
+        customSuggestions.append(heading);
+      }
+      const existingOrigins=new Set(data.entries.map(x=>String(x.source_url??'')));
+      for(const institution of suggested){
+        if(!institution||typeof institution.institutionId!=='string'||
+           !/^[a-z0-9-]{2,50}$/.test(institution.institutionId)||
+           typeof institution.origin!=='string')continue;
+        const item=document.createElement('section');
+        const name=document.createElement('h4');
+        name.textContent=fa?String(institution.titleFa??''):
+          String(institution.titleEn??'');
+        const origin=document.createElement('p');
+        origin.textContent=institution.origin;
+        const state=document.createElement('p');
+        state.textContent=say(
+          'مبدأ پیشنهادی؛ صحت، ربات‌ها و مجوز استفاده جداگانه بررسی می‌شوند.',
+          'Discovery candidate; publisher identity, robots and rights are checked separately.');
+        item.append(name,origin,state);
+        if(!existingOrigins.has(institution.origin)){
+          item.append(customSourceButton(
+            say('تأیید و ثبت در JREI','Approve and register with JREI'),
+            '/owner/admin-sources/suggested-approve',{
+              institutionId:institution.institutionId,
+              confirmation:'APPROVE_OFFICIAL_SOURCE_DISCOVERY'
+            }));
+        }else{
+          const existing=document.createElement('p');
+          existing.textContent=say('قبلاً ثبت شده است.','Already registered.');
+          item.append(existing);
+        }
+        customSuggestions.append(item);
+      }
       if(data.entries.length===0){
         const empty=document.createElement('p');
         empty.textContent=say('هنوز منبع سفارشی ثبت نشده است.','No custom source recorded yet.');
