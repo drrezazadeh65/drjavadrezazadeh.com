@@ -7,6 +7,7 @@ import {projectCommunityServicePages} from './community-service-bundle.mjs';
 import {CONNECTORS} from '../platform/social-distribution/connections.mjs';
 import {generateQualityInventory} from './operations-page-quality.mjs';
 import {hiddenFeatureSourceInventory} from './operations-hidden-features.mjs';
+import {includeJreiAssistant} from './jrei-public-assistant-surface.mjs';
 
 checkStylesheetBundles();
 
@@ -489,6 +490,17 @@ for(const risky of ['tefl_1370_1405_questions.pdf','tefl_1370_1405_answers.pdf',
 }
 const html=all.filter(p=>p.endsWith('.html') &&
   !isOwnershipVerificationArtifact(path.relative(out,p)));
+
+ // JREI guide is a safe, honest directory fallback on every ordinary public
+ // route; model inference still requires explicit live server readiness.
+ // Never inject into noindex, private, exam-response, payment or account flows.
+ for(const file of html){
+   const relative=path.relative(out,file).replaceAll(path.sep,'/');
+   const old=fs.readFileSync(file,'utf8');
+   const updated=includeJreiAssistant(relative,old);
+   if(updated!==old)fs.writeFileSync(file,updated,'utf8');
+ }
+
 // Ownership files are valid deployable HTML assets, not approved editorial URLs.
 // Route count includes the public engine-status page, the approved noindex customer dashboard, and approved noindex commerce relays.
 // Keep a fixed route count as a guard against accidentally publishing engineering files.
