@@ -7,6 +7,7 @@ import {planIranNightNewsWindow} from '../scheduler-integration.mjs';
 import {planBalancedNewsDesk} from '../editorial-coverage-planner.mjs';
 import {decideOfficialNewsRoute,planOfficialNewsHandoffs} from '../official-publication-policy.mjs';
 import {planNewsroomOfficialHandoffs} from '../newsroom.mjs';
+import {breakingNewsTriage,urgentNotificationPolicy} from '../breaking-radar.mjs';
 import {ownerApprovedExamCalendarEvent} from '../calendar-authority.mjs';
 
 const sha=sha256('official reviewed article');
@@ -251,4 +252,27 @@ test('existing newsroom refuses unauthenticated automated publication planning',
       originalServerSessionVerified:true,newsPipelineEnabled:true}});
   assert.equal(result.autoHandoff.length,0);
   assert.equal(result.originalCmsWritePerformed,false);
+});
+
+test('urgent official primary notice is fast-lane, not owner approval',()=>{
+  const verification={sourceRegistryRead:true,evidenceReviewed:true,
+    issuerVerified:true,sourceStillCurrent:true,evidenceSha256:sha,
+    reviewedAt:'2026-10-24T05:10:00Z'};
+  const triage=breakingNewsTriage({candidate,verification,
+    nowUtc:'2026-10-24T05:15:00Z'});
+  assert.equal(triage.status,'URGENT_OFFICIAL_FAST_LANE');
+  assert.equal(triage.requiresOwnerApproval,false);
+  assert.equal(triage.publicAutoPublish,false);
+  const notification=urgentNotificationPolicy({triage,
+    ownerEmailVerified:true,hourlyBudgetRemaining:1,
+    privateNewsNotificationsEnabled:true});
+  assert.equal(notification.canQueue,false);
+  const disputed=breakingNewsTriage({candidate,
+    verification:{...verification,claimsContradictory:true},
+    nowUtc:'2026-10-24T05:15:00Z'});
+  assert.equal(disputed.status,'OWNER_EXCEPTION_QUEUE');
+  assert.equal(disputed.requiresOwnerApproval,true);
+  assert.equal(urgentNotificationPolicy({triage:disputed,
+    ownerEmailVerified:true,hourlyBudgetRemaining:1,
+    privateNewsNotificationsEnabled:true}).canQueue,true);
 });
