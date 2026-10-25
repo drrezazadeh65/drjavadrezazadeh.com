@@ -186,35 +186,6 @@ require_once dirname(__DIR__,3).'/api/operations-jrei-news.php';
 $rechecked=jrNewsRecheckOriginalArticleReceipt(
     $pdo,$itemId,$articleUrl,$contentHash
 );
-if($rechecked['current']!==true){
-    $probe=[
-      'discovery'=> "SELECT COUNT(*) FROM jrei_news_discovered_urls
-        WHERE approved_article_source_id='$itemId'
-          AND review_state='ORIGINAL_JREI_ARTICLE_APPROVED'",
-      'observation'=> "SELECT COUNT(*) FROM jrei_ka_private_observations
-        WHERE source_id='$itemId' AND content_sha256='$contentHash'",
-      'joined_receipt'=> "SELECT COUNT(*)
-        FROM jrei_news_discovered_urls d
-        JOIN jrei_exam_sources a ON a.source_id=d.approved_article_source_id
-        JOIN jrei_ka_source_policies ap ON ap.source_id=a.source_id
-        JOIN jrei_ka_private_observations o
-          ON o.source_id=a.source_id AND o.source_policy_revision=ap.revision
-        JOIN jrei_ka_jobs j ON j.job_id=o.job_id
-        WHERE d.review_state='ORIGINAL_JREI_ARTICLE_APPROVED'
-          AND a.source_id='$itemId'
-          AND o.content_sha256='$contentHash'",
-      'policies'=> "SELECT COUNT(*) FROM jrei_ka_source_policies
-        WHERE scheduling_state='APPROVED' AND rights_reviewed=1
-          AND robots_terms_reviewed=1 AND transport_reviewed=1"
-    ];
-    foreach($probe as $label=>$sql){
-        try{fwrite(STDERR,'news_fixture_probe:'.$label.':'.
-            $pdo->query($sql)->fetchColumn().PHP_EOL);}
-        catch(Throwable $e){fwrite(STDERR,
-            'news_fixture_probe:'.$label.':'.get_class($e).
-            ' / '.$e->getMessage().PHP_EOL);}
-    }
-}
 ensure($rechecked['current']===true &&
        $rechecked['rightsApproved']===true &&
        $rechecked['currentEvidenceSha256']===$contentHash,
