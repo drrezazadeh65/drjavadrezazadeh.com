@@ -59,7 +59,13 @@ jobs:
             tests/jrei-local-model-benchmark.test.mjs \
             tests/jrei-worker-error-code.test.mjs \
             tests/jrei-qwen-visible-answer.test.mjs \
-            tests/jrei-node-a-local-artifacts.test.mjs
+            tests/jrei-node-a-local-artifacts.test.mjs \
+            tests/jrei-site-apprentice.test.mjs \
+            tests/jrei-historical-development-backfill.test.mjs \
+            tests/jrei-universal-public-chat-consent.test.mjs \
+            tests/jrei-original-paid-exam-policy.test.mjs \
+            tests/jrei-news-knowledge-learning-bridge.test.mjs \
+            tests/jrei-four-track-official-exam-scout.test.mjs
       - name: Parse every Windows PowerShell AI launcher without executing commands
         shell: pwsh
         run: |
