@@ -20,6 +20,7 @@ require_once __DIR__.'/original-auto-article-link.php';
 require_once __DIR__.'/delegated-official-source-enrollment.php';
 require_once __DIR__.'/candidate-intake.php';
 require_once __DIR__.'/evidence-review.php';
+require_once __DIR__.'/original-independent-evidence-runner.php';
 require_once __DIR__.'/editorial-draft-store.php';
 require_once __DIR__.'/original-ai-news-drafting.php';
 require_once __DIR__.'/original-model-draft-queue.php';
