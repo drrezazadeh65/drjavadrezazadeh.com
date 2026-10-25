@@ -73,3 +73,14 @@ test('published bilingual service pages are reachable from local guide', () => {
   ]) assert.ok(js.includes(link), 'missing public service route: '+link);
   assert.match(js, /service/);
 });
+
+test('JREI bilingual chatbot is correctly branded without false live or learning claims', () => {
+  assert.ok(js.includes("open:'چت‌بات JREI'"));
+  assert.ok(js.includes("open:'JREI Chat'"));
+  assert.match(js, /const staticGreeting=isFa/);
+  assert.match(js, /const liveGreeting=isFa/);
+  assert.match(js, /policy\.live!==true/);
+  assert.match(js, /providerConsent\.checked\?approvedLiveEndpoint/);
+  assert.ok(js.includes('خودکار به مدل آموزش داده نمی‌شوند.'));
+  assert.ok(js.includes('Chats do not automatically train JREI'));
+});
