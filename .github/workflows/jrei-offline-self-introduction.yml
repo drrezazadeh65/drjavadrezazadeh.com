@@ -1,0 +1,27 @@
+name: JREI truthful offline self-introduction regression
+on:
+  push:
+    branches: [fix/jrei-offline-self-introduction]
+    paths:
+      - 'assets/js/assistant.js'
+      - 'tests/jrei-offline-self-introduction.test.mjs'
+      - '.github/workflows/jrei-offline-self-introduction.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  test-existing-offline-assistant:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Test that offline identity replies never masquerade as model inference
+        run: |
+          node --check assets/js/assistant.js
+          node --test tests/jrei-offline-self-introduction.test.mjs
+          node --test tests/jrei-chat-experience.test.mjs
