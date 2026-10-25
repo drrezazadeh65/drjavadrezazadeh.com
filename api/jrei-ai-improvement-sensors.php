@@ -6,6 +6,7 @@ require_once __DIR__.'/jrei-exam-buyer-risk-exposure.php';
 require_once __DIR__.'/jrei-exam-preliminary-grade-owner-audit.php';
 require_once __DIR__.'/jrei-learning-evidence-accountability.php';
 require_once __DIR__.'/jrei-learning-owner-hazard-review.php';
+require_once __DIR__.'/jrei-local-quality-telemetry.php';
 
 /**
  * Evidence-only self-improvement detection from ACTUAL measured events.
@@ -175,6 +176,42 @@ function jrAiDetectImprovementOpportunities(PDO $pdo,array $cfg): array {
             ];
         }
     }catch(Throwable $e){}
+    // Source-attested model-output vetoes, generated ONLY from signed
+    // quality-rejected leases, not chat transcripts or speculative scores.
+    // Daily anonymous counters are optional; missing schema is UNKNOWN.
+    // This creates owner-review hypotheses, never changes Qwen weights.
+    if(jrJreiLocalQualityTelemetryReady($pdo)){
+        try{
+            $q=$pdo->query("SELECT model_artifact_sha256,
+                failure_category,SUM(rejected_count) AS total
+              FROM jrei_local_chat_quality_daily
+              WHERE day_utc>=DATE_SUB(UTC_DATE(),INTERVAL 6 DAY)
+              GROUP BY model_artifact_sha256,failure_category
+              HAVING SUM(rejected_count)>=1 LIMIT 24");
+            foreach($q as $row){
+                $count=(int)$row['total'];
+                $category=(string)$row['failure_category'];
+                $sha=(string)$row['model_artifact_sha256'];
+                if($count<1||
+                   !preg_match('/^[a-f0-9]{64}$/D',$sha)||
+                   !preg_match('/^[A-Z_]{4,48}$/D',$category))
+                    continue;
+                $critical=in_array($category,[
+                  'NUMERIC_MISMATCH',
+                  'FLAWED_PERSIAN_VALIDITY_DEFINITION',
+                  'CJK_SCRIPT_INTRUSION'
+                ],true);
+                if(!$critical&&$count<3)continue;
+                $candidates[]=[
+                  'rule'=>'LOCAL_CHAT_QUALITY_VETOES',
+                  'sourceKey'=>'JREI_LOCAL|'.$sha.'|'.$category,
+                  'count'=>$count,
+                  'severity'=>$critical?'HIGH':'REVIEW',
+                  'summary'=>'LOCAL_MODEL_OUTPUT_REVIEW_REQUIRED'
+                ];
+            }
+        }catch(Throwable $e){}
+    }
     $out['realSourceSignalsScanned']=count($candidates);
     $stmt=$pdo->prepare("INSERT INTO jrei_ai_improvement_opportunities
        (opportunity_id,rule_code,rule_version,evidence_window_utc,
