@@ -15,13 +15,20 @@ const sample=()=>({
   backendExe:'/private/llama-server.exe',
   endpoint:'http://127.0.0.1:8080/v1/chat/completions'}
 });
-test('synthetic inference needs independent owner, licence and model approvals',()=>{
+test('technical benchmark requires owner and licence review, but not prior scientific approval',()=>{
  const x=sample();
- for(const flag of ['enabled','ownerApproved','rightsReviewed',
-  'modelRuntimeVerified','independentQualityAccepted']){
+ for(const flag of ['ownerApproved','rightsReviewed']){
   const y=structuredClone(x);y.localChat[flag]=false;
   assert.throws(()=>validateLocalBenchmarkConfig(y),/OWNER_APPROVAL_REQUIRED/);
  }
+ const prerelease=structuredClone(x);
+ for(const flag of ['enabled','modelRuntimeVerified','independentQualityAccepted'])
+  prerelease.localChat[flag]=false;
+ assert.equal(validateLocalBenchmarkConfig(prerelease).modelId,'qwen-test');
+ prerelease.localChat.disableThinking=true;
+ assert.equal(validateLocalBenchmarkConfig(prerelease).disableThinking,true);
+ prerelease.localChat.disableThinking='true';
+ assert.throws(()=>validateLocalBenchmarkConfig(prerelease),/OWNER_APPROVAL_REQUIRED/);
 });
 test('benchmark strictly rejects non-loopback endpoints',()=>{
  for(const url of ['http://localhost:8080/v1/chat/completions',
