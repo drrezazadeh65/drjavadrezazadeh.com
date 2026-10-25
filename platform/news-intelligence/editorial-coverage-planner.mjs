@@ -1,7 +1,8 @@
 /**
  * Evidence-first editorial desk selection — topic and audience diversity.
  * Never guarantees impressions, rankings, or daily publication volumes.
- * Urgent official deadlines bypass normal draft quota but never owner approval.
+ * Verified news has no arbitrary daily editorial quota. This is planning only:
+ * publication still requires the authenticated original CMS and rights checks.
  */
 import {assert,isHash,plain,utcInstant} from './contracts.mjs';
 const PRIORITY_SCORE=Object.freeze({P0:1000,P1:300,P2:80});
@@ -16,12 +17,12 @@ export function planBalancedNewsDesk({candidates=[],nowUtc,
     utcInstant(nowUtc)&&
     Array.isArray(alreadySelectedToday)&&alreadySelectedToday.length<=5000&&
     plain(ownerLimits)&&plain(officialSourceStates)&&
-    Number.isInteger(ownerLimits.regularDailyDraftGoal)&&
-    ownerLimits.regularDailyDraftGoal>=0&&
-    ownerLimits.regularDailyDraftGoal<=20&&
-    Number.isInteger(ownerLimits.urgentMaxReviewAlerts)&&
-    ownerLimits.urgentMaxReviewAlerts>=0&&
-    ownerLimits.urgentMaxReviewAlerts<=40,
+    (ownerLimits.regularDailyDraftGoal===undefined||
+      (Number.isInteger(ownerLimits.regularDailyDraftGoal)&&
+       ownerLimits.regularDailyDraftGoal>=0&&ownerLimits.regularDailyDraftGoal<=5000))&&
+    (ownerLimits.urgentMaxReviewAlerts===undefined||
+      (Number.isInteger(ownerLimits.urgentMaxReviewAlerts)&&
+       ownerLimits.urgentMaxReviewAlerts>=0&&ownerLimits.urgentMaxReviewAlerts<=5000)),
     'NEWS_EDITORIAL_DAILY_SELECTION_INVALID');
   const selectedAlready=new Set(alreadySelectedToday);
   const blocked=[],eligible=[];
@@ -50,29 +51,14 @@ export function planBalancedNewsDesk({candidates=[],nowUtc,
       c.category:'research';
     eligible.push({...c,category,ageHours});
   }
-  const categoriesSeen=new Set();
-  const dailyRegular=[],urgent=[];
+  // Rank for processing order, never to silently drop a verified story.
+  // Incoming batch limits protect worker memory, not the day's output.
   const ranked=eligible.sort((a,b)=>
     PRIORITY_SCORE[b.priority]-PRIORITY_SCORE[a.priority]||
     a.ageHours-b.ageHours||
     a.fingerprint.localeCompare(b.fingerprint));
-  for(const item of ranked) {
-    if(item.priority==='P0') {
-      if(urgent.length<ownerLimits.urgentMaxReviewAlerts)urgent.push(item);
-      continue;
-    }
-    if(dailyRegular.length>=ownerLimits.regularDailyDraftGoal)continue;
-    // Include diverse educational stages/institutions when equally trusted.
-    if(!categoriesSeen.has(item.category)) {
-      dailyRegular.push(item);categoriesSeen.add(item.category);
-    }
-  }
-  for(const item of ranked) {
-    if(item.priority==='P0'||dailyRegular.length>=
-      ownerLimits.regularDailyDraftGoal)continue;
-    if(dailyRegular.some(s=>s.fingerprint===item.fingerprint))continue;
-    dailyRegular.push(item);
-  }
+  const urgent=ranked.filter(item=>item.priority==='P0');
+  const dailyRegular=ranked.filter(item=>item.priority!=='P0');
   return Object.freeze({
     schema:'jr.jrei.news-desk-day-plan.v1',plannedAt:nowUtc,
     regularDrafts:dailyRegular.map(s=>({
@@ -84,8 +70,10 @@ export function planBalancedNewsDesk({candidates=[],nowUtc,
     blocked,regularDraftCount:dailyRegular.length,
     urgentCount:urgent.length,
     actualPublicArticleCount:0,
-    noAutoPublishing:true,noRankOrTrafficPromises:true,
+    noAutoPublishing:true,unlimitedDailyEditorialSelection:true,
+    processingBatchBounded:true,noRankOrTrafficPromises:true,
     noArtificialBacklinkFarming:true,
-    editorialApprovalAlwaysRequired:true
+    originalCmsPublicationReceiptRequired:true,
+    editorialOwnerReviewOnlyForExceptions:true
   });
 }
