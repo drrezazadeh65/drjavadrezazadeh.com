@@ -64,9 +64,12 @@ export function planBalancedNewsDesk({candidates=[],nowUtc,
     regularDrafts:dailyRegular.map(s=>({
       fingerprint:s.fingerprint,category:s.category,
       priority:s.priority,sourceId:s.sourceId})),
-    urgentOwnerReview:urgent.map(s=>({
+    urgentOfficialDesk:urgent.map(s=>({
       fingerprint:s.fingerprint,sourceId:s.sourceId,
       priority:s.priority,reason:'TIME_SENSITIVE_OFFICIAL_SOURCE'})),
+    // P0 is an urgency classification, NOT a suspicious-news owner alert.
+    // Evidence exception routing lives in official-publication-policy.mjs.
+    urgentOwnerReview:[],
     blocked,regularDraftCount:dailyRegular.length,
     urgentCount:urgent.length,
     actualPublicArticleCount:0,
