@@ -19,3 +19,56 @@
 #ops-jrei-newsroom .ni-admin-image{display:block;max-width:100%;height:auto}
 @media(max-width:600px){#ops-jrei-newsroom .ni-admin-metrics{grid-template-columns:1fr 1fr}#ops-jrei-newsroom .ni-admin-source-row{flex-direction:column;align-items:stretch}#ops-jrei-newsroom button{width:100%}}
 @media(max-width:370px){#ops-jrei-newsroom .ni-admin-metrics{grid-template-columns:1fr}}
+
+/* Private newsroom custom-source manager: touch-first, black/gold visual system. */
+#ops-jrei-newsroom .ni-admin-custom-source-manager{
+  padding:clamp(1rem,2.5vw,1.5rem);margin-block:1rem;
+  border:1px solid #95764a;border-radius:1.05rem;
+  background:linear-gradient(145deg,#1c1c1b,#2a2723);
+  color:#f6eddf;box-shadow:0 12px 32px #09090838;
+}
+#ops-jrei-newsroom .ni-admin-custom-source-manager h3{
+  font-size:clamp(1.1rem,3vw,1.45rem);color:#e7c788;margin:.1rem 0 .65rem;
+}
+#ops-jrei-newsroom .ni-admin-custom-source-manager p{
+  line-height:1.85;overflow-wrap:anywhere;
+}
+#ops-jrei-newsroom .ni-admin-custom-source-manager form{
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:.75rem;margin-block:1rem;
+}
+#ops-jrei-newsroom .ni-admin-custom-source-manager label{
+  display:grid;gap:.3rem;font-weight:600;
+}
+#ops-jrei-newsroom .ni-admin-custom-source-manager :is(input,select){
+  font:inherit;min-height:46px;min-width:0;width:100%;
+  padding:.6rem .8rem;border-radius:.65rem;border:1px solid #806f59;
+  background:#242525;color:#fff4e4;
+}
+#ops-jrei-newsroom .ni-admin-custom-source-manager button{
+  font:inherit;min-height:46px;padding:.55rem .9rem;
+  background:#403526;color:#fff0d4;border:1px solid #c1a06c;
+  border-radius:.65rem;cursor:pointer;margin:.25rem .35rem .25rem 0;
+}
+#ops-jrei-newsroom .ni-admin-custom-source-manager button:hover{
+  background:#534229;
+}
+#ops-jrei-newsroom .ni-admin-custom-source-manager :is(button,input,select):focus-visible{
+  outline:3px solid #ecca80;outline-offset:2px;
+}
+#ops-jrei-newsroom .ni-admin-custom-source-manager button:disabled{
+  opacity:.55;cursor:wait;
+}
+#ops-jrei-newsroom .ni-admin-custom-source-items{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));
+  gap:.75rem;margin-top:1rem;
+}
+#ops-jrei-newsroom .ni-admin-custom-source-items>section{
+  background:#242422;border:1px solid #5e523f;
+  border-radius:.8rem;padding:1rem;min-width:0;
+}
+@media(max-width:650px){
+ #ops-jrei-newsroom .ni-admin-custom-source-manager form{grid-template-columns:minmax(0,1fr);}
+ #ops-jrei-newsroom .ni-admin-custom-source-items{grid-template-columns:minmax(0,1fr);}
+ #ops-jrei-newsroom .ni-admin-custom-source-manager button{width:100%;margin-inline:0;}
+}
