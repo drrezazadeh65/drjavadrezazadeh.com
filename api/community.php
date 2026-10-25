@@ -152,9 +152,30 @@ function communityRoute(string $route,string $verb): never {
     if ($route==='/community/comments' && $verb==='GET') {
         $page=communityCanonical($_GET['page']??null);
         if ($page===null) fail('invalid_page',400);
-        $query=$pdo->prepare("SELECT id,body_text,rating,created_at FROM community_comments WHERE page_path=? AND state='approved' ORDER BY created_at DESC,id DESC LIMIT 20");
-        $query->execute([$page]);
+        // Public keyset pagination: only approved comments, stable ordering and bounded reads.
+        // Cursor input is paired so an attacker cannot turn a public endpoint into an unbounded scan.
+        $beforeTime=null;$beforeId=null;
+        if (isset($_GET['beforeCreatedAt']) || isset($_GET['beforeId'])) {
+            $rawTime=$_GET['beforeCreatedAt']??null;
+            $rawId=$_GET['beforeId']??null;
+            if (!is_string($rawTime) || !ctype_digit($rawTime) || strlen($rawTime)>12 ||
+                !is_string($rawId) || !validUuid($rawId)) fail('invalid_cursor',400);
+            $beforeTime=(int)$rawTime;$beforeId=$rawId;
+        }
+        $sql="SELECT id,body_text,rating,created_at FROM community_comments WHERE page_path=? AND state='approved'";
+        $args=[$page];
+        if ($beforeTime!==null && $beforeId!==null) {
+            $sql.=" AND (created_at < ? OR (created_at = ? AND id < ?))";
+            array_push($args,$beforeTime,$beforeTime,$beforeId);
+        }
+        $sql.=" ORDER BY created_at DESC,id DESC LIMIT 21";
+        $query=$pdo->prepare($sql);
+        $query->execute($args);
         $approved=$query->fetchAll();
+        $hasMore=count($approved)>20;
+        $approved=array_slice($approved,0,20);
+        $last=$hasMore ? end($approved) : false;
+        $nextCursor=$last ? ['createdAt'=>(int)$last['created_at'],'id'=>(string)$last['id']] : null;
         // Aggregate the entire eligible page, never the 20-row presentation window.
         // Pending, rejected, removed and unrated opinions cannot affect the mean.
         $ratingQuery=$pdo->prepare("SELECT COUNT(*) AS n,AVG(rating) AS mean_value
@@ -175,7 +196,7 @@ function communityRoute(string $route,string $verb): never {
             'replies'=>$replies[(string)$x['id']]??[]
         ],$approved);
         // Submitted ratings do not appear in public data until manually approved.
-        respond(['ok'=>true,'schema'=>'community-comments-v1','page'=>$page,'comments'=>$data,'count'=>count($data),'ratingSummary'=>$ratingSummary]);
+        respond(['ok'=>true,'schema'=>'community-comments-v1','page'=>$page,'comments'=>$data,'count'=>count($data),'nextCursor'=>$nextCursor,'ratingSummary'=>$ratingSummary]);
     }
     if ($route==='/community/csrf' && $verb==='GET') {
         $account=communityAccount($pdo);
