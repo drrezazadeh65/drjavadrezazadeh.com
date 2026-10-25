@@ -14,6 +14,10 @@
  const fmt=new Intl.NumberFormat(lang==='fa'?'fa-IR':'en-US');
  let active=null,revision=0,items=[],selected={},cursor=0,busy=false;
  let recoveryRequired=false;
+ let recoveryAttemptId=null;
+ // A local device's clock may be wrong by hours. Server time is the
+ // reference; client time is used only to display an approximate countdown.
+ let serverClockOffsetMs=0;
  let expireAt=0;
  const element=(tag,value,cls)=>{
    const node=document.createElement(tag);
@@ -43,7 +47,7 @@
  const setStatus=(msg)=>{status.textContent=msg;};
  const refreshClock=()=>{
    if(!active||!expireAt){clock.textContent='';return;}
-   const seconds=Math.max(0,Math.ceil(expireAt-Date.now()/1000));
+   const seconds=Math.max(0,Math.ceil(expireAt-(Date.now()+serverClockOffsetMs)/1000));
    clock.textContent=T('زمان تقریبی باقی‌مانده: ','Approximate remaining time: ')+
      timeLabel(seconds)+T(' · اعتبار زمان فقط با سرور است',
        ' · the server clock is authoritative');
@@ -66,7 +70,7 @@
    // private answers from live JS memory. Resumption must refetch both
    // the original question-version manifest and saved server responses.
    active=null;expireAt=0;revision=0;cursor=0;
-   items=[];selected={};recoveryRequired=false;
+   items=[];selected={};recoveryRequired=false;recoveryAttemptId=null;
    list.replaceChildren();paper.replaceChildren();actions.replaceChildren();
    refreshClock();
    try{
@@ -146,7 +150,7 @@
        'Exam history is unavailable or not released. No private records are inferred from browser storage.'));
    }finally{busy=false;}
  }
- async function openAttempt(id){
+ async function openAttempt(id,preferredItemId=null){
    if(busy||!/^[0-9a-f-]{36}$/i.test(id))return;
    busy=true;setStatus(T('در حال بازیابی پاسخ‌های سرور…',
      'Restoring server-saved responses…'));
@@ -160,18 +164,24 @@
         !progress.canResume||!Array.isArray(published.items)||
         progress.attemptId!==published.attemptId||
         progress.responseRevision!==published.responseRevision||
-        !Number.isSafeInteger(progress.deadlineAt))
+        !Number.isSafeInteger(progress.deadlineAt)||
+        !Number.isSafeInteger(progress.serverNow)||
+        progress.serverNow<=0||progress.serverNow>=4102444800)
        throw Error('SESSION_REVISION_CHANGED');
      active=id;revision=progress.responseRevision;expireAt=progress.deadlineAt;
-     recoveryRequired=false;
-     items=published.items;cursor=0;selected={};
+     serverClockOffsetMs=progress.serverNow*1000-Date.now();
+     recoveryRequired=false;recoveryAttemptId=null;
+     items=published.items;
+     const restoredIndex=preferredItemId===null?-1:
+       items.findIndex(item=>item.itemId===preferredItemId);
+     cursor=restoredIndex>=0?restoredIndex:0;selected={};
      for(const row of progress.savedChoices||[])
        if(row&&typeof row.itemId==='string')selected[row.itemId]=row.selectedOptionId;
      list.replaceChildren();renderPaper();
      setStatus(T('فقط پاسخ‌های ذخیره‌شدهٔ سرور بازگردانده شدند.',
        'Only server-saved choices were restored.'));
    }catch{
-     recoveryRequired=true;
+     recoveryRequired=true;recoveryAttemptId=id;
      active=null;items=[];expireAt=0;paper.replaceChildren();
      actions.replaceChildren();refreshClock();
      setStatus(T('بازیابی آزمون ممکن نشد. بدون تأیید سرور، پاسخ یا وضعیت ذخیره‌شده‌ای ادعا نمی‌شود.',
@@ -224,11 +234,17 @@
        revision=result.responseRevision;selected[item.itemId]=option;
        setStatus(T('ذخیره در سرور تأیید شد.','Server confirmed your saved response.'));
      }catch{
-       recoveryRequired=true;
+       // A write may have committed despite a lost HTTP response. NEVER
+       // repeat the mutation or guess the answer. Read the original server
+       // revision and its stored responses before allowing another action.
+       recoveryRequired=true;recoveryAttemptId=active;
        setStatus(T(
-         'ذخیره تأیید نشد؛ انتخاب فعلی را ذخیره‌شده فرض نکنید. برای بازیابی وضعیت معتبر، صفحه را دوباره باز کنید.',
-         'Save was not confirmed. Do not assume this answer was stored; reopen the examination to recover the server state.'));
-     }finally{busy=false;renderPaper();}
+         'تأیید ذخیره قطع شد؛ در حال بازیابی وضعیت واقعی از سرور…',
+         'Save confirmation was lost; recovering the authoritative server state…'));
+     }finally{
+       busy=false;renderPaper();
+       if(recoveryAttemptId)void openAttempt(recoveryAttemptId,item.itemId);
+     }
    });
    actions.append(save);
    const submit=element('button',T('ثبت نهایی پاسخ‌ها','Final submission'),'jr-btn');
@@ -252,11 +268,16 @@
        busy=false;
        await loadAttempts();
      }catch{
+       // The first submission may already be terminal. Never submit again
+       // without reading the canonical account record.
        recoveryRequired=true;
        setStatus(T(
-         'ثبت نهایی تأیید نشد؛ برای بررسی وضعیت واقعی، سوابق سرور را تازه‌سازی کنید.',
-         'Submission was not confirmed. Refresh server records before retrying.'));
-     }finally{busy=false;renderPaper();}
+         'نتیجه ثبت نهایی نامشخص است؛ وضعیت را از سرور بازیابی می‌کنیم.',
+         'Final submission is unconfirmed; recovering the actual server state.'));
+     }finally{
+       busy=false;renderPaper();
+       if(recoveryRequired)void loadAttempts();
+     }
    });
    actions.append(submit);
    refreshClock();
@@ -264,7 +285,16 @@
  const refresh=root.querySelector('[data-exam-refresh]');
  refresh?.addEventListener('click',()=>loadAttempts());
  document.addEventListener('visibilitychange',()=>{
-   if(!document.hidden&&active)refreshClock();
+   if(document.hidden)return;
+   refreshClock();
+   if(!busy&&recoveryAttemptId)void openAttempt(recoveryAttemptId);
+ });
+ // On restored connectivity retry ONLY authenticated reads. Neither
+ // submitted answers nor a failed finalization is automatically replayed.
+ window.addEventListener('online',()=>{
+   if(busy)return;
+   if(recoveryAttemptId)void openAttempt(recoveryAttemptId);
+   else if(!active)void loadAttempts();
  });
  loadAttempts();
 })();
