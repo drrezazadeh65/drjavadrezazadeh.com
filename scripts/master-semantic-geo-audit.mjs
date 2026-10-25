@@ -13,7 +13,8 @@ import path from 'node:path';
 const root = process.cwd();
 const origin = 'https://drjavadrezazadeh.com';
 const ignored = new Set(['.git', 'node_modules', '.public-site', 'work', 'proposals',
-  'test-results', 'identity', '.next', 'dist']);
+  'test-results', 'identity', '.next', 'dist', 'docs', 'foundation', 'scripts',
+  'tests', 'platform', '.github', 'database', 'migrations', 'payment-api']);
 const findings = [];
 const stats = {pages:0, indexable:0, noindex:0, withHreflang:0, withJsonLd:0};
 const indexableRoutes = new Map();
