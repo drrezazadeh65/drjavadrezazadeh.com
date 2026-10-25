@@ -23,7 +23,7 @@ Search visibility is a search-engine decision, not a deterministic result of sou
 
 1. Added `assets/css/jr-bilingual-semantic-flow-2026.css` for scoped `dir`, textual alignment, bidirectional content isolation, heading wrapping, overflow management and responsive reading.
 2. Added low-specificity logical-content rules to shared `assets/css/style.css`, covering journal and public pages that do not run the optional site extras loader.
-3. The existing `assets/js/site-extras.js` now loads the semantic stylesheet when the site's deferred extras are available.
+3. Shared public pages receive lightweight zero-specificity semantic rules directly from `assets/css/style.css`, avoiding late deferred-stylesheet insertion. Standalone Persian VIP pages link the dedicated semantic stylesheet in the HTML head; `site-extras.js` retains only the versioned moderated-community asset loader.
 4. Retained the existing community authentication, owner feature gates, moderated publication and anti-abuse controls. Added stable read-side keyset pagination to `api/community.php`, safe public loading of older approved comments to `assets/js/community-comments.js`, bilingual pagination labels, recoverable request failure messages and supplementary CSS.
 5. Updated `scripts/community-service-bundle.mjs` to reference the versioned community frontend assets without changing the opt-in/buyer-verification constraints.
 6. Added distinct evidence-oriented methodological sections to the six Persian and six English VIP description pages without inventing outcomes, payment readiness, validated psychometrics, review certificates or personal research data.
