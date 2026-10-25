@@ -31,7 +31,11 @@ test('published search SQL enforces both CMS and indexing receipts without priva
   const code=text('../php/public-read-model.php');
   assert.match(code,/s\.index_state='PUBLISHED'/);
   assert.match(code,/p\.publisher_state='PUBLISHED'/);
-  assert.match(code,/d\.action_code='APPROVE'/);
+  const auth=text('../php/standing-official-publication.php');
+  assert.match(auth,/d\\.action_code='APPROVE'/);
+  assert.match(auth,/pol\\.policy_code='OFFICIAL_PRIMARY_AUTO_NEWS'/);
+  assert.match(code,/jrNewsPublicationAuthorityPredicate/);
+  assert.match(code,/jrNewsStandingPublicSchemaInstalled/);
   assert.match(code,/s\.owner_approval_digest=v\.approval_digest/);
   assert.match(code,/s\.content_sha256=IF/);
   assert.doesNotMatch(code,/SELECT \* FROM jrei_news_editorial_versions/);
