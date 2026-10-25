@@ -168,7 +168,8 @@ function jrNewsOriginalEnrollDelegatedOfficialArticles(PDO $pdo,array $ctx,
     $query=$pdo->prepare(
         "SELECT d.discovery_id,d.canonical_article_url,d.canonical_url_sha256,
                 d.discovered_headline,d.monitor_id,n.jrei_source_reference,
-                g.scope_id,g.owner_account_id,g.approved_host,
+                g.scope_id,g.owner_account_id,g.maximum_articles_per_cycle,
+                g.approved_host,
                 g.approved_path_prefix,g.scope_policy_revision,
                 g.rights_evidence_sha256,g.robots_evidence_sha256,
                 g.transport_evidence_sha256
@@ -205,7 +206,13 @@ function jrNewsOriginalEnrollDelegatedOfficialArticles(PDO $pdo,array $ctx,
         'outsideScope'=>0,'pending'=>0,
         'perArticleOwnerReviewPerformed'=>false,'networkRequests'=>0,
         'articlesPublished'=>0];
+    $perScope=[];
     foreach($query->fetchAll(PDO::FETCH_ASSOC) as $found){
+        $scopeKey=(string)$found['scope_id'];
+        $used=$perScope[$scopeKey]??0;
+        if($used>=(int)$found['maximum_articles_per_cycle']){
+            $summary['pending']++;continue;
+        }
         $summary['examined']++;
         $url=(string)$found['canonical_article_url'];
         try{
@@ -337,6 +344,7 @@ function jrNewsOriginalEnrollDelegatedOfficialArticles(PDO $pdo,array $ctx,
             if($updated->rowCount()!==1)
                 throw new RuntimeException('news_delegated_article_scope_race');
             $pdo->commit();$summary['enrolled']++;
+            $perScope[$scopeKey]=$used+1;
         }catch(Throwable $e){
             if($pdo->inTransaction())$pdo->rollBack();
             $summary['pending']++;
