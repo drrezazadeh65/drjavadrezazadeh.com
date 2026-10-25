@@ -38,6 +38,7 @@ require_once __DIR__.'/owner-review-outbox.php';
 require_once __DIR__.'/official-auto-handoff.php';
 require_once __DIR__.'/official-institution-directory.php';
 require_once __DIR__.'/original-official-source-bootstrap.php';
+require_once __DIR__.'/original-approved-university-monitor-sync.php';
 require_once __DIR__.'/admin-source-management.php';
 require_once __DIR__.'/standing-official-publication.php';
 require_once __DIR__.'/verified-news-page-render.php';
