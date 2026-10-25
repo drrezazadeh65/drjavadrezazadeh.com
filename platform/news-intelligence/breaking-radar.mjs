@@ -1,5 +1,6 @@
 /**
- * Breaking-news radar decision layer, not an automatic public broadcaster.
+ * Breaking-news radar: urgency is priority, NOT owner approval.
+ * Only genuinely uncertain official evidence enters the owner desk.
  * Upstream independently verified official observations are indispensable.
  */
 import {assert,isHash,plain,sha256,utcInstant} from './contracts.mjs';
@@ -19,15 +20,19 @@ export function breakingNewsTriage({candidate,verification,nowUtc,previouslyAler
   const alertKey=sha256(['JREI_NEWS',candidate.fingerprint,
     verification.reviewedAt].join('|'));
   const repeated=previouslyAlerted.includes(alertKey);
-  const status=stale?'STALE_REVERIFY_SOURCE':repeated?'ALREADY_NOTIFIED':
-    candidate.priority==='P0'?'URGENT_OWNER_REVIEW':
-    candidate.priority==='P1'?'PRIORITY_OWNER_REVIEW':'EDITORIAL_DIGEST';
+  const uncertain=verification.claimsContradictory===true||
+    verification.issuerClaimUncertain===true||
+    verification.rightsUncertain===true;
+  const status=stale?'STALE_REVERIFY_SOURCE':
+    uncertain?'OWNER_EXCEPTION_QUEUE':repeated?'ALREADY_NOTIFIED':
+    candidate.priority==='P0'?'URGENT_OFFICIAL_FAST_LANE':
+    candidate.priority==='P1'?'PRIORITY_OFFICIAL_DESK':'EDITORIAL_DIGEST';
   return Object.freeze({schema:'jr.jrei.news-breaking-triage.v1',
     fingerprint:candidate.fingerprint,priority:candidate.priority,
     alertKey,ageMinutes,status,sourceStillCurrent:!stale,
-    requiresOwnerApproval:true,
-    publicAutoPublish:false,skipLongAnalysisUntilFirstApproval:
-      candidate.priority==='P0'});
+    requiresOwnerApproval:status==='OWNER_EXCEPTION_QUEUE',
+    publicAutoPublish:false,requiresDownstreamPublisherPolicy:true,
+    skipLongAnalysisUntilFirstApproval:false});
 }
 export function urgentNotificationPolicy({triage,ownerEmailVerified,
   hourlyBudgetRemaining,privateNewsNotificationsEnabled}={}){
@@ -36,11 +41,12 @@ export function urgentNotificationPolicy({triage,ownerEmailVerified,
     Number.isInteger(hourlyBudgetRemaining)&&hourlyBudgetRemaining>=0&&
     typeof privateNewsNotificationsEnabled==='boolean',
     'NEWS_ALERT_SETTINGS_INVALID');
-  const canQueue=triage.status==='URGENT_OWNER_REVIEW'&&
+  const canQueue=triage.status==='OWNER_EXCEPTION_QUEUE'&&
+    triage.priority==='P0'&&
     ownerEmailVerified&&hourlyBudgetRemaining>0&&
     privateNewsNotificationsEnabled;
   return Object.freeze({schema:'jr.jrei.news-owner-alert-policy.v1',
-    alertKey:triage.alertKey,canQueue,reason:canQueue?'P0_VERIFIED_OWNER_NOTICE':
+    alertKey:triage.alertKey,canQueue,reason:canQueue?'P0_EVIDENCE_EXCEPTION_NOTICE':
       'DISABLED_OR_UNAVAILABLE',sendViaExistingOutboxOnly:true,
     publicPostAuthorized:false,mailActuallySent:false});
 }
