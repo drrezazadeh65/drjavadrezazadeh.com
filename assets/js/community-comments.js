@@ -141,7 +141,7 @@ async function load(){
    button.disabled=true;feedback.textContent=tr('در حال ثبت امن…','Submitting securely…');
    try{
     const r=await request(api+'comments',{method:'POST',headers:{'Content-Type':'application/json','X-JR-Community-CSRF':token.body.csrfToken},body:JSON.stringify({page,body:value,rating,consentToPublication,website:String(form.elements.website?.value||'')})});
-    if(r.status===202&&r.body?.state==='pending'){feedback.textContent=tr('دیدگاه شما برای بررسی مدیر ثبت شد و هنوز عمومی نیست.','Your submission is awaiting moderation and is not public.');form.reset();button.disabled=false;}
+    if(r.status===202&&r.body?.state==='pending'){feedback.textContent=tr('دیدگاه شما برای بررسی مدیر ثبت شد و هنوز عمومی نیست.','Your submission is awaiting moderation and is not public.');form.reset();button.disabled=true;button.textContent=tr('ثبت شد؛ در انتظار تأیید مدیر','Submitted for moderation');}
     else {feedback.textContent=r.status===409?tr('برای این صفحه قبلاً دیدگاه ثبت کرده‌اید.','You have already submitted a question or comment on this page.'):r.status===429?tr('لطفاً بعداً دوباره تلاش کنید.','Please try again later.'):tr('ثبت دیدگاه ممکن نشد. لطفاً دوباره تلاش کنید.','Your submission could not be saved. Please try again.');button.disabled=false;}
    }catch(_){feedback.textContent=tr('ارتباط برقرار نشد. دوباره تلاش کنید.','Could not connect. Please try again.');button.disabled=false;}
   });
