@@ -85,13 +85,14 @@ export function createLocalLlamaAdapter({
   ownerApproved=false,
   endpoint='http://127.0.0.1:8080/v1/chat/completions',
   fetchImpl=globalThis.fetch,
-  timeoutMs=45000
+  timeoutMs=45000,
+  disableThinking=false
 }={}) {
   const localUrl=validLoopback(endpoint);
   if(!ID.test(id)||!ID.test(model??'')||!ID.test(modelVersion??'')||
      !HASH.test(modelArtifactSha256??'')||!licenceReviewed||!ownerApproved||
      !Number.isInteger(timeoutMs)||timeoutMs<5000||timeoutMs>90000||
-     typeof fetchImpl!=='function')
+     typeof disableThinking!=='boolean'||typeof fetchImpl!=='function')
     throw failure('LOCAL_MODEL_OWNER_APPROVAL_REQUIRED');
   return Object.freeze({
     id,
@@ -158,7 +159,8 @@ export function createLocalLlamaAdapter({
           headers:{'Content-Type':'application/json','Accept':'application/json'},
           body:JSON.stringify({
             model,messages,max_tokens:maxTokens,
-            temperature,stream:false
+            temperature,stream:false,
+            ...(disableThinking?{chat_template_kwargs:{enable_thinking:false}}:{})
           }),signal:ctl.signal
         });
         const payload=await boundedJson(response);
@@ -169,6 +171,10 @@ export function createLocalLlamaAdapter({
         const text=payload.choices?.[0]?.message?.content;
         if(typeof text!=='string'||text.length>16000)
           throw failure('LOCAL_MODEL_OUTPUT_INVALID');
+        // A thinking model can exhaust its output budget before writing
+        // visible content. Never record an empty draft as successful inference.
+        if(text.trim().length===0)
+          throw failure('LOCAL_MODEL_EMPTY_ANSWER');
         return {
           text,
           toolCalls:[],
