@@ -22,6 +22,7 @@ require_once __DIR__.'/owner-editorial.php';
 require_once __DIR__.'/owner-preview.php';
 require_once __DIR__.'/owner-overview.php';
 require_once __DIR__.'/owner-review-outbox.php';
+require_once __DIR__.'/official-auto-handoff.php';
 require_once __DIR__.'/publication-dispatch.php';
 require_once __DIR__.'/publication-readiness.php';
 require_once __DIR__.'/calendar-read.php';
@@ -56,6 +57,8 @@ function jrNewsSourceCapabilities(): array {
         'schemaMigrationsAppliedByImport'=>false,
         'newPublicApiMountedByImport'=>false,
         'outboundRequestsOnImport'=>false,
+        'standingOfficialSourceAutoHandoffProposalAvailable'=>true,
+        'originalCmsAutoPublisherConnectedByLibrary'=>false,
         'ownerApprovalRequiredForEveryPublicRevision'=>true,
         'testsPerformedByThisLibrary'=>false,
         'deployedByThisLibrary'=>false,
