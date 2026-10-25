@@ -16,9 +16,9 @@
  */
 import { createHash, createPrivateKey, createPublicKey, generateKeyPairSync, randomBytes, sign } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
-import { readFile, mkdir, lstat, stat } from 'node:fs/promises';
+import { readFile, mkdir, lstat, stat, open } from 'node:fs/promises';
 import { createReadStream } from 'node:fs';
-import { join, isAbsolute, resolve } from 'node:path';
+import { join, isAbsolute, resolve, basename } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import os from 'node:os';
 import { Worker } from 'node:worker_threads';
@@ -448,13 +448,31 @@ async function verifyLocalModelArtifact(c) {
  */
 async function verifyLocalLlamaExecutable(c) {
   if(typeof c?.backendExe!=='string'||!isAbsolute(c.backendExe)||
-     c.backendExe.length>500||!c.backendExe.toLowerCase().endsWith('.exe')||
+     c.backendExe.length>500||
+     basename(c.backendExe).toLowerCase()!=='llama-server.exe'||
      !SHA.test(c.backendExeSha256??''))
     throw Error('LOCAL_LLAMA_EXECUTABLE_PATH_AND_SHA_REQUIRED');
-  const link=await lstat(c.backendExe);
-  if(!link.isFile()||link.isSymbolicLink()||
-     link.size<131072||link.size>536870912)
+  // Compact Windows llama.cpp distributions may use a small PE .exe with
+  // shared DLLs. A fixed 128-KiB minimum was rejecting valid hash-pinned
+  // launchers even though the owner's separate PS launcher ran them.
+  // Follow valid links and attest PE format + the original whole-file SHA.
+  const link=await stat(c.backendExe);
+  if(!link.isFile()||link.size<1024||link.size>536870912)
     throw Error('LOCAL_LLAMA_EXECUTABLE_FILE_INVALID');
+  const handle=await open(c.backendExe,'r');
+  try{
+    const header=Buffer.alloc(64);
+    const first=await handle.read(header,0,64,0);
+    if(first.bytesRead!==64||header.toString('ascii',0,2)!=='MZ')
+      throw Error('LOCAL_LLAMA_EXECUTABLE_PE_HEADER_INVALID');
+    const offset=header.readUInt32LE(0x3c);
+    if(offset<64||offset>1048576||offset+4>link.size)
+      throw Error('LOCAL_LLAMA_EXECUTABLE_PE_HEADER_INVALID');
+    const pe=Buffer.alloc(4);
+    const second=await handle.read(pe,0,4,offset);
+    if(second.bytesRead!==4||!pe.equals(Buffer.from([80,69,0,0])))
+      throw Error('LOCAL_LLAMA_EXECUTABLE_PE_HEADER_INVALID');
+  }finally{await handle.close();}
   const digest=createHash('sha256');
   let bytes=0;
   for await(const chunk of createReadStream(c.backendExe,{highWaterMark:1024*1024})){
