@@ -7,6 +7,7 @@ function validUuid(string $id): bool {
     return preg_match('/^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/D',$id)===1;
 }
 require_once dirname(__DIR__).'/api/jrei-exam-deterministic-scoring.php';
+require_once dirname(__DIR__).'/api/jrei-exam-attempt-runtime.php';
 function verify(bool $ok,string $message): void {
     if(!$ok){fwrite(STDERR,"FAIL: $message\n");exit(1);}
 }
@@ -52,4 +53,14 @@ try{
     ['88888888-8888-4888-8888-888888888888'=>$good]);
   verify(false,'non-instrument question must be rejected');
 }catch(InvalidArgumentException $expected){}
+// The grace window is finalization-only and cannot be used for autosave.
+verify(jrExamTimeAllowsSave(1000,999),'candidate may save before time cutoff');
+verify(!jrExamTimeAllowsSave(1000,1000)&&
+  !jrExamTimeAllowsSave(1000,1001),'save forbidden at and after deadline');
+verify(jrExamTimeAllowsFinalization(1000,1000)&&
+  jrExamTimeAllowsFinalization(1000,1120)&&
+  !jrExamTimeAllowsFinalization(1000,1121),
+  'submission grace must be exactly 120 server seconds');
+verify(!jrExamTimeAllowsSave(0,0)&&!jrExamTimeAllowsFinalization(0,0),
+  'uninitialized deadline never opens a session');
 echo "JREI Konkur exact deterministic no-provider preliminary scoring PASS\n";
