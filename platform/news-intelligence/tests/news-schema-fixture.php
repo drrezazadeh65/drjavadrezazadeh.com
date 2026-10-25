@@ -1446,3 +1446,65 @@ ensure($revokedSeed['newDiscovered']===0 &&
     'automated catalogue never creates a fresh approved bypass around source revocation');
 $pdo->prepare('UPDATE jrei_exam_sources SET is_revoked=0 WHERE source_id=?')
     ->execute([$utId]);
+
+/*
+ * Autonomous, class-wide monitor onboarding of ANOTHER independently
+ * reviewed university that was never manually added in the News dashboard.
+ * No manual article or university decision is forged in this test.
+ */
+$globalUniversityId='ffffffff-ffff-4fff-8fff-ffffffffffff';
+$globalUniversityUrl='https://new-research-university.edu/news/';
+$insertSource->execute([
+    $globalUniversityId,'Another verified university source',
+    $globalUniversityUrl,$account,1792823600
+]);
+$insertPolicy->execute([
+    $globalUniversityId,$globalUniversityId,
+    $globalUniversityId,$globalUniversityId
+]);
+$pdo->prepare(
+    'UPDATE jrei_exam_sources SET source_kind=? WHERE source_id=?'
+)->execute(['OFFICIAL_UNIVERSITY_NEWS',$globalUniversityId]);
+$autoUniversityContext=[
+    'source'=>'ORIGINAL_JREI_PRIVATE_NEWS_WORKER',
+    'originalCronLeaseVerified'=>true
+];
+$autoUniversityConfig=[
+    'jrei_news_integrated_release_accepted'=>true,
+    'operations_cron_master_enabled'=>true,
+    'jrei_news_source_activation_accepted'=>true,
+    'jrei_news_automatic_official_monitor_enabled'=>true
+];
+$universitySync=jrNewsOriginalSyncReviewedUniversityMonitors(
+    $pdo,$autoUniversityConfig,$autoUniversityContext,1792823610,50);
+ensure($universitySync['monitorsActivated']>=1&&
+       $universitySync['rightsGranted']===0&&
+       $universitySync['articlesPublished']===0,
+    'any independently reviewed official university gains a monitor without manager per-source approval');
+$q=$pdo->prepare(
+    'SELECT monitor_id,enabled FROM jrei_news_monitors
+     WHERE jrei_source_reference=?');
+$q->execute([$globalUniversityId]);
+$verifiedMonitor=$q->fetch(PDO::FETCH_ASSOC);
+ensure(is_array($verifiedMonitor)&&
+       (int)$verifiedMonitor['enabled']===1,
+    'original university source is activated once under standing monitoring policy');
+$pdo->prepare(
+    'UPDATE jrei_news_monitors SET enabled=0 WHERE monitor_id=?'
+)->execute([$verifiedMonitor['monitor_id']]);
+$repeatSync=jrNewsOriginalSyncReviewedUniversityMonitors(
+    $pdo,$autoUniversityConfig,$autoUniversityContext,1792823620,50);
+$q->execute([$globalUniversityId]);
+$pausedMonitor=$q->fetch(PDO::FETCH_ASSOC);
+ensure($repeatSync['monitorsActivated']===0&&
+       (int)$pausedMonitor['enabled']===0&&
+       $repeatSync['existingOwnerDisabledRetained']>=1,
+    'owner-disabled originally approved university is NEVER restarted by cron');
+$noAuthorization=false;
+try {
+    jrNewsOriginalSyncReviewedUniversityMonitors(
+        $pdo,[],$autoUniversityContext,1792823630,50);
+} catch(RuntimeException $e){$noAuthorization=true;}
+ensure($noAuthorization,
+    'class-wide monitor automatic onboarding requires explicit original private production policy');
+echo "PASS: class-wide independently approved university monitor enrollment, dedupe, revoked activation and owner stop\\n";
