@@ -583,6 +583,25 @@ $exactTypeRestored=jrOperationsNewsReadiness(
 ensure($exactTypeRestored['requiredMotherSchemaAvailable']===true,
     'restoring exact data type and NOT NULL returns readiness');
 
+// Defaulting human evidence verification to TRUE is an unsafe schema drift,
+// even when types, indexes, primary keys and foreign keys are intact.
+$pdo->exec('ALTER TABLE jrei_news_evidence_reviews
+    ALTER COLUMN issuer_verified SET DEFAULT 1');
+$unsafeEvidenceDefault=jrOperationsNewsReadiness(
+    $pdo,['jrei_news_integrated_release_accepted'=>true]
+);
+ensure($unsafeEvidenceDefault['requiredMotherSchemaAvailable']===false &&
+       $unsafeEvidenceDefault['originalNewsTables']['jrei_news_evidence_reviews']==='UNAVAILABLE' &&
+       in_array('UNSAFE_COLUMN_DEFAULT',
+           $unsafeEvidenceDefault['schemaBlockers']['jrei_news_evidence_reviews']??[],true),
+    'evidence issuer-verified default cannot silently become true');
+$pdo->exec('ALTER TABLE jrei_news_evidence_reviews
+    ALTER COLUMN issuer_verified SET DEFAULT 0');
+ensure(jrOperationsNewsReadiness(
+    $pdo,['jrei_news_integrated_release_accepted'=>true]
+)['requiredMotherSchemaAvailable']===true,
+    'restoring human evidence default to unverified returns readiness');
+
 // A different initial default must not silently activate monitoring.
 $pdo->exec('ALTER TABLE jrei_news_monitors
     ALTER COLUMN enabled SET DEFAULT 1');
