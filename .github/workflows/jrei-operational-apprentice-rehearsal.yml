@@ -1,0 +1,52 @@
+name: JREI Analytical and Operational Apprentice - historical rehearsal
+on:
+  push:
+    branches:
+      - feature/jrei-analytical-operational-apprentice
+    paths:
+      - platform/jrei-v5/jrei-operational-apprentice.mjs
+      - tests/jrei-operational-apprentice.test.mjs
+      - scripts/jrei-operational-apprentice-rehearsal.mjs
+      - .github/workflows/jrei-operational-apprentice-rehearsal.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  analyse-historical-lessons-without-deployment:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Independent module behavior and negative tests
+        run: |
+          node --check platform/jrei-v5/jrei-operational-apprentice.mjs
+          node --check scripts/jrei-operational-apprentice-rehearsal.mjs
+          node --test tests/jrei-operational-apprentice.test.mjs
+      - name: Retrieve existing original read-only GitHub historical evidence
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/jrei-history-input"
+          gh run download 40217064104 \
+            --repo drrezazadeh65/drjavadrezazadeh.com \
+            --name jrei-historical-learning-0a115dfc08b03f6a86b755013689aae4c03d59b6 \
+            --dir "$RUNNER_TEMP/jrei-history-input"
+          test -s "$RUNNER_TEMP/jrei-history-input/read-only-github-history.json"
+      - name: Demonstrate evidence-based site diagnosis on historical real commits
+        env:
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: node scripts/jrei-operational-apprentice-rehearsal.mjs "$RUNNER_TEMP/jrei-history-input/read-only-github-history.json"
+      - name: Save unapproved findings privately; no public content or site writes
+        uses: actions/upload-artifact@v4
+        with:
+          name: jrei-operational-history-rehearsal-${{ github.sha }}
+          path: ${{ runner.temp }}/jrei-real-history-rehearsal/engineering-rehearsal.json
+          retention-days: 14
+          if-no-files-found: error
