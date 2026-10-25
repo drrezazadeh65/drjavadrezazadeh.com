@@ -149,6 +149,18 @@ function cfg(): array {
         'jrei_news_verified_syndication_enabled' => getenv('JR_JREI_NEWS_VERIFIED_SYNDICATION_ENABLED') === 'true',
         'jrei_news_original_digest_enabled' => getenv('JR_JREI_NEWS_ORIGINAL_DIGEST_ENABLED') === 'true',
 
+        // Original private author corpus and independent reviewer records.
+        // Paths must be private, outside the document root; secrets remain
+        // in Bertina server env and never in GitHub, JS or public API.
+        'jrei_news_approved_fa_author_corpus_sha256' => (string)(getenv('JR_JREI_NEWS_APPROVED_FA_AUTHOR_CORPUS_SHA256') ?: ''),
+        'jrei_news_approved_en_author_corpus_sha256' => (string)(getenv('JR_JREI_NEWS_APPROVED_EN_AUTHOR_CORPUS_SHA256') ?: ''),
+        'jrei_news_approved_brand_media_ref' => (string)(getenv('JR_JREI_NEWS_APPROVED_BRAND_MEDIA_REF') ?: ''),
+        'jrei_news_original_fact_packet_dir' => (string)(getenv('JR_JREI_NEWS_ORIGINAL_FACT_PACKET_DIR') ?: ''),
+        'jrei_news_original_fact_signing_secret' => (string)(getenv('JR_JREI_NEWS_ORIGINAL_FACT_SIGNING_SECRET') ?: ''),
+        'jrei_news_independent_qa_dir' => (string)(getenv('JR_JREI_NEWS_INDEPENDENT_QA_DIR') ?: ''),
+        'jrei_news_independent_qa_secret' => (string)(getenv('JR_JREI_NEWS_INDEPENDENT_QA_SECRET') ?: ''),
+
+
         // Real AI inference: independent paid-provider credentials and
         // source-owned budget approval; entirely OFF until final acceptance.
         'jrei_live_ai_enabled' => getenv('JR_JREI_LIVE_AI_ENABLED') === 'true',
