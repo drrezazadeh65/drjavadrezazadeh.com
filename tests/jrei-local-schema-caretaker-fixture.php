@@ -32,7 +32,25 @@ $first=jrJreiLocalSchemaApply($db,$cfg);
 verifySchema($first['state']==='ADDITIVE_SCHEMA_READY'&&$first['newTables']===3,
  'source-reviewed caretaker creates all three missing mother tables in order');
 $second=jrJreiLocalSchemaApply($db,$cfg);
-verifySchema($second['newTables']===0,'subsequent Cron runs are idempotent');
+verifySchema($second['newTables']===0&&($second['newColumns']??-1)===0,
+ 'subsequent Cron runs are idempotent');
+// Simulate a documented legacy production schema drift on this DISPOSABLE
+// fixture, never on Bertina. An unverified backup must prohibit ADD COLUMN.
+$db->exec('ALTER TABLE jrei_local_chat_node_authorizations
+ DROP COLUMN last_signed_chat_seen_at');
+verifySchema(!jrLocalChatSchemaReady($db),'legacy schema drift is detected');
+try {
+ jrJreiLocalSchemaApply($db,[...$cfg,
+   'jrei_local_schema_backup_sha256'=>str_repeat('0',64)]);
+ verifySchema(false,'legacy repair without validated backup must fail');
+}catch(DomainException $expected){}
+$repaired=jrJreiLocalSchemaApply($db,$cfg);
+verifySchema(($repaired['newColumns']??0)===1&&$repaired['newTables']===0,
+ 'validated owner caretaker repairs only missing signed freshness column');
+verifySchema(jrLocalChatSchemaReady($db),
+ 'repaired worker schema supports signed-chat readiness');
+verifySchema((jrJreiLocalSchemaApply($db,$cfg)['newColumns']??-1)===0,
+ 'legacy column reconciliation is repeat-safe');
 verifySchema(jrHybridModelRegistryReady($db),'model registry postflight passes');
 verifySchema(jrLocalChatSchemaReady($db),'postflight chat schema contract passes');
 foreach(['customer_accounts','commerce_orders'] as $table){
