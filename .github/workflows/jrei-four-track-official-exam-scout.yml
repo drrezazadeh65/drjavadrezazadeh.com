@@ -1,0 +1,33 @@
+name: JREI Four-Track Official Exam Discovery (source-only)
+on:
+  push:
+    branches: [migration/bertina-linux6]
+    paths:
+      - 'scripts/jrei-four-track-official-exam-scout.mjs'
+      - 'tests/jrei-four-track-official-exam-scout.test.mjs'
+      - '.github/workflows/jrei-four-track-official-exam-scout.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  discover-public-links:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify four exam track metadata rules
+        run: node --test tests/jrei-four-track-official-exam-scout.test.mjs
+      - name: Discover links on the owner-designated official public source
+        run: node scripts/jrei-four-track-official-exam-scout.mjs
+      - name: Retain evidence of discovery or source restrictions
+        uses: actions/upload-artifact@v4
+        with:
+          name: jrei-four-track-source-links-${{ github.sha }}
+          path: ${{ runner.temp }}/jrei-exam-scouter/four-track-official-source-candidates.json
+          retention-days: 30
+          if-no-files-found: error
