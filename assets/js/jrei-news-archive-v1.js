@@ -99,9 +99,7 @@
       var data=await response.json();
       if(data.schema!=='jr.jrei.news-public-search.v1'||
         !Array.isArray(data.results))throw Error('RESULT_NOT_AUTHORIZED');
-      status.textContent=data.results.length?
-        Math.min(data.results.length,20)+' '+copy.found:copy.none;
-    var listCount=0;
+      var listCount=0;
       for(var i=0;i<data.results.length&&i<20;i++){
         var item=data.results[i];
         var url;
@@ -118,6 +116,7 @@
         var summary=element('p',null,String(item.summary||''));
         card.append(h,summary);list.append(card);listCount++;
       }
+      status.textContent=listCount?listCount+' '+copy.found:copy.none;
     }catch(error){
       if(error.name!=='AbortError')
         status.textContent=error.message==='ARCHIVE_NOT_ENABLED'?
