@@ -1110,6 +1110,14 @@ $adminApproved=jrNewsAdminSourceApprove($pdo,$owner,
 ensure($adminApproved['state']==='ORIGINAL_POLICY_PENDING'&&
        $adminApproved['newsMonitorEnabled']===false,
     'administrator source approval does not invent original robots or rights');
+$adminEdited=jrNewsAdminSourceEdit($pdo,$owner,$adminNoAuthority['submissionId'],[
+    'title'=>'Edited applied-science university newsroom',
+    'category'=>'universities','priority'=>'P0'
+],1792823010);
+ensure($adminEdited['updated']===true&&
+       $adminEdited['state']==='ORIGINAL_POLICY_PENDING',
+    'admin can edit pending source metadata without changing original rights');
+
 $adminMatched=jrNewsAdminSourceSubmit($pdo,$owner,[
     'title'=>'Verified original university feed',
     'url'=>$externalOfficialFeed,'category'=>'universities','priority'=>'P1'
@@ -1132,6 +1140,17 @@ $activated=jrNewsAdminSourceReconcile(
 ensure($activated['state']==='MONITOR_ACTIVE'&&
        $activated['newsMonitorEnabled']===true,
     'full verified original JREI policy permits admin-initiated monitor start');
+$reused=jrNewsAdminSourceReconcile(
+    $pdo,$owner,$adminMatched['submissionId'],1792823041,true);
+ensure($reused['monitorId']===$activated['monitorId']&&
+       $reused['state']==='MONITOR_ACTIVE',
+    'existing active JREI monitor is reused without a duplicate monitor');
+$noEditActive=false;
+try{jrNewsAdminSourceEdit($pdo,$owner,$adminMatched['submissionId'],[
+    'title'=>'Forbidden active takeover','category'=>'research','priority'=>'P0'
+],1792823042);}catch(RuntimeException $e){$noEditActive=true;}
+ensure($noEditActive,'active monitor metadata edits cannot silently broaden acquisition policy');
+
 $inventory=jrNewsAdminSourceList($pdo,$owner);
 ensure(count($inventory['entries'])===2 &&
        $inventory['entries'][0]['submission_state']==='MONITOR_ACTIVE',
