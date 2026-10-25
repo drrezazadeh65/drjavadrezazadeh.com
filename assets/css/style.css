@@ -873,3 +873,12 @@ body:has(#ops-workspace:not([hidden])) .jr-assistant{display:none}
 :where(main article,main .article-shell) :where([lang="fa"],[dir="rtl"]){
  direction:rtl;unicode-bidi:isolate;
 }
+
+/* Rendering-first bilingual readability: declared in shared CSS to avoid
+   late JavaScript stylesheet insertion and its extra layout work. */
+:where(html[lang="fa"],html[lang="en"]){text-size-adjust:100%;-webkit-text-size-adjust:100%}
+:where(main article,main .article-shell,main .content-body) :where(p,li,blockquote){text-wrap:pretty}
+:where(main article,main .article-shell,main .content-body) :where(h1,h2,h3,h4,h5,h6){text-wrap:balance}
+:where(main article,main .article-shell,main .content-body) :where(pre,code,kbd,samp){direction:ltr;unicode-bidi:isolate}
+:where(main article,main .article-shell,main .content-body) :where(img,video,svg,iframe){max-width:100%}
+:where(main article,main .article-shell,main .content-body) :where(input,textarea,select){max-width:100%;box-sizing:border-box}
