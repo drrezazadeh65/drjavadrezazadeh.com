@@ -634,6 +634,42 @@
        lm.live===true?T('آمادهٔ دریافت کار؛ آزمون مکالمه ضروری است',
          'Eligible for jobs; real dialogue test still required'):
          T('غیرفعال یا بدون Worker تأییدشده','Offline or not approved'));
+     // Owner-visible source-of-truth blockers, computed by PHP from the
+     // existing mother DB and private server policies. Never invite the
+     // owner to manipulate phpMyAdmin or copy secret keys into the browser.
+     const readiness=lm.readinessGates;
+     if(readiness&&Array.isArray(readiness.gates)){
+       const labels={
+         mother_db_schema:['ساختار دیتابیس مادر','Mother DB AI schema'],
+         hybrid_private_switch:['مجوز خصوصی Hybrid','Hybrid private authorization'],
+         local_chat_private_switch:['مجوز خصوصی مکالمه','Local chat private authorization'],
+         owner_public_release:['پذیرش انتشار عمومی','Owner public-release acceptance'],
+         private_queue_encryption:['رمزگذاری خصوصی صف','Private queue encryption'],
+         approved_public_evidence_index:['نمایه شواهد عمومی','Approved public-evidence index'],
+         privacy_retention_worker:['پاکسازی دوره‌ای واقعی','Verified privacy retention execution'],
+         registered_local_model:['مدل ثبت‌شده در دیتابیس','Registered local model'],
+         rights_reviewed_model:['حقوق استفاده بررسی‌شده','Reviewed model rights'],
+         independently_accepted_model:['کیفیت مدل مستقلاً پذیرفته‌شده','Independent model quality acceptance'],
+         authorized_generative_node:['مجوز مستقل Worker مکالمه','Generative node permission'],
+         recent_signed_generative_poll:['امضای تازه Worker مکالمه','Recent signed chat worker poll']
+       };
+       const states={
+         PASS:T('تأیید ساختاری/سیاستی','Server gate satisfied'),
+         BLOCKED:T('مانع مشخص شناسایی شد','Confirmed blocker'),
+         UNKNOWN:T('داده کافی نیست','Unknown; unavailable evidence')
+       };
+       const blockers=readiness.gates.filter(x=>x&&x.state!=='PASS');
+       cell(summary,T('موانع واقعی فعال‌سازی هوش مصنوعی','AI activation blockers'),
+         blockers.length?number(blockers.length)+T(' مانع/نامعلوم',' blocked/unknown'):
+           T('گیت‌های سرور آماده؛ آزمون واقعی سایت هنوز لازم است',
+             'Server gates satisfied; real dialogue acceptance still required'));
+       for(const gate of blockers){
+         if(!Object.hasOwn(labels,gate.id))continue;
+         const label=labels[gate.id];
+         cell(summary,T(label[0],label[1]),
+           states[gate.state]||states.UNKNOWN);
+       }
+     }
      cell(summary,T('مجوزهای Worker گفت‌وگو','Approved generative nodes'),
        number(lm.authorizedNodes));
      // Registration and evaluation-mode heartbeats cannot masquerade as
