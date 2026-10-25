@@ -5,6 +5,7 @@ import {normalizeNewsSource,stageNewsCandidate,sha256,prepareEditorialPreview,
 import {proposeImmutableBilingualNewsRoutes} from '../slug-routes.mjs';
 import {planIranNightNewsWindow} from '../scheduler-integration.mjs';
 import {planBalancedNewsDesk} from '../editorial-coverage-planner.mjs';
+import {decideOfficialNewsRoute} from '../official-publication-policy.mjs';
 import {ownerApprovedExamCalendarEvent} from '../calendar-authority.mjs';
 
 const sha=sha256('official reviewed article');
@@ -147,4 +148,53 @@ test('calendar approvals bind exact source hash and revision',()=>{
     event:{...event,version:2},ownerDecision:decision,
     originalSourceState:sourceState,nowUtc:'2026-10-24T06:00:00Z'
   }),/NEWS_CALENDAR_OWNER_APPROVAL_OR_SOURCE_INVALID/);
+});
+
+test('no arbitrary daily limit on verified official candidate selection',()=>{
+  const many=Array.from({length:35},(_,n)=>({
+    ...candidate,fingerprint:sha256('news-day-'+n),
+    priority:n%3===0?'P0':'P2'
+  }));
+  const plan=planBalancedNewsDesk({candidates:many,
+    nowUtc:'2026-10-24T06:00:00Z',
+    ownerLimits:{regularDailyDraftGoal:1,urgentMaxReviewAlerts:1},
+    officialSourceStates:{
+      [candidate.sourceId]:{issuerVerified:true,sourceStillCurrent:true,
+        usageRightsCurrent:true,evidenceSha256:sha}}
+  });
+  assert.equal(plan.regularDraftCount+plan.urgentCount,35);
+  assert.equal(plan.unlimitedDailyEditorialSelection,true);
+  assert.equal(plan.actualPublicArticleCount,0);
+});
+test('only explicitly verified official notices get automatic handoff eligibility',()=>{
+  const base={candidate:{evidenceSha256:sha},
+    source:{registryState:'AUTHORITATIVE_REVIEWED',
+      issuerIdentityVerified:true,notRevoked:true,
+      exactSourceUrlApproved:true,rightsForPublicNews:true,
+      termsAndRobotsCurrent:true},
+    evidence:{currentIssuerEvidence:true,verifiedContentSha256:sha,
+      claimsMatchPrimaryNotice:true,noMaterialContradictions:true},
+    editorial:{bilingualComplete:true,authorVoiceQualityPassed:true,
+      newsGuidanceComplete:true,internalLinksChecked:true,
+      seoAndCanonicalChecked:true,imageRightsCurrent:true,
+      assistantContextGrounded:true},
+    publisher:{originalCmsConnected:true,exactRoutesCollisionFree:true,
+      authenticatedPublishReceiptSupported:true}
+  };
+  const decision=decideOfficialNewsRoute(base);
+  assert.equal(decision.decision,'ELIGIBLE_FOR_AUTOMATED_CMS_HANDOFF');
+  assert.equal(decision.humanPerArticleApprovalRequired,false);
+  assert.equal(decision.published,false);
+  assert.equal(decision.dailyStoryQuota,null);
+  const suspicious=decideOfficialNewsRoute({...base,
+    evidence:{...base.evidence,noMaterialContradictions:false}});
+  assert.equal(suspicious.decision,'OWNER_EXCEPTION_QUEUE');
+  assert.equal(suspicious.humanPerArticleApprovalRequired,true);
+  const noRights=decideOfficialNewsRoute({...base,
+    source:{...base.source,rightsForPublicNews:false}});
+  assert.equal(noRights.decision,'OWNER_EXCEPTION_QUEUE');
+  const noCms=decideOfficialNewsRoute({...base,
+    publisher:{...base.publisher,originalCmsConnected:false}});
+  assert.equal(noCms.published,false);
+  assert.equal(noCms.decision,'OWNER_EXCEPTION_QUEUE');
 });
