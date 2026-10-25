@@ -187,6 +187,14 @@ function jrNewsDispatchApi(PDO $pdo,string $method,string $route,
         return jrNewsApproveOfficialExamMilestone($pdo,$owner,
             jrNewsRouteBody($body,'milestoneId',36),$resolver,time());
     }
+    if ($method==='GET' && $route==='/news/v1/owner/publication/preflight') {
+        $owner=$serverCtx['existingOwnerMfaSession']??null;
+        $preflight=$ownerIntegrationPorts['originalNewsPublicationPreflight']??null;
+        if(!is_array($owner)||!is_callable($preflight))
+            throw new RuntimeException('news_owner_original_publisher_preflight_unavailable');
+        return $preflight($pdo,$owner,
+            jrNewsRouteBody($body,'revisionId',36));
+    }
     if ($method==='GET' && $route==='/news/v1/owner/publication/backlog') {
         $owner=$serverCtx['existingOwnerMfaSession']??null;
         if(!is_array($owner))

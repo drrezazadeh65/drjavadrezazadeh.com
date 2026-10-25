@@ -456,6 +456,35 @@ export function mountNewsOwnerPanel({root,csrfResolver,
             say('در انتظار رسید انتشار واقعی CMS',
               'Awaiting verified original CMS publication receipt');
           item.append(name,state);
+          const preflight=document.createElement('button');
+          preflight.type='button';
+          preflight.textContent=say('بررسی موانع انتشار','Check publication blockers');
+          preflight.addEventListener('click',async()=>{
+            preflight.disabled=true;
+            const details=document.createElement('p');
+            details.setAttribute('role','status');
+            details.textContent=say('در حال بررسی وضعیت واقعی منبع و ناشر…',
+              'Checking original source and publisher integration…');
+            item.append(details);
+            try{
+              const result=await request('/owner/publication/preflight?revisionId='+
+                encodeURIComponent(record.revisionId),{method:'GET'});
+              if(result.schema!=='jr.jrei.news-owner-publication-readiness.v1'||
+                 result.publisherReady!==false||
+                 !Array.isArray(result.blockers))
+                throw Error('NEWS_ORIGINAL_PUBLISHER_READINESS_UNKNOWN');
+              const reasons=result.blockers.filter(v=>
+                typeof v==='string'&&/^[A-Z0-9_]{5,90}$/.test(v)).slice(0,8);
+              details.textContent=say(
+                'انتشار هنوز مجاز نیست. موانع: ',
+                'Publication remains blocked. Gates: ')+reasons.join(' · ');
+            }catch{
+              details.textContent=say(
+                'بررسی وضعیت ناشر فعلاً در دسترس نیست؛ انتشار تأیید نشده.',
+                'Publisher preflight unavailable; publication unverified.');
+            }finally{preflight.disabled=false;}
+          });
+          item.append(preflight);
           if(record.state==='APPROVED_NOT_STAGED'){
             const stage=document.createElement('button');
             stage.type='button';

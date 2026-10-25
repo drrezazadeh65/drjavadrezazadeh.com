@@ -137,3 +137,20 @@ test('owner approval must recheck the original KA receipt and current rights',()
   assert.match(php,/\$sourceCurrent,\$unavailable,\$ports/);
   assert.doesNotMatch(php,/file_get_contents\s*\(\s*['"]https?:/i);
 });
+
+test('owner publishing preflight is read-only and cannot invent CMS readiness',()=>{
+  const api=fs.readFileSync(path.join(out,'api/operations-jrei-news.php'),'utf8');
+  const module=fs.readFileSync(path.join(privateDir,'publication-readiness.php'),'utf8');
+  const dispatcher=fs.readFileSync(path.join(privateDir,'news-api-adapter.php'),'utf8');
+  const ui=fs.readFileSync(path.join(out,'assets/js/jrei-news-owner-panel-v1.mjs'),'utf8');
+  assert.match(module,/function jrNewsOwnerPublicationReadiness\(/);
+  assert.match(module,/'publisherReady'=>false/);
+  assert.match(module,/'originalCmsReceiptVerified'=>false/);
+  assert.match(module,/'filesystemWritePerformed'=>false/);
+  assert.match(module,/ORIGINAL_CMS_PUBLISHER_NOT_CONNECTED/);
+  assert.match(module,/IMMUTABLE_ROUTE_REGISTRY_NOT_VERIFIED/);
+  assert.match(api,/originalNewsPublicationPreflight/);
+  assert.match(dispatcher,/\/news\/v1\/owner\/publication\/preflight/);
+  assert.match(ui,/\/owner\/publication\/preflight\?revisionId=/);
+  assert.doesNotMatch(module,/file_put_contents|mkdir\(|rename\(|unlink\(|curl_exec|exec\(/);
+});

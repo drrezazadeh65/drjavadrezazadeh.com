@@ -23,6 +23,7 @@ require_once __DIR__.'/owner-preview.php';
 require_once __DIR__.'/owner-overview.php';
 require_once __DIR__.'/owner-review-outbox.php';
 require_once __DIR__.'/publication-dispatch.php';
+require_once __DIR__.'/publication-readiness.php';
 require_once __DIR__.'/calendar-read.php';
 require_once __DIR__.'/exam-deadline-owner.php';
 require_once __DIR__.'/exam-reminders.php';

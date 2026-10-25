@@ -157,6 +157,13 @@ function jrOperationsNewsDispatch(
     }
     $sourceCurrent=static fn(string $sourceId,string $uri,string $digest):array=>
         jrNewsRecheckOriginalArticleReceipt($pdo,$sourceId,$uri,$digest);
+    $ports['originalNewsPublicationPreflight']=
+        static function(PDO $db,array $owner,string $revisionId)
+          use($sourceCurrent):array {
+            return jrNewsOwnerPublicationReadiness(
+                $db,$owner,$revisionId,$sourceCurrent,dirname(__DIR__)
+            );
+        };
     return jrNewsDispatchApi(
         $pdo,$method,'/news/v1'.$route,$body,$ctx,
         $unavailable,

@@ -295,6 +295,21 @@ $decision=jrNewsPrivateRecordDecision($pdo,$owner,$draft['revisionId'],
         jrNewsRecheckOriginalArticleReceipt($pdo,$sourceId,$url,$hash));
 ensure($decision['editorialState']==='OWNER_APPROVED',
     'owner decision committed');
+$preflight=jrNewsOwnerPublicationReadiness(
+    $pdo,$owner,$draft['revisionId'],
+    static fn(string $sourceId,string $url,string $hash):array=>
+        jrNewsRecheckOriginalArticleReceipt($pdo,$sourceId,$url,$hash),
+    dirname(__DIR__,3)
+);
+ensure($preflight['schema']==='jr.jrei.news-owner-publication-readiness.v1'&&
+       $preflight['publisherReady']===false&&
+       $preflight['published']===false&&
+       $preflight['checks']['ownerApprovalAndExactDigest']===true&&
+       $preflight['checks']['licensedOriginalSourceCurrent']===true&&
+       $preflight['checks']['bilingualRoutesFromApprovedDraft']===true&&
+       in_array('ORIGINAL_CMS_PUBLISHER_NOT_CONNECTED',
+           $preflight['blockers'],true),
+       'MFA-approved original source does not imply a connected public CMS');
 $queued=jrNewsStageFromApprovedStoredRouteProposal($pdo,$owner,
     $draft['revisionId'],
     static function(array $params)use($itemId):array{
