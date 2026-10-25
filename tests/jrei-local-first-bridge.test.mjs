@@ -6,6 +6,8 @@ const read=path=>readFileSync(new URL('../'+path,import.meta.url),'utf8');
 const server=read('api/index.php');
 const queue=read('api/jrei-local-chat.php');
 const sql=read('docs/migrations/20261024_jrei_local_inference_queue_mother_mysql.sql');
+const caretaker=read('api/jrei-local-schema-caretaker.php');
+const registrySql=read('docs/migrations/20261023_jrei_model_registry_mother_mysql.sql');
 const js=read('assets/js/assistant.js');
 const windows=read('platform/jrei-v5/windows-worker/jrei-worker.mjs');
 const model=read('platform/jrei-v5/windows-worker/jrei-loopback-model-adapter.mjs');
@@ -78,4 +80,27 @@ test('expired chat text has bounded default-off Cron deletion',()=>{
   assert.match(startup,/start-chat/);
   assert.match(consoleJs,/jreiLocalGenerative/);
   assert.match(consoleJs,/set_local_chat_node/);
+});
+
+test('source-approved schema caretaker includes registry before queue and requires a verified private backup',()=>{
+  assert.match(registrySql,/CREATE TABLE IF NOT EXISTS jrei_local_model_registry/);
+  assert.match(caretaker,/jrei_local_model_registry/);
+  assert.match(caretaker,/20261023_jrei_model_registry_mother_mysql\.sql/);
+  assert.match(caretaker,/20261024_jrei_local_inference_queue_mother_mysql\.sql/);
+  assert.match(caretaker,/if\(count\(\$statements\)!==3\)/);
+  assert.match(caretaker,/'expectedTables'=>3/);
+  assert.match(caretaker,/jrei_schema_wrong_database/);
+  assert.match(caretaker,/jrJreiLocalSchemaBackupReady\(\$cfg\)/);
+  assert.match(caretaker,/GET_LOCK\(\?,0\)/);
+  assert.match(caretaker,/jrei_schema_unsafe_ddl/);
+  assert.doesNotMatch(caretaker,/CREATE DATABASE\s+drjavad/);
+});
+test('JREI-LM owner console reports missing schema caretaker switch and configured backup reference without exposing private paths',()=>{
+  const snapshot=read('api/jrei-local-chat.php');
+  assert.match(snapshot,/'schemaCaretakerEnabled'/);
+  assert.match(snapshot,/'schemaCaretakerBackupReferenceConfigured'/);
+  assert.match(snapshot,/'schemaCaretakerBackupVerified'=>false/);
+  assert.match(consoleJs,/lm\.schemaCaretakerEnabled===true/);
+  assert.match(consoleJs,/lm\.schemaCaretakerBackupReferenceConfigured===true/);
+  assert.doesNotThrow(()=>new vm.Script(consoleJs));
 });
