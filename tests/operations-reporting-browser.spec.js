@@ -113,16 +113,37 @@ test('A delayed authorized snapshot cannot start a fresh MFA window after the se
  await authorized(page,{expiry:1,delay:1400});const response=page.waitForResponse(r=>new URL(r.url()).pathname==='/api/admin/operations');await page.goto(base+'/en/account/admin/');await (await response).finished();await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
  await expect(page.locator('#ops-workspace')).toBeHidden();await expect(page.locator('#ops-cards')).toBeEmpty();await expect(page.locator('#ops-reporting nav button')).toHaveCount(0);
 });
-test('Locking while a refresh is pending invalidates its response instead of reopening copied reports',async({page})=>{
- const data=fixture();let snapshots=0,release,refreshSettled=false;const gate=new Promise(resolve=>{release=resolve});
- await page.route('**/api/admin/operations**',async route=>{if(new URL(route.request().url()).pathname.endsWith('/session'))return route.fulfill({json:{ok:true,mfaRequired:false,csrfToken:'c'.repeat(64),mfaExpiresIn:600}});snapshots++;if(snapshots>1){await gate;try{await route.fulfill({json:data})}catch(error){if(!(await page.locator('#ops-workspace').isHidden()))throw error;}finally{refreshSettled=true;}return;}return route.fulfill({json:data});});
- await page.goto(base+'/en/account/admin/');await expect(page.locator('#ops-workspace')).toBeVisible();await page.locator('#ops-refresh-data').click();
- // The control may coalesce or initiate additional reads; lock safety must not depend on exactly two network requests.
+test('server-revoked MFA during a delayed refresh clears private copies and blocks stale data',async({page})=>{
+ const data=fixture();let snapshots=0,release,refreshSettled=false,revoked=false;
+ const gate=new Promise(resolve=>{release=resolve;});
+ await page.route('**/api/admin/operations**',async route=>{
+  if(new URL(route.request().url()).pathname.endsWith('/session'))
+   return route.fulfill({json:{ok:true,mfaRequired:revoked,csrfToken:'c'.repeat(64),
+      mfaExpiresIn:revoked?0:600}});
+  snapshots++;
+  if(snapshots>1){
+   await gate;
+   try{await route.fulfill({json:data})}
+   catch(error){if(!(await page.locator('#ops-workspace').isHidden()))throw error;}
+   finally{refreshSettled=true;}
+   return;
+  }
+  return route.fulfill({json:data});
+ });
+ await page.goto(base+'/en/account/admin/');
+ await expect(page.locator('#ops-workspace')).toBeVisible();
+ await page.locator('#ops-refresh-data').click();
  await expect.poll(()=>snapshots).toBeGreaterThanOrEqual(2);
- await page.evaluate(()=>{Object.defineProperty(document,'hidden',{configurable:true,value:true});document.dispatchEvent(new Event('visibilitychange'));Object.defineProperty(document,'hidden',{configurable:true,value:false});});await expect(page.locator('#ops-workspace')).toBeHidden();
- // A locked session may abort its pending request; an absent response is not a security failure.
- release();await expect.poll(()=>refreshSettled,{timeout:10000}).toBe(true);await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
- await expect(page.locator('#ops-workspace')).toBeHidden();await expect(page.locator('#ops-reporting')).toBeEmpty();
+ // Switching away alone MUST NOT log out; actual server revocation must.
+ await page.evaluate(()=>{Object.defineProperty(document,'hidden',{configurable:true,value:true});document.dispatchEvent(new Event('visibilitychange'));});
+ await expect(page.locator('#ops-workspace')).toBeVisible();
+ revoked=true;
+ await page.evaluate(()=>{Object.defineProperty(document,'hidden',{configurable:true,value:false});document.dispatchEvent(new Event('visibilitychange'));delete document.hidden;});
+ await expect(page.locator('#ops-workspace')).toBeHidden();
+ release();await expect.poll(()=>refreshSettled,{timeout:10000}).toBe(true);
+ await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+ await expect(page.locator('#ops-workspace')).toBeHidden();
+ await expect(page.locator('#ops-reporting')).toBeEmpty();
 });
 
 test('All 12 operational engines expose A/B/C views without claiming a worker or persistent learning exists',async({page})=>{
