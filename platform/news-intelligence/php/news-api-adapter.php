@@ -24,6 +24,7 @@ require_once __DIR__.'/preferences-replace.php';
 require_once __DIR__.'/source-monitor-owner.php';
 require_once __DIR__.'/approved-feed-item-link.php';
 require_once __DIR__.'/jrei-ka-source-adapter.php';
+require_once __DIR__.'/official-institution-directory.php';
 require_once __DIR__.'/exam-deadline-owner.php';
 require_once __DIR__.'/publication-dispatch.php';
 require_once __DIR__.'/owner-review-outbox.php';
@@ -175,11 +176,20 @@ function jrNewsDispatchApi(PDO $pdo,string $method,string $route,
             jrNewsRouteBody($body,'originalArticleSourceId',36),time()
         );
     }
+    if ($method==='GET' && $route==='/news/v1/owner/source/official-directory') {
+        $owner=$serverCtx['existingOwnerMfaSession']??null;
+        if(!is_array($owner))throw new RuntimeException('news_owner_session_required');
+        jrNewsOwnerAuthority($owner);
+        return jrNewsOriginalInstitutionSourceInventory($pdo,50);
+    }
     if ($method==='GET' && $route==='/news/v1/owner/source/available') {
         $owner=$serverCtx['existingOwnerMfaSession']??null;
         if(!is_array($owner))
             throw new RuntimeException('news_owner_session_required');
-        return jrNewsOwnerStageableOriginalSources($pdo,$owner,80);
+        $available=jrNewsOwnerStageableOriginalSources($pdo,$owner,80);
+        $available['officialSourceDiscoveryDirectory']=
+            jrNewsOriginalInstitutionSourceInventory($pdo,50);
+        return $available;
     }
     if ($method==='GET' && $route==='/news/v1/owner/source/monitors') {
         $owner=$serverCtx['existingOwnerMfaSession']??null;
