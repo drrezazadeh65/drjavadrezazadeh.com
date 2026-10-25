@@ -153,7 +153,7 @@ $pdo->exec('CREATE TABLE jrei_ka_jobs (
     source_policy_revision BIGINT UNSIGNED NOT NULL,
     observed_digest CHAR(64) CHARACTER SET ascii COLLATE ascii_bin,
     job_state VARCHAR(40) NOT NULL,
-    priority_tier VARCHAR(10) NOT NULL DEFAULT 'P1',
+    priority_tier VARCHAR(10) NOT NULL DEFAULT "P1",
     created_at BIGINT UNSIGNED NOT NULL DEFAULT 1792820100,
     updated_at BIGINT UNSIGNED NOT NULL DEFAULT 1792820200,
     bytes_observed INT UNSIGNED NOT NULL DEFAULT 100,
