@@ -52,12 +52,12 @@ $pdo->exec('CREATE TABLE jrei_exam_sources (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci');
 $pdo->exec('CREATE TABLE jrei_ka_source_policies (
     source_id CHAR(36) PRIMARY KEY,
-    revision BIGINT UNSIGNED NOT NULL,
+    revision BIGINT UNSIGNED NOT NULL DEFAULT 1,
     refresh_interval_seconds INT UNSIGNED NOT NULL,
     scheduling_state VARCHAR(30) NOT NULL,
-    rights_reviewed TINYINT NOT NULL,
-    robots_terms_reviewed TINYINT NOT NULL,
-    transport_reviewed TINYINT NOT NULL,
+    rights_reviewed TINYINT NOT NULL DEFAULT 0,
+    robots_terms_reviewed TINYINT NOT NULL DEFAULT 0,
+    transport_reviewed TINYINT NOT NULL DEFAULT 0,
     rights_evidence_sha256 CHAR(64) CHARACTER SET ascii COLLATE ascii_bin NULL,
     robots_terms_evidence_sha256 CHAR(64) CHARACTER SET ascii COLLATE ascii_bin NULL,
     transport_evidence_sha256 CHAR(64) CHARACTER SET ascii COLLATE ascii_bin NULL,
