@@ -10,6 +10,79 @@ if(!defined('BERTINA_API_BOOTSTRAPPED')){http_response_code(404);exit;}
  * minors' records, rank estimates, saved documents or bank transactions.
  * Schema missing = unavailable, not an empty invented learning history.
  */
+/**
+ * A bounded authenticated START discovery, not a permission grant.
+ * Original adult consent, exact verified payment, immutable questions,
+ * independent answer key and current clock are checked AGAIN under the
+ * original server transaction by jrExamAttemptStart().
+ * No student content or payment identifiers are exposed.
+ */
+function jrExamCandidateStartOptions(PDO $pdo,string $accountId,int $now): array {
+    $cfg=cfg();
+    if(($cfg['jrei_exam_commercial_enabled']??false)!==true||
+       ($cfg['jrei_exam_runtime_enabled']??false)!==true||
+       ($cfg['jrei_exam_item_delivery_accepted']??false)!==true||
+       !function_exists('jrExamPublishedItemDeliveryReady')||
+       !jrExamPublishedItemDeliveryReady($pdo))return [];
+    // Do not expose a start control without an original currently-consented
+    // adult account-owned assessment subject. No guardian/minor assumptions.
+    $q=$pdo->prepare("SELECT id FROM eco_subjects
+      WHERE owner_account_id=? AND guardian_account_id IS NULL
+        AND age_band IN ('ADULT','18_PLUS')
+        AND subject_type='LEARNER' AND status='ACTIVE'
+      ORDER BY id ASC LIMIT 4");
+    $q->execute([$accountId]);$subject=null;
+    foreach($q->fetchAll(PDO::FETCH_COLUMN) as $candidate){
+        if(!validUuid((string)$candidate))continue;
+        try{
+            jrExamAdultSubjectConsent($pdo,$accountId,(string)$candidate);
+            $subject=(string)$candidate;
+            break;
+        }catch(DomainException $e){continue;}
+    }
+    if($subject===null)return [];
+    // One candidate must not see duplicate offers from two entitlement rows.
+    // The actual unique entitlement and original provider's verified claim
+    // remain mandatory under the transactional start lock.
+    $q=$pdo->prepare("SELECT e.offering_id,o.opens_at,o.closes_at,
+        o.duration_seconds,o.max_attempts,
+        p.title_fa,p.title_en,p.division,
+        (SELECT COUNT(*) FROM jrei_exam_commercial_attempts a
+         WHERE a.account_id=e.account_id AND a.offering_id=e.offering_id)
+         AS attempts_used
+      FROM jrei_exam_commercial_entitlements e
+      JOIN jrei_exam_commercial_offerings o ON o.offering_id=e.offering_id
+      JOIN jrei_exam_commercial_products p ON p.product_id=o.product_id
+      WHERE e.account_id=? AND e.state='ACTIVE' AND e.revoked_at IS NULL
+        AND e.begins_at<=? AND e.expires_at>?
+        AND o.offering_state='PUBLISHED' AND p.product_state='PUBLISHED'
+        AND o.opens_at<=? AND o.closes_at>?
+      ORDER BY o.closes_at ASC,e.offering_id ASC LIMIT 40");
+    $q->execute([$accountId,$now,$now,$now,$now]);$options=[];$seen=[];
+    foreach($q->fetchAll(PDO::FETCH_ASSOC) as $row){
+        $id=(string)$row['offering_id'];
+        if(!validUuid($id)||isset($seen[$id]))continue;
+        $seen[$id]=true;
+        $allowed=(int)$row['max_attempts'];
+        if($allowed<1||$allowed>10||(int)$row['attempts_used']>=$allowed||
+           (int)$row['duration_seconds']<60||
+           (int)$row['duration_seconds']>28800)continue;
+        $options[]=[
+          'offeringId'=>$id,'subjectId'=>$subject,
+          'titleFa'=>(string)$row['title_fa'],
+          'titleEn'=>(string)$row['title_en'],
+          'division'=>(string)$row['division'],
+          'durationSeconds'=>(int)$row['duration_seconds'],
+          'closesAt'=>(int)$row['closes_at'],
+          'remainingAttemptAllowance'=>$allowed-(int)$row['attempts_used'],
+          'provisionalOnly'=>true,
+          'consentPaymentItemsAndScientificReviewRecheckedAtStart'=>true
+        ];
+        if(count($options)>=12)break;
+    }
+    return $options;
+}
+
 function jrExamCandidateSnapshot(PDO $pdo,string $accountId): array {
     if(!validUuid($accountId))
         throw new InvalidArgumentException('invalid_candidate_account');
@@ -57,8 +130,15 @@ function jrExamCandidateSnapshot(PDO $pdo,string $accountId): array {
           'resultIndependentlyValidated'=>false
         ];
     }
+    // Read-only listing is intentionally best-effort. Missing registration
+    // or a stale policy shows no proposed starts, never invented access.
+    $startOptions=[];
+    try{$startOptions=jrExamCandidateStartOptions($pdo,$accountId,time());}
+    catch(Throwable $e){}
     return [
       'ok'=>true,'schema'=>'jr.jrei.candidate-exams.v1',
+      'startOptions'=>$startOptions,
+      'startOptionsAreNotEntitlementProof'=>true,
       'scope'=>'OWNER_ACCOUNT_ONLY',
       'attempts'=>$rows,'hasMorePossible'=>count($rows)>=40,
       'checkoutEnabled'=>false,'answerDisclosureEnabled'=>false,
