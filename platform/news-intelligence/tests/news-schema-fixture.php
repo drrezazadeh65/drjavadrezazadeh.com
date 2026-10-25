@@ -183,6 +183,14 @@ $pdo->prepare(
 )->execute([$observedId,$job,$itemId,1,$articleHash,$contentHash,
     $contentHash.'.bin']);
 require_once dirname(__DIR__,3).'/api/operations-jrei-news.php';
+$integration=jrOperationsNewsReadiness(
+    $pdo,['jrei_news_integrated_release_accepted'=>false]
+);
+ensure($integration['ownerQueueAccessible']===false &&
+       $integration['requiredMotherSchemaAvailable']===true &&
+       $integration['publicPublicationActivatedByCheck']===false &&
+       $integration['crawlerActivatedByCheck']===false,
+    'pre-acceptance readiness is measured without activating news');
 $rechecked=jrNewsRecheckOriginalArticleReceipt(
     $pdo,$itemId,$articleUrl,$contentHash
 );

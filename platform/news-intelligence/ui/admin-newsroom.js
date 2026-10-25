@@ -107,7 +107,25 @@ export function mountNewsOwnerPanel({root,csrfResolver,
       const publishing=document.createElement('p');
       publishing.textContent=say('اتصال انتشار عمومی: تأییدنشده. هیچ خبری با این بررسی منتشر نمی‌شود.',
         'Public publishing: not connected. This diagnostic cannot publish.');
-      integration.append(heading,statusLine,publishing);
+      const blockerDetails=document.createElement('p');
+      const missing=Object.entries(readiness.originalNewsTables||{})
+        .filter(([name,state])=>/^[a-z0-9_]{3,60}$/.test(name)&&
+          state!=='AVAILABLE').slice(0,8).map(([name])=>name);
+      const messages=[];
+      if(readiness.packagedPrivateNewsLibraryAvailable!==true)
+        messages.push(say('بستهٔ خصوصی ماژول یافت نشد','Private news library is missing'));
+      if(readiness.requiredMotherSchemaAvailable!==true)
+        messages.push(say('جدول‌های پایگاه داده در دسترس نیستند: ',
+          'Unavailable mother-database tables: ')+
+          (missing.join('، ')||say('نامشخص','Unknown')));
+      if(readiness.explicitOriginalApiFlagEnabled!==true)
+        messages.push(say('مجوز API اصلی فعال نشده','Original API activation not approved'));
+      if(readiness.integratedReleaseAccepted!==true)
+        messages.push(say('پذیرش نهایی یکپارچه ثبت نشده','Final integrated acceptance not recorded'));
+      blockerDetails.textContent=messages.length?messages.join(' · '):
+        say('اتصال صف بررسی آماده است؛ اتصال ناشر عمومی هنوز اثبات نشده.',
+          'Review queue is configured; original publisher acceptance is still missing.');
+      integration.append(heading,statusLine,blockerDetails,publishing);
       if(readiness.ownerQueueAccessible!==true){
         show(say('تحریریه هنوز غیرفعال است؛ جزئیات اتصال در همین صفحه نمایش داده شد.',
           'Newsroom remains disabled; integration blockers are shown above.'));
