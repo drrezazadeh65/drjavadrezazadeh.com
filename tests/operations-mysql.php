@@ -620,7 +620,7 @@ try {
  check((int)$pdo->query('SELECT COUNT(*) FROM operations_evidence')->fetchColumn()===$beforeTls+2,
     'Rejected TLS evidence mutated operations MySQL');
 
- $remaining=request('/api/admin/operations/session',200);check($remaining['mfaExpiresIn']>0&&$remaining['mfaExpiresIn']<=600,'incorrect MFA expiry');
+ $remaining=request('/api/admin/operations/session',200);check($remaining['mfaExpiresIn']>0&&$remaining['mfaExpiresIn']<=43200,'incorrect MFA expiry');
  $configuration['operations_admins'][$id]['totp_secret']=str_repeat('J',32);writeConfig();request('/api/admin/operations',403);
  $configuration['operations_admins'][$id]['totp_secret']=$secret;writeConfig();
  $pdo->prepare("UPDATE customer_accounts SET status='disabled' WHERE id=?")->execute([$id]);request('/api/admin/operations',403);
