@@ -11,6 +11,7 @@ declare(strict_types=1);
 if(!defined('BERTINA_API_BOOTSTRAPPED')){http_response_code(404);exit;}
 require_once __DIR__.'/jrei-ka-acquisition-dispatch.php';
 require_once __DIR__.'/internal/jrei-news/feed-discovery.php';
+require_once __DIR__.'/internal/jrei-news/original-auto-article-link.php';
 
 function jrNewsBridgeOriginalFeedObservation(
     PDO $pdo,array $cfg,int $at
@@ -151,5 +152,21 @@ function jrNewsBridgeOriginalFeedObservation(
             $summary['state']='PARTIAL_PRIVATE_REVIEW_REQUIRED';
         }
     }
+    // An already verified ORIGINAL article source requires no additional
+    // per-story human confirmation. Sources not registered by the original
+    // JREI-KA authority remain safely pending; this module never approves
+    // them and never starts a second crawler.
+    $links=jrNewsAutoLinkOriginalVerifiedArticleSources(
+        $pdo,[
+            'source'=>'ORIGINAL_JREI_PRIVATE_NEWS_WORKER',
+            'originalServerSessionVerified'=>true,
+            'newsPipelineEnabled'=>true
+        ],$at,40);
+    $summary['automaticallyLinkedOriginalArticleSources']=
+        (int)$links['linked'];
+    $summary['stillAwaitingIndependentSourceRegistration']=
+        (int)$links['pending'];
+    $summary['requiresOriginalArticleSourceApproval']=false;
+    $summary['requiresIndependentOriginalSourceAuthorization']=true;
     return $summary;
 }
