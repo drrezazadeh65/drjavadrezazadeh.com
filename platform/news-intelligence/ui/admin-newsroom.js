@@ -35,12 +35,15 @@ export function mountNewsOwnerPanel({root,csrfResolver,
   const list=document.createElement('div');list.className='ni-admin-queue';
   const customSources=document.createElement('section');
   customSources.className='ni-admin-custom-source-manager';
+  const delegatedControls=document.createElement('section');
+  delegatedControls.className='ni-admin-custom-source-manager';
   const standingControls=document.createElement('section');
   standingControls.className='ni-admin-custom-source-manager';
   const exceptionDesk=document.createElement('section');
   exceptionDesk.className='ni-admin-custom-source-manager';
   root.replaceChildren(header,refresh,status,standingControls,customSources,
-    exceptionDesk,integration,metrics,sources,articles,acquisition,publications,list);
+    delegatedControls,exceptionDesk,integration,metrics,sources,articles,
+    acquisition,publications,list);
   const show=s=>{status.textContent=s;};
   const request=async (path,options)=>{
     const token=csrfResolver();
@@ -160,6 +163,132 @@ export function mountNewsOwnerPanel({root,csrfResolver,
         'ثبت مجوز انجام نشد؛ وضعیت MFA یا مهاجرت را بررسی کنید.',
         'Grant not confirmed; verify MFA or migration.');
     }finally{standingPending=false;grantStanding.disabled=false;}
+  });
+
+  // A single precise ORIGINAL JREI source + /news/ prefix authorization
+  // replaces individual article approvals. It is not a blanket domain trust
+  // or a workaround for transport, media rights or scientific verification.
+  const delegatedTitle=document.createElement('h3');
+  delegatedTitle.textContent=say('تفویض مسیر رسمی؛ بدون تأیید تک‌تک خبرها',
+    'Delegate an exact official-news path, not individual articles');
+  const delegatedIntro=document.createElement('p');
+  delegatedIntro.textContent=say(
+    'شناسهٔ منبع تأییدشده JREI و مسیر دقیق اعلامیه‌ها (مانند /news/) را یک‌بار ثبت کنید. فقط لینک‌های همان دامنه و مسیر، با مجوز معتبر منبع، خودکار به صف دریافت اصلی اضافه می‌شوند.',
+    'Approve the exact JREI source ID and a bounded path such as /news/ once. Only links under that host and path, with current primary-source permissions, can enter the original acquisition queue.');
+  const delegatedForm=document.createElement('form');
+  const scopeSource=document.createElement('input');
+  scopeSource.type='text';scopeSource.required=true;scopeSource.maxLength=36;
+  scopeSource.pattern='[a-fA-F0-9-]{36}';
+  scopeSource.placeholder=say('شناسه منبع اصلی JREI (UUID)',
+    'Verified original JREI source UUID');
+  const scopePrefix=document.createElement('input');
+  scopePrefix.type='text';scopePrefix.required=true;scopePrefix.maxLength=220;
+  scopePrefix.value='/news/';scopePrefix.placeholder='/news/';
+  const scopeDays=document.createElement('select');
+  for(const days of [7,30,60,90]){
+    const opt=document.createElement('option');
+    opt.value=String(days);opt.textContent=say('اعتبار '+days+' روز',
+      days+' days');if(days===30)opt.selected=true;scopeDays.append(opt);
+  }
+  const scopeLimit=document.createElement('select');
+  for(const maximum of [5,10,20,40]){
+    const opt=document.createElement('option');
+    opt.value=String(maximum);opt.textContent=say('حداکثر '+maximum+' مقاله در هر چرخه',
+      maximum+' articles per cycle');
+    if(maximum===20)opt.selected=true;scopeLimit.append(opt);
+  }
+  const scopeGrant=document.createElement('button');
+  scopeGrant.type='submit';
+  scopeGrant.textContent=say('تأیید مسیر رسمی برای دریافت خودکار',
+    'Delegate official path for autonomous discovery');
+  delegatedForm.append(scopeSource,scopePrefix,scopeDays,scopeLimit,scopeGrant);
+  const delegatedStatus=document.createElement('p');
+  delegatedStatus.setAttribute('role','status');
+  const delegatedItems=document.createElement('div');
+  delegatedItems.className='ni-admin-custom-source-items';
+  delegatedControls.append(delegatedTitle,delegatedIntro,
+    delegatedForm,delegatedStatus,delegatedItems);
+  let scopeWritePending=false;
+  async function refreshDelegatedScopes(){
+    try{
+      const data=await request('/owner/delegated-source-scopes',{method:'GET'});
+      if(data.schema!=='jr.jrei.news-delegated-source-scopes.v1'||
+         !Array.isArray(data.scopes))
+        throw Error('NEWS_DELEGATED_SCOPES_RESPONSE_INVALID');
+      delegatedItems.replaceChildren();
+      if(data.scopes.length===0){
+        const blank=document.createElement('p');
+        blank.textContent=say('هنوز مسیر تفویض‌شده‌ای وجود ندارد.',
+          'No approved path scope exists yet.');
+        delegatedItems.append(blank);
+      }
+      for(const item of data.scopes){
+        const card=document.createElement('section');
+        const heading=document.createElement('h4');
+        heading.textContent=String(item.approved_host??'')+
+          String(item.approved_path_prefix??'');
+        const expires=Number(item.expires_at);
+        const active=item.revoked_at===null &&
+          Number.isFinite(expires)&&expires>Math.floor(Date.now()/1000);
+        const note=document.createElement('p');
+        note.textContent=active?
+          say('دریافت در محدودهٔ مجاز؛ معتبر تا ',
+            'Scoped acquisition; valid through ')+
+          new Date(expires*1000).toLocaleDateString(fa?'fa-IR':'en-US'):
+          say('لغوشده یا منقضی','Revoked or expired');
+        card.append(heading,note);
+        if(active&&/^[a-f0-9-]{36}$/i.test(String(item.scope_id??''))){
+          const revoke=document.createElement('button');revoke.type='button';
+          revoke.textContent=say('لغو فوری محدوده','Revoke source scope');
+          revoke.addEventListener('click',async()=>{
+            if(scopeWritePending)return;
+            scopeWritePending=true;revoke.disabled=true;
+            try{
+              await request('/owner/delegated-source-scopes/revoke',{
+                method:'POST',body:JSON.stringify({scopeId:item.scope_id})
+              });
+              delegatedStatus.textContent=say('محدوده لغو شد.',
+                'Scope revoked.');await refreshDelegatedScopes();
+            }catch(err){
+              delegatedStatus.textContent=say(
+                'لغو تأیید نشد؛ اتصال مدیریت را بررسی کنید.',
+                'Revocation unconfirmed; review admin connection.');
+            }finally{scopeWritePending=false;revoke.disabled=false;}
+          });
+          card.append(revoke);
+        }
+        delegatedItems.append(card);
+      }
+      return true;
+    }catch(err){
+      delegatedStatus.textContent=say(
+        'فعال‌سازی محدودۀ خبری یا مهاجرت اختصاصی آن هنوز انجام نشده است.',
+        'Delegated scope switch or its database migration is not yet active.');
+      return false;
+    }
+  }
+  delegatedForm.addEventListener('submit',async event=>{
+    event.preventDefault();
+    if(scopeWritePending)return;
+    scopeWritePending=true;scopeGrant.disabled=true;
+    try{
+      await request('/owner/delegated-source-scopes/grant',{
+        method:'POST',body:JSON.stringify({
+          sourceId:scopeSource.value.trim(),
+          pathPrefix:scopePrefix.value.trim(),
+          validDays:Number(scopeDays.value),
+          maxArticlesPerCycle:Number(scopeLimit.value),
+          confirmation:'APPROVE_EXACT_ORIGINAL_OFFICIAL_NEWS_PATH'
+        })
+      });
+      delegatedStatus.textContent=say('محدوده تأیید شد.',
+        'Delegated source path recorded.');
+      await refreshDelegatedScopes();
+    }catch(err){
+      delegatedStatus.textContent=say(
+        'محدوده ثبت نشد؛ وضعیت تأیید منبع، حقوق و مهاجرت را بررسی کنید.',
+        'Not registered; verify source approval, rights and migration.');
+    }finally{scopeWritePending=false;scopeGrant.disabled=false;}
   });
 
   // Manager source intake is intentionally available before live publishing:
@@ -478,7 +607,7 @@ export function mountNewsOwnerPanel({root,csrfResolver,
     integration.replaceChildren();
     await Promise.all([
       refreshCustomSources(),refreshStandingPolicy(),
-      refreshEvidenceExceptions()
+      refreshEvidenceExceptions(),refreshDelegatedScopes()
     ]);
     if(readVersion!==loadRevision)return false;
     show(say('در حال بررسی وضعیت یکپارچگی…','Checking existing integrations…'));
