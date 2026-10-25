@@ -35,7 +35,10 @@ export function mountNewsOwnerPanel({root,csrfResolver,
   const list=document.createElement('div');list.className='ni-admin-queue';
   const customSources=document.createElement('section');
   customSources.className='ni-admin-custom-source-manager';
-  root.replaceChildren(header,refresh,status,customSources,integration,metrics,sources,articles,acquisition,publications,list);
+  const standingControls=document.createElement('section');
+  standingControls.className='ni-admin-custom-source-manager';
+  root.replaceChildren(header,refresh,status,standingControls,customSources,
+    integration,metrics,sources,articles,acquisition,publications,list);
   const show=s=>{status.textContent=s;};
   const request=async (path,options)=>{
     const token=csrfResolver();
@@ -53,6 +56,109 @@ export function mountNewsOwnerPanel({root,csrfResolver,
   };
   const label=(value)=>{const node=document.createElement('span');
     node.textContent=String(value??'');return node;};
+
+  // The current owner directive supersedes per-story manual confirmation
+  // for independently verified original official-source announcements.
+  const standingTitle=document.createElement('h3');
+  standingTitle.textContent=say('مجوز دائمی اخبار رسمی',
+    'Standing authorization for verified official news');
+  const standingDescription=document.createElement('p');
+  standingDescription.textContent=say(
+    'اخبار رسمی پس از صحت‌سنجی، بدون تأیید هر خبر منتشر می‌شوند. مدیر می‌تواند سیاست انتشار را فعال یا لغو کند. این اقدام به‌تنهایی Cron یا ناشر را روشن نمی‌کند.',
+    'Verified official notices require no per-story approval. The owner can grant or revoke a bounded policy; this does not itself start Cron or enable CMS.');
+  const standingForm=document.createElement('form');
+  const standingDuration=document.createElement('select');
+  for(const [days,text] of [[30,say('۳۰ روز','30 days')],[60,say('۶۰ روز','60 days')],
+      [90,say('۹۰ روز','90 days')]]){
+    const option=document.createElement('option');
+    option.value=String(days);option.textContent=text;standingDuration.append(option);
+  }
+  const grantStanding=document.createElement('button');
+  grantStanding.type='submit';
+  grantStanding.textContent=say('فعال‌سازی سیاست انتشار اخبار رسمی',
+    'Grant official-news standing authorization');
+  standingForm.append(standingDuration,grantStanding);
+  const standingStatus=document.createElement('p');
+  standingStatus.setAttribute('role','status');
+  const standingRows=document.createElement('div');
+  standingRows.className='ni-admin-custom-source-items';
+  standingControls.append(standingTitle,standingDescription,
+    standingForm,standingStatus,standingRows);
+  let standingPending=false;
+  async function refreshStandingPolicy(){
+    try{
+      const data=await request('/owner/standing-policy',{method:'GET'});
+      if(data.schema!=='jr.jrei.news-owner-standing-policies.v1'||
+         !Array.isArray(data.policies))
+        throw Error('NEWS_STANDING_POLICY_RESPONSE_INVALID');
+      standingRows.replaceChildren();
+      if(data.policies.length===0){
+        const info=document.createElement('p');
+        info.textContent=say('هنوز مجوز دائمی ثبت نشده است.','No standing policy registered yet.');
+        standingRows.append(info);
+      }
+      for(const row of data.policies){
+        const item=document.createElement('section');
+        const title=document.createElement('strong');
+        title.textContent=say('مجوز نسخه ','Policy revision ')+String(row.revision_number);
+        const state=document.createElement('p');
+        const epoch=Number(row.expires_at);
+        const active=row.revoked_at===null&&Number.isFinite(epoch)&&
+          epoch>Math.floor(Date.now()/1000);
+        state.textContent=active?
+          say('فعال تا: ','Active until: ')+new Date(epoch*1000).toLocaleDateString(fa?'fa-IR':'en-US'):
+          say('منقضی یا لغوشده','Expired or revoked');
+        item.append(title,state);
+        if(active&&/^[a-f0-9-]{36}$/i.test(String(row.policy_id))){
+          const revoke=document.createElement('button');
+          revoke.type='button';
+          revoke.textContent=say('لغو فوری مجوز','Revoke standing policy');
+          revoke.addEventListener('click',async()=>{
+            if(standingPending)return;
+            standingPending=true;revoke.disabled=true;
+            try{
+              await request('/owner/standing-policy/revoke',{
+                method:'POST',body:JSON.stringify({policyId:row.policy_id})});
+              standingStatus.textContent=say('مجوز لغو شد.','Policy revoked.');
+              await refreshStandingPolicy();
+            }catch(error){
+              standingStatus.textContent=say(
+                'لغو هنوز تأیید نشده است. نشست مدیریت را بررسی کنید.',
+                'Revocation not confirmed. Check owner session.');
+            }finally{standingPending=false;revoke.disabled=false;}
+          });
+          item.append(revoke);
+        }
+        standingRows.append(item);
+      }
+      return true;
+    }catch(error){
+      standingStatus.textContent=say(
+        'مهاجرت مجوز دائمی یا اتصال آن به سرور باقی مانده است.',
+        'Standing authorization migration or server integration is not yet available.');
+      return false;
+    }
+  }
+  standingForm.addEventListener('submit',async event=>{
+    event.preventDefault();
+    if(standingPending)return;
+    standingPending=true;grantStanding.disabled=true;
+    try{
+      await request('/owner/standing-policy/grant',{method:'POST',
+        body:JSON.stringify({
+          confirmation:'AUTHORIZE_VERIFIED_PRIMARY_OFFICIAL_NEWS',
+          durationDays:Number(standingDuration.value)
+        })});
+      standingStatus.textContent=say(
+        'مجوز ثبت شد؛ اتصال ناشر و آزمون نهایی همچنان ضروری است.',
+        'Authorization recorded; publisher activation still requires acceptance.');
+      await refreshStandingPolicy();
+    }catch(error){
+      standingStatus.textContent=say(
+        'ثبت مجوز انجام نشد؛ وضعیت MFA یا مهاجرت را بررسی کنید.',
+        'Grant not confirmed; verify MFA or migration.');
+    }finally{standingPending=false;grantStanding.disabled=false;}
+  });
 
   // Manager source intake is intentionally available before live publishing:
   // it adds a discoverable official source, but never fabricates crawl rights.
@@ -249,7 +355,7 @@ export function mountNewsOwnerPanel({root,csrfResolver,
     acquisition.replaceChildren();
     publications.replaceChildren();
     integration.replaceChildren();
-    await refreshCustomSources();
+    await Promise.all([refreshCustomSources(),refreshStandingPolicy()]);
     if(readVersion!==loadRevision)return false;
     show(say('در حال بررسی وضعیت یکپارچگی…','Checking existing integrations…'));
     try{
