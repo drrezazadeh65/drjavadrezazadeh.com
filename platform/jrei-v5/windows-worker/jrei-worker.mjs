@@ -21,6 +21,7 @@ import { join, isAbsolute, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import os from 'node:os';
 import { Worker } from 'node:worker_threads';
+import { workerSafeErrorCode } from './jrei-worker-error-code.mjs';
 
 const WORKER_DIR = fileURLToPath(new URL('.', import.meta.url));
 const DPAPI = fileURLToPath(new URL('./jrei-windows-dpapi.ps1', import.meta.url));
@@ -49,10 +50,7 @@ const privateDir=()=>{
 };
 const keyPath=()=>join(privateDir(), 'jrei-worker-key.dpapi');
 const sha256=s=>createHash('sha256').update(s).digest('hex');
-const safeCode=e=>{
-  const code=typeof e?.message==='string'?e.message:'UNAVAILABLE';
-  return /^[A-Z0-9_]{3,80}$/.test(code)?code:'TEMPORARILY_UNAVAILABLE';
-};
+const safeCode=workerSafeErrorCode;
 const log=(code)=>process.stdout.write('[JREI] '+code+'\n');
 
 function protectKey(mode, file, plaintext='') {
