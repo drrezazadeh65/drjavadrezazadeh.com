@@ -1,0 +1,87 @@
+name: JREI Live Activation Diagnostic (Read Only)
+on:
+  push:
+    branches:
+      - migration/bertina-linux6
+    paths:
+      - .github/workflows/jrei-live-activation-diagnostic.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: jrei-readonly-live-activation-diagnostic
+  cancel-in-progress: true
+jobs:
+  observe-real-jrei-capability:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - name: Read published JREI capability without credentials or private mutations
+        shell: bash
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const origin='https://drjavadrezazadeh.com';
+          const paths=['/api/assistant/v1/capabilities','/sw.js'];
+          const evidence={schema:'jr.jrei.public-live-activation-diagnostic.v1',
+            checkedFrom:'GITHUB_HOSTED_READ_ONLY_RUNNER',
+            publicAssistantLive:'UNKNOWN',providerMode:'UNKNOWN',
+            actualModelResponseVerified:false,
+            privacyRetentionVerified:false,ownerReleaseAuthorizedByThisRun:false,
+            publishedReleaseFingerprint:'UNKNOWN',checks:[]};
+          for(const path of paths){
+            const observed={route:path,httpStatus:null,
+              result:'UNAVAILABLE_OR_UNVERIFIED'};
+            try{
+              const url=origin+path;
+              const response=await fetch(url,{method:'GET',
+                redirect:'manual',signal:AbortSignal.timeout(15000),
+                headers:{Accept:path.includes('capabilities')?
+                  'application/json':'text/plain',
+                  'Cache-Control':'no-store','User-Agent':'JREI-ReadOnly-Activation-Diagnostic/1.0'}});
+              observed.httpStatus=response.status;
+              if(response.status===200){
+                const body=await response.text();
+                if(body.length>32768)throw Error('UNBOUNDED_PUBLIC_RESPONSE');
+                if(path.includes('capabilities')){
+                  const data=JSON.parse(body);
+                  if(data?.ok===true&&
+                     data?.schema==='jr.jrei.assistant-capability.v1'&&
+                     typeof data.live==='boolean'&&
+                     ['JREI_LM_LOCAL_WINDOWS','OPTIONAL_OPENAI','OFFLINE_GUIDE']
+                       .includes(data.providerMode)){
+                    evidence.publicAssistantLive=data.live;
+                    evidence.providerMode=data.providerMode;
+                    observed.result='PUBLIC_CAPABILITY_SCHEMA_READ';
+                  }else observed.result='CAPABILITY_SCHEMA_UNRECOGNISED';
+                }else{
+                  const found=body.match(/[a-f0-9]{40}/g);
+                  evidence.publishedReleaseFingerprint=found?.find(x=>
+                    x==='4a685b707da5d4d2737713a446811336398efe99')??
+                    'NOT_EVIDENCED_IN_SERVICE_WORKER';
+                  observed.result='PUBLIC_SERVICE_WORKER_RETRIEVED';
+                }
+              }else if(response.status>=300&&response.status<400)
+                observed.result='REDIRECTED_REQUIRES_REVIEW';
+              else observed.result='PUBLIC_HTTP_'+response.status;
+            }catch{
+              observed.result='PUBLIC_FETCH_UNAVAILABLE';
+            }
+            evidence.checks.push(observed);
+          }
+          evidence.interpretation=evidence.publicAssistantLive===true?
+            'PUBLIC_ROUTING_GATES_PASS_NOT_SCIENTIFIC_QUALITY':
+            evidence.publicAssistantLive===false?
+            'PUBLIC_AI_OFFLINE_GUIDE_NEEDS_PRIVATE_OWNER_READINESS':
+            'LIVE_CAPABILITY_NOT_INDEPENDENTLY_OBSERVED';
+          fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY,
+            '### JREI public live activation (read-only)\n\n'+
+            '| Probe | Value |\n|---|---|\n'+
+            '| API live | '+String(evidence.publicAssistantLive)+' |\n'+
+            '| Server provider mode | '+evidence.providerMode+' |\n'+
+            '| Interpretation | '+evidence.interpretation+' |\n'+
+            '| Release fingerprint | '+evidence.publishedReleaseFingerprint+' |\n'+
+            '| Changes made | NONE |\n\n'+
+            'No host credentials or learner data were read. Public capabilities alone cannot verify actual model quality, self-learning or news automation.\n');
+          console.log(JSON.stringify(evidence));
+          NODE
