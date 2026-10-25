@@ -246,3 +246,26 @@ newsCheck(jrNewsSameHostOfficialHtmlUrl(
     'https://sanjesh.org/news/','sanjesh.org')===null,
     'institution lookalike must not inherit official source scope');
 echo "PASS: original RSS-free university notice pages discover only safe HTML metadata\\n";
+
+/* Automatically selected NEWS imagery is an illustration from the owner-
+ * controlled, genuinely licensed media registry — NOT a remote article photo.
+ * No owner-per-article image confirmation or optional mbstring requirement.
+ */
+$examArt=jrNewsDefaultIllustrationCandidates('اعلام نتایج آزمون کارشناسی');
+$researchArt=jrNewsDefaultIllustrationCandidates('University research publication');
+$globalArt=jrNewsDefaultIllustrationCandidates('International university exchange');
+newsCheck($examArt[0]==='assets/images/editorial-launch/humanability-educational-assessment-20261011.webp',
+    'automatic examination image chooses institutionally appropriate first-party illustration');
+newsCheck($researchArt[0]==='assets/images/editorial-launch/academic-research-editing-20261011.webp',
+    'research report selects the preapproved science-related illustration');
+newsCheck($globalArt[0]==='assets/images/editorial-launch/international-research-collaboration-20261011.webp',
+    'international news selects the preapproved collaboration illustration');
+foreach(array_unique(array_merge($examArt,$researchArt,$globalArt)) as $asset){
+    $image=jrNewsOriginalLicensedMediaSnapshot(dirname(__DIR__,3),$asset);
+    newsCheck(($image['rightsVerified']??false)===true&&
+        preg_match('/^[a-f0-9]{64}$/D',(string)($image['physicalContentSha256']??''))===1&&
+        trim((string)($image['altFa']??''))!==''&&
+        trim((string)($image['altEn']??''))!=='',
+        'automatic fallback image is present on disk, registered and approved with both alt languages');
+}
+echo "PASS: automatic rights-checked first-party news artwork selection without per-story administrator input\\n";
