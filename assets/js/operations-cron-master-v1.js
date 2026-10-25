@@ -78,6 +78,27 @@
       item.append(el('strong','',label),el('span','',value));
       summary.append(item);
     }
+    const newsJobs=Array.isArray(snapshot.jobs)
+      ?snapshot.jobs.filter(j=>typeof j?.jobId==='string'&&
+        j.jobId.startsWith('jrei_news_original_')):[];
+    const absentNews=newsJobs.filter(j=>j.registered!==true);
+    if(snapshot.schemaReady&&absentNews.length&&
+      absentNews.every(j=>j.sourceAvailable===true)){
+      const registerNews=el('button','jr-cron-register-news-bundle',
+        T('ثبت یک‌جای تمام موتورهای News؛ همگی خاموش',
+          'Register all News workers at once; all disabled'));
+      registerNews.type='button';
+      registerNews.addEventListener('click',()=>{
+        if(!open()||busy)return;
+        const yes=window.confirm(T(
+          'تمام موتورهای مجاز News فقط در دیتابیس مادر ثبت می‌شوند و هیچ‌کدام اجرا یا فعال نخواهند شد. ادامه می‌دهید؟',
+          'Register all allowlisted News workers in the original DB only? None will run or be enabled.'));
+        if(!yes)return;
+        write({action:'register_news_bundle',
+          confirmation:'REGISTER_NEWS_WORKERS_DISABLED'});
+      });
+      summary.append(registerNews);
+    }
     if(!Array.isArray(snapshot.jobs))return;
     for(const job of snapshot.jobs){
       if(!job||!/^[-_a-z0-9]{1,64}$/.test(job.jobId||''))continue;
