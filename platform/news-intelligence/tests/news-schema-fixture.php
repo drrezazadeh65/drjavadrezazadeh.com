@@ -900,6 +900,16 @@ echo "PASS: forged CMS retraction denied; verified bilingual withdrawal hides bo
  * disposable news_fixture database after legacy manual publishing tests.
  * No production SQL. Existing owner decision/retraction rows must survive.
  */
+// Prior fail-closed tests intentionally left a partial follow table.
+// Restore the exact original topic migration in the DISPOSABLE fixture
+// before verifying the additive standing-policy upgrade.
+$pdo->exec('DROP TABLE jrei_news_topic_follows');
+$topics=file_get_contents(dirname(__DIR__,3).
+    '/docs/migrations/20261024_jrei_news_topic_preferences_mother_mysql.sql');
+$topics=preg_replace('/^\\s*--[^\\r\\n]*/m','',(string)$topics);
+foreach(explode(';',(string)$topics) as $statement){
+    if(trim($statement)!=='')$pdo->exec(trim($statement));
+}
 $migration=file_get_contents(dirname(__DIR__,3).
     '/docs/migrations/20261025_jrei_news_standing_official_publication_mother_mysql.sql');
 ensure(is_string($migration),'standing policy migration source exists');
