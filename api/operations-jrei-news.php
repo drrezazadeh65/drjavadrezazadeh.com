@@ -774,6 +774,38 @@ function jrOperationsNewsDispatch(
         throw new InvalidArgumentException('news_owner_original_route_invalid');
     if($method==='GET'&&$route==='/owner/integration-readiness')
         return jrOperationsNewsReadiness($pdo,$config);
+    // Owner source intake stays available BEFORE general news activation.
+    // This is only discovery and registered-original-source reconciliation;
+    // no crawler, LLM, auto article authorization or public CMS activation.
+    if(str_starts_with($route,'/owner/admin-sources')){
+        $path=__DIR__.'/internal/jrei-news/admin-source-management.php';
+        if(!is_file($path)||!is_readable($path))
+            throw new DomainException('news_admin_sources_private_module_missing');
+        require_once $path;
+        $owner=['source'=>'EXISTING_OPERATIONS_SESSION',
+            'ownerAuthenticated'=>true,'mfaVerified'=>true,
+            'csrfVerified'=>true,'scope'=>'JREI_NEWS_EDITORIAL',
+            'accountId'=>$ownerId,
+            'mfaAuditReference'=>'operations-mfa:'.substr($mfaSessionHash,0,64)];
+        if($method==='GET'&&$route==='/owner/admin-sources')
+            return jrNewsAdminSourceList($pdo,$owner,50);
+        if($method==='POST'&&$route==='/owner/admin-sources/submit')
+            return jrNewsAdminSourceSubmit($pdo,$owner,$body,time());
+        $id=$body['submissionId']??null;
+        if(!is_string($id))
+            throw new InvalidArgumentException('news_admin_submission_id_missing');
+        if($method==='POST'&&$route==='/owner/admin-sources/approve')
+            return jrNewsAdminSourceApprove($pdo,$owner,$id,
+                (string)($body['confirmation']??''),time(),true);
+        if($method==='POST'&&$route==='/owner/admin-sources/reconcile')
+            return jrNewsAdminSourceReconcile($pdo,$owner,$id,time(),
+                ($config['jrei_news_source_activation_accepted']??false)===true &&
+                ($config['jrei_news_integrated_release_accepted']??false)===true);
+        if($method==='POST'&&$route==='/owner/admin-sources/disable')
+            return jrNewsAdminSourceDisable($pdo,$owner,$id,time());
+        throw new InvalidArgumentException('news_admin_source_unknown_route');
+    }
+
     if(($config['jrei_news_integrated_release_accepted']??false)!==true||
        getenv('JR_JREI_NEWS_API_ENABLED')!=='true')
         throw new DomainException('news_original_integration_not_accepted');
