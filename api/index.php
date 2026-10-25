@@ -133,6 +133,13 @@ function cfg(): array {
         // A separate SUPER_ADMIN decision. Creating news monitors or
         // approving original sources does not enable scheduled crawling.
         'jrei_news_source_activation_accepted' => getenv('JR_JREI_NEWS_SOURCE_ACTIVATION_ACCEPTED') === 'true',
+        // A prior dashboard MFA source approval may be reconciled by the
+        // original private News Cron once independently verified JREI-KA
+        // provenance and rights become valid. Never forge source approval.
+        'jrei_news_admin_source_autolink_enabled' => getenv('JR_JREI_NEWS_ADMIN_SOURCE_AUTOLINK_ENABLED') === 'true',
+        // Separate production permission for FIRST-TIME monitors only:
+        // existing stopped monitors are never silently reactivated.
+        'jrei_news_admin_source_auto_monitor_enabled' => getenv('JR_JREI_NEWS_ADMIN_SOURCE_AUTO_MONITOR_ENABLED') === 'true',
         // Explicit owner-approved, exact-path delegation for official articles.
         // Disabled until original JREI migration, policy and backup acceptance.
         'jrei_news_delegated_scopes_enabled' => getenv('JR_JREI_NEWS_DELEGATED_SCOPES_ENABLED') === 'true',
@@ -142,6 +149,8 @@ function cfg(): array {
         // migrations, current source rights, independent QA and CMS receipt.
         'jrei_news_model_drafting_enabled' => getenv('JR_JREI_NEWS_MODEL_DRAFTING_ENABLED') === 'true',
         'jrei_news_original_cms_writer_enabled' => getenv('JR_JREI_NEWS_ORIGINAL_CMS_WRITER_ENABLED') === 'true',
+        // Bounded resources per Cron tick, never a DAILY editorial quota.
+        'jrei_news_publish_batch_per_tick' => (int)(getenv('JR_JREI_NEWS_PUBLISH_BATCH_PER_TICK') ?: 3),
         'jrei_news_standing_official_publishing_enabled' => getenv('JR_JREI_NEWS_STANDING_OFFICIAL_PUBLISHING_ENABLED') === 'true',
         'jrei_news_verified_restore_accepted' => getenv('JR_JREI_NEWS_VERIFIED_RESTORE_ACCEPTED') === 'true',
         // Owned JREI-specific RSS and News Sitemap, gated independently.
