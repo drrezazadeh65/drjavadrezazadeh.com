@@ -141,6 +141,9 @@ function cfg(): array {
         'jrei_news_original_cms_writer_enabled' => getenv('JR_JREI_NEWS_ORIGINAL_CMS_WRITER_ENABLED') === 'true',
         'jrei_news_standing_official_publishing_enabled' => getenv('JR_JREI_NEWS_STANDING_OFFICIAL_PUBLISHING_ENABLED') === 'true',
         'jrei_news_verified_restore_accepted' => getenv('JR_JREI_NEWS_VERIFIED_RESTORE_ACCEPTED') === 'true',
+        // Owned JREI-specific RSS and News Sitemap, gated independently.
+        // It never overwrites the site's existing feed.xml or sitemap-news.xml.
+        'jrei_news_verified_syndication_enabled' => getenv('JR_JREI_NEWS_VERIFIED_SYNDICATION_ENABLED') === 'true',
 
         // Real AI inference: independent paid-provider credentials and
         // source-owned budget approval; entirely OFF until final acceptance.
