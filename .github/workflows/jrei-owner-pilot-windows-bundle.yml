@@ -5,6 +5,9 @@ on:
       - migration/bertina-linux6
     paths:
       - '.github/workflows/jrei-owner-pilot-windows-bundle.yml'
+      - 'platform/jrei-v5/windows-worker/jrei-worker.mjs'
+      - 'platform/jrei-v5/windows-worker/jrei-owner-pilot-worker.mjs'
+      - 'platform/jrei-v5/windows-worker/JREI-OWNER-PRIVATE-PILOT.cmd'
   workflow_dispatch:
 permissions:
   contents: read
