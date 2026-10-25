@@ -295,7 +295,7 @@ overflow:hidden;border:1px solid var(--jr2-local-rule);border-radius:18px;
 background:linear-gradient(150deg,#1e1e1c,#121416)
 }
 .jr2-editorial .news-card img{width:100%;height:auto;object-fit:cover}
-.jr2-editorial .news-card h2{line-height:1.45}
+.jr2-editorial .news-card :is(h2,h3){line-height:1.45}
 .jr2-editorial :is(.launch-market-links a,.authority-card){transition:transform .22s var(--jr2-ease),border-color .22s var(--jr2-ease)}
 /* Giving: dignity, clear consent and child-protection statements stay intact. */
 .ss-body{--ss-gold:var(--jr2-gold)}
