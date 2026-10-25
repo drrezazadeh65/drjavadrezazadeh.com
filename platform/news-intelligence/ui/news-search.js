@@ -76,7 +76,7 @@
   }
   form.addEventListener('submit',async function(event){
     event.preventDefault();if(inflight)inflight.abort();
-    inflight=new AbortController();list.replaceChildren();
+    const controller=new AbortController();inflight=controller;list.replaceChildren();
     submit.disabled=true;status.textContent=fa?'در حال جست‌وجو…':'Searching…';
     try{
       var params=new URLSearchParams();
@@ -87,7 +87,7 @@
       if(to.value)params.set('before',utcEpoch(to.value,true));
       var response=await fetch('/api/news/v1/search?'+params.toString(),{
         credentials:'same-origin',redirect:'error',cache:'no-store',
-        signal:inflight.signal,headers:{'Accept':'application/json'}});
+        signal:controller.signal,headers:{'Accept':'application/json'}});
       if(response.status===503)throw Error('ARCHIVE_NOT_ENABLED');
       if(!response.ok)throw Error('NOT_AVAILABLE');
       var data=await response.json();
@@ -112,6 +112,6 @@
       if(error.name!=='AbortError')
         status.textContent=error.message==='ARCHIVE_NOT_ENABLED'?
           copy.unavailable:copy.failed;
-    }finally{if(inflight&&inflight.signal.aborted===false)submit.disabled=false;}
+    }finally{if(inflight===controller){inflight=null;submit.disabled=false;}}
   });
 }());

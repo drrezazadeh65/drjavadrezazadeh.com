@@ -109,8 +109,13 @@ if(!newsArchiveClient.includes('[data-ni-archive-search]') ||
    !newsArchiveClient.includes('/api/news/v1/search') ||
    !newsArchiveClient.includes('textContent'))
   throw Error('JREI News public archive UI contract changed unexpectedly');
-fs.writeFileSync(
-  path.join(out,'assets/js/jrei-news-archive-v1.js'),newsArchiveClient,{flag:'wx'});
+// Keep both the source-link auditor and sanitized release verification strict:
+// real public assets exist in the source tree and are copied as ordinary assets.
+// The platform source remains the reviewed UI contract; divergence fails build.
+const newsArchiveAsset=path.join(out,'assets/js/jrei-news-archive-v1.js');
+if(!fs.existsSync(newsArchiveAsset) ||
+   fs.readFileSync(newsArchiveAsset,'utf8')!==newsArchiveClient)
+  throw Error('JREI News archive asset differs from canonical reviewed source');
 for(const [locale,route] of [
   ['fa','fa/akhbar/index.html'],
   ['en','en/news-insights/index.html']
