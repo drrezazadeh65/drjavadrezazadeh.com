@@ -50,6 +50,7 @@ require_once __DIR__.'/operations-github-dispatch.php';
 require_once __DIR__.'/operations-cron-dispatcher.php';
 require_once __DIR__.'/jrei-learning-operations.php';
 require_once __DIR__.'/jrei-hybrid-owner.php';
+require_once __DIR__.'/jrei-owner-private-pilot.php';
 require_once __DIR__.'/jrei-exam-research-owner.php';
 require_once __DIR__.'/jrei-ka-independent-source-review.php';
 require_once __DIR__.'/jrei-exam-commercial-catalogue.php';
@@ -437,6 +438,30 @@ function operationsRoute(string $path, string $verb): never {
             }catch(DomainException $e){
                 fail('news_owner_independent_approval_required',409);
             }
+        }
+        // JREI owner-only research pilot. This is NOT a public-chat release.
+        // Uses the existing SUPER_ADMIN session, current TOTP, CSRF,
+        // one-time secret and a strictly separate ephemeral queue state.
+        if($path==='/admin/operations/jrei-owner-pilot' && $verb==='POST'){
+            if(($configuration['operations_admins'][$accountId]['role']??'')!=='SUPER_ADMIN')
+                fail('super_admin_required',403);
+            if(!operationsMutationAllowed($_SERVER,
+                (string)($_SERVER['HTTP_X_CSRF_TOKEN']??''),$csrf))
+                fail('csrf_forbidden',403);
+            if(!rateAllowed($pdo,'jrei_owner_private_pilot',$accountId,35,300))
+                fail('rate_limited',429);
+            $pilotBody=jsonBody();
+            try {
+                $pilotAction=$pilotBody['action']??null;
+                if($pilotAction==='ask')
+                    respond(jrOwnerPilotOwnerAsk($pdo,$configuration,$pilotBody));
+                if($pilotAction==='result')
+                    respond(jrOwnerPilotOwnerResult($pdo,$configuration,$pilotBody));
+                if($pilotAction==='cancel')
+                    respond(jrOwnerPilotOwnerCancel($pdo,$pilotBody));
+                fail('pilot_action_invalid',422);
+            }catch(InvalidArgumentException $e){fail('pilot_input_invalid',422);}
+             catch(DomainException $e){fail('pilot_not_ready_or_unavailable',409);}
         }
         // Approved Windows CPU worker gateway: owner registry and queue
         // control only, never an inbound public model port or arbitrary code.
