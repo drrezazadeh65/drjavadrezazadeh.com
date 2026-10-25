@@ -55,6 +55,7 @@ jobs:
           }
           run_audit "Public data projection" node scripts/build-public-data.mjs --check
           run_audit "SEO/GEO regression" node scripts/seo-regression.mjs
+          run_audit "Master semantic headings / indexability / GEO" node scripts/master-semantic-geo-audit.mjs --strict
           run_audit "JHELA independent journal discovery" node scripts/jhela-discovery-audit.mjs
           run_audit "JHELA bilingual journal release" node scripts/jhela-release-audit.mjs
           run_audit "Design regression" node scripts/design-regression.mjs
