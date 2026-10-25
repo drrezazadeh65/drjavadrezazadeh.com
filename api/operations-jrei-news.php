@@ -261,6 +261,7 @@ function jrOperationsNewsReadiness(PDO $pdo,array $config): array {
               AND r.TABLE_NAME=k.TABLE_NAME
              WHERE k.TABLE_SCHEMA=DATABASE()
                AND k.TABLE_NAME IN (".$marks.")
+               AND k.REFERENCED_TABLE_SCHEMA=DATABASE()
                AND k.REFERENCED_TABLE_NAME IS NOT NULL"
         );
         $fkQuery->execute($names);
