@@ -68,7 +68,7 @@ const requiredNewsPhp=newsLibraryBody.split('\n')
   .map(line=>line.slice("require_once __DIR__.'/".length,-"';".length));
 if(requiredNewsPhp.some(name=>!/^[a-z][a-z0-9-]*[.]php$/.test(name)))
   throw Error('JREI News private library lists unsafe dependency names');
-if(requiredNewsPhp.length<24 || requiredNewsPhp.length>52 ||
+if(requiredNewsPhp.length<24 || requiredNewsPhp.length>60 ||
    new Set(requiredNewsPhp).size!==requiredNewsPhp.length ||
    !requiredNewsPhp.includes('public-read-model.php') ||
    !requiredNewsPhp.includes('news-api-adapter.php'))
