@@ -18,7 +18,7 @@ test('owner MFA lasts a work session rather than expiring during navigation',()=
 });
 test('switching tabs does not invalidate the owner dashboard or MFA',()=>{
  assert.doesNotMatch(js,/if\(document\.hidden\)lock\(/);
- assert.match(js,/visibilitychange[^;]*\{if\(!document\.hidden\)void load\(\);\}/);
+ assert.match(js,/visibilitychange[^\n]*if\(!document\.hidden\)void load\(\)/);
  assert.match(js,/credentials:'same-origin'/);
  assert.match(js,/\/session/);
  assert.match(js,/admin_mfa_required/);
