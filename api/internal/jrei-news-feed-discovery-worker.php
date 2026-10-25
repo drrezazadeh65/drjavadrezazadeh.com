@@ -30,6 +30,12 @@ try{
     $delegated=['enrolled'=>0,'pending'=>0];
     if(($cfg['jrei_news_delegated_scopes_enabled']??false)===true&&
        ($cfg['jrei_news_source_activation_accepted']??false)===true){
+        jrNewsRevokeExpiredOfficialSourceEnrollments(
+            $pdo,[
+              'source'=>'ORIGINAL_JREI_PRIVATE_NEWS_WORKER',
+              'originalServerSessionVerified'=>true,
+              'delegatedOfficialScopesEnabled'=>true
+            ],time(),50);
         $delegated=jrNewsOriginalEnrollDelegatedOfficialArticles(
             $pdo,[
               'source'=>'ORIGINAL_JREI_PRIVATE_NEWS_WORKER',
