@@ -99,7 +99,7 @@ import {generateNewsRss,generateGoogleNewsSitemap} from '../news-feed.mjs';
 import {articleSeoDescriptor} from '../seo.mjs';
 test('standing-policy official publication is eligible for bilingual RSS, sitemap and NewsArticle SEO',()=>{
   const source={
-    ...standing,language:'fa',
+    ...standing,language:'fa',url:standing.publicUrl,
     title:'Verified official Sanjesh examinations and admissions update',
     summary:'The official organisation published updated application dates and the primary source is linked.'
   };
