@@ -969,6 +969,46 @@ try{
     $q->execute([$decision['decisionId'],$autoStage['publicationId']]);
 }catch(PDOException $e){$fakeBothRejected=true;}
 ensure($fakeBothRejected,'manual and standing policy cannot both authorize one record');
+$cmsActivation=[
+    'source'=>'ORIGINAL_PRIVATE_CMS',
+    'finalIntegratedAcceptanceVerified'=>true,
+    'standingOfficialNewsPublishingEnabled'=>true
+];
+$forgedAuto=false;
+try{
+    jrNewsConfirmStandingOriginalCmsPublication($pdo,
+        $autoStage['publicationId'],$cmsActivation,$officialPolicy,
+        static function(array $ctx):array{
+            return ['source'=>'BROWSER_FORGED_CMS','verified'=>true,
+                'standingPolicyId'=>$ctx['policyId']];
+        },1792822420);
+}catch(RuntimeException $e){$forgedAuto=true;}
+ensure($forgedAuto,'forged standing policy CMS receipt cannot publish');
+ensure((int)$pdo->query(
+    "SELECT COUNT(*) FROM jrei_news_publications WHERE publisher_state='PUBLISHED'"
+)->fetchColumn()===0,'forged auto CMS receipt left all pages unpublished');
+$standingReceipt=jrNewsConfirmStandingOriginalCmsPublication(
+    $pdo,$autoStage['publicationId'],$cmsActivation,$officialPolicy,
+    static function(array $ctx):array{
+        return [
+            'source'=>'ORIGINAL_AUTHENTICATED_CMS','verified'=>true,
+            'bothCanonicalDocumentsVerified'=>true,
+            'sourceRecheckedAfterPublication'=>true,
+            'publicationId'=>$ctx['publicationId'],
+            'faRoute'=>$ctx['faRoute'],'enRoute'=>$ctx['enRoute'],
+            'approvalDigest'=>$ctx['approvalDigest'],
+            'standingPolicyId'=>$ctx['policyId'],
+            'faContentSha256'=>hash('sha256','synthetic standing Persian canonical'),
+            'enContentSha256'=>hash('sha256','synthetic standing English canonical'),
+            'receiptReference'=>'fixture-standing-original-auth-cms'
+        ];
+    },1792822430);
+ensure(($standingReceipt['status']??null)==='PUBLISHED'&&
+       $standingReceipt['cmsDocumentHashesVerified']===true,
+    'only authentic CMS receipt advances standing story');
+ensure((int)$pdo->query(
+    "SELECT COUNT(*) FROM jrei_news_publications WHERE publisher_state='PUBLISHED'"
+)->fetchColumn()===1,'verified standing story alone is published in disposable fixture');
 $revocation=jrNewsRevokeStandingOfficialPolicy(
     $pdo,$owner,$policy['policyId'],1792822450);
 ensure($revocation['revoked']===true,'owner can revoke official standing policy');
@@ -981,5 +1021,5 @@ try{
 ensure($revokedRejected,'revoked policy prevents subsequent automatic staging');
 ensure((int)$pdo->query(
     "SELECT COUNT(*) FROM jrei_news_publications WHERE publisher_state='PUBLISHED'"
-)->fetchColumn()===0,'no new production or synthetic public publication was inferred');
+)->fetchColumn()===1,'verified fixture CMS receipt stays recorded without any production write');
 echo "PASS: additive MariaDB standing-policy authorization, XOR integrity, idempotency, revocation and legacy survival\n";
