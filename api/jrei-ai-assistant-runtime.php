@@ -9,6 +9,7 @@ require_once __DIR__.'/jrei-ai-reviewed-passages.php';
 require_once __DIR__.'/jrei-ai-public-educational-tool-route.php';
 require_once __DIR__.'/jrei-ai-public-service-route.php';
 require_once __DIR__.'/jrei-ai-uncited-answer-guard.php';
+require_once __DIR__.'/jrei-local-answer-integrity.php';
 
 /**
  * Real public bilingual assistant coordinator (first narrow approved tool).
@@ -228,6 +229,11 @@ function jrAiPublicChat(PDO $pdo,array $cfg,array $body): array {
        jrAiPublicAnswerGate($text,$evidence,$lang);
     if(($gate['publiclyRenderable']??false)!==true)
         throw new DomainException('public_ai_output_evidence_or_privacy_blocked');
+    // The same independent negative educational integrity policy applies
+    // to optional cloud drafts. A passing structural citation check is
+    // never evidence that maths, Persian terminology or claims are correct.
+    if(jrJreiLocalDraftIntegrityFailure($message,$text,$lang)!==null)
+        throw new DomainException('public_ai_educational_quality_review_required');
     // These citations are always server-selected, never model-generated
     // hyperlinks. Treat plausible prose as provisional until final QA.
     $links=[];
