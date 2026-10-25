@@ -93,3 +93,46 @@ test('owner notification requires original signed uncertain evidence; urgency al
   assert.equal(planned.requiresIndividualOwnerApprovalForVerifiedOfficialNews,false);
   assert.equal(planned.publicPublicationAuthorizedByNotification,false);
 });
+
+
+import {generateNewsRss,generateGoogleNewsSitemap} from '../news-feed.mjs';
+import {articleSeoDescriptor} from '../seo.mjs';
+test('standing-policy official publication is eligible for bilingual RSS, sitemap and NewsArticle SEO',()=>{
+  const source={
+    ...standing,language:'fa',
+    title:'Verified official Sanjesh examinations and admissions update',
+    summary:'The official organisation published updated application dates and the primary source is linked.'
+  };
+  const rss=generateNewsRss({publishedArticles:[source],nowUtc:now,language:'fa'});
+  assert.equal(rss.included,1);
+  assert.match(rss.xml,/sanjesh-registration/);
+  const sitemap=generateGoogleNewsSitemap({publishedArticles:[source],nowUtc:now});
+  assert.equal(sitemap.eligibleArticleCount,1);
+  const seo=articleSeoDescriptor({
+    article:{
+      ...standing,
+      fa:{headline:'اطلاعیه رسمی سازمان سنجش درباره ثبت‌نام دانشگاه',
+        description:'اطلاعیه رسمی و معتبر سازمان سنجش درباره زمان و شرایط ثبت‌نام دانشگاه منتشر شد.',
+        body:'سازمان سنجش آموزش کشور اطلاعیه جدیدی منتشر کرده است. متقاضیان باید زمان ثبت‌نام و مدارک لازم را در وب‌سایت رسمی بررسی کنند.'},
+      en:{headline:'Official university admissions notice from Sanjesh',
+        description:'Sanjesh published a verified primary notice covering university applications and official deadlines.',
+        body:'The national assessment organisation has issued an official educational announcement. Applicants should review the original source and confirm deadlines before taking action.'}
+    },
+    faPath:'/fa/akhbar/sanjesh-registration/',
+    enPath:'/en/news-insights/sanjesh-registration/',
+    organizationName:'JREI Education News',
+    imageUrl:'https://drjavadrezazadeh.com/assets/images/news/official.webp',
+    publishedAt:'2026-10-25T08:05:00Z',
+    modifiedAt:'2026-10-25T08:05:00Z'
+  });
+  assert.equal(seo.fa.structuredData['@type'],'NewsArticle');
+  assert.equal(seo.en.alternates.fa,seo.fa.canonical);
+});
+test('no standing-policy proof never appears as a verified RSS item',()=>{
+  const forged={...standing,language:'fa',standingOfficialPublicationVerified:false,
+    title:'A deliberately unapproved headline',
+    summary:'An unverified item must remain invisible to the generated public feeds.'};
+  assert.throws(()=>generateNewsRss({
+    publishedArticles:[forged],language:'fa',nowUtc:now
+  }),/NEWS_XML_PUBLICATION_NOT_VERIFIED/);
+});
