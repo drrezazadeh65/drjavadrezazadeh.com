@@ -81,11 +81,21 @@ function jrNewsStageVerifiedFeedLinkSuggestions(
             hash('sha256',$blob['bytes']))) {
         throw new RuntimeException('news_feed_private_byte_receipt_unverified');
     }
-    $feed=jrNewsParseApprovedFeed(
-        $blob['bytes'],$blob['mime'],strtolower($sourceHost),
-        $monitor['jrei_source_reference'],
-        gmdate('Y-m-d\TH:i:s\Z',$nowEpoch)
-    );
+    // Official institutions often publish notices on ordinary HTML pages
+    // without RSS. Both formats are exclusively ORIGINAL, licensed JREI-KA
+    // archived bytes; parsing never downloads or publishes an article.
+    // The verified URL and source ID come from the locked original registry,
+    // not the HTML's links, <base> or an unauthenticated request.
+    $mime=strtolower(trim(explode(';',(string)$blob['mime'])[0]));
+    $observedAt=gmdate('Y-m-d\\TH:i:s\\Z',$nowEpoch);
+    $feed=$mime==='text/html'?
+        jrNewsParseApprovedHtmlNoticeIndex(
+            $blob['bytes'],$blob['mime'],$sourceUrl,
+            $monitor['jrei_source_reference'],$observedAt):
+        jrNewsParseApprovedFeed(
+            $blob['bytes'],$blob['mime'],strtolower($sourceHost),
+            $monitor['jrei_source_reference'],$observedAt
+        );
     $discovered=0;$alreadySeen=0;$skipped=0;
     $pdo->beginTransaction();
     try {
