@@ -13,6 +13,7 @@ declare(strict_types=1);
 if(!defined('BERTINA_API_BOOTSTRAPPED')){http_response_code(404);exit;}
 require_once __DIR__.'/evidence-review.php';
 require_once __DIR__.'/official-auto-handoff.php';
+require_once __DIR__.'/original-primary-headline-fact-packet.php';
 
 function jrNewsIndependentVisibleOfficialTitle(string $bytes):?string {
     if(strlen($bytes)<50||strlen($bytes)>2097152||
@@ -72,14 +73,21 @@ function jrNewsReviewOriginalOfficialObservations(
         'examined'=>0,'accepted'=>0,'alreadyReviewed'=>0,
         'exceptions'=>0,'technicalHolds'=>0,
         'sourceFactsInvented'=>false,'perArticleOwnerApprovalRequired'=>false,
+        'signedFactPacketsStored'=>0,
         'modelCalls'=>0,'cmsWrites'=>0];
     $q=$pdo->prepare(
         "SELECT c.candidate_id,c.content_sha256,c.source_url,c.headline,
+                c.state AS candidate_state,e.review_id AS existing_review_id,
+                e.evidence_private_reference AS existing_fact_reference,
                 c.monitor_id,m.jrei_source_reference,d.approved_article_source_id,
                 o.observation_id,o.private_object_key,o.bytes_total,o.mime_type
          FROM jrei_news_candidates c
          JOIN jrei_news_monitors m ON m.monitor_id=c.monitor_id
            AND m.enabled=1
+         LEFT JOIN jrei_news_evidence_reviews e
+           ON e.candidate_id=c.candidate_id
+          AND BINARY e.content_sha256=BINARY c.content_sha256
+          AND e.independent_service_id='JREI_ORIGINAL_DETERMINISTIC_HEADLINE_V1'
          JOIN jrei_exam_sources feed ON feed.source_id=m.jrei_source_reference
           AND feed.review_state='AUTHORITATIVE_REVIEWED'
           AND feed.is_revoked=0 AND feed.is_superseded=0
@@ -113,7 +121,9 @@ function jrNewsReviewOriginalOfficialObservations(
           AND j.source_policy_revision=o.source_policy_revision
           AND j.job_state='ACQUIRED_REVIEW'
           AND BINARY j.observed_digest=BINARY o.content_sha256
-         WHERE c.state='PENDING_EVIDENCE_VERIFICATION'
+         WHERE (c.state='PENDING_EVIDENCE_VERIFICATION'
+            OR (c.state='EVIDENCE_REVIEWED' AND e.verification_state='APPROVED'
+                AND e.evidence_private_reference LIKE 'primary-headline:%'))
            AND o.state='PENDING_SCIENTIFIC_REVIEW'
            AND o.mime_type='text/html'
            AND o.rights_state_at_acquisition='PERMITTED_REPRODUCTION'
@@ -227,11 +237,27 @@ function jrNewsReviewOriginalOfficialObservations(
             ];
         };
         try{
-            $approved=jrNewsApproveAutomatedOfficialEvidence(
-                $pdo,$id,$attestation,$proof,$now);
-            if(($approved['alreadyReviewed']??false)===true)
+            if($row['candidate_state']==='EVIDENCE_REVIEWED'){
+                $reviewId=(string)($row['existing_review_id']??'');
+                if(!preg_match('/^[a-f0-9-]{36}$/iD',$reviewId))
+                    throw new RuntimeException('news_original_fact_repair_review_missing');
                 $result['alreadyReviewed']++;
-            else $result['accepted']++;
+            }else{
+                $approved=jrNewsApproveAutomatedOfficialEvidence(
+                    $pdo,$id,$attestation,$proof,$now);
+                $reviewId=(string)($approved['reviewId']??'');
+                if(($approved['alreadyReviewed']??false)===true)
+                    $result['alreadyReviewed']++;
+                else $result['accepted']++;
+            }
+            $packet=jrNewsWriteOriginalHeadlineFactPacket(
+                $pdo,cfg(),[
+                    'candidateId'=>$id,'reviewId'=>$reviewId,
+                    'sourceUrl'=>(string)$row['source_url'],
+                    'contentSha256'=>$hash,'headline'=>$headline
+                ],$now);
+            if(($packet['alreadyPersisted']??false)===false)
+                $result['signedFactPacketsStored']++;
         }catch(Throwable $e){
             $result['technicalHolds']++;
         }
