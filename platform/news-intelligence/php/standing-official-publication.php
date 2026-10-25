@@ -309,3 +309,54 @@ function jrNewsConfirmStandingOriginalCmsPublication(
         throw $e;
     }
 }
+
+/** Read-only compatibility probe: old manual-only releases remain supported. */
+function jrNewsStandingPublicSchemaInstalled(PDO $pdo): bool {
+    static $result=null;
+    if($result!==null)return $result;
+    try{
+        $c=$pdo->query(
+            "SELECT COUNT(*) FROM information_schema.COLUMNS
+             WHERE TABLE_SCHEMA=DATABASE()
+               AND TABLE_NAME='jrei_news_publications'
+               AND COLUMN_NAME='standing_policy_id'"
+        )->fetchColumn();
+        $p=$pdo->query(
+            "SELECT COUNT(*) FROM information_schema.TABLE_CONSTRAINTS
+             WHERE TABLE_SCHEMA=DATABASE() AND
+               ((TABLE_NAME='jrei_news_publications' AND
+                 CONSTRAINT_NAME='ck_jrei_news_publication_authority_xor' AND
+                 CONSTRAINT_TYPE='CHECK')
+               OR (TABLE_NAME='jrei_news_standing_policies' AND
+                 CONSTRAINT_NAME='PRIMARY' AND CONSTRAINT_TYPE='PRIMARY KEY'))"
+        )->fetchColumn();
+        $result=(int)$c===1 && (int)$p===2;
+    }catch(Throwable $e){$result=false;}
+    return $result;
+}
+/**
+ * The public read path checks original evidence plus ONE durable owner
+ * authorization. Standing-policy expiry/revocation after a historical
+ * publication does not silently erase published articles; correction and
+ * retraction still use the original governance workflow.
+ */
+function jrNewsPublicationAuthorityPredicate(bool $standing): string {
+    $manual="(p.approved_decision_id IS NOT NULL
+        AND d.action_code='APPROVE'
+        AND v.editorial_state='OWNER_APPROVED'
+        AND d.revision_id=p.revision_id
+        AND d.approval_digest=v.approval_digest)";
+    if(!$standing)return $manual;
+    $policyHash="SHA2(CONCAT('jr.jrei.news-standing-owner-policy.v1','|',
+        pol.policy_id,'|',pol.owner_account_id,'|',pol.policy_code,'|',
+        pol.revision_number,'|',pol.effective_at,'|',pol.expires_at),256)";
+    $automatic="(p.approved_decision_id IS NULL
+        AND p.standing_policy_id IS NOT NULL
+        AND v.editorial_state='PENDING_OWNER_APPROVAL'
+        AND pol.policy_code='OFFICIAL_PRIMARY_AUTO_NEWS'
+        AND pol.policy_digest=".$policyHash."
+        AND pol.effective_at<=p.published_at
+        AND pol.expires_at>p.published_at
+        AND (pol.revoked_at IS NULL OR pol.revoked_at>p.published_at))";
+    return '('.$manual.' OR '.$automatic.')';
+}
