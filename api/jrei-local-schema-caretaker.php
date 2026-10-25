@@ -15,75 +15,63 @@ require_once __DIR__.'/jrei-hybrid-owner-models.php';
  * backup and idempotent rerun are mandatory.
  */
 function jrJreiLocalSchemaStatements(): array {
-    // The model registry must precede the owner grants and encrypted queue.
-    // Files and table names are fixed in source, never user/model input.
-    $files=[
+    // Original docs SQL in developer fixtures; packaged, digest-checked JSON
+    // in Bertina's existing HTTP-denied api/internal folder.
+    $spec=[
       ['20261023_jrei_model_registry_mother_mysql.sql',
         ['jrei_local_model_registry']],
       ['20261024_jrei_local_inference_queue_mother_mysql.sql',
         ['jrei_local_chat_node_authorizations','jrei_local_chat_jobs']]
     ];
-    $sourceDir=dirname(__DIR__).'/docs/migrations';
-    $sourcesPresent=is_readable($sourceDir.'/'.$files[0][0])&&
-        is_readable($sourceDir.'/'.$files[1][0]);
-    $bundle=null;
-    if(!$sourcesPresent){
-        // The production bundle deliberately excludes docs/ SQL source.
-        // The build projects ONLY these reviewed statements into the
-        // HTTP-denied API internal directory; never load caller-supplied SQL.
-        $safe=__DIR__.'/internal/jrei-approved-schema-v1.json';
-        if(!is_file($safe)||!is_readable($safe)||filesize($safe)>30000)
-            throw new DomainException('jrei_schema_source_unavailable');
-        try{$bundle=json_decode((string)file_get_contents($safe),
-            true,16,JSON_THROW_ON_ERROR);}
-        catch(Throwable $e){
-            throw new DomainException('jrei_schema_source_unavailable');
-        }
-        if(!is_array($bundle)||
-            ($bundle['schema']??null)!=='jr.jrei.owner-reviewed-additive-migrations.v1'||
-            ($bundle['database']??null)!=='drjavad1_store'||
-            !is_array($bundle['files']??null)||
-            !array_is_list($bundle['files'])||count($bundle['files'])!==2)
-            throw new DomainException('jrei_schema_bundle_invalid');
+    $private=__DIR__.'/internal/jrei-reviewed-ddl-v1.json';
+    $packaged=null;
+    if(is_file($private)){
+        if(filesize($private)>50000)throw new DomainException('jrei_schema_private_package_invalid');
+        $decoded=json_decode((string)file_get_contents($private),true);
+        if(!is_array($decoded)||
+           ($decoded['schema']??null)!=='jr.jrei.owner-reviewed-local-ddl.v1'||
+           !is_array($decoded['entries']??null)||
+           count($decoded['entries'])!==2)
+            throw new DomainException('jrei_schema_private_package_invalid');
+        $packaged=$decoded['entries'];
     }
-    $statements=[];
-    foreach($files as $fileIndex=>[$filename,$names]){
-        if($sourcesPresent){
-            $file=$sourceDir.'/'.$filename;
-            if(!is_file($file)||!is_readable($file)||filesize($file)>20000)
+    $stmts=[];
+    foreach($spec as $idx=>[$filename,$tables]){
+        $original=dirname(__DIR__).'/docs/migrations/'.$filename;
+        if(is_file($original)){
+            if(filesize($original)>20000||!is_readable($original))
                 throw new DomainException('jrei_schema_source_unavailable');
-            $sql=file_get_contents($file);
-            if(!is_string($sql)||strlen($sql)>20000)
-                throw new DomainException('jrei_schema_source_unavailable');
-            $sql=preg_replace('/^\s*--[^\r\n]*$/m','',$sql);
-            if(!is_string($sql))
-                throw new DomainException('jrei_schema_comment_parsing_failed');
-            $parts=array_values(array_filter(array_map('trim',explode(';',$sql))));
+            $sql=file_get_contents($original);
+        }elseif(is_array($packaged)){
+            $entry=$packaged[$idx]??null;
+            if(!is_array($entry)||($entry['name']??null)!==$filename||
+               !is_string($entry['sql']??null)||
+               !is_string($entry['sha256']??null)||
+               !preg_match('/^[a-f0-9]{64}$/D',$entry['sha256'])||
+               !hash_equals($entry['sha256'],hash('sha256',$entry['sql'])))
+                throw new DomainException('jrei_schema_private_package_invalid');
+            $sql=$entry['sql'];
         }else{
-            $file=$bundle['files'][$fileIndex]??null;
-            if(!is_array($file)||
-               ($file['source']??null)!==$filename||
-               ($file['tables']??null)!==$names||
-               !is_array($file['statements']??null)||
-               !array_is_list($file['statements']))
-                throw new DomainException('jrei_schema_bundle_invalid');
-            $parts=$file['statements'];
+            throw new DomainException('jrei_schema_source_unavailable');
         }
-        if(count($parts)!==count($names))
+        if(!is_string($sql)||strlen($sql)>20000)
+            throw new DomainException('jrei_schema_source_unavailable');
+        $sql=preg_replace('/^\s*--[^\r\n]*$/m','',$sql);
+        if(!is_string($sql))throw new DomainException('jrei_schema_comment_parsing_failed');
+        $parts=array_values(array_filter(array_map('trim',explode(';',$sql))));
+        if(count($parts)!==count($tables))
             throw new DomainException('jrei_schema_whitelist_changed');
         foreach($parts as $i=>$stmt){
-            if(!is_string($stmt)||strlen($stmt)>20000||
-               !preg_match('/^CREATE TABLE IF NOT EXISTS ([a-z_]+)\s*\(/i',$stmt,$m)||
-               $m[1]!==$names[$i]||
+            if(!preg_match('/^CREATE TABLE IF NOT EXISTS ([a-z_]+)\s*\(/i',$stmt,$m)||
+               $m[1]!==$tables[$i]||
                !preg_match('/\) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci$/',$stmt)||
                preg_match('/\b(?:DROP|ALTER|TRUNCATE|GRANT|REVOKE|CREATE\s+DATABASE|FOREIGN_KEY_CHECKS)\b/i',$stmt))
                 throw new DomainException('jrei_schema_unsafe_ddl');
-            $statements[]=$stmt;
+            $stmts[]=$stmt;
         }
     }
-    if(count($statements)!==3)
-        throw new DomainException('jrei_schema_whitelist_changed');
-    return $statements;
+    if(count($stmts)!==3)throw new DomainException('jrei_schema_whitelist_changed');
+    return $stmts;
 }
 function jrJreiLocalSchemaBackupReady(array $cfg): bool {
     $file=$cfg['jrei_local_schema_backup_file']??null;
