@@ -430,3 +430,50 @@ ensure((int)$pdo->query(
 echo "PASS: forged CMS rejected, authenticated fixture receipt, bilingual searchable index, original canonicals\n";
 
 
+
+// Source-only dashboard composition is authenticated under the exact same
+// server-owned MFA context and must not write editorial or publisher rows.
+putenv('JR_JREI_NEWS_API_ENABLED=true');
+try{
+    $snapshot=jrNewsDispatchApi($pdo,'GET','/news/v1/owner/snapshot',
+        [],[
+            'originalApiBootstrap'=>true,
+            'finalIntegratedAcceptanceVerified'=>true,
+            'ownerAuthorizedActivation'=>true,
+            'existingOwnerMfaSession'=>$owner
+        ],
+        static fn():never=>throw new RuntimeException('not_consumed'),
+        static fn():bool=>false,
+        static fn():never=>throw new RuntimeException('not_consumed'),
+        static fn():never=>throw new RuntimeException('not_consumed')
+    );
+    ensure(($snapshot['schema']??null)==='jr.jrei.news-owner-bounded-snapshot.v1',
+        'owner snapshot schema');
+    ensure(count($snapshot['views'])===7 &&
+           count($snapshot['viewStatus'])===7 &&
+           ($snapshot['views']['queue']['schema']??null)===
+             'jr.jrei.news-owner-review-queue.v1' &&
+           ($snapshot['views']['overview']['schema']??null)===
+             'jr.jrei.news-owner-operations-overview.v1' &&
+           ($snapshot['privateWritesPerformed']??null)===false &&
+           ($snapshot['publiclyPublishedBySnapshot']??null)===false,
+           'bounded original owner snapshot without publication or writes');
+    $rejected=false;
+    try{
+        jrNewsDispatchApi($pdo,'GET','/news/v1/owner/snapshot',[],[
+            'originalApiBootstrap'=>true,
+            'finalIntegratedAcceptanceVerified'=>true,
+            'ownerAuthorizedActivation'=>true,
+            'existingOwnerMfaSession'=>array_replace($owner,['mfaVerified'=>false])
+        ],
+            static fn():never=>throw new RuntimeException('not_consumed'),
+            static fn():bool=>false,
+            static fn():never=>throw new RuntimeException('not_consumed'),
+            static fn():never=>throw new RuntimeException('not_consumed')
+        );
+    }catch(RuntimeException $e){$rejected=true;}
+    ensure($rejected,'a forged MFA owner snapshot must be rejected');
+    echo "PASS: MFA-bound seven-section newsroom snapshot and no write side effects\n";
+} finally {
+    putenv('JR_JREI_NEWS_API_ENABLED');
+}

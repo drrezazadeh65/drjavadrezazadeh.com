@@ -169,3 +169,31 @@ test('owner-only integration readiness remains readable without activating News'
   assert.match(route,/news_owner_csrf_forbidden/);
   assert.match(route,/if \(!\$fresh\) fail\('admin_mfa_required',403\)/);
 });
+
+test('MFA owner dashboard bundles seven existing guarded reads into one request',()=>{
+  const dispatcher=fs.readFileSync(path.join(privateDir,'news-api-adapter.php'),'utf8');
+  const source=fs.readFileSync(path.join(root,'platform/news-intelligence/ui/admin-newsroom.js'),'utf8');
+  const projected=fs.readFileSync(path.join(out,'assets/js/jrei-news-owner-panel-v1.mjs'),'utf8');
+  assert.equal(projected,source);
+  assert.match(dispatcher,/\/news\/v1\/owner\/snapshot/);
+  assert.match(dispatcher,/jrNewsOwnerAuthority\(\$owner\)/);
+  assert.match(dispatcher,/jrNewsDispatchApi\(/);
+  for(const key of ['queue','overview','monitors','available','suggestions','jobs','backlog'])
+    assert.ok(dispatcher.includes("'"+key+"'=>'/news/v1/owner/"),'existing guarded read '+key);
+  assert.match(dispatcher,/'UNAVAILABLE'/);
+  assert.match(dispatcher,/'privateWritesPerformed'=>false/);
+  assert.match(source,/request\('\/owner\/snapshot',\{method:'GET'\}\)/);
+  for(const [key,method] of [
+    ['queue','queue'],['overview','overview'],['monitors','source/monitors'],
+    ['available','source/available'],['suggestions','article/suggestions'],
+    ['jobs','original-jobs'],['backlog','publication/backlog']
+  ]){
+    assert.ok(source.includes("readView('"+key+"')"),'owner view '+key);
+    assert.ok(!source.includes("request('/owner/"+method+"',{method:'GET'})"),
+      'no redundant HTTP request '+key);
+  }
+  assert.ok(source.includes("request('/owner/preview?revisionId="),
+    'exact owner preview still fetched independently');
+  assert.ok(source.includes("request('/owner/publication/preflight?revisionId="),
+    'source-dependent publication preflight still fetched freshly');
+});

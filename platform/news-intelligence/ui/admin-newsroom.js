@@ -131,15 +131,26 @@ export function mountNewsOwnerPanel({root,csrfResolver,
           'Newsroom remains disabled; integration blockers are shown above.'));
         return false;
       }
-      show(say('در حال دریافت صف خصوصی…','Loading private owner queue…'));
-      const data=await request('/owner/queue',{method:'GET'});
+      show(say('در حال دریافت نمای یکپارچهٔ صف خصوصی…',
+        'Loading the authenticated owner snapshot…'));
+      const snapshot=await request('/owner/snapshot',{method:'GET'});
+      if(readVersion!==loadRevision)return;
+      if(snapshot.schema!=='jr.jrei.news-owner-bounded-snapshot.v1'||
+         !snapshot.views||!snapshot.viewStatus)
+        throw Error('NEWS_SNAPSHOT_NOT_AUTHENTICATED');
+      const readView=(name)=>{
+        if(snapshot.viewStatus[name]!=='AVAILABLE'||!snapshot.views[name])
+          throw Error('NEWS_SNAPSHOT_SECTION_UNAVAILABLE_'+name);
+        return snapshot.views[name];
+      };
+      const data=readView('queue');
       if(readVersion!==loadRevision)return;
       if(data.schema!=='jr.jrei.news-owner-review-queue.v1'||
         !Array.isArray(data.items))throw Error('NEWS_QUEUE_SHAPE_UNEXPECTED');
       list.replaceChildren();
       metrics.replaceChildren();
       try {
-        const overview=await request('/owner/overview',{method:'GET'});
+        const overview=readView('overview');
         if(readVersion!==loadRevision)return;
         if(overview.schema==='jr.jrei.news-owner-operations-overview.v1'&&
            overview.metrics){
@@ -176,7 +187,7 @@ export function mountNewsOwnerPanel({root,csrfResolver,
       // Every inventory row is an actual original mother-DB monitor; a
       // stale or revoked source is rendered as blocked, never as online.
       try{
-        const inventory=await request('/owner/source/monitors',{method:'GET'});
+        const inventory=readView('monitors');
         if(readVersion!==loadRevision)return;
         if(inventory.schema!=='jr.jrei.news-owner-monitor-inventory.v1'||
            !Array.isArray(inventory.items))
@@ -261,7 +272,7 @@ export function mountNewsOwnerPanel({root,csrfResolver,
       // may appear here. Staging creates a DISABLED news monitor, not a
       // crawling job. Owner must explicitly choose a category and priority.
       try{
-        const available=await request('/owner/source/available',{method:'GET'});
+        const available=readView('available');
         if(readVersion!==loadRevision)return;
         if(available.schema!=='jr.jrei.news-owner-stageable-original-sources.v1'||
            !Array.isArray(available.items))
@@ -356,7 +367,7 @@ export function mountNewsOwnerPanel({root,csrfResolver,
       // A feed headline is unverified metadata. Only an independently
       // owner-approved ORIGINAL JREI article source ID may be bound here.
       try{
-        const suggestions=await request('/owner/article/suggestions',{method:'GET'});
+        const suggestions=readView('suggestions');
         if(readVersion!==loadRevision)return;
         if(suggestions.schema!=='jr.jrei.news-owner-unbound-articles.v1'||
            !Array.isArray(suggestions.items))
@@ -434,7 +445,7 @@ export function mountNewsOwnerPanel({root,csrfResolver,
       // distinguish a queued download from an actual verified observation.
       // The panel does not start or repeat an acquisition job.
       try{
-        const jobs=await request('/owner/original-jobs',{method:'GET'});
+        const jobs=readView('jobs');
         if(readVersion!==loadRevision)return;
         if(jobs.schema!=='jr.jrei.news-original-jrei-queue-observability.v1'||
            !Array.isArray(jobs.items))
@@ -477,7 +488,7 @@ export function mountNewsOwnerPanel({root,csrfResolver,
       // An APPROVE decision is not a publication. Reconcile separately
       // against the original CMS policy and immutable bilingual routes.
       try{
-        const backlog=await request('/owner/publication/backlog',{method:'GET'});
+        const backlog=readView('backlog');
         if(readVersion!==loadRevision)return;
         if(backlog.schema!=='jr.jrei.news-owner-publication-backlog.v1'||
            !Array.isArray(backlog.items))

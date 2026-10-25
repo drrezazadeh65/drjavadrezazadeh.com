@@ -107,6 +107,52 @@ function jrNewsDispatchApi(PDO $pdo,string $method,string $route,
             $pdo,time(),$resolver,60
         );
     }
+    if ($method==='GET' && $route==='/news/v1/owner/snapshot') {
+        $owner=$serverCtx['existingOwnerMfaSession']??null;
+        if(!is_array($owner))
+            throw new RuntimeException('news_owner_snapshot_session_required');
+        jrNewsOwnerAuthority($owner);
+        // The existing operations MFA/CSRF gate runs before this route.
+        // One HTTP round trip replaces seven sequential authenticated
+        // dashboard reads; each read still uses its original SQL, evidence
+        // checks and bounded result limits. A failed section is UNKNOWN,
+        // not an empty or artificially successful dataset.
+        $sections=[
+            'queue'=>'/news/v1/owner/queue',
+            'overview'=>'/news/v1/owner/overview',
+            'monitors'=>'/news/v1/owner/source/monitors',
+            'available'=>'/news/v1/owner/source/available',
+            'suggestions'=>'/news/v1/owner/article/suggestions',
+            'jobs'=>'/news/v1/owner/original-jobs',
+            'backlog'=>'/news/v1/owner/publication/backlog'
+        ];
+        $views=[];$status=[];
+        foreach($sections as $key=>$originalRoute){
+            try{
+                $views[$key]=jrNewsDispatchApi(
+                    $pdo,'GET',$originalRoute,[],$serverCtx,
+                    $currentEcoConsentResolver,$publicReadRateLimiter,
+                    $originalJreiSourceCurrentResolver,
+                    $existingEcoNewsSuppressor,$ownerIntegrationPorts
+                );
+                $status[$key]='AVAILABLE';
+            }catch(Throwable $e){
+                $views[$key]=null;
+                $status[$key]='UNAVAILABLE';
+            }
+        }
+        return [
+            'schema'=>'jr.jrei.news-owner-bounded-snapshot.v1',
+            'observedAtUtc'=>gmdate('Y-m-d\\TH:i:s\\Z'),
+            'views'=>$views,'viewStatus'=>$status,
+            'allSectionsAvailable'=>!in_array('UNAVAILABLE',$status,true),
+            'existingOwnerMfaRequired'=>true,
+            'schemaOrQueryFailuresDoNotBecomeEmptyResults'=>true,
+            'publiclyPublishedBySnapshot'=>false,
+            'privateWritesPerformed'=>false,
+            'externalNetworkCalls'=>0
+        ];
+    }
     if ($method==='GET' && $route==='/news/v1/owner/original-jobs') {
         $owner=$serverCtx['existingOwnerMfaSession']??null;
         if(!is_array($owner))
