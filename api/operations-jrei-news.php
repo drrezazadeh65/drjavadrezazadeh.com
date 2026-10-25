@@ -955,6 +955,17 @@ function jrOperationsNewsDispatch(
             return jrNewsAdminSourceList($pdo,$owner,50);
         if($method==='POST'&&$route==='/owner/admin-sources/submit')
             return jrNewsAdminSourceSubmit($pdo,$owner,$body,time());
+        if($method==='POST'&&$route==='/owner/admin-sources/seed-official'){
+            $module=__DIR__.'/internal/jrei-news/original-official-source-bootstrap.php';
+            if(!is_file($module)||!is_readable($module))
+                throw new DomainException('news_original_official_directory_not_packaged');
+            require_once $module;
+            return jrNewsOriginalSeedOfficialInstitutionSources($pdo,[
+                'source'=>'EXISTING_OWNER_NEWS_OPERATIONS',
+                'ownerSession'=>$owner,
+                'confirmation'=>(string)($body['confirmation']??'')
+            ],time(),12);
+        }
         if($method==='POST'&&$route==='/owner/admin-sources/suggested-approve'){
             $institution=$body['institutionId']??null;
             if(!is_string($institution))
