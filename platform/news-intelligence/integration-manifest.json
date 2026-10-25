@@ -135,7 +135,11 @@
     "php/original-news-owner-exceptions.php",
     "php/admin-source-management.php",
     "php/original-private-publishing-pipeline.php",
-    "php/delegated-official-source-enrollment.php"
+    "php/delegated-official-source-enrollment.php",
+    "php/original-reviewed-news-evidence-port.php",
+    "php/original-independent-news-qa-service.php",
+    "php/original-native-news-style-media.php",
+    "php/original-draft-runtime-adapter.php"
   ],
   "criticalInteroperabilityNotes": [
     "Original JREI-KA approved source policy currently requires at least 3600-second refresh intervals; faster official P0 radar needs separately authorized original-scheduler extension",
@@ -211,8 +215,8 @@
     "arbitraryDailyPublicationQuota": null,
     "operationalHardLimits": "BOUNDED_PER_WORKER_BATCH_RETRY_AND_SOURCE_PERMISSIONS",
     "actualAutoPublicationIntegrated": false,
-    "existingPublicationSqlStillRequiresOwnerDecision": true,
-    "standingPolicyDurableAuthorizationAndOriginalCmsWiring": "SOURCE_READY_ORIGINAL_CMS_AND_OWNER_ROUTE_NOT_MOUNTED",
+    "existingPublicationSqlStillRequiresOwnerDecision": "LEGACY_MANUAL_ROUTE_ONLY; DISTINCT_STANDING_POLICY_ROUTE_PRESENT_IN_STAGED_SQL",
+    "standingPolicyDurableAuthorizationAndOriginalCmsWiring": "SOURCE_CODE_PRESENT; NO_PRODUCTION_MIGRATION_OR_AUTHENTIC_CMS_RECEIPT_OBSERVED",
     "noSyntheticOwnerDecisions": true,
     "policySourceCode": [
       "official-publication-policy.mjs",
@@ -250,6 +254,21 @@
     "realConsentedNewsOutboxAndSocialDeliveryVerified": false,
     "productionDbMigrationsExecuted": false,
     "originalCmsRealLivePublicationObserved": false,
-    "suiteExecutedAfterAllCoding": false
+    "suiteExecutedAfterAllCoding": false,
+    "originalPrivateDraftCliSource": "api/internal/jrei-news-private-draft-worker.php",
+    "registeredInOriginalCronSource": "jrei_news_original_private_draft",
+    "oneClickMfaRegisterAllNewsWorkersDefaultOff": true,
+    "originalModelEvidencePort": "php/original-reviewed-news-evidence-port.php",
+    "signedIndependentEditorialQaPorts": "php/original-independent-news-qa-service.php",
+    "originalAuthorCorpusAndMediaPort": "php/original-native-news-style-media.php",
+    "originalPrivateSourceAndQaSecretConfigMapped": true,
+    "privateEnglishStyleAggregatePackagedWithoutRawMABytes": true,
+    "englishStyleRuntimeOwnerHashApprovalRequired": true,
+    "persianStyleRuntimeOwnerHashApprovalRequired": true,
+    "draftModelActualIndependentQaServiceConfiguredInProduction": false,
+    "isolatedModelDraftEndToEndLiveVerified": false,
+    "externalFactAndIndependentAuditServiceRunning": false,
+    "legacyManualNewsRoutePreserved": true,
+    "codeFirstThenConsolidatedTestsThenRelease": "IN_PROGRESS"
   }
 }
