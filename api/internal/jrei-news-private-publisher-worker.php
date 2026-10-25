@@ -30,7 +30,14 @@ try{
        !is_dir($root.DIRECTORY_SEPARATOR.'fa'.DIRECTORY_SEPARATOR.'akhbar')||
        !is_dir($root.DIRECTORY_SEPARATOR.'en'.DIRECTORY_SEPARATOR.'news-insights'))
         throw new RuntimeException('news_original_public_routes_unavailable');
-    $result=jrNewsOriginalPrivateCmsPublishBatch($pdo,$cfg,$root,time(),1);
+    // Per-tick memory/IO protection, never an editorial DAILY quota.
+    // A privately configured original CMS worker may clear multiple verified
+    // official notices per scheduled tick without repeated owner approvals.
+    $requested=$cfg['jrei_news_publish_batch_per_tick']??3;
+    if(!is_int($requested)||$requested<1||$requested>8)
+        throw new RuntimeException('news_private_publisher_batch_config_invalid');
+    $result=jrNewsOriginalPrivateCmsPublishBatch(
+        $pdo,$cfg,$root,time(),$requested);
     $state=(string)($result['state']??'UNKNOWN');
     $code=preg_match('/^[A-Z_]{3,70}$/D',$state)?$state:'REQUIRES_REVIEW';
     fwrite(STDOUT,'JREI original CMS News='.$code.
