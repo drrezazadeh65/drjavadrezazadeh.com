@@ -4,7 +4,7 @@
   "repository": "drrezazadeh65/drjavadrezazadeh.com",
   "branch": "migration/bertina-linux6",
   "sourceRoot": "platform/news-intelligence",
-  "state": "DUAL_AUTHORITY_SOURCE_TESTED_LIVE_NEWSROOM_NOT_ACTIVATED",
+  "state": "SOURCE_DEVELOPMENT_CONTINUES_NO_PRODUCTION_RELEASE",
   "noParallelSystems": true,
   "integrationDefaults": {
     "apiEnabled": false,
@@ -76,7 +76,11 @@
     "docs/migrations/20261024_jrei_news_topic_preferences_mother_mysql.sql",
     "docs/migrations/20261024_jrei_news_public_search_mother_mysql.sql",
     "docs/migrations/20261024_jrei_news_feed_discovery_mother_mysql.sql",
-    "docs/migrations/20261025_jrei_news_standing_official_publication_mother_mysql.sql"
+    "docs/migrations/20261025_jrei_news_standing_official_publication_mother_mysql.sql",
+    "docs/migrations/20261025_jrei_news_admin_source_submissions_mother_mysql.sql",
+    "docs/migrations/20261025_jrei_news_independent_automated_evidence_mother_mysql.sql",
+    "docs/migrations/20261025_jrei_news_independent_qa_mother_mysql.sql",
+    "docs/migrations/20261025_jrei_news_owner_exception_queue_mother_mysql.sql"
   ],
   "finalAcceptanceDeferred": [
     "source legality publisher permissions and robots policy",
@@ -95,7 +99,7 @@
   "deploymentApproved": false,
   "testsRunByThisWorkstream": true,
   "liveClaimsProhibited": true,
-  "sourceCheckpoint": "2026-10-24",
+  "sourceCheckpoint": "2026-10-25-current-source",
   "newSourceComponents": [
     "php/publication-dispatch.php",
     "php/exam-deadline-owner.php",
@@ -124,7 +128,12 @@
     "ui/news-reminders.js",
     "php/standing-official-publication.php",
     "php/official-auto-handoff.php",
-    "official-publication-policy.mjs"
+    "official-publication-policy.mjs",
+    "php/original-news-syndication.php",
+    "php/official-html-discovery.php",
+    "php/original-news-owner-exceptions.php",
+    "php/admin-source-management.php",
+    "php/original-private-publishing-pipeline.php"
   ],
   "criticalInteroperabilityNotes": [
     "Original JREI-KA approved source policy currently requires at least 3600-second refresh intervals; faster official P0 radar needs separately authorized original-scheduler extension",
@@ -220,5 +229,20 @@
     "productionStandingSchemaApplied": false,
     "ownerExceptionAutoNotificationsActive": false,
     "deploymentApproved": false
+  },
+  "latestCodeWork": {
+    "dedicatedVerifiedOriginalCmsRssAndGoogleNewsSitemap": true,
+    "legacyGlobalRssAndSitemapPreserved": true,
+    "originalSourceApprovedHtmlNoticeDiscovery": true,
+    "genuineOnlyOwnerExceptionDbAndDashboard": true,
+    "technicalOutagesExcludedFromOwnerReview": true,
+    "sourceAdminSubmitApproveEditPause": true,
+    "noExtraCrawlerOrSourceDatabase": true,
+    "modelAndIndependentQaFullLiveIntegrationVerified": false,
+    "realSourceAutoEnrolmentWithoutExistingArticlePolicyVerified": false,
+    "realConsentedNewsOutboxAndSocialDeliveryVerified": false,
+    "productionDbMigrationsExecuted": false,
+    "originalCmsRealLivePublicationObserved": false,
+    "suiteExecutedAfterAllCoding": false
   }
 }
