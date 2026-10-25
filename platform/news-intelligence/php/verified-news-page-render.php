@@ -61,6 +61,13 @@ function jrNewsOriginalPublicNewsHtml(
        str_contains($image,'..')||
        ($originalCmsContext['verifiedImageRef']??null)!==$originalImage)
         throw new RuntimeException('news_verified_html_media_invalid');
+    $originalAlt=$originalCmsContext[$language==='fa'?
+        'verifiedImageAltFa':'verifiedImageAltEn']??null;
+    $imageAlt=is_string($originalAlt)&&
+        trim($originalAlt)!==''&&strlen($originalAlt)<=700?
+        $originalAlt:($language==='fa'?
+          'تصویر مفهومی مرتبط با خبر آموزشی':
+          'Conceptual illustration accompanying this educational news');
     $title=jrNewsHtmlEscape((string)$texts['headline']);
     $summary=jrNewsHtmlEscape((string)$texts['summary']);
     $description=jrNewsHtmlEscape((string)$texts['description']);
@@ -129,7 +136,7 @@ function jrNewsOriginalPublicNewsHtml(
       '<header class="site-header"><a href="'.$home.'">JREI News</a></header>'.
       '<main id="main"><article class="ni-article"><header><h1>'.$title.'</h1>'.
       '<p>'.$summary.'</p><time datetime="'.$date.'">'.substr($date,0,10).'</time></header>'.
-      '<figure><img src="'.jrNewsHtmlEscape($image).'" alt="'.$title.'" loading="lazy"></figure>'.
+      '<figure><img src="'.jrNewsHtmlEscape($image).'" alt="'.jrNewsHtmlEscape($imageAlt).'" loading="lazy"></figure>'.
       '<section>'.$sections['body'].'</section>'.
       '<section aria-label="'.jrNewsHtmlEscape($nextLabel).'"><h2>'.
       jrNewsHtmlEscape($nextLabel).'</h2>'.$sections['nextSteps'].'</section>'.
