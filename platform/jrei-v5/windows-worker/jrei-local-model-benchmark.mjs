@@ -27,8 +27,11 @@ export function validateLocalBenchmarkConfig(config){
   if(!config||typeof config!=='object'||Array.isArray(config)||
     !config.localChat||typeof config.localChat!=='object')throw Error('LOCAL_BENCHMARK_CONFIG_INVALID');
   const c=config.localChat;
-  if(c.enabled!==true||c.ownerApproved!==true||c.rightsReviewed!==true||
-    c.modelRuntimeVerified!==true||c.independentQualityAccepted!==true||
+  // Benchmark must precede runtime and quality acceptance: otherwise the
+  // technical verification process would depend on its own conclusion.
+  // It remains an explicit, owner-approved, hash-pinned LOCAL-only test.
+  if(c.ownerApproved!==true||c.rightsReviewed!==true||
+    (c.disableThinking!==undefined&&typeof c.disableThinking!=='boolean')||
     !ID.test(c.modelId??'')||!ID.test(c.modelVersion??'')||
     !SHA.test(c.modelSha256??'')||!SHA.test(c.backendExeSha256??'')||
     !safePath(c.modelFile,'.gguf')||!safePath(c.backendExe,'.exe')||
