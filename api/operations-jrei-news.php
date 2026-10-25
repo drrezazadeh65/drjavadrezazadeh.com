@@ -112,31 +112,69 @@ function jrOperationsNewsReadiness(PDO $pdo,array $config): array {
     // missing new columns must not be mistaken for a completed migration.
     // Literal allowlisted names only; no account data, expensive counts,
     // migration writes or schema mutation occurs in this read-only probe.
+    // Full column contract transcribed from the four reviewed News DDL files.
+    // Keep the original shared KA source requirements without duplicating schema.
     $required=[
-        'jrei_news_monitors'=>['monitor_id','jrei_source_reference',
-            'policy_revision','source_url_sha256','enabled'],
-        'jrei_news_candidates'=>['candidate_id','monitor_id','source_url',
-            'content_sha256','state'],
-        'jrei_news_discovered_urls'=>['discovery_id','monitor_id',
-            'canonical_url_sha256','approved_article_source_id','review_state'],
-        'jrei_news_evidence_reviews'=>['review_id','candidate_id',
-            'reviewer_account_id','verification_state'],
-        'jrei_news_editorial_versions'=>['revision_id','candidate_id',
-            'approval_digest','bilingual_editorial_json','editorial_state'],
-        'jrei_news_owner_decisions'=>['decision_id','revision_id',
-            'owner_account_id','approval_digest','action_code'],
-        'jrei_news_publications'=>['publication_id','revision_id',
-            'publisher_state','publisher_receipt_reference'],
-        'jrei_news_exam_milestones'=>['milestone_id','review_state',
-            'owner_approved'],
-        'jrei_news_exam_follows'=>['follow_id','follow_state',
-            'consent_reference'],
-        'jrei_news_delivery_receipts'=>['delivery_id','state',
-            'idempotency_key'],
-        'jrei_news_topic_follows'=>['follow_id','follow_state',
-            'consent_reference'],
-        'jrei_news_search_documents'=>['document_id','public_route',
-            'language_code','owner_approval_digest','index_state'],
+        'jrei_news_monitors'=>[
+            'monitor_id','jrei_source_reference','source_url_sha256','category_code',
+            'priority_code','interval_minutes','policy_revision','enabled',
+            'last_success_at','backoff_until','created_at'
+        ],
+        'jrei_news_candidates'=>[
+            'candidate_id','monitor_id','fingerprint_sha256','source_url',
+            'content_sha256','headline','event_type','priority_code',
+            'source_published_at','first_observed_at','state'
+        ],
+        'jrei_news_evidence_reviews'=>[
+            'review_id','candidate_id','reviewer_account_id','content_sha256',
+            'verification_state','issuer_verified','usage_rights_verified','reviewed_at',
+            'evidence_private_reference'
+        ],
+        'jrei_news_editorial_versions'=>[
+            'revision_id','candidate_id','evidence_review_id','revision_number',
+            'bilingual_editorial_json','approved_image_ref','approval_digest','editorial_state',
+            'created_at'
+        ],
+        'jrei_news_owner_decisions'=>[
+            'decision_id','revision_id','owner_account_id','approval_digest',
+            'action_code','owner_mfa_audit_ref','decided_at'
+        ],
+        'jrei_news_publications'=>[
+            'publication_id','revision_id','approved_decision_id','fa_route',
+            'en_route','fa_content_sha256','en_content_sha256','publisher_state',
+            'publisher_receipt_reference','published_at'
+        ],
+        'jrei_news_exam_milestones'=>[
+            'milestone_id','external_exam_key','milestone_type','title_fa',
+            'title_en','event_utc','timezone_name','source_ref',
+            'source_evidence_sha256','version_number','previous_milestone_id','review_state',
+            'owner_approved','created_at'
+        ],
+        'jrei_news_exam_follows'=>[
+            'follow_id','account_id','milestone_id','days_before',
+            'channel_code','consent_reference','follow_state','created_at'
+        ],
+        'jrei_news_delivery_receipts'=>[
+            'delivery_id','publication_id','provider_code','provider_account_reference',
+            'idempotency_key','state','provider_receipt_reference','attempts',
+            'created_at'
+        ],
+        'jrei_news_discovered_urls'=>[
+            'discovery_id','monitor_id','source_registry_id','canonical_article_url',
+            'canonical_url_sha256','latest_feed_sha256','discovered_headline','claimed_published_at',
+            'first_seen_at','last_seen_at','review_state','approved_article_source_id'
+        ],
+        'jrei_news_search_documents'=>[
+            'document_id','publication_id','language_code','public_route',
+            'title','summary','searchable_body','country_code',
+            'category_code','event_code','owner_approval_digest','content_sha256',
+            'published_at','indexed_at','index_state'
+        ],
+        'jrei_news_topic_follows'=>[
+            'follow_id','account_id','topic_code','locale_code',
+            'digest_mode','channel_code','consent_reference','follow_state',
+            'updated_at'
+        ],
         'jrei_exam_sources'=>['source_id','source_locator_uri',
             'review_state','rights_state','is_revoked'],
         'jrei_ka_source_policies'=>['source_id','revision',
@@ -165,6 +203,40 @@ function jrOperationsNewsReadiness(PDO $pdo,array $config): array {
         'jrei_news_topic_follows'=>[['account_id','topic_code','channel_code']],
         'jrei_news_search_documents'=>[
             ['publication_id','language_code'],['public_route']]
+    ];
+    // Required named non-unique indexes and FULLTEXT search capability.
+    // Unlike UNIQUE keys, index order and type influence read performance.
+    $requiredIndexes=[
+        'jrei_news_monitors'=>[
+            ['idx_jrei_news_monitor_schedule',['enabled','priority_code','last_success_at'],'BTREE'],
+        ],
+        'jrei_news_candidates'=>[
+            ['idx_jrei_news_candidate_review',['state','priority_code','first_observed_at'],'BTREE'],
+        ],
+        'jrei_news_evidence_reviews'=>[
+            ['idx_jrei_news_evidence',['candidate_id','reviewed_at'],'BTREE'],
+        ],
+        'jrei_news_editorial_versions'=>[
+            ['idx_jrei_news_editorial_queue',['editorial_state','created_at'],'BTREE'],
+        ],
+        'jrei_news_publications'=>[
+            ['idx_jrei_news_pub_state',['publisher_state','published_at'],'BTREE'],
+        ],
+        'jrei_news_exam_milestones'=>[
+            ['idx_jrei_news_exam_due',['review_state','event_utc'],'BTREE'],
+        ],
+        'jrei_news_discovered_urls'=>[
+            ['idx_jrei_news_feed_discovery',['review_state','last_seen_at'],'BTREE'],
+            ['idx_jrei_news_feed_monitor',['monitor_id','last_seen_at'],'BTREE'],
+        ],
+        'jrei_news_search_documents'=>[
+            ['idx_jrei_news_search_latest',['language_code','index_state','published_at'],'BTREE'],
+            ['idx_jrei_news_search_topic',['language_code','category_code','index_state','published_at'],'BTREE'],
+            ['ft_jrei_news_public_text',['title','summary','searchable_body'],'FULLTEXT'],
+        ],
+        'jrei_news_topic_follows'=>[
+            ['idx_jrei_news_topic_audience',['topic_code','digest_mode','follow_state'],'BTREE'],
+        ],
     ];
     // All expected references must survive additive migrations. Missing FKs
     // or a weakened ON DELETE action can otherwise admit orphaned evidence,
@@ -229,14 +301,15 @@ function jrOperationsNewsReadiness(PDO $pdo,array $config): array {
         // CREATE TABLE IF NOT EXISTS must never be accepted as proof that
         // UNIQUE constraints were added to a partially existing table.
         $indexQuery=$pdo->prepare(
-            "SELECT TABLE_NAME,INDEX_NAME,SEQ_IN_INDEX,COLUMN_NAME,SUB_PART
+            "SELECT TABLE_NAME,INDEX_NAME,SEQ_IN_INDEX,COLUMN_NAME,SUB_PART,
+                    NON_UNIQUE,INDEX_TYPE
              FROM information_schema.STATISTICS
              WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME IN (".$marks.")
-               AND NON_UNIQUE=0
              ORDER BY TABLE_NAME,INDEX_NAME,SEQ_IN_INDEX"
         );
         $indexQuery->execute($names);
         $indexColumns=[];$partialIndexes=[];
+        $indexIsUnique=[];$indexTypes=[];
         while($row=$indexQuery->fetch(PDO::FETCH_ASSOC)){
             $name=$row['TABLE_NAME']??null;
             $index=$row['INDEX_NAME']??null;
@@ -246,6 +319,8 @@ function jrOperationsNewsReadiness(PDO $pdo,array $config): array {
                !is_string($index)||!is_string($column)||
                $position<1||$position>16)continue;
             $indexColumns[$name][$index][$position]=$column;
+            $indexIsUnique[$name][$index]=((int)($row['NON_UNIQUE']??1)===0);
+            $indexTypes[$name][$index]=(string)($row['INDEX_TYPE']??'');
             if($row['SUB_PART']!==null)$partialIndexes[$name][$index]=true;
         }
         // One additional bounded metadata read verifies the actual foreign
@@ -286,13 +361,27 @@ function jrOperationsNewsReadiness(PDO $pdo,array $config): array {
             foreach($requiredUnique[$name]??[] as $expected){
                 $matched=false;
                 foreach($indexColumns[$name]??[] as $index=>$parts){
-                    if(isset($partialIndexes[$name][$index]))continue;
+                    if(($indexIsUnique[$name][$index]??false)!==true ||
+                       isset($partialIndexes[$name][$index]))continue;
                     ksort($parts,SORT_NUMERIC);
                     if(array_values($parts)===$expected){
                         $matched=true;break;
                     }
                 }
                 if(!$matched){$uniquePresent=false;break;}
+            }
+            $secondaryIndexesPresent=true;
+            foreach($requiredIndexes[$name]??[] as [$requiredName,$expected,$type]){
+                $parts=$indexColumns[$name][$requiredName]??null;
+                if(!is_array($parts)||
+                   isset($partialIndexes[$name][$requiredName])||
+                   ($indexTypes[$name][$requiredName]??null)!==$type){
+                    $secondaryIndexesPresent=false;break;
+                }
+                ksort($parts,SORT_NUMERIC);
+                if(array_values($parts)!==$expected){
+                    $secondaryIndexesPresent=false;break;
+                }
             }
             $foreignKeysPresent=true;
             foreach($requiredForeignKeys[$name]??[] as $expected){
@@ -306,7 +395,7 @@ function jrOperationsNewsReadiness(PDO $pdo,array $config): array {
                 }
                 if(!$matched){$foreignKeysPresent=false;break;}
             }
-            if($columnsPresent&&$uniquePresent&&$foreignKeysPresent)
+            if($columnsPresent&&$uniquePresent&&$secondaryIndexesPresent&&$foreignKeysPresent)
                 $tables[$name]='AVAILABLE';
         }
     }catch(Throwable $e){
