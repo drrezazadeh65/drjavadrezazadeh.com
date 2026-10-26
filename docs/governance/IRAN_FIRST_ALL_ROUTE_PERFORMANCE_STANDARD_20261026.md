@@ -82,6 +82,14 @@ Additional source-only refinements:
 
 After source development concludes, measure **all representative route families**, not merely the language gateway. Specifically require Iran-representative mobile results, full waterfall accounting, Bertina HTTP cache headers and negative tests that public assets never cache personalised data.
 
+## Private owner workspace — source-level request budget reduction
+
+The original Persian administrator shell includes **22 separately linked CSS files** and its English equivalent includes **20**. All inspected style sources had no `@import` or `@charset` directives, and their only examined `url()` reference was the root-absolute local display font.
+
+`scripts/release-bundle-owner-styles.mjs` now packages **one ordered CSS stylesheet per admin language**, preserving existing cascade order and rewriting links **only in the sanitized owner-approved release artifact**. The original 22/20 CSS sources remain available, and all owner form IDs, report modules, MFA gates, private `noindex` tags and canonical page URLs are unchanged. The two bundles have content-SHA256-qualified names. LiteSpeed's `.htaccess` and the existing Service Worker now permit immutable browser reuse of **those public stylesheet bytes only**. The owner dashboard HTML, sessions, API, payment, JREI data and personal information remain uncacheable.
+
+The build deliberately refuses unexpected CSS `@import`/`@charset` or relative `url()` statements rather than silently changing resource paths. Final-only source acceptance was staged in `tests/release-bundle-owner-styles.test.mjs`; **it has not been executed**. Reducing twenty-plus CSS request round trips to one is a source-level architectural change, not yet evidence of faster real-page Core Web Vitals. Actual CSS transfer sizes, compression, and mobile waterfall must be verified during consolidated final QA.
+
 ## Final-owner QA matrix, after coding is complete only
 
 | Route class | Representative routes | LCP and render critical path | Interaction and privacy |
