@@ -124,11 +124,27 @@ function jrApexWorkerSnapshot(PDO $pdo,array $cfg,string $owner): array
         'privateOwnerLinkEnabled'=>($cfg['jrei_apex_worker_link_enabled']??false)===true,
         'hybridSourceFlagEnabled'=>($cfg['jrei_hybrid_enabled']??false)===true,
         'workerPollingModified'=>false,'workerDispatchImplemented'=>false,
-        'modelImprovementVerified'=>false,'linkedJobs'=>[],'checkpoints'=>[],
+        'modelImprovementVerified'=>false,'linkedJobs'=>[],'availableOwnedJobs'=>[],'checkpoints'=>[],
         'checkedAt'=>time(),
         'caution'=>'Existing signed worker DB state and owner-entered link; neither job result nor scientific improvement independently accepted. Original hybrid owner handles cancellation.'
     ];
     if(!$ready)return $view;
+    // Discovery is strictly owner-scoped and confined to the PRE-EXISTING
+    // reviewed-public retrieval queue. Never creates, queues or leases a job.
+    $candidate=$pdo->prepare("SELECT j.job_id,j.status,j.revision,j.queued_at
+       FROM jrei_hybrid_jobs j WHERE j.created_by_account_id=?
+       AND j.task_type=? AND NOT EXISTS(
+         SELECT 1 FROM jrei_apex_worker_links l WHERE l.job_id=j.job_id
+       ) ORDER BY j.queued_at DESC,j.job_id DESC LIMIT 25");
+    $candidate->execute([$owner,JR_APEX_WORKER_TASK]);
+    foreach($candidate as $r)$view['availableOwnedJobs'][]=[
+        'jobId'=>(string)$r['job_id'],
+        'state'=>(string)$r['status'],
+        'revision'=>(int)$r['revision'],
+        'queuedAt'=>(int)$r['queued_at'],
+        'eligibleForLinkOnlyAfterMissionCreated'=>true,
+        'alreadyOwnerApprovedForExecutionByThisScreen'=>false,
+    ];
     $q=$pdo->prepare('SELECT l.mission_id,l.job_id,l.linked_at,
        l.last_checkpoint_seq,l.last_checkpoint_sha256,l.last_job_revision,
        l.last_job_status,l.last_observation_code,l.last_observed_at,
