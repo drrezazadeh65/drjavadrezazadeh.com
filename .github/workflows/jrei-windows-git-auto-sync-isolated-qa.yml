@@ -1,0 +1,60 @@
+name: JREI Windows Safe Git Transfer Isolated QA (NO DEPLOY)
+on:
+  push:
+    branches: [migration/bertina-linux6]
+    paths:
+      - '.github/workflows/jrei-windows-git-auto-sync-isolated-qa.yml'
+      - 'platform/jrei-v5/windows-worker/jrei-repo-auto-sync.ps1'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  windows-parser-and-readonly-contract:
+    runs-on: windows-latest
+    timeout-minutes: 7
+    steps:
+      - uses: actions/checkout@v4
+      - name: Parse original PowerShell 5.1 script with strict parser
+        shell: pwsh
+        run: |
+          $path = (Resolve-Path 'platform/jrei-v5/windows-worker/jrei-repo-auto-sync.ps1').Path
+          $tokens = $null
+          $errors = $null
+          $null = [System.Management.Automation.Language.Parser]::ParseFile($path,[ref]$tokens,[ref]$errors)
+          if($errors.Count -ne 0) { $errors | ForEach-Object { Write-Error $_.Message }; exit 1 }
+          Write-Output 'JREI_SAFE_SYNC_WINDOWS_PARSE_OK'
+      - name: Check read-only status on synthetic private repo and preserve local edits
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $env:LOCALAPPDATA = Join-Path $env:RUNNER_TEMP 'jrei-isolated-temp-localappdata'
+          $repo=Join-Path $env:LOCALAPPDATA 'JREI-Python\repo'
+          New-Item -ItemType Directory -Force -Path $repo | Out-Null
+          git -C $repo init -q
+          git -C $repo config user.name 'JREI isolated fixture'
+          git -C $repo config user.email 'ci@example.invalid'
+          git -C $repo checkout -q -b migration/bertina-linux6
+          git -C $repo remote add origin 'https://github.com/drrezazadeh65/drjavadrezazadeh.com'
+          'synthetic, no private data' | Set-Content -LiteralPath (Join-Path $repo 'synthetic.txt')
+          git -C $repo add synthetic.txt
+          git -C $repo commit -m 'Local fixture' -q
+          $script=Join-Path $env:GITHUB_WORKSPACE 'platform\jrei-v5\windows-worker\jrei-repo-auto-sync.ps1'
+          $out=& powershell.exe -NoProfile -NonInteractive -File $script -Mode Check
+          if($LASTEXITCODE -ne 0){throw 'JREI_SYNC_CHECK_FAILED'}
+          $joined=$out -join ';'
+          if($joined -notmatch 'REPO_SYNC_TASK_NOT_REGISTERED' -or
+             $joined -notmatch 'GIT_PYTHON_TRANSFER_ONLY'){
+              throw 'JREI_SYNC_READ_ONLY_CONTRACT_INVALID'
+          }
+          'locally modified, must survive' | Add-Content -LiteralPath (Join-Path $repo 'synthetic.txt')
+          $result=& powershell.exe -NoProfile -NonInteractive -File $script -Mode Check 2>&1
+          if($LASTEXITCODE -eq 0){throw 'JREI_LOCAL_MODIFICATIONS_NOT_PRESERVED'}
+          if((Get-Content -LiteralPath (Join-Path $repo 'synthetic.txt') -Raw) -notmatch 'locally modified'){
+            throw 'JREI_LOCAL_MODIFICATION_OVERWRITTEN'
+          }
+          Write-Output 'JREI_READ_ONLY_CHECK_AND_LOCAL_EDIT_PRESERVATION_OK'
+      - name: Never install scheduler in CI
+        if: always()
+        shell: pwsh
+        run: |
+          'Read-only mock repo tests only. No task registration, GitHub push, code execution, Bertina release, Windows user file access, Python installation, or service restarts.' >> $env:GITHUB_STEP_SUMMARY
