@@ -4,6 +4,15 @@ const path=require('node:path');
 const {execFileSync}=require('node:child_process');
 const registry=require(path.resolve(process.cwd(),'api/internal/operations-registry.json'));
 const base=(process.env.OPERATIONS_BROWSER_BASE||'http://127.0.0.1:4173').replace(/\/$/,'');
+// Report export/privilege regressions target the authenticated full-tools
+// layout. The modern default is exercised in the separate owner UI suite
+// and in the cross-view tests; no API or MFA security is bypassed.
+function legacyOpsUrl(raw){
+ const url=new URL(raw);
+ if(url.pathname==='/fa/app/admin/'||url.pathname==='/en/account/admin/')
+  url.searchParams.set('ops_view','classic');
+ return url.href;
+}
 test.use({serviceWorkers:'block'});
 function project(data){
  const php=process.env.OPERATIONS_PHP_BINARY||'php';
@@ -31,7 +40,7 @@ for(const [lang,route] of [['fa','/fa/app/admin/'],['en','/en/account/admin/']])
  const data=fixture();
  data.summary.gateCoverage=Object.fromEntries(['code','tests','production','evidence'].map(id=>[id,{pass:0,fail:0,blocked:0,stale:0,unknown:36}]));
  data.summary.gateCoverage.tests={pass:1,fail:2,blocked:3,stale:4,unknown:26};
- await page.setViewportSize({width:320,height:900});await authorized(page,{data});await page.goto(base+route);
+ await page.setViewportSize({width:320,height:900});await authorized(page,{data});await page.goto(legacyOpsUrl(base+route));
  const matrix=page.locator('details.ops-evidence-matrix'),triage=page.locator('details.ops-executor-backlog');
  await expect(matrix.locator('summary')).toContainText(lang==='fa'?'۱۴۴':'144');
  await matrix.locator('summary').click();await expect(matrix.locator('article.ops-gate')).toHaveCount(4);
@@ -51,7 +60,7 @@ for(const [lang,route] of [['fa','/fa/app/admin/'],['en','/en/account/admin/']])
 for(const [language,route] of [['fa','/fa/app/admin/'],['en','/en/account/admin/']])test(language+' critical dependency path uses server evidence and opens the source report',async({page})=>{
  const data=fixture();
  await page.setViewportSize({width:320,height:900});
- await authorized(page,{data});await page.goto(base+route);
+ await authorized(page,{data});await page.goto(legacyOpsUrl(base+route));
  const pathPanel=page.locator('details.ops-critical-path');
  await expect(pathPanel.locator('summary')).toContainText(language==='fa'?'۳۶':'36');
  await pathPanel.locator('summary').click();
@@ -67,7 +76,7 @@ function parseCsv(text){const rows=[];let row=[],field='',quote=false;for(let i=
 for(const [lang,route] of [['fa','/fa/app/admin/'],['en','/en/account/admin/']])test(lang+' canonical navigation and four report levels stay usable on 320/390/430px',async({page})=>{
  const data=fixture(),errors=[];page.on('pageerror',e=>errors.push(String(e)));await authorized(page,{data});
  for(const width of [320,390,430]){
-  await page.setViewportSize({width,height:900});await page.goto(base+route);await expect(page.locator('#ops-reporting nav button')).toHaveCount(13);await expect(page.locator('#ops-engine option')).toHaveCount(14);
+  await page.setViewportSize({width,height:900});await page.goto(legacyOpsUrl(base+route));await expect(page.locator('#ops-reporting nav button')).toHaveCount(13);await expect(page.locator('#ops-engine option')).toHaveCount(14);
   await expect(page.locator('#ops-report-level')).toHaveValue('executive');await expect(page.locator('#ops-reporting .ops-engine-aggregate article')).toHaveCount(13);await noOverflow(page);
   const engine=data.reporting.engines.find(e=>e.id==='ENG-05');await page.locator('#ops-reporting nav button').filter({hasText:engine.id+' · '}).click();await expect(page.locator('#ops-report-level')).toHaveValue('engine');await expect(page.locator('#ops-report-records li')).toHaveCount(engine.reportIds.length);
   await page.locator('#ops-report-level').selectOption('action');await expect(page.locator('#ops-report-action-picker').locator('option')).toHaveCount(registry.actions.length);
@@ -83,7 +92,7 @@ for(const [lang,route] of [['fa','/fa/app/admin/'],['en','/en/account/admin/']])
 });
 test('Master JSON counts each legacy report once and excludes account/raw audit data',async({page})=>{
  const data=fixture();data.history=[{section_id:'OP-01',gate_id:'tests',result:'pass',test_name:'public fixture check',source_url:'https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions',checked_at:data.checkedAt,expires_at:data.checkedAt+60,actor_id:'REGRESSION_PRIVATE_SENTINEL',details:{customerEmail:'REGRESSION_PRIVATE_SENTINEL'},details_json:'REGRESSION_PRIVATE_SENTINEL'}];
- await authorized(page,{data});await page.goto(base+'/en/account/admin/');await page.locator('#ops-report-level').selectOption('master');const output=await exported(page,'json'),json=JSON.parse(output.body);
+ await authorized(page,{data});await page.goto(legacyOpsUrl(base+'/en/account/admin/'));await page.locator('#ops-report-level').selectOption('master');const output=await exported(page,'json'),json=JSON.parse(output.body);
  expect(json.reports).toHaveLength(36);expect(new Set(json.reports.map(r=>r.reportId)).size).toBe(36);expect(json.reports.some(r=>r.reportId==='ADM-01')).toBe(false);
  for(const r of json.reports)expect(r.responsibleEngine).toBe(registry.reportOwners[r.reportId]);expect(json.metrics.measuredCompletion).toBeNull();expect(json.metrics.verificationCoverage).toBe(0);expect(json.metrics.commercialReadiness.status).toBe('unverified');
  expect(output.body).not.toContain('REGRESSION_PRIVATE_SENTINEL');expect(output.body).not.toContain('actor_id');expect(output.body).not.toContain('details_json');expect(output.body).not.toContain('csrfToken');
@@ -92,25 +101,25 @@ test('Engine and action JSON preserve exact scope and granular actions remain un
  const data=fixture(),record=data.reports.find(r=>r.id==='OP-01');record.measuredProgress=99;record.status='blocked';record.verifiedGates=record.verifiedGates.map(g=>({...g,state:'pass',evidence:{test_name:'Scoped legacy fixture check',source_url:'https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions',checked_at:data.checkedAt,expires_at:data.checkedAt+60}}));
  data.reporting=project(data).reporting;
  const action=data.reporting.actionReports.find(a=>a.scoringScope==='unverified_acceptance'&&a.legacyReportIds.includes(record.id));expect(action).toBeTruthy();
- await authorized(page,{data});await page.goto(base+'/en/account/admin/');await page.locator('#ops-reporting nav button').filter({hasText:'ENG-12 · '}).click();let output=JSON.parse((await exported(page,'json')).body);
+ await authorized(page,{data});await page.goto(legacyOpsUrl(base+'/en/account/admin/'));await page.locator('#ops-reporting nav button').filter({hasText:'ENG-12 · '}).click();let output=JSON.parse((await exported(page,'json')).body);
  expect(output.reports.map(r=>r.reportId).sort()).toEqual(data.reporting.engines.find(e=>e.id==='ENG-12').reportIds.slice().sort());expect(output.reports.some(r=>r.reportId==='ADM-01')).toBe(true);
  await page.locator('#ops-report-level').selectOption('action');await page.locator('#ops-report-action-picker').selectOption(action.id);await expect(page.locator('#ops-reporting')).toContainText('Action completion: Unknown');
  output=JSON.parse((await exported(page,'json')).body);expect(output.selectedAction.id).toBe(action.id);expect(output.metrics.actionCompletion).toBeNull();expect(output.reports.map(r=>r.reportId).sort()).toEqual(action.legacyReportIds.slice().sort());expect(output.reports[0].measuredCompletion).toBe(99);
 });
 test('CSV neutralizes spreadsheet formulas, escapes quotes/newlines and action exports retain the permanent identity',async({page})=>{
  const data=fixture(),name=' =HYPERLINK("https://example.invalid","x")\nsecond line';data.reports[0].title=name;
- await authorized(page,{data});await page.goto(base+'/en/account/admin/');await page.locator('#ops-report-level').selectOption('master');const csv=(await exported(page,'csv')).body,rows=parseCsv(csv.replace(/^\ufeff/,'')),nameIndex=rows[0].indexOf('name');
+ await authorized(page,{data});await page.goto(legacyOpsUrl(base+'/en/account/admin/'));await page.locator('#ops-report-level').selectOption('master');const csv=(await exported(page,'csv')).body,rows=parseCsv(csv.replace(/^\ufeff/,'')),nameIndex=rows[0].indexOf('name');
  expect(rows).toHaveLength(37);expect(rows[1][nameIndex]).toBe("'"+name);
  const action=data.reporting.actionReports.find(a=>a.scoringScope==='unverified_acceptance'&&a.legacyReportIds.includes('OP-01'));await page.locator('#ops-report-level').selectOption('action');await page.locator('#ops-report-action-picker').selectOption(action.id);
  expect((await exported(page,'txt')).body).toContain(action.id);expect((await exported(page,'csv')).body).toContain(action.id);
 });
 test('MFA expiry clears every copied privileged report, queue and status value',async({page})=>{
- await authorized(page,{expiry:8});await page.goto(base+'/fa/app/admin/');await expect(page.locator('#ops-reporting nav button')).toHaveCount(13,{timeout:6000});await expect(page.locator('#ops-workspace')).toBeHidden({timeout:12000});
+ await authorized(page,{expiry:8});await page.goto(legacyOpsUrl(base+'/fa/app/admin/'));await expect(page.locator('#ops-reporting nav button')).toHaveCount(13,{timeout:6000});await expect(page.locator('#ops-workspace')).toBeHidden({timeout:12000});
  await expect(page.locator('#ops-reporting')).toBeEmpty();await expect(page.locator('#ops-queue')).toBeEmpty();await expect(page.locator('#ops-cards')).toBeEmpty();await expect(page.locator('#ops-detail')).toBeEmpty();await expect(page.locator('#ops-sources')).toBeEmpty();
  for(const id of ['ops-total','ops-verified','ops-coverage','ops-admin-score','ops-release','ops-checked'])expect((await page.locator('#'+id).textContent()).trim()).not.toMatch(/95|aaaaaaaa|36/);
 });
 test('A delayed authorized snapshot cannot start a fresh MFA window after the session deadline',async({page})=>{
- await authorized(page,{expiry:1,delay:1400});const response=page.waitForResponse(r=>new URL(r.url()).pathname==='/api/admin/operations');await page.goto(base+'/en/account/admin/');await (await response).finished();await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+ await authorized(page,{expiry:1,delay:1400});const response=page.waitForResponse(r=>new URL(r.url()).pathname==='/api/admin/operations');await page.goto(legacyOpsUrl(base+'/en/account/admin/'));await (await response).finished();await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
  await expect(page.locator('#ops-workspace')).toBeHidden();await expect(page.locator('#ops-cards')).toBeEmpty();await expect(page.locator('#ops-reporting nav button')).toHaveCount(0);
 });
 test('server-revoked MFA during a delayed refresh clears private copies and blocks stale data',async({page})=>{
@@ -130,7 +139,7 @@ test('server-revoked MFA during a delayed refresh clears private copies and bloc
   }
   return route.fulfill({json:data});
  });
- await page.goto(base+'/en/account/admin/');
+ await page.goto(legacyOpsUrl(base+'/en/account/admin/'));
  await expect(page.locator('#ops-workspace')).toBeVisible();
  await page.locator('#ops-refresh-data').click();
  await expect.poll(()=>snapshots).toBeGreaterThanOrEqual(2);
@@ -147,7 +156,7 @@ test('server-revoked MFA during a delayed refresh clears private copies and bloc
 });
 
 test('All 12 operational engines expose A/B/C views without claiming a worker or persistent learning exists',async({page})=>{
- const data=fixture(),methods=[];page.on('request',request=>{if(request.url().includes('/api/admin/operations'))methods.push(request.method());});await authorized(page,{data});await page.setViewportSize({width:320,height:900});await page.goto(base+'/en/account/admin/');
+ const data=fixture(),methods=[];page.on('request',request=>{if(request.url().includes('/api/admin/operations'))methods.push(request.method());});await authorized(page,{data});await page.setViewportSize({width:320,height:900});await page.goto(legacyOpsUrl(base+'/en/account/admin/'));
  expect(data.reporting.awoseDomainViews).toHaveLength(36);
  for(const engine of data.reporting.engines.filter(e=>e.kind==='operational')){
   await page.locator('#ops-reporting nav button').filter({hasText:engine.id+' · '}).click();
@@ -175,7 +184,7 @@ test('Existing 7 collectors execute as MFA-scoped observations with server histo
    createdAt:data.checkedAt,finishedAt:data.checkedAt,result:{status:'observed',expectedSignalCount:1,freshSignalCount:1,signalIds:['current_release']}};
   runs.unshift(run);return route.fulfill({json:{ok:true,run}});
  });
- await page.goto(base+'/en/account/admin/');
+ await page.goto(legacyOpsUrl(base+'/en/account/admin/'));
  await expect(page.locator('#ops-workspace')).toBeVisible();
  await page.locator('#ops-report-level').selectOption('action');
  await page.locator('#ops-report-action-picker').selectOption('ENG-11.ACT-009');
@@ -210,7 +219,7 @@ test('FA/EN owner can inspect real source-scoped GitHub audit evidence without r
      summary:{observableWorkflows:1,registeredAllowlistedWorkflows:4},
      audits:[example],limitation:'read-only data, not an Action acceptance or deployment'}});});
  await page.setViewportSize({width:320,height:900});
- await page.goto(base+'/fa/app/admin/');
+ await page.goto(legacyOpsUrl(base+'/fa/app/admin/'));
  await expect(page.locator('details.ops-github-audits')).toHaveCount(1);
  await expect(page.locator('details.ops-github-audits')).not.toHaveAttribute('open');
  expect(calls).toBe(0);
@@ -226,7 +235,7 @@ test('FA/EN owner can inspect real source-scoped GitHub audit evidence without r
  expect(output.githubAuditObservation.summary.observableWorkflows).toBe(1);
  const overflow=await page.evaluate(()=>Math.max(document.documentElement.scrollWidth,document.body.scrollWidth)-innerWidth);
  expect(overflow).toBeLessThanOrEqual(1);
- await page.goto(base+'/en/account/admin/');
+ await page.goto(legacyOpsUrl(base+'/en/account/admin/'));
  await expect(page.locator('details.ops-github-audits summary')).toContainText('GitHub');
  await expect(page.locator('details.ops-github-audits')).not.toHaveAttribute('open');
  expect(calls).toBe(1);
@@ -242,7 +251,7 @@ for(const [language,route] of [['fa','/fa/app/admin/'],['en','/en/account/admin/
     defaultMatchesCanonical:true,canonicalBranchProtected:false,op02Certified:false,
     op36RollbackVerified:false,status:'branch_unprotected'}
  }}));
- await page.setViewportSize({width:320,height:900});await page.goto(base+route);
+ await page.setViewportSize({width:320,height:900});await page.goto(legacyOpsUrl(base+route));
  const github=page.locator('details.ops-github-audits');
  await github.locator('summary').click();
  await github.getByRole('button',{name:language==='fa'?'دریافت آخرین وضعیت رسمی GitHub':'Fetch verified GitHub workflow status'}).click();
@@ -267,7 +276,7 @@ test('OP-36 displays official isolated-recovery CI without claiming a production
      restoreReadiness:{scope:'isolated_recovery_tooling_ci',status:'isolated_ci_pass',
        isolatedCiPassed:true,productionRestoreVerified:false,rollbackVerified:false,
        sourceSha:'a'.repeat(40),createdAt:'2026-10-13T18:10:00Z',url}}}}));
- await page.setViewportSize({width:320,height:900});await page.goto(base+'/fa/app/admin/');
+ await page.setViewportSize({width:320,height:900});await page.goto(legacyOpsUrl(base+'/fa/app/admin/'));
  const gh=page.locator('details.ops-github-audits');await gh.locator('summary').click();
  await gh.getByRole('button',{name:'دریافت آخرین وضعیت رسمی GitHub'}).click();
  const panel=gh.locator('.ops-branch-governance');
@@ -293,7 +302,7 @@ test('OP-36 correlates server release with official deploy and post-release CI w
     deploy:{url:deployUrl,status:'completed',conclusion:'success',createdAt:'2026-10-13T20:04:55Z'},
     acceptance:{url:acceptanceUrl,status:'completed',conclusion:'success',createdAt:'2026-10-13T20:07:30Z'}}}
  }}));
- await page.setViewportSize({width:320,height:900});await page.goto(base+'/en/account/admin/');
+ await page.setViewportSize({width:320,height:900});await page.goto(legacyOpsUrl(base+'/en/account/admin/'));
  const gh=page.locator('details.ops-github-audits');await gh.locator('summary').click();
  await gh.getByRole('button',{name:'Fetch verified GitHub workflow status'}).click();
  const panel=gh.locator('.ops-branch-governance');
@@ -329,7 +338,7 @@ test('Collection settings expose 13 engine switches, eight cached providers and 
     summary:{observableWorkflows:0,registeredAllowlistedWorkflows:4},audits:[],
     collection:schedule}}});
  });
- await page.setViewportSize({width:320,height:900});await page.goto(base+'/fa/app/admin/');
+ await page.setViewportSize({width:320,height:900});await page.goto(legacyOpsUrl(base+'/fa/app/admin/'));
  await page.locator('details.ops-github-audits summary').click();
  await page.locator('details.ops-collection-settings summary').click();
  await page.getByRole('button',{name:'نمایش تنظیمات و آخرین وضعیت'}).click();
@@ -370,7 +379,7 @@ test('Audit-only dispatch requires owner confirmation and reports accepted reque
    runs:[{runId:'a'.repeat(64),actionId:'ENG-01.ACT-001',status:'succeeded',createdAt:data.checkedAt,
       result:{kind:'github_ci_audit',dispatchState:'accepted_run_unconfirmed',githubRunId:12345,verifiedByProvider:true}}]}});}
  );
- await page.goto(base+'/en/account/admin/');
+ await page.goto(legacyOpsUrl(base+'/en/account/admin/'));
  await page.locator('details.ops-github-audits summary').click();
  await page.locator('details.ops-github-audits').getByRole('button',{name:'Fetch verified GitHub workflow status'}).click();
  await expect(page.locator('details.ops-github-audits').getByRole('button',{name:'Request audit-only workflow'})).toHaveCount(1);
@@ -425,7 +434,7 @@ for(const [language,route] of [['fa','/fa/app/admin/'],['en','/en/account/admin/
     unmappedPolicies:{status:'available',count:1,ids:['http_access_log']}};
   await page.route('**/api/admin/operations/collection-settings',r=>r.fulfill({json:schedule}));
   await page.setViewportSize({width:360,height:900});
-  await page.goto(base+route);
+  await page.goto(legacyOpsUrl(base+route));
   await page.locator('details.ops-github-audits summary').click();
   await page.locator('details.ops-collection-settings summary').click();
   await page.locator('details.ops-collection-settings').getByRole('button',{
@@ -490,7 +499,7 @@ for(const [lang,route] of [['fa','/fa/app/admin/'],['en','/en/account/admin/']])
     return route.fulfill({json:{ok:true,deleted:1,moreMayRemain:false}});
   });
   await page.setViewportSize({width:360,height:900});
-  await page.goto(base+route);
+  await page.goto(legacyOpsUrl(base+route));
   const panel=page.locator('#ops-database-health');
   await panel.locator('summary').first().click();
   await expect(panel).toContainText(lang==='fa'?'بررسی سلامت تنها':'Health is checked only');
@@ -555,7 +564,7 @@ test('owner-controlled collection master toggle never triggers a fetch until sep
   }});
  });
  await page.setViewportSize({width:360,height:900});
- await page.goto(base+'/fa/app/admin/');
+ await page.goto(legacyOpsUrl(base+'/fa/app/admin/'));
  await page.locator('details.ops-github-audits summary').click();
  await page.locator('details.ops-collection-settings summary').click();
  await page.getByRole('button',{name:'نمایش تنظیمات و آخرین وضعیت'}).click();
