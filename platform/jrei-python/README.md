@@ -62,7 +62,7 @@ not a claim of continuous multi-node monitoring or Python service activation.
   `20261026_jrei_python_hmac_replay_nonces_mother_mysql.sql` migration
   **only after** independent approval and clone testing. In this mode,
   DB failure returns 503 and never falls back to per-process memory.
-  `process_local` remains strictly single-process/source-evaluation only.
+  `process_local` remains strictly single-process/source-evaluation only and now requires an explicit `JREI_PYTHON_SINGLE_PROCESS_ASSERTED=1`; otherwise all private operations fail closed. This assertion does not itself prove host topology.
 - The signed `/internal/v1/skills/arithmetic/calculate` route is called using owner skills `{"action":"calculate","payload":{"expression":"۱۲ × ۷"}}`; correctness still requires same-SHA QA and independent model-off acceptance.
 - The HMAC-guarded `/internal/v1/learning/heldout/review` endpoint is
   reachable by the existing SUPER_ADMIN/MFA `jrei-python-skills` router
