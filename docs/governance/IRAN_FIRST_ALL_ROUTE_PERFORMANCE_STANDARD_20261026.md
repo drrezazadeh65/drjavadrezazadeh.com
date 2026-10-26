@@ -69,6 +69,19 @@ The owner provided the list of **available** cPanel PHP Selector extensions. Thi
 
 **Information still needed at final host gate:** whether `opcache` is presently checked/enabled **for this domain** and whether LiteSpeed's full-page cache feature is licensed/configured for the account. No credentials, phpinfo dump or access to phpMyAdmin need be posted here.
 
+## Further source corrections after OPcache confirmation (26 October)
+
+The owner confirmed **OPcache already active**. No PHP Selector changes, database edits, production tests, release builds or deployments followed that confirmation.
+
+Additional source-only refinements:
+
+- **Persian headings and mobile reading flow:** `assets/css/journal-v2.css` now overrides the legacy Tahoma rule that loaded after `style.css`; `assets/css/store-premium-editorial-2026.css` consistently applies the locally hosted Persian display face to store headings H1–H6. Both preserve body text, English scholarly pages, cover art and commerce behavior. This corrects source precedence, not yet a measured visual outcome.
+- **Network-transfer reduction:** `assets/js/site-extras.js` no longer imports the 20-KB mobile shell on journal/private paths where the module would immediately exit. It skips public concierge assets on account, login, assessment and checkout shells and avoids update-notice CSS/JS for first-time visitors without a controlling service worker. Decorative portrait tilt is disabled for browsers explicitly requesting data saving or reporting 2G. Public/mobile navigation and protected modules remain unchanged.
+- **Whole-site SEO audit cost:** `scripts/master-semantic-geo-audit.mjs` now reuses a single parsed page-evidence record for reciprocal hreflang validation rather than re-reading the same HTML repeatedly. No automatic canonical rewrite or submission to Google is attempted.
+- **Final-only acceptance contracts:** `tests/iran-first-bilingual-presentation-contract.test.mjs` covers local licensed fonts, RTL and LTR behavior, private-route transfer guards and coverage assertions; other existing suites cover browser comments, admin evidence alarms, immutable CSS and protected paths. These files have not been executed.
+
+After source development concludes, measure **all representative route families**, not merely the language gateway. Specifically require Iran-representative mobile results, full waterfall accounting, Bertina HTTP cache headers and negative tests that public assets never cache personalised data.
+
 ## Final-owner QA matrix, after coding is complete only
 
 | Route class | Representative routes | LCP and render critical path | Interaction and privacy |
