@@ -11,6 +11,7 @@ on:
       - 'platform/jrei-python/tests/test_first_signed_canary.py'
       - 'platform/jrei-v5/windows-worker/jrei-worker.mjs'
       - 'platform/jrei-v5/windows-worker/jrei-python-canary-worker.mjs'
+      - 'platform/jrei-v5/windows-worker/jrei-python-canary-startup.ps1'
       - 'assets/js/operations-jrei-python-canary-v1.js'
       - 'fa/app/admin/index.html'
       - 'en/account/admin/index.html'
@@ -80,3 +81,18 @@ jobs:
         if: always()
         run: |
           echo 'Isolated end-to-end contracts on disposable MySQL. This run makes NO production MySQL change, Bertina deploy, Windows task activation, model inference, crawl, autonomous training, or news publication.' >> "$GITHUB_STEP_SUMMARY"
+
+  isolated-windows-parser:
+    runs-on: windows-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate opt-in canary scheduled task PowerShell source only
+        shell: pwsh
+        run: |
+          $tokens = $null
+          $errors = $null
+          $path = (Resolve-Path 'platform/jrei-v5/windows-worker/jrei-python-canary-startup.ps1').Path
+          $null = [System.Management.Automation.Language.Parser]::ParseFile($path,[ref]$tokens,[ref]$errors)
+          if($errors.Count -gt 0) { $errors | ForEach-Object { Write-Error $_.Message }; exit 1 }
+          Write-Output 'JREI_CANARY_WINDOWS_SCRIPT_PARSER_PASS_NOT_INSTALLED'
