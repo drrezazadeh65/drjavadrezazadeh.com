@@ -790,8 +790,21 @@ if(in_array($path,['/jrei/v1/owner-pilot/poll',
         $node=(string)$signed['node_id'];
         if(!jrOwnerPilotModel($pp,$node,$body))
             fail('pilot_unapproved_node_or_model',403);
-        if($path==='/jrei/v1/owner-pilot/poll')
-            respond(jrOwnerPilotWorkerPoll($pp,$pc,$node,$body));
+        if($path==='/jrei/v1/owner-pilot/poll'){
+            $answer=jrOwnerPilotWorkerPoll($pp,$pc,$node,$body);
+            // The ALREADY signed/private Windows Qwen worker has just
+            // completed local health before this poll. Advertise only
+            // short-lived, independently authenticated bridge freshness.
+            try {
+                require_once __DIR__.'/jrei-owner-pilot-public-bridge.php';
+                jrPilotBridgeRecordSignedPoll($pp,$pc,$node,$body);
+            }catch(Throwable $e){
+                // A public readiness projection must never break the
+                // successful owner-private conversation pipeline.
+                error_log('JREI owner pilot bridge marker unavailable');
+            }
+            respond($answer);
+        }
         respond(jrOwnerPilotWorkerFinish($pp,$pc,$node,$body,
           $path==='/jrei/v1/owner-pilot/reject'));
     }catch(InvalidArgumentException $e){fail('pilot_request_invalid',422);}
@@ -1562,20 +1575,26 @@ if(str_starts_with($path,'/student-support/')){
 if(in_array($path,['/assistant/v1/chat','/assistant/v1/local/result',
   '/assistant/v1/local/cancel','/assistant/v1/capabilities'],true)){
     require_once __DIR__.'/jrei-local-chat.php';
+    require_once __DIR__.'/jrei-owner-pilot-public-bridge.php';
     header('Cache-Control: private, no-store, max-age=0');
     header('X-Robots-Tag: noindex, nofollow, noarchive');
     $aiCfg=cfg();$aiDb=db();
     $local=($aiDb instanceof PDO)&&jrLocalChatReady($aiDb,$aiCfg);
+    $pilotBridge=($aiDb instanceof PDO)&&
+        jrPilotBridgeLive($aiDb,$aiCfg);
     // Paid providers cannot become the site's primary AI by accident.
     $optionalCloud=($aiCfg['jrei_allow_optional_cloud_public_fallback']??false)===true
        &&($aiDb instanceof PDO)&&jrAiPublicCanAnswer($aiDb,$aiCfg);
     if($path==='/assistant/v1/capabilities'){
         if($verb!=='GET')fail('assistant_method_invalid',405);
         respond(['ok'=>true,'schema'=>'jr.jrei.assistant-capability.v1',
-          'live'=>$local||$optionalCloud,
-          'providerMode'=>$local?'JREI_LM_LOCAL_WINDOWS':
+          'live'=>$local||$pilotBridge||$optionalCloud,
+          'providerMode'=>($local||$pilotBridge)?
+              'JREI_LM_LOCAL_WINDOWS':
              ($optionalCloud?'OPTIONAL_OPENAI':'OFFLINE_GUIDE'),
-          'providerConsentRequired'=>true,
+          'providerConsentRequired'=>$optionalCloud&&!($local||$pilotBridge),
+          'processingNoticeDisplayedInChat'=>true,
+          'publicSignedPilotBridge'=>$pilotBridge&&!$local,
           'sourceScope'=>'PUBLIC_REVIEWED_OR_SITE_SUMMARY',
           'privateLearnerRecordsAccessible'=>false,
           'scientificValidationEstablished'=>false]);
@@ -1598,6 +1617,8 @@ if(in_array($path,['/assistant/v1/chat','/assistant/v1/local/result',
     try{
         $body=jsonBody();
         if($path==='/assistant/v1/local/result'){
+            if(jrPilotBridgeIsJob($aiDb,$body))
+                respond(jrPilotBridgeCollect($aiDb,$aiCfg,$body));
             respond(jrLocalChatCollect($aiDb,$aiCfg,$body));
         }
         if($path==='/assistant/v1/local/cancel'){
@@ -1605,6 +1626,7 @@ if(in_array($path,['/assistant/v1/chat','/assistant/v1/local/result',
         }
         if($path!=='/assistant/v1/chat')fail('assistant_not_found',404);
         if($local)respond(jrLocalChatEnqueue($aiDb,$aiCfg,$body));
+        if($pilotBridge)respond(jrPilotBridgeAsk($aiDb,$aiCfg,$body));
         if($optionalCloud)respond(jrAiPublicChat($aiDb,$aiCfg,$body));
         fail('assistant_local_fallback',503);
     }catch(InvalidArgumentException $e){fail('assistant_message_invalid',422);}
