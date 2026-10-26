@@ -57,6 +57,20 @@ foreach(glob($newsLib.'/*.php') ?: [] as $newsSource){
     if(!copy($newsSource,$newsTarget.'/'.basename($newsSource)))
         throw new RuntimeException('news_fixture_library_missing_'.basename($newsSource));
 }
+// Keep the optional private Python adapter within the isolated test tree
+// rather than referencing the original source checkout or a live service.
+// CI must never configure its private enablement switch or HMAC secrets.
+$pythonClient=__DIR__.'/../platform/jrei-python/php/jrei-python-internal-client.php';
+$pythonFixtureDir=$folder.'/platform/jrei-python/php';
+if(!is_dir($pythonFixtureDir)&&!mkdir($pythonFixtureDir,0700,true))
+    throw new RuntimeException('python_fixture_adapter_directory_missing');
+if(!is_file($pythonClient)||
+   !copy($pythonClient,$pythonFixtureDir.'/jrei-python-internal-client.php'))
+    throw new RuntimeException('python_fixture_adapter_missing');
+// The bootstrapping operations route MUST NOT need Python while its
+// independent private service switch is OFF.
+if(($configuration['jrei_python_internal_enabled']??false)!==false)
+    throw new RuntimeException('python_fixture_requires_private_service_off');
 // Keep the isolated HTTP fixture synchronized with additive JREI PHP
 // modules used by the ORIGINAL operations controller. Never contact the
 // production host: only copy source into this temporary local fixture.
