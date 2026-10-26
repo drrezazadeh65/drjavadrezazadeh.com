@@ -6,7 +6,7 @@ proposal into an approved, saved, executed or published action.
 """
 from __future__ import annotations
 
-from fastapi import Depends, FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException, Request
 from jrei_core.auth import require_internal_gateway
 from jrei_core.contracts import (
     LearningBatch, MissionProposal, MissionRequest, PrioritizedGoals,
@@ -144,6 +144,25 @@ async def exact_arithmetic(payload: ArithmeticRequest):
         return calculate_exact(payload)
     except ArithmeticRejected as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+@app.post(
+    "/internal/v1/worker/arithmetic",
+    response_model=ArithmeticResult,
+)
+async def loopback_fixed_worker_canary(payload: ArithmeticRequest, request: Request):
+    """Only the deterministic 12*7 canary; never model, learner or credentials.
+
+    This endpoint is intentionally NOT a general unprotected tool gateway.
+    Uvicorn MUST continue binding to 127.0.0.1, never 0.0.0.0.
+    An external network source, even behind a proxy, must not be trusted.
+    """
+    peer = request.client.host if request.client is not None else None
+    if peer not in ("127.0.0.1", "::1"):
+        raise HTTPException(status_code=403, detail="LOOPBACK_REQUIRED")
+    if payload.expression != "12*7":
+        raise HTTPException(status_code=422, detail="FIXED_CANARY_ONLY")
+    return calculate_exact(payload)
 
 
 @app.post(
