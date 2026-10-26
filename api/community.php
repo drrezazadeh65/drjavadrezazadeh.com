@@ -213,7 +213,7 @@ function communityRoute(string $route,string $verb): never {
         if ($page===null) fail('invalid_page',400);
         $content=$pageBody['body']??null;
         if (!is_string($content)) fail('invalid_comment',400);
-        $content=trim(preg_replace('/[\\x00-\\x08\\x0B\\x0C\\x0E-\\x1F\\x7F]/u','',$content)??'');
+        $content=trim(preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/u','',$content)??'');
         $rating=$pageBody['rating']??null;
         // Only a verified article reader may leave a rating without a written comment.
         // Such a rating is still subject to the same consent, moderation, rate-limit
