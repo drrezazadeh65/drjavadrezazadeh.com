@@ -28,8 +28,8 @@ test('all twelve original hard launch gates must still be represented',()=>{
   'recent_signed_generative_poll'
  ];
  for(const term of expected)assert.ok(src.includes("'"+term+"'"),term);
- assert.match(src,/\\$state=\\$known\\[\\$id\\]\\?\\?'UNKNOWN'/);
- assert.match(src,/\\$staged=empty\\(\\$pending\\)&&empty\\(\\$unknown\\)/);
+ assert.ok(src.includes("$state=$known[$id]??'UNKNOWN'"));
+ assert.ok(src.includes('$staged=empty($effectivePending)&&empty($unknown)'));
 });
 
 test('public live PHP endpoint remains independently fail-closed',()=>{
@@ -41,7 +41,7 @@ test('public live PHP endpoint remains independently fail-closed',()=>{
    'independent_quality_accepted=1','last_signed_chat_seen_at','time()-45'])
    assert.ok(ready.includes(k),k);
  const index=read('api/index.php');
- assert.match(index,/jrLocalChatReady\\(\\$aiDb,\\$aiCfg\\)/);
+ assert.ok(index.includes('jrLocalChatReady($aiDb,$aiCfg)'));
  assert.match(index,/OFFLINE_GUIDE/);
 });
 
@@ -58,10 +58,28 @@ test('launch decision is owner-only and not public capability output',()=>{
  assert.ok(!cap.includes('publicLaunchDecision'));
 });
 
+test('explicit owner public mode never impersonates independent model certification',()=>{
+ const php=read('api/jrei-local-chat.php');
+ const router=read('api/index.php');
+ const worker=read('platform/jrei-v5/windows-worker/jrei-local-chat-worker.mjs');
+ const runner=read('platform/jrei-v5/windows-worker/jrei-local-model-start.ps1');
+ const launch=read('api/jrei-local-public-launch.php');
+ assert.ok(router.includes('JR_JREI_LOCAL_PUBLIC_UNVALIDATED_OWNER_APPROVED'));
+ assert.ok(php.includes('function jrLocalChatUnvalidatedPublicOwnerApproval'));
+ assert.ok(php.includes('m.independent_quality_accepted=1 OR ?=1'));
+ assert.ok(php.includes('jrLocalChatRetentionReady'));
+ assert.ok(php.includes('jrLocalChatNodeApproved($pdo,$cfg,'));
+ assert.ok(worker.includes('publicUnvalidatedOwnerApproved!==true'));
+ assert.ok(runner.includes('$c.publicUnvalidatedOwnerApproved -ne $true'));
+ assert.ok(launch.includes('scientificModelValidationEstablished'));
+ assert.ok(launch.includes('OWNER_APPROVED_PUBLIC_GENERAL_UNVALIDATED'));
+ assert.ok(read('assets/js/assistant.js').includes('اعتبار علمی مستقل آن‌ها تأیید نشده است'));
+});
+
 test('Windows preflight is read-only, localhost only, does not turn on chat',()=>{
  const src=read('platform/jrei-v5/windows-worker/jrei-public-launch-preflight.ps1');
  assert.match(src,/READ ONLY/);
- assert.match(src,/127\\.0\\.0\\.1/);
+ assert.ok(src.includes('127.0.0.1'));
  assert.match(src,/Get-ScheduledTask/);
  assert.match(src,/SERVER_VERIFICATION_REQUIRED/);
  for(const forbidden of ['Start-ScheduledTask','Register-ScheduledTask',
