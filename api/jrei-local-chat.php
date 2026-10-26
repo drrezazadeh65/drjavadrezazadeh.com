@@ -894,6 +894,15 @@ function jrLocalChatOwnerSnapshot(PDO $pdo,array $cfg): array {
         $result['pendingOrLeasedJobs']=$states['queued']+$states['leased'];
         $result['live']=jrLocalChatReady($pdo,$cfg);
     }catch(Throwable $e){}
+    // Owner-authorised PUBLIC visitor route via the already-running signed
+    // private Qwen worker. Distinct from the 12-gate start-chat contract.
+    $result['publicSignedPilotBridgeLive']=false;
+    try {
+        require_once __DIR__.'/jrei-owner-pilot-public-bridge.php';
+        $result['publicSignedPilotBridgeLive']=jrPilotBridgeLive($pdo,$cfg);
+        $result['live']=$result['live']||
+            $result['publicSignedPilotBridgeLive'];
+    }catch(Throwable $e){}
     $result['readinessGates']=jrLocalChatOwnerReadinessGates($result,$cfg);
     return jrJreiLocalLaunchReadinessAttach($result,$cfg);
 }
