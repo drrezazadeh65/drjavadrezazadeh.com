@@ -64,7 +64,7 @@ function jrApexMissionRecord(array $row): array
         'expiresAt'=>(int)$row['expires_at'],
         'cancellationRequestedAt'=>$row['cancellation_requested_at']===null?null:(int)$row['cancellation_requested_at'],
         // "PLANNED" never means work started, skill invoked or completed.
-        'taskExecuted'=>false,
+        'taskExecutionStatus'=>'NOT_INDEPENDENTLY_VERIFIED',
         'modelInferenceVerified'=>false,
         'scienceAccepted'=>false
     ];
@@ -113,11 +113,13 @@ function jrApexMissionAppend(PDO $pdo, array $mission, string $to,
     ]);
     $cancel=($to==='CANCELLED'||$to==='UNKNOWN_RESULT'||$to==='REQUIRES_REVIEW')
         ?$at:null;
-    $pdo->prepare('UPDATE jrei_apex_owner_missions SET status=?,
+    $updated=$pdo->prepare('UPDATE jrei_apex_owner_missions SET status=?,
       revision=revision+1,last_event_seq=?,last_event_hash=?,updated_at=?,
       cancellation_requested_at=COALESCE(cancellation_requested_at,?)
-      WHERE mission_id=? AND owner_account_id=? AND last_event_seq=? AND last_event_hash=?')
-      ->execute([$to,$seq,$eventHash,$at,$cancel,$id,$accountId,$seq-1,$prev]);
+      WHERE mission_id=? AND owner_account_id=? AND last_event_seq=? AND last_event_hash=?');
+    $updated->execute([$to,$seq,$eventHash,$at,$cancel,$id,$accountId,$seq-1,$prev]);
+    if($updated->rowCount()!==1)
+        throw new DomainException('mission_event_atomic_update_conflict');
     // No separate "successful action" event: this is metadata-only journaling.
 }
 function jrApexMissionSnapshot(PDO $pdo, array $cfg, string $accountId): array
@@ -239,7 +241,7 @@ function jrApexMissionOwnerChange(PDO $pdo,array $cfg,string $accountId,array $b
                   (mission_id,owner_account_id,request_key,intent_code,
                   request_digest,policy_digest,status,revision,last_event_seq,
                   last_event_hash,created_at,updated_at,expires_at)
-                  VALUES(?,?,?,?,?,?,"PLANNED",1,0,?,?,?,?)')
+                  VALUES(?,?,?,?,?,?,DEFAULT,1,0,?,?,?,?)')
                     ->execute([$id,$accountId,$requestKey,$intent,$digest,$policyHash,
                         JR_APEX_MISSION_ZEROS,$at,$at,$at+604800]);
                 $row=jrApexMissionOwnerRead($pdo,$accountId,$id,true);
