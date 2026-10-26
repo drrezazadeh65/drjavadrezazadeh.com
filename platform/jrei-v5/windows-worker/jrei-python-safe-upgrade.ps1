@@ -264,6 +264,13 @@ try{
   if(Health){throw 'JREI_UNOWNED_PYTHON_LISTENER_STILL_RUNNING'}
   $next=New-ScheduledTaskAction -Execute $new.path -Argument $expectedArgs -WorkingDirectory $root
   Set-ScheduledTask -TaskName $taskName -Action $next|Out-Null
+  # Deliberate rollback fault injection is gated to the disposable GitHub
+  # CI fixture. It is not an owner setting or a general remote command.
+  if($env:GITHUB_ACTIONS -eq 'true' -and
+     $env:JREI_UPGRADE_FIXTURE_DIAGNOSTICS -eq 'CI_ISOLATED' -and
+     $env:JREI_UPGRADE_FIXTURE_FAIL_AFTER_SWITCH -eq 'CI_ONLY'){
+    throw 'JREI_CI_INJECTED_ROLLBACK_CHECK'
+  }
   Start-ScheduledTask -TaskName $taskName
   if(-not (WaitHealth -RequireCanary)){throw 'JREI_NEW_PYTHON_HEALTH_OR_EXACT_SKILL_FAILED'}
   Persist $stateFile @{
