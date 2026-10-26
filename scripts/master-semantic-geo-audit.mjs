@@ -108,6 +108,8 @@ for (const file of (visit(root),htmlFiles.sort())) {
   const h1=headings.filter(h=>h.level===1);
   if(h1.length!==1)issue(noindex?'P2':'P1',route,'H1_COUNT','Expected one H1 in main; found '+h1.length);
   if(h1.some(h=>!h.title))issue(noindex?'P2':'P1',route,'H1_EMPTY','Empty main heading');
+  if(headings.length&&headings[0].level!==1)
+    issue('P2',route,'HEADING_ORDER','First heading in the main region is not H1');
   let previous=0;
   for(const h of headings) {
     if(previous && h.level>previous+1)
@@ -122,6 +124,9 @@ for (const file of (visit(root),htmlFiles.sort())) {
     if(description.length>320)issue('P3',route,'DESCRIPTION_LONG','Excessively long meta description');
   }
   const canonical=links(html,'canonical');
+  const ogUrl=tags(html,'meta').map(attributes).find(a=>a.property==='og:url')?.content||'';
+  if(!noindex&&canonical.length===1&&ogUrl&&ogUrl!==canonical[0].href)
+    issue('P1',route,'OG_CANONICAL_MISMATCH','og:url and the declared canonical differ');
   if(!noindex&&canonical.length!==1)
     issue('P1',route,'CANONICAL_COUNT','Expected exactly one canonical, found '+canonical.length);
   if(canonical.length){
@@ -135,8 +140,18 @@ for (const file of (visit(root),htmlFiles.sort())) {
     }
   }
   const alternates=links(html,'alternate').filter(x=>x.hreflang);
-  if(alternates.length){stats.withHreflang++;for(const a of alternates)
-    hreflangLinks.push({route,language:a.hreflang,url:a.href});}
+  if(alternates.length){
+    stats.withHreflang++;
+    for(const a of alternates)hreflangLinks.push({route,language:a.hreflang,url:a.href});
+    const declaredLanguages=new Set();
+    for(const a of alternates){
+      if(declaredLanguages.has(a.hreflang))
+        issue('P2',route,'HREFLANG_DUPLICATE','Duplicate hreflang entry for '+a.hreflang);
+      declaredLanguages.add(a.hreflang);
+    }
+    if(!noindex&&!alternates.some(a=>a.hreflang===language&&a.href===origin+route))
+      issue('P2',route,'HREFLANG_SELF_MISSING','Localised alternates should include the current public page');
+  }
   for(const a of alternates) {
     if(!['fa','en','x-default'].includes(a.hreflang))issue('P2',route,'HREFLANG_LOCALE',a.hreflang);
     if(a.hreflang===language&&a.href!==origin+route)
