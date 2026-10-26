@@ -136,6 +136,17 @@ for(const [id,label,symbol,tone] of ZONES){
  b.addEventListener('click',()=>activate(id,{focus:true}));
  nav.append(b);tabs.set(id,b);
 }
+nav.addEventListener('keydown',event=>{
+ if(!['ArrowLeft','ArrowRight','Home','End'].includes(event.key))return;
+ if(!tabs.has(event.target?.dataset?.opsZone))return;
+ const buttons=[...tabs.values()];
+ const index=buttons.indexOf(event.target);
+ const direction=fa?-1:1;
+ const next=event.key==='Home'?0:event.key==='End'?buttons.length-1:
+  (index+(event.key==='ArrowRight'?direction:-direction)+buttons.length)%buttons.length;
+ event.preventDefault();
+ buttons[next].click();
+});
 const subtitle=make('div','ops-command-subheading');
 const breadcrumb=make('div','ops-command-breadcrumb');
 const eyebrow=make('span','ops-command-breadcrumb-label','WORKSPACE');
@@ -239,6 +250,7 @@ const selectedModules=new Map();
 let moduleSequence=0;
 let lastSuccess=0;
 let connectionError=false;
+let offline=false;
 let heartbeat=0;
 let heartbeatBusy=false;
 let lastProbeAttempt=0;
@@ -441,7 +453,11 @@ function activate(next,{focus=false}={}){
  renderModules();annotate();
  // Internal viewport, not a 200-kilometre document scrollbar.
  workspace.scrollTo({top:0,behavior:'instant'});
- if(focus)tabs.get(next).focus({preventScroll:true});
+ if(focus){
+  const selected=candidates(next).find(node=>moduleId(node)===selectedModules.get(next));
+  if(selected&&selected.tagName==='DETAILS')selected.open=true;
+  tabs.get(next).focus({preventScroll:true});
+ }
 }
 function readNumber(id){
  const raw=document.getElementById(id)?.textContent?.trim()||'';
@@ -550,10 +566,11 @@ async function heartbeatProbe(){
 function pulse(){
  if(workspace.hidden)return;
  const age=lastSuccess?Date.now()-lastSuccess:Infinity;
- const state=connectionError?'error':!lastSuccess?'unknown':age<=60000?'fresh':'stale';
+ const state=offline?'offline':connectionError?'error':!lastSuccess?'unknown':age<=60000?'fresh':'stale';
  signal.dataset.signal=state;
  signalHeading.textContent=({
   fresh:tr('ارتباط مدیریتی تأیید شد','Admin connection verified'),
+  offline:tr('مرورگر شما آفلاین است','Browser is offline'),
   stale:tr('گزارش نیازمند تازه‌سازی','Report needs refreshing'),
   error:tr('تازه‌سازی با خطا روبه‌رو شد','Report refresh failed'),
   unknown:tr('وضعیت هنوز مشخص نیست','Connection not confirmed')
@@ -561,6 +578,8 @@ function pulse(){
  signalText.textContent=({
   fresh:tr('پاسخ موفق از API خصوصی · نه تأیید سلامت کل سایت',
            'Private API responded · not a whole-site uptime claim'),
+  offline:tr('این وضعیت اتصال همین دستگاه است؛ خرابی سرور اثبات نشده',
+             'This device lost connectivity; server downtime is not proven'),
   stale:tr('آخرین پاسخ قدیمی است؛ برای وضعیت تازه بررسی کنید',
            'Last successful response is ageing; request fresh evidence'),
   error:tr('گزارش قبلی ممکن است قدیمی باشد؛ خطا را بررسی کنید',
@@ -570,7 +589,7 @@ function pulse(){
  })[state];
 }
 function locked(){
- lastSuccess=0;lastProbeAttempt=0;connectionError=false;selectedModules.clear();
+ lastSuccess=0;lastProbeAttempt=0;connectionError=false;offline=false;selectedModules.clear();
  observations.length=0;planEvidence=[];prioritySelector.value='';planItems.replaceChildren();timelineBars.replaceChildren();
  engineCells.replaceChildren();
  engineCells.append(make('p','ops-command-engine-empty',
@@ -663,10 +682,7 @@ document.addEventListener('visibilitychange',()=>{
  if(!document.hidden&&!workspace.hidden&&Date.now()-lastSuccess>=60000)
   void heartbeatProbe();
 });
-window.addEventListener('online',()=>{if(!workspace.hidden)pulse()});
-window.addEventListener('offline',()=>{
- if(workspace.hidden)return;
- connectionError=true;pulse();
-});
+window.addEventListener('online',()=>{offline=false;if(!workspace.hidden)pulse()});
+window.addEventListener('offline',()=>{offline=true;if(!workspace.hidden)pulse()});
 if(!workspace.hidden&&!auth.hidden)unlocked();
 })();
