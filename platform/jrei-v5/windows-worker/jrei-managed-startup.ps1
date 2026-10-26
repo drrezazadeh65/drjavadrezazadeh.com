@@ -111,7 +111,8 @@ if($WorkerMode -eq 'model'){
   }elseif($privateSettings.localChat.enabled -eq $true -and
           $privateSettings.localChat.rightsReviewed -eq $true -and
           $privateSettings.localChat.modelRuntimeVerified -eq $true -and
-          $privateSettings.localChat.independentQualityAccepted -eq $true){
+          ($privateSettings.localChat.independentQualityAccepted -eq $true -or
+           $privateSettings.localChat.publicUnvalidatedOwnerApproved -eq $true)){
     ''
   }else{
     throw 'LOCAL_MODEL_PRIVATE_APPROVAL_INCOMPLETE'
