@@ -43,6 +43,18 @@ This is **source-level code only**. The feature flags remain off by default and 
 
 The new source audit checks the existing public route policy so that noindex-private routes cannot be accidentally treated as public, and separately diagnoses hreflang target language disagreements. These new checks are also **not executed**.
 
+## Additional source-only Search Console workflow (26 October)
+
+`scripts/gsc-coverage-reconcile.mjs` now accepts an explicitly supplied **local** Google Search Console CSV export at the final owner-authorised acceptance stage. It uses the established route-governance policy and local source files to distinguish genuinely private/noindex routes from public URLs needing closer review. The script redacts query strings and URL fragments from the report, makes no network calls and never changes HTTP configuration, canonical, sitemap, WordPress/OJS status or database records. It does not infer that a `Crawled — currently not indexed` state can be cured or that a legitimate alternate canonical must be changed. CSV data remain private and must not be committed. **The script has not been executed.**
+
+Sample *future* command, only when development is complete and the owner authorises final QA:
+
+```bash
+node scripts/gsc-coverage-reconcile.mjs --input work/private-gsc-export.csv --reason "Crawled - currently not indexed" --json
+```
+
+The output is an evidence-reconciliation report, not a Search Console API connection or ranking forecast.
+
 ## Verification gates to run only after development
 
 **SEO + technical:** compare GSC exported affected URLs against the frozen URL manifest and route policy; HTML 200/301/404 semantics; a single descriptive H1 in main; heading hierarchy; useful copy with distinct intent; canonical and exact reciprocal hreflang; private noindex; sitemap URLs and actual lastmod; robots policies; crawlable public resources; JSON-LD parser and provable entity identity; internal links; mobile layout; HTTP status, redirect chains, feed/XML content type.
