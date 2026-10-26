@@ -132,6 +132,12 @@ const disclaimer=make('small','ops-command-disclaimer',
  tr('هر چراغ فقط شواهد همان بخش را نشان می‌دهد؛ نبود هشدار به معنای سلامت قطعی کل سایت نیست.',
     'Signals reflect their evidence scope; no alerts does not certify total site health.'));
 subtitle.append(breadcrumb,disclaimer);
+const moduleBar=make('nav','ops-command-modules');
+moduleBar.setAttribute('aria-label',tr('زیرمجموعه‌های بخش انتخاب‌شده','Subsections of selected category'));
+const moduleTitle=make('small','ops-command-module-label',
+ tr('زیرمجموعه‌های عملیاتی','Operational modules'));
+const moduleButtons=make('div','ops-command-module-buttons');
+moduleBar.append(moduleTitle,moduleButtons);
 const overview=make('section','ops-command-overview');
 overview.setAttribute('aria-label',tr('خلاصه شواهد واقعی','Real evidence summary'));
 const score=make('div','ops-command-progress');
@@ -176,9 +182,11 @@ for(const [zone,label] of [
  b.addEventListener('click',()=>activate(zone,{focus:true}));quick.append(b);
 }
 overview.append(score,readings,quick);
-shell.append(heading,nav,subtitle,overview);
+shell.append(heading,nav,subtitle,moduleBar,overview);
 workspace.prepend(shell);
 let active='overview';
+const selectedModules=new Map();
+let moduleSequence=0;
 let lastSuccess=0;
 let connectionError=false;
 let heartbeat=0;
@@ -202,17 +210,82 @@ function zoneOf(element){
  if(/social|composer|media/.test(text))return 'media';
  return 'systems';
 }
+function candidates(zone){
+ return [...workspace.children].filter(child=>child!==shell&&
+  !child.classList.contains('ops-jump')&&
+  zoneOf(child)===zone&&!child.hidden);
+}
+function moduleId(child){
+ if(!child.dataset.opsCommandItemId)
+  child.dataset.opsCommandItemId='jr-module-'+(++moduleSequence);
+ return child.dataset.opsCommandItemId;
+}
+function moduleName(child){
+ const title=child.querySelector(':scope > summary,:scope > h2,:scope > h3');
+ if(title?.textContent?.trim())return title.textContent.trim().slice(0,84);
+ if(child.classList.contains('ops-workspace-index'))
+  return tr('فهرست جامع همه ابزارها','Full index of all tools');
+ if(child.classList.contains('ops-toolbar'))return tr('جست‌وجو و خروجی گزارش','Search and report exports');
+ if(child.classList.contains('ops-stats'))return tr('شاخص‌های گزارش','Report metrics');
+ if(child.id==='ops-cards')return tr('فهرست موتورهای عملیاتی','Operational engines');
+ if(child.id==='ops-detail')return tr('گزارش موتور انتخاب‌شده','Selected engine report');
+ return child.getAttribute('aria-label')||child.id||
+  tr('ابزار مدیریتی','Admin workspace');
+}
+function renderModules(){
+ moduleButtons.replaceChildren();
+ const nodes=candidates(active);
+ moduleBar.hidden=active==='overview'||active==='engines'||nodes.length<2;
+ if(moduleBar.hidden)return;
+ const selected=selectedModules.get(active);
+ if(!nodes.some(node=>moduleId(node)===selected)){
+  selectedModules.set(active,moduleId(nodes[0]));
+ }
+ for(const node of nodes){
+  const button=make('button','ops-command-module',moduleName(node));
+  button.type='button';
+  button.dataset.moduleId=moduleId(node);
+  button.setAttribute('aria-pressed',String(selectedModules.get(active)===moduleId(node)));
+  button.addEventListener('click',()=>{
+   selectedModules.set(active,moduleId(node));
+   if(node.tagName==='DETAILS')node.open=true;
+   annotate();
+   workspace.scrollTo({top:0,behavior:'instant'});
+  });
+  moduleButtons.append(button);
+ }
+}
 function annotate(){
  if(workspace.hidden)return;
+ const nodes=candidates(active);
+ const selected=selectedModules.get(active);
+ if(active!=='overview'&&active!=='engines'&&nodes.length&&!nodes.some(el=>moduleId(el)===selected)){
+  selectedModules.set(active,moduleId(nodes[0]));
+ }
  for(const child of workspace.children){
   if(child===shell)continue;
   const zone=zoneOf(child);
+  const currentModule=moduleId(child);
+  const subgroupHidden=active!=='overview'&&active!=='engines'&&
+    zone===active&&selectedModules.get(active)!==currentModule;
+  const inactive=zone!==active||subgroupHidden||
+    child.classList.contains('ops-jump');
   child.dataset.opsCommandZone=zone;
-  child.classList.toggle('ops-command-inactive',zone!==active);
-  // Inert is an interaction boundary, not a security mechanism; the server
-  // MFA and role checks remain the only authority.
-  child.inert=zone!==active;
+  child.classList.toggle('ops-command-inactive',inactive);
+  // CSS concealment and inert affordance are NOT authorization boundaries.
+  child.inert=inactive;
  }
+ for(const button of moduleButtons.children){
+  button.setAttribute('aria-pressed',String(button.dataset.moduleId===selectedModules.get(active)));
+ }
+}
+function selectModule(element){
+ if(!element||element.parentElement!==workspace)return;
+ const zone=zoneOf(element);
+ if(zone!=='overview'&&zone!=='engines'){
+  selectedModules.set(zone,moduleId(element));
+ }
+ activate(zone);
 }
 function activate(next,{focus=false}={}){
  if(workspace.hidden||!tabs.has(next))return;
@@ -225,8 +298,8 @@ function activate(next,{focus=false}={}){
  }
  sectionTitle.textContent=ZONES.find(([id])=>id===next)?.[1]||'';
  overview.hidden=next!=='overview';
- annotate();
- // Restore a compact surface instead of scrolling back through legacy panels.
+ renderModules();annotate();
+ // Internal viewport, not a 200-kilometre document scrollbar.
  workspace.scrollTo({top:0,behavior:'instant'});
  if(focus)tabs.get(next).focus({preventScroll:true});
 }
@@ -294,7 +367,8 @@ function pulse(){
  })[state];
 }
 function locked(){
- lastSuccess=0;connectionError=false;
+ lastSuccess=0;connectionError=false;selectedModules.clear();
+ moduleButtons.replaceChildren();moduleBar.hidden=true;
  clearInterval(heartbeat);heartbeat=0;
  freshnessValue.textContent='—';
  ringNumber.textContent='—';score.style.setProperty('--ops-ring-completion','0');
@@ -329,7 +403,7 @@ document.addEventListener('click',event=>{
  if(!target||!workspace.contains(target))return;
  let direct=target;
  while(direct&&direct.parentElement!==workspace)direct=direct.parentElement;
- if(direct&&direct!==shell)activate(zoneOf(direct));
+ if(direct&&direct!==shell)selectModule(direct);
 },true);
 workspace.addEventListener('jr:ops-workspace-activate',event=>{
  if(workspace.hidden)return;
@@ -337,7 +411,7 @@ workspace.addEventListener('jr:ops-workspace-activate',event=>{
  if(!target||!workspace.contains(target))return;
  let direct=target;
  while(direct&&direct.parentElement!==workspace)direct=direct.parentElement;
- if(direct)activate(zoneOf(direct));
+ if(direct)selectModule(direct);
 });
 workspace.addEventListener('jr:operations-ready',()=>{
  unlocked();
@@ -350,7 +424,7 @@ workspace.addEventListener('jr:operations-locked',locked);
 const observer=new MutationObserver(changes=>{
  if(workspace.hidden)return;
  if(changes.some(change=>change.type==='childList')){
-  annotate();metrics();
+  renderModules();annotate();metrics();
  }
 });
 observer.observe(workspace,{childList:true});
