@@ -122,7 +122,8 @@ for (const file of (visit(root),htmlFiles.sort())) {
     if(description.length>320)issue('P3',route,'DESCRIPTION_LONG','Excessively long meta description');
   }
   const canonical=links(html,'canonical');
-  if(!noindex&&canonical.length!==1) issue('P1',route,'CANONICAL_COUNT','Expected exactly one canonical, found '+canonical.length);
+  if(!noindex&&canonical.length!==1)
+    issue('P1',route,'CANONICAL_COUNT','Expected exactly one canonical, found '+canonical.length);
   if(canonical.length){
     const url=canonical[0].href||'';
     if(!url.startsWith(origin+'/'))issue('P1',route,'CANONICAL_ORIGIN',url);
@@ -147,11 +148,13 @@ for (const file of (visit(root),htmlFiles.sort())) {
     if(!('alt' in attrs))issue('P2',route,'IMAGE_ALT','Image missing alt: '+(attrs.src||'unknown').slice(0,120));
     if(attrs.loading==='lazy'&&attrs.fetchpriority==='high')issue('P1',route,'LCP_CONFLICT',attrs.src||'unknown');
   }
-  const scripts=[...html.matchAll(/<script\b[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)];
+  const scripts=[...html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)]
+    .filter(match=>attributes('<script'+match[1]+'>').type?.toLowerCase()==='application/ld+json')
+    .map(match=>match[2]);
   if(scripts.length)stats.withJsonLd++;
   for(const script of scripts){
     let parsed;
-    try{parsed=JSON.parse(script[1]);}
+    try{parsed=JSON.parse(script);}
     catch(_){issue('P1',route,'JSONLD_PARSE','Invalid JSON-LD script');continue;}
     for(const node of schemaNodes(parsed)) {
       const types=Array.isArray(node['@type'])?node['@type']:[node['@type']];
@@ -177,8 +180,14 @@ for(const file of ['sitemap-core.xml','sitemap-fa.xml','sitemap-en.xml','sitemap
 }
 for(const route of indexableRoutes.keys())if(!sitemapRoutes.has(route))
   issue('P2',route,'SITEMAP_OMISSION','Indexable route absent from listed sitemaps; optional inclusion requires policy review');
-for(const route of sitemapRoutes)if(!indexableRoutes.has(route))
-  issue('P1',route,'SITEMAP_NONINDEXABLE','Sitemap path has no indexable HTML source');
+for(const route of sitemapRoutes){
+  if(indexableRoutes.has(route))continue;
+  const relative=route==='/'?'index.html':route.replace(/^\//,'')+'index.html';
+  const file=path.join(root,relative);
+  const exists=fs.existsSync(file);
+  issue(exists?'P1':'P2',route,'SITEMAP_NONINDEXABLE',
+    exists?'Sitemap includes a nonindex HTML source':'Sitemap points to a route without local HTML; inspect alias or generated route');
+}
 for(const entry of hreflangLinks){
   if(entry.language==='x-default'){
     const target=entry.url?.startsWith(origin)?entry.url.slice(origin.length):null;
