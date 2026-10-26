@@ -486,7 +486,7 @@ function operationsRoute(string $path, string $verb): never {
             $skillBody=jsonBody();
             if (!is_array($skillBody)) fail('jrei_python_request_invalid',422);
             try {
-                respond(jrOwnerJreiPythonSkillDispatch($configuration,$skillBody));
+                respond(jrOwnerJreiPythonSkillDispatch($configuration,$skillBody,$accountId));
             } catch (InvalidArgumentException $e) {
                 fail('jrei_python_request_invalid',422);
             } catch (RuntimeException $e) {
