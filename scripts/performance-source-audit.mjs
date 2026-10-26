@@ -2,7 +2,12 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {isOwnershipVerificationArtifact} from './site-ownership-verification.mjs';
 
-const root=process.cwd();
+// Audit both source HTML and the generated Bertina artifact with identical
+// rules. Release mode measures the actual bundled/immutable resource names.
+const releaseMode=process.argv.includes('--release');
+const root=releaseMode?path.resolve(process.cwd(),'.public-site'):process.cwd();
+if(releaseMode&&!fs.existsSync(root))
+ throw new Error('Sanitized release artifact missing. Build only during owner-approved final QA.');
 const ignored=new Set(['.git','.github','node_modules','.public-site','identity','proposals','work','test-results','docs','platform','foundation','scripts','tests','database','migrations','payment-api']);
 const htmlFiles=[];
 
@@ -167,7 +172,8 @@ const routesByJs=[...routeInventory].sort((a,b)=>b.js.rawLocalBytes-a.js.rawLoca
 if(process.argv.includes('--json')){
  console.log(JSON.stringify({
   schema:'jr.iran-first.per-route-source.v1',
-  caveat:'Local raw source inventory only; not Lighthouse or real Iranian field CWV',
+  caveat:'Local raw resource inventory only; not Lighthouse or actual Iranian field CWV',
+  scope:releaseMode?'SANITIZED_RELEASE':'SOURCE_HTML',
   allHtmlRoutes:routeInventory.length,
   publicIndexableRoutes:indexableCount,
   topCssRoutes:routesByCss.slice(0,30),
@@ -176,7 +182,7 @@ if(process.argv.includes('--json')){
   failures,warnings
  },null,2));
 }else{
- console.log('Performance source audit: '+indexableCount+' indexable HTML pages, '+imageCount+' image tags checked; '+routeInventory.length+' TOTAL HTML routes inventoried.');
+ console.log('Performance '+(releaseMode?'sanitized-release':'source')+' audit: '+indexableCount+' indexable HTML pages, '+imageCount+' image tags checked; '+routeInventory.length+' TOTAL HTML routes inventoried.');
  console.log('Highest CSS source: '+JSON.stringify(routesByCss.slice(0,8).map(x=>[x.route,x.css.rawLocalBytes])));
  console.log('Highest JS source: '+JSON.stringify(routesByJs.slice(0,8).map(x=>[x.route,x.js.rawLocalBytes])));
 }
