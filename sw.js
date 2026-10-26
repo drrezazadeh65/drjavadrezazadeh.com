@@ -146,6 +146,12 @@ function isImage(url){
   return /\.(?:svg|webp|png|jpe?g|gif|avif|ico)$/i.test(url.pathname);
 }
 
+function isApprovedImmutableCoreStyle(url){
+  // Only SHA256-named CSS aliases produced by the existing guarded Bertina
+  // release assembler qualify; ordinary ?v query strings remain mutable.
+  return /^\/assets\/css\/(?:style|public-v2)\.[a-f0-9]{12}\.css$/i.test(url.pathname);
+}
+
 function isContentFingerprinted(url){
   // Query-string versions and ordinary font filenames are mutable aliases:
   // only a content-derived filename digest justifies cache-first delivery.
@@ -244,7 +250,14 @@ self.addEventListener('fetch',event=>{
     return;
   }
 
-  // CSS/JS: network-first so a successful deploy is never hidden behind stale app-shell assets.
+  // Generated immutable core CSS can safely reuse a cached exact-digest body.
+  // HTML is still network-first, so each release points at its new alias.
+  if(isApprovedImmutableCoreStyle(url)){
+    event.respondWith(cacheFirstImmutable(req));
+    return;
+  }
+
+  // Other CSS/JS remains network-first so a successful deploy is never hidden.
   // JSON/manifests follow the same mutable-code policy.
   if(isAsset && isMutableCode(url)){
     event.respondWith(freshNetwork(req,{
