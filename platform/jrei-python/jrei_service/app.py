@@ -6,13 +6,15 @@ proposal into an approved, saved, executed or published action.
 """
 from __future__ import annotations
 
-from fastapi import Depends, FastAPI, HTTPException, Response
+from fastapi import Depends, FastAPI, HTTPException
 from jrei_core.auth import require_internal_gateway
 from jrei_core.contracts import (
     LearningBatch, MissionProposal, MissionRequest, PrioritizedGoals,
 )
 from jrei_core.mission import MissionDependencyError, propose_mission
 from jrei_learning.prioritizer import prioritize
+from jrei_skills import EvidenceTriageRequest, EvidenceTriageResult, triage_evidence_revision
+from jrei_skills.registry import skill_catalog
 
 app = FastAPI(
     title="JREI Private Intelligence Contracts",
@@ -57,6 +59,7 @@ async def capabilities():
         "executable_read_only_algorithms": [
             "aggregate_gap_prioritization_v1",
             "scoped_mission_dag_proposal_v1",
+            "evidence_revision_triage_v1",
         ],
         "live_model_inference": False,
         "durable_missions": False,
@@ -86,3 +89,22 @@ async def mission_proposal(payload: MissionRequest):
         return propose_mission(payload)
     except MissionDependencyError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+@app.post(
+    "/internal/v1/skills/catalog",
+    dependencies=[Depends(require_internal_gateway)],
+)
+async def registered_skills():
+    # Signed gateway only; the manifest conveys no privilege to a model.
+    return skill_catalog()
+
+
+@app.post(
+    "/internal/v1/skills/evidence/triage",
+    response_model=EvidenceTriageResult,
+    dependencies=[Depends(require_internal_gateway)],
+)
+async def evidence_revision_triage(payload: EvidenceTriageRequest):
+    # Computation only. Source/rights approval stays with independent mother-DB review.
+    return triage_evidence_revision(payload)
