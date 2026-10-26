@@ -61,7 +61,7 @@ are mandatory. No invented test fixture or performance claim is supplied.
 - `JR_JREI_APEX_MISSIONS_OWNER_WRITE_ENABLED`: retains previous independent state
 - `JR_JREI_PYTHON_INTERNAL_ENABLED`: retains previous independent state
 - `JREI_PYTHON_PRIVATE_ENABLED`: independently OFF unless provisioned
-- `JREI_PYTHON_REPLAY_BACKEND`: `process_local` source/single-process only;
+- `JREI_PYTHON_REPLAY_BACKEND`: `process_local` source/single-process only and requires `JREI_PYTHON_SINGLE_PROCESS_ASSERTED=1`;
   select `mother_mysql` for future multi-process staging with validated TLS,
   restricted nonce INSERT grant and approved migration.
 
