@@ -140,7 +140,24 @@ try{
   $after=(GitCommand -arguments @('rev-parse','HEAD') | Out-String).Trim()
   if($before -ceq $after){Report 'REPO_SYNC_UP_TO_DATE'}
   else{Report 'REPO_SYNC_FAST_FORWARDED'}
-  Report 'NO_PYTHON_INSTALL_OR_SERVICE_RESTART'
+  // Separate owner-approved Python upgrade. The local opt-in marker is NEVER
+  // committed or downloaded, and absent consent is a code-transfer-only run.
+  // The upgrader stages in an isolated venv and may restart ONLY Python 8091.
+  // Neither Qwen (8081) nor signed website workers are restarted.
+  $optIn=Join-Path $root 'python-auto-upgrade-approved.json'
+  $upgrader=Join-Path $repo 'platform\jrei-v5\windows-worker\jrei-python-safe-upgrade.ps1'
+  if((Test-Path -LiteralPath $optIn -PathType Leaf) -and
+     (Test-Path -LiteralPath $upgrader -PathType Leaf)){
+    $shell=Join-Path $env:SystemRoot 'System32\WindowsPowerShell\v1.0\powershell.exe'
+    try{
+      & $shell -NoProfile -NonInteractive -ExecutionPolicy Bypass `
+        -File $upgrader -Mode Auto
+      if($LASTEXITCODE -eq 0){Report 'PYTHON_SAFE_AUTO_INSTALL_CHECK_COMPLETE'}
+      else{Report 'PYTHON_SAFE_AUTO_INSTALL_REQUIRES_REVIEW'}
+    }catch{Report 'PYTHON_SAFE_AUTO_INSTALL_REQUIRES_REVIEW'}
+  }else{
+    Report 'PYTHON_AUTO_INSTALL_NOT_OPTED_IN'
+  }
 }catch{
   # Avoid writing untrusted exception strings to a persistent log.
   Report 'REPO_SYNC_BLOCKED_NO_SERVICE_CHANGE'
