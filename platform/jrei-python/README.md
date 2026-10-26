@@ -8,6 +8,7 @@
 
 - `jrei_learning.prioritizer.prioritize` deterministically orders aggregate, source-referenced learning gaps with disclosed weights, a stable sort, rights/evidence review, and explicit learning-method choices. It creates **no** knowledge promotion, experiments, model updates or DB records.
 - `jrei_core.mission.propose_mission` builds a cycle-checked task DAG using exactly the existing `platform/jrei-v5/jrei-scoped-mission-planner.mjs` mission kind allowlist. It is proposal-only, and does not reimplement JS execution permissions.
+- `jrei_skills.evidence_revision.triage_evidence_revision` performs fixed-function source-revision review triage using hash/version metadata only: withdrawal, rights, independent review, changed content, and freshness. It returns only review recommendations; supplied metadata does **not** attest source rights or approval. Its static capability catalog names the exact permitted calls, not dynamically loaded plugins.
 - `jrei_service.app` supplies guarded `/internal/v1/` routes for the above capabilities. Health exposes actual service-process response, not fictitious model/host/DB status.
 
 The Python server is **not** deployed on Bertina and need not run under LiteSpeed. It is designed for a separate approved Windows/VPS/container worker. Do not expose the Python service, move Qwen ports, or enroll Node A/B from these files. Localhost-only is the recommended source evaluation binding. The OpenAPI schema is intentionally not publicly served.
