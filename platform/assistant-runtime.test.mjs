@@ -20,7 +20,7 @@ assert.equal(policy.abuse_controls.max_user_message_chars,1600);
 
 assert(client.includes("const endpoint=document.querySelector('meta[name=\"jr-assistant-endpoint\"]')?.content?.trim()||'';"));
 assert(client.includes("if(!chatEndpoint){"));
-assert(client.includes("const chatEndpoint=providerConsent.checked?approvedLiveEndpoint:'';"));
+assert(client.includes("const chatEndpoint=providerMode==='JREI_LM_LOCAL_WINDOWS'?"));
 assert(client.includes("target.origin===location.origin"));
 assert(client.includes("target.pathname==='/api/assistant/v1/chat'"));
 assert(client.includes('const local=fallback(message.trim())'));
