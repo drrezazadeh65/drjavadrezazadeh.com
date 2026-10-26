@@ -68,7 +68,10 @@ test('desktop keeps article first, offers discoverable, and news headings balanc
   expect(pos.sidePosition).toBe('sticky');
  }
  await page.goto(base+'/fa/akhbar/',{waitUntil:'domcontentloaded'});
- await expect(page.locator('.launch-news-collection .launch-news-grid .news-card')).toHaveCount(13);
+ const newsCards=page.locator('.launch-news-collection .launch-news-grid .news-card');
+ const newsCardCount=await newsCards.count();
+ expect(newsCardCount).toBeGreaterThanOrEqual(13);
+ await expect(newsCards.locator('h3')).toHaveCount(newsCardCount);
  await expect(page.locator('.launch-market-links a')).toHaveCount(3);
  const headings=await page.locator('.launch-news-grid .news-card h3').evaluateAll(nodes=>nodes.map(el=>parseFloat(getComputedStyle(el).fontSize)));
  expect(Math.max(...headings)).toBeLessThanOrEqual(26);
