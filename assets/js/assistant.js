@@ -273,8 +273,8 @@
         approvedLiveEndpoint=location.origin+'/api/assistant/v1/chat';
         providerConsentText.textContent=mode==='JREI_LM_LOCAL_WINDOWS'
           ?(isFa?
-            ' استفاده از Qwen محلی در JREI: متن این گفتگو به رایانه پردازشی مجاز JREI منتقل می‌شود. پاسخ‌ها ممکن است خطا داشته باشند و خودکار به مدل آموزش داده نمی‌شوند.':
-            ' Use local Qwen in JREI: your message is processed on an approved JREI computer. Answers may be inaccurate; this does not automatically train the model.')
+            ' گفت‌وگوی عمومی با JREI: پیام شما با رضایتتان در رایانهٔ پردازشی اختصاصی JREI تحلیل می‌شود. این پاسخ‌ها ممکن است خطا داشته باشند و اعتبار علمی مستقل آن‌ها تأیید نشده است؛ برای تصمیم‌های آموزشی مهم راستی‌آزمایی کنید. مکالمهٔ شما به‌طور خودکار برای آموزش مدل استفاده نمی‌شود.':
+            ' Public JREI conversation: with your consent, your message is processed on a dedicated JREI computer. Answers may be wrong and are not independently scientifically validated; independently verify important educational decisions. This conversation is not automatically used to train the model.')
           :(isFa?
             ' استفاده اختیاری از مدل ابری؛ متن گفت‌وگو برای پردازش به ارائه‌دهندهٔ API خارجی ارسال می‌شود.':
             ' Optional external-cloud AI: this conversation is sent to an external API provider for processing.');
