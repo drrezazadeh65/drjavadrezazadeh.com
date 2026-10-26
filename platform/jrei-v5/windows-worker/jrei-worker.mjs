@@ -40,6 +40,8 @@ const ENDPOINTS = Object.freeze({
   ownerPilotComplete:'/api/jrei/v1/owner-pilot/complete',
   ownerPilotReject:'/api/jrei/v1/owner-pilot/reject',
   pythonNodeHeartbeat:'/api/jrei/v1/python-node/heartbeat',
+  pythonCanaryPoll:'/api/jrei/v1/python-canary/poll',
+  pythonCanaryComplete:'/api/jrei/v1/python-canary/complete',
   localPoll: '/api/jrei/v1/local-chat/poll',
   localComplete: '/api/jrei/v1/local-chat/complete'
 });
@@ -523,6 +525,21 @@ try {
     process.once('SIGINT',()=>stop.abort());
     process.once('SIGTERM',()=>stop.abort());
     await runOwnerPilotWorker(config,key,{post,log,signal:stop.signal});
+  }
+  else if(cmd==='start-python-canary'&&process.argv.length===4){
+    // Distinct optional process, no changes to the existing signed Qwen
+    // workers, no arbitrary model-generated tool, no key re-enrolment.
+    const config=await loadConfig(process.argv[3]);
+    const pem=protectKey('unprotect',keyPath());
+    if(!pem)throw Error('WINDOWS_DPAPI_KEY_UNAVAILABLE');
+    const key=createPrivateKey(pem);
+    if(key.asymmetricKeyType!=='ed25519')
+      throw Error('PRIVATE_KEY_TYPE_UNAPPROVED');
+    const {runPythonCanaryWorker}=await import('./jrei-python-canary-worker.mjs');
+    const stop=new AbortController();
+    process.once('SIGINT',()=>stop.abort());
+    process.once('SIGTERM',()=>stop.abort());
+    await runPythonCanaryWorker(config,key,{post,log,signal:stop.signal});
   }
   else if(cmd==='start-python-health'&&process.argv.length===4){
     // Existing private config and Ed25519 key are reused unchanged.
