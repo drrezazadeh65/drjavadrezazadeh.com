@@ -882,3 +882,57 @@ body:has(#ops-workspace:not([hidden])) .jr-assistant{display:none}
 :where(main article,main .article-shell,main .content-body) :where(pre,code,kbd,samp){direction:ltr;unicode-bidi:isolate}
 :where(main article,main .article-shell,main .content-body) :where(img,video,svg,iframe){max-width:100%}
 :where(main article,main .article-shell,main .content-body) :where(input,textarea,select){max-width:100%;box-sizing:border-box}
+
+/* Persian luxury typographic system — original OFL font, self-hosted on Bertina.
+   One variable WOFF2, no third-party font CSS/API. Numeric/directional
+   preferences remain under the page's actual lang/dir attributes. */
+@font-face{
+ font-family:"JR Persian Display";
+ src:url("/assets/fonts/vazirmatn-variable-a501289a8559.woff2") format("woff2");
+ font-weight:100 900;
+ font-style:normal;
+ font-display:swap;
+ unicode-range:U+0600-06FF,U+0750-077F,U+08A0-08FF,U+FB50-FDFF,U+FE70-FEFF,U+200C-200D,U+06F0-06F9;
+}
+:root{
+ --jr-fa-display:"JR Persian Display","Vazirmatn","Noto Naskh Arabic","Noto Sans Arabic",Tahoma,sans-serif;
+ --jr-fa-heading-1:clamp(2.1rem,4.5vw,4rem);
+ --jr-fa-heading-2:clamp(1.55rem,2.8vw,2.5rem);
+ --jr-fa-heading-3:clamp(1.18rem,2vw,1.66rem);
+}
+html[lang="fa"] :is(main,.journal-main,.authority-shell,.foundation-main,.article-shell,.jr-science-workspace)
+ :is(h1,h2,h3,h4,h5,h6),
+html[lang="fa"] body.rtl :is(h1,h2,h3,h4,h5,h6){
+ font-family:var(--jr-fa-display)!important;
+ font-style:normal;
+ font-synthesis:none;
+ letter-spacing:normal!important;
+ text-transform:none;
+ overflow-wrap:break-word;
+ text-wrap:balance;
+}
+html[lang="fa"] :is(main,.journal-main,.authority-shell,.foundation-main,.article-shell) h1,
+html[lang="fa"] body.rtl h1{
+ font-weight:780;
+ line-height:1.48!important;
+}
+html[lang="fa"] :is(main,.journal-main,.authority-shell,.foundation-main,.article-shell) h2,
+html[lang="fa"] body.rtl h2{
+ font-weight:720;
+ line-height:1.58!important;
+}
+html[lang="fa"] :is(main,.journal-main,.authority-shell,.foundation-main,.article-shell) :is(h3,h4,h5,h6),
+html[lang="fa"] body.rtl :is(h3,h4,h5,h6){
+ font-weight:650;
+ line-height:1.66!important;
+}
+html[lang="fa"] :where(.hero,.article-hero,.authority-hero,.service-hero,.journal-hero)
+ h1{
+ text-shadow:0 4px 25px rgba(0,0,0,.16);
+}
+@media(max-width:600px){
+ html[lang="fa"] :is(main,.journal-main,.authority-shell,.foundation-main,.article-shell) :is(h1,h2,h3,h4,h5,h6){
+  max-inline-size:100%;
+  overflow-wrap:anywhere;
+ }
+}
