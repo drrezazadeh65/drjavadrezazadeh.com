@@ -12,6 +12,8 @@
   .\jrei-managed-startup.ps1 -Mode remove -WorkerMode chat -OwnerApproved
   .\jrei-managed-startup.ps1 -Mode install -WorkerMode model -ConfigPath "C:\Private\jrei-worker.json" -OwnerApproved
   .\jrei-managed-startup.ps1 -Mode remove -WorkerMode model -OwnerApproved
+  .\jrei-managed-startup.ps1 -Mode install -WorkerMode pilot -ConfigPath "C:\Private\jrei-worker.json" -OwnerApproved
+  .\jrei-managed-startup.ps1 -Mode remove -WorkerMode pilot -OwnerApproved
 
   Script registration is no proof of real Bertina worker connectivity.
 #>
@@ -21,7 +23,7 @@ param(
   [ValidateSet('install','remove')]
   [string]$Mode,
   [string]$ConfigPath,
-  [ValidateSet('evaluation','chat','model')]
+  [ValidateSet('evaluation','chat','model','pilot')]
   [string]$WorkerMode='evaluation',
   [switch]$OwnerApproved
 )
@@ -35,6 +37,8 @@ $taskName=if($WorkerMode -eq 'chat'){
   'JREI-Owner-Local-Chat-Worker'
 }elseif($WorkerMode -eq 'model'){
   'JREI-Owner-Local-Model'
+}elseif($WorkerMode -eq 'pilot'){
+  'JREI-Owner-Private-Pilot-Worker'
 }else{'JREI-Owner-Outbound-Worker'}
 if($Mode -eq 'remove'){
   $task=Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue
@@ -68,7 +72,20 @@ if($null -ne $existing){
 # path as one argument. Both paths are owner-local and never from AI output.
 $escapedWorker=$worker.Replace('"','')
 $escapedConfig=$fullConfig.Replace('"','')
-$runMode=if($WorkerMode -eq 'chat'){'start-chat'}else{'start'}
+$runMode=if($WorkerMode -eq 'chat'){'start-chat'}
+  elseif($WorkerMode -eq 'pilot'){'start-pilot'}
+  else{'start'}
+if($WorkerMode -eq 'pilot'){
+  # Pilot is a signed owner-only queue. It is never a substitute for public
+  # quality approval and must not launch with a disabled rights review.
+  try {$pilotSettings=Get-Content -LiteralPath $fullConfig -Raw -Encoding UTF8 |
+    ConvertFrom-Json} catch {throw 'OWNER_PILOT_PRIVATE_CONFIG_UNREADABLE'}
+  if($pilotSettings.localChat.ownerApproved -ne $true -or
+     $pilotSettings.localChat.rightsReviewed -ne $true -or
+     $pilotSettings.localChat.enabled -ne $false){
+    throw 'OWNER_PILOT_REQUIRES_REVIEWED_RIGHTS_AND_PUBLIC_CHAT_OFF'
+  }
+}
 if($WorkerMode -eq 'model'){
   $reviewedLauncher=[IO.Path]::GetFullPath(
     (Join-Path $PSScriptRoot 'jrei-local-model-start.ps1'))
