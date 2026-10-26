@@ -234,7 +234,9 @@ try{
  if($priorState -and $priorState.sourceTree -ceq $tree){
   Event 'PYTHON_AUTO_UPGRADE_ALREADY_INSTALLED';return
  }
- if($priorState -and $priorState.failedTree -ceq $tree){
+ if($priorState -and
+    $null -ne $priorState.PSObject.Properties['failedTree'] -and
+    $priorState.failedTree -ceq $tree){
   Event 'PYTHON_AUTO_UPGRADE_BLOCKED_FAILED_REVISION';return
  }
  if(-not (Health)){
