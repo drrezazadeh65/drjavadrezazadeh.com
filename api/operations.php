@@ -52,6 +52,7 @@ require_once __DIR__.'/jrei-learning-operations.php';
 require_once __DIR__.'/jrei-hybrid-owner.php';
 require_once __DIR__.'/jrei-owner-private-pilot.php';
 require_once __DIR__.'/jrei-python-owner-skills.php';
+require_once __DIR__.'/jrei-apex-owner-missions.php';
 require_once __DIR__.'/jrei-exam-research-owner.php';
 require_once __DIR__.'/jrei-ka-independent-source-review.php';
 require_once __DIR__.'/jrei-exam-commercial-catalogue.php';
@@ -408,6 +409,38 @@ function operationsRoute(string $path, string $verb): never {
             respond(['ok'=>true,'mfaVerified'=>true]);
         }
         if (!$fresh) fail('admin_mfa_required',403);
+
+        // APEX owner durable mission ledger. Same original session and
+        // current MFA with SUPER_ADMIN role, CSRF and rate limits; never a
+        // model-driven command executor or implicit worker permission.
+        if($path==='/admin/operations/jrei-apex-missions' &&
+           in_array($verb,['GET','POST'],true)) {
+            if(($configuration['operations_admins'][$accountId]['role']??'')!=='SUPER_ADMIN')
+                fail('super_admin_required',403);
+            if(!rateAllowed($pdo,'jrei_apex_owner_missions',$accountId,30,300))
+                fail('rate_limited',429);
+            if($verb==='GET') {
+                try {
+                    respond(jrApexMissionSnapshot($pdo,$configuration,$accountId));
+                } catch(Throwable $e) {fail('jrei_apex_mission_snapshot_unavailable',503);}
+            }
+            if(!operationsMutationAllowed($_SERVER,
+                (string)($_SERVER['HTTP_X_CSRF_TOKEN']??''),$csrf))
+                fail('csrf_forbidden',403);
+            try {
+                $body=jsonBody();
+                if(!is_array($body)||array_is_list($body))
+                    fail('jrei_apex_mission_request_invalid',422);
+                respond(jrApexMissionOwnerChange($pdo,$configuration,$accountId,$body));
+            } catch(InvalidArgumentException $e) {
+                fail('jrei_apex_mission_request_invalid',422);
+            } catch(DomainException $e) {
+                fail('jrei_apex_mission_not_authorized_or_conflicted',409);
+            } catch(Throwable $e) {
+                fail('jrei_apex_mission_write_unavailable',503);
+            }
+        }
+
         // A model-free, read-only capability within the EXISTING operations
         // session. No second admin login, direct browser-to-worker URL,
         // credential disclosure, command shell or mother-DB mutation.
