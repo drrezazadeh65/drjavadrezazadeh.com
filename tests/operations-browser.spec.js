@@ -1073,6 +1073,10 @@ test(lang+' owner can switch between modern command deck and all-tools classic w
  await expect(page.locator('#ops-workspace')).toBeVisible();
  await expect(page.locator('#ops-command-deck')).toBeVisible();
  await expect(page.locator('#ops-command-deck .ops-command-tab')).toHaveCount(10);
+ // The new luxury view really selects functional categories. The classic
+ // fallback is an owner navigation choice, not a hidden MFA override.
+ await page.locator('#ops-command-deck [data-ops-zone="commerce"]').click();
+ await expect(page.locator('#ops-command-deck [data-ops-zone="commerce"]')).toHaveAttribute('aria-pressed','true');
  const legacy=page.locator('#ops-command-deck .ops-command-classic-link');
  await expect(legacy).toBeVisible();
  await expect(legacy).toHaveAttribute('href',new RegExp('ops_view=classic'));
@@ -1082,6 +1086,7 @@ test(lang+' owner can switch between modern command deck and all-tools classic w
  await expect(page.locator('#ops-command-deck')).toHaveCount(0);
  await expect(page.locator('#ops-search')).toBeVisible();
  await expect(page.locator('#ops-cards article')).toHaveCount(36);
+ await expect(page.locator('#ops-commerce > summary')).toBeVisible();
  const modern=page.locator('#ops-workspace .ops-command-classic-return');
  await expect(modern).toBeVisible();
  await modern.click();
