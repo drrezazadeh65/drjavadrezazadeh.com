@@ -117,9 +117,9 @@ test('MFA-only bilingual owner newsroom reuses existing operations identity and 
     // locale, preserving the original stylesheet cascade. Verify that the
     // *complete actual newsroom rules* survive the sanitized Bertina build,
     // rather than expecting an obsolete extra render-blocking CSS request.
-    const bundleLink=html.match(/href="(\\/assets\\/css\\/operations-owner\\.(?:fa|en)\\.[a-f0-9]{12}\\.css)"/);
+    const bundleLink=html.match(/href="(\/assets\/css\/operations-owner\.(?:fa|en)\.[a-f0-9]{12}\.css)"/);
     assert.ok(bundleLink,'hashed owner stylesheet must remain in '+file);
-    const packed=fs.readFileSync(path.join(out,bundleLink[1].replace(/^\\//,'')),'utf8');
+    const packed=fs.readFileSync(path.join(out,bundleLink[1].replace(/^\//,'')),'utf8');
     const original=fs.readFileSync(path.join(out,'assets/css/operations-jrei-newsroom-v1.css'),'utf8');
     assert.ok(packed.includes('/* operations-jrei-newsroom-v1 — original cascade order'),
       'owner CSS bundle must identify the original newsroom module');
