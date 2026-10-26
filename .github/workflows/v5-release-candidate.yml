@@ -265,7 +265,10 @@ jobs:
       - name: Install pinned Chromium and Playwright
         run: |
           npm install --no-save @playwright/test@1.56.0
-          npx playwright install --with-deps chromium
+          # Ubuntu GitHub runners already carry Chromium runtime libraries (as
+          # demonstrated by full-route visual and responsive QA on this branch).
+          # Avoid slow apt/systemd changes in an owner-authorized release.
+          npx playwright install chromium
       - name: Verify bilingual owner dashboard and bookstore flows
         run: |
           set -euo pipefail
