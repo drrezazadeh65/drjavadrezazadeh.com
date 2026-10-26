@@ -1,0 +1,42 @@
+name: JREI Python Signed Node Bridge Isolated QA (NO DEPLOY)
+on:
+  push:
+    branches: [migration/bertina-linux6]
+    paths:
+      - '.github/workflows/jrei-python-signed-node-bridge-qa.yml'
+      - 'api/jrei-python-node-health.php'
+      - 'api/index.php'
+      - 'api/operations.php'
+      - 'platform/jrei-v5/windows-worker/jrei-worker.mjs'
+      - 'platform/jrei-v5/windows-worker/jrei-python-health-worker.mjs'
+      - 'tests/jrei-python-node-health-bridge.test.mjs'
+      - 'docs/migrations/20261027_jrei_python_node_health_mother_mysql.sql'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: jrei-python-signed-node-qa-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  signed-worker-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Node outbound worker syntax
+        run: |
+          node --check platform/jrei-v5/windows-worker/jrei-worker.mjs
+          node --check platform/jrei-v5/windows-worker/jrei-python-health-worker.mjs
+      - name: Deterministic signed-node read-only health contracts
+        run: node --test tests/jrei-python-node-health-bridge.test.mjs
+      - name: PHP route and owner syntax
+        run: |
+          php -l api/jrei-python-node-health.php
+          php -l api/index.php
+          php -l api/operations.php
+      - name: Explicit no-live boundary
+        if: always()
+        run: echo 'Source QA only. No Bertina schema migration, deploy, Windows Worker installation, owner flag activation, HMAC secret provisioning, model training, crawling or news publication.' >> "$GITHUB_STEP_SUMMARY"
