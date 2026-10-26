@@ -3,7 +3,7 @@ import path from 'node:path';
 import {isOwnershipVerificationArtifact} from './site-ownership-verification.mjs';
 
 const root=process.cwd();
-const ignored=new Set(['.git','node_modules','.public-site','identity','proposals','work','test-results']);
+const ignored=new Set(['.git','.github','node_modules','.public-site','identity','proposals','work','test-results','docs','platform','foundation','scripts','tests','database','migrations','payment-api']);
 const htmlFiles=[];
 
 function walk(dir){
@@ -53,7 +53,9 @@ function localResourceSize(raw,route){
   let parsed;
   try{parsed=new URL(raw,'https://drjavadrezazadeh.com'+route);}catch{return null;}
   if(parsed.origin!=='https://drjavadrezazadeh.com')return null;
-  const relative=decodeURIComponent(parsed.pathname).replace(/^\/+/,'');
+  let relative;
+  try{relative=decodeURIComponent(parsed.pathname).replace(/^\/+/,'');}
+  catch{return null;}
   if(!relative||relative.split('/').includes('..'))return null;
   const resolved=path.resolve(root,relative);
   if(!resolved.startsWith(root+path.sep))return null;
@@ -167,13 +169,16 @@ if(process.argv.includes('--json')){
  console.log('Highest CSS source: '+JSON.stringify(routesByCss.slice(0,8).map(x=>[x.route,x.css.rawLocalBytes])));
  console.log('Highest JS source: '+JSON.stringify(routesByJs.slice(0,8).map(x=>[x.route,x.js.rawLocalBytes])));
 }
-if(warnings.length){
+if(!process.argv.includes('--json')&&warnings.length){
   console.warn('Warnings ('+warnings.length+')');
   warnings.forEach(x=>console.warn('! '+x));
 }
 if(failures.length){
-  console.error('Performance failures ('+failures.length+')');
-  failures.forEach(x=>console.error('✗ '+x));
-  process.exit(1);
+  if(!process.argv.includes('--json')){
+    console.error('Performance failures ('+failures.length+')');
+    failures.forEach(x=>console.error('✗ '+x));
+  }
+  process.exitCode=1;
+}else if(!process.argv.includes('--json')){
+  console.log('No release-blocking source performance regressions detected.');
 }
-console.log('No release-blocking source performance regressions detected.');
