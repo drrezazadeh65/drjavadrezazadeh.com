@@ -124,8 +124,8 @@ test('academic brand, native accessible accordions, revision controls and SUPER_
   assert.match(html,/operations-community-moderation\.js\?v=20261021-academic-v2/);
   assert.match(html,/operations-community-moderation\.css\?v=20261021-academic-v2/);
  }
- assert.match(read('assets/js/site-extras.js'),/community-comments\.js\?v=20261026-semantic-r1/);
- assert.match(read('assets/js/site-extras.js'),/community-comments\.css\?v=20261026-semantic-r1/);
+ assert.match(read('assets/js/site-extras.js'),/community-comments\.js\?v=20261026-community-r2/);
+ assert.match(read('assets/js/site-extras.js'),/community-comments\.css\?v=20261026-community-r2/);
 });
 
 
