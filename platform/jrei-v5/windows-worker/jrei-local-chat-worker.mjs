@@ -78,7 +78,8 @@ export function validateLocalChatConfig(config){
   if(!ID.test(c.modelId??'')||!ID.test(c.modelVersion??'')||
      !SHA.test(c.modelSha256??'')||c.rightsReviewed!==true||
      c.ownerApproved!==true||c.modelRuntimeVerified!==true||
-     c.independentQualityAccepted!==true||
+     (c.independentQualityAccepted!==true&&
+      c.publicUnvalidatedOwnerApproved!==true)||
      (c.disableThinking!==undefined&&typeof c.disableThinking!=='boolean')||
      typeof c.endpoint!=='string'||
      !Number.isInteger(c.pollSeconds)||c.pollSeconds<2||c.pollSeconds>10||
