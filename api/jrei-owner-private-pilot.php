@@ -6,8 +6,11 @@ require_once __DIR__.'/jrei-local-chat.php';
 /**
  * OWNER-ONLY experimental Qwen bridge.
  * This is a separate non-public queue state, not an AI quality approval:
- * MFA SUPER_ADMIN makes every request; Ed25519 Node A collects outbound;
+ * MFA SUPER_ADMIN makes every request; an owner-registered Ed25519 Windows node collects outbound;
  * encrypted, ephemeral, no self-learning, no cloud, no learner data.
+ * Both original owner Windows node roles are eligible for the PRIVATE pilot,
+ * only when their pre-existing signed identity, enabled node, reviewed model
+ * version and exact GGUF hash pass. No public generative grant is implied.
  * No site-wide public release/environment flag is changed or inferred.
  */
 function jrOwnerPilotModel(PDO $pdo,string $node,array $body): bool {
@@ -19,7 +22,7 @@ function jrOwnerPilotModel(PDO $pdo,string $node,array $body): bool {
     $q=$pdo->prepare("SELECT n.node_id FROM jrei_hybrid_nodes n
        JOIN jrei_local_model_registry m
          ON m.model_id=? AND m.model_version=?
-       WHERE n.node_id=? AND n.provider_type='LOCAL_WINDOWS_WORKER'
+       WHERE n.node_id=? AND n.provider_type IN ('LOCAL_WINDOWS_WORKER','LOCAL_SECONDARY_WORKER')
          AND n.status='ENABLED' AND n.revoked_at IS NULL
          AND n.permitted_task='REVIEWED_PUBLIC_RETRIEVAL_EVALUATION'
          AND m.model_artifact_sha256=?
@@ -163,9 +166,9 @@ function jrOwnerPilotWorkerPoll(PDO $pdo,array $cfg,string $node,array $body): a
     $now=time();
     $pdo->beginTransaction();
     try{
-        // Serializes concurrent polls from the same authenticated Node A.
+        // Serializes concurrent polls from the same authenticated owner Windows node.
         $q=$pdo->prepare("SELECT node_id FROM jrei_hybrid_nodes
-          WHERE node_id=? AND provider_type='LOCAL_WINDOWS_WORKER'
+          WHERE node_id=? AND provider_type IN ('LOCAL_WINDOWS_WORKER','LOCAL_SECONDARY_WORKER')
             AND status='ENABLED' AND revoked_at IS NULL FOR UPDATE");
         $q->execute([$node]);
         if($q->fetchColumn()===false)
