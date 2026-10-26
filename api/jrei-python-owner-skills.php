@@ -1,7 +1,6 @@
 <?php
 declare(strict_types=1);
 if (!defined('BERTINA_API_BOOTSTRAPPED')) { http_response_code(404); exit; }
-require_once dirname(__DIR__).'/platform/jrei-python/php/jrei-python-internal-client.php';
 
 /**
  * Private, source-stage JREI Python skills bridge.
@@ -53,6 +52,18 @@ function jrOwnerJreiPythonSkillDispatch(array $privateConfig, array $body): arra
         $route='/internal/v1/skills/evidence/triage';
         $payload=$body['payload'];
         $expected='jr.jrei.evidence-triage-result.v1';
+    }
+    // Preserve existing authenticated operations routes and isolated MySQL
+    // fixtures when this optional Python service is disabled. Never require
+    // a source-only adapter while bootstrapping PHP routes. Fail CLOSED if
+    // explicitly enabled on a host missing the verified private adapter.
+    $adapter=dirname(__DIR__).'/platform/jrei-python/php/jrei-python-internal-client.php';
+    if (!is_file($adapter) || !is_readable($adapter)) {
+        throw new RuntimeException('JREI_PYTHON_PRIVATE_ADAPTER_NOT_INSTALLED');
+    }
+    require_once $adapter;
+    if (!function_exists('jrJreiPythonInternalPropose')) {
+        throw new RuntimeException('JREI_PYTHON_PRIVATE_ADAPTER_INVALID');
     }
     // Distinct signed private service credential; no owner/user fields forwarded.
     $result=jrJreiPythonInternalPropose($privateConfig,$route,$payload);
