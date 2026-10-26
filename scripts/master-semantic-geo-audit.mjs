@@ -9,6 +9,8 @@
  */
 import fs from 'node:fs';
 import path from 'node:path';
+import {classifyRoute} from '../platform/ecosystem-governance.mjs';
+import {isOwnershipVerificationArtifact} from './site-ownership-verification.mjs';
 
 const root = process.cwd();
 const origin = 'https://drjavadrezazadeh.com';
@@ -84,25 +86,28 @@ function schemaNodes(value, out=[]) {
 for (const file of (visit(root),htmlFiles.sort())) {
   const route=routeFor(file);
   const html=fs.readFileSync(file,'utf8');
-  if (/^google[a-f0-9]+\.html$/i.test(path.basename(file))) continue;
+  if (isOwnershipVerificationArtifact(path.relative(root,file))) continue;
   stats.pages++;
   const rootTag=tags(html,'html')[0]||'';
   const htmlAttrs=attributes(rootTag);
   const language=htmlAttrs.lang||'';
   const direction=htmlAttrs.dir||'';
   const robots=meta(html,'robots').toLowerCase();
+  const routePolicy=classifyRoute(route);
   const noindex=/(?:^|[\s,])noindex(?:$|[\s,])/.test(robots);
   if(noindex)stats.noindex++;else{stats.indexable++;indexableRoutes.set(route,file);}
+  if(routePolicy.indexing==='NOINDEX'&&!noindex)
+    issue('P1',route,'PRIVATE_INDEXING','Private/controlled route requires noindex under '+routePolicy.policy);
   if(!['fa','en'].includes(language)) issue('P1',route,'HTML_LANG','Missing/unsupported page language');
   if(language==='fa'&&direction!=='rtl')issue('P1',route,'RTL','Persian page lacks dir=rtl');
   if(language==='en'&&direction&&direction!=='ltr')issue('P2',route,'LTR','English page has non-LTR direction');
   const mainCount=tags(html,'main').length;
-  if(mainCount!==1)issue('P1',route,'MAIN','Expected one main landmark; found '+mainCount);
+  if(mainCount!==1)issue(noindex?'P2':'P1',route,'MAIN','Expected one main landmark; found '+mainCount);
   if(!meta(html,'viewport'))issue('P1',route,'VIEWPORT','Missing mobile viewport');
   const headings=extractHeadings(html);
   const h1=headings.filter(h=>h.level===1);
-  if(h1.length!==1)issue('P1',route,'H1_COUNT','Expected one H1 in main; found '+h1.length);
-  if(h1.some(h=>!h.title))issue('P1',route,'H1_EMPTY','Empty main heading');
+  if(h1.length!==1)issue(noindex?'P2':'P1',route,'H1_COUNT','Expected one H1 in main; found '+h1.length);
+  if(h1.some(h=>!h.title))issue(noindex?'P2':'P1',route,'H1_EMPTY','Empty main heading');
   let previous=0;
   for(const h of headings) {
     if(previous && h.level>previous+1)
@@ -133,6 +138,8 @@ for (const file of (visit(root),htmlFiles.sort())) {
     hreflangLinks.push({route,language:a.hreflang,url:a.href});}
   for(const a of alternates) {
     if(!['fa','en','x-default'].includes(a.hreflang))issue('P2',route,'HREFLANG_LOCALE',a.hreflang);
+    if(a.hreflang===language&&a.href!==origin+route)
+      issue('P1',route,'HREFLANG_SELF','Declared self-language alternate is not this page');
     if(!a.href?.startsWith(origin+'/'))issue('P1',route,'HREFLANG_ORIGIN',a.href||'missing href');
   }
   for(const img of tags(html,'img')){
@@ -173,10 +180,21 @@ for(const route of indexableRoutes.keys())if(!sitemapRoutes.has(route))
 for(const route of sitemapRoutes)if(!indexableRoutes.has(route))
   issue('P1',route,'SITEMAP_NONINDEXABLE','Sitemap path has no indexable HTML source');
 for(const entry of hreflangLinks){
-  if(entry.language==='x-default')continue;
+  if(entry.language==='x-default'){
+    const target=entry.url?.startsWith(origin)?entry.url.slice(origin.length):null;
+    if(!target||!indexableRoutes.has(target))
+      issue('P2',entry.route,'XDEFAULT_TARGET','x-default must resolve to a released indexable public route');
+    continue;
+  }
   const target=entry.url.slice(origin.length);
   const targetFile=indexableRoutes.get(target);
   if(!targetFile)issue('P2',entry.route,'HREFLANG_TARGET','Target lacks indexable source: '+target);
+  else {
+    const targetHtml=fs.readFileSync(targetFile,'utf8');
+    const lang=attributes(tags(targetHtml,'html')[0]||'').lang;
+    if(lang!==entry.language)issue('P1',entry.route,'HREFLANG_MISMATCH',
+      entry.language+' alternate points to '+target+' with html[lang]='+String(lang));
+  }
   else if(target!==entry.route){
     const targetHtml=fs.readFileSync(targetFile,'utf8');
     const reverse=links(targetHtml,'alternate').some(a=>a.hreflang&&a.href===origin+entry.route);
