@@ -125,6 +125,7 @@ test('academic brand, native accessible accordions, revision controls and SUPER_
  }
  assert.match(read('assets/js/site-extras.js'),/community-comments\.js\?v=20261026-community-r3/);
  assert.match(pub,/community-comments\.css\?v=20261026-community-r3/);
+ assert.match(pub,/community-comments\.css\?v=20261026-community-r3/);
 });
 test('public reply result caps preserve approved-only publication and bounded memory',()=>{
  const php=read('api/community.php');
