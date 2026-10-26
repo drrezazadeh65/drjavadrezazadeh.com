@@ -108,7 +108,20 @@ const css=document.createElement('link');css.rel='stylesheet';css.href='/assets/
 jrAfterFirstPaint(()=>{if(document.querySelector('script[data-jr-footer-brand-loader]'))return;const el=document.createElement('script');el.src='/assets/js/footer-brand-seal.js?v=20261016-v1';el.defer=true;el.dataset.jrFooterBrandLoader='1';document.head.append(el);});
 
 /* Footer provenance/copyright metadata. Public information only. */
-jrAfterFirstPaint(()=>{if(document.querySelector('script[data-jr-footer-meta-loader]'))return;const script=document.createElement('script');script.src='/assets/js/site-footer-meta-2026.js?v=20261016-public-version-v2';script.defer=true;script.dataset.jrFooterMetaLoader='1';document.head.append(script);});
+// The 2.4 KB public legal/version metadata is a release-integrity feature,
+// not an optional animation. Load it after DOM readiness rather than waiting
+// for idle time: slow trust-seal image requests must not hide the site version.
+(()=>{
+ const add=()=>{
+  if(document.querySelector('script[data-jr-footer-meta-loader]'))return;
+  const script=document.createElement('script');
+  script.src='/assets/js/site-footer-meta-2026.js?v=20261016-public-version-v2';
+  script.defer=true;script.dataset.jrFooterMetaLoader='1';document.head.append(script);
+ };
+ if(document.readyState==='loading')
+  document.addEventListener('DOMContentLoaded',add,{once:true});
+ else add();
+})();
 
 /* Permanent manual PWA installation entry near the homepage footer.
    Auto-prompt remains capped to once; visitors can always request installation. */
