@@ -1,0 +1,176 @@
+"""Encrypted mother-DB owner memory; stage OFF until independent QA.
+
+No new database, model call, public tenant access, automatic training or
+unreviewed retention extension. The existing PHP MFA gateway supplies owner
+identity. AES-GCM keys and the table-specific MySQL credentials remain private.
+"""
+from __future__ import annotations
+
+import base64
+import hashlib
+import os
+from pathlib import Path
+import secrets
+import time
+import uuid
+
+from .contracts import (
+    OwnerMemorySave, OwnerMemoryRef, OwnerMemoryReceipt,
+    OwnerMemoryReadResult, OwnerMemoryRevokeReceipt,
+)
+
+
+class OwnerMemoryUnavailable(RuntimeError):
+    pass
+
+
+def _key() -> bytes:
+    if os.environ.get("JREI_PYTHON_OWNER_MEMORY_ENABLED") != "1":
+        raise OwnerMemoryUnavailable("OWNER_MEMORY_DISABLED")
+    text = os.environ.get("JREI_PYTHON_OWNER_MEMORY_KEY_B64", "")
+    try:
+        key = base64.b64decode(text, validate=True)
+    except (ValueError, Exception) as exc:
+        raise OwnerMemoryUnavailable("OWNER_MEMORY_KEY_INVALID") from exc
+    if len(key) != 32:
+        raise OwnerMemoryUnavailable("OWNER_MEMORY_KEY_INVALID")
+    return key
+
+
+def _connect():
+    """Open a TLS-verified connection with table-restricted credentials."""
+    if os.environ.get("JREI_PYTHON_OWNER_MEMORY_ENABLED") != "1":
+        raise OwnerMemoryUnavailable("OWNER_MEMORY_DISABLED")
+    host = os.environ.get("JREI_PYTHON_OWNER_MEMORY_MYSQL_HOST", "").strip()
+    user = os.environ.get("JREI_PYTHON_OWNER_MEMORY_MYSQL_USER", "").strip()
+    password = os.environ.get("JREI_PYTHON_OWNER_MEMORY_MYSQL_PASSWORD", "")
+    ca = os.environ.get("JREI_PYTHON_OWNER_MEMORY_MYSQL_CA", "").strip()
+    port = os.environ.get("JREI_PYTHON_OWNER_MEMORY_MYSQL_PORT", "3306")
+    if not (host and user and password and ca and Path(ca).is_file() and
+            os.environ.get("JREI_PYTHON_OWNER_MEMORY_MYSQL_DB") == "drjavad1_store" and
+            port.isascii() and port.isdigit() and 1 <= int(port) <= 65535):
+        raise OwnerMemoryUnavailable("OWNER_MEMORY_DB_CONFIGURATION_MISSING")
+    try:
+        import pymysql
+        return pymysql.connect(
+            host=host, user=user, password=password, port=int(port),
+            database="drjavad1_store", ssl_ca=ca,
+            ssl_verify_cert=True, ssl_verify_identity=True,
+            connect_timeout=3, read_timeout=3, write_timeout=3,
+            autocommit=False,
+        )
+    except (ImportError, OSError, Exception) as exc:
+        raise OwnerMemoryUnavailable("OWNER_MEMORY_DB_UNAVAILABLE") from exc
+
+
+def _cipher():
+    try:
+        from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+    except ImportError as exc:
+        raise OwnerMemoryUnavailable("OWNER_MEMORY_ENCRYPTION_DRIVER_MISSING") from exc
+    return AESGCM(_key())
+
+
+def _aad(owner_id: str, record_id: str, purpose: str, expires_at: int) -> bytes:
+    return f"jr.jrei.owner-memory.v1|{owner_id}|{record_id}|{purpose}|{expires_at}".encode("ascii")
+
+
+def save_owner_note(request: OwnerMemorySave) -> OwnerMemoryReceipt:
+    # Explicit invocation only: this function never reads public chat history.
+    aes = _cipher()
+    now = int(time.time())
+    expiry = now + request.retention_days * 86400
+    record_id = str(uuid.uuid4())
+    nonce = secrets.token_bytes(12)
+    plaintext = request.note.encode("utf-8")
+    ciphertext = aes.encrypt(
+        nonce, plaintext,
+        _aad(request.owner_account_id, record_id, request.purpose, expiry),
+    )
+    checksum = hashlib.sha256(ciphertext).hexdigest()
+    conn = _connect()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                "INSERT INTO jrei_python_owner_memory_records "
+                "(record_id,owner_account_id,request_key,purpose,nonce,"
+                "ciphertext,ciphertext_sha256,created_at,expires_at,revoked_at) "
+                "VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,NULL)",
+                (record_id, request.owner_account_id, request.request_key,
+                 request.purpose, nonce, ciphertext, checksum, now, expiry),
+            )
+        conn.commit()
+    except Exception as exc:
+        conn.rollback()
+        # Duplicate key or other DB failure must not become a second memory.
+        raise OwnerMemoryUnavailable("OWNER_MEMORY_WRITE_UNAVAILABLE") from exc
+    finally:
+        conn.close()
+    return OwnerMemoryReceipt(
+        record_id=record_id, purpose=request.purpose, expires_at=expiry,
+    )
+
+
+def read_owner_note(request: OwnerMemoryRef) -> OwnerMemoryReadResult:
+    aes = _cipher()
+    now = int(time.time())
+    conn = _connect()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                "SELECT purpose,nonce,ciphertext,ciphertext_sha256,expires_at "
+                "FROM jrei_python_owner_memory_records "
+                "WHERE owner_account_id=%s AND record_id=%s "
+                "AND revoked_at IS NULL AND expires_at>%s LIMIT 1",
+                (request.owner_account_id, request.record_id, now),
+            )
+            row = cur.fetchone()
+    except Exception as exc:
+        raise OwnerMemoryUnavailable("OWNER_MEMORY_READ_UNAVAILABLE") from exc
+    finally:
+        conn.close()
+    if not row:
+        return OwnerMemoryReadResult(found=False, record_id=request.record_id)
+    purpose, nonce, ciphertext, checksum, expiry = row
+    if (not isinstance(nonce, bytes) or not isinstance(ciphertext, bytes)
+            or len(nonce) != 12 or
+            hashlib.sha256(ciphertext).hexdigest() != checksum):
+        raise OwnerMemoryUnavailable("OWNER_MEMORY_CIPHERTEXT_INVALID")
+    try:
+        raw = aes.decrypt(
+            nonce, ciphertext,
+            _aad(request.owner_account_id, request.record_id, purpose, int(expiry)),
+        )
+        plaintext = raw.decode("utf-8")
+    except Exception as exc:
+        raise OwnerMemoryUnavailable("OWNER_MEMORY_DECRYPTION_FAILED") from exc
+    return OwnerMemoryReadResult(
+        found=True, record_id=request.record_id, purpose=purpose,
+        note=plaintext, expires_at=int(expiry),
+    )
+
+
+def revoke_owner_note(request: OwnerMemoryRef) -> OwnerMemoryRevokeReceipt:
+    _key()  # The independent owner-memory kill switch also blocks revocation.
+    now = int(time.time())
+    conn = _connect()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                "UPDATE jrei_python_owner_memory_records "
+                "SET nonce=NULL,ciphertext=NULL,revoked_at=%s "
+                "WHERE owner_account_id=%s AND record_id=%s "
+                "AND revoked_at IS NULL",
+                (now, request.owner_account_id, request.record_id),
+            )
+            changed = cur.rowcount == 1
+        conn.commit()
+    except Exception as exc:
+        conn.rollback()
+        raise OwnerMemoryUnavailable("OWNER_MEMORY_REVOKE_UNAVAILABLE") from exc
+    finally:
+        conn.close()
+    return OwnerMemoryRevokeReceipt(
+        record_id=request.record_id,
+        ciphertext_erased_from_current_row=changed,
+    )
