@@ -60,7 +60,7 @@
  font-family:"JR Persian Display";
  src:url("/assets/fonts/vazirmatn-variable-a501289a8559.woff2") format("woff2");
  font-weight:100 900;font-style:normal;font-display:swap;
- unicode-range:U+0600-06FF,U+0750-077F,U+08A0-08FF,U+FB50-FDFF,U+FE70-FEFF,U+200C-200D,U+06F0-06F9;
+ /* Full variable font aligns Persian and embedded Latin names in one heading. */
 }
 html[lang="fa"] :where(main) :is(h1,h2,h3,h4,h5,h6){
  font-family:"JR Persian Display","Vazirmatn","Noto Naskh Arabic",Tahoma,sans-serif!important;
