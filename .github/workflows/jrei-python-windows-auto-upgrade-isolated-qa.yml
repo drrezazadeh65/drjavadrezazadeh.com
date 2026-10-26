@@ -66,6 +66,8 @@ jobs:
           if($LASTEXITCODE -ne 0){throw 'CI_BASE_PYTHON_INSTALL_FAILED'}
       - name: Test owner opt-in and automatic staged upgrade on disposable Windows task
         shell: powershell
+        env:
+          JREI_UPGRADE_FIXTURE_DIAGNOSTICS: CI_ISOLATED
         run: |
           $ErrorActionPreference='Stop'
           $env:LOCALAPPDATA=Join-Path $env:RUNNER_TEMP 'jrei-auto-upgrade-fixture'
