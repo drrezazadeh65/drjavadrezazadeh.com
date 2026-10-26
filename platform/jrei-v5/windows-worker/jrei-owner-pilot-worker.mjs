@@ -52,11 +52,19 @@ export async function runOwnerPilotWorker(config,key,{post,log,signal}={}){
   const stop=()=>{stopping=true;log('OWNER_PILOT_STOP_REQUESTED');};
   signal?.addEventListener?.('abort',stop,{once:true});
   log('OWNER_PILOT_PRIVATE_ONLY_NO_PUBLIC_QWEN_RELEASE');
+  // A Windows logon task can start before the separately scheduled
+  // llama-server has loaded. Retry bounded loopback health checks instead
+  // of terminating the signed worker on the first transient failure.
+  // Poll Bertina only while the model is actually healthy.
+  let modelHealthy=false;
   try{
-    await adapter.probe({signal});
-    log('OWNER_PILOT_LOOPBACK_MODEL_HEALTHY');
     while(!stopping){
       try{
+        await adapter.probe({signal});
+        if(!modelHealthy){
+          modelHealthy=true;
+          log('OWNER_PILOT_LOOPBACK_MODEL_HEALTHY');
+        }
         const result=await post(config,key,request,identity);
         if(result?.ok!==true||!Object.hasOwn(result,'job'))
           throw Error('PILOT_POLL_CONTRACT_INVALID');
@@ -128,6 +136,9 @@ export async function runOwnerPilotWorker(config,key,{post,log,signal}={}){
           log('OWNER_PILOT_SIGNED_IDENTITY_NOT_AUTHORIZED');
           break;
         }
+        // The host or model can become unavailable after a successful
+        // signed poll. Require a fresh loopback probe before reconnecting.
+        modelHealthy=false;
         // A transient network failure is not an authorisation to invent
         // identity, expose the local model or leak private text.
         log('OWNER_PILOT_CONNECTION_UNAVAILABLE_OR_PENDING');
