@@ -52,7 +52,7 @@ footer.appendChild(holder);
 // Avoid downloading a 20KB mobile module on journal and private workspace
 // routes where that very module would immediately exit without rendering.
 (()=>{
- const raw=location.pathname.replace(/index\\.html$/,'');
+ const raw=location.pathname.replace(/index\.html$/,'');
  const base='/drjavadrezazadeh.com/';
  const route=raw.includes(base)?'/'+raw.split(base)[1]:raw;
  const excluded=['/fa/app/','/app/','/en/account/','/fa/assessments/',
