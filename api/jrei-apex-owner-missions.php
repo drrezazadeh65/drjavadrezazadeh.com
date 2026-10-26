@@ -220,10 +220,6 @@ function jrApexMissionOwnerChange(PDO $pdo,array $cfg,string $accountId,array $b
                !is_string($requestKey)||
                !preg_match('/^[a-f0-9]{32}$/D',$requestKey))
                 throw new InvalidArgumentException('mission_intent_or_key_invalid');
-            if((int)$control['emergency_stop']!==0 ||
-               (int)$control['planning_enabled']!==1 ||
-               (int)$control['execution_enabled']!==0)
-                throw new DomainException('mission_planning_stopped');
             $digest=hash('sha256','jr.jrei.apex-mission-request.v1|'.$intent);
             $prior=$pdo->prepare('SELECT mission_id,request_digest FROM jrei_apex_owner_missions WHERE owner_account_id=? AND request_key=? LIMIT 1 FOR UPDATE');
             $prior->execute([$accountId,$requestKey]);
@@ -233,6 +229,12 @@ function jrApexMissionOwnerChange(PDO $pdo,array $cfg,string $accountId,array $b
                     throw new DomainException('mission_request_key_conflict');
                 // The same idempotent request never creates a second event.
             } else {
+                // A duplicate can be read after an emergency stop, but no
+                // NEW mission may be created while planning is halted.
+            if((int)$control['emergency_stop']!==0 ||
+               (int)$control['planning_enabled']!==1 ||
+               (int)$control['execution_enabled']!==0)
+                throw new DomainException('mission_planning_stopped');
                 $id=jrApexMissionUuid();
                 // Policy digest ties the plan to the recorded control revision,
                 // not to a model, user text, unverifiable external source or URL.
