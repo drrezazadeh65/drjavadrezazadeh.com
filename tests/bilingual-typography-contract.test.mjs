@@ -8,10 +8,19 @@ test('shared public styles preserve language-first paragraph alignment without s
  assert.match(css,/html:lang\(fa\):not\(\[dir\]\)\{direction:rtl\}/);
  assert.match(css,/html:lang\(en\):not\(\[dir\]\)\{direction:ltr\}/);
  assert.match(css,/:where\(html:lang\(fa\),html:lang\(en\)\) body\{text-align:start\}/);
- const contract=css.slice(css.indexOf('/* JR BILINGUAL TEXT ALIGNMENT CONTRACT 20261021'));
+ const start=css.indexOf('/* JR BILINGUAL TEXT ALIGNMENT CONTRACT 20261021');
+ assert.ok(start>=0);
+ const nextSection=css.indexOf('/*',start+3);
+ const contract=css.slice(start,nextSection<0?undefined:nextSection);
+ // Only the low-specificity alignment declarations are prohibited from
+ // overriding component art-direction. Later heading-font rules may use
+ // narrow, intentional !important overrides for the legacy Tahoma cascade.
  assert.doesNotMatch(contract,/!important/);
  assert.match(contract,/input\[type="email"\]/);
  assert.match(contract,/unicode-bidi:isolate/);
+ const persianDisplay=css.slice(css.indexOf('/* Persian luxury typographic system'));
+ assert.match(persianDisplay,/font-family:var\(--jr-fa-display\)!important/);
+ assert.match(persianDisplay,/h1,h2,h3,h4,h5,h6/);
 });
 test('the preexisting private operations shell follows the same logical direction without a duplicate app shell',()=>{
  const css=read('assets/css/operations-control.css');
