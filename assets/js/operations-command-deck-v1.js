@@ -483,9 +483,13 @@ function incident(kind){
   const text=tile.querySelector('.ops-immediate-triage__value')?.textContent?.trim()||'';
   const number=Number(text.replace(/[۰-۹]/g,d=>'۰۱۲۳۴۵۶۷۸۹'.indexOf(d))
     .replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)));
-  tile.dataset.opsEvidenceSeverity=text&&Number.isFinite(number)&&number>0
-    ?tile.dataset.evidenceKind==='critical'?'alert':'warning'
-    :text&&Number.isFinite(number)?'observed':'unknown';
+  // A source-coverage count of 20 is NOT twenty warnings. Only actual
+  // critical/warning sensor categories can illuminate the alarm colours.
+  tile.dataset.opsEvidenceSeverity=!text||!Number.isFinite(number)?'unknown'
+    :tile.dataset.evidenceKind==='source'?'informational'
+    :number===0?'observed'
+    :tile.dataset.evidenceKind==='critical'?'alert'
+    :tile.dataset.evidenceKind==='warning'?'warning':'informational';
   if(label!==expected)continue;
   return text&&Number.isFinite(number)?number:null;
  }
