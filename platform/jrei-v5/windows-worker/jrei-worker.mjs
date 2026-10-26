@@ -39,6 +39,7 @@ const ENDPOINTS = Object.freeze({
   ownerPilotPoll:'/api/jrei/v1/owner-pilot/poll',
   ownerPilotComplete:'/api/jrei/v1/owner-pilot/complete',
   ownerPilotReject:'/api/jrei/v1/owner-pilot/reject',
+  pythonNodeHeartbeat:'/api/jrei/v1/python-node/heartbeat',
   localPoll: '/api/jrei/v1/local-chat/poll',
   localComplete: '/api/jrei/v1/local-chat/complete'
 });
@@ -522,6 +523,21 @@ try {
     process.once('SIGINT',()=>stop.abort());
     process.once('SIGTERM',()=>stop.abort());
     await runOwnerPilotWorker(config,key,{post,log,signal:stop.signal});
+  }
+  else if(cmd==='start-python-health'&&process.argv.length===4){
+    // Existing private config and Ed25519 key are reused unchanged.
+    // This is a NEW optional logon process, not an extension of Qwen pilot.
+    const config=await loadConfig(process.argv[3]);
+    const pem=protectKey('unprotect',keyPath());
+    if(!pem)throw Error('WINDOWS_DPAPI_KEY_UNAVAILABLE');
+    const key=createPrivateKey(pem);
+    if(key.asymmetricKeyType!=='ed25519')
+      throw Error('PRIVATE_KEY_TYPE_UNAPPROVED');
+    const {runPythonHealthWorker}=await import('./jrei-python-health-worker.mjs');
+    const stop=new AbortController();
+    process.once('SIGINT',()=>stop.abort());
+    process.once('SIGTERM',()=>stop.abort());
+    await runPythonHealthWorker(config,key,{post,log,signal:stop.signal});
   }
   else{
     process.stdout.write(
