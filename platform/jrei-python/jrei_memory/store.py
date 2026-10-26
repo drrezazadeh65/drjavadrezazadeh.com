@@ -30,16 +30,17 @@ def _key() -> bytes:
     text = os.environ.get("JREI_PYTHON_OWNER_MEMORY_KEY_B64", "")
     try:
         key = base64.b64decode(text, validate=True)
-    except (ValueError, Exception) as exc:
+    except Exception as exc:
         raise OwnerMemoryUnavailable("OWNER_MEMORY_KEY_INVALID") from exc
     if len(key) != 32:
         raise OwnerMemoryUnavailable("OWNER_MEMORY_KEY_INVALID")
     return key
 
 
-def _connect():
+def _connect(*, for_revoke: bool = False):
     """Open a TLS-verified connection with table-restricted credentials."""
-    if os.environ.get("JREI_PYTHON_OWNER_MEMORY_ENABLED") != "1":
+    if (os.environ.get("JREI_PYTHON_OWNER_MEMORY_ENABLED") != "1" and
+        not (for_revoke and os.environ.get("JREI_PYTHON_OWNER_MEMORY_REVOKE_ENABLED") == "1")):
         raise OwnerMemoryUnavailable("OWNER_MEMORY_DISABLED")
     host = os.environ.get("JREI_PYTHON_OWNER_MEMORY_MYSQL_HOST", "").strip()
     user = os.environ.get("JREI_PYTHON_OWNER_MEMORY_MYSQL_USER", "").strip()
@@ -59,7 +60,7 @@ def _connect():
             connect_timeout=3, read_timeout=3, write_timeout=3,
             autocommit=False,
         )
-    except (ImportError, OSError, Exception) as exc:
+    except Exception as exc:
         raise OwnerMemoryUnavailable("OWNER_MEMORY_DB_UNAVAILABLE") from exc
 
 
@@ -151,9 +152,10 @@ def read_owner_note(request: OwnerMemoryRef) -> OwnerMemoryReadResult:
 
 
 def revoke_owner_note(request: OwnerMemoryRef) -> OwnerMemoryRevokeReceipt:
-    _key()  # The independent owner-memory kill switch also blocks revocation.
+    # Deletion is available under a separate owner-controlled switch even
+    # when new saves/reads are disabled; no encryption key is needed.
     now = int(time.time())
-    conn = _connect()
+    conn = _connect(for_revoke=True)
     try:
         with conn.cursor() as cur:
             cur.execute(
