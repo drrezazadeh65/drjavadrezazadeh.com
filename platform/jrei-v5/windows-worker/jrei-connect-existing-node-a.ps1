@@ -19,7 +19,7 @@ try {
 } catch {throw 'JREI_EXISTING_PRIVATE_CONFIGURATION_UNREADABLE'}
 if($cfg.protocol -cne 'jr.jrei.windows-worker.v1' -or
    $cfg.origin -cne 'https://drjavadrezazadeh.com' -or
-   [string]$cfg.nodeId -notmatch '^[a-f0-9]{8}(-[a-f0-9]{4}){3}-[a-f0-9]{12}$' -or
+   [string]$cfg.nodeId -cne '28b1c0d2-b833-41cb-97e2-df92c9373de0' -or
    $cfg.localChat.ownerApproved -ne $true){
   throw 'JREI_EXISTING_NODE_A_IDENTITY_OR_OWNER_APPROVAL_MISSING'
 }
