@@ -197,6 +197,10 @@ function cfg(): array {
         // Independent JREI-LM Windows inference; OpenAI not required.
         'jrei_local_chat_enabled' => getenv('JR_JREI_LOCAL_CHAT_ENABLED') === 'true',
         'jrei_local_public_release_accepted' => getenv('JR_JREI_LOCAL_PUBLIC_RELEASE_ACCEPTED') === 'true',
+        // Distinct owner-authorised public GENERAL chat, with explicitly
+        // UNVALIDATED scientific status; never replaces rights, encryption,
+        // genuine runtime, signed node, live retention or consent.
+        'jrei_local_public_unvalidated_owner_approved' => getenv('JR_JREI_LOCAL_PUBLIC_UNVALIDATED_OWNER_APPROVED') === 'true',
         'jrei_local_chat_key_b64' => (string)(getenv('JR_JREI_LOCAL_CHAT_KEY_B64') ?: ''),
         'jrei_local_chat_retention_enabled' => getenv('JR_JREI_LOCAL_CHAT_RETENTION_ENABLED') === 'true',
         // Reusable owner permission, never visitor/model-generated DDL.
