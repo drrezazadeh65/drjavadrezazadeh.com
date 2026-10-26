@@ -1,0 +1,115 @@
+/* JREI APEX command room: scoped to original private noindex owner dashboard.
+ * Design remains black/charcoal, restrained gold and warm ivory, mobile-first.
+ */
+#ops-jrei-command-room {
+  margin-block: 1.5rem;
+  padding: clamp(1rem, 3vw, 1.75rem);
+  border: 1px solid rgba(204, 170, 98, .36);
+  border-radius: 1.2rem;
+  background: linear-gradient(145deg, rgba(198,165,93,.085), rgba(15,22,31,.42));
+  color: inherit;
+  overflow-wrap: anywhere;
+}
+#ops-jrei-command-room > summary {
+  cursor: pointer;
+  font-size: clamp(1.03rem, 2vw, 1.22rem);
+  line-height: 1.8;
+  font-weight: 700;
+}
+#ops-jrei-command-room > summary:focus-visible,
+#ops-jrei-command-room button:focus-visible,
+#ops-jrei-command-room select:focus-visible {
+  outline: 3px solid #dab774;
+  outline-offset: 3px;
+}
+#ops-jrei-command-room .jr-jrei-apex-tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: .65rem;
+  margin-block: 1rem;
+}
+#ops-jrei-command-room .jr-jrei-apex-tools label {
+  display: grid;
+  gap: .4rem;
+  flex: 1 1 270px;
+  min-width: 0;
+}
+#ops-jrei-command-room select,
+#ops-jrei-command-room button {
+  min-height: 44px;
+  max-width: 100%;
+  border-radius: .65rem;
+  font: inherit;
+}
+#ops-jrei-command-room button {
+  cursor: pointer;
+  border: 1px solid rgba(207,175,105,.52);
+  background: rgba(169,126,51,.15);
+  color: inherit;
+  padding: .55rem .85rem;
+  line-height: 1.45;
+}
+#ops-jrei-command-room button:disabled {
+  cursor: not-allowed;
+  opacity: .55;
+}
+#ops-jrei-command-room select {
+  background: #161c26;
+  color: #f5eddb;
+  border: 1px solid rgba(207,175,105,.45);
+  padding: .55rem .8rem;
+  width: 100%;
+}
+#ops-jrei-command-room [role="status"] {
+  border-inline-start: 3px solid #dab774;
+  padding-inline-start: .75rem;
+  padding-block: .45rem;
+  line-height: 1.75;
+}
+#ops-jrei-command-room .jr-jrei-apex-history {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 270px),1fr));
+  gap: .85rem;
+}
+#ops-jrei-command-room .jr-jrei-apex-history > p {
+  grid-column: 1 / -1;
+}
+#ops-jrei-command-room .jr-jrei-apex-mission {
+  border: 1px solid rgba(217,188,122,.23);
+  border-radius: .85rem;
+  padding: 1rem;
+  display: grid;
+  align-content: start;
+  gap: .55rem;
+  background: rgba(16,23,32,.44);
+}
+#ops-jrei-command-room .jr-jrei-apex-mission code {
+  font-size: .76em;
+  overflow-wrap: anywhere;
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+#ops-jrei-command-room .jr-jrei-apex-mission p {margin: 0;}
+#ops-jrei-command-room > details {
+  margin-top: 1rem;
+  padding: .8rem;
+  border: 1px solid rgba(217,188,122,.22);
+  border-radius: .75rem;
+}
+#ops-jrei-command-room > details summary {cursor: pointer;}
+#ops-jrei-command-room > details li {
+  margin-block: .6rem;
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 590px) {
+  #ops-jrei-command-room .jr-jrei-apex-tools > button,
+  #ops-jrei-command-room .jr-jrei-apex-tools > label,
+  #ops-jrei-command-room .jr-jrei-apex-tools > label + button {
+    flex: 1 1 100%;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  #ops-jrei-command-room * {scroll-behavior: auto;}
+}
