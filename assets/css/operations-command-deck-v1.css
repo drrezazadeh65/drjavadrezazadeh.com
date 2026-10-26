@@ -427,9 +427,15 @@ body:has(.ops.ops-console-layout){height:100dvh;overflow:hidden}
  background:linear-gradient(160deg,rgba(22,66,55,.42),#111d2d);
 }
 .ops #ops-workspace.ops-command-deck-ready>.ops-immediate-triage
- .ops-immediate-triage__tile[data-evidence-kind=critical]{
- border-color:rgba(255,125,145,.36);
- background:linear-gradient(145deg,rgba(104,28,46,.18),rgba(17,29,46,.83));
+ .ops-immediate-triage__tile[data-ops-evidence-severity=alert]{
+ border-color:rgba(255,125,145,.6);
+ background:linear-gradient(145deg,rgba(104,28,46,.28),rgba(17,29,46,.83));
+ box-shadow:0 0 21px rgba(245,74,106,.08);
+}
+.ops #ops-workspace.ops-command-deck-ready>.ops-immediate-triage
+ .ops-immediate-triage__tile[data-ops-evidence-severity=warning]{
+ border-color:rgba(240,206,135,.46);
+ background:linear-gradient(145deg,rgba(126,92,32,.2),rgba(17,29,46,.83));
 }
 .ops #ops-workspace.ops-command-deck-ready>.ops-immediate-triage
  .ops-immediate-triage__tile[data-evidence-kind=source]{
@@ -445,4 +451,39 @@ body:has(.ops.ops-console-layout){height:100dvh;overflow:hidden}
 @media print{
  .ops #ops-workspace .ops-command-modules{display:none!important}
  .ops #ops-workspace.ops-command-deck-ready>.ops-immediate-triage{max-height:none;overflow:visible}
+}
+
+/* Every trace below represents a real, bounded same-origin API observation.
+   Bar colours never claim that the rest of the web estate was healthy. */
+.ops #ops-workspace .ops-command-network-timeline{
+ display:flex;align-items:center;gap:12px;min-width:0;
+ padding:6px 9px;background:rgba(5,13,25,.45);
+ border:1px solid rgba(140,164,193,.12);
+ border-radius:10px;min-height:32px;
+}
+.ops #ops-workspace .ops-command-timeline-label{
+ white-space:nowrap;font-size:.64rem;color:var(--cmd-muted);
+}
+.ops #ops-workspace .ops-command-timeline-bars{
+ display:flex;align-items:center;gap:4px;min-width:0;min-height:13px;
+}
+.ops #ops-workspace .ops-command-timeline-bar{
+ width:17px;height:8px;flex:0 0 auto;border-radius:3px;
+ background:var(--cmd-green);border:1px solid rgba(99,230,178,.28);
+ box-shadow:0 0 11px rgba(99,230,178,.24);
+}
+.ops #ops-workspace .ops-command-timeline-bar[data-result=fail]{
+ background:var(--cmd-red);border-color:rgba(255,125,145,.62);
+ box-shadow:0 0 11px rgba(255,125,145,.35);
+}
+.ops #ops-workspace .ops-command-timeline-legend{
+ min-width:0;white-space:normal;color:#8f9fb4;
+ font-size:.62rem;line-height:1.5;
+}
+@media(max-width:740px){
+ .ops #ops-workspace .ops-command-network-timeline{flex-wrap:wrap;gap:5px 12px}
+ .ops #ops-workspace .ops-command-timeline-legend{flex-basis:100%}
+}
+@media(prefers-reduced-motion:reduce){
+ .ops #ops-workspace .ops-command-timeline-bar{box-shadow:none}
 }
