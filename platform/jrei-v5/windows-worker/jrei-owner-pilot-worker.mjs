@@ -1,7 +1,7 @@
 /**
  * JREI Qwen OWNER-PILOT WORKER — private, synthetic/owner questions only.
  * Does not set public-live, independent-quality, or modelRuntimeVerified flags.
- * Requires Node A's existing Ed25519/DPAPI identity and SHA-pinned local
+ * Requires the current owner's registered Windows Ed25519/DPAPI identity and SHA-pinned local
  * GGUF + llama-server. Polls Bertina outbound over signed HTTPS ONLY.
  */
 import {createLocalLlamaAdapter} from './jrei-loopback-model-adapter.mjs';
@@ -56,23 +56,33 @@ export async function runOwnerPilotWorker(config,key,{post,log,signal}={}){
   // llama-server has loaded. Retry bounded loopback health checks instead
   // of terminating the signed worker on the first transient failure.
   // Poll Bertina only while the model is actually healthy.
-  let modelHealthy=false;
+  let modelHealthy=false,backendCheckedAt=0,backoff=0,idlePollSeconds=3;
   try{
     while(!stopping){
       try{
-        await adapter.probe({signal});
-        if(!modelHealthy){
-          modelHealthy=true;
-          log('OWNER_PILOT_LOOPBACK_MODEL_HEALTHY');
+        // A healthy localhost is checked periodically; every idle poll does
+        // not need a fresh health request. Never lease when startup is unready.
+        if(!modelHealthy||Date.now()-backendCheckedAt>=25000){
+          await adapter.probe({signal});
+          backendCheckedAt=Date.now();
+          if(!modelHealthy){
+            modelHealthy=true;
+            log('OWNER_PILOT_LOOPBACK_MODEL_HEALTHY');
+          }
         }
         const result=await post(config,key,request,identity);
+        backoff=0;
         if(result?.ok!==true||!Object.hasOwn(result,'job'))
           throw Error('PILOT_POLL_CONTRACT_INVALID');
         const job=result.job;
         if(job===null){
-          await delay(3000,signal);
+          // Back off idle polling to protect MariaDB on long-running PCs.
+          // 20 seconds remains well below the owner's 95-second pilot lease.
+          await delay(idlePollSeconds*1000+Math.floor(Math.random()*1000),signal);
+          idlePollSeconds=Math.min(20,idlePollSeconds*2);
           continue;
         }
+        idlePollSeconds=3;
         if(!job||!UUID.test(job.jobId??'')||
            !SHA.test(job.leaseToken??'')||
            !Number.isSafeInteger(job.expiresAt)||
@@ -139,10 +149,14 @@ export async function runOwnerPilotWorker(config,key,{post,log,signal}={}){
         // The host or model can become unavailable after a successful
         // signed poll. Require a fresh loopback probe before reconnecting.
         modelHealthy=false;
+        backendCheckedAt=0;
+        idlePollSeconds=3;
+        backoff=Math.min(backoff+1,5);
         // A transient network failure is not an authorisation to invent
         // identity, expose the local model or leak private text.
         log('OWNER_PILOT_CONNECTION_UNAVAILABLE_OR_PENDING');
-        await delay(5000,signal);
+        await delay(Math.min(60000,5000*2**(backoff-1))+
+          Math.floor(Math.random()*1500),signal);
       }
     }
   }finally{
