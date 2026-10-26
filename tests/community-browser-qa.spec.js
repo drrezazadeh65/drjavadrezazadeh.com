@@ -60,6 +60,7 @@ test('verified reader chooses accessible stars and consents; server keeps the re
  expect(submitted).toMatchObject({page:article,rating:5,consentToPublication:true,website:''});
  expect(submitted.body.length).toBeGreaterThanOrEqual(12);
  await expect(page.locator('.jr-community-comment')).toHaveCount(0);
+ await expect(form.locator('button[type="submit"]')).toBeDisabled();
 });
 
 test('moderator view remains hidden until workspace unlock; approval is confirmed by server',async({page})=>{
@@ -245,3 +246,33 @@ for(const [lang,path] of [
   expect(Math.max(await page.evaluate(()=>document.documentElement.scrollWidth),0)).toBeLessThanOrEqual(392);
  });
 }
+
+test('approved comments paginate without exposing pending votes or repeating published records',async({page})=>{
+ await page.setViewportSize({width:390,height:844});
+ const cursor='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+ const first=Array.from({length:20},(_,i)=>({
+   id:'page-one-'+i,body:'Reader comment '+i,rating:i%5+1,createdAt:1800000000-i,replies:[]
+ }));
+ const second=[{id:'page-two-1',body:'Older approved comment',rating:3,createdAt:1799990000,replies:[]}];
+ await page.route('**/api/community/**',route=>{
+   const url=route.request().url();
+   if(url.includes('/csrf'))return respond(route,401,{ok:false,error:'unauthorized'});
+   const paged=url.includes('beforeCreatedAt=');
+   return respond(route,200,{
+     ok:true,schema:'community-comments-v1',page:article,
+     comments:paged?second:first,count:paged?1:20,
+     ratingSummary:{count:21,mean:3},
+     nextCursor:paged?null:{createdAt:1799999999,id:cursor}
+   });
+ });
+ await page.goto(base+article,{waitUntil:'domcontentloaded'});
+ const host=page.locator('[data-jr-community]');
+ await expect(host.locator('.jr-community-comment')).toHaveCount(20);
+ await expect(host.locator('.jr-community-rating-summary')).toContainText('۲۱');
+ const more=host.getByRole('button',{name:'نمایش دیدگاه‌های بیشتر'});
+ await expect(more).toBeVisible();
+ await more.click();
+ await expect(host.locator('.jr-community-comment')).toHaveCount(21);
+ await expect(host.locator('.jr-community-comment').last()).toContainText('Older approved comment');
+ await expect(more).toBeHidden();
+});
