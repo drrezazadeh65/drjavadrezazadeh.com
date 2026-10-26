@@ -22,3 +22,11 @@ Earlier workflow reports confirm all other source groups passed **at that older 
 - Do not label a page score of 100 or Google position #1 as achieved without independent measured evidence.
 
 **Status: source fixes staged; re-run requested, not yet certified.**
+
+## Second run — immutable CSS gate compatibility
+
+The source audit rerun `40280795052` on `81a03cf74427727aede075a1c0aaf96b9f96728e` removed all four earlier failing groups. Only `SEO/GEO regression` was blocked by an obsolete comment-substring check that assumed *every* CSS file must be network-first.
+
+`scripts/seo-regression.mjs` now enforces the actual invariant: private routes use `cache:'no-store'` first; only the builder's exact SHA-12 `style`, `public-v2` and `operations-owner.(fa|en)` CSS aliases can use immutable cache-first; **all mutable CSS and JavaScript remain network-first**. The negative private-cache test already passed in the second run. No live site files were deployed.
+
+**Third audit run requested for the exact new commit. Do not deploy until the third audit passes.**
