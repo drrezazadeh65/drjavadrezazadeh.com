@@ -47,7 +47,7 @@ export function fingerprintCoreStyles(releaseDirectory){
     const original=fs.readFileSync(filename,'utf8');
     let substitutions=0;
     const changed=original.replace(
-      /((?:href)\s*=\s*["'])([^"']*\/assets\/css\/)(style|public-v2)\.css(?:\?[^"']*)?(["'])/gi,
+      /((?:href)\s*=\s*["'])([^"']*\/?assets\/css\/)(style|public-v2)\.css(?:\?[^"']*)?(["'])/gi,
       (match,prefix,base,name,quote)=>{
         if(!aliasMap.has(name))return match;
         substitutions++;
