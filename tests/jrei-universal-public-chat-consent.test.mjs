@@ -37,6 +37,6 @@ test('public site greeting asks permission, protects decliners, and does not tra
  assert.match(js,/No chat transcripts are currently collected for model training/);
  assert.match(js,/privacyChoice\.addEventListener\('click',openWelcome\)/);
  assert.match(js,/consent.*?guardian|guardian/);
- assert.match(js,/providerMode==='JREI_LM_LOCAL_WINDOWS'\\?/);
+  assert.ok(js.includes("providerMode==='JREI_LM_LOCAL_WINDOWS'?"));
  assert.match(js,/history=\[\];lastQuery='';busy=false;ephemeralVisitorId=null/);
 });
