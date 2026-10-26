@@ -7,6 +7,18 @@ require_once __DIR__.'/jrei-local-answer-integrity.php';
 require_once __DIR__.'/jrei-local-quality-telemetry.php';
 
 /**
+ * The owner may explicitly allow PUBLIC GENERAL, non-certified replies while
+ * preserving verified model weights/runtime, rights, node authorization,
+ * privacy retention, consent, encryption, source gates and output vetoes.
+ * This is not independent scientific approval. Default OFF.
+ */
+function jrLocalChatUnvalidatedPublicOwnerApproval(array $cfg): bool {
+    return ($cfg['jrei_local_public_unvalidated_owner_approved']??false)===true
+        && ($cfg['jrei_local_public_release_accepted']??false)===true
+        && ($cfg['jrei_local_chat_enabled']??false)===true
+        && ($cfg['jrei_hybrid_enabled']??false)===true;
+}
+/**
  * Independent JREI-LM inference queue: owner Windows nodes poll OUTBOUND
  * over signed HTTPS. OpenAI is neither required nor invoked here.
  * Unlike the previously deployed evaluation-only workers, this uses
@@ -48,7 +60,7 @@ function jrLocalChatSchemaReady(PDO $pdo): bool {
         return jrHybridSchemaReady($pdo);
     }catch(Throwable $e){return false;}
 }
-function jrLocalChatNodeApproved(PDO $pdo,string $nodeId,
+function jrLocalChatNodeApproved(PDO $pdo,array $cfg,string $nodeId,
     string $modelId,string $modelVersion,string $modelSha,
     bool $lockForCompletion=false): bool {
     if(!jrHybridUuid($nodeId)||!jrHybridIdentifier($modelId)||
@@ -65,9 +77,10 @@ function jrLocalChatNodeApproved(PDO $pdo,string $nodeId,
          AND m.model_artifact_sha256=a.model_artifact_sha256
          AND m.status='RIGHTS_REVIEWED' AND m.suspended_at IS NULL
          AND m.weights_installed_verified=1 AND m.runtime_verified=1
-         AND m.independent_quality_accepted=1 LIMIT 1".
+         AND (m.independent_quality_accepted=1 OR ?=1) LIMIT 1".
          ($lockForCompletion?' FOR UPDATE':''));
-    $q->execute([$nodeId,$modelId,$modelVersion,$modelSha]);
+    $q->execute([$nodeId,$modelId,$modelVersion,$modelSha,
+        jrLocalChatUnvalidatedPublicOwnerApproval($cfg)?1:0]);
     return $q->fetchColumn()!==false;
 }
 /**
@@ -112,12 +125,12 @@ function jrLocalChatReady(PDO $pdo,array $cfg): bool {
              AND m.model_artifact_sha256=a.model_artifact_sha256
              AND m.status='RIGHTS_REVIEWED' AND m.suspended_at IS NULL
              AND m.weights_installed_verified=1 AND m.runtime_verified=1
-             AND m.independent_quality_accepted=1");
+             AND (m.independent_quality_accepted=1 OR ?=1)");
         // Evaluation mode uses the same original node identity but can
         // legitimately report its own OFFLINE/DEGRADED state. Only a
         // recent separately Ed25519-verified generative poll proves chat
         // availability; unrelated worker telemetry cannot cancel it.
-        $q->execute([time()-45]);
+        $q->execute([time()-45,jrLocalChatUnvalidatedPublicOwnerApproval($cfg)?1:0]);
         return (int)$q->fetchColumn()>0;
     }catch(Throwable $e){return false;}
 }
@@ -326,7 +339,7 @@ function jrLocalChatWorkerPoll(PDO $pdo,array $cfg,string $node,array $body): ar
     if(!is_bool($heartbeatOnly))
         throw new InvalidArgumentException('local_chat_heartbeat_invalid');
     if(!is_string($model)||!is_string($version)||!is_string($digest)||
-       !jrLocalChatNodeApproved($pdo,$node,$model,$version,$digest))
+       !jrLocalChatNodeApproved($pdo,$cfg,$node,$model,$version,$digest))
         throw new DomainException('local_chat_model_not_approved');
     // Maintain an independent chat-mode signed heartbeat: evaluation
     // heartbeats legitimately carry NULL model IDs and must not be used
@@ -380,7 +393,7 @@ function jrLocalChatWorkerPoll(PDO $pdo,array $cfg,string $node,array $body): ar
         // The earlier nonlocking signature check can race with a fresh
         // owner-MFA revocation or model replacement. Lock and revalidate
         // this exact independent generative grant before leasing prompts.
-        if(!jrLocalChatNodeApproved($pdo,$node,$model,$version,$digest,true))
+        if(!jrLocalChatNodeApproved($pdo,$cfg,$node,$model,$version,$digest,true))
             throw new DomainException('local_chat_model_revoked_during_poll');
         // Retention/erasure runs in the existing private retention worker,
         // never as global UPDATE/DELETE scans on frequent Windows polls.
@@ -447,7 +460,7 @@ function jrLocalChatWorkerComplete(PDO $pdo,array $cfg,string $node,array $body)
         // Serialize accepted completion with independent owner revocation
         // of this node/model pair. A signed old lease does not overrule a
         // revoked, suspended or unreviewed model authorization.
-        if(!jrLocalChatNodeApproved($pdo,$node,$model,$version,$digest,true))
+        if(!jrLocalChatNodeApproved($pdo,$cfg,$node,$model,$version,$digest,true))
             throw new DomainException('local_chat_model_authorization_revoked');
         $q=$pdo->prepare('SELECT status,leased_to_node,lease_secret_sha256,
           lease_expires_at,expires_at,request_ciphertext
@@ -569,7 +582,7 @@ function jrLocalChatWorkerReject(PDO $pdo,array $cfg,string $node,array $body): 
         throw new InvalidArgumentException('local_chat_negative_receipt_invalid');
     $pdo->beginTransaction();
     try{
-        if(!jrLocalChatNodeApproved($pdo,$node,$model,$version,$sha,true))
+        if(!jrLocalChatNodeApproved($pdo,$cfg,$node,$model,$version,$sha,true))
             throw new DomainException('local_chat_model_authorization_revoked');
         $q=$pdo->prepare("SELECT job_id,status,leased_to_node,
           lease_secret_sha256,lease_expires_at,expires_at
@@ -636,8 +649,10 @@ function jrLocalChatOwnerSetNode(PDO $pdo,array $cfg,string $actor,array $body):
               WHERE model_id=? AND model_version=? AND
                 model_artifact_sha256=? AND status='RIGHTS_REVIEWED'
                 AND suspended_at IS NULL AND weights_installed_verified=1
-                AND runtime_verified=1 AND independent_quality_accepted=1");
-            $q->execute([$model,$version,$digest]);
+                AND runtime_verified=1
+                AND (independent_quality_accepted=1 OR ?=1)");
+            $q->execute([$model,$version,$digest,
+                jrLocalChatUnvalidatedPublicOwnerApproval($cfg)?1:0]);
             if($q->fetchColumn()===false)
                 throw new DomainException('local_chat_model_not_independently_accepted');
             $q=$pdo->prepare("INSERT INTO jrei_local_chat_node_authorizations
