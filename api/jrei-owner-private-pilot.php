@@ -33,6 +33,70 @@ function jrOwnerPilotModel(PDO $pdo,string $node,array $body): bool {
 function jrOwnerPilotReady(PDO $pdo,array $cfg): bool {
     return jrLocalChatKey($cfg)!==null && jrLocalChatSchemaReady($pdo);
 }
+/**
+ * Minimal server-side owner diagnostic, not a chat/prompt archive.
+ * Never return keys, retrieval tokens, ciphertext, raw model outputs or
+ * individual job identifiers. Existing owner MFA/role gate lives in
+ * operationsRoute(). Live Qwen process is NOT attested by this SQL snapshot.
+ */
+function jrOwnerPilotOwnerSnapshot(PDO $pdo,array $cfg): array {
+    $schemaReady=jrLocalChatSchemaReady($pdo);
+    $encryptionReady=jrLocalChatKey($cfg)!==null;
+    $snapshot=[
+        'ok'=>true,
+        'schema'=>'jr.jrei.owner-pilot-readiness.v1',
+        'privateOnly'=>true,
+        'publicAiActivated'=>false,
+        'scientificQualityAccepted'=>false,
+        'motherDatabaseQueueReady'=>$schemaReady,
+        'queueEncryptionConfigured'=>$encryptionReady,
+        'acceptingPrivateOwnerRequests'=>$schemaReady && $encryptionReady,
+        'registeredEnabledOwnerNodes'=>null,
+        'rightsReviewedModelCandidates'=>null,
+        'activeQueueCounts'=>null,
+        'queueRetentionSeconds'=>95,
+        'liveLocalModelHealth'=>'NOT_OBSERVABLE_FROM_BERTINA_DB',
+        'signedOwnerPilotPollFreshness'=>'NOT_PERSISTED_BY_PILOT',
+        'durableConversationTranscript'=>false,
+        'checkedAt'=>time(),
+        'observationScope'=>'CURRENT_MOTHER_DB_METADATA_NOT_PROOF_OF_INFERENCE',
+    ];
+    if(!$schemaReady)return $snapshot;
+    try{
+        // Aggregate inventory, not proof of a working local llama-server.
+        $n=$pdo->query("SELECT COUNT(*) FROM jrei_hybrid_nodes
+          WHERE provider_type IN ('LOCAL_WINDOWS_WORKER','LOCAL_SECONDARY_WORKER')
+            AND status='ENABLED' AND revoked_at IS NULL");
+        $snapshot['registeredEnabledOwnerNodes']=(int)$n->fetchColumn();
+        $m=$pdo->query("SELECT COUNT(*) FROM jrei_local_model_registry
+          WHERE status='RIGHTS_REVIEWED' AND suspended_at IS NULL");
+        $snapshot['rightsReviewedModelCandidates']=(int)$m->fetchColumn();
+        $counts=[
+            'PILOT_QUEUED'=>0,'PILOT_LEASED'=>0,
+            'PILOT_COMPLETED'=>0,'PILOT_BLOCKED'=>0
+        ];
+        $q=$pdo->prepare("SELECT status,COUNT(*) AS aggregate_count
+          FROM jrei_local_chat_jobs
+          WHERE status IN ('PILOT_QUEUED','PILOT_LEASED',
+                           'PILOT_COMPLETED','PILOT_BLOCKED')
+            AND expires_at>?
+          GROUP BY status");
+        $q->execute([time()]);
+        foreach($q as $row) {
+            $state=(string)$row['status'];
+            if(array_key_exists($state,$counts))
+                $counts[$state]=(int)$row['aggregate_count'];
+        }
+        $snapshot['activeQueueCounts']=$counts;
+    }catch(Throwable $e){
+        // Unknown is more accurate than a fictional empty queue or node.
+        $snapshot['registeredEnabledOwnerNodes']=null;
+        $snapshot['rightsReviewedModelCandidates']=null;
+        $snapshot['activeQueueCounts']=null;
+        $snapshot['observationScope']='AGGREGATE_QUERY_UNAVAILABLE';
+    }
+    return $snapshot;
+}
 /** Opportunistic short-retention cleanup, also called by the real Cron. */
 function jrOwnerPilotReap(PDO $pdo): int {
     $q=$pdo->prepare("DELETE FROM jrei_local_chat_jobs
