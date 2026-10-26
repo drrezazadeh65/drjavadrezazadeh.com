@@ -2,7 +2,7 @@
 
 **Branch:** `migration/bertina-linux6`  
 **Directive:** `JREI_APEX_ACME_ULTIMATE_MASTER_V2_2026-10-26.md`  
-**Mode:** SOURCE PRESENT; **NOT** installed, tested, production deployed or live-integrated.
+**Mode:** SOURCE INTEGRATED (feature flags OFF); **NOT** installed, tested, production deployed or observed operational.
 
 ## Functioning source algorithms
 
@@ -10,6 +10,7 @@
 - `jrei_core.mission.propose_mission` builds a cycle-checked task DAG using exactly the existing `platform/jrei-v5/jrei-scoped-mission-planner.mjs` mission kind allowlist. It is proposal-only, and does not reimplement JS execution permissions.
 - `jrei_skills.evidence_revision.triage_evidence_revision` performs fixed-function source-revision review triage using hash/version metadata only: withdrawal, rights, independent review, changed content, and freshness. It returns only review recommendations; supplied metadata does **not** attest source rights or approval. Its static capability catalog names the exact permitted calls, not dynamically loaded plugins.
 - `jrei_service.app` supplies guarded `/internal/v1/` routes for the above capabilities. Health exposes actual service-process response, not fictitious model/host/DB status.
+- `jrei_learning.heldout.review_heldout` performs reproducible paired baseline/challenger calculations over SHA-identified Persian/English held-out cases, including exact discordant-case sign tests, P95 comparisons and negative evidence hashes. It never certifies fixture independence or grants automatic promotion.
 
 The registered, model-free `jrei_skills` catalog and `evidence_revision` function are callable only through the original owner access controls when separately activated; no automatic execution or knowledge promotion is possible. The Python server is **not** deployed on Bertina and need not run under LiteSpeed. It is designed for a separate approved Windows/VPS/container worker. Do not expose the Python service, move Qwen ports, or enroll Node A/B from these files. Localhost-only is the recommended source evaluation binding. The OpenAPI schema is intentionally not publicly served.
 
@@ -30,3 +31,62 @@ The PHP/MariaDB site remains authoritative for `drjavad1_store`, owner MFA, `cus
 No real owner command submission, persisted mission history, Python worker polling, model inference, memory, live news bridge, self-coding, continuous crawl, public AI product, mobile app or migration is claimed. Those are subsequent source integration requirements. A source commit is not runtime proof.
 
 **Source-only QA rule:** no integration, production, host, model or migration tests were executed by this workstream. Final tests and any release require separate owner authority.
+
+
+## V2 additive development continuation (26 October; no new deployment)
+
+The live public signed Qwen bridge, existing outbound Windows workers, Node B
+(32 GB / Qwen host), PHP/MariaDB, original MFA gateway and website pages are
+**unchanged**. The existing public success is historical OWNER_OBSERVED_OPERATIONAL,
+not a claim of continuous multi-node monitoring or Python service activation.
+
+- `api/jrei-apex-python-plan.php` is an additive owner-only `plan-python`
+  action behind the EXISTING `/admin/operations/jrei-apex-missions` gateway
+  (same SUPER_ADMIN, recent MFA, same-origin CSRF and rate controls).
+  It maps the six original owner intent codes to a bounded DAG, requests a
+  HMAC-signed *non-executing* Python plan, strictly validates its result,
+  then persists the mission and Python proposal inside the original
+  `drjavad1_store` transaction. The original `plan` and `cancel`
+  actions remain unchanged. Owner snapshots show plan digests and graph steps
+  (not receipts of real worker execution).
+- New switch `JR_JREI_APEX_MISSION_PYTHON_PLAN_ENABLED` defaults **OFF**.
+  The existing owner-write and private-Python switches remain independent.
+  `docs/migrations/20261026_jrei_apex_python_plan_receipts_mother_mysql.sql`
+  is a proposed additive table, **not an applied migration**. New plans fail
+  closed when the approved table/service/switch is absent.
+- `jrei_core.replay` optionally claims signed HMAC nonces atomically using
+  a unique key in `drjavad1_store`. Select
+  `JREI_PYTHON_REPLAY_BACKEND=mother_mysql` and separately provision restricted
+  TLS DB credentials and the additive
+  `20261026_jrei_python_hmac_replay_nonces_mother_mysql.sql` migration
+  **only after** independent approval and clone testing. In this mode,
+  DB failure returns 503 and never falls back to per-process memory.
+  `process_local` remains strictly single-process/source-evaluation only.
+- The HMAC-guarded `/internal/v1/learning/heldout/review` endpoint is
+  reachable by the existing SUPER_ADMIN/MFA `jrei-python-skills` router
+  with `{"action":"heldout-review","payload":{...}}`. It accepts no
+  raw transcripts, awards no scientific validation, changes no model
+  weights or live knowledge, and does not store its results. Original
+  `catalog` and `triage-evidence` actions remain intact.
+- Source fixtures under `tests/` have been extended but have **not been
+  executed**. Runtime adoption requires separately authorised acceptance.
+
+### Exact outstanding acceptance gates
+
+1. Independent read-only comparison to the mother DB schema, verified backup
+   and restore, and approved migrations on a disposable clone.
+2. Replay ledger uniqueness under concurrent Python processes and TLS failure;
+   single-process fallback must never silently activate in multi-worker mode.
+3. Same-SHA PHP/Python contract tests; disabled-flag, CSRF/MFA, missing-table,
+   idempotency, concurrent-request, cancellation and control-revision races.
+4. Actual running private Python worker (approved independent host), owner
+   mission ID and stored DAG receipt observed; reconciliation/lease and signed
+   outcome are a **later** execution phase, not a consequence of plan creation.
+5. Independent held-out fixture rights, leakage audit and bilingual scientific
+   review; a statistically promising challenger cannot self-promote.
+6. Separate owner release authorization before applying a migration, changing
+   live flags, touching nodes or deploying new web code.
+
+**Evidence taxonomy:** all newly added features are SOURCE_PRESENT or
+SOURCE_INTEGRATED. No TESTED_AT_SHA, DEPLOYED_AT_SHA or new
+OBSERVED_OPERATIONAL assertion follows from these commits.
