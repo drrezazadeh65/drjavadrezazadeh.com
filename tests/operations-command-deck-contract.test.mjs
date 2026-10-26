@@ -83,3 +83,12 @@ test('reviewed release requires both new assets but never changes private auth p
  assert.match(htaccess,/PRIVATE_ROUTE/);
  assert.match(htaccess,/Cache-Control/);
 });
+
+test('informational coverage is never labelled a true outage or warning',()=>{
+ assert.match(shell,/tile\.dataset\.evidenceKind==='source'\?'informational'/);
+ assert.match(shell,/tile\.dataset\.evidenceKind==='critical'\?'alert'/);
+ assert.match(shell,/tile\.dataset\.evidenceKind==='warning'\?'warning'/);
+ assert.match(shell,/Recorded open critical incidents/);
+ assert.match(shell,/Recorded open warning incidents/);
+ assert.match(shell,/whole-site uptime claim/);
+});
