@@ -1,5 +1,31 @@
 # JREI Qwen — Public Website Activation Go-Live Contract
 
+## OWNER OVERRIDE — Direct public bridge to the ALREADY RUNNING Qwen (26 October 2026)
+
+The owner explicitly prioritised **public site inference now** over additional technical acceptance stages, requested that visitors be able to submit a question **without a separate checkbox**, and authorised reuse of the **existing successful private signed Windows node/Worker**. This newer route supersedes the dedicated-worker deployment sequence described later in this older runbook, but does **not** remove short encrypted storage, per-visitor throttling, approved model-rights checks, signature verification, capacity limits, sensitive-input filtering or provisional-answer warnings.
+
+Implementation: `api/jrei-owner-pilot-public-bridge.php`, `api/index.php`, `assets/js/assistant.js`.
+
+The owner-private worker's **existing** signed `/api/jrei/v1/owner-pilot/poll` call follows an actual localhost model health probe. Server code now records a **65-second encrypted signed-worker readiness marker** in the **same existing mother-DB queue** with status `PILOT_BRIDGE_ALIVE`. Fresh verified markers and an enabled, non-revoked Windows identity + currently rights-reviewed exact GGUF are required. The public capabilities endpoint reports `live:true` and `providerMode:JREI_LM_LOCAL_WINDOWS` only while an eligible existing pilot Worker continues authenticated polling.
+
+The existing public `/api/assistant/v1/chat` path then submits a **new, bounded, sensitive-input-filtered** request using the original encrypted queue's `PILOT_QUEUED` contract; the unchanged old Windows `start-pilot` Worker processes it using the same Qwen binary/model. The browser retrieves the one-use encrypted reply via `/api/assistant/v1/local/result`. Public jobs share the original **two-pending-job** limit, at most **95-second encrypted retention window**, and no permanent conversation log or model-weight training. The bridge's `jrPilotBridgeLive` is independent of the optional 12-gate **dedicated** `start-chat` mode and does not fabricate scientific approval.
+
+**For the first public connection after this source reaches Bertina:** Leave the **already running** `llama-server` and signed `JREI-Owner-Private-Pilot-Worker` running on the original 32 GB Qwen computer. **No new model, node, key, command, task registration, cPanel variable or DB migration is needed** for this specific bridge if that signed private path and mother-DB queue remain in the last proven healthy state. Let the signed worker poll once (at most its existing 20-second idle backoff), then read `/api/assistant/v1/capabilities`. If `live:false`, verify that existing signed private Worker is still running and no server PHP exception occurred: do NOT replace keys or fake marker rows.
+
+This is a public-facing **general educational Qwen chat**, not a private beta. The model's location is local; the chat access is public. The existing data notice is visible; sending a question initiates processing without any extra local-model opt-in checkbox. Separate cloud, research-feedback and contact-data permissions are unaffected. The general model remains **not scientifically certified**; output errors still possible. Retention is via existing encrypted short-lived ephemeral queue and consumption/expiry, not a newly introduced permanent transcript database.
+
+### Exact publication verification
+
+1. Release **current HEAD of** `migration/bertina-linux6` via the pre-existing **Deploy to Bertina** workflow with `phased_live_audit`. Earlier release 458 SHA `dfc0ea6c5d8080ecf4ff7b8b0a10040933ba1f05` does **not** include this bridge.
+2. Check GitHub deployment and Bertina post-release acceptance for the **new SHA**.
+3. Verify that `https://drjavadrezazadeh.com/api/assistant/v1/capabilities` changes from `OFFLINE_GUIDE` to `live:true`, `JREI_LM_LOCAL_WINDOWS` **after** a recent signed owner-pilot poll. If not, the bridge has not been proven functional.
+4. Open an ordinary public Persian or English site page in a fresh browser. Submit a short general question directly—no new checkbox. Verify both real completion and one-use deletion. If model is slow/busy, the original bounded queue may return unavailable; never synthesize an answer or automatically train on visitor text.
+
+**Verification label during coding:** SOURCE_STAGED; NO NEW DEPLOY; EXISTING_PRIVATE_QWEN_ROUND_TRIP_OBSERVED; NEW_PUBLIC_BRIDGE_NOT_YET_LIVE_PROVEN.
+
+---
+
+
 **Date:** 2026-10-26. **Canonical branch:** migration/bertina-linux6. **Mother DB:** drjavad1_store. **Release policy:** no fake approval; no public AI without explicit owner consent and live safeguards.
 
 ## Observed operational baseline
