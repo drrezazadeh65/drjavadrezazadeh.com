@@ -115,3 +115,15 @@
 .jr-community-more:focus-visible{outline:3px solid var(--jr-c-gold);outline-offset:3px}
 .jr-community-more[hidden]{display:none!important}
 @media(max-width:600px){.jr-community-more{width:100%}}
+
+/* Decorative representation of real moderator-approved article ratings.
+   Numeric accessible text remains in the summary; service Q&A never shows stars. */
+.jr-community-comment-stars{
+ direction:ltr;unicode-bidi:isolate;white-space:nowrap;
+ color:var(--jr-c-gold);letter-spacing:.09em;font-size:1rem;
+ line-height:1.5;flex:none;
+}
+@media(max-width:390px){
+ .jr-community-comment-meta{flex-wrap:wrap;gap:8px 12px}
+ .jr-community-comment-stars{font-size:.94rem;letter-spacing:.055em}
+}
