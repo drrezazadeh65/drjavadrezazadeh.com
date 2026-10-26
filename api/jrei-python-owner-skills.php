@@ -13,7 +13,7 @@ function jrOwnerJreiPythonSkillDispatch(array $privateConfig, array $body): arra
 {
     $action=$body['action']??null;
     if (!is_string($action) ||
-        !in_array($action,['catalog','triage-evidence'],true)) {
+        !in_array($action,['catalog','triage-evidence','heldout-review'],true)) {
         throw new InvalidArgumentException('python_skill_action_invalid');
     }
 
@@ -40,7 +40,7 @@ function jrOwnerJreiPythonSkillDispatch(array $privateConfig, array $body): arra
         $route='/internal/v1/skills/catalog';
         $payload=[];
         $expected='jr.jrei.skill-catalog.v1';
-    } else {
+    } elseif ($action==='triage-evidence') {
         if (count($body)!==2 ||
             !array_key_exists('payload',$body) ||
             !is_array($body['payload']) ||
@@ -52,6 +52,16 @@ function jrOwnerJreiPythonSkillDispatch(array $privateConfig, array $body): arra
         $route='/internal/v1/skills/evidence/triage';
         $payload=$body['payload'];
         $expected='jr.jrei.evidence-triage-result.v1';
+    } else {
+        if (count($body)!==2 || !array_key_exists('payload',$body) ||
+            !is_array($body['payload']) || array_is_list($body['payload']) ||
+            strlen(json_encode($body['payload'],
+                JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR))>52000) {
+            throw new InvalidArgumentException('python_heldout_body_invalid');
+        }
+        $route='/internal/v1/learning/heldout/review';
+        $payload=$body['payload'];
+        $expected='jr.jrei.heldout-review-result.v1';
     }
     // Preserve existing authenticated operations routes and isolated MySQL
     // fixtures when this optional Python service is disabled. Never require
@@ -80,6 +90,18 @@ function jrOwnerJreiPythonSkillDispatch(array $privateConfig, array $body): arra
          ($result['approved_for_retrieval']??null)!==false ||
          ($result['source_rights_approved_by_skill']??null)!==false)) {
         throw new RuntimeException('JREI_PYTHON_RESULT_PRIVILEGE_ESCALATION');
+    }
+    if ($action==='heldout-review' &&
+        (($result['promotion_executed']??null)!==false ||
+         ($result['model_weights_changed']??null)!==false ||
+         ($result['independently_verified_by_service']??null)!==false ||
+         ($result['learning_strategy_improvement_proven']??null)!==false ||
+         !in_array($result['decision']??null,[
+           'HOLD_RIGHTS_OR_LEAKAGE','HOLD_LANGUAGE_REGRESSION',
+           'HOLD_LATENCY_REGRESSION','INSUFFICIENT_REVIEWED_SAMPLE',
+           'NO_DEMONSTRATED_IMPROVEMENT','REVIEW_CANDIDATE_ONLY'
+         ],true))) {
+        throw new RuntimeException('JREI_PYTHON_HELDOUT_PRIVILEGE_ESCALATION');
     }
     return $base+[
         'status'=>'PRIVATE_SKILL_RESPONSE_RECEIVED',
