@@ -38,7 +38,13 @@ export function fingerprintCoreStyles(releaseDirectory){
     if(body.length<1000)throw new Error('Refusing unexpected shared style '+name);
     const digest=crypto.createHash('sha256').update(body).digest('hex').slice(0,12);
     const alias=name+'.'+digest+'.css';
-    fs.writeFileSync(path.join(assetDirectory,alias),body,{flag:'wx',mode:0o644});
+    // Rebuilding the same staged artifact must be idempotent; a published
+    // fingerprint may never be silently replaced with different bytes.
+    const outputFile=path.join(assetDirectory,alias);
+    if(fs.existsSync(outputFile)){
+      if(!fs.readFileSync(outputFile).equals(body))
+        throw new Error('Content-addressed stylesheet collision: '+alias);
+    }else fs.writeFileSync(outputFile,body,{flag:'wx',mode:0o644});
     aliasMap.set(name,alias);
   }
 
