@@ -51,6 +51,7 @@ require_once __DIR__.'/operations-cron-dispatcher.php';
 require_once __DIR__.'/jrei-learning-operations.php';
 require_once __DIR__.'/jrei-hybrid-owner.php';
 require_once __DIR__.'/jrei-owner-private-pilot.php';
+require_once __DIR__.'/jrei-python-node-health.php';
 require_once __DIR__.'/jrei-python-owner-skills.php';
 require_once __DIR__.'/jrei-apex-owner-missions.php';
 require_once __DIR__.'/jrei-apex-python-plan.php';
@@ -470,6 +471,18 @@ function operationsRoute(string $path, string $verb): never {
             }catch(Throwable $e){
                 fail('jrei_apex_worker_observation_unavailable',503);
             }
+        }
+
+        // Owner-only view of signed Python 8091 process reports.
+        // Historical signed reports are not model inference or training proof.
+        if ($path==='/admin/operations/jrei-python-node-health' &&
+            $verb==='GET') {
+            if (($configuration['operations_admins'][$accountId]['role']??'')!=='SUPER_ADMIN')
+                fail('super_admin_required',403);
+            if (!rateAllowed($pdo,'jrei_python_node_owner',$accountId,12,300))
+                fail('rate_limited',429);
+            try { respond(jrPythonNodeOwnerSnapshot($pdo,$configuration)); }
+            catch (Throwable $e) { fail('python_node_owner_snapshot_unavailable',503); }
         }
 
         // A model-free, read-only capability within the EXISTING operations
