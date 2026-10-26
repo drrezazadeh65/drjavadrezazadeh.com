@@ -48,13 +48,19 @@ Ask Bertina support or inspect cPanel/LiteSpeed configuration **at final accepta
 - No new PHP extension is currently a demonstrated prerequisite for static-site or heading performance. **OPcache is the only priority PHP extension to ensure active** in the production SAPI. Redis/Memcached/APCu are optional only if *measured* dynamic database or repeated computation is a bottleneck, with an approved integration and no parallel mother database.
 - Keep Cloudflare removed as previously ordered. Do not add third-party JavaScript, font libraries, cross-origin scripts or unreviewed performance plugins.
 
+## OPcache status confirmed by owner
+
+**26 October 2026:** The owner explicitly confirmed that **OPcache has already been enabled automatically and remains enabled** in Bertina's PHP Selector. Do not repeatedly ask the owner to enable it, reset domain/account extensions, or toggle it without evidence of a concrete malfunction. This confirmation resolves the owner's extension-selection question; no additional PHP extension is required to continue source development.
+
+At the one final owner-authorised acceptance window, distinguish the owner's confirmed selector setting from separately observed **web-SAPI usage**, memory utilisation and timestamp/invalidation behaviour. Such a diagnostic is about measuring existing configuration, **not an instruction to change OPcache**. Prioritise route-by-route resource budgets, safe cache headers, LiteSpeed response behaviour and Iranian connection latency next.
+
 ## Bertina PHP Selector extension selection — owner-provided panel, 26 October
 
 The owner provided the list of **available** cPanel PHP Selector extensions. This listing contains names such as `opcache`, `apcu`, `redis`, `memcached`, `brotli`, `imagick`, `intl`, `mbstring`, `pdo_mysql`, `mysqlnd`, `gd` and `vips`. Availability on the list **does not indicate activation** for the production domain or PHP web SAPI.
 
 **No extensions are required to continue Git development. No DB schema or PHP Selector action was performed.** At the owner-authorised host verification stage, prefer domain-specific settings for `drjavadrezazadeh.com`, not irreversible account-wide changes impacting other sites.
 
-- **Confirm `opcache` enabled in the actual PHP web SAPI** (not CLI alone). This is the only server-side acceleration extension that should be prioritised without a new application cache design. Ensure its memory and deploy invalidation settings are sensible for the existing PHP 8.3 + LiteSpeed environment. PHP-FPM, LiteSpeed LSAPI and CLI may expose different options.
+- **OPcache is confirmed enabled in the PHP Selector by the owner; keep the setting unchanged.** At final QA only, observe whether the web SAPI is using it effectively, with sensible memory and release invalidation. This is an observation task, not an activation request. PHP-FPM, LiteSpeed LSAPI and CLI may expose different options.
 - Preserve the website's actually needed `pdo_mysql` / `mysqlnd`, `mbstring`, `intl`, `curl`, `openssl`, `fileinfo`, `gd`, `zip`, `zlib` and existing journal/OJS dependencies. Optional `imagick` should follow real image processing use rather than be enabled reflexively.
 - **Do not indiscriminately enable `redis`, `memcached` or `apcu`**. These provide no automatic site speed improvement unless an explicit, permissioned application cache consumer is configured. An enabled PHP `redis` extension does not install/start a Redis server. Any later use must preserve the existing single mother database and segregate private/customer data.
 - The PHP Selector's `brotli` extension does not itself enable HTTP Brotli compression in LiteSpeed. That is a web-server response/header concern, independent of PHP extensions.
