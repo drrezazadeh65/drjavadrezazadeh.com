@@ -147,6 +147,8 @@ for (const file of (visit(root),htmlFiles.sort())) {
     }
   }
   const alternates=links(html,'alternate').filter(x=>x.hreflang);
+  if(noindex&&alternates.length)
+    issue('P2',route,'PRIVATE_HREFLANG','Private or noindex pages should not be promoted as public hreflang alternates');
   if(alternates.length){
     stats.withHreflang++;
     for(const a of alternates)hreflangLinks.push({route,language:a.hreflang,url:a.href});
@@ -189,7 +191,7 @@ for (const file of (visit(root),htmlFiles.sort())) {
   }
   if(!noindex){
     const main=(html.match(/<main\b[^>]*>([\s\S]*?)<\/main>/i)||[])[1]||'';
-    if(textOnly(main).length<250)issue('P2',route,'THIN_CONTENT','Review if page serves a substantive search intent');
+    if(textOnly(main).length<250)issue('P2',route,'THIN_CONTENT','Review whether the public landing page satisfies a real search intent; no prescribed word count');
   }
 }
 for(const file of ['sitemap-core.xml','sitemap-fa.xml','sitemap-en.xml','sitemap-news.xml','sitemap-services.xml','journal/sitemap.xml']){
@@ -228,7 +230,16 @@ for(const entry of hreflangLinks){
       issue('P2',entry.route,'XDEFAULT_TARGET','x-default must resolve to a released indexable public route');
     continue;
   }
+  // Invalid or external alternates have already been diagnosed above.
+  // Never slice an untrusted href into a plausible local route by accident.
+  if(typeof entry.url!=='string'||!entry.url.startsWith(origin+'/')){
+    continue;
+  }
   const target=entry.url.slice(origin.length);
+  if(!target.startsWith('/')||target.includes('?')||target.includes('#')){
+    issue('P1',entry.route,'HREFLANG_TARGET_FORM','Alternate target must be a clean canonical public route');
+    continue;
+  }
   const targetFile=indexableRoutes.get(target);
   if(!targetFile){
     issue('P2',entry.route,'HREFLANG_TARGET','Target lacks indexable source: '+target);
