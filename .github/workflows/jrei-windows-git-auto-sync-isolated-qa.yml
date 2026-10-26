@@ -57,8 +57,32 @@ jobs:
             throw 'JREI_LOCAL_MODIFICATION_OVERWRITTEN'
           }
           Write-Output 'JREI_READ_ONLY_CHECK_AND_LOCAL_EDIT_PRESERVATION_OK'
-      - name: Never install scheduler in CI
+      - name: Exercise isolated Task Scheduler registration and guaranteed cleanup
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $env:LOCALAPPDATA = Join-Path $env:RUNNER_TEMP 'jrei-isolated-temp-localappdata'
+          $repo=Join-Path $env:LOCALAPPDATA 'JREI-Python\repo'
+          git -C $repo restore -- synthetic.txt
+          if($LASTEXITCODE -ne 0){throw 'FIXTURE_RESTORE_FAILED'}
+          $script=Join-Path $env:GITHUB_WORKSPACE 'platform\jrei-v5\windows-worker\jrei-repo-auto-sync.ps1'
+          try{
+            $out=& powershell.exe -NoProfile -NonInteractive -File $script -Mode Install -OwnerApproved
+            if($LASTEXITCODE -ne 0){throw 'JREI_SCHEDULER_INSTALL_FAILED'}
+            if(($out -join ';') -notmatch 'REPO_SYNC_TASK_REGISTERED'){
+              throw 'JREI_SCHEDULER_INSTALL_MISSING_RECEIPT'
+            }
+            $task=Get-ScheduledTask -TaskName 'JREI-Repo-Auto-Sync' -ErrorAction Stop
+            if($task.Triggers.Count -ne 2){throw 'JREI_SCHEDULER_MISSING_RECURRENCE'}
+            Write-Output 'JREI_SCHEDULER_REGISTRATION_FIXTURE_PASS'
+          } finally {
+            Unregister-ScheduledTask -TaskName 'JREI-Repo-Auto-Sync' -Confirm:$false -ErrorAction SilentlyContinue
+          }
+          if(Get-ScheduledTask -TaskName 'JREI-Repo-Auto-Sync' -ErrorAction SilentlyContinue){
+            throw 'JREI_TEMPORARY_TASK_NOT_REMOVED'
+          }
+      - name: No user or production systems touched
         if: always()
         shell: pwsh
         run: |
-          'Read-only mock repo tests only. No task registration, GitHub push, code execution, Bertina release, Windows user file access, Python installation, or service restarts.' >> $env:GITHUB_STEP_SUMMARY
+          'Synthetic Windows repo tests only; temporary CI Scheduler registration is removed. No actual user PC, GitHub push, deploy, Bertina SQL, Python install, service restart or scheduled execution.' >> $env:GITHUB_STEP_SUMMARY
