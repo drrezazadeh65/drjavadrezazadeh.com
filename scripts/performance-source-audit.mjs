@@ -42,10 +42,59 @@ function isOwnOrigin(value){
   }
 }
 
+// Inspect EVERY HTML surface, including private dashboards, without requesting
+// a single production URL. No field CWV or Lighthouse score is inferred here.
+const routeInventory=[];
+function routeFor(rel){
+  return rel==='index.html'?'/':'/'+rel.replace(/index\.html$/,'');
+}
+function localResourceSize(raw,route){
+  if(!raw||raw.startsWith('data:'))return null;
+  let parsed;
+  try{parsed=new URL(raw,'https://drjavadrezazadeh.com'+route);}catch{return null;}
+  if(parsed.origin!=='https://drjavadrezazadeh.com')return null;
+  const relative=decodeURIComponent(parsed.pathname).replace(/^\/+/,'');
+  if(!relative||relative.split('/').includes('..'))return null;
+  const resolved=path.resolve(root,relative);
+  if(!resolved.startsWith(root+path.sep))return null;
+  try{return fs.statSync(resolved).isFile()?fs.statSync(resolved).size:null;}catch{return null;}
+}
+function mediaBytes(html,tags,route,attribute){
+  const resources=[...html.matchAll(tags)].map(m=>attr(m[0],attribute)).filter(Boolean);
+  const seen=new Set();
+  let bytes=0;
+  let missing=0;
+  for(const src of resources){
+    if(seen.has(src))continue;
+    seen.add(src);
+    const size=localResourceSize(src,route);
+    if(size===null){missing++;continue;}
+    bytes+=size;
+  }
+  return {references:resources.length,unique:seen.size,rawLocalBytes:bytes,unresolved:missing};
+}
 for(const file of htmlFiles){
   const rel=path.relative(root,file).replaceAll(path.sep,'/');
   const html=fs.readFileSync(file,'utf8');
   const noindex=/<meta\b[^>]*name=["']robots["'][^>]*content=["'][^"']*noindex/i.test(html);
+  const route=routeFor(rel);
+  const css=mediaBytes(html,/<link\b[^>]*rel=["']stylesheet["'][^>]*>/gi,route,'href');
+  const js=mediaBytes(html,/<script\b[^>]*src=["'][^"']+["'][^>]*>/gi,route,'src');
+  const imageTags=[...html.matchAll(/<img\b[^>]*>/gi)].map(m=>m[0]);
+  const eagerImages=imageTags.filter(tag=>!(/loading=["']lazy["']/i).test(tag)).length;
+  routeInventory.push({
+    route,scope:noindex?'PRIVATE_OR_NONINDEX':'PUBLIC_INDEXABLE',
+    documentBytes:Buffer.byteLength(html,'utf8'),
+    css,js,imageTags:imageTags.length,eagerImages
+  });
+  // Budget for every page, including private dashboards. Byte counts are raw
+  // source approximations; Brotli transfer and actual browser requests differ.
+  if(css.rawLocalBytes>300000)
+    warnings.push(rel+': CSS source budget >300KB ('+css.rawLocalBytes+' bytes)');
+  if(js.rawLocalBytes>180000)
+    warnings.push(rel+': static JavaScript source budget >180KB ('+js.rawLocalBytes+' bytes)');
+  if(eagerImages>7)
+    warnings.push(rel+': '+eagerImages+' eager images may compete with the first-screen LCP');
   if(noindex) continue;
   indexableCount++;
 
@@ -98,7 +147,26 @@ for(const file of htmlFiles){
   if(htmlBytes>350000) warnings.push(rel+': large HTML document '+htmlBytes+' bytes');
 }
 
-console.log('Performance source audit: '+indexableCount+' indexable HTML pages, '+imageCount+' image tags checked.');
+// Per-route inventory makes it impossible to hide poor inner-page budgets
+// behind a fast language selector or homepage sample.
+const routesByCss=[...routeInventory].sort((a,b)=>b.css.rawLocalBytes-a.css.rawLocalBytes);
+const routesByJs=[...routeInventory].sort((a,b)=>b.js.rawLocalBytes-a.js.rawLocalBytes);
+if(process.argv.includes('--json')){
+ console.log(JSON.stringify({
+  schema:'jr.iran-first.per-route-source.v1',
+  caveat:'Local raw source inventory only; not Lighthouse or real Iranian field CWV',
+  allHtmlRoutes:routeInventory.length,
+  publicIndexableRoutes:indexableCount,
+  topCssRoutes:routesByCss.slice(0,30),
+  topJsRoutes:routesByJs.slice(0,30),
+  routes:routeInventory.sort((a,b)=>a.route.localeCompare(b.route)),
+  failures,warnings
+ },null,2));
+}else{
+ console.log('Performance source audit: '+indexableCount+' indexable HTML pages, '+imageCount+' image tags checked; '+routeInventory.length+' TOTAL HTML routes inventoried.');
+ console.log('Highest CSS source: '+JSON.stringify(routesByCss.slice(0,8).map(x=>[x.route,x.css.rawLocalBytes])));
+ console.log('Highest JS source: '+JSON.stringify(routesByJs.slice(0,8).map(x=>[x.route,x.js.rawLocalBytes])));
+}
 if(warnings.length){
   console.warn('Warnings ('+warnings.length+')');
   warnings.forEach(x=>console.warn('! '+x));
