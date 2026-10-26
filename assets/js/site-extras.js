@@ -1,6 +1,24 @@
 /* Deferred, non-critical site enhancements extracted from site.js to retain the 25 KiB navigation performance budget. */
-(()=>{let s=document.createElement('script');s.src='/assets/js/analytics-adapter.js?v=20261020-gtm-consent-v5';document.head.append(s)})();
-(function(){
+/* Iran-first: give HTML, CSS, first-screen images and the mobile navigation
+ * first use of constrained bandwidth/CPU. Optional scripts retain identical
+ * behaviour; they only enter the network after load and a bounded idle slot.
+ * No idle API, background tab, and late loader are handled explicitly. */
+const jrAfterFirstPaint=(task)=>{
+ let started=false;
+ const begin=()=>{
+  if(started)return;
+  started=true;
+  if('requestIdleCallback' in window){
+   requestIdleCallback(()=>task(),{timeout:2200});
+  }else{
+   setTimeout(task,700);
+  }
+ };
+ if(document.readyState==='complete')begin();
+ else window.addEventListener('load',begin,{once:true});
+};
+jrAfterFirstPaint(()=>{let s=document.createElement('script');s.src='/assets/js/analytics-adapter.js?v=20261020-gtm-consent-v5';s.async=true;document.head.append(s)});
+jrAfterFirstPaint(()=>{
 if(document.querySelector('script[data-jr-assistant]')) return;
 const scripts=[...document.scripts];
 const siteScript=scripts.find(s=>/\/assets\/js\/site\.js(?:\?|$)/.test(s.src));
@@ -18,7 +36,7 @@ script.src=new URL('assistant.js?v=20261024-jrei-owned-local-first-v1',siteScrip
 script.defer=true;
 script.dataset.jrAssistant='1';
 document.head.appendChild(script);
-})();
+});
 document.addEventListener('click',async e=>{const t=e.target.closest('[data-print-cv],[data-copy-citation]');if(!t)return;if(t.hasAttribute('data-print-cv')){e.preventDefault();return print()}const v=t.dataset.copyCitation;if(!v)return;e.preventDefault();const o=t.textContent,n=document.documentElement.lang==='fa'?'کپی شد':'Copied';try{await navigator.clipboard.writeText(v)}catch(_){const a=document.createElement('textarea');a.value=v;a.hidden=true;document.body.appendChild(a);a.select();try{document.execCommand('copy')}catch(_e){}a.remove()}t.classList.add('is-copied');t.textContent=n;setTimeout(()=>{t.classList.remove('is-copied');t.textContent=o},1800)});
 (()=>{let h=document.head,a=(r,u)=>{if(!h.querySelector('link[rel="'+r+'"]')){let l=document.createElement('link');l.rel=r;l.href=u;h.append(l)}};a('icon','/favicon.png?v=42');a('apple-touch-icon','/assets/images/pwa-icon-192.png?v=42')})();
 
@@ -34,11 +52,11 @@ footer.appendChild(holder);
 import('/assets/js/mobile-app-v431.js?v=20261022-need-primary-nav-v1');
 
 /* Existing SW lifecycle: notify open installed app sessions after an update. */
-(()=>{
+jrAfterFirstPaint(()=>{
 if(!('serviceWorker' in navigator)||document.querySelector('[data-jr-release-notice-loader]'))return;
 const css=document.createElement('link');css.rel='stylesheet';css.href='/assets/css/pwa-release-notice.css?v=20261019-v1';css.dataset.jrReleaseNoticeLoader='1';document.head.append(css);
 const js=document.createElement('script');js.src='/assets/js/pwa-release-notice.js?v=20261019-v1';js.defer=true;document.head.append(js);
-})();
+});
 
 /* Desktop installed PWA: prevent text from collapsing into narrow dashboard columns. */
 (()=>{
@@ -49,10 +67,10 @@ const css=document.createElement('link');css.rel='stylesheet';css.href='/assets/
 })();
 
 /* Brand emblem lives beside the original merchant trust seal. */
-(()=>{if(document.querySelector('script[data-jr-footer-brand-loader]'))return;const el=document.createElement('script');el.src='/assets/js/footer-brand-seal.js?v=20261016-v1';el.defer=true;el.dataset.jrFooterBrandLoader='1';document.head.append(el);})();
+jrAfterFirstPaint(()=>{if(document.querySelector('script[data-jr-footer-brand-loader]'))return;const el=document.createElement('script');el.src='/assets/js/footer-brand-seal.js?v=20261016-v1';el.defer=true;el.dataset.jrFooterBrandLoader='1';document.head.append(el);});
 
 /* Footer provenance/copyright metadata. Public information only. */
-(()=>{if(document.querySelector('script[data-jr-footer-meta-loader]'))return;const script=document.createElement('script');script.src='/assets/js/site-footer-meta-2026.js?v=20261016-public-version-v2';script.defer=true;script.dataset.jrFooterMetaLoader='1';document.head.append(script);})();
+jrAfterFirstPaint(()=>{if(document.querySelector('script[data-jr-footer-meta-loader]'))return;const script=document.createElement('script');script.src='/assets/js/site-footer-meta-2026.js?v=20261016-public-version-v2';script.defer=true;script.dataset.jrFooterMetaLoader='1';document.head.append(script);});
 
 /* Permanent manual PWA installation entry near the homepage footer.
    Auto-prompt remains capped to once; visitors can always request installation. */
@@ -93,13 +111,13 @@ area.append(button,note);footer.parentNode.insertBefore(area,footer);
 })();
 
 /* Bilingual public USDT/toman calculator: informational only, never a money quote. */
-(()=>{
+jrAfterFirstPaint(()=>{
  const path=location.pathname.replace(/index\.html$/,'');
  if(!/^\/(?:fa|en)\/(?:shop|services|khadamat|support-talented-students)\/$/.test(path))return;
  if(document.querySelector('[data-jr-fx-loader]'))return;
  const stylesheet=document.createElement('link');stylesheet.rel='stylesheet';stylesheet.href='/assets/css/jr-public-fx-converter.css?v=20261016-v1';stylesheet.dataset.jrFxLoader='1';document.head.append(stylesheet);
  const js=document.createElement('script');js.src='/assets/js/jr-public-fx-converter.js?v=20261016-v1';js.defer=true;document.head.append(js);
-})();
+});
 
 /* Bilingual homepage portrait micro-interaction: pointer-only, no tracking/storage.
  * RAF throttling; no moving content for touch or reduced-motion visitors.
