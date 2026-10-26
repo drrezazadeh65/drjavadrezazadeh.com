@@ -88,7 +88,7 @@ Header always set Cache-Control "public, no-cache, must-revalidate" env=!PRIVATE
 # Content-addressed, locally hosted Persian heading font: blob identity is pinned
 # in its actual filename. Safe to retain for repeat visits on slower networks.
 # No mutable CSS/JS, HTML, API, checkout, dashboard or user content qualifies.
-<FilesMatch "^vazirmatn-variable-a501289a8559\\.woff2$">
+<FilesMatch "^vazirmatn-variable-a501289a8559\.woff2$">
 Header always set Cache-Control "public, max-age=31536000, immutable" env=!PRIVATE_ROUTE
 </FilesMatch>
 
@@ -96,7 +96,7 @@ Header always set Cache-Control "public, max-age=31536000, immutable" env=!PRIVA
 # /assets/css/public-v2.<SHA256_12>.css for ALL public HTML routes.
 # The filename changes with the file body, so long browser caching is safe.
 # The original mutable CSS names remain revalidating; no private caching.
-<FilesMatch "^(?:style|public-v2)\\.[a-f0-9]{12}\\.css$">
+<FilesMatch "^(?:style|public-v2)\.[a-f0-9]{12}\.css$">
 Header always set Cache-Control "public, max-age=31536000, immutable" env=!PRIVATE_ROUTE
 </FilesMatch>
 
