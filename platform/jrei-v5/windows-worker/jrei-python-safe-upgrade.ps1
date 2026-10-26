@@ -257,9 +257,11 @@ try{
   $oldTask=Get-ScheduledTask -TaskName $taskName
   if($oldTask.State -ne 'Running'){throw 'JREI_PYTHON_TASK_NOT_RUNNING'}
   Stop-ScheduledTask -TaskName $taskName -ErrorAction Stop
+  # From here onward every failure MUST restore the old Python task, even
+  # if an unowned listener prevents the candidate from binding port 8091.
+  $changed=$true
   Start-Sleep -Seconds 3
   if(Health){throw 'JREI_UNOWNED_PYTHON_LISTENER_STILL_RUNNING'}
-  $changed=$true
   $next=New-ScheduledTaskAction -Execute $new.path -Argument $expectedArgs -WorkingDirectory $root
   Set-ScheduledTask -TaskName $taskName -Action $next|Out-Null
   Start-ScheduledTask -TaskName $taskName
