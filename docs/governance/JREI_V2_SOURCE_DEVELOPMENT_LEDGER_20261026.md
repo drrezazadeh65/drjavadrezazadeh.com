@@ -30,6 +30,7 @@
 | P1-3 HMAC replay | `jrei_core/replay.py`, `jrei_core/auth.py`, `pyproject.toml`, `docs/migrations/20261026_jrei_python_hmac_replay_nonces_mother_mysql.sql` | SOURCE_INTEGRATED: optional durable atomic nonce claim with unique mother-DB key; no silent fallback on DB failure | TLS/migration/least-privilege DB service account, concurrency/clock-skew tests and deployment |
 | P1-4 metacognitive evaluation | `jrei_learning/heldout.py`, `jrei_service/app.py`, `api/jrei-python-owner-skills.php` | SOURCE_INTEGRATED: paired correctness, Persian/English regressions, P95, exact sign test and negative evidence hash; owner skills gateway | Independently licensed held-out fixture, actual case receipts, history persistence, reviewed promotion |
 | P1-6 portable executable skill | `jrei_skills/arithmetic.py`, `jrei_skills/registry.py`, `jrei_service/app.py`, `api/jrei-python-owner-skills.php` | SOURCE_INTEGRATED: deterministic exact arithmetic, explicit language digit normalization, bounded AST (no `eval`), callable on signed Python API with model switched off | Same-SHA code tests, accepted runtime/cross-language verification, public chat tool routing |
+| P1-6 opt-in owner encrypted memory | `platform/jrei-python/jrei_memory/{contracts,store}.py`, `api/jrei-python-owner-skills.php`, `api/index.php`, `api/operations.php`, `docs/migrations/20261026_jrei_python_owner_memory_mother_mysql.sql` | SOURCE_INTEGRATED: MFA account-bound AES-GCM encrypted owner notes, 1–365 day expiry, read and current-row revoke, isolated OFF switches | Clone schema/grants, actual persistence and key recovery, backup expiry, cross-tenant negative testing, consent/public memory separation |
 | QA fixtures source | `tests/test_heldout_review.py`, `tests/test_exact_arithmetic.py`, revised skill catalog fixture | SOURCE_PRESENT | All test executions and independent reviewer signatures |
 
 ### New owner API invocation shape (not yet live)
@@ -78,8 +79,10 @@ Qwen fine-tuning or autonomously ingest private conversations.
    mission ID persisted and inspectable graph, documented revoke/stop outcomes.
 4. Signed durable leases/checkpoints and independent worker execution receipts:
    no fabricated VERIFIED event or silent conversion of QUEUED to EXECUTED.
-5. Persisted consent/purpose-scoped memory and source-rights/version-aware
-   knowledge objects in the mother DB; rights revocation and retrieval guards.
+5. Accept opt-in owner memory end-to-end on a clone, including MFA-scoped
+   tenant isolation, encryption/key recovery, expiry and current-row revocation.
+   Public-account consented memory is not implemented. Add source-rights/
+   version-aware knowledge objects, revocation and retrieval guards.
 6. Real metacognitive loop: gap→priority→experiment→heldout evaluation→
    reviewed reusable skill→reversible promotion, including negative results.
 7. Original JREI News official-source→CMS publication receipt→correction/
