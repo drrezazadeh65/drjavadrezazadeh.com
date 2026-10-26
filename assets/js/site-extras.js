@@ -15,7 +15,17 @@ const jrAfterFirstPaint=(task)=>{
   }
  };
  if(document.readyState==='complete')begin();
- else window.addEventListener('load',begin,{once:true});
+ else{
+  // A remote trust-seal image may delay window.load indefinitely. Public
+  // footer/version and mobile accessibility enhancements must not depend on
+  // third-party network success. The bounded DOM-ready fallback only starts
+  // optional tasks after a generous 1.8s paint window.
+  window.addEventListener('load',begin,{once:true});
+  const afterDOM=()=>setTimeout(begin,1800);
+  if(document.readyState==='loading')
+   document.addEventListener('DOMContentLoaded',afterDOM,{once:true});
+  else afterDOM();
+ }
 };
 jrAfterFirstPaint(()=>{let s=document.createElement('script');s.src='/assets/js/analytics-adapter.js?v=20261020-gtm-consent-v5';s.async=true;document.head.append(s)});
 jrAfterFirstPaint(()=>{
