@@ -166,6 +166,11 @@
       "order": 30,
       "stage": "local_first_inference",
       "file": "docs/migrations/20261024_jrei_local_inference_queue_mother_mysql.sql"
+    },
+    {
+      "order": 31,
+      "stage": "owner_missions",
+      "file": "docs/migrations/20261026_jrei_apex_owner_missions_mother_mysql.sql"
     }
   ],
   "runtimePrerequisites": [
@@ -176,7 +181,8 @@
     "Source rights, robots and rate-limit controls approved before enabling any network crawler",
     "Independent JREI-LM Windows GGUF runtime, rights, hash, signed-node access and full localhost real-response benchmark; OpenAI only optional separately approved support",
     "All migrations independently reviewed; no destructive schema operations or silent payment/session changes",
-    "First-party local inference private sodium encryption key configured and tested; bounded retention Cron configured on original mother DB; owner-authorised node and client release gates independently accepted"
+    "First-party local inference private sodium encryption key configured and tested; bounded retention Cron configured on original mother DB; owner-authorised node and client release gates independently accepted",
+    "Before JREI APEX mission migration, verify live customer_accounts FK type, existing mother DB backup/restore evidence, additive schema drift review, owner authorization, and default-OFF planning and emergency-stop controls"
   ],
   "notes": "This is a source-only, additive migration order. It does not execute SQL, install weights, start the Windows workers, enable the encrypted chat queue, activate daily learning or release production. OpenAI API is an optional independently authorised helper, not the primary JREI-LM."
 }
