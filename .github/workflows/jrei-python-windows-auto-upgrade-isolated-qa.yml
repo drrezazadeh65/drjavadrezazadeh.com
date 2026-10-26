@@ -125,6 +125,39 @@ jobs:
               throw 'CI_REPEATED_REBUILD_OCCURRED'
             }
             Write-Output 'JREI_ISOLATED_WINDOWS_OFFLINE_INSTALL_AND_PYTHON_SWITCH_PASS'
+            # Create an entirely local fixture-only Python source revision
+            # to test real failing cutover and automatic restoration.
+            git -C $repo config user.name 'JREI CI fixture'
+            git -C $repo config user.email 'fixture@example.invalid'
+            'CI fault-only source tree' | Set-Content (Join-Path $repo 'platform/jrei-python/CI_ROLLBACK_FIXTURE.txt')
+            git -C $repo add platform/jrei-python/CI_ROLLBACK_FIXTURE.txt
+            git -C $repo commit -q -m 'CI isolated second Python source tree'
+            if($LASTEXITCODE -ne 0){throw 'CI_FAULT_REVISION_CREATION_FAILED'}
+            $beforeFail=(Get-ScheduledTask -TaskName $task).Actions[0].Execute
+            $env:JREI_UPGRADE_FIXTURE_FAIL_AFTER_SWITCH='CI_ONLY'
+            try {
+              $rollback=& powershell.exe -NoProfile -NonInteractive -File $script -Mode Auto
+              if($LASTEXITCODE -ne 0){throw 'CI_ROLLBACK_DRIVER_FAILED'}
+              $message=$rollback -join ';'
+              if($message -notmatch 'PYTHON_AUTO_UPGRADE_ROLLBACK_STARTED' -or
+                 $message -notmatch 'PYTHON_AUTO_UPGRADE_OLD_CORE_RESTORED'){
+                Write-Output $message
+                throw 'CI_PYTHON_AUTOMATIC_ROLLBACK_NOT_VERIFIED'
+              }
+            } finally {
+              Remove-Item Env:JREI_UPGRADE_FIXTURE_FAIL_AFTER_SWITCH -ErrorAction SilentlyContinue
+            }
+            $afterFail=(Get-ScheduledTask -TaskName $task).Actions[0].Execute
+            if($afterFail -ine $beforeFail){throw 'CI_ROLLBACK_TASK_EXECUTABLE_CHANGED'}
+            $restored=Invoke-RestMethod 'http://127.0.0.1:8091/internal/v1/health' -TimeoutSec 5
+            if($restored.service_process -ne 'RESPONDING'){
+              throw 'CI_ROLLBACK_RESTORED_PYTHON_NOT_HEALTHY'
+            }
+            $stateAfterFail=Get-Content (Join-Path $root 'python-auto-upgrade-state.json') -Raw|ConvertFrom-Json
+            if([string]::IsNullOrWhiteSpace($stateAfterFail.failedTree)){
+              throw 'CI_FAILED_REVISION_NOT_QUARANTINED'
+            }
+            Write-Output 'JREI_DISPOSABLE_WINDOWS_FAILED_CUTOVER_ROLLBACK_PASS'
           }finally{
             Stop-ScheduledTask -TaskName $task -ErrorAction SilentlyContinue
             Unregister-ScheduledTask -TaskName $task -Confirm:$false -ErrorAction SilentlyContinue
