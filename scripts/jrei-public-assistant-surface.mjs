@@ -19,6 +19,6 @@ export function includeJreiAssistant(relative,html){
  if(!/\/assets\/css\/assistant\.css(?:\?|["'])/.test(out))
    out=out.replace('</head>','<link rel="stylesheet" href="/assets/css/assistant.css?v=jrei-welcome-20261025"></head>');
  if(!/\/assets\/js\/assistant\.js(?:\?|["'])/.test(out))
-   out=out.replace('</body>','<script defer src="/assets/js/assistant.js?v=jrei-welcome-20261025"></script></body>');
+   out=out.replace('</body>','<script defer src="/assets/js/assistant.js?v=jrei-public-qwen-20261026"></script></body>');
  return out;
 }
