@@ -271,3 +271,61 @@
   min-width:0;max-width:100%;
  }
 }
+
+/* Crawlable bibliographic book inventory: visible without catalogue JS,
+   no invented price/stock, and links to stable canonical book anchors. */
+.book-store-shell .store-discovery-library{
+ margin-block:clamp(30px,5vw,64px);
+ padding:clamp(22px,3vw,36px);
+ border:1px solid var(--jr-store-rule,rgba(203,172,106,.23));
+ border-radius:24px;
+ background:linear-gradient(155deg,rgba(215,185,129,.07),rgba(255,255,255,.014));
+}
+.book-store-shell .store-discovery-library>h2{
+ margin:8px 0 16px;
+ font-size:clamp(1.5rem,2.8vw,2.15rem);
+ line-height:1.5;color:var(--jr-store-ivory,#f8f2e8);
+}
+.book-store-shell .store-discovery-library>p{
+ max-width:94ch;margin:10px 0 20px;
+ line-height:1.9;text-align:start;
+ overflow-wrap:anywhere;color:var(--jr-store-muted,#c0bbaf);
+}
+.book-store-shell .store-discovery-grid{
+ display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+ gap:clamp(12px,2vw,21px);align-items:stretch;
+}
+.book-store-shell .store-discovery-grid>article{
+ min-inline-size:0;padding:clamp(17px,2.3vw,25px);
+ border:1px solid var(--jr-store-rule,rgba(203,172,106,.23));
+ border-radius:17px;background:rgba(5,8,12,.25);
+}
+.book-store-shell .store-discovery-grid h3{
+ margin:0 0 11px;font-size:clamp(1.1rem,1.9vw,1.34rem);
+ line-height:1.7;overflow-wrap:anywhere;
+}
+.book-store-shell .store-discovery-grid h3 a{
+ color:var(--jr-store-gold,#d7b981);
+ text-decoration:underline;text-underline-offset:4px;
+}
+.book-store-shell .store-discovery-grid h3 a:focus-visible{
+ outline:3px solid var(--jr-store-gold,#d7b981);outline-offset:4px;
+}
+.book-store-shell .store-discovery-grid p{
+ margin:0;line-height:1.85;text-align:start;
+ overflow-wrap:anywhere;color:var(--jr-store-muted,#c0bbaf);
+}
+.book-store-shell .store-discovery-grid bdi{
+ unicode-bidi:isolate;direction:ltr;
+ font-variant-numeric:tabular-nums;
+}
+.book-store-shell .store-discovery-library .store-discovery-footnote{
+ margin:22px 0 0;font-size:.93rem;
+}
+.book-store-shell .store-discovery-library .store-discovery-footnote a{
+ color:var(--jr-store-gold,#d7b981);text-underline-offset:3px;
+}
+@media(max-width:700px){
+ .book-store-shell .store-discovery-grid{grid-template-columns:minmax(0,1fr)}
+ .book-store-shell .store-discovery-library{padding:clamp(16px,4vw,24px)}
+}
