@@ -215,15 +215,10 @@
   privacyChoice.addEventListener('click',openWelcome);
   wrap.querySelector('.jr-assistant-privacy').after(privacyChoice);
   let privateNoStorageChoice=null;
+  // Optional feedback preference is available from the privacy button;
+  // never interrupt the user with an onboarding consent popup.
   const initialPreference=readConsentPreference();
-  if(initialPreference===null){
-    const timer=setTimeout(()=>{
-      if(!document.hidden&&panel.hidden&&welcome.isConnected&&!privateNoStorageChoice)
-        openWelcome();
-    },1700);
-    agree.addEventListener('click',()=>clearTimeout(timer),{once:true});
-    decline.addEventListener('click',()=>clearTimeout(timer),{once:true});
-  }
+  if(initialPreference===null)welcome.hidden=true;
   // If storage is unavailable, a choice still suppresses repeated prompts
   // within the same page lifetime.
   for(const button of [agree,decline])
