@@ -147,9 +147,11 @@ function isImage(url){
 }
 
 function isApprovedImmutableCoreStyle(url){
-  // Only SHA256-named CSS aliases produced by the existing guarded Bertina
-  // release assembler qualify; ordinary ?v query strings remain mutable.
-  return /^\/assets\/css\/(?:style|public-v2)\.[a-f0-9]{12}\.css$/i.test(url.pathname);
+  // Only SHA256-named CSS emitted by the guarded Bertina release assembler:
+  // common public styles and ordered, content-addressed admin CSS bundles.
+  // Private HTML/API/session/commerce responses NEVER use cache-first.
+  return /^\/assets\/css\/(?:style|public-v2)\.[a-f0-9]{12}\.css$/i.test(url.pathname) ||
+    /^\/assets\/css\/operations-owner\.(?:fa|en)\.[a-f0-9]{12}\.css$/i.test(url.pathname);
 }
 
 function isContentFingerprinted(url){
