@@ -156,8 +156,9 @@ function jrLocalChatEnqueue(PDO $pdo,array $cfg,array $body): array {
     $lang=$body['page']['lang']??null;
     $question=$body['message']??null;
     $history=$body['history']??[];
-    if(($body['providerConsent']??null)!==true||
-       !in_array($lang,['fa','en'],true)||
+    // Visitor explicitly submits a question after seeing the local
+    // processing notice; no additional checkbox or consent token is needed.
+    if(!in_array($lang,['fa','en'],true)||
        !is_string($question)||trim($question)===''||
        strlen($question)>1600||jrAiPublicTextSensitive($question)||
        !is_array($history)||!array_is_list($history)||count($history)>8)
