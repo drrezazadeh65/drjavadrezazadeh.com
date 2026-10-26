@@ -43,7 +43,7 @@ test('original four-stage backend permissions and public no-fake-inference rule 
   assert.match(php,/a\.last_signed_chat_seen_at>\?/);
   assert.match(php,/\(\$cfg\['jrei_local_public_release_accepted'\]\?\?false\)!==true/);
   assert.match(assistant,/policy\.live!==true/);
-  assert.match(assistant,/providerConsent\.checked\?approvedLiveEndpoint/);
+  assert.match(assistant,/providerMode==='JREI_LM_LOCAL_WINDOWS'\\?/);
 });
 
 test('operator guidance uses existing read-only gates without touching credentials or database',()=>{
