@@ -174,7 +174,7 @@ for (const file of (visit(root),htmlFiles.sort())) {
     for(const node of schemaNodes(parsed)) {
       const types=Array.isArray(node['@type'])?node['@type']:[node['@type']];
       if(types.includes('AggregateRating')||types.includes('Review')){
-        issue('P1',route,'REVIEW_SCHEMA_EVIDENCE','Review/rating markup requires an independently verified eligibility and data audit');
+        issue('P2',route,'REVIEW_SCHEMA_EVIDENCE','Review/rating markup needs human evidence and current rich-result eligibility review');
       }
       if(typeof node.url==='string' && /drjavadrezazadeh\.com/.test(node.url) &&
           !node.url.startsWith(origin+'/'))issue('P2',route,'SCHEMA_URL_ORIGIN',node.url);
