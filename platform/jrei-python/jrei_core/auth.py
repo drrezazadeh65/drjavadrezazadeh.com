@@ -70,6 +70,8 @@ async def require_internal_gateway(request: Request) -> None:
         return
     if backend != "process_local":
         raise HTTPException(status_code=503, detail="REPLAY_BACKEND_UNSUPPORTED")
+    if os.environ.get("JREI_PYTHON_SINGLE_PROCESS_ASSERTED") != "1":
+        raise HTTPException(status_code=503, detail="SINGLE_PROCESS_REPLAY_NOT_ATTESTED")
     # Process-local mode is for one isolated FastAPI process only.
     with _lock:
         expired = [n for n, expires in _seen.items() if expires < now]
