@@ -155,7 +155,18 @@ async function load(){
    try{
     const r=await request(api+'comments',{method:'POST',headers:{'Content-Type':'application/json','X-JR-Community-CSRF':token.body.csrfToken},body:JSON.stringify({page,body:value,rating,consentToPublication,website:String(form.elements.website?.value||'')})});
     if(r.status===202&&r.body?.state==='pending'){feedback.textContent=value?tr('دیدگاه شما برای بررسی مدیر ثبت شد و هنوز عمومی نیست.','Your submission is awaiting moderation and is not public.'):tr('امتیاز شما برای بررسی مدیر ثبت شد و هنوز عمومی نیست.','Your rating is awaiting moderation and is not public.');form.reset();button.disabled=true;button.textContent=tr('ثبت شد؛ در انتظار تأیید مدیر','Submitted for moderation');}
-    else {feedback.textContent=r.status===409?tr('برای این صفحه قبلاً دیدگاه ثبت کرده‌اید.','You have already submitted a question or comment on this page.'):r.status===429?tr('لطفاً بعداً دوباره تلاش کنید.','Please try again later.'):tr('ثبت دیدگاه ممکن نشد. لطفاً دوباره تلاش کنید.','Your submission could not be saved. Please try again.');button.disabled=false;}
+    else if(r.status===409){
+     feedback.textContent=tr('برای این صفحه قبلاً دیدگاه یا امتیاز ثبت کرده‌اید. هر حساب فقط یک ثبت دارد.','You have already submitted a comment or rating on this page. Only one submission is allowed per account.');
+     button.textContent=tr('قبلاً ثبت شده است','Already submitted');
+     button.disabled=true;
+    }else{
+     feedback.textContent=r.status===429
+      ?tr('محدودیت ارسال فعال شده است؛ لطفاً بعداً دوباره تلاش کنید.','The submission limit has been reached; please retry later.')
+      :r.status===401||r.status===403
+        ?tr('نشست کاربری یا مجوز ارسال نیازمند بازبینی است؛ صفحه را تازه‌سازی کنید و دوباره وارد شوید.','Your session or submission permission needs to be refreshed. Reload the page and sign in again.')
+        :tr('ثبت دیدگاه یا امتیاز ممکن نشد. لطفاً دوباره تلاش کنید.','Your comment or rating could not be saved. Please try again.');
+     button.disabled=false;
+    }
    }catch(_){feedback.textContent=tr('ارتباط برقرار نشد. دوباره تلاش کنید.','Could not connect. Please try again.');button.disabled=false;}
   });
  }else {form.hidden=true;formPanel.hidden=true;login.hidden=false;}
