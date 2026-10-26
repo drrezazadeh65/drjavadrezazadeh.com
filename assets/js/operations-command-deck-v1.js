@@ -456,7 +456,7 @@ function activate(next,{focus=false}={}){
  if(next==='planning')renderPlan();
  renderModules();annotate();
  // Internal viewport, not a 200-kilometre document scrollbar.
- workspace.scrollTo({top:0,behavior:'instant'});
+ workspace.scrollTo({top:0,behavior:'auto'});
  if(focus){
   const selected=candidates(next).find(node=>moduleId(node)===selectedModules.get(next));
   if(selected&&selected.tagName==='DETAILS')selected.open=true;
@@ -691,5 +691,5 @@ document.addEventListener('visibilitychange',()=>{
 });
 window.addEventListener('online',()=>{offline=false;if(!workspace.hidden)pulse()});
 window.addEventListener('offline',()=>{offline=true;if(!workspace.hidden)pulse()});
-if(!workspace.hidden&&!auth.hidden)unlocked();
+if(!workspace.hidden&&auth.hidden===true)unlocked();
 })();
