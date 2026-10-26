@@ -10,6 +10,24 @@ const auth=document.getElementById('ops-auth');
 const notice=document.getElementById('ops-notice');
 if(!workspace||!auth||!notice||document.getElementById('ops-command-deck'))return;
 const fa=document.documentElement.lang==='fa';
+// A functional fallback for owner workflows while the modern tabbed console
+// evolves. Presentation-only, opt-in per URL, not persisted to any account.
+// The same server-side MFA, CSRF and operations authorization remain intact.
+const classicUrl=new URL(location.href);
+if(classicUrl.searchParams.get('ops_view')==='classic'){
+ classicUrl.searchParams.delete('ops_view');
+ const legacyLink=document.createElement('a');
+ legacyLink.className='ops-command-classic-return';
+ legacyLink.href=classicUrl.pathname+classicUrl.search+classicUrl.hash;
+ legacyLink.textContent=fa?'بازگشت به مرکز فرمان مدرن':'Return to modern command centre';
+ legacyLink.hidden=true;
+ workspace.prepend(legacyLink);
+ const showLegacy=()=>{legacyLink.hidden=workspace.hidden||auth.hidden!==true;};
+ workspace.addEventListener('jr:operations-ready',showLegacy);
+ workspace.addEventListener('jr:operations-locked',()=>{legacyLink.hidden=true;});
+ showLegacy();
+ return;
+}
 const tr=(persian,english)=>fa?persian:english;
 const make=(tag,className,textContent)=>{
  const element=document.createElement(tag);
@@ -105,6 +123,15 @@ const releaseInfo=make('div','ops-command-release');
 const releaseLabel=make('small',null,'RELEASE');
 const releaseValue=make('strong',null,'—');
 releaseInfo.append(releaseLabel,releaseValue);
+// The owner can always open the full legacy workspace without removing the
+// modern dashboard or bypassing authentication. This is a presentation toggle.
+const classicLink=make('a','ops-command-classic-link',
+ tr('نمای کامل ابزارها','Full classic workspace'));
+const classicHref=new URL(location.href);
+classicHref.searchParams.set('ops_view','classic');
+classicLink.href=classicHref.pathname+classicHref.search+classicHref.hash;
+classicLink.title=tr('نمای قدیمی فقط برای دسترسی به همه ابزارها؛ نیازمند همان احراز هویت مدیر',
+ 'Classic layout exposes all existing tools with exactly the same MFA');
 const refresh=make('button','ops-command-refresh',tr('تازه‌سازی داده‌ها','Refresh evidence'));
 refresh.type='button';refresh.append(icon('activity'));
 refresh.addEventListener('click',()=>{
@@ -112,7 +139,7 @@ refresh.addEventListener('click',()=>{
  const original=document.getElementById('ops-refresh-data');
  if(original&&!original.disabled)original.click(); // existing authenticated server action
 });
-badges.append(signal,freshness,releaseInfo,refresh);
+badges.append(signal,freshness,releaseInfo,classicLink,refresh);
 heading.append(identity,badges);
 const timeline=make('div','ops-command-network-timeline');
 timeline.setAttribute('role','img');
