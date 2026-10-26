@@ -168,16 +168,16 @@ function Stage([string]$tree){
  # reparsing. A failure leaves the original running Python untouched.
  & $launcher -m venv $venv 1>$stdout 2>$stderr
  if($LASTEXITCODE -ne 0){throw 'JREI_STAGING_VENV_CREATION_FAILED'}
- Event 'PYTHON_STAGING_VENV_CREATED'
+ Event 'PYTHON_STAGING_VENV_CREATED' | Out-Null
  # Building from reviewed tracked source, using ONLY locally available wheels.
  RunChecked $py @('-m','pip','wheel','--no-index','--disable-pip-version-check',
     '--find-links',$wheelhouse,'--wheel-dir',$wheelDir,'--no-deps',$project) $stdout $stderr
- Event 'PYTHON_STAGING_WHEEL_BUILT'
+ Event 'PYTHON_STAGING_WHEEL_BUILT' | Out-Null
  $built=@(Get-ChildItem -LiteralPath $wheelDir -Filter 'jrei_intelligence_core-*.whl' -File)
  if($built.Count -ne 1){throw 'JREI_OFFLINE_WHEEL_BUILD_INVALID'}
  RunChecked $py @('-m','pip','install','--no-index','--disable-pip-version-check',
      '--find-links',$wheelhouse,$built[0].FullName) $stdout $stderr
- Event 'PYTHON_STAGING_PACKAGE_INSTALLED'
+ Event 'PYTHON_STAGING_PACKAGE_INSTALLED' | Out-Null
  $v=(& $py -c "import sys; print(str(sys.version_info.major)+'.'+str(sys.version_info.minor)+'.'+str(sys.maxsize>2**32))")
  if($LASTEXITCODE -ne 0 -or $v.Trim() -cne '3.13.True'){throw 'JREI_STAGED_PYTHON_VERSION_INVALID'}
  # Never import project source via the original working directory; require
@@ -188,10 +188,10 @@ function Stage([string]$tree){
  try{
   $importLine="import pathlib,jrei_service.app; p=pathlib.Path(jrei_service.app.__file__).resolve(); base=pathlib.Path(r'$venv').resolve(); assert base in p.parents; print('JREI_ISOLATED_PYTHON_IMPORT_OK')"
   RunChecked $py @('-c',$importLine) $stdout $stderr
-  Event 'PYTHON_STAGING_INSTALLED_PACKAGE_IMPORT_PASSED'
+  Event 'PYTHON_STAGING_INSTALLED_PACKAGE_IMPORT_PASSED' | Out-Null
   RunChecked $py @('-m','unittest','discover','-s',
      (Join-Path $project 'tests'),'-p','test_*.py','-q') $stdout $stderr
-  Event 'PYTHON_STAGING_FULL_TESTS_PASSED'
+  Event 'PYTHON_STAGING_FULL_TESTS_PASSED' | Out-Null
  }finally{$env:PYTHONPATH=$prior;Pop-Location}
  return @{path=$py;directory=$venv;tree=$tree}
 }
