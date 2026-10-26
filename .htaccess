@@ -100,6 +100,13 @@ Header always set Cache-Control "public, max-age=31536000, immutable" env=!PRIVA
 Header always set Cache-Control "public, max-age=31536000, immutable" env=!PRIVATE_ROUTE
 </FilesMatch>
 
+# Private owner HTML remains no-store. This is ONLY a content-addressed
+# public stylesheet, built after the owner's guarded release checks.
+# Caching it reduces repeated admin CSS requests; it contains no session data.
+<FilesMatch "^operations-owner\.(?:fa|en)\.[a-f0-9]{12}\.css$">
+Header always set Cache-Control "public, max-age=31536000, immutable" env=!PRIVATE_ROUTE
+</FilesMatch>
+
 # Private, authenticated, API and payment routes override every public cache rule.
 Header always set Cache-Control "no-store, private, max-age=0" env=PRIVATE_ROUTE
 Header always set Pragma "no-cache" env=PRIVATE_ROUTE
