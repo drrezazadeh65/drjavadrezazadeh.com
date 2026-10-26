@@ -249,6 +249,7 @@ jobs:
           php tests/bahar-guardian-mysql.php
           node --check assets/js/bahar-guardian-overview.js
           php tests/operations-security.php
+          php tests/jrei-python-optional-load.php
           php tests/operations-mysql.php
           php tests/commerce-service-advance-mysql.php
           php tests/consultation-preference-mysql.php
