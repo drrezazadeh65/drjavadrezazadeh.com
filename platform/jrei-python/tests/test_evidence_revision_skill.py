@@ -110,7 +110,7 @@ class EvidenceSkillCases(unittest.TestCase):
     def test_allowlist_has_no_execution_or_upload(self):
         catalog = skill_catalog()
         self.assertFalse(catalog["privileged_execution_enabled"])
-        self.assertEqual(len(catalog["skills"]), 3)
+        self.assertEqual(len(catalog["skills"]), 4)
         self.assertTrue(all(not s["mutates_mother_db"] and not s["network_access"]
                             for s in catalog["skills"]))
         catalog["skills"][0]["languages"].append("tampered")
