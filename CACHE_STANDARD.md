@@ -21,7 +21,8 @@ Scope: Bertina Linux/LiteSpeed-compatible HTTP cache, Service Worker/Cache Stora
 | Resource class | Online strategy | Cache Storage | Target HTTP policy on controllable hosting |
 | --- | --- | --- | --- |
 | Public HTML | Network first, `cache:"reload"` | Offline fallback only | `Cache-Control: no-cache` |
-| CSS / JS / JSON / manifest | Network first, `cache:"reload"` | Latest successful copy | `Cache-Control: no-cache` |
+| Mutable CSS / JS / JSON / manifest (including `?v=`) | Network first, `cache:"reload"` | Latest successful copy | `Cache-Control: no-cache` |
+| Bertina-generated SHA256 filename CSS (`style.<digest>.css`, `public-v2.<digest>.css`) | Exact-digest cache first | Yes, public only | `public, max-age=31536000, immutable` after release verification |
 | Genuinely content-fingerprinted images | Cache first | Yes | Potential `public, max-age=31536000, immutable` **only after** actual content-hash build verification and host delivery tests |
 | Current unversioned images | Network first | Latest successful copy | Short cache only |
 | Fonts | Cache first **only** for content-fingerprinted filenames; otherwise fresh first | Safe copies only | Mutable filenames revalidate; immutable only with verified digest-named assets |
@@ -29,6 +30,32 @@ Scope: Bertina Linux/LiteSpeed-compatible HTTP cache, Service Worker/Cache Stora
 | Checkout/payment | Network only, `cache:"no-store"` | No | `Cache-Control: no-store` |
 | Service Worker | Update check on every load, `updateViaCache:"none"` | Browser-managed SW store | `Cache-Control: no-cache` |
 | Offline shell | Precached | Yes | Versioned with SW cache family |
+
+## Whole-site shared styles — source contract added 26 October 2026
+
+The existing guarded `scripts/build-public-site.mjs` now invokes
+`scripts/release-fingerprint-core-styles.mjs` after its previous security and
+route validations. It copies the unmodified original `style.css` and
+`public-v2.css` as content-SHA256-suffixed aliases, then changes stylesheet
+`href` references in **every staged public/private HTML file** to the
+content-addressed aliases. Subsequent releases build fresh paths whenever
+the underlying CSS changes. The original mutable URLs stay in place for
+unconverted dynamic consumers, with revalidation.
+
+Only these two approved file names and the self-hosted Persian variable
+font with a pinned digest-qualified name receive immutable HTTP hints in
+the existing Bertina `.htaccess`. The Service Worker permits exact-alias
+cache-first for the two approved CSS entries while retaining reload-first
+navigation, unversioned CSS/JS, no-store and no offline replay for private
+routes. The approved immutable font also uses the existing fingerprint-safe
+font handling. Release SHA stamping, CDN removal and no parallel caches remain
+unchanged.
+
+**Status:** staged in source, no end-to-end build, browser cache,
+LiteSpeed-host response or Iranian mobile check yet. Do not assert an
+achieved performance improvement or permission to deploy. Existing source
+and PWA regressions plus digest alias checks are to be executed once,
+at the owner-authorised final acceptance stage.
 
 ## Automatic invalidation
 
@@ -39,7 +66,7 @@ This mechanism cannot remotely erase arbitrary browser storage outside the site'
 ## Release invariants
 
 - Do not add public HTML, CSS, or JavaScript back to `PRECACHE`.
-- Do not use cache-first for mutable CSS/JS.
+- Do not use cache-first for mutable CSS/JS. Approved content-digest CSS release aliases are not mutable.
 - Do not cache authenticated responses, account data, assessment results, payment state, or personalized API responses. Also reject cookie-sensitive `Vary`, `Set-Cookie` where browser-readable, attachments, partial bodies and redirects into private URLs.
 - When a static asset is intentionally made immutable, change its URL when its content changes. Cache Storage failures must never defeat a successful online fetch.
 - Preserve `updateViaCache:"none"` on every Service Worker registration surface.
