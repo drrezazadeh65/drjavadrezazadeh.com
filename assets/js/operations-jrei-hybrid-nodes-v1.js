@@ -656,6 +656,15 @@
              'Public activation remains blocked: ')+
              number(absent)+T(' مانع، ',' blockers, ')+
              number(missing)+T(' نامعلوم',' unknown'));
+       if(publicLaunch.launchMode==='OWNER_APPROVED_PUBLIC_GENERAL_UNVALIDATED'){
+         cell(summary,T('دامنهٔ انتشار عمومی Qwen','Public Qwen service scope'),
+           T('مکالمهٔ عمومی با رضایت کاربر؛ بدون ادعای اعتبار علمی مستقل',
+             'Public opt-in general chat; no independent scientific certification'));
+         cell(summary,T('معافیت صریح مالک از شرط گواهی علمی',
+           'Owner-acknowledged scientific acceptance waiver'),
+           T('فقط گواهی علمی؛ رمزگذاری، مجوز و پاک‌سازی همچنان الزامی‌اند',
+             'Scientific certification only; privacy, rights and retention remain mandatory'));
+       }
        cell(summary,T('انتشار از روی موفقیت آزمایش خصوصی',
          'Auto-promote from successful private pilot'),
          T('ممنوع؛ نیازمند پذیرش مستقل','Forbidden; requires independent acceptance'));
