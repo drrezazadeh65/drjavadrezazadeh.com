@@ -14,6 +14,11 @@ import {isOwnershipVerificationArtifact} from './site-ownership-verification.mjs
 
 const root = process.cwd();
 const origin = 'https://drjavadrezazadeh.com';
+// Frozen released URLs are release-blocking. New public candidate URLs are not
+// automatically obligated to appear in a sitemap until editorial release.
+const frozenRoutes = new Set(JSON.parse(fs.readFileSync(
+  path.join(root,'platform/public-url-stability-manifest.json'),'utf8'
+)).frozen_indexable_routes||[]);
 const ignored = new Set(['.git', 'node_modules', '.public-site', 'work', 'proposals',
   'test-results', 'identity', '.next', 'dist', 'docs', 'foundation', 'scripts',
   'tests', 'platform', '.github', 'database', 'migrations', 'payment-api']);
@@ -96,6 +101,8 @@ for (const file of (visit(root),htmlFiles.sort())) {
   const routePolicy=classifyRoute(route);
   const noindex=/(?:^|[\s,])noindex(?:$|[\s,])/.test(robots);
   if(noindex)stats.noindex++;else{stats.indexable++;indexableRoutes.set(route,file);}
+  if(frozenRoutes.has(route)&&noindex)
+    issue('P1',route,'FROZEN_NOINDEX','Frozen indexable route may not become noindex without approved migration');
   if(routePolicy.indexing==='NOINDEX'&&!noindex)
     issue('P1',route,'PRIVATE_INDEXING','Private/controlled route requires noindex under '+routePolicy.policy);
   if(!['fa','en'].includes(language)) issue('P1',route,'HTML_LANG','Missing/unsupported page language');
@@ -193,8 +200,19 @@ for(const file of ['sitemap-core.xml','sitemap-fa.xml','sitemap-en.xml','sitemap
     if(m[1].startsWith(origin+'/'))sitemapRoutes.add(m[1].slice(origin.length));
   }
 }
-for(const route of indexableRoutes.keys())if(!sitemapRoutes.has(route))
-  issue('P2',route,'SITEMAP_OMISSION','Indexable route absent from listed sitemaps; optional inclusion requires policy review');
+for(const route of frozenRoutes){
+  if(!sitemapRoutes.has(route))
+    issue('P1',route,'FROZEN_SITEMAP_OMISSION',
+      'Permanent indexable URL missing from all approved child sitemaps');
+  if(!indexableRoutes.has(route))
+    issue('P1',route,'FROZEN_NOT_INDEXABLE',
+      'Permanent published route missing or not indexable in the source; inspect approved redirect exception');
+}
+for(const route of indexableRoutes.keys()){
+  if(sitemapRoutes.has(route)||frozenRoutes.has(route))continue;
+  issue('P2',route,'UNREGISTERED_PUBLIC_ROUTE',
+    'New public candidate omitted from listed sitemaps; decide editorial release and registry state');
+}
 for(const route of sitemapRoutes){
   if(indexableRoutes.has(route))continue;
   const relative=route==='/'?'index.html':route.replace(/^\//,'')+'index.html';
