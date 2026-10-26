@@ -90,6 +90,20 @@ The original Persian administrator shell includes **22 separately linked CSS fil
 
 The build deliberately refuses unexpected CSS `@import`/`@charset` or relative `url()` statements rather than silently changing resource paths. Final-only source acceptance was staged in `tests/release-bundle-owner-styles.test.mjs`; **it has not been executed**. Reducing twenty-plus CSS request round trips to one is a source-level architectural change, not yet evidence of faster real-page Core Web Vitals. Actual CSS transfer sizes, compression, and mobile waterfall must be verified during consolidated final QA.
 
+## Final-only comparative resource inventory
+
+`scripts/performance-source-audit.mjs` now has two explicit read-only modes to prevent confusing authoring-source request counts with the actual deployable package:
+
+```bash
+# Only after owner authorises the consolidated acceptance run:
+node scripts/performance-source-audit.mjs --json
+node scripts/build-public-site.mjs
+node scripts/performance-source-audit.mjs --release --json
+node --test tests/release-bundle-owner-styles.test.mjs tests/release-fingerprint-core-styles.test.mjs
+```
+
+The first inventory records all route classes in source form. The `--release` inventory reads the **sanitized Bertina artifact**, including the 22→1 Persian and 20→1 English owner CSS groupings, and all shared digest styles. Neither mode supplies HTTP waterfall, field CrUX, Google rankings, production server metrics or an Iranian network RTT. A final owner-approved browser audit must independently verify actual transfer bytes, CSS order, MFA, mobile layout and server cache headers before deployment.
+
 ## Final-owner QA matrix, after coding is complete only
 
 | Route class | Representative routes | LCP and render critical path | Interaction and privacy |
