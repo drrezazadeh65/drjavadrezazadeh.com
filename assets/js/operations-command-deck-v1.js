@@ -27,7 +27,7 @@ const ZONES=[
  ['commerce',tr('فروش و درآمد','Commerce'),'wallet','green'],
  ['journal',tr('مجله و نشر','Journal & publishing'),'book-open','blue'],
  ['media',tr('رسانه و انتشار','Media & social'),'radio','violet'],
- ['systems',tr('سامانه و تنظیمات','System & tools'),'settings','red']
+ ['systems',tr('سامانه و تنظیمات','System & tools'),'settings','violet']
 ];
 const ZONE_IDS=Object.freeze({
  'ops-executive-stats':'overview',
@@ -101,6 +101,10 @@ const freshness=make('div','ops-command-freshness');
 const freshnessLabel=make('small',null,tr('آخرین گزارش احرازشده','Last authenticated report'));
 const freshnessValue=make('strong',null,'—');
 freshness.append(freshnessLabel,freshnessValue);
+const releaseInfo=make('div','ops-command-release');
+const releaseLabel=make('small',null,'RELEASE');
+const releaseValue=make('strong',null,'—');
+releaseInfo.append(releaseLabel,releaseValue);
 const refresh=make('button','ops-command-refresh',tr('تازه‌سازی داده‌ها','Refresh evidence'));
 refresh.type='button';refresh.append(icon('activity'));
 refresh.addEventListener('click',()=>{
@@ -108,7 +112,7 @@ refresh.addEventListener('click',()=>{
  const original=document.getElementById('ops-refresh-data');
  if(original&&!original.disabled)original.click(); // existing authenticated server action
 });
-badges.append(signal,freshness,refresh);
+badges.append(signal,freshness,releaseInfo,refresh);
 heading.append(identity,badges);
 const timeline=make('div','ops-command-network-timeline');
 timeline.setAttribute('role','img');
@@ -509,6 +513,9 @@ function metrics(){
  }
  const checked=document.getElementById('ops-checked')?.textContent?.trim()||'';
  if(checked&&checked!=='—')freshnessValue.textContent=checked;
+ const release=document.getElementById('ops-release')?.textContent?.trim()||'';
+ releaseValue.textContent=/^[a-f0-9]{40}$/i.test(release)?release.slice(0,9):'—';
+ releaseValue.title=/^[a-f0-9]{40}$/i.test(release)?release:'';
 }
 function recordObservation(ok,kind){
  if(workspace.hidden)return;
@@ -528,7 +535,7 @@ function recordObservation(ok,kind){
    observations.length+' real session observations, '+observations.filter(x=>!x.ok).length+' failed attempts'));
 }
 async function heartbeatProbe(){
- if(workspace.hidden||auth.hidden!==true||document.hidden||heartbeatBusy||
+ if(workspace.hidden||auth.hidden!==true||document.hidden||!navigator.onLine||heartbeatBusy||
     Date.now()-lastProbeAttempt<60000)return;
  lastProbeAttempt=Date.now();heartbeatBusy=true;
  const controller=new AbortController();
@@ -598,7 +605,7 @@ function locked(){
  timeline.setAttribute('aria-label',tr('سابقه ارتباط پاک شد','Connection history cleared'));
  moduleButtons.replaceChildren();moduleBar.hidden=true;
  clearInterval(heartbeat);heartbeat=0;
- freshnessValue.textContent='—';
+ freshnessValue.textContent='—';releaseValue.textContent='—';releaseValue.title='';
  ringNumber.textContent='—';score.style.setProperty('--ops-ring-completion','0');
  ring.querySelector('.ops-command-ring-fill').style.strokeDasharray='0 263.8938';
  for(const node of Object.values(metricNodes))node.textContent='—';
