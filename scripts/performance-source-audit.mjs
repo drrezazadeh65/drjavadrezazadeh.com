@@ -23,9 +23,18 @@ let indexableCount=0;
 let imageCount=0;
 
 function attr(tag,name){
-  const re=new RegExp('\\b'+name+'\\s*=\\s*["\\\']([^"\\\']*)["\\\']','i');
-  const m=tag.match(re);
-  return m?m[1]:null;
+  // Attribute order and both quote styles are arbitrary in valid HTML.
+  // Use one parser for the per-page budget and for the blocking-resource gate.
+  for(const m of String(tag).matchAll(/([\w:-]+)\s*=\s*(?:"([^"]*)"|'([^']*)')/g)){
+    if(m[1].toLowerCase()===name.toLowerCase())return m[2]??m[3];
+  }
+  return null;
+}
+function tags(html,name){
+  return [...html.matchAll(new RegExp('<'+name+'\\b[^>]*>','gi'))].map(m=>m[0]);
+}
+function hasRel(tag,rel){
+  return (attr(tag,'rel')||'').toLowerCase().split(/\s+/).includes(rel);
 }
 
 function isAbsoluteHttp(value){
@@ -61,8 +70,8 @@ function localResourceSize(raw,route){
   if(!resolved.startsWith(root+path.sep))return null;
   try{return fs.statSync(resolved).isFile()?fs.statSync(resolved).size:null;}catch{return null;}
 }
-function mediaBytes(html,tags,route,attribute){
-  const resources=[...html.matchAll(tags)].map(m=>attr(m[0],attribute)).filter(Boolean);
+function mediaBytes(sourceTags,route,attribute){
+  const resources=sourceTags.map(t=>attr(t,attribute)).filter(Boolean);
   const seen=new Set();
   let bytes=0;
   let missing=0;
@@ -78,10 +87,13 @@ function mediaBytes(html,tags,route,attribute){
 for(const file of htmlFiles){
   const rel=path.relative(root,file).replaceAll(path.sep,'/');
   const html=fs.readFileSync(file,'utf8');
-  const noindex=/<meta\b[^>]*name=["']robots["'][^>]*content=["'][^"']*noindex/i.test(html);
+  const robots=tags(html,'meta').find(t=>(attr(t,'name')||'').toLowerCase()==='robots');
+  const noindex=/(?:^|[\s,])noindex(?:$|[\s,])/i.test(attr(robots||'','content')||'');
   const route=routeFor(rel);
-  const css=mediaBytes(html,/<link\b[^>]*rel=["']stylesheet["'][^>]*>/gi,route,'href');
-  const js=mediaBytes(html,/<script\b[^>]*src=["'][^"']+["'][^>]*>/gi,route,'src');
+  const styleLinks=tags(html,'link').filter(t=>hasRel(t,'stylesheet'));
+  const scriptTags=tags(html,'script').filter(t=>!!attr(t,'src'));
+  const css=mediaBytes(styleLinks,route,'href');
+  const js=mediaBytes(scriptTags,route,'src');
   const imageTags=[...html.matchAll(/<img\b[^>]*>/gi)].map(m=>m[0]);
   const eagerImages=imageTags.filter(tag=>!(/loading=["']lazy["']/i).test(tag)).length;
   routeInventory.push({
@@ -100,7 +112,8 @@ for(const file of htmlFiles){
   if(noindex) continue;
   indexableCount++;
 
-  if(!/<meta\b[^>]*name=["']viewport["'][^>]*content=["'][^"']*width=device-width/i.test(html)){
+  const viewport=tags(html,'meta').find(t=>(attr(t,'name')||'').toLowerCase()==='viewport');
+  if(!/\bwidth\s*=\s*device-width\b/i.test(attr(viewport||'','content')||'')){
     failures.push(rel+': missing responsive viewport meta');
   }
 
@@ -108,7 +121,6 @@ for(const file of htmlFiles){
     failures.push(rel+': third-party Google webfont dependency detected');
   }
 
-  const styleLinks=[...html.matchAll(/<link\b[^>]*rel=["']stylesheet["'][^>]*>/gi)].map(m=>m[0]);
   for(const tag of styleLinks){
     const href=attr(tag,'href')||'';
     if(isAbsoluteHttp(href)&&!isOwnOrigin(href)){
@@ -129,8 +141,7 @@ for(const file of htmlFiles){
   }
   if(highPriority>1) warnings.push(rel+': more than one fetchpriority=high image ('+highPriority+')');
 
-  const scripts=[...html.matchAll(/<script\b[^>]*src=["'][^"']+["'][^>]*>/gi)].map(m=>m[0]);
-  for(const tag of scripts){
+  for(const tag of scriptTags){
     const src=attr(tag,'src')||'';
     if(isAbsoluteHttp(src)&&!isOwnOrigin(src)){
       failures.push(rel+': third-party executable script '+src);
