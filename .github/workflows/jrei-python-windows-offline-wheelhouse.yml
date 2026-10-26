@@ -1,0 +1,71 @@
+name: JREI Python Windows 3.13 Offline Dependencies (NO DEPLOY)
+
+on:
+  push:
+    branches: [migration/bertina-linux6]
+    paths:
+      - '.github/workflows/jrei-python-windows-offline-wheelhouse.yml'
+      - 'platform/jrei-python/pyproject.toml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: jrei-offline-wheelhouse-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-offline-wheelhouse:
+    name: Bundle and verify offline dependencies for Windows 64-bit
+    runs-on: windows-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          architecture: 'x64'
+      - name: Download binary wheels for project requirements and offline build
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          New-Item -ItemType Directory -Force -Path wheelhouse | Out-Null
+          $packages = @(
+            'fastapi==0.115.12',
+            'pydantic==2.11.4',
+            'uvicorn==0.34.2',
+            'PyMySQL==1.1.1',
+            'cryptography==44.0.2',
+            'setuptools==75.8.2',
+            'wheel==0.45.1'
+          )
+          python -m pip download --only-binary=:all: --dest wheelhouse @packages
+          if ($LASTEXITCODE -ne 0) { throw 'Wheel download failed.' }
+      - name: Verify install from wheelhouse with network disabled
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          python -m venv .jrei-offline-verify
+          if ($LASTEXITCODE -ne 0) { throw 'venv creation failed' }
+          $py = Join-Path $PWD '.jrei-offline-verify\Scripts\python.exe'
+          & $py -m pip install --no-index --find-links wheelhouse -e '.\platform\jrei-python'
+          if ($LASTEXITCODE -ne 0) { throw 'Offline project installation failed.' }
+          Push-Location 'platform/jrei-python'
+          try {
+            & $py -m unittest discover -s tests -p 'test_*.py' -q
+            if ($LASTEXITCODE -ne 0) { throw 'Offline unit tests failed.' }
+            & $py -c "import fastapi, uvicorn, jrei_service.app; print('JREI_OFFLINE_VERIFIED')"
+            if ($LASTEXITCODE -ne 0) { throw 'Offline import failed.' }
+          } finally { Pop-Location }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: jrei-python-3.13-windows-amd64-offline-deps
+          path: wheelhouse/*.whl
+          if-no-files-found: error
+          retention-days: 14
+      - name: Evidence boundary
+        if: always()
+        shell: pwsh
+        run: |
+          "This workflow only packages dependencies for manual installation. It does not deploy, alter Windows nodes, touch Bertina, enable News/crawlers, provision secrets, or activate production." >> $env:GITHUB_STEP_SUMMARY
