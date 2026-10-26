@@ -3252,3 +3252,76 @@ html[lang="fa"] body.rtl.public-home-page main :is(h1,h2),
 html[lang="fa"] body.rtl.public-content-page main :is(h1,h2){
  font-weight:750;
 }
+
+/* Deferred supplemental Persian heading hierarchy (shared font remains in style.css). */
+html[lang="fa"] :is(main,.journal-main,.authority-shell,.foundation-main,.article-shell) h1,
+html[lang="fa"] body.rtl h1{
+ font-weight:780;
+ line-height:1.48!important;
+}
+html[lang="fa"] :is(main,.journal-main,.authority-shell,.foundation-main,.article-shell) h2,
+html[lang="fa"] body.rtl h2{
+ font-weight:720;
+ line-height:1.58!important;
+}
+html[lang="fa"] :is(main,.journal-main,.authority-shell,.foundation-main,.article-shell) :is(h3,h4,h5,h6),
+html[lang="fa"] body.rtl :is(h3,h4,h5,h6){
+ font-weight:650;
+ line-height:1.66!important;
+}
+html[lang="fa"] :where(.hero,.article-hero,.authority-hero,.service-hero,.journal-hero)
+ h1{
+ text-shadow:0 4px 25px rgba(0,0,0,.16);
+}
+@media(max-width:600px){
+ html[lang="fa"] :is(main,.journal-main,.authority-shell,.foundation-main,.article-shell) :is(h1,h2,h3,h4,h5,h6){
+  max-inline-size:100%;
+  overflow-wrap:anywhere;
+ }
+}
+
+
+/* JR 2026 luxury motion polish — additive only. Existing cinematic imagery,
+   parallax, hero tilt, banners, glass layers and transforms are untouched.
+   SEO content never starts hidden: no entry opacity/visibility animations. */
+:root{
+ --jr-effect-gold:rgba(229,191,113,.52);
+ --jr-effect-halo:rgba(199,157,78,.13);
+ --jr-effect-ease:cubic-bezier(.2,.8,.2,1);
+}
+@media(hover:hover) and (pointer:fine) and (prefers-reduced-motion:no-preference){
+ /* Expand existing transitions instead of replacing transforms/parallax. */
+ :is(.public-home-page,.public-content-page,.foundation-page,.journal-page,.book-store-shell)
+ :is(.service-card,.authority-card,.news-card,.book-product-card,.store-discovery-grid>article,.journal-grid>article){
+  transition-property:transform,border-color,background-color,box-shadow,color;
+ }
+ :is(.public-home-page,.public-content-page,.foundation-page,.journal-page,.book-store-shell)
+ :is(.service-card,.authority-card,.news-card,.book-product-card,.store-discovery-grid>article,.journal-grid>article):hover{
+   border-color:var(--jr-effect-gold);
+   box-shadow:0 14px 38px rgba(0,0,0,.27),0 0 0 1px var(--jr-effect-halo);
+ }
+ :is(.public-home-page,.public-content-page,.foundation-page)
+ :is(.button,.service-card,.authority-card,.news-card) :where(a):hover{
+   text-decoration-color:var(--jr-effect-gold);
+ }
+ :is(.public-home-page,.public-content-page,.book-store-shell)
+ :is(.button,.hero-pathway-cta .button,.store-discovery-grid h3>a):hover{
+   filter:brightness(1.07);
+ }
+}
+:is(.public-home-page,.public-content-page,.foundation-page,.journal-page,.book-store-shell)
+ :is(.service-card,.authority-card,.news-card,.book-product-card,.store-discovery-grid>article,.journal-grid>article):focus-within{
+ border-color:var(--jr-effect-gold);
+ box-shadow:0 0 0 2px rgba(237,209,144,.34);
+}
+:is(.public-home-page,.public-content-page,.foundation-page,.journal-page,.book-store-shell)
+ :where(a,button,summary):focus-visible{
+ outline:3px solid #f3d897;
+ outline-offset:3px;
+}
+@media(prefers-reduced-motion:reduce){
+ :is(.public-home-page,.public-content-page,.foundation-page,.journal-page,.book-store-shell)
+ :is(.service-card,.authority-card,.news-card,.book-product-card,.store-discovery-grid>article,.journal-grid>article){
+  scroll-behavior:auto;
+ }
+}
