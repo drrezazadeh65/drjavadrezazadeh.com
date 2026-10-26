@@ -108,6 +108,17 @@ refresh.addEventListener('click',()=>{
 });
 badges.append(signal,freshness,refresh);
 heading.append(identity,badges);
+const timeline=make('div','ops-command-network-timeline');
+timeline.setAttribute('role','img');
+timeline.setAttribute('aria-label',tr('هنوز سابقه‌ای از بررسی ارتباط ثبت نشده است',
+ 'No connection observations have been recorded'));
+const timelineLabel=make('span','ops-command-timeline-label',
+ tr('توالی مشاهده‌های واقعی ارتباط','Recent observed API responses'));
+const timelineBars=make('div','ops-command-timeline-bars');
+const timelineLegend=make('small','ops-command-timeline-legend',
+ tr('سبز: پاسخ واقعی · قرمز: تلاش ناموفق · این نمودار سلامت کل سایت نیست',
+    'Green: real response · red: failed attempt · not a whole-site health score'));
+timeline.append(timelineLabel,timelineBars,timelineLegend);
 const nav=make('nav','ops-command-tabs');
 nav.setAttribute('aria-label',tr('گروه‌های اصلی مدیریت','Main administration categories'));
 const tabs=new Map();
@@ -182,7 +193,7 @@ for(const [zone,label] of [
  b.addEventListener('click',()=>activate(zone,{focus:true}));quick.append(b);
 }
 overview.append(score,readings,quick);
-shell.append(heading,nav,subtitle,moduleBar,overview);
+shell.append(heading,timeline,nav,subtitle,moduleBar,overview);
 workspace.prepend(shell);
 let active='overview';
 const selectedModules=new Map();
@@ -190,6 +201,8 @@ let moduleSequence=0;
 let lastSuccess=0;
 let connectionError=false;
 let heartbeat=0;
+let heartbeatBusy=false;
+const observations=[];
 const formatNumber=value=>new Intl.NumberFormat(fa?'fa-IR':'en-US').format(value);
 function zoneOf(element){
  if(element===shell)return null;
@@ -344,6 +357,57 @@ function metrics(){
  const checked=document.getElementById('ops-checked')?.textContent?.trim()||'';
  if(checked&&checked!=='—')freshnessValue.textContent=checked;
 }
+function recordObservation(ok,kind){
+ if(workspace.hidden)return;
+ observations.push({ok,kind,at:Date.now()});
+ if(observations.length>12)observations.shift();
+ timelineBars.replaceChildren();
+ for(const entry of observations){
+  const segment=make('span','ops-command-timeline-bar');
+  segment.dataset.result=entry.ok?'pass':'fail';
+  segment.title=(entry.ok?tr('پاسخ موفق','Successful response'):
+    tr('تلاش ناموفق','Failed request'))+' · '+
+    new Date(entry.at).toLocaleTimeString(fa?'fa-IR':'en-US',{hour:'2-digit',minute:'2-digit'});
+  timelineBars.append(segment);
+ }
+ timeline.setAttribute('aria-label',tr(
+   observations.length+' بررسی واقعی ارتباط در این نشست، '+observations.filter(x=>!x.ok).length+' تلاش ناموفق',
+   observations.length+' real session observations, '+observations.filter(x=>!x.ok).length+' failed attempts'));
+}
+async function heartbeatProbe(){
+ if(workspace.hidden||auth.hidden!==true||document.hidden||heartbeatBusy)return;
+ heartbeatBusy=true;
+ const controller=new AbortController();
+ const timer=setTimeout(()=>controller.abort(),9000);
+ try{
+  const response=await fetch('/api/admin/operations/session',{
+   credentials:'same-origin',cache:'no-store',
+   headers:{'Accept':'application/json'},signal:controller.signal
+  });
+  const body=await response.json();
+  if(workspace.hidden)return;
+  if((response.status===401||response.status===403)||
+     (response.ok&&body?.ok===true&&body.mfaRequired===true)){
+   workspace.dispatchEvent(new Event('jr:operations-session-invalid'));
+   return;
+  }
+  const success=response.ok&&body?.ok===true&&body.mfaRequired===false;
+  recordObservation(success,'session');
+  if(success){
+   lastSuccess=Date.now();
+   // A successful session probe confirms the account endpoint only. It cannot
+   // erase a separately recorded failed reporting refresh.
+  }else connectionError=true;
+  pulse();
+ }catch(_){
+  if(!workspace.hidden){
+   recordObservation(false,'session');
+   connectionError=true;pulse();
+  }
+ }finally{
+  clearTimeout(timer);heartbeatBusy=false;
+ }
+}
 function pulse(){
  if(workspace.hidden)return;
  const age=lastSuccess?Date.now()-lastSuccess:Infinity;
@@ -368,6 +432,8 @@ function pulse(){
 }
 function locked(){
  lastSuccess=0;connectionError=false;selectedModules.clear();
+ observations.length=0;timelineBars.replaceChildren();
+ timeline.setAttribute('aria-label',tr('سابقه ارتباط پاک شد','Connection history cleared'));
  moduleButtons.replaceChildren();moduleBar.hidden=true;
  clearInterval(heartbeat);heartbeat=0;
  freshnessValue.textContent='—';
@@ -385,11 +451,15 @@ function locked(){
 function unlocked(){
  if(workspace.hidden||auth.hidden!==true)return;
  lastSuccess=Date.now();connectionError=false;
+ recordObservation(true,'report');
  workspace.classList.add('ops-command-deck-ready');
  document.querySelector('main.ops')?.classList.add('ops-console-layout');
  metrics();activate(active);
  pulse();
- if(!heartbeat)heartbeat=setInterval(pulse,15000); // presentation only; NO polling
+ if(!heartbeat)heartbeat=setInterval(()=>{
+  pulse();
+  if(!document.hidden&&Date.now()-lastSuccess>=60000)void heartbeatProbe();
+},15000); // bounded 1-minute owner session observation; no external probes
 }
 // Existing internal links and report-to-panel navigation need to activate their
 // owning category BEFORE legacy focus/scroll behaviour runs.
@@ -434,6 +504,10 @@ const noticeObserver=new MutationObserver(()=>{
  pulse();
 });
 noticeObserver.observe(notice,{attributes:true,attributeFilter:['class']});
+document.addEventListener('visibilitychange',()=>{
+ if(!document.hidden&&!workspace.hidden&&Date.now()-lastSuccess>=60000)
+  void heartbeatProbe();
+});
 window.addEventListener('online',()=>{if(!workspace.hidden)pulse()});
 window.addEventListener('offline',()=>{
  if(workspace.hidden)return;
