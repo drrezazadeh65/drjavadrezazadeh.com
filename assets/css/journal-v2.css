@@ -484,3 +484,39 @@
 .journal-page .journal-header nav a:focus-visible{
  outline:3px solid #f4d99f;outline-offset:3px;
 }
+
+/* Persian scholarly display correction. This stylesheet loads AFTER the
+   shared style.css, where some legacy JHELA selectors still favour Tahoma.
+   Use the same self-hosted display font as all public Persian headings.
+   Body text and English-language research titles are unchanged. */
+html[lang="fa"] .journal-page.jhela-fa-page
+ :is(.journal-hero,.journal-section,.journal-article,.journal-header,.journal-grid,.jhela-fa-grid)
+ :is(h1,h2,h3,h4,h5,h6),
+html[lang="fa"] .journal-page.jhela-fa-page .journal-brand strong{
+ font-family:var(--jr-fa-display,"JR Persian Display","Vazirmatn",Tahoma,sans-serif)!important;
+ font-synthesis:none;
+ font-style:normal;
+ letter-spacing:normal!important;
+ text-transform:none;
+ overflow-wrap:break-word;
+ text-wrap:balance;
+}
+html[lang="fa"] .journal-page.jhela-fa-page
+ :is(.journal-hero,.journal-section,.journal-article) h1{
+ font-weight:780;line-height:1.52!important;
+}
+html[lang="fa"] .journal-page.jhela-fa-page
+ :is(.journal-hero,.journal-section,.journal-article) h2{
+ font-weight:720;line-height:1.6!important;
+}
+html[lang="fa"] .journal-page.jhela-fa-page
+ :is(.journal-hero,.journal-section,.journal-article) :is(h3,h4,h5,h6){
+ font-weight:650;line-height:1.7!important;
+}
+html[lang="fa"] .journal-page.jhela-fa-page
+ :is(.journal-hero,.journal-section,.journal-article,.journal-grid) :where(p,li,dt,dd,blockquote){
+ text-align:start;overflow-wrap:anywhere;
+}
+html[lang="fa"] .journal-page.jhela-fa-page :where(bdi,[lang="en"],[dir="ltr"]){
+ direction:ltr;unicode-bidi:isolate;
+}
