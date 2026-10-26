@@ -372,8 +372,22 @@ else{
   if(!/fetch\(req,\{cache:['"]no-store['"]\}\)/.test(swSource)){
     failures.push('/sw.js: private-route network fetch must use cache:no-store');
   }
-  if(!swSource.includes('CSS/JS: network-first')){
-    failures.push('/sw.js: CSS/JS must remain network-first to prevent stale deploy assets');
+  // All mutable CSS/JS must remain network-first. Two content-addressed
+  // shared CSS assets and the two hashed owner-dashboard CSS bundles are
+  // immutable by construction; *only* those exact SHA-12 filenames may use
+  // cache-first. The private no-store branch must execute before either.
+  const privateBefore=swSource.indexOf('if(isPrivate(url)){');
+  const hashedStyleBefore=swSource.indexOf('if(isApprovedImmutableCoreStyle(url)){');
+  const mutableBefore=swSource.indexOf('if(isAsset && isMutableCode(url)){');
+  const privateGuard=swSource.includes("fetch(req,{cache:'no-store'})");
+  const immutableGuard=swSource.includes('(?:style|public-v2)\\.[a-f0-9]{12}\\.css') &&
+    swSource.includes('operations-owner\\.(?:fa|en)\\.[a-f0-9]{12}\\.css');
+  const hashedBranch=swSource.slice(hashedStyleBefore,mutableBefore);
+  const mutableBranch=swSource.slice(mutableBefore,swSource.indexOf('// Only content-fingerprinted media',mutableBefore));
+  if(!(privateBefore>=0&&hashedStyleBefore>privateBefore&&mutableBefore>hashedStyleBefore&&
+       privateGuard&&immutableGuard&&hashedBranch.includes('cacheFirstImmutable(req)')&&
+       mutableBranch.includes('freshNetwork(req'))){
+    failures.push('/sw.js: private routes must remain no-store, immutable digest CSS exact-match only, and mutable CSS/JS network-first');
   }
   for(const iconPath of ['/assets/images/pwa-icon-192.png','/assets/images/pwa-icon-512.png','/assets/images/pwa-icon-maskable-512.png']){
     if(!swSource.includes("'"+iconPath+"'") && !swSource.includes('"'+iconPath+'"')){
