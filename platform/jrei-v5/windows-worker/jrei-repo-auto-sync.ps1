@@ -52,17 +52,17 @@ function Preconditions{
   $gitCmd=Get-Command git.exe -ErrorAction Stop
   $script:gitExe=$gitCmd.Source
   if(-not [IO.Path]::IsPathRooted($script:gitExe)){throw 'JREI_GIT_NOT_ABSOLUTE'}
-  if((GitStatus @('rev-parse','--is-inside-work-tree')) -ne 0){
+  if((GitStatus -arguments @('rev-parse','--is-inside-work-tree')) -ne 0){
     throw 'JREI_REPO_NOT_GIT'
   }
-  $actualRemote=(GitCommand @('remote','get-url','origin') | Out-String).Trim()
+  $actualRemote=(GitCommand -arguments @('remote','get-url','origin') | Out-String).Trim()
   if($actualRemote -cne $origin -and $actualRemote -cne ($origin+'.git')){
     throw 'JREI_UNTRUSTED_GIT_ORIGIN'
   }
-  $active=(GitCommand @('branch','--show-current') | Out-String).Trim()
+  $active=(GitCommand -arguments @('branch','--show-current') | Out-String).Trim()
   if($active -cne $branch){throw 'JREI_WRONG_BRANCH'}
-  if((GitStatus @('diff','--quiet','--exit-code')) -ne 0 -or
-     (GitStatus @('diff','--cached','--quiet','--exit-code')) -ne 0){
+  if((GitStatus -arguments @('diff','--quiet','--exit-code')) -ne 0 -or
+     (GitStatus -arguments @('diff','--cached','--quiet','--exit-code')) -ne 0){
     throw 'JREI_LOCAL_TRACKED_CHANGES_PRESERVED'
   }
 }
@@ -76,7 +76,7 @@ try{
   }
   Preconditions
   if($Mode -eq 'Check'){
-    $head=(GitCommand @('rev-parse','--short','HEAD') | Out-String).Trim()
+    $head=(GitCommand -arguments @('rev-parse','--short','HEAD') | Out-String).Trim()
     Report ('CURRENT_COMMIT:'+($head.ToUpperInvariant()))
     $task=Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue
     Report $(if($task){'REPO_SYNC_TASK_REGISTERED'}else{'REPO_SYNC_TASK_NOT_REGISTERED'})
@@ -126,20 +126,18 @@ try{
   # the remote, change process credentials, or force-reset divergent history.
   # Git merge --ff-only will refuse an overlap with untracked local files.
   $env:GIT_TERMINAL_PROMPT='0'
-  $env:GIT_CONFIG_NOSYSTEM='1'
-  $env:GIT_OPTIONAL_LOCKS='0'
-  $null=GitCommand @('-c','core.hooksPath=NUL','fetch','--no-tags',
-    '--no-recurse-submodules','origin','refs/heads/migration/bertina-linux6')
+  $null=GitCommand -arguments @('-c','core.hooksPath=NUL','fetch','--no-tags',
+    '--no-recurse-submodules','origin','refs/heads/migration/bertina-linux6:refs/remotes/origin/migration/bertina-linux6')
   # Ensure we have the remote-tracking ref locally even for shallow clones.
-  if((GitStatus @('show-ref','--verify','--quiet',$remoteRef)) -ne 0){
+  if((GitStatus -arguments @('show-ref','--verify','--quiet',$remoteRef)) -ne 0){
     throw 'JREI_REMOTE_TRACKING_REF_MISSING'
   }
-  if((GitStatus @('merge-base','--is-ancestor','HEAD',$remoteRef)) -ne 0){
+  if((GitStatus -arguments @('merge-base','--is-ancestor','HEAD',$remoteRef)) -ne 0){
     throw 'JREI_HISTORY_DIVERGED_PRESERVED'
   }
-  $before=(GitCommand @('rev-parse','HEAD') | Out-String).Trim()
-  $null=GitCommand @('-c','core.hooksPath=NUL','merge','--ff-only',$remoteRef)
-  $after=(GitCommand @('rev-parse','HEAD') | Out-String).Trim()
+  $before=(GitCommand -arguments @('rev-parse','HEAD') | Out-String).Trim()
+  $null=GitCommand -arguments @('-c','core.hooksPath=NUL','merge','--ff-only',$remoteRef)
+  $after=(GitCommand -arguments @('rev-parse','HEAD') | Out-String).Trim()
   if($before -ceq $after){Report 'REPO_SYNC_UP_TO_DATE'}
   else{Report 'REPO_SYNC_FAST_FORWARDED'}
   Report 'NO_PYTHON_INSTALL_OR_SERVICE_RESTART'
