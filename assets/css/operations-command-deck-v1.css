@@ -378,3 +378,71 @@ body:has(.ops.ops-console-layout){height:100dvh;overflow:hidden}
   display:revert!important;
  }
 }
+/* Task-level tabs are essential: a category containing twenty forms never
+   reverts to the previous giant scroll. Only its selected existing panel shows. */
+.ops #ops-workspace .ops-command-modules{
+ display:flex;align-items:center;gap:11px;min-width:0;
+ padding:3px 0 4px;
+}
+.ops #ops-workspace .ops-command-modules[hidden]{display:none!important}
+.ops #ops-workspace .ops-command-module-label{
+ flex:0 0 auto;max-width:112px;
+ color:var(--cmd-muted);font-size:.65rem;line-height:1.55;
+}
+.ops #ops-workspace .ops-command-module-buttons{
+ min-width:0;flex:1 1 auto;display:flex;align-items:center;gap:6px;
+ padding:3px 0 5px;overflow-x:auto;overscroll-behavior-x:contain;
+ scrollbar-width:thin;scrollbar-color:rgba(172,196,228,.25) transparent;
+}
+.ops #ops-workspace .ops-command-module{
+ flex:0 0 auto;min-height:37px;max-width:min(300px,72vw);
+ overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+ padding:8px 13px;border-radius:10px;
+ background:rgba(22,33,49,.88);
+ color:#bdcddd;border:1px solid rgba(144,171,208,.19);
+ font-size:clamp(.73rem,.8vw,.88rem);font-weight:660;
+}
+.ops #ops-workspace .ops-command-module[aria-pressed=true]{
+ color:var(--cmd-text);border-color:rgba(124,228,241,.63);
+ box-shadow:inset 0 -2px var(--cmd-cyan),0 0 15px rgba(124,228,241,.11);
+ background:rgba(38,84,119,.3);
+}
+.ops #ops-workspace .ops-command-module:hover{border-color:rgba(240,206,135,.6)}
+/* Large evidence grids remain accessible, but scroll INSIDE the selected
+   viewport rather than making the owner's entire page kilometers long. */
+.ops #ops-workspace.ops-command-deck-ready>.ops-immediate-triage{
+ max-height:35dvh;overflow:auto;
+ scrollbar-color:rgba(240,206,135,.35) transparent;
+}
+.ops #ops-workspace.ops-command-deck-ready>.ops-stats{
+ margin:10px 0;gap:8px;
+}
+.ops #ops-workspace.ops-command-deck-ready>.ops-stats>.ops-card{
+ background:linear-gradient(155deg,#152538,#101b2b);
+ border-color:rgba(131,173,229,.25);
+ box-shadow:0 0 20px rgba(38,111,171,.04);
+}
+.ops #ops-workspace.ops-command-deck-ready>.ops-stats>.ops-card:nth-child(2){
+ border-color:rgba(99,230,178,.24);
+ background:linear-gradient(160deg,rgba(22,66,55,.42),#111d2d);
+}
+.ops #ops-workspace.ops-command-deck-ready>.ops-immediate-triage
+ .ops-immediate-triage__tile[data-evidence-kind=critical]{
+ border-color:rgba(255,125,145,.36);
+ background:linear-gradient(145deg,rgba(104,28,46,.18),rgba(17,29,46,.83));
+}
+.ops #ops-workspace.ops-command-deck-ready>.ops-immediate-triage
+ .ops-immediate-triage__tile[data-evidence-kind=source]{
+ border-color:rgba(124,228,241,.26);
+}
+@media(max-width:800px){
+ .ops #ops-workspace .ops-command-modules{display:block}
+ .ops #ops-workspace .ops-command-module-label{display:block;max-width:none;margin:0 0 5px}
+ .ops #ops-workspace.ops-command-deck-ready>.ops-immediate-triage{
+  max-height:47dvh;
+ }
+}
+@media print{
+ .ops #ops-workspace .ops-command-modules{display:none!important}
+ .ops #ops-workspace.ops-command-deck-ready>.ops-immediate-triage{max-height:none;overflow:visible}
+}
