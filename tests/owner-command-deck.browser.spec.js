@@ -78,3 +78,24 @@ for(const [language,route] of [
   expect(width).toBeLessThanOrEqual(392);
  });
 }
+
+for(const [language,route] of [
+ ['fa','/fa/app/admin/'],
+ ['en','/en/account/admin/']
+]){
+ test(language+' optional classic view stays MFA-locked when session API rejects access',async({page})=>{
+  await page.route('**/api/admin/operations**',r=>r.fulfill({
+   status:401,contentType:'application/json',body:JSON.stringify({ok:false,error:'unauthorized'})
+  }));
+  await page.goto(base+route+'?ops_view=classic',{waitUntil:'domcontentloaded'});
+  await expect(page.locator('#ops-auth')).toBeVisible();
+  await expect(page.locator('#ops-workspace')).toBeHidden();
+  await expect(page.locator('#ops-command-deck')).toHaveCount(0);
+  await page.evaluate(()=>{
+   const link=document.querySelector('#ops-workspace .ops-command-classic-return');
+   if(!link)throw Error('Classic mode must expose reversible owner navigation after MFA');
+   if(!link.hidden)throw Error('Classic return link cannot appear before MFA');
+  });
+  await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content',/noindex/);
+ });
+}
