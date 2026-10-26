@@ -9,6 +9,7 @@ on:
       - 'api/operations.php'
       - 'platform/jrei-v5/windows-worker/jrei-worker.mjs'
       - 'platform/jrei-v5/windows-worker/jrei-python-health-worker.mjs'
+      - 'platform/jrei-v5/windows-worker/jrei-python-health-startup.ps1'
       - 'tests/jrei-python-node-health-bridge.test.mjs'
       - 'tests/jrei-python-node-health-php-contract.php'
       - 'docs/migrations/20261027_jrei_python_node_health_mother_mysql.sql'
@@ -44,3 +45,17 @@ jobs:
       - name: Explicit no-live boundary
         if: always()
         run: echo 'Source QA only. No Bertina schema migration, deploy, Windows Worker installation, owner flag activation, HMAC secret provisioning, model training, crawling or news publication.' >> "$GITHUB_STEP_SUMMARY"
+  windows-startup-parser:
+    runs-on: windows-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Parse PowerShell 5.1 source without running, registering or changing tasks
+        shell: pwsh
+        run: |
+          $inputPath = 'platform/jrei-v5/windows-worker/jrei-python-health-startup.ps1'
+          $tokens = $null
+          $errors = $null
+          $null = [System.Management.Automation.Language.Parser]::ParseFile((Resolve-Path $inputPath).Path,[ref]$tokens,[ref]$errors)
+          if($errors.Count -gt 0) { $errors | ForEach-Object { Write-Error $_.Message }; exit 1 }
+          Write-Output 'JREI_WINDOWS_TASK_PARSE_OK_NO_REGISTRATION'
