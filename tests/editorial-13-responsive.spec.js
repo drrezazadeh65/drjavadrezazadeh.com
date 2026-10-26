@@ -70,7 +70,7 @@ test('desktop keeps article first, offers discoverable, and news headings balanc
  await page.goto(base+'/fa/akhbar/',{waitUntil:'domcontentloaded'});
  await expect(page.locator('.launch-news-collection .launch-news-grid .news-card')).toHaveCount(13);
  await expect(page.locator('.launch-market-links a')).toHaveCount(3);
- const headings=await page.locator('.launch-news-grid .news-card h2').evaluateAll(nodes=>nodes.map(el=>parseFloat(getComputedStyle(el).fontSize)));
+ const headings=await page.locator('.launch-news-grid .news-card h3').evaluateAll(nodes=>nodes.map(el=>parseFloat(getComputedStyle(el).fontSize)));
  expect(Math.max(...headings)).toBeLessThanOrEqual(26);
  const sizes=await outerWidth(page);
  expect(Math.max(sizes.html,sizes.body)).toBeLessThanOrEqual(sizes.viewport+2);
