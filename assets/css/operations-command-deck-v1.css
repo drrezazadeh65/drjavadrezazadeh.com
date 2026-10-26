@@ -149,7 +149,8 @@ body:has(.ops.ops-console-layout){height:100dvh;overflow:hidden}
  box-shadow:0 0 0 5px rgba(98,230,179,.09),0 0 21px rgba(98,230,179,.55);
  animation:ops-verified-pulse 2.6s ease-in-out infinite;
 }
-.ops #ops-workspace .ops-command-signal[data-signal=error] .ops-command-signal-dot{
+.ops #ops-workspace .ops-command-signal[data-signal=error] .ops-command-signal-dot,
+.ops #ops-workspace .ops-command-signal[data-signal=offline] .ops-command-signal-dot{
  background:var(--cmd-red);border-color:var(--cmd-red);
  box-shadow:0 0 15px rgba(255,105,140,.46);
 }
