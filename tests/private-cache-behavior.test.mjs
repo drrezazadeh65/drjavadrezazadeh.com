@@ -243,3 +243,30 @@ test('public HTML still bypasses stale HTTP cache on every successful navigation
  });
  assert.equal(await (await w.request('/fa/')).text(),'latest approved document');
 });
+
+test('content-digest core styles reuse exact cached bytes without contacting a slow origin',async()=>{
+ for(const path of [
+  '/assets/css/style.0123456789ab.css',
+  '/assets/css/public-v2.abcdef012345.css'
+ ]){
+  const w=worker();
+  w.entries.set(origin+path,response(path,{body:'approved immutable stylesheet'}));
+  w.setNetwork(async()=>{throw Error('immutable style should not revalidate');});
+  assert.equal(await (await w.request(path,'style')).text(),'approved immutable stylesheet');
+ }
+});
+
+test('query-versioned and unhashed styles still fetch current approved content',async()=>{
+ for(const path of [
+  '/assets/css/style.css?v=20261026',
+  '/assets/css/public-v2.css'
+ ]){
+  const w=worker();
+  w.entries.set(origin+path,response(path,{body:'stale stylesheet'}));
+  w.setNetwork(async(_req,options)=>{
+   assert.equal(options.cache,'reload');
+   return response(path,{body:'current stylesheet'});
+  });
+  assert.equal(await (await w.request(path,'style')).text(),'current stylesheet');
+ }
+});
