@@ -171,6 +171,11 @@
       "order": 31,
       "stage": "owner_missions",
       "file": "docs/migrations/20261026_jrei_apex_owner_missions_mother_mysql.sql"
+    },
+    {
+      "order": 32,
+      "stage": "owner_mission_signed_worker_observations",
+      "file": "docs/migrations/20261026_jrei_apex_existing_worker_observations_mother_mysql.sql"
     }
   ],
   "runtimePrerequisites": [
@@ -182,7 +187,8 @@
     "Independent JREI-LM Windows GGUF runtime, rights, hash, signed-node access and full localhost real-response benchmark; OpenAI only optional separately approved support",
     "All migrations independently reviewed; no destructive schema operations or silent payment/session changes",
     "First-party local inference private sodium encryption key configured and tested; bounded retention Cron configured on original mother DB; owner-authorised node and client release gates independently accepted",
-    "Before JREI APEX mission migration, verify live customer_accounts FK type, existing mother DB backup/restore evidence, additive schema drift review, owner authorization, and default-OFF planning and emergency-stop controls"
+    "Before JREI APEX mission migration, verify live customer_accounts FK type, existing mother DB backup/restore evidence, additive schema drift review, owner authorization, and default-OFF planning and emergency-stop controls",
+    "JREI APEX signed-worker observation migration order 32 requires verified existing hybrid worker job tables, APEX owner mission tables, matching MySQL FK collations/types, controlled restore, and signed-worker lease contract review; the bridge is observation-only and cannot dispatch."
   ],
   "notes": "This is a source-only, additive migration order. It does not execute SQL, install weights, start the Windows workers, enable the encrypted chat queue, activate daily learning or release production. OpenAI API is an optional independently authorised helper, not the primary JREI-LM."
 }
