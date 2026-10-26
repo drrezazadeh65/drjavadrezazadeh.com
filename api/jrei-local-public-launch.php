@@ -75,12 +75,16 @@ function jrJreiLocalPublicLaunchDecision(array $snapshot,array $cfg): array {
     // Owner's visual screenshot of a successful private pilot is useful
     // evidence of that one turn, but is NOT proof of repeated scientific
     // acceptance or fresh approved public-chat signed polling.
-    $live=(($snapshot['live']??null)===true)&&$staged;
+    $signedPilotBridge=($snapshot['publicSignedPilotBridgeLive']??false)===true;
+    $live=((($snapshot['live']??null)===true)&&$staged)||
+        $signedPilotBridge;
     return [
         'ok'=>true,
         'schema'=>'jr.jrei.public-launch-decision.v1',
-        'launchMode'=>$ownerAcceptedUnvalidatedGeneralChat?
-            'OWNER_APPROVED_PUBLIC_GENERAL_UNVALIDATED':'REVIEW_ONLY_NOT_AUTHORIZING',
+        'launchMode'=>$signedPilotBridge?
+            'OWNER_APPROVED_SIGNED_PILOT_PUBLIC_BRIDGE':
+            ($ownerAcceptedUnvalidatedGeneralChat?
+            'OWNER_APPROVED_PUBLIC_GENERAL_UNVALIDATED':'REVIEW_ONLY_NOT_AUTHORIZING'),
         'source'=>'OWNER_SESSION_MOTHER_DB_AND_PRIVATE_SERVER_POLICY',
         'checkedAt'=>time(),
         'checks'=>$checks,
@@ -94,11 +98,13 @@ function jrJreiLocalPublicLaunchDecision(array $snapshot,array $cfg): array {
         'allPublicBackendGatesPassed'=>$allScientificGatesPassed,
         'operationalSecurityGatesPassed'=>$staged,
         'publicChatEligibleOnServer'=>$live,
+        'publicSignedPilotBridgeLive'=>$signedPilotBridge,
+        'dedicatedStartChatGatesStillDistinct'=>true,
         'independentLiveConversationAcceptanceRecorded'=>false,
         'ownerPrivatePilotAutomaticallyPromoted'=>false,
         'publicAiEnabledByThisRead'=>false,
         'requiresExactShaQaAndOwnerControlledDeploy'=>true,
-        'requiresActualWindowWorkerChatMode'=>true,
+        'requiresActualWindowWorkerChatMode'=>!$signedPilotBridge,
         'doesNotDisclosePrivateConfigValues'=>true,
     ];
 }
