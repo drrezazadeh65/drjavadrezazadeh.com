@@ -15,4 +15,4 @@ dependencies = [
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["jrei_core*", "jrei_learning*", "jrei_service*"]
+include = ["jrei_core*", "jrei_learning*", "jrei_service*", "jrei_skills*"]
