@@ -174,6 +174,11 @@ function cfg(): array {
         'jrei_news_independent_qa_model' => (string)(getenv('JR_JREI_NEWS_INDEPENDENT_QA_MODEL') ?: ''),
 
 
+        // APEX may observe an EXISTING, explicitly owner-linked, signed
+        // public retrieval worker job. This separate switch never dispatches,
+        // leases, renews or cancels worker processing. Default OFF.
+        'jrei_apex_worker_link_enabled' =>
+            getenv('JR_JREI_APEX_WORKER_LINK_ENABLED') === 'true',
         // JREI APEX owner mission ledger: OFF for new plans until private
         // owner authorization and mother-DB migration acceptance. Revocation
         // and emergency stop remain available to authenticated MFA owner.
