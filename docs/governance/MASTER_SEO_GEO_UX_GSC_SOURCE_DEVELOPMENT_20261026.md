@@ -64,6 +64,16 @@ The output is an evidence-reconciliation report, not a Search Console API connec
 - The new private CSV reconciliation intentionally omits query strings and fragments and redacts private, suspicious or unusually long URL paths; its output is not a substitute for real Google Search Console access.
 - Source contract tests and browser scenarios are **written only**; neither tests nor production probes have been intentionally run during this development pass.
 
+## 26 October additional commits — source corrections, not test results
+
+The master semantic audit was corrected at source level to keep the reciprocal hreflang branch under its eligible-target condition; the former `else`/ `else if` structure was not runnable as written. The audit now scans JSON-LD scripts without relying on HTML attribute order, separates absent generated/alias sitemap targets from present `noindex` HTML entries, treats optional sitemap omissions as advisory, and records duplicated locale annotations, absent self-language alternates, an unexpected first heading, and Open Graph/canonical conflicts. **Do not treat these new checks as having passed.** The owner-approved final audit will determine any genuine defects and check legitimate canonical aliases against the frozen URL registry.
+
+The six English VIP description pages now have differentiated page descriptions and matching Open Graph descriptions tied to their actual proposed scope and professional boundaries. The existing Persian/English reciprocal hreflang pairs were preserved, as were all published page addresses. The earlier Persian VIP content changes and sitemap timestamps remain staged.
+
+The article-only rating form now provides explicit accessible names for 1–5 star radio inputs and a truthful note when an approved rating has no written review. The versioned CSS/JS references in the public-article loader, sanitized service build projection, and its final-only source contract were advanced together. No anonymous voting, synthetic schema, altered mother tables or service-star claims were added.
+
+Existing public homepage paths already link to the English shop, and the English services hub links to the VIP comparison; a `Crawled — currently not indexed` Search Console report cannot by itself justify inventing redirects or duplicate links. Source improvements may enhance clarity but cannot guarantee Google indexation.
+
 ## Verification gates to run only after development
 
 **SEO + technical:** compare GSC exported affected URLs against the frozen URL manifest and route policy; HTML 200/301/404 semantics; a single descriptive H1 in main; heading hierarchy; useful copy with distinct intent; canonical and exact reciprocal hreflang; private noindex; sitemap URLs and actual lastmod; robots policies; crawlable public resources; JSON-LD parser and provable entity identity; internal links; mobile layout; HTTP status, redirect chains, feed/XML content type.
