@@ -54,3 +54,19 @@
     max-width: 100%;
   }
 }
+/* Self-hosted Persian display used by lightweight standalone VIP pages, which
+   intentionally do not download the site's 120KB general stylesheet. */
+@font-face{
+ font-family:"JR Persian Display";
+ src:url("/assets/fonts/vazirmatn-variable-a501289a8559.woff2") format("woff2");
+ font-weight:100 900;font-style:normal;font-display:swap;
+ unicode-range:U+0600-06FF,U+0750-077F,U+08A0-08FF,U+FB50-FDFF,U+FE70-FEFF,U+200C-200D,U+06F0-06F9;
+}
+html[lang="fa"] :where(main) :is(h1,h2,h3,h4,h5,h6){
+ font-family:"JR Persian Display","Vazirmatn","Noto Naskh Arabic",Tahoma,sans-serif!important;
+ letter-spacing:normal!important;text-transform:none;
+ text-wrap:balance;overflow-wrap:break-word;
+}
+html[lang="fa"] :where(main) h1{font-weight:780;line-height:1.48}
+html[lang="fa"] :where(main) h2{font-weight:720;line-height:1.6}
+html[lang="fa"] :where(main) :is(h3,h4,h5,h6){font-weight:650;line-height:1.7}
