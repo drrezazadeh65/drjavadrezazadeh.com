@@ -82,3 +82,28 @@ test('performance gate can inspect all pages without relying on attribute orderi
  assert.match(seo,/pageEvidence\.set\(route/);
  assert.match(seo,/HREFLANG_RECIPROCITY/);
 });
+
+
+test('source CSS stays within both performance budgets without sacrificing luxury visuals',()=>{
+ const fs=read('assets/css/style.css');
+ const visual=read('assets/css/public-v2.css');
+ assert.ok(Buffer.byteLength(fs,'utf8')<=122880,
+   'Core bilingual CSS must respect the 120 KiB source budget');
+ assert.ok(Buffer.byteLength(visual,'utf8')<=90000,
+   'Public luxury visual CSS must respect the 90,000-byte source budget');
+ // These source-level invariants preserve the previously approved premium
+ // look, Persian heading face, motion preferences and responsive controls.
+ for(const token of [
+  '--jr-effect-gold','--jr-effect-halo','--jr-effect-ease',
+  'font-family:var(--jr-fa-display',
+  'focus-within','outline:3px solid #f3d897',
+  'box-shadow:0 14px 38px',
+  'knowledge-card-thumbnail','prefers-reduced-motion:reduce',
+  '@media(max-width:800px)'
+ ])assert.ok(visual.includes(token),'Luxury rule missing: '+token);
+ assert.match(fs,/@font-face/);
+ assert.match(fs,/font-display:swap/);
+ assert.match(fs,/JR BILINGUAL TEXT ALIGNMENT CONTRACT 20261021/);
+ assert.match(visual,/JR 2026 luxury motion polish/);
+ assert.doesNotMatch(visual,/display\s*:\s*none\s*!important\s*;\s*\}[\s\n]*\/\*\s*disable luxury/i);
+});
