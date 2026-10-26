@@ -71,17 +71,17 @@
     return true;
   };
   if(!observeAssistant()){
-    // The public concierge arrives from the existing deferred loader; stop
-    // looking once the document is fully loaded or the user leaves.
+    // The public concierge is intentionally deferred until after paint.
+    // It can arrive *after* window.load, so disconnecting here on load
+    // silently prevents Escape/close aria-expanded synchronization.
+    // Observe ONLY direct body additions, and disconnect as soon as the
+    // concierge arrives or at pagehide. This does not poll or inspect content.
     loaderObserver=new MutationObserver(()=>{
       if(observeAssistant()){
         loaderObserver?.disconnect();loaderObserver=null;
       }
     });
     loaderObserver.observe(document.body,{childList:true,subtree:false});
-    window.addEventListener('load',()=>{
-      if(!panelObserver){loaderObserver?.disconnect();loaderObserver=null;}
-    },{once:true});
   }
   window.addEventListener('pagehide',()=>{
     panelObserver?.disconnect();loaderObserver?.disconnect();
