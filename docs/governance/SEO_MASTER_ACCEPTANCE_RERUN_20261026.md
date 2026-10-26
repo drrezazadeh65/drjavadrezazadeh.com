@@ -40,3 +40,13 @@ The core CSS now retains the local Persian font face, logical bilingual alignmen
 The next GitHub audit must confirm the exact release source byte budget, font hierarchy, independent service screens, CSS packaging, and the unchanged `no-store` cache firewall. No live performance claim is made.
 
 **Fourth source-only master audit and SEO regression requested. No Bertina deployment authorised.**
+
+## Fourth run — preserve luxury within BOTH CSS budgets
+
+The fourth source-only audit on `a6ff87667bbee7a4c0e6a85ef70509e0b17901fd` passed the former 120 KiB `style.css` gate, but found that the newly expanded `assets/css/public-v2.css` exceeded its independent, stricter 90,000-byte luxury design gate (about 91,835 bytes).
+
+No visual rules, gold/cyan treatments, focus states, luxury motion effects or Persian fonts were removed. Only nonsemantic rule-boundary newlines and indentation were compacted in `public-v2.css`. It is now approximately **88,811 source characters**, with all historic design declarations and media queries retained. A new test `source CSS stays within both performance budgets without sacrificing luxury visuals` in `tests/iran-first-bilingual-presentation-contract.test.mjs` enforces **both** numeric caps and the required luxury effect, reduced-motion, responsive and font tokens.
+
+This change is **not** a claim of Lighthouse 100, field Core Web Vitals approval or Google position #1. It is a source-level improvement designed to avoid regressions before the independent device and live-host verification.
+
+**Fifth nondeploying master audit and SEO GEO regression requested for this commit. Release remains blocked until they pass.**
