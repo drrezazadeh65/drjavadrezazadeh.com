@@ -94,6 +94,10 @@ jobs:
           run_audit "One-time PWA offer" node --test tests/pwa-install-once.test.mjs
           run_audit "Premium bookstore layout" node --test tests/bookstore-premium-layout.test.mjs
           run_audit "Private cache behavior" node --test tests/private-cache-behavior.test.mjs
+          run_audit "Immutable shared CSS release regressions" node --test tests/release-fingerprint-core-styles.test.mjs
+          run_audit "Persian and English owner dashboard CSS bundle preservation" node --test tests/release-bundle-owner-styles.test.mjs
+          run_audit "Owner ten-tab command deck, evidence truth and MFA boundary" node --test tests/operations-command-deck-contract.test.mjs
+          run_audit "All-route Persian typography, logical alignment and Iran-first transfer contracts" node --test tests/iran-first-bilingual-presentation-contract.test.mjs
           run_audit "Ordered stylesheet bundles" node scripts/stylesheet-bundles.mjs --check
           run_audit "Service SEO and Bertina commerce gates" node scripts/seo-services-gate.cjs
           run_audit "Workflow governance" node scripts/workflow-governance-audit.mjs
@@ -110,6 +114,7 @@ jobs:
           run_audit "Bertina receipt integrity" node scripts/commerce-receipt-contract-audit.mjs
           run_audit "Public entity schema" node platform/public-entity-schema-audit.mjs
           run_audit "Sanitized public build" node scripts/build-public-site.mjs
+          run_audit "Sanitized release all-route resource inventory" node scripts/performance-source-audit.mjs --release
           run_audit "Retired commerce and bookstore hero" node scripts/public-retired-commerce-audit.mjs
           echo
           if [ "$failed" -ne 0 ]; then
