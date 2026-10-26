@@ -36,7 +36,8 @@ if($StagingOnly){
 } else {
   if($c.enabled -ne $true -or $c.rightsReviewed -ne $true -or
      $c.modelRuntimeVerified -ne $true -or
-     $c.independentQualityAccepted -ne $true){
+     ($c.independentQualityAccepted -ne $true -and
+      $c.publicUnvalidatedOwnerApproved -ne $true)){
     throw 'LOCAL_MODEL_PRIVATE_APPROVAL_REQUIRED'
   }
 }
@@ -112,7 +113,11 @@ try {
   if($StagingOnly){
     Write-Output '[JREI] STAGING_ONLY_PUBLIC_CHAT_OFF'
   } else {
-    Write-Output '[JREI] REVIEWED_LOCAL_MODEL_START'
+    if($c.independentQualityAccepted -eq $true){
+      Write-Output '[JREI] SCIENCE_ACCEPTED_LOCAL_MODEL_START'
+    } else {
+      Write-Output '[JREI] OWNER_APPROVED_PUBLIC_UNVALIDATED_MODEL_START'
+    }
   }
   $process=Start-Process -FilePath $exe -ArgumentList $arguments -PassThru -NoNewWindow
   if($null -eq $process){throw 'LOCAL_MODEL_START_FAILED'}
