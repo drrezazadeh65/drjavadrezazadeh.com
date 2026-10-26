@@ -67,6 +67,21 @@ async function load(){
  let result;try{result=await request(api+'comments?page='+encodeURIComponent(page));}catch(_){host.remove();return;}
  // Fail closed: do not advertise a feature until the backend + DB + owner flags are actually live.
  if(!result.ok||result.body?.schema!=='community-comments-v1'||!Array.isArray(result.body.comments)){host.remove();return;}
+ // Service pages already include this CSS in their public bundle.
+ // Articles defer stylesheet transfer until the owner-gated API is available.
+ if(!document.querySelector('link[href*="/assets/css/community-comments.css"]')){
+  await new Promise(resolve=>{
+   const css=document.createElement('link');css.rel='stylesheet';
+   css.href='/assets/css/community-comments.css?v=20261026-community-r3';
+   css.dataset.jrCommunityStyle='1';
+   let settled=false;
+   const finish=()=>{if(settled)return;settled=true;clearTimeout(deadline);resolve();};
+   const deadline=setTimeout(finish,2000);
+   css.addEventListener('load',finish,{once:true});
+   css.addEventListener('error',finish,{once:true});
+   document.head.append(css);
+  });
+ }
  host.setAttribute('dir',en?'ltr':'rtl');
  article.append(host);
  const summary=result.body.ratingSummary;
