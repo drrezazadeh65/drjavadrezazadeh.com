@@ -329,3 +329,21 @@
  .book-store-shell .store-discovery-grid{grid-template-columns:minmax(0,1fr)}
  .book-store-shell .store-discovery-library{padding:clamp(16px,4vw,24px)}
 }
+
+/* Bookstore edition: static brass edges plus progressive hover lighting.
+   No additional images, JS, continuous animations, or layout shifts. */
+.book-store-shell .store-discovery-grid>article{
+ box-shadow:inset 0 1px 0 rgba(244,217,155,.06);
+}
+@media(hover:hover) and (pointer:fine) and (prefers-reduced-motion:no-preference){
+ .book-store-shell .store-discovery-grid>article:hover{
+  border-color:rgba(230,193,119,.60);
+  box-shadow:inset 0 1px 0 rgba(255,231,183,.16),0 13px 32px rgba(0,0,0,.22);
+ }
+ .book-store-shell .store-discovery-grid h3>a:hover{
+  color:#ffdf9f;
+ }
+}
+.book-store-shell .store-discovery-grid h3>a:focus-visible{
+ outline:3px solid #ffde9c;outline-offset:4px;
+}
