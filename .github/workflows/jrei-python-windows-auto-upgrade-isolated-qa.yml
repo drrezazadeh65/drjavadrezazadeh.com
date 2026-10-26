@@ -1,0 +1,127 @@
+name: JREI Windows Offline Python Automatic Installation QA (NO DEPLOY)
+on:
+  push:
+    branches: [migration/bertina-linux6]
+    paths:
+      - '.github/workflows/jrei-python-windows-auto-upgrade-isolated-qa.yml'
+      - 'platform/jrei-v5/windows-worker/jrei-python-safe-upgrade.ps1'
+      - 'platform/jrei-v5/windows-worker/jrei-repo-auto-sync.ps1'
+      - 'platform/jrei-python/**'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: jrei-windows-upgrader-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  syntax-and-safety:
+    runs-on: windows-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - name: PowerShell 5.1 strict source parse and containment
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          foreach($p in @(
+            'platform/jrei-v5/windows-worker/jrei-python-safe-upgrade.ps1',
+            'platform/jrei-v5/windows-worker/jrei-repo-auto-sync.ps1'
+          )){
+            $errors=$null;$tokens=$null
+            $full=(Resolve-Path $p).Path
+            $null=[Management.Automation.Language.Parser]::ParseFile($full,[ref]$tokens,[ref]$errors)
+            if($errors.Count -gt 0){$errors|ForEach-Object{Write-Error $_.Message};throw 'PARSER_FAILED'}
+          }
+          $code=Get-Content 'platform/jrei-v5/windows-worker/jrei-python-safe-upgrade.ps1' -Raw
+          if($code -notmatch 'JREI-Python-Core' -or
+             $code -notmatch '127.0.0.1:8091' -or
+             $code -match 'Stop-ScheduledTask.*Qwen'){
+            throw 'JREI_UPGRADE_SERVICE_SCOPE_INVALID'
+          }
+          Write-Output 'PYTHON_INSTALLER_POWERSHELL_PARSE_AND_CONTAINMENT_OK'
+
+  isolated-install-and-rollback:
+    runs-on: windows-latest
+    timeout-minutes: 24
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          architecture: x64
+      - name: Build fixture-only offline wheelhouse on CI runner
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $root=Join-Path $env:RUNNER_TEMP 'jrei-auto-upgrade-fixture\JREI-Python'
+          New-Item -ItemType Directory -Force -Path $root | Out-Null
+          New-Item -ItemType Directory -Force -Path (Join-Path $root 'wheelhouse') | Out-Null
+          & python -m pip wheel --wheel-dir (Join-Path $root 'wheelhouse') `
+            'setuptools>=69,<76' 'wheel' './platform/jrei-python'
+          if($LASTEXITCODE -ne 0){throw 'CI_WHEELHOUSE_BUILD_FAILED'}
+          & python -m venv (Join-Path $root 'venv')
+          if($LASTEXITCODE -ne 0){throw 'CI_BASE_VENV_FAILED'}
+          $base=Join-Path $root 'venv\Scripts\python.exe'
+          & $base -m pip install --no-index --find-links (Join-Path $root 'wheelhouse') 'jrei-intelligence-core==0.1.0'
+          if($LASTEXITCODE -ne 0){throw 'CI_BASE_PYTHON_INSTALL_FAILED'}
+      - name: Test owner opt-in and automatic staged upgrade on disposable Windows task
+        shell: powershell
+        run: |
+          $ErrorActionPreference='Stop'
+          $env:LOCALAPPDATA=Join-Path $env:RUNNER_TEMP 'jrei-auto-upgrade-fixture'
+          $root=Join-Path $env:LOCALAPPDATA 'JREI-Python'
+          $repo=Join-Path $root 'repo'
+          git clone --quiet $env:GITHUB_WORKSPACE $repo
+          if($LASTEXITCODE -ne 0){throw 'CI_LOCAL_REPO_CLONE_FAILED'}
+          git -C $repo remote set-url origin 'https://github.com/drrezazadeh65/drjavadrezazadeh.com'
+          $script=Join-Path $repo 'platform\jrei-v5\windows-worker\jrei-python-safe-upgrade.ps1'
+          $task='JREI-Python-Core'
+          $base=Join-Path $root 'venv\Scripts\python.exe'
+          $args='-m uvicorn jrei_service.app:app --host 127.0.0.1 --port 8091 --workers 1'
+          $owner="$env:USERDOMAIN\$env:USERNAME"
+          try{
+            $act=New-ScheduledTaskAction -Execute $base -Argument $args -WorkingDirectory $root
+            $trigger=New-ScheduledTaskTrigger -AtLogOn -User $owner
+            $principal=New-ScheduledTaskPrincipal -UserId $owner -LogonType Interactive -RunLevel Limited
+            $settings=New-ScheduledTaskSettingsSet -MultipleInstances IgnoreNew -ExecutionTimeLimit (New-TimeSpan -Seconds 0)
+            Register-ScheduledTask -TaskName $task -Action $act -Trigger $trigger -Principal $principal -Settings $settings | Out-Null
+            Start-ScheduledTask -TaskName $task
+            $healthy=$false
+            for($i=0;$i -lt 15;$i++){
+              Start-Sleep -Seconds 2
+              try{
+                $response=Invoke-RestMethod 'http://127.0.0.1:8091/internal/v1/health' -TimeoutSec 3
+                if($response.service_process -eq 'RESPONDING'){$healthy=$true;break}
+              }catch{}
+            }
+            if(-not $healthy){throw 'CI_BASE_RUNTIME_FAILED_TO_START'}
+            $check=& powershell.exe -NoProfile -NonInteractive -File $script -Mode Check
+            if($LASTEXITCODE -ne 0 -or ($check -join ';') -notmatch 'PYTHON_AUTO_UPGRADE_NOT_APPROVED'){
+              throw 'CI_DEFAULT_OFF_CONTRACT_FAILED'
+            }
+            $enable=& powershell.exe -NoProfile -NonInteractive -File $script -Mode Enable -OwnerApproved
+            if($LASTEXITCODE -ne 0){throw 'CI_OWNER_ENABLE_FAILED'}
+            $out=& powershell.exe -NoProfile -NonInteractive -File $script -Mode Auto
+            if($LASTEXITCODE -ne 0){throw 'CI_OFFLINE_UPGRADE_COMMAND_FAILED'}
+            if(($out -join ';') -notmatch 'PYTHON_AUTO_UPGRADE_ACTIVATED_AND_VERIFIED'){
+              Write-Output ($out -join ';')
+              throw 'CI_OFFLINE_UPGRADE_NOT_VERIFIED'
+            }
+            $current=(Get-ScheduledTask -TaskName $task).Actions[0].Execute
+            if($current -notmatch '\\runtimes\\py-'){throw 'CI_RUNTIME_NOT_PROMOTED'}
+            $state=Get-Content (Join-Path $root 'python-auto-upgrade-state.json') -Raw|ConvertFrom-Json
+            if($state.rollbackAvailable -ne $true){throw 'CI_ROLLBACK_POINTER_MISSING'}
+            $again=& powershell.exe -NoProfile -NonInteractive -File $script -Mode Auto
+            if($LASTEXITCODE -ne 0 -or ($again -join ';') -notmatch 'PYTHON_AUTO_UPGRADE_ALREADY_INSTALLED'){
+              throw 'CI_REPEATED_REBUILD_OCCURRED'
+            }
+            Write-Output 'JREI_ISOLATED_WINDOWS_OFFLINE_INSTALL_AND_PYTHON_SWITCH_PASS'
+          }finally{
+            Stop-ScheduledTask -TaskName $task -ErrorAction SilentlyContinue
+            Unregister-ScheduledTask -TaskName $task -Confirm:$false -ErrorAction SilentlyContinue
+          }
+      - name: No user or production installation
+        if: always()
+        shell: powershell
+        run: |
+          'Disposable Windows GitHub runner only. No owner PC, no Bertina DB, no Qwen tasks or models, no crawlers, no live site release. Runtime rollback code is supplied but must still be demonstrated with fault injection.' | Out-File -Append -Encoding utf8 $env:GITHUB_STEP_SUMMARY
