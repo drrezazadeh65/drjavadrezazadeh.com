@@ -70,3 +70,16 @@ html[lang="fa"] :where(main) :is(h1,h2,h3,h4,h5,h6){
 html[lang="fa"] :where(main) h1{font-weight:780;line-height:1.48}
 html[lang="fa"] :where(main) h2{font-weight:720;line-height:1.6}
 html[lang="fa"] :where(main) :is(h3,h4,h5,h6){font-weight:650;line-height:1.7}
+
+/* Lightweight Persian VIP services: layered gold focus, no extra resources. */
+@media(hover:hover) and (pointer:fine) and (prefers-reduced-motion:no-preference){
+ html[lang="fa"] .vip-choice-guide a:hover{
+  color:#ffe5ae;text-decoration-thickness:2px;
+ }
+ html[lang="fa"] main .panel:hover{
+  border-color:rgba(214,173,99,.48);
+ }
+}
+html[lang="fa"] :is(.vip-choice-guide,.panel) :where(a,button,summary):focus-visible{
+ outline:3px solid #f2d49b;outline-offset:3px;
+}
