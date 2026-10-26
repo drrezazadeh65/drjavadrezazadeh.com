@@ -11,9 +11,10 @@ dependencies = [
     "fastapi==0.115.12",
     "pydantic==2.11.4",
     "uvicorn==0.34.2",
-    "PyMySQL==1.1.1"
+    "PyMySQL==1.1.1",
+    "cryptography==44.0.2"
 ]
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["jrei_core*", "jrei_learning*", "jrei_service*", "jrei_skills*", "jrei_orchestrator*"]
+include = ["jrei_core*", "jrei_learning*", "jrei_service*", "jrei_skills*", "jrei_orchestrator*", "jrei_memory*"]
