@@ -182,7 +182,10 @@ function Stage([string]$tree){
  $wheelDir=Join-Path $venv 'built-wheels'
  New-Item -ItemType Directory -Force -Path $runtimes,$wheelDir|Out-Null
  # Existing virtualenv and Qwen are not modified during staging.
- RunChecked $launcher @('-m','venv',$venv) $stdout $stderr
+ # Native invocation preserves Windows path arguments without command-line
+ # reparsing. A failure leaves the original running Python untouched.
+ & $launcher -m venv $venv 1>$stdout 2>$stderr
+ if($LASTEXITCODE -ne 0){throw 'JREI_STAGING_VENV_CREATION_FAILED'}
  Event 'PYTHON_STAGING_VENV_CREATED'
  # Building from reviewed tracked source, using ONLY locally available wheels.
  RunChecked $py @('-m','pip','wheel','--no-index','--disable-pip-version-check',
