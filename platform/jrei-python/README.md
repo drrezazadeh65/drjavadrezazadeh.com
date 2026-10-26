@@ -73,6 +73,35 @@ not a claim of continuous multi-node monitoring or Python service activation.
 - Source fixtures under `tests/` have been extended but have **not been
   executed**. Runtime adoption requires separately authorised acceptance.
 
+### Encrypted owner-memory source increment
+
+`jrei_memory` provides owner-only AES-256-GCM (AESGCM) encrypted note storage
+against an additive proposed `drjavad1_store` table:
+`docs/migrations/20261026_jrei_python_owner_memory_mother_mysql.sql`.
+The record is bound to the existing MFA account, with explicit purpose
+(`OWNER_WORK_NOTE`, `OWNER_RESEARCH_NOTE`, `OWNER_PREFERENCE`),
+a 1–365 day retention deadline, a caller-generated idempotency key,
+and a current-row ciphertext-erasure revocation operation. Saved notes do
+NOT become public retrieval, shared knowledge or model training material.
+
+These operations are reachable only from the existing
+`/admin/operations/jrei-python-skills` endpoint, which now injects
+`owner_account_id` from the verified PHP session. The browser cannot select
+or override an owner account; the Python backend uses account-scoped bound
+SQL parameters. Separate OFF switches:
+`JR_JREI_PYTHON_OWNER_MEMORY_ENABLED` and
+`JR_JREI_PYTHON_OWNER_MEMORY_REVOKE_ENABLED` on Bertina,
+and `JREI_PYTHON_OWNER_MEMORY_ENABLED` /
+`JREI_PYTHON_OWNER_MEMORY_REVOKE_ENABLED` on the private Python host.
+The AES-GCM key and restricted DB/TLS credentials are provisioned privately,
+never committed. Key rotation, audit, retention purge/backup expiry,
+data-subject requests, cross-tenant test and disaster recovery remain
+independent acceptance gates. Revocation does NOT erase historical backups.
+
+**This is owner work-memory source only**. A separate lawful, consented
+public-user memory implementation is still required. No service, key,
+table or feature switch was activated by this commit.
+
 ### Exact outstanding acceptance gates
 
 1. Independent read-only comparison to the mother DB schema, verified backup
