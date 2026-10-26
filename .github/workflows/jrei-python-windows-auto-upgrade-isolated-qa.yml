@@ -105,6 +105,13 @@ jobs:
             if($LASTEXITCODE -ne 0){throw 'CI_OFFLINE_UPGRADE_COMMAND_FAILED'}
             if(($out -join ';') -notmatch 'PYTHON_AUTO_UPGRADE_ACTIVATED_AND_VERIFIED'){
               Write-Output ($out -join ';')
+              foreach($filename in @('python-upgrade-command.out.log','python-upgrade-command.err.log')){
+                $file=Join-Path $root $filename
+                if(Test-Path $file){
+                  Write-Output ('CI_STAGE_LOG='+$filename)
+                  Get-Content -LiteralPath $file -Tail 35
+                }
+              }
               throw 'CI_OFFLINE_UPGRADE_NOT_VERIFIED'
             }
             $current=(Get-ScheduledTask -TaskName $task).Actions[0].Execute
