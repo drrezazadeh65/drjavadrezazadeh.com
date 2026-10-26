@@ -28,7 +28,8 @@ jobs:
             publicAssistantLive:'UNKNOWN',providerMode:'UNKNOWN',
             actualModelResponseVerified:false,
             privacyRetentionVerified:false,ownerReleaseAuthorizedByThisRun:false,
-            publishedReleaseFingerprint:'UNKNOWN',checks:[]};
+            publishedReleaseFingerprint:'NOT_VERIFIED_BY_THIS_PUBLIC_PROBE',
+            githubSourceCommit:process.env.GITHUB_SHA||'UNKNOWN',checks:[]};
           for(const path of paths){
             const observed={route:path,httpStatus:null,
               result:'UNAVAILABLE_OR_UNVERIFIED'};
@@ -55,10 +56,11 @@ jobs:
                     observed.result='PUBLIC_CAPABILITY_SCHEMA_READ';
                   }else observed.result='CAPABILITY_SCHEMA_UNRECOGNISED';
                 }else{
-                  const found=body.match(/[a-f0-9]{40}/g);
-                  evidence.publishedReleaseFingerprint=found?.find(x=>
-                    x==='4a685b707da5d4d2737713a446811336398efe99')??
-                    'NOT_EVIDENCED_IN_SERVICE_WORKER';
+                  // A 40-character substring in an arbitrary service worker
+                  // is NOT independently authenticated production-release
+                  // evidence. Do not compare with a stale source SHA.
+                  evidence.publishedReleaseFingerprint=
+                    'PUBLIC_SERVICE_WORKER_RETURNED_BUT_RELEASE_SHA_UNVERIFIED';
                   observed.result='PUBLIC_SERVICE_WORKER_RETRIEVED';
                 }
               }else if(response.status>=300&&response.status<400)

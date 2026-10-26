@@ -28,6 +28,7 @@ jobs:
           set -euo pipefail
           node --check platform/jrei-v5/windows-worker/jrei-worker.mjs
           node --check platform/jrei-v5/windows-worker/jrei-owner-pilot-worker.mjs
+          node --check platform/jrei-v5/windows-worker/jrei-local-doctor.mjs
           node --check platform/jrei-v5/jrei-educational-answer-review.mjs
           node --check platform/jrei-v5/jrei-deterministic-arithmetic.mjs
           node --test tests/jrei-owner-private-pilot.test.mjs
@@ -36,7 +37,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p bundle/platform/jrei-v5/windows-worker bundle/platform/jrei-v5
-          for file in JREI-OWNER-PRIVATE-PILOT.cmd jrei-worker.mjs jrei-owner-pilot-worker.mjs jrei-loopback-model-adapter.mjs jrei-worker-error-code.mjs jrei-windows-dpapi.ps1; do
+          for file in JREI-OWNER-PRIVATE-PILOT.cmd JREI-READINESS-CHECK.cmd jrei-local-doctor.mjs jrei-worker.mjs jrei-owner-pilot-worker.mjs jrei-loopback-model-adapter.mjs jrei-worker-error-code.mjs jrei-windows-dpapi.ps1; do
             cp "platform/jrei-v5/windows-worker/$file" "bundle/platform/jrei-v5/windows-worker/$file"
           done
           for file in jrei-educational-answer-review.mjs jrei-deterministic-arithmetic.mjs; do
@@ -49,15 +50,21 @@ jobs:
              so the platform/jrei-v5/windows-worker paths match exactly.
              Replace only the provided source files when Windows asks.
           2. DO NOT move or upload any private DPAPI key or JSON config.
-          3. Keep the separately started Qwen on 127.0.0.1:8081 running.
-          4. Double-click platform/jrei-v5/windows-worker/
+          3. Double-click platform/jrei-v5/windows-worker/
+             JREI-READINESS-CHECK.cmd first. The check never starts or
+             installs a model. Share only its no-secret status output.
+          4. Keep the separately started Qwen on 127.0.0.1:8081 running.
+             In PowerShell on Node A, verify:
+               Invoke-RestMethod http://127.0.0.1:8081/health
+             The reply must report a healthy/loaded model, not merely HTTP 200.
+          5. Double-click platform/jrei-v5/windows-worker/
              JREI-OWNER-PRIVATE-PILOT.cmd on Node A (the 32GB PC).
-          5. Approve Y; the worker will poll only the separately authenticated
+          6. Approve Y; the worker will poll only the separately authenticated
              private pilot queue; no public site chat will be enabled.
-          6. Open the MFA owner dashboard, JREI section, and expand
+          7. Open the MFA owner dashboard, JREI section, and expand
              "Private Qwen pilot on Node A".
-          7. Submit a harmless test question; never enter learner records.
-          8. Stop the worker with Ctrl+C when done.
+          8. Submit a harmless test question; never enter learner records.
+          9. Stop the worker with Ctrl+C when done.
 
           No model downloaded or replaced. No public release flag or
           quality acceptance is changed. Responses may be incorrect.
