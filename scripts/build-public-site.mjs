@@ -8,6 +8,7 @@ import {CONNECTORS} from '../platform/social-distribution/connections.mjs';
 import {generateQualityInventory} from './operations-page-quality.mjs';
 import {hiddenFeatureSourceInventory} from './operations-hidden-features.mjs';
 import {includeJreiAssistant} from './jrei-public-assistant-surface.mjs';
+import {fingerprintCoreStyles} from './release-fingerprint-core-styles.mjs';
 
 checkStylesheetBundles();
 
@@ -725,4 +726,9 @@ if(failures.length){
   failures.forEach(x=>console.error('✗ '+x));
   process.exit(1);
 }
+// All confidentiality, canonical, ownership and frozen-route assertions above
+// must pass before producing immutable copies. Only packaged HTML is rewritten;
+// authoring sources and source-side SEO audit paths remain unchanged.
+const sharedStyleAliases=fingerprintCoreStyles(out);
+console.log('Release core styles:',JSON.stringify(sharedStyleAliases));
 console.log('Sanitized public-site artifact built:',all.length,'files;',html.length,'HTML routes; internal engineering directories excluded.');
