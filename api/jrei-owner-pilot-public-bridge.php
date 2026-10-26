@@ -68,8 +68,11 @@ function jrPilotBridgeLive(PDO $pdo,array $cfg): bool {
             AND n.permitted_task='REVIEWED_PUBLIC_RETRIEVAL_EVALUATION'
           LIMIT 5");
         $q->execute([time()]);
+        // Materialize the bounded marker list before nested model registry
+        // queries; PDO installations may use unbuffered cursors.
+        $markers=$q->fetchAll(PDO::FETCH_ASSOC);
         $key=(string)jrLocalChatKey($cfg);
-        foreach($q as $r){
+        foreach($markers as $r){
             if(!is_string($r['request_ciphertext']))continue;
             $raw=jrLocalChatOpen($r['request_ciphertext'],$key);
             $v=json_decode($raw,true,8,JSON_THROW_ON_ERROR);
