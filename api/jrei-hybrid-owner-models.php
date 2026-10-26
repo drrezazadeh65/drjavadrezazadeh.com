@@ -88,7 +88,8 @@ function jrHybridModelOwnerChange(PDO $pdo,string $actor,array $body): array {
         return ['ok'=>true,'modelId'=>$id,'status'=>'PENDING',
            'weightsInstalled'=>false,'runtimeVerified'=>false];
     }
-    if($action==='attest_local_model_runtime'){
+    if(in_array($action,['attest_local_model_runtime','attest_local_model_runtime_only'],true)){
+        $runtimeOnly=$action==='attest_local_model_runtime_only';
         // A model's metadata and a signed worker heartbeat alone do NOT
         // establish an installed GGUF or model quality. The MFA owner must
         // inspect the actual file digest and independent local evaluation
@@ -114,10 +115,12 @@ function jrHybridModelOwnerChange(PDO $pdo,string $actor,array $body): array {
            !is_int($latency)||$latency<100||$latency>120000||
            !is_int($ram)||$ram<256||$ram>131072||
            ($body['realLocalGGUFHashChecked']??null)!==true||
-           ($body['independentLanguageQualityReviewed']??null)!==true||
+           (!$runtimeOnly&&($body['independentLanguageQualityReviewed']??null)!==true)||
+           ($runtimeOnly&&($body['ownerReviewedQualityLimitations']??null)!==true)||
            ($body['ownerReviewedNoCloudExecution']??null)!==true||
-           ($body['confirmation']??null)!==
-             'OWNER_ACCEPTS_MEASURED_LOCAL_MODEL_NOT_CLOUD')
+           ($body['confirmation']??null)!==($runtimeOnly?
+             'OWNER_ACCEPTS_MEASURED_RUNTIME_NOT_SCIENTIFIC_QUALITY':
+             'OWNER_ACCEPTS_MEASURED_LOCAL_MODEL_NOT_CLOUD'))
             throw new InvalidArgumentException('local_model_acceptance_evidence_invalid');
         $pdo->beginTransaction();
         try{
@@ -138,19 +141,27 @@ function jrHybridModelOwnerChange(PDO $pdo,string $actor,array $body): array {
                !hash_equals((string)$row['model_artifact_sha256'],$sha)||
                (int)$ram>(int)$row['required_ram_mb']*4)
                 throw new DomainException('local_model_acceptance_conflict');
-            $update=$pdo->prepare('UPDATE jrei_local_model_registry SET
-              weights_installed_verified=1,runtime_verified=1,
-              independent_quality_accepted=1,
-              measured_tokens_per_second=?,measured_p95_latency_ms=?,
-              measured_peak_ram_mb=?,updated_at=?,revision=revision+1
-              WHERE model_id=? AND model_version=? AND revision=?');
+            $update=$pdo->prepare($runtimeOnly?
+              'UPDATE jrei_local_model_registry SET
+                weights_installed_verified=1,runtime_verified=1,
+                measured_tokens_per_second=?,measured_p95_latency_ms=?,
+                measured_peak_ram_mb=?,updated_at=?,revision=revision+1
+                WHERE model_id=? AND model_version=? AND revision=?':
+              'UPDATE jrei_local_model_registry SET
+                weights_installed_verified=1,runtime_verified=1,
+                independent_quality_accepted=1,
+                measured_tokens_per_second=?,measured_p95_latency_ms=?,
+                measured_peak_ram_mb=?,updated_at=?,revision=revision+1
+                WHERE model_id=? AND model_version=? AND revision=?');
             $update->execute([round((float)$tokens,3),$latency,$ram,$now,
                 $id,$version,$revision]);
             if($update->rowCount()!==1)
                 throw new DomainException('local_model_acceptance_conflict');
             // Hash-only audit; does not copy benchmark data or private model
             // weights to Bertina. The owner retains the original evidence.
-            operationsAudit($pdo,$actor,'jrei_local_model_owner_verified',
+            operationsAudit($pdo,$actor,$runtimeOnly?
+               'jrei_model_runtime_only_owner_verified':
+               'jrei_local_model_owner_verified',
                hash('sha256',$id.':'.$version.':'.$node.':'.$fixture.':'.$evidence));
             $pdo->commit();
         }catch(Throwable $e){
@@ -159,6 +170,8 @@ function jrHybridModelOwnerChange(PDO $pdo,string $actor,array $body): array {
         }
         return ['ok'=>true,'modelId'=>$id,'modelVersion'=>$version,
           'ownerAttestedActualRuntime'=>true,
+          'scientificQualityCertifiedByThisAction'=>!$runtimeOnly,
+          'runtimeOnlyNoScientificPromotion'=>$runtimeOnly,
           'independentLabVerificationNotClaimed'=>true,
           'modelAutomaticallyStarted'=>false,'publicAssistantActivated'=>false,
           'evidenceSha256'=>$evidence];
