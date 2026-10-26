@@ -30,3 +30,13 @@ The source audit rerun `40280795052` on `81a03cf74427727aede075a1c0aaf96b9f96728
 `scripts/seo-regression.mjs` now enforces the actual invariant: private routes use `cache:'no-store'` first; only the builder's exact SHA-12 `style`, `public-v2` and `operations-owner.(fa|en)` CSS aliases can use immutable cache-first; **all mutable CSS and JavaScript remain network-first**. The negative private-cache test already passed in the second run. No live site files were deployed.
 
 **Third audit run requested for the exact new commit. Do not deploy until the third audit passes.**
+
+## Third run — preserve the 120 KiB critical CSS source budget
+
+The third acceptance run on `23792f3bbfa44ebdd38a3096ecfb9770ca2e5c57` identified one remaining source performance failure: `assets/css/style.css` at approximately 126,656 bytes exceeded its 122,880-byte gate.
+
+The core CSS now retains the local Persian font face, logical bilingual alignment, essential heading families and anti-overflow rules. Fine-grained heading styling, decorative hover/focus polish and motion preferences remain implemented in the existing secondary `assets/css/public-v2.css` layer. This forward-only change reduces `style.css` to approximately **122,520 characters**; combined with expected UTF-8 overhead the source budget is now below 122,880 bytes. `public-v2.css` remains below the same file-size cap. No route, private HTML, payment API or mother database changed.
+
+The next GitHub audit must confirm the exact release source byte budget, font hierarchy, independent service screens, CSS packaging, and the unchanged `no-store` cache firewall. No live performance claim is made.
+
+**Fourth source-only master audit and SEO regression requested. No Bertina deployment authorised.**
