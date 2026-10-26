@@ -25,6 +25,17 @@ for(const [language,route] of [
   });
   await expect(page.locator('#ops-command-deck')).toBeVisible();
   await expect(page.locator('main.ops')).toHaveClass(/ops-console-layout/);
+  // Real computed styles, not decorative HTML markers: the premium
+  // command console must retain its layered background and contrast.
+  const visual=await page.locator('#ops-command-deck').evaluate(el=>{
+   const style=getComputedStyle(el);
+   const crest=getComputedStyle(el.querySelector('.ops-command-crest'));
+   return {background:style.backgroundImage,crest:crest.color,
+     radius:parseFloat(style.borderTopLeftRadius)};
+  });
+  expect(visual.background).toMatch(/(?:linear|radial)-gradient/);
+  expect(visual.crest).not.toBe('rgba(0, 0, 0, 0)');
+  expect(visual.radius).toBeGreaterThanOrEqual(12);
   const buttons=page.locator('#ops-command-deck .ops-command-tab');
   await expect(buttons).toHaveCount(10);
   await page.locator('button[data-ops-zone="seo"]').click();
