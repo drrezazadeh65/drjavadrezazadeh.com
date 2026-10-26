@@ -19,6 +19,18 @@ const jrAfterFirstPaint=(task)=>{
 };
 jrAfterFirstPaint(()=>{let s=document.createElement('script');s.src='/assets/js/analytics-adapter.js?v=20261020-gtm-consent-v5';s.async=true;document.head.append(s)});
 jrAfterFirstPaint(()=>{
+// Confidential account and assessment shells must never fetch the optional
+// public concierge. No assistant code should observe a private page DOM.
+const raw=location.pathname.replace(/index\.html$/,'');
+const privatePrefixes=['/fa/app/','/app/','/en/account/',
+ '/fa/customer-dashboard/','/fa/assessments/','/assessments/',
+ '/fa/login/','/en/login/','/login/','/fa/register/','/en/register/',
+ '/fa/shop/checkout/','/fa/shop/cart/','/fa/shop/payment-start/',
+ '/fa/shop/payment-result/','/en/shop/checkout/','/en/shop/cart/',
+ '/en/golden-talent/assessment/','/en/golden-talent/dashboard/',
+ '/en/golden-talent/roles/','/en/golden-talent/observer/',
+ '/en/golden-talent/student/','/fa/shop/payment-return/'];
+if(privatePrefixes.some(prefix=>raw.startsWith(prefix)))return;
 if(document.querySelector('script[data-jr-assistant]')) return;
 const scripts=[...document.scripts];
 const siteScript=scripts.find(s=>/\/assets\/js\/site\.js(?:\?|$)/.test(s.src));
