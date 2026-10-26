@@ -82,7 +82,10 @@ jobs:
           PW_TEST_SCREENSHOT_NO_FONTS_READY: "1"
         run: |
           npm install --no-save @playwright/test@1.56.0
-          npx playwright install --with-deps chromium
+          # Ubuntu GitHub runners already carry Chromium runtime libraries (as
+          # demonstrated by full-route visual and responsive QA on this branch).
+          # Avoid slow apt/systemd changes in an owner-authorized release.
+          npx playwright install chromium
           python3 -m http.server 4173 --bind 127.0.0.1 > /tmp/operations-http.log 2>&1 &
           for attempt in {1..20}; do
             if curl -fsS http://127.0.0.1:4173/ >/dev/null; then break; fi
