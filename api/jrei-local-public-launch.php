@@ -57,7 +57,21 @@ function jrJreiLocalPublicLaunchDecision(array $snapshot,array $cfg): array {
             if($state==='UNKNOWN')$unknown[]=$id;
         }
     }
-    $staged=empty($pending)&&empty($unknown);
+    $scientificAcceptanceNotRecorded=in_array(
+        'independently_accepted_model',$pending,true);
+    $ownerAcceptedUnvalidatedGeneralChat=
+        jrLocalChatUnvalidatedPublicOwnerApproval($cfg) &&
+        $scientificAcceptanceNotRecorded;
+    // Scientific evidence remains BLOCKED, never represented as PASS.
+    // This explicit owner-controlled policy may exempt only that one
+    // scientific-approval requirement for PUBLIC GENERAL education chat.
+    // All remaining security, source, privacy, model-rights and worker
+    // gates must pass through jrLocalChatReady() unchanged.
+    $effectivePending=$ownerAcceptedUnvalidatedGeneralChat
+        ?array_values(array_diff($pending,['independently_accepted_model']))
+        :$pending;
+    $staged=empty($effectivePending)&&empty($unknown);
+    $allScientificGatesPassed=empty($pending)&&empty($unknown);
     // Owner's visual screenshot of a successful private pilot is useful
     // evidence of that one turn, but is NOT proof of repeated scientific
     // acceptance or fresh approved public-chat signed polling.
@@ -65,15 +79,20 @@ function jrJreiLocalPublicLaunchDecision(array $snapshot,array $cfg): array {
     return [
         'ok'=>true,
         'schema'=>'jr.jrei.public-launch-decision.v1',
-        'launchMode'=>'REVIEW_ONLY_NOT_AUTHORIZING',
+        'launchMode'=>$ownerAcceptedUnvalidatedGeneralChat?
+            'OWNER_APPROVED_PUBLIC_GENERAL_UNVALIDATED':'REVIEW_ONLY_NOT_AUTHORIZING',
         'source'=>'OWNER_SESSION_MOTHER_DB_AND_PRIVATE_SERVER_POLICY',
         'checkedAt'=>time(),
         'checks'=>$checks,
         'blocked'=>$pending,
+        'nonBlockingOwnerWaivedScientificGate'=>$ownerAcceptedUnvalidatedGeneralChat?
+            ['independently_accepted_model']:[],
+        'scientificModelValidationEstablished'=>!$scientificAcceptanceNotRecorded,
         'unknown'=>$unknown,
         'gateCount'=>count($expected),
         'passedGateCount'=>count($expected)-count($pending)-count($unknown),
-        'allPublicBackendGatesPassed'=>$staged,
+        'allPublicBackendGatesPassed'=>$allScientificGatesPassed,
+        'operationalSecurityGatesPassed'=>$staged,
         'publicChatEligibleOnServer'=>$live,
         'independentLiveConversationAcceptanceRecorded'=>false,
         'ownerPrivatePilotAutomaticallyPromoted'=>false,
