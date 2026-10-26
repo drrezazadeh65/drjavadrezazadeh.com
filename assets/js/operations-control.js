@@ -83,6 +83,19 @@ async function load(){const generation=++loadGeneration;try{notice(t('در حا�
  $('ops-workspace').dispatchEvent(new CustomEvent('jr:operations-engine-evidence',{
   detail:{engines:engineEvidence}
  }));
+ // Planning view is READ-ONLY and reuses current verified owner records.
+ // It does not create tasks, approve actions, modify priorities or persist data.
+ const planningEvidence=snapshot.reports.filter(r=>r.closed!==true)
+  .map(r=>({
+   id:r.id,
+   label:title(r),
+   priority:r.priority,
+   status:r.status,
+   engine:reportOwner(r)
+  })).slice(0,36);
+ $('ops-workspace').dispatchEvent(new CustomEvent('jr:operations-planning-evidence',{
+  detail:{items:planningEvidence}
+ }));
  notice(t('داده از سرور دریافت شد؛ برآوردهای تاریخی از پیشرفت تأییدشده جدا هستند.','Server data loaded. Historical estimates are separate from verified progress.'));}catch(error){
  if(generation!==loadGeneration)return;
  // An unauthorised or expired MFA session is security-critical: wipe
@@ -2595,6 +2608,12 @@ $('ops-workspace').addEventListener('jr:operations-session-invalid',()=>lock(t(
  'نشست مدیریتی یا تأیید دومرحله‌ای منقضی شد. دوباره وارد شوید.',
  'Administrator session or MFA verification expired. Sign in again.'
 )));
+$('ops-workspace').addEventListener('jr:ops-open-report',event=>{
+ if(!snapshot||$('ops-workspace').hidden)return;
+ const id=String(event.detail?.id||'');
+ if(!/^OP-[0-9]{2}$/.test(id)||!snapshot.reports.some(row=>row.id===id))return;
+ show(id);
+});
 $('ops-refresh').addEventListener('click',load);$('ops-refresh-data').addEventListener('click',load);$('ops-report').addEventListener('click',()=>download());$('ops-print').addEventListener('click',()=>window.print());$('ops-admin-detail').addEventListener('click',()=>show('ADM-01'));// Returning from another tab must not destroy an active owner's forms,
 // scroll position, or the signed-in MFA workspace. Recheck the original
 // server-side session instead of calling load() and rebuilding all panels.
