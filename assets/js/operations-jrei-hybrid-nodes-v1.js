@@ -637,6 +637,29 @@
      // Owner-visible source-of-truth blockers, computed by PHP from the
      // existing mother DB and private server policies. Never invite the
      // owner to manipulate phpMyAdmin or copy secret keys into the browser.
+     // Genuine public go/no-go decision computed by the existing mother DB
+     // and independent private configuration: an owner's pilot success
+     // cannot self-certify model quality or a public-chat worker.
+     const publicLaunch=lm.publicLaunchDecision;
+     if(publicLaunch?.schema==='jr.jrei.public-launch-decision.v1'){
+       const allowed=publicLaunch.publicChatEligibleOnServer===true;
+       const absent=Array.isArray(publicLaunch.blocked)?
+         publicLaunch.blocked.length:0;
+       const missing=Array.isArray(publicLaunch.unknown)?
+         publicLaunch.unknown.length:0;
+       cell(summary,T('تصمیم واقعی دربارهٔ انتشار عمومی JREI',
+         'JREI public-launch decision'),
+         allowed?
+           T('گیت‌های سمت سرور تکمیل؛ پذیرش عملیاتی جداگانه لازم است',
+             'Server gates satisfied; independent operational acceptance still required'):
+           T('انتشار عمومی هنوز مسدود است: ',
+             'Public activation remains blocked: ')+
+             number(absent)+T(' مانع، ',' blockers, ')+
+             number(missing)+T(' نامعلوم',' unknown'));
+       cell(summary,T('انتشار از روی موفقیت آزمایش خصوصی',
+         'Auto-promote from successful private pilot'),
+         T('ممنوع؛ نیازمند پذیرش مستقل','Forbidden; requires independent acceptance'));
+     }
      const readiness=lm.readinessGates;
      if(readiness&&Array.isArray(readiness.gates)){
        const labels={
