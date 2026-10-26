@@ -410,8 +410,8 @@ body:has(.ops.ops-console-layout){height:100dvh;overflow:hidden}
 .ops #ops-workspace .ops-command-module:hover{border-color:rgba(240,206,135,.6)}
 /* Large evidence grids remain accessible, but scroll INSIDE the selected
    viewport rather than making the owner's entire page kilometers long. */
-.ops #ops-workspace.ops-command-deck-ready>.ops-immediate-triage{
- max-height:35dvh;overflow:auto;
+.ops #ops-workspace.ops-command-deck-ready> #ops-health-summary{
+ max-height:min(46dvh,500px);overflow-y:auto;
  scrollbar-color:rgba(240,206,135,.35) transparent;
 }
 .ops #ops-workspace.ops-command-deck-ready>.ops-stats{
@@ -426,25 +426,25 @@ body:has(.ops.ops-console-layout){height:100dvh;overflow:hidden}
  border-color:rgba(99,230,178,.24);
  background:linear-gradient(160deg,rgba(22,66,55,.42),#111d2d);
 }
-.ops #ops-workspace.ops-command-deck-ready>.ops-immediate-triage
+.ops #ops-workspace.ops-command-deck-ready> #ops-health-summary
  .ops-immediate-triage__tile[data-ops-evidence-severity=alert]{
  border-color:rgba(255,125,145,.6);
  background:linear-gradient(145deg,rgba(104,28,46,.28),rgba(17,29,46,.83));
  box-shadow:0 0 21px rgba(245,74,106,.08);
 }
-.ops #ops-workspace.ops-command-deck-ready>.ops-immediate-triage
+.ops #ops-workspace.ops-command-deck-ready> #ops-health-summary
  .ops-immediate-triage__tile[data-ops-evidence-severity=warning]{
  border-color:rgba(240,206,135,.46);
  background:linear-gradient(145deg,rgba(126,92,32,.2),rgba(17,29,46,.83));
 }
-.ops #ops-workspace.ops-command-deck-ready>.ops-immediate-triage
+.ops #ops-workspace.ops-command-deck-ready> #ops-health-summary
  .ops-immediate-triage__tile[data-evidence-kind=source]{
  border-color:rgba(124,228,241,.26);
 }
 @media(max-width:800px){
  .ops #ops-workspace .ops-command-modules{display:block}
  .ops #ops-workspace .ops-command-module-label{display:block;max-width:none;margin:0 0 5px}
- .ops #ops-workspace.ops-command-deck-ready>.ops-immediate-triage{
+ .ops #ops-workspace.ops-command-deck-ready> #ops-health-summary{
   max-height:47dvh;
  }
 }
