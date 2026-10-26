@@ -196,6 +196,12 @@ function cfg(): array {
         'jrei_python_internal_enabled' => getenv('JR_JREI_PYTHON_INTERNAL_ENABLED') === 'true',
         'jrei_python_internal_base_url' => (string)(getenv('JR_JREI_PYTHON_INTERNAL_BASE_URL') ?: ''),
         'jrei_python_hmac_key' => (string)(getenv('JR_JREI_PYTHON_HMAC_KEY') ?: ''),
+        // Owner-only encrypted memory: separate write/read and revoke gates,
+        // always OFF unless independently approved and provisioned.
+        'jrei_python_owner_memory_enabled' =>
+            getenv('JR_JREI_PYTHON_OWNER_MEMORY_ENABLED') === 'true',
+        'jrei_python_owner_memory_revoke_enabled' =>
+            getenv('JR_JREI_PYTHON_OWNER_MEMORY_REVOKE_ENABLED') === 'true',
         // Real AI inference: independent paid-provider credentials and
         // source-owned budget approval; entirely OFF until final acceptance.
         'jrei_live_ai_enabled' => getenv('JR_JREI_LIVE_AI_ENABLED') === 'true',
