@@ -53,6 +53,7 @@ require_once __DIR__.'/jrei-hybrid-owner.php';
 require_once __DIR__.'/jrei-owner-private-pilot.php';
 require_once __DIR__.'/jrei-python-owner-skills.php';
 require_once __DIR__.'/jrei-apex-owner-missions.php';
+require_once __DIR__.'/jrei-apex-python-plan.php';
 require_once __DIR__.'/jrei-apex-worker-observations.php';
 require_once __DIR__.'/jrei-exam-research-owner.php';
 require_once __DIR__.'/jrei-ka-independent-source-review.php';
