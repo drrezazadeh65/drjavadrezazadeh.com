@@ -77,3 +77,30 @@ test('pilot retries transient failures with bounded load and never pretends appr
   assert.match(code,/if\(e\?\.message==='WORKER_NOT_AUTHORIZED'\)/);
   assert.match(code,/OWNER_PILOT_PRIVATE_ONLY_NO_PUBLIC_QWEN_RELEASE/);
 });
+
+
+test('model-free Node A connects its own signed evaluation worker only',()=>{
+  const ps=source('jrei-connect-existing-node-a-evaluation.ps1');
+  const cmd=source('JREI-CONNECT-NODE-A-EVALUATION.cmd');
+  assert.match(ps,/28b1c0d2-b833-41cb-97e2-df92c9373de0/);
+  assert.doesNotMatch(ps,/7f742039-6c42-4cb7-9bd3-044e30b059f7/);
+  assert.match(ps,/JREI_NODE_A_REGISTERED_SIGNED_IDENTITY_REQUIRED/);
+  assert.match(ps,/jrei-worker-key\.dpapi/);
+  assert.match(ps,/JREI-Owner-Outbound-Worker/);
+  assert.match(ps,/-WorkerMode evaluation/);
+  assert.match(ps,/JREI_NODE_A_EVALUATION_ONLY_NO_QWEN_MODEL_INSTALL/);
+  assert.match(ps,/JREI_NODE_A_EXISTING_TASK_MISSING_LOGON_TRIGGER/);
+  assert.doesNotMatch(ps,/Start-Process|backendExe|modelSha256|8081|JREI-Owner-Local-Model|start-pilot/);
+  assert.doesNotMatch(ps,/\b(?:Set-Content|Add-Content|Set-ItemProperty|New-NetFirewallRule|Unregister-ScheduledTask)\b/i);
+  assert.match(cmd,/jrei-connect-existing-node-a-evaluation.ps1/);
+  assert.match(cmd,/choice \/C YN/);
+});
+test('Node A status is private, read-only and never starts an inference process',()=>{
+  const ps=source('jrei-node-a-evaluation-status.ps1');
+  const cmd=source('JREI-CHECK-NODE-A.cmd');
+  assert.match(ps,/28b1c0d2-b833-41cb-97e2-df92c9373de0/);
+  assert.match(ps,/NODE_A_LIVE_SIGNED_HEARTBEAT=NOT_VERIFIED_BY_LOCAL_READ_ONLY_CHECK/);
+  assert.match(ps,/NODE_B_QWEN_AND_PRIVATE_PILOT=UNTOUCHED/);
+  assert.match(cmd,/jrei-node-a-evaluation-status.ps1/);
+  assert.doesNotMatch(ps,/\b(?:Start-ScheduledTask|Stop-ScheduledTask|Register-ScheduledTask|Unregister-ScheduledTask|Set-Content|Add-Content|New-NetFirewallRule)\b/i);
+});
