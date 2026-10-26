@@ -193,7 +193,20 @@ for(const [zone,label] of [
  b.addEventListener('click',()=>activate(zone,{focus:true}));quick.append(b);
 }
 overview.append(score,readings,quick);
-shell.append(heading,timeline,nav,subtitle,moduleBar,overview);
+const engineMatrix=make('section','ops-command-engine-matrix');
+engineMatrix.setAttribute('aria-label',tr('نقشهٔ شواهد ۱۳ موتور','13-engine evidence map'));
+const engineMatrixHead=make('div','ops-command-engine-heading');
+const engineMatrixTitle=make('strong',null,tr('اطلس شواهد موتورهای اکوسیستم','Ecosystem engine evidence atlas'));
+const engineMatrixNote=make('small',null,
+ tr('رنگ‌ها وضعیت شواهد ثبت‌شده را نشان می‌دهند، نه روشن‌بودن فیزیکی موتور.',
+    'Colours indicate recorded evidence, not proof that a worker is running.'));
+engineMatrixHead.append(engineMatrixTitle,engineMatrixNote);
+const engineCells=make('div','ops-command-engine-cells');
+const engineEmpty=make('p','ops-command-engine-empty',
+ tr('پس از دریافت گزارش مجاز مدیر، وضعیت مستند موتورهای ثبت‌شده نمایش داده خواهد شد.',
+    'Registered engine evidence appears after an authorized owner report is received.'));
+engineCells.append(engineEmpty);engineMatrix.append(engineMatrixHead,engineCells);
+shell.append(heading,timeline,nav,subtitle,moduleBar,overview,engineMatrix);
 workspace.prepend(shell);
 let active='overview';
 const selectedModules=new Map();
@@ -205,6 +218,49 @@ let heartbeatBusy=false;
 let lastProbeAttempt=0;
 const observations=[];
 const formatNumber=value=>new Intl.NumberFormat(fa?'fa-IR':'en-US').format(value);
+function renderEngineEvidence(engines){
+ if(workspace.hidden)return;
+ engineCells.replaceChildren();
+ const rows=Array.isArray(engines)?engines.filter(e=>e&&/^ENG-[0-9]{2}$/.test(e.id)).slice(0,20):[];
+ if(!rows.length){engineCells.append(engineEmpty);return;}
+ for(const record of rows){
+  const total=Number.isInteger(record.total)&&record.total>=0?record.total:0;
+  const verified=Number.isInteger(record.verified)&&record.verified>=0
+   ?Math.min(total,record.verified):0;
+  const regressed=Number.isInteger(record.regressed)?record.regressed:0;
+  const blocked=Number.isInteger(record.blocked)?record.blocked:0;
+  const progress=Number.isInteger(record.progress)?record.progress:0;
+  const tone=regressed>0?'error':total>0&&verified===total?'verified':
+    blocked>0?'blocked':progress>0?'progress':'unknown';
+  const item=make('button','ops-command-engine');
+  item.type='button';item.dataset.signal=tone;
+  item.setAttribute('aria-label',record.id+' · '+String(record.label||'')+' · '+
+    tr(verified+' گزارش تأییدشده از '+total+' گزارش',
+       verified+' verified of '+total+' reports'));
+  const line=make('span','ops-command-engine-line');
+  const light=make('span','ops-command-engine-light');light.setAttribute('aria-hidden','true');
+  const number=make('b',null,record.id);
+  line.append(light,number);
+  const name=make('strong',null,String(record.label||record.id).slice(0,95));
+  const value=make('small',null,tr(verified+' / '+total+' شواهد تأییدشده',
+                                     verified+' / '+total+' verified reports'));
+  const track=make('span','ops-command-engine-track');
+  const fill=make('span','ops-command-engine-fill');
+  fill.style.width=(total?Math.round(100*verified/total):0)+'%';
+  track.append(fill);
+  item.append(line,name,value,track);
+  item.addEventListener('click',()=>{
+   if(workspace.hidden)return;
+   activate('engines',{focus:false});
+   const dropdown=document.getElementById('ops-engine');
+   if(dropdown&&[...dropdown.options].some(o=>o.value===record.id)){
+    dropdown.value=record.id;dropdown.dispatchEvent(new Event('change',{bubbles:true}));
+   }
+   // Existing report table and search filters remain authoritative.
+  });
+  engineCells.append(item);
+ }
+}
 function zoneOf(element){
  if(element===shell)return null;
  if(element.classList.contains('ops-workspace-index'))return 'systems';
@@ -312,6 +368,7 @@ function activate(next,{focus=false}={}){
  }
  sectionTitle.textContent=ZONES.find(([id])=>id===next)?.[1]||'';
  overview.hidden=next!=='overview';
+ engineMatrix.hidden=next!=='overview';
  renderModules();annotate();
  // Internal viewport, not a 200-kilometre document scrollbar.
  workspace.scrollTo({top:0,behavior:'instant'});
@@ -446,6 +503,10 @@ function pulse(){
 function locked(){
  lastSuccess=0;lastProbeAttempt=0;connectionError=false;selectedModules.clear();
  observations.length=0;timelineBars.replaceChildren();
+ engineCells.replaceChildren();
+ engineCells.append(make('p','ops-command-engine-empty',
+   tr('دسترسی قفل شده است؛ گزارش جدید فقط پس از احراز هویت بارگیری می‌شود.',
+      'Access is locked; evidence requires fresh verification.')));
  timeline.setAttribute('aria-label',tr('سابقه ارتباط پاک شد','Connection history cleared'));
  moduleButtons.replaceChildren();moduleBar.hidden=true;
  clearInterval(heartbeat);heartbeat=0;
@@ -503,6 +564,10 @@ workspace.addEventListener('jr:operations-ready',()=>{
  queueMicrotask(()=>{connectionError=notice.classList.contains('ops-error');pulse();});
 });
 workspace.addEventListener('jr:operations-locked',locked);
+workspace.addEventListener('jr:operations-engine-evidence',event=>{
+ if(workspace.hidden||auth.hidden!==true)return;
+ renderEngineEvidence(event.detail?.engines);
+});
 // New operational tiles and panels may be appended after an authenticated
 // response. Observe direct children only: never re-render the entire dashboard.
 const observer=new MutationObserver(changes=>{
