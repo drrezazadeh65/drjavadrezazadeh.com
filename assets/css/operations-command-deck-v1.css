@@ -706,3 +706,28 @@ body:has(.ops.ops-console-layout){height:100dvh;overflow:hidden}
 @media(max-width:1050px){
  .ops #ops-workspace .ops-command-release{display:none}
 }
+
+/* Authenticated presentation fallback: access every existing owner form while
+   retaining MFA and the same server-side privileges. Never a hidden bypass. */
+.ops #ops-workspace .ops-command-classic-link,
+.ops #ops-workspace .ops-command-classic-return{
+ display:inline-flex;align-items:center;justify-content:center;
+ min-height:40px;padding:8px 11px;
+ border:1px solid rgba(240,206,135,.44);border-radius:11px;
+ background:rgba(215,165,69,.08);color:#f2d599;
+ font-size:.74rem;font-weight:740;text-decoration:none;
+ white-space:normal;line-height:1.5;
+}
+.ops #ops-workspace .ops-command-classic-link:hover,
+.ops #ops-workspace .ops-command-classic-return:hover{
+ border-color:#eccc83;background:rgba(215,165,69,.14);
+}
+.ops #ops-workspace .ops-command-classic-return{
+ position:relative;margin:6px 0 14px;max-width:max-content;
+}
+.ops #ops-workspace .ops-command-classic-return[hidden]{display:none!important}
+@media(max-width:560px){
+ .ops #ops-workspace .ops-command-classic-link{
+  flex-basis:100%;order:3;min-height:37px;
+ }
+}
