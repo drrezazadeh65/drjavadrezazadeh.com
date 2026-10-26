@@ -17,6 +17,13 @@ from jrei_learning.heldout import HeldoutReviewRequest, HeldoutReviewResult, rev
 from jrei_skills import EvidenceTriageRequest, EvidenceTriageResult, triage_evidence_revision
 from jrei_skills.registry import skill_catalog
 from jrei_skills.arithmetic import ArithmeticRequest, ArithmeticResult, ArithmeticRejected, calculate_exact
+from jrei_memory.contracts import (
+    OwnerMemorySave, OwnerMemoryRef, OwnerMemoryReceipt,
+    OwnerMemoryReadResult, OwnerMemoryRevokeReceipt,
+)
+from jrei_memory.store import (
+    OwnerMemoryUnavailable, save_owner_note, read_owner_note, revoke_owner_note,
+)
 
 app = FastAPI(
     title="JREI Private Intelligence Contracts",
@@ -68,6 +75,7 @@ async def capabilities():
         "live_model_inference": False,
         "durable_missions": False,
         "mother_db_connected": False,
+        "owner_memory_runtime": "NOT_ATTESTED_SOURCE_STAGED",
         "owner_actions": "NOT_IMPLEMENTED",
         "promotion_enabled": False,
         "public_chat_enabled": False,
@@ -136,3 +144,39 @@ async def exact_arithmetic(payload: ArithmeticRequest):
         return calculate_exact(payload)
     except ArithmeticRejected as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+@app.post(
+    "/internal/v1/memory/owner/save",
+    response_model=OwnerMemoryReceipt,
+    dependencies=[Depends(require_internal_gateway)],
+)
+async def save_private_owner_memory(payload: OwnerMemorySave):
+    try:
+        return save_owner_note(payload)
+    except OwnerMemoryUnavailable as exc:
+        raise HTTPException(status_code=503, detail="OWNER_MEMORY_UNAVAILABLE") from exc
+
+
+@app.post(
+    "/internal/v1/memory/owner/read",
+    response_model=OwnerMemoryReadResult,
+    dependencies=[Depends(require_internal_gateway)],
+)
+async def read_private_owner_memory(payload: OwnerMemoryRef):
+    try:
+        return read_owner_note(payload)
+    except OwnerMemoryUnavailable as exc:
+        raise HTTPException(status_code=503, detail="OWNER_MEMORY_UNAVAILABLE") from exc
+
+
+@app.post(
+    "/internal/v1/memory/owner/revoke",
+    response_model=OwnerMemoryRevokeReceipt,
+    dependencies=[Depends(require_internal_gateway)],
+)
+async def revoke_private_owner_memory(payload: OwnerMemoryRef):
+    try:
+        return revoke_owner_note(payload)
+    except OwnerMemoryUnavailable as exc:
+        raise HTTPException(status_code=503, detail="OWNER_MEMORY_UNAVAILABLE") from exc
