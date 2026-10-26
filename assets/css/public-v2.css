@@ -3236,3 +3236,19 @@ overflow-wrap:anywhere;
 @media(min-width:1150px){.knowledge-hub-page .related-cluster-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}}
 @media(max-width:700px){.knowledge-hub-page .related-cluster-grid{grid-template-columns:minmax(0,1fr);gap:14px}.knowledge-hub-page .related-cluster-grid a{padding:15px}.knowledge-hub-page .related-cluster-grid .knowledge-card-thumbnail{margin-bottom:10px}}
 @media(prefers-reduced-motion:reduce){.knowledge-hub-page .related-cluster-grid a{transition:none}.knowledge-hub-page .related-cluster-grid a:hover{transform:none}}
+
+/* Persian luxury headings: stronger than historic Tahoma !important cascade,
+   but restricted to actual headings, never form fields or body copy. */
+html[lang="fa"] body.rtl.public-home-page :is(main,.hero,.section) :is(h1,h2,h3,h4,h5,h6),
+html[lang="fa"] body.rtl.public-content-page :is(main,.article-shell,.authority-shell,.service-section) :is(h1,h2,h3,h4,h5,h6),
+html[lang="fa"] body.rtl.public-cv-page :is(main,.cv-heading,.profile-section) :is(h1,h2,h3,h4,h5,h6){
+ font-family:var(--jr-fa-display,"JR Persian Display","Vazirmatn",Tahoma,sans-serif)!important;
+ font-synthesis:none;
+ letter-spacing:normal!important;
+ text-transform:none;
+ text-wrap:balance;
+}
+html[lang="fa"] body.rtl.public-home-page main :is(h1,h2),
+html[lang="fa"] body.rtl.public-content-page main :is(h1,h2){
+ font-weight:750;
+}
