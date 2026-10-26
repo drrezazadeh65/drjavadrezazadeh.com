@@ -11,6 +11,7 @@
 - `jrei_skills.evidence_revision.triage_evidence_revision` performs fixed-function source-revision review triage using hash/version metadata only: withdrawal, rights, independent review, changed content, and freshness. It returns only review recommendations; supplied metadata does **not** attest source rights or approval. Its static capability catalog names the exact permitted calls, not dynamically loaded plugins.
 - `jrei_service.app` supplies guarded `/internal/v1/` routes for the above capabilities. Health exposes actual service-process response, not fictitious model/host/DB status.
 - `jrei_learning.heldout.review_heldout` performs reproducible paired baseline/challenger calculations over SHA-identified Persian/English held-out cases, including exact discordant-case sign tests, P95 comparisons and negative evidence hashes. It never certifies fixture independence or grants automatic promotion.
+- `jrei_skills.arithmetic.calculate_exact` executes bounded exact integer/fraction arithmetic over an AST allowlist, including Persian/Arabic digits, without calling Qwen, `eval()`, shell, network or MySQL. It is a private signed skill, not yet wired into the public chatbot.
 
 The registered, model-free `jrei_skills` catalog and `evidence_revision` function are callable only through the original owner access controls when separately activated; no automatic execution or knowledge promotion is possible. The Python server is **not** deployed on Bertina and need not run under LiteSpeed. It is designed for a separate approved Windows/VPS/container worker. Do not expose the Python service, move Qwen ports, or enroll Node A/B from these files. Localhost-only is the recommended source evaluation binding. The OpenAPI schema is intentionally not publicly served.
 
@@ -62,6 +63,7 @@ not a claim of continuous multi-node monitoring or Python service activation.
   **only after** independent approval and clone testing. In this mode,
   DB failure returns 503 and never falls back to per-process memory.
   `process_local` remains strictly single-process/source-evaluation only.
+- The signed `/internal/v1/skills/arithmetic/calculate` route is called using owner skills `{"action":"calculate","payload":{"expression":"۱۲ × ۷"}}`; correctness still requires same-SHA QA and independent model-off acceptance.
 - The HMAC-guarded `/internal/v1/learning/heldout/review` endpoint is
   reachable by the existing SUPER_ADMIN/MFA `jrei-python-skills` router
   with `{"action":"heldout-review","payload":{...}}`. It accepts no
