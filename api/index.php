@@ -829,7 +829,7 @@ if(in_array($path,['/jrei/v1/local-chat/poll','/jrei/v1/local-chat/complete',
         $nodeId=(string)$node['node_id'];
         if($path==='/jrei/v1/local-chat/poll')
             respond(jrLocalChatWorkerPoll($lp,$lc,$nodeId,$body));
-        if(!jrLocalChatNodeApproved($lp,$nodeId,
+        if(!jrLocalChatNodeApproved($lp,$lc,$nodeId,
            (string)($body['modelId']??''),(string)($body['modelVersion']??''),
            (string)($body['modelSha256']??'')))
             fail('local_chat_model_approval_revoked',403);
