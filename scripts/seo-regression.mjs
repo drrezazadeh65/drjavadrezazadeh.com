@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import {auditCommittedRobots} from './seo-robots-sitemap-audit.mjs';
 import {isOwnershipVerificationArtifact} from './site-ownership-verification.mjs';
 import {classifyRoute} from '../platform/ecosystem-governance.mjs';
 
@@ -2175,6 +2176,29 @@ if(failures.length){
 }
 if(failures.length){
   console.error('\nMetadata uniqueness failures ('+failures.length+')');
+  failures.forEach(x=>console.error('✗ '+x));
+  process.exit(1);
+}
+
+// GSC 2026-10-26 ROBOTS GOVERNANCE: verify committed public sitemap URLs
+// against the applicable Googlebot directives. This is an OFFLINE source
+// guard only; Search Console's exact affected URLs and live host remain UNKNOWN.
+try {
+  const robotsAudit=auditCommittedRobots(root);
+  for (const blocked of robotsAudit.blockedPublicSitemapUrls) {
+    failures.push('/robots.txt: Googlebot blocked a public sitemap URL '+
+      blocked.url+' by '+(blocked.rule||'unknown rule'));
+  }
+  for (const problem of robotsAudit.structuralErrors) {
+    failures.push('/sitemap.xml: committed robots audit structural error '+
+      problem.type+' '+(problem.url||problem.child||''));
+  }
+} catch (error) {
+  failures.push('/robots.txt: unable to complete static Googlebot/sitemap audit: '+
+    String(error&&error.message||error));
+}
+if (failures.length) {
+  console.error('\\nGooglebot/sitemap integrity failures ('+failures.length+')');
   failures.forEach(x=>console.error('✗ '+x));
   process.exit(1);
 }
