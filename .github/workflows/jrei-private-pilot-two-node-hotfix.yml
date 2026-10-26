@@ -1,0 +1,148 @@
+name: JREI Private Pilot - Two-Node One-File Hotfix
+# Manual owner-only private Qwen routing release; does not deploy the full website.
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: bertina-production-deploy
+  cancel-in-progress: false
+jobs:
+  one-file-hotfix:
+    if: github.event_name == 'workflow_dispatch' && github.actor == 'drrezazadeh65' && github.ref == 'refs/heads/migration/bertina-linux6'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate private pilot model grant and both signed Windows node roles
+        shell: bash
+        run: |
+          set -euo pipefail
+          head_sha="$(git ls-remote origin refs/heads/migration/bertina-linux6 | cut -f1)"
+          test "$head_sha" = "$GITHUB_SHA"
+          php -l api/jrei-owner-private-pilot.php
+          php tests/jrei-owner-private-pilot-offline.php
+          node --test tests/jrei-owner-private-pilot.test.mjs
+          python3 - <<'PY'
+          from pathlib import Path
+          code=Path('api/jrei-owner-private-pilot.php').read_bytes()
+          node_types=b"provider_type IN ('LOCAL_WINDOWS_WORKER','LOCAL_SECONDARY_WORKER')"
+          assert code.count(node_types)==2
+          assert b"provider_type='LOCAL_WINDOWS_WORKER'" not in code
+          for condition in [b"n.status='ENABLED'",b"n.revoked_at IS NULL",
+                            b"m.status='RIGHTS_REVIEWED'",b"m.model_artifact_sha256=?",
+                            b'jrOwnerPilotWorkerPoll',b'jrOwnerPilotModel']:
+              assert condition in code, condition
+          print('PASS: explicit, signed and reviewed two-node owner-only pilot')
+          PY
+      - name: Install secure FTPS client
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq lftp
+      - name: Read authoritative current Bertina file (no writes)
+        shell: bash
+        env:
+          FTP_USER: ${{ secrets.BERTINA_FTP_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.BERTINA_FTP_PASSWORD }}
+          FTP_REMOTE_DIR: ${{ secrets.BERTINA_FTP_REMOTE_DIR }}
+        run: |
+          set -euo pipefail
+          test -n "$FTP_USER" && test -n "$FTP_PASSWORD" && test -n "$FTP_REMOTE_DIR"
+          test "$FTP_REMOTE_DIR" != "/" && test "$FTP_REMOTE_DIR" != "."
+          echo "188.40.203.218 server388.bertina.biz" | sudo tee -a /etc/hosts >/dev/null
+          timeout 100s lftp -u "$FTP_USER","$FTP_PASSWORD" "ftp://server388.bertina.biz" <<LFTP
+          set cmd:fail-exit yes
+          set ftp:ssl-force true
+          set ftp:ssl-protect-data true
+          set ssl:verify-certificate yes
+          set ftp:passive-mode true
+          set ftp:prefer-epsv false
+          set net:max-retries 1
+          set net:timeout 20
+          cd "$FTP_REMOTE_DIR"
+          get api/jrei-owner-private-pilot.php -o /tmp/jrei-before.php
+          bye
+          LFTP
+          test -s /tmp/jrei-before.php
+          php -l /tmp/jrei-before.php
+      - name: Build exact two-condition patch from live PHP, preserving all other bytes
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          original=Path('/tmp/jrei-before.php').read_bytes()
+          old=b"provider_type='LOCAL_WINDOWS_WORKER'"
+          new=b"provider_type IN ('LOCAL_WINDOWS_WORKER','LOCAL_SECONDARY_WORKER')"
+          if original.count(old)!=2 or original.count(new)!=0:
+              raise SystemExit('Unexpected live pilot module; no patch performed')
+          if not 8000<len(original)<40000:
+              raise SystemExit('Unexpected live private pilot file length')
+          for marker in [b'function jrOwnerPilotModel',b'function jrOwnerPilotWorkerPoll',
+                         b'function jrOwnerPilotWorkerFinish',b'jrei_local_chat_jobs',
+                         b"m.status='RIGHTS_REVIEWED'",b'm.model_artifact_sha256=?']:
+              if marker not in original:
+                  raise SystemExit('Missing live security guard: no patch performed')
+          patched=original.replace(old,new)
+          assert patched.replace(new,old)==original and patched.count(new)==2
+          Path('/tmp/jrei-after.php').write_bytes(patched)
+          print('Exactly 2 private pilot node-type constraints changed; other bytes intact')
+          PY
+          php -l /tmp/jrei-after.php
+      - name: Retain original PHP for owner-controlled rollback
+        uses: actions/upload-artifact@v4
+        with:
+          name: jrei-private-pilot-original-${{ github.run_id }}
+          path: /tmp/jrei-before.php
+          if-no-files-found: error
+          retention-days: 14
+      - name: Stage, read back, atomically rename and verify ONLY private pilot module
+        shell: bash
+        env:
+          FTP_USER: ${{ secrets.BERTINA_FTP_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.BERTINA_FTP_PASSWORD }}
+          FTP_REMOTE_DIR: ${{ secrets.BERTINA_FTP_REMOTE_DIR }}
+        run: |
+          set -euo pipefail
+          stage="api/.jrei-private-pilot-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}.php"
+          timeout 100s lftp -u "$FTP_USER","$FTP_PASSWORD" "ftp://server388.bertina.biz" <<LFTP
+          set cmd:fail-exit yes
+          set ftp:ssl-force true
+          set ftp:ssl-protect-data true
+          set ssl:verify-certificate yes
+          set ftp:passive-mode true
+          set ftp:prefer-epsv false
+          set net:max-retries 1
+          set net:timeout 20
+          cd "$FTP_REMOTE_DIR"
+          put /tmp/jrei-after.php -o "$stage"
+          get "$stage" -o /tmp/jrei-staged.php
+          bye
+          LFTP
+          cmp /tmp/jrei-after.php /tmp/jrei-staged.php
+          php -l /tmp/jrei-staged.php
+          timeout 100s lftp -u "$FTP_USER","$FTP_PASSWORD" "ftp://server388.bertina.biz" <<LFTP
+          set cmd:fail-exit yes
+          set ftp:ssl-force true
+          set ftp:ssl-protect-data true
+          set ssl:verify-certificate yes
+          set ftp:passive-mode true
+          set ftp:prefer-epsv false
+          set net:max-retries 1
+          set net:timeout 20
+          cd "$FTP_REMOTE_DIR"
+          mv "$stage" api/jrei-owner-private-pilot.php
+          get api/jrei-owner-private-pilot.php -o /tmp/jrei-verified.php
+          bye
+          LFTP
+          cmp /tmp/jrei-after.php /tmp/jrei-verified.php
+          php -l /tmp/jrei-verified.php
+          {
+            echo '### JREI private two-node Qwen pilot hotfix: VERIFIED'
+            echo "GitHub source SHA: $GITHUB_SHA"
+            echo 'Only api/jrei-owner-private-pilot.php was changed on Bertina; all public AI remains gated OFF.'
+            echo 'The full site, config.local.php, databases, payments and two node statuses were untouched.'
+            echo 'Original live file saved in 14-day Actions artifact.'
+            echo 'After deployment, manually start the existing signed Node B pilot and verify an owner-only Qwen round trip.'
+          } >> "$GITHUB_STEP_SUMMARY"
