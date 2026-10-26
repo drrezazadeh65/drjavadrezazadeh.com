@@ -74,3 +74,21 @@
 @media(max-width:560px){#jr-community-admin .jr-community-admin-toolbar{display:grid}#jr-community-admin .jr-community-admin-toolbar label{width:100%}#jr-community-admin .jr-community-admin-summary{padding:14px}#jr-community-admin .jr-community-admin-item-content{padding:14px}}
 @media(prefers-reduced-motion:reduce){#jr-community-admin *{animation:none!important;transition:none!important}}
 @media(forced-colors:active){#jr-community-admin .jr-community-admin-reply,#jr-community-admin details{border:1px solid CanvasText}}
+
+/* Owner moderation: mixed-language review bodies remain readable and touch-safe. */
+#jr-community-admin{direction:inherit;text-align:start}
+#jr-community-admin :where(.jr-community-admin-item-content,.jr-community-admin-replies-panel,
+ .jr-community-admin-history,.jr-community-admin-toolbar) :where(p,li,label,summary){
+ text-align:start;overflow-wrap:anywhere;
+}
+#jr-community-admin :where(textarea,input:not([type="checkbox"]):not([type="radio"]),select){
+ text-align:start;max-inline-size:100%;min-inline-size:0;
+}
+#jr-community-admin .jr-community-admin-meta{
+ direction:ltr;unicode-bidi:isolate;word-break:break-word;
+}
+#jr-community-admin :where([dir="rtl"],[lang="fa"]){direction:rtl;unicode-bidi:isolate}
+@media(max-width:430px){
+ #jr-community-admin{min-width:0}
+ #jr-community-admin .jr-community-admin-item-content{overflow-wrap:anywhere}
+}
