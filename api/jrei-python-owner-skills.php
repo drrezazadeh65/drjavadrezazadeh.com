@@ -13,7 +13,7 @@ function jrOwnerJreiPythonSkillDispatch(array $privateConfig, array $body): arra
 {
     $action=$body['action']??null;
     if (!is_string($action) ||
-        !in_array($action,['catalog','triage-evidence','heldout-review'],true)) {
+        !in_array($action,['catalog','triage-evidence','heldout-review','calculate'],true)) {
         throw new InvalidArgumentException('python_skill_action_invalid');
     }
 
@@ -52,7 +52,7 @@ function jrOwnerJreiPythonSkillDispatch(array $privateConfig, array $body): arra
         $route='/internal/v1/skills/evidence/triage';
         $payload=$body['payload'];
         $expected='jr.jrei.evidence-triage-result.v1';
-    } else {
+    } elseif ($action==='heldout-review') {
         if (count($body)!==2 || !array_key_exists('payload',$body) ||
             !is_array($body['payload']) || array_is_list($body['payload']) ||
             strlen(json_encode($body['payload'],
@@ -62,6 +62,17 @@ function jrOwnerJreiPythonSkillDispatch(array $privateConfig, array $body): arra
         $route='/internal/v1/learning/heldout/review';
         $payload=$body['payload'];
         $expected='jr.jrei.heldout-review-result.v1';
+    } else {
+        if (count($body)!==2 || !array_key_exists('payload',$body) ||
+            !is_array($body['payload']) || array_is_list($body['payload']) ||
+            count($body['payload'])<1 ||
+            !is_string($body['payload']['expression']??null) ||
+            strlen($body['payload']['expression'])>400) {
+            throw new InvalidArgumentException('python_arithmetic_body_invalid');
+        }
+        $route='/internal/v1/skills/arithmetic/calculate';
+        $payload=$body['payload'];
+        $expected='jr.jrei.arithmetic-result.v1';
     }
     // Preserve existing authenticated operations routes and isolated MySQL
     // fixtures when this optional Python service is disabled. Never require
@@ -102,6 +113,15 @@ function jrOwnerJreiPythonSkillDispatch(array $privateConfig, array $body): arra
            'NO_DEMONSTRATED_IMPROVEMENT','REVIEW_CANDIDATE_ONLY'
          ],true))) {
         throw new RuntimeException('JREI_PYTHON_HELDOUT_PRIVILEGE_ESCALATION');
+    }
+    if ($action==='calculate' &&
+        (($result['performed_without_model']??null)!==true ||
+         ($result['any_model_weights_changed']??null)!==false ||
+         ($result['source_rights_approved']??null)!==false ||
+         !is_int($result['numerator']??null) ||
+         !is_int($result['denominator']??null) ||
+         $result['denominator']<1)) {
+        throw new RuntimeException('JREI_PYTHON_ARITHMETIC_CONTRACT_MISMATCH');
     }
     return $base+[
         'status'=>'PRIVATE_SKILL_RESPONSE_RECEIVED',
