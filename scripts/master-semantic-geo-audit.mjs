@@ -150,6 +150,13 @@ for (const file of (visit(root),htmlFiles.sort())) {
     }
   }
   const alternates=links(html,'alternate').filter(x=>x.hreflang);
+  // The multilingual root is the language chooser, not the English home.
+  // Its own variant is x-default=/; en=/en/ and fa=/fa/. Requiring
+  // en=/ here would incorrectly replace this user-facing gateway policy.
+  const xDefaultGateway=route==='/'&&alternates.some(a=>
+    a.hreflang==='x-default'&&a.href===origin+'/')&&
+    alternates.some(a=>a.hreflang==='en'&&a.href===origin+'/en/')&&
+    alternates.some(a=>a.hreflang==='fa'&&a.href===origin+'/fa/');
   pageEvidence.set(route,{language,alternates});
   if(noindex&&alternates.length)
     issue('P2',route,'PRIVATE_HREFLANG','Private or noindex pages should not be promoted as public hreflang alternates');
@@ -162,12 +169,12 @@ for (const file of (visit(root),htmlFiles.sort())) {
         issue('P2',route,'HREFLANG_DUPLICATE','Duplicate hreflang entry for '+a.hreflang);
       declaredLanguages.add(a.hreflang);
     }
-    if(!noindex&&!alternates.some(a=>a.hreflang===language&&a.href===origin+route))
+    if(!noindex&&!xDefaultGateway&&!alternates.some(a=>a.hreflang===language&&a.href===origin+route))
       issue('P2',route,'HREFLANG_SELF_MISSING','Localised alternates should include the current public page');
   }
   for(const a of alternates) {
     if(!['fa','en','x-default'].includes(a.hreflang))issue('P2',route,'HREFLANG_LOCALE',a.hreflang);
-    if(a.hreflang===language&&a.href!==origin+route)
+    if(!xDefaultGateway&&a.hreflang===language&&a.href!==origin+route)
       issue('P1',route,'HREFLANG_SELF','Declared self-language alternate is not this page');
     if(!a.href?.startsWith(origin+'/'))issue('P1',route,'HREFLANG_ORIGIN',a.href||'missing href');
   }
