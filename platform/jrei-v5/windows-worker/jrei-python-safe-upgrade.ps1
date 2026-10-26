@@ -126,37 +126,19 @@ function WaitHealth([switch]$RequireCanary){
  }
  return $false
 }
-function QuoteWindowsArgument([string]$value){
- if($value.Contains([char]0)){throw 'JREI_INVALID_COMMAND_ARGUMENT'}
- if($value.Length -eq 0){return '""'}
- if($value -notmatch '[\s"]'){return $value}
- $res='"'
- $slashes=0
- foreach($c in $value.ToCharArray()){
-  if($c -eq [char]92){$slashes++;continue}
-  if($c -eq '"'){
-   $res+=([string]([char]92) * ($slashes*2+1))+'"'
-   $slashes=0
-   continue
-  }
-  if($slashes -gt 0){$res+=([string]([char]92) * $slashes);$slashes=0}
-  $res+=$c
- }
- if($slashes -gt 0){$res+=([string]([char]92) * ($slashes*2))}
- return $res+'"'
-}
 function RunChecked([string]$exe,[string[]]$arguments,[string]$output,[string]$error){
- $cmdline=(@($arguments|ForEach-Object{QuoteWindowsArgument $_}) -join ' ')
- $proc=Start-Process -FilePath $exe -ArgumentList $cmdline `
-    -WorkingDirectory $root -NoNewWindow -PassThru `
-    -RedirectStandardOutput $output -RedirectStandardError $error
+ # Native argv invocation avoids Start-Process ExitCode race / argv flattening
+ # under Windows PowerShell 5.1. Task Scheduler has a bounded total run time.
+ $prior=$ErrorActionPreference
+ $ErrorActionPreference='Continue'
+ $code=1
  try{
-  if(-not $proc.WaitForExit(180000)){
-   try{$proc.Kill()}catch{}
-   throw 'JREI_OFFLINE_PACKAGE_INSTALL_TIMEOUT'
-  }
-  if($proc.ExitCode -ne 0){throw 'JREI_OFFLINE_PACKAGE_COMMAND_FAILED'}
- }finally{$proc.Dispose()}
+  & $exe @arguments 1>$output 2>$error
+  $code=$LASTEXITCODE
+ }finally{
+  $ErrorActionPreference=$prior
+ }
+ if($code -ne 0){throw 'JREI_OFFLINE_PACKAGE_COMMAND_FAILED'}
 }
 function Stage([string]$tree){
  if(-not (Test-Path $wheelhouse -PathType Container)){throw 'JREI_OFFLINE_WHEELHOUSE_NOT_FOUND'}
