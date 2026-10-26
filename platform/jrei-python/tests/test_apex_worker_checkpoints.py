@@ -89,6 +89,14 @@ class SignedWorkerObservationContract(unittest.TestCase):
         value=verify_worker_checkpoints(history([row]))
         self.assertFalse(value.job_actually_executed_verified)
 
+    def test_owner_review_is_not_scientific_validation(self):
+        row=checkpoint(status="REVIEWED",
+          code="OWNER_ACKNOWLEDGED_NOT_SCIENTIFICALLY_VERIFIED")
+        result=verify_worker_checkpoints(history([row]))
+        self.assertEqual(result.decision,"CONSISTENT_SUPPLIED_HISTORY")
+        self.assertFalse(result.source_evidence_independently_accepted)
+        self.assertFalse(result.model_improvement_proven)
+
     def test_queued_job_cannot_claim_result_digest(self):
         row=checkpoint()
         row["result_digest"]="d"*64
