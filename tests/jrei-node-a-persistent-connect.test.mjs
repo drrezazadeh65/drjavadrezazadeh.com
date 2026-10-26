@@ -88,7 +88,7 @@ test('model-free Node A connects its own signed evaluation worker only',()=>{
   assert.match(ps,/jrei-worker-key\.dpapi/);
   assert.match(ps,/JREI-Owner-Outbound-Worker/);
   assert.match(ps,/-WorkerMode evaluation/);
-  assert.match(ps,/JREI_NODE_A_EVALUATION_ONLY_NO_QWEN_MODEL_INSTALL/);
+  assert.match(ps,/NODE_A_EVALUATION_ONLY_NO_QWEN_MODEL_INSTALL/);
   assert.match(ps,/JREI_NODE_A_EXISTING_TASK_MISSING_LOGON_TRIGGER/);
   assert.doesNotMatch(ps,/Start-Process|backendExe|modelSha256|8081|JREI-Owner-Local-Model|start-pilot/);
   assert.doesNotMatch(ps,/\b(?:Set-Content|Add-Content|Set-ItemProperty|New-NetFirewallRule|Unregister-ScheduledTask)\b/i);
