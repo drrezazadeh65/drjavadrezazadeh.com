@@ -276,3 +276,30 @@ test('approved comments paginate without exposing pending votes or repeating pub
  await expect(host.locator('.jr-community-comment').last()).toContainText('Older approved comment');
  await expect(more).toBeHidden();
 });
+
+test('rating-only articles remain pending, private and correctly labelled without invented comment text',async({page})=>{
+ await page.setViewportSize({width:390,height:844});
+ let posted=null;
+ await page.route('**/api/community/**',route=>{
+  const url=route.request().url();
+  if(url.includes('/csrf'))return respond(route,200,{ok:true,csrfToken:'e'.repeat(64)});
+  if(route.request().method()==='POST'){
+   posted=route.request().postDataJSON();
+   return respond(route,202,{ok:true,state:'pending',moderatedBeforePublication:true});
+  }
+  return respond(route,200,{
+   ok:true,schema:'community-comments-v1',page:article,comments:[],count:0,
+   ratingSummary:{count:0,mean:null},nextCursor:null
+  });
+ });
+ await page.goto(base+article,{waitUntil:'domcontentloaded'});
+ await page.locator('.jr-community-compose>summary').click();
+ const form=page.locator('[data-jr-community] form');
+ await form.locator('input[name="rating"][value="4"]').check();
+ await form.locator('input[name="consent"]').check();
+ await form.locator('button[type="submit"]').click();
+ await expect(form.locator('.jr-community-form-status')).toContainText('امتیاز شما برای بررسی مدیر ثبت شد');
+ await expect(form.locator('button[type="submit"]')).toBeDisabled();
+ expect(posted).toMatchObject({page:article,body:'',rating:4,consentToPublication:true,website:''});
+ await expect(page.locator('.jr-community-comment')).toHaveCount(0);
+});
