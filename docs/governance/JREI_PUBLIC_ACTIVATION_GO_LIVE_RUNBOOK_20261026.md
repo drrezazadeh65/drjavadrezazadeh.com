@@ -1,4 +1,4 @@
-# JREI Local Qwen — Public Activation Go-Live Contract
+# JREI Qwen — Public Website Activation Go-Live Contract
 
 **Date:** 2026-10-26. **Canonical branch:** migration/bertina-linux6. **Mother DB:** drjavad1_store. **Release policy:** no fake approval; no public AI without explicit owner consent and live safeguards.
 
@@ -18,9 +18,28 @@ Every one of these must be true in the server's LIVE snapshot and in real practi
 - `JR_JREI_HYBRID_ENABLED=true`, `JR_JREI_LOCAL_CHAT_ENABLED=true`, and final specific owner public release approval `JR_JREI_LOCAL_PUBLIC_RELEASE_ACCEPTED=true` are set only by the private hosting owner (case-sensitive value `true`). This owner approval is authorization, NOT model evaluation evidence.
 - The published/approved site evidence index is readable and source-rights checks remain intact.
 - Retention must be actually running on Bertina: `JR_OPERATIONS_CRON_MASTER_ENABLED=true`, `JR_JREI_LOCAL_CHAT_RETENTION_ENABLED=true`, and the original `operations_cron_jobs` row `jrei_local_chat_retention` has a successful `completed` execution within the last 1800 seconds. Turning on a flag cannot forge this evidence.
-- The existing `jrei_local_model_registry` record must still be `RIGHTS_REVIEWED`, artifact hash match, unsuspended, with `weights_installed_verified=1`, `runtime_verified=1`, `independent_quality_accepted=1` **only after actual verified runtime, measured RAM/performance and reviewed Persian/English quality evidence**. Do not promote on a model-generated self-description.
+- The existing model record must remain RIGHTS_REVIEWED, unsuspended, GGUF hash-matched, with actual `weights_installed_verified=1` and `runtime_verified=1`. Public responses may use either *independent science acceptance*, or a SEPARATE explicit owner-approved public GENERAL chat policy, `JR_JREI_LOCAL_PUBLIC_UNVALIDATED_OWNER_APPROVED=true`. The latter deliberately leaves `independent_quality_accepted=0` and may not be marketed as scientifically validated. Rights, runtime, encryption, consent, retention, signed model/node grants and answer vetoes are still required.
 - The original signed Windows node remains enabled; `jrei_local_chat_node_authorizations` must have explicit approved chat permission. `start-pilot` does not satisfy this; `start-chat` must send authentic Ed25519-signed generative polls within the preceding 45 seconds.
 - Original public endpoint `/api/assistant/v1/capabilities` must independently return `live:true`, `providerMode:JREI_LM_LOCAL_WINDOWS`. `live:true` is a backend eligibility signal, not proof of a completed model answer. Perform fresh consenting public Persian and English chat trials separately.
+
+## Explicit, real-world activation on Bertina — no fake live claim
+
+The source code exposes the separate default-OFF owner setting `JR_JREI_LOCAL_PUBLIC_UNVALIDATED_OWNER_APPROVED=true`. Set the following PRIVATE host controls through the existing Bertina administration channel, only after actual retention and queue checks:
+
+```text
+JR_JREI_HYBRID_ENABLED=true
+JR_JREI_LOCAL_CHAT_ENABLED=true
+JR_JREI_LOCAL_PUBLIC_RELEASE_ACCEPTED=true
+JR_JREI_LOCAL_PUBLIC_UNVALIDATED_OWNER_APPROVED=true
+JR_OPERATIONS_CRON_MASTER_ENABLED=true
+JR_JREI_LOCAL_CHAT_RETENTION_ENABLED=true
+```
+
+`JR_JREI_LOCAL_CHAT_KEY_B64` must be a SECRET, randomly generated 32-byte key, NOT a literal example or public repo value. Never print/send it. The original verified mother database must contain all three required queue/registry tables, the original retention job must be ENABLED and must ACTUALLY complete recently, and the original approved public evidence index must be readable. Deploy cannot set these private environment variables by itself.
+
+After a genuine owner runtime-only attestation, the existing MFA model/node panel may approve the original signing node for general public chat. This creates a fresh and revocable generative node authorization, NOT a new key. Running the approved `start-chat` process then supplies real signed generative polls. The private site health endpoint must become `live:true`, `providerMode:JREI_LM_LOCAL_WINDOWS` ONLY if these independent conditions are simultaneously true; merely deploying HTML or writing the switch value cannot achieve that.
+
+The owner has explicitly requested a PUBLIC website service rather than the private staging pilot. `local` in `JREI_LM_LOCAL_WINDOWS` describes WHERE Qwen COMPUTES; the SITE ENTRY POINT is publicly accessible to consenting users. The user-facing disclosure labels the product as a general educational assistant, NOT as independently scientifically certified or a self-training system. This policy does not remove the 12 evidence observations; the science result remains BLOCKED and the separately documented owner exception remains visible.
 
 ## Concrete Windows sequence on the actual Qwen-hosting computer
 
@@ -34,7 +53,7 @@ if (-not (Test-Path (Join-Path $w 'JREI-QUALITY-EVIDENCE.cmd'))) { throw 'Checke
 & (Join-Path $w 'JREI-QUALITY-EVIDENCE.cmd')
 ```
 
-The command runs 16 fixed local synthetic questions and writes a private quality report under `%LOCALAPPDATA%\JREI\quality-reviews`. Do not accept quality if `NEGATIVE_QUALITY_TRIAGE=BLOCKED_REMEDIATION_REQUIRED`, incomplete samples, missing peak RAM or human review failures. A passing negative triage is NOT independent scientific certification. Human reviewer records authentic evidence in existing MFA `attest_local_model_runtime` (model ID/version, actual SHA, source fixture SHA, run evidence SHA, measured tokens/s, p95 and RAM); never invent measurements. The owner sets the independent acceptance only with genuine review.
+The owner ALREADY provided three 16-sample reports; do NOT repeat them merely to clear a gate. One 2025-10-25 19:31Z report includes an OS-observed 4981 MB peak, 24553 ms p95 and 9.01 observed tokens/total-second, but failed numeric and Persian-script negative screening. The newest 2026-10-26 report shows 18315 ms p95 and 6.41 observed tokens/total-second with RAM not measured; its scientific quality remains unaccepted. The authenticated model form now offers a distinct `attest_local_model_runtime_only` action: it records AUTHENTIC model installation/running metrics without writing `independent_quality_accepted=1`. Only use measurements from the EXACT SAME submitted report and matched model artifact SHA; never fabricate or mix different reports' metrics. The original science-certified action is unchanged.
 
 Then the checked-out read-only operator preflight can run:
 
@@ -42,7 +61,7 @@ Then the checked-out read-only operator preflight can run:
 & (Join-Path $w 'jrei-public-launch-preflight.ps1')
 ```
 
-When local rights, quality, runtime and independent owner approval truly exist, update the *private owner-controlled config* with `localChat.enabled=true`, `modelRuntimeVerified=true`, `independentQualityAccepted=true`, preserving all existing model/worker/hash fields. Never post that config or keys to chat/GitHub. The approved `start-chat` worker mode differs from `start-pilot`: only `start-chat` reports signed generative polling.
+After the source is installed on the real Windows owner PC and the runtime-only attestation is completed: the PRIVATE JSON may have `localChat.enabled=true`, `modelRuntimeVerified=true`, `publicUnvalidatedOwnerApproved=true`, with `independentQualityAccepted=false` retained honestly. This differs from independently certified public release, where `independentQualityAccepted=true` would require actual reviewer acceptance. Never commit, upload, print or share this JSON. `start-chat` (not `start-pilot`) sends the required signed public chat-mode polling. If the original model's Windows Scheduled Task was created with `-StagingOnly`, review/re-register that exact original model task using its audited installer for enabled public mode before relying on automatic restart after the next logon; DO NOT merely keep an incompatible stale staging task and claim always-on status.
 
 The existing official task installer supports **`-WorkerMode chat`**:
 
@@ -52,7 +71,7 @@ $config = Join-Path $env:LOCALAPPDATA 'JREI\jrei-worker-config.json'
 Start-ScheduledTask -TaskName 'JREI-Owner-Local-Chat-Worker'
 ```
 
-These commands are not to be run while model/rights/quality owner gates are false; task installation is not a replacement for their approval. Never overwrite the existing Node signing key or restart the evaluation worker without a reason. Windows logon-task status alone does not prove Bertina connectivity.
+These commands are not to be run unless the model's actual runtime and rights are verified and the owner has approved EITHER the independent scientific policy OR the explicitly unvalidated public general-chat policy. Task installation is not permission by itself. Never overwrite the existing Node signing key or restart the evaluation worker without a reason. Windows logon-task status alone does not prove Bertina connectivity.
 
 ## New source-only launch diagnosis
 
