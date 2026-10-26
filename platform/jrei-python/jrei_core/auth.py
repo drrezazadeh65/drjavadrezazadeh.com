@@ -54,6 +54,23 @@ async def require_internal_gateway(request: Request) -> None:
     expected = hmac.new(key.encode("utf-8"), prefix + body, hashlib.sha256).hexdigest()
     if not hmac.compare_digest(signature, expected):
         raise HTTPException(status_code=401, detail="UNAUTHENTICATED_REQUEST")
+    # Multi-process staging requires the ATOMIC mother-DB nonce ledger.
+    # Never downgrade to per-process memory on DB/TLS/permission failure.
+    backend = os.environ.get("JREI_PYTHON_REPLAY_BACKEND", "process_local")
+    if backend == "mother_mysql":
+        from jrei_core.replay import (
+            NonceAlreadyClaimed, ReplayStoreUnavailable, claim_mother_mysql_nonce,
+        )
+        try:
+            claim_mother_mysql_nonce(nonce, now, now + 2 * _WINDOW + 5)
+        except NonceAlreadyClaimed as exc:
+            raise HTTPException(status_code=409, detail="REPLAYED_REQUEST") from exc
+        except ReplayStoreUnavailable as exc:
+            raise HTTPException(status_code=503, detail="REPLAY_LEDGER_UNAVAILABLE") from exc
+        return
+    if backend != "process_local":
+        raise HTTPException(status_code=503, detail="REPLAY_BACKEND_UNSUPPORTED")
+    # Process-local mode is for one isolated FastAPI process only.
     with _lock:
         expired = [n for n, expires in _seen.items() if expires < now]
         for n in expired:
