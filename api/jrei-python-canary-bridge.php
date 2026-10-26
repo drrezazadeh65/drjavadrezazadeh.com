@@ -1,0 +1,122 @@
+<?php
+declare(strict_types=1);
+if (!defined('BERTINA_API_BOOTSTRAPPED')) { http_response_code(404); exit; }
+/**
+ * First REAL, narrowly-scoped signed Windows -> LOCAL Python -> mother DB job.
+ * Fixed computation 12*7, no model/provider access, public data, SQL tools,
+ * crawl, learner data, shell, arbitrary Python code or site deployment.
+ * Uses ORIGINAL SUPER_ADMIN MFA/CSRF (owner route), ORIGINAL Ed25519 nonce
+ * registry (worker route), SAME drjavad1_store, and a separately gated table.
+ */
+const JR_PY_CANARY_SCHEMA = 'jr.jrei.python-canary.v1';
+function jrPythonCanaryReady(PDO $db): bool {
+    try {
+        $db->query('SELECT job_id,owner_account_id,request_key,state,assigned_node,lease_id,lease_expires_at,created_at,expires_at,completed_at,numerator,denominator,result_sha256 FROM jrei_python_canary_jobs LIMIT 0');
+        return true;
+    } catch (Throwable $e) { return false; }
+}
+function jrPythonCanaryUuid(): string {
+    $b=random_bytes(16);$b[6]=chr((ord($b[6])&15)|64);$b[8]=chr((ord($b[8])&63)|128);
+    $h=bin2hex($b);
+    return substr($h,0,8).'-'.substr($h,8,4).'-'.substr($h,12,4).'-'.substr($h,16,4).'-'.substr($h,20);
+}
+function jrPythonCanaryOwner(PDO $db,string $account,array $body,int $now): array {
+    if(array_keys($body)!==['action','requestKey'] ||
+       $body['action']!=='run-fixed-arithmetic' ||
+       !is_string($body['requestKey']) ||
+       preg_match('/^[a-f0-9]{32}$/D',$body['requestKey'])!==1)
+        throw new InvalidArgumentException('python_canary_owner_contract');
+    if(!jrPythonCanaryReady($db))throw new RuntimeException('python_canary_schema_missing');
+    $id=jrPythonCanaryUuid();
+    $q=$db->prepare("INSERT INTO jrei_python_canary_jobs
+      (job_id,owner_account_id,request_key,state,created_at,expires_at)
+      VALUES(?,?,?,'QUEUED',?,?)
+      ON DUPLICATE KEY UPDATE job_id=job_id");
+    $q->execute([$id,$account,$body['requestKey'],$now,$now+600]);
+    $q=$db->prepare('SELECT job_id,state,created_at,expires_at FROM jrei_python_canary_jobs WHERE owner_account_id=? AND request_key=? LIMIT 1');
+    $q->execute([$account,$body['requestKey']]);
+    $record=$q->fetch(PDO::FETCH_ASSOC);
+    if(!is_array($record))throw new RuntimeException('python_canary_owner_receipt_missing');
+    return ['ok'=>true,'schema'=>'jr.jrei.python-canary-owner-receipt.v1',
+      'jobId'=>$record['job_id'],'state'=>$record['state'],
+      'createdAt'=>(int)$record['created_at'],'expiresAt'=>(int)$record['expires_at'],
+      'expectedExpression'=>'12*7','executed'=>($record['state']==='COMPLETED')];
+}
+function jrPythonCanaryOwnerSnapshot(PDO $db,string $owner): array {
+    if(!jrPythonCanaryReady($db))throw new RuntimeException('python_canary_schema_missing');
+    $q=$db->prepare('SELECT job_id,state,created_at,expires_at,completed_at,numerator,denominator,
+         result_sha256 FROM jrei_python_canary_jobs WHERE owner_account_id=? ORDER BY created_at DESC LIMIT 10');
+    $q->execute([$owner]);$rows=[];
+    foreach($q->fetchAll(PDO::FETCH_ASSOC) as $r){
+        $rows[]=['jobId'=>$r['job_id'],'state'=>$r['state'],
+          'createdAt'=>(int)$r['created_at'],'expiresAt'=>(int)$r['expires_at'],
+          'completedAt'=>$r['completed_at']===null?null:(int)$r['completed_at'],
+          'numerator'=>$r['numerator']===null?null:(int)$r['numerator'],
+          'denominator'=>$r['denominator']===null?null:(int)$r['denominator'],
+          'resultSha256'=>$r['result_sha256'],
+          'pythonSkillId'=>'jrei.math.exact_arithmetic.v1',
+          'modelInferenceVerified'=>false,'autonomousLearningVerified'=>false];
+    }
+    return ['ok'=>true,'schema'=>'jr.jrei.python-canary-owner-snapshot.v1',
+      'scope'=>'ONE_FIXED_ARITHMETIC_JOB_NOT_GENERAL_AI',
+      'newsOrCrawlingEnabled'=>false,'jobs'=>$rows];
+}
+function jrPythonCanaryPoll(PDO $db,string $node,array $body,int $now): array {
+    if(array_keys($body)!==['schema']||$body['schema']!==JR_PY_CANARY_SCHEMA)
+        throw new InvalidArgumentException('python_canary_poll_contract');
+    $db->beginTransaction();
+    try {
+        // No retries after lease expiry in this first canary. Operator can
+        // re-submit with fresh idempotency key after reviewing failure.
+        $db->prepare("UPDATE jrei_python_canary_jobs SET state='EXPIRED'
+          WHERE state IN ('QUEUED','LEASED') AND
+          (expires_at<=? OR (state='LEASED' AND lease_expires_at<=?))")
+          ->execute([$now,$now]);
+        $q=$db->prepare("SELECT job_id FROM jrei_python_canary_jobs
+          WHERE state='QUEUED' AND expires_at>? ORDER BY created_at,job_id
+          LIMIT 1 FOR UPDATE");
+        $q->execute([$now]);$id=$q->fetchColumn();
+        if(!$id){$db->commit();return ['ok'=>true,'schema'=>'jr.jrei.python-canary-poll.v1','job'=>null,'productionReady'=>false];}
+        $lease=jrPythonCanaryUuid();
+        $db->prepare("UPDATE jrei_python_canary_jobs
+          SET state='LEASED',assigned_node=?,lease_id=?,lease_expires_at=?
+          WHERE job_id=? AND state='QUEUED'")
+          ->execute([$node,$lease,min($now+60,$now+600),$id]);
+        $db->commit();
+        return ['ok'=>true,'schema'=>'jr.jrei.python-canary-poll.v1',
+          'job'=>['jobId'=>$id,'leaseId'=>$lease,'expression'=>'12*7',
+            'taskType'=>'EXACT_ARITHMETIC_CANARY',
+            'expiresAt'=>$now+60],
+          'productionReady'=>false];
+    }catch(Throwable $e){if($db->inTransaction())$db->rollBack();throw $e;}
+}
+function jrPythonCanaryComplete(PDO $db,string $node,array $body,int $now): array {
+    if(array_keys($body)!==['schema','jobId','leaseId','numerator','denominator',
+          'exactFraction','skillId','performedWithoutModel'] ||
+       $body['schema']!==JR_PY_CANARY_SCHEMA ||
+       !jrHybridUuid($body['jobId'])||!jrHybridUuid($body['leaseId']) ||
+       $body['numerator']!==84||$body['denominator']!==1||
+       $body['exactFraction']!=='84'||
+       $body['skillId']!=='jrei.math.exact_arithmetic.v1' ||
+       $body['performedWithoutModel']!==true)
+        throw new InvalidArgumentException('python_canary_complete_contract');
+    $db->beginTransaction();
+    try {
+        $q=$db->prepare('SELECT state,assigned_node,lease_id,lease_expires_at,expires_at FROM jrei_python_canary_jobs WHERE job_id=? FOR UPDATE');
+        $q->execute([$body['jobId']]);$row=$q->fetch(PDO::FETCH_ASSOC);
+        if(!is_array($row)||$row['state']!=='LEASED' ||
+           !hash_equals((string)$row['assigned_node'],$node) ||
+           !hash_equals((string)$row['lease_id'],$body['leaseId']) ||
+           (int)$row['lease_expires_at']<=$now ||
+           (int)$row['expires_at']<=$now)
+            throw new DomainException('python_canary_lease_invalid');
+        $digest=hash('sha256',JR_PY_CANARY_SCHEMA.'|'.$body['jobId'].'|'.$body['leaseId'].'|84/1');
+        $db->prepare("UPDATE jrei_python_canary_jobs
+          SET state='COMPLETED',completed_at=?,numerator=84,denominator=1,result_sha256=?
+          WHERE job_id=? AND state='LEASED'")->execute([$now,$digest,$body['jobId']]);
+        $db->commit();
+        return ['ok'=>true,'schema'=>'jr.jrei.python-canary-completion.v1',
+          'accepted'=>true,'resultSha256'=>$digest,'exactFraction'=>'84',
+          'productionReady'=>false,'modelTrainingStarted'=>false];
+    }catch(Throwable $e){if($db->inTransaction())$db->rollBack();throw $e;}
+}
