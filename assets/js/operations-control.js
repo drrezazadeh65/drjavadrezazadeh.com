@@ -103,6 +103,9 @@ function openExistingOperationalWorkspace(id){
  if(!snapshot||workspace.hidden)return;
  const target=$(id);
  if(!target||!workspace.contains(target))return;
+ // Owner command deck chooses the real destination category before legacy
+ // navigation focuses the existing panel. Never edits report permissions.
+ workspace.dispatchEvent(new CustomEvent('jr:ops-workspace-activate',{detail:{id}}));
  let parent=target.parentElement?.closest('details');
  while(parent&&workspace.contains(parent)){parent.open=true;parent=parent.parentElement?.closest('details');}
  if(target.matches('details'))target.open=true;
@@ -113,7 +116,7 @@ function openExistingOperationalWorkspace(id){
  focus.focus({preventScroll:true});
  target.scrollIntoView({behavior:'auto',block:'start'});
 }
-function show(id,focus=true){if(!snapshot)return;const r=id==='ADM-01'?snapshot.dashboard:snapshot.reports.find(row=>row.id===id);if(!r)return;selected=id;const panel=$('ops-detail');panel.replaceChildren();panel.hidden=false;const header=el('div',undefined,'ops-title-row');header.append(el('h2',r.id+' · '+title(r)));const report=el('button',t('دریافت گزارش مکتوب','Download written report'));report.addEventListener('click',()=>download(r));header.append(report);
+function show(id,focus=true){if(!snapshot)return;const r=id==='ADM-01'?snapshot.dashboard:snapshot.reports.find(row=>row.id===id);if(!r)return;if(focus)$('ops-workspace').dispatchEvent(new CustomEvent('jr:ops-workspace-activate',{detail:{id:'ops-detail'}}));selected=id;const panel=$('ops-detail');panel.replaceChildren();panel.hidden=false;const header=el('div',undefined,'ops-title-row');header.append(el('h2',r.id+' · '+title(r)));const report=el('button',t('دریافت گزارش مکتوب','Download written report'));report.addEventListener('click',()=>download(r));header.append(report);
  const workspaceId=operationalWorkspaceByReport[r.id];
  if(workspaceId&&$(workspaceId)&&$('ops-workspace').contains($(workspaceId))){
   const jump=el('button',t('بازکردن بخش مدیریتی مرتبط','Open related admin workspace'));
@@ -2382,6 +2385,8 @@ function renderImmediateSiteHealth(host,model){
        const parent=document.getElementById('ops-alert-center');
        if(parent)parent.open=true;
      }
+     $('ops-workspace').dispatchEvent(new CustomEvent('jr:ops-workspace-activate',
+       {detail:{id:item.target}}));
      panel.scrollIntoView({behavior:'auto',block:'start'});
      const focus=panel.querySelector(':scope > summary')||
        panel.querySelector('button,summary,[tabindex]');
@@ -2565,6 +2570,12 @@ function reportingDownload(format){
 
 $('ops-mfa-form').addEventListener('submit',async event=>{event.preventDefault();try{const code=$('ops-mfa-code').value;$('ops-mfa-code').value='';await api('/mfa',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-Token':csrf},body:JSON.stringify({code})});await load();}catch(error){notice(errorMessage(error),true);}});
 for(const id of ['ops-search','ops-engine','ops-priority'])$(id).addEventListener(id==='ops-search'?'input':'change',cards);
+// Read-only owner heartbeat may detect MFA expiry while a background browser
+// tab has throttled the original local expiry timer. Revocation remains server-owned.
+$('ops-workspace').addEventListener('jr:operations-session-invalid',()=>lock(t(
+ 'نشست مدیریتی یا تأیید دومرحله‌ای منقضی شد. دوباره وارد شوید.',
+ 'Administrator session or MFA verification expired. Sign in again.'
+)));
 $('ops-refresh').addEventListener('click',load);$('ops-refresh-data').addEventListener('click',load);$('ops-report').addEventListener('click',()=>download());$('ops-print').addEventListener('click',()=>window.print());$('ops-admin-detail').addEventListener('click',()=>show('ADM-01'));// Returning from another tab must not destroy an active owner's forms,
 // scroll position, or the signed-in MFA workspace. Recheck the original
 // server-side session instead of calling load() and rebuilding all panels.
