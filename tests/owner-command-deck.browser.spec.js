@@ -13,6 +13,7 @@ for(const [language,route] of [
   await page.goto(base+route,{waitUntil:'domcontentloaded'});
   const workspace=page.locator('#ops-workspace');
   await expect(workspace).toBeHidden();
+  await expect(page.locator('#ops-notice')).toHaveClass(/ops-error/);
   await expect(page.locator('#ops-command-deck')).toBeHidden();
   // Presentation-only fixture; never unlocks the actual API or sends credentials.
   await page.evaluate(()=>{
@@ -52,6 +53,7 @@ for(const [language,route] of [
    route.fulfill({status:401,contentType:'application/json',
     body:JSON.stringify({ok:false,error:'unauthorized'})}));
   await page.goto(base+route,{waitUntil:'domcontentloaded'});
+  await expect(page.locator('#ops-notice')).toHaveClass(/ops-error/);
   await page.evaluate(()=>{
    document.getElementById('ops-auth').hidden=true;
    const panel=document.getElementById('ops-workspace');
