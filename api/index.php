@@ -185,6 +185,11 @@ function cfg(): array {
         // No planner switch can enable a worker or live tool execution.
         'jrei_apex_missions_owner_write_enabled' =>
             getenv('JR_JREI_APEX_MISSIONS_OWNER_WRITE_ENABLED') === 'true',
+        // Separate source-stage, explicitly opt-in HMAC Python mission proposal.
+        // Default OFF; requires reviewed additive mother-DB migration and
+        // independently accepted single-process replay / TLS controls.
+        'jrei_apex_mission_python_plan_enabled' =>
+            getenv('JR_JREI_APEX_MISSION_PYTHON_PLAN_ENABLED') === 'true',
         // Source-only Python intelligence seam (private worker/VPS only).
         // OFF until independent owner, host, replay-ledger and TLS acceptance;
         // never assume a Python process is available on Bertina hosting.
