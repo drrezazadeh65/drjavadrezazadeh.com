@@ -42,8 +42,106 @@
  answer.style.whiteSpace='pre-wrap';
  answer.style.overflowWrap='anywhere';
  form.append(note,field,acknowledgment,submit,status,answer);
- panel.append(form);host.append(panel);
- let running=false,ctl=null,liveJob=null;
+ // A separate READ-ONLY snapshot does not preserve any prompt or model output.
+ // All figures are the current mother-DB aggregate, not evidence of
+ // signed pilot-poll freshness or scientific quality.
+ const diagnostics=document.createElement('details');
+ diagnostics.className='jr-hybrid-form-panel';
+ const diagnosticHeading=document.createElement('summary');
+ diagnosticHeading.textContent=T('وضعیت واقعی آزمایش خصوصی (بدون ذخیرهٔ مکالمه)',
+   'Actual private-pilot status (no conversation storage)');
+ const diagnosticRefresh=document.createElement('button');
+ diagnosticRefresh.type='button';
+ diagnosticRefresh.textContent=T('بررسی صف خصوصی از سرور',
+   'Read private queue status from server');
+ const diagnosticStatus=document.createElement('p');
+ diagnosticStatus.setAttribute('role','status');
+ diagnosticStatus.setAttribute('aria-live','polite');
+ const diagnosticContent=document.createElement('div');
+ diagnostics.append(diagnosticHeading,diagnosticRefresh,diagnosticStatus,
+   diagnosticContent);
+ panel.append(form,diagnostics);host.append(panel);
+ let running=false,ctl=null,liveJob=null,diagnosticCtl=null;
+ async function readPrivateReadiness(){
+   if(!valid()||diagnosticCtl)return;
+   const control=new AbortController();diagnosticCtl=control;
+   diagnosticRefresh.disabled=true;
+   diagnosticContent.replaceChildren();
+   diagnosticStatus.textContent=T('در حال خواندن وضعیت دیتابیس مادر…',
+     'Reading mother-database status…');
+   try {
+     const response=await fetch('/api/admin/operations/jrei-owner-pilot',{
+       method:'GET',credentials:'same-origin',cache:'no-store',
+       signal:control.signal,headers:{Accept:'application/json'}
+     });
+     if(!response.ok)throw Error('OWNER_PRIVATE_SNAPSHOT_UNAVAILABLE');
+     const snapshot=await response.json();
+     if(control.signal.aborted||!valid()||!diagnostics.open)return;
+     if(snapshot?.ok!==true||
+        snapshot.schema!=='jr.jrei.owner-pilot-readiness.v1'||
+        snapshot.privateOnly!==true||snapshot.publicAiActivated!==false||
+        snapshot.scientificQualityAccepted!==false)
+       throw Error('OWNER_PRIVATE_SNAPSHOT_CONTRACT_INVALID');
+     const counts=snapshot.activeQueueCounts;
+     const value=(x)=>x===true?T('آماده در سمت سرور','Configured on server'):
+       x===false?T('غیرفعال یا موجود نیست','Disabled or unavailable'):
+       T('نامعلوم','Unknown');
+     const number=x=>Number.isSafeInteger(x)&&x>=0?
+       x.toLocaleString(en?'en-US':'fa-IR'):T('نامعلوم','Unknown');
+     const rows=[
+       [T('جداول صف خصوصی','Private queue tables'),
+          value(snapshot.motherDatabaseQueueReady)],
+       [T('کلید رمزگذاری صف','Queue encryption'),
+          value(snapshot.queueEncryptionConfigured)],
+       [T('امکان پذیرش درخواست خصوصی','Private request intake'),
+          value(snapshot.acceptingPrivateOwnerRequests)],
+       [T('نودهای فعال ثبت‌شده','Registered enabled owner nodes'),
+          number(snapshot.registeredEnabledOwnerNodes)],
+       [T('مدل‌های دارای حقوق بررسی‌شده','Rights-reviewed model candidates'),
+          number(snapshot.rightsReviewedModelCandidates)],
+       [T('درخواست‌های منتظر','Queued private requests'),
+          number(counts?.PILOT_QUEUED)],
+       [T('درخواست‌های واگذارشده','Leased private requests'),
+          number(counts?.PILOT_LEASED)],
+       [T('پاسخ‌های آمادهٔ دریافت','Responses pending retrieval'),
+          number(counts?.PILOT_COMPLETED)],
+       [T('پاسخ‌های متوقف‌شده توسط کنترل کیفیت',
+          'Drafts withheld by safety review'),number(counts?.PILOT_BLOCKED)],
+       [T('سلامت زندهٔ Qwen روی رایانه','Live Qwen health on Windows'),
+          T('از دیتابیس سایت قابل اثبات نیست',
+            'Not attested by this server snapshot')],
+       [T('تأیید علمی و انتشار عمومی','Scientific acceptance/public release'),
+          T('تأیید نشده / غیرفعال','Unverified / disabled')]
+     ];
+     const dl=document.createElement('dl');
+     for(const [name,detail] of rows){
+       const dt=document.createElement('dt');dt.textContent=name;
+       const dd=document.createElement('dd');dd.textContent=detail;
+       dl.append(dt,dd);
+     }
+     diagnosticContent.replaceChildren(dl);
+     diagnosticStatus.textContent=T(
+       'داده‌ها فقط شمارش‌های جاری هستند؛ مکالمه‌های دریافت‌شده عمداً حذف می‌شوند.',
+       'Current metadata only; delivered conversations are intentionally erased.');
+   }catch{
+     if(!control.signal.aborted&&valid()){
+       diagnosticContent.replaceChildren();
+       diagnosticStatus.textContent=T(
+         'وضعیت خصوصی قابل تأیید نیست؛ نشست MFA یا پاسخ سرور را بررسی کنید.',
+         'Private status unavailable; check the MFA session and server response.');
+     }
+   }finally{
+     if(diagnosticCtl===control){diagnosticCtl=null;diagnosticRefresh.disabled=false;}
+   }
+ }
+ diagnosticRefresh.addEventListener('click',readPrivateReadiness);
+ diagnostics.addEventListener('toggle',()=>{
+   if(!diagnostics.open){
+     diagnosticCtl?.abort();diagnosticCtl=null;
+     diagnosticContent.replaceChildren();
+     diagnosticStatus.textContent='';
+   }
+ });
  const valid=()=>host.open&&panel.open&&!workspace.hidden&&!document.hidden;
  const sleep=ms=>new Promise(done=>setTimeout(done,ms));
  async function command(body){
@@ -75,7 +173,12 @@
  function leave(){
    if(ctl)ctl.abort();
    ctl=null;
+   // A visible result was already consumed and erased by PHP.
+   // Otherwise the short-retention server expiry is authoritative:
+   // do not persist browser job tokens or treat an abort as cancellation.
    liveJob=null;
+   diagnosticCtl?.abort();diagnosticCtl=null;
+   diagnosticContent.replaceChildren();
    running=false;submit.disabled=false;
    answer.textContent='';
  }
