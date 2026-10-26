@@ -759,6 +759,8 @@ function jrLocalChatOwnerSnapshot(PDO $pdo,array $cfg): array {
       'registeredModelCount'=>null,
       'rightsReviewedModelCount'=>null,'acceptedModelCount'=>null,
       'readinessGates'=>null,
+      'publicGeneralUnvalidatedOwnerApproved'=>
+          jrLocalChatUnvalidatedPublicOwnerApproval($cfg),
       'qualityNegativeAggregate'=>jrJreiLocalQualityOwnerSnapshot($pdo),
       'generativeWorkerStates'=>[],
       'externalCloudRequired'=>false
@@ -787,7 +789,7 @@ function jrLocalChatOwnerSnapshot(PDO $pdo,array $cfg): array {
         // An authorization row alone is NOT an authorized inferencing
         // node: revoked Windows identity, changed GGUF digest or missing
         // independent rights/quality review must all count as blocked.
-        $result['authorizedNodes']=(int)$pdo->query(
+        $authorized=$pdo->prepare(
           "SELECT COUNT(*) FROM jrei_local_chat_node_authorizations a
            JOIN jrei_hybrid_nodes n ON n.node_id=a.node_id
            JOIN jrei_local_model_registry m
@@ -798,8 +800,10 @@ function jrLocalChatOwnerSnapshot(PDO $pdo,array $cfg): array {
              AND m.model_artifact_sha256=a.model_artifact_sha256
              AND m.status='RIGHTS_REVIEWED' AND m.suspended_at IS NULL
              AND m.weights_installed_verified=1 AND m.runtime_verified=1
-             AND m.independent_quality_accepted=1"
-        )->fetchColumn();
+             AND (m.independent_quality_accepted=1 OR ?=1)"
+        );
+        $authorized->execute([jrLocalChatUnvalidatedPublicOwnerApproval($cfg)?1:0]);
+        $result['authorizedNodes']=(int)$authorized->fetchColumn();
         // This count is for independently signed chat-capable workers,
         // not evaluation-only heartbeats or a suspended GGUF artifact.
         // Match the same model/rights gate used by real chat readiness.
@@ -815,8 +819,9 @@ function jrLocalChatOwnerSnapshot(PDO $pdo,array $cfg): array {
             AND m.status='RIGHTS_REVIEWED' AND m.suspended_at IS NULL
             AND m.weights_installed_verified=1
             AND m.runtime_verified=1
-            AND m.independent_quality_accepted=1");
-        $recent->execute([time()-45]);
+            AND (m.independent_quality_accepted=1 OR ?=1)");
+        $recent->execute([time()-45,
+            jrLocalChatUnvalidatedPublicOwnerApproval($cfg)?1:0]);
         $result['recentlySignedGenerativeWorkers']=(int)$recent->fetchColumn();
         // Owner readout of independent chat authorization, never evaluation
         // telemetry. A signed heartbeat is observable, not proof that the
@@ -843,7 +848,8 @@ function jrLocalChatOwnerSnapshot(PDO $pdo,array $cfg): array {
                 $worker['suspended_at']===null&&
                 (int)$worker['weights_installed_verified']===1&&
                 (int)$worker['runtime_verified']===1&&
-                (int)$worker['independent_quality_accepted']===1;
+                ((int)$worker['independent_quality_accepted']===1||
+                 jrLocalChatUnvalidatedPublicOwnerApproval($cfg));
             $enabled=(int)$worker['enabled']===1;
             $seen=$worker['last_signed_chat_seen_at'];
             $signedFresh=$seen!==null&&
@@ -858,6 +864,10 @@ function jrLocalChatOwnerSnapshot(PDO $pdo,array $cfg): array {
                 'modelVersion'=>$worker['model_version'],
                 'generativeEnabled'=>$enabled,
                 'modelApprovalCurrent'=>$modelCurrent,
+                'scientificValidationEstablished'=>
+                    (int)($worker['independent_quality_accepted']??0)===1,
+                'unvalidatedOwnerPublicApproval'=>
+                    jrLocalChatUnvalidatedPublicOwnerApproval($cfg),
                 'signedPollRecent'=>$signedFresh,
                 'lastSignedAt'=>$seen===null?null:(int)$seen,
                 'state'=>$state,'inferenceIndependentlyVerified'=>false
