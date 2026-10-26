@@ -77,7 +77,7 @@ test('user text is output via textContent, not HTML, and widget hides on disable
  assert.match(js,/harim-khosusi/);
  const loader=read('assets/js/site-extras.js');
  assert.match(loader,/community-comments\.js/);
- assert.match(loader,/community-comments\.css/);
+ assert.match(js,/community-comments\.css/);
  assert.match(loader,/data-jr-community-loader/);
 });
 test('both administrator dashboards retain MFA and existing journal features',()=>{
