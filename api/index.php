@@ -174,6 +174,12 @@ function cfg(): array {
         'jrei_news_independent_qa_model' => (string)(getenv('JR_JREI_NEWS_INDEPENDENT_QA_MODEL') ?: ''),
 
 
+        // Source-only Python intelligence seam (private worker/VPS only).
+        // OFF until independent owner, host, replay-ledger and TLS acceptance;
+        // never assume a Python process is available on Bertina hosting.
+        'jrei_python_internal_enabled' => getenv('JR_JREI_PYTHON_INTERNAL_ENABLED') === 'true',
+        'jrei_python_internal_base_url' => (string)(getenv('JR_JREI_PYTHON_INTERNAL_BASE_URL') ?: ''),
+        'jrei_python_hmac_key' => (string)(getenv('JR_JREI_PYTHON_HMAC_KEY') ?: ''),
         // Real AI inference: independent paid-provider credentials and
         // source-owned budget approval; entirely OFF until final acceptance.
         'jrei_live_ai_enabled' => getenv('JR_JREI_LIVE_AI_ENABLED') === 'true',
