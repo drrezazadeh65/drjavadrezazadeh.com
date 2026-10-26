@@ -80,6 +80,12 @@ if($healthy){
 } else {
   Start-Registered 'JREI-Owner-Local-Model' 'model'
 }
+# The established evaluation/heartbeat Worker is separate from approval
+# for generative Qwen. Keep its existing signed outbound connection alive
+# even while live chat and the owner-only model pilot remain gated OFF.
+Ensure-ExistingOrInstall 'JREI-Owner-Outbound-Worker' 'evaluation' 'jrei-worker.mjs'
+Start-Registered 'JREI-Owner-Outbound-Worker' 'evaluation'
+Write-Output '[JREI] SIGNED_EVALUATION_CONNECTION_START_REQUESTED'
 $mode=$null
 if($cfg.localChat.enabled -eq $true -and
    $cfg.localChat.rightsReviewed -eq $true -and
