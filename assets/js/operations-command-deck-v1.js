@@ -324,16 +324,25 @@ function readNumber(id){
  return m?Number(m[0]):null;
 }
 function incident(kind){
- // Published owner readings are allowed only when the original sensor tiles
- // provide a real numeric value. Do not reinterpret a dash as zero.
- const values=[...workspace.querySelectorAll('.ops-immediate-triage__tile[data-evidence-kind="'+kind+'"]')]
-  .map(tile=>tile.querySelector('.ops-immediate-triage__value')?.textContent?.trim())
-  .filter(Boolean)
-  .map(v=>Number(v.replace(/[۰-۹]/g,d=>'۰۱۲۳۴۵۶۷۸۹'.indexOf(d)).replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d))));
- if(!values.length||values.some(n=>!Number.isFinite(n)))return null;
- // A single triage category might mix HTTP 5xx with verified incidents.
- // Show existence of observations, not a fabricated unique incident total.
- return Math.max(...values);
+ // Choose ONLY the specifically labelled recorded open incident category.
+ // HTTP 5xx, failed probes and missing rule counts are different measures
+ // and must never be silently added to the same incident total.
+ const expected=kind==='critical'
+  ?tr('رخدادهای بحرانی باز ثبت‌شده','Recorded open critical incidents')
+  :tr('هشدارهای باز ثبت‌شده','Recorded open warning incidents');
+ const tiles=[...workspace.querySelectorAll('.ops-immediate-triage__tile[data-evidence-kind]')];
+ for(const tile of tiles){
+  const label=tile.querySelector('h3')?.textContent?.trim();
+  const text=tile.querySelector('.ops-immediate-triage__value')?.textContent?.trim()||'';
+  const number=Number(text.replace(/[۰-۹]/g,d=>'۰۱۲۳۴۵۶۷۸۹'.indexOf(d))
+    .replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)));
+  tile.dataset.opsEvidenceSeverity=text&&Number.isFinite(number)&&number>0
+    ?tile.dataset.evidenceKind==='critical'?'alert':'warning'
+    :text&&Number.isFinite(number)?'observed':'unknown';
+  if(label!==expected)continue;
+  return text&&Number.isFinite(number)?number:null;
+ }
+ return null;
 }
 function metrics(){
  if(workspace.hidden)return;
@@ -395,8 +404,9 @@ async function heartbeatProbe(){
   recordObservation(success,'session');
   if(success){
    lastSuccess=Date.now();
-   // A successful session probe confirms the account endpoint only. It cannot
-   // erase a separately recorded failed reporting refresh.
+   // Recover a transient probe error only when the protected report has not
+   // independently signalled a real failed refresh.
+   connectionError=notice.classList.contains('ops-error');
   }else connectionError=true;
   pulse();
  }catch(_){
