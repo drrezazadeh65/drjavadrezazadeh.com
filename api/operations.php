@@ -51,6 +51,7 @@ require_once __DIR__.'/operations-cron-dispatcher.php';
 require_once __DIR__.'/jrei-learning-operations.php';
 require_once __DIR__.'/jrei-hybrid-owner.php';
 require_once __DIR__.'/jrei-owner-private-pilot.php';
+require_once __DIR__.'/jrei-python-owner-skills.php';
 require_once __DIR__.'/jrei-exam-research-owner.php';
 require_once __DIR__.'/jrei-ka-independent-source-review.php';
 require_once __DIR__.'/jrei-exam-commercial-catalogue.php';
@@ -407,6 +408,28 @@ function operationsRoute(string $path, string $verb): never {
             respond(['ok'=>true,'mfaVerified'=>true]);
         }
         if (!$fresh) fail('admin_mfa_required',403);
+        // A model-free, read-only capability within the EXISTING operations
+        // session. No second admin login, direct browser-to-worker URL,
+        // credential disclosure, command shell or mother-DB mutation.
+        if ($path==='/admin/operations/jrei-python-skills' && $verb==='POST') {
+            if (($configuration['operations_admins'][$accountId]['role']??'')!=='SUPER_ADMIN')
+                fail('super_admin_required',403);
+            if (!operationsMutationAllowed($_SERVER,
+                (string)($_SERVER['HTTP_X_CSRF_TOKEN']??''),$csrf))
+                fail('csrf_forbidden',403);
+            if (!rateAllowed($pdo,'jrei_python_owner_skills',$accountId,12,300))
+                fail('rate_limited',429);
+            $skillBody=jsonBody();
+            if (!is_array($skillBody)) fail('jrei_python_request_invalid',422);
+            try {
+                respond(jrOwnerJreiPythonSkillDispatch($configuration,$skillBody));
+            } catch (InvalidArgumentException $e) {
+                fail('jrei_python_request_invalid',422);
+            } catch (RuntimeException $e) {
+                fail('jrei_python_private_service_unavailable',503);
+            }
+        }
+
         // JREI News uses THIS existing owner login, original TOTP and CSRF.
         // It is unmounted in production until independent final acceptance.
         // Never expose the private source library as a separate public route.
