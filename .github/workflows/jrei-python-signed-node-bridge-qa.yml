@@ -10,6 +10,7 @@ on:
       - 'platform/jrei-v5/windows-worker/jrei-worker.mjs'
       - 'platform/jrei-v5/windows-worker/jrei-python-health-worker.mjs'
       - 'tests/jrei-python-node-health-bridge.test.mjs'
+      - 'tests/jrei-python-node-health-php-contract.php'
       - 'docs/migrations/20261027_jrei_python_node_health_mother_mysql.sql'
   workflow_dispatch:
 permissions:
@@ -37,6 +38,9 @@ jobs:
           php -l api/jrei-python-node-health.php
           php -l api/index.php
           php -l api/operations.php
+          php -l tests/jrei-python-node-health-php-contract.php
+      - name: Strict PHP bridge status and anti-replay timestamp contract
+        run: php tests/jrei-python-node-health-php-contract.php
       - name: Explicit no-live boundary
         if: always()
         run: echo 'Source QA only. No Bertina schema migration, deploy, Windows Worker installation, owner flag activation, HMAC secret provisioning, model training, crawling or news publication.' >> "$GITHUB_STEP_SUMMARY"
