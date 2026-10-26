@@ -16,7 +16,9 @@ function jrJreiPythonInternalPropose(array $privateConfig, string $route, array 
 {
     $allowed = [
         '/internal/v1/learning/prioritize',
-        '/internal/v1/missions/propose'
+        '/internal/v1/missions/propose',
+        '/internal/v1/skills/catalog',
+        '/internal/v1/skills/evidence/triage'
     ];
     if (!in_array($route, $allowed, true)) {
         throw new DomainException('JREI_PYTHON_ROUTE_DENIED');
