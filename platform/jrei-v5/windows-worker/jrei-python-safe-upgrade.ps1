@@ -162,8 +162,13 @@ function Stage([string]$tree){
  if(-not (Test-Path $wheelhouse -PathType Container)){throw 'JREI_OFFLINE_WHEELHOUSE_NOT_FOUND'}
  $basePy=(Join-Path $root 'venv\Scripts\python.exe')
  if(-not (Test-Path $basePy -PathType Leaf)){throw 'JREI_INITIAL_PYTHON_RUNTIME_MISSING'}
- $launcher=(Get-Command py.exe -ErrorAction Stop).Source
- if(-not [IO.Path]::IsPathRooted($launcher)){throw 'JREI_PYTHON_LAUNCHER_INVALID'}
+ # The already VERIFIED Python 3.13 venv supplies the interpreter.
+ # Do not require py.exe availability in non-interactive Scheduled Tasks.
+ $launcher=$basePy
+ $baseVersion=(& $launcher -c "import sys; print(str(sys.version_info.major)+'.'+str(sys.version_info.minor)+'.'+str(sys.maxsize>2**32))")
+ if($LASTEXITCODE -ne 0 -or $baseVersion.Trim() -cne '3.13.True'){
+   throw 'JREI_BASE_PYTHON_313_X64_REQUIRED'
+ }
  $venv=Join-Path $runtimes ('py-'+$tree.Substring(0,16))
  $py=Join-Path $venv 'Scripts\python.exe'
  # A failed/incomplete staging directory must NOT be trusted. No deletion:
@@ -177,7 +182,7 @@ function Stage([string]$tree){
  $wheelDir=Join-Path $venv 'built-wheels'
  New-Item -ItemType Directory -Force -Path $runtimes,$wheelDir|Out-Null
  # Existing virtualenv and Qwen are not modified during staging.
- RunChecked $launcher @('-3.13','-m','venv',$venv) $stdout $stderr
+ RunChecked $launcher @('-m','venv',$venv) $stdout $stderr
  # Building from reviewed tracked source, using ONLY locally available wheels.
  RunChecked $py @('-m','pip','wheel','--no-index','--disable-pip-version-check',
     '--find-links',$wheelhouse,'--wheel-dir',$wheelDir,'--no-deps',$project) $stdout $stderr
