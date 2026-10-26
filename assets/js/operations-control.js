@@ -64,7 +64,26 @@ alert_rule_update_unavailable:t('ثبت تنظیمات هشدار و لاگ حس
 alert_scope_update_unavailable:t('ثبت تنظیم ایمیل اختصاصی همراه با لاگ حسابرسی تکمیل نشد.','Scoped email preference and audit could not be committed.'),
 monitor_schema_unavailable:t('سیاست پایش و لاگ حسابرسی قابل ثبت نبود یا ردیف تنظیمات دیتابیس نصب نشده است.','Observer policy and audit are unavailable or the mother-DB singleton is not provisioned.'),
 monitor_disabled:t('حسگر خاموش است. برای ثبت درخواست دستی، نخست سیاست پایش را با مجوز مدیر فعال کنید.','The observer is disabled. Enable it through the owner policy before requesting a manual run.')})[error.message]||t('دریافت داده ممکن نشد. وضعیت ثبت‌شده تغییر نکرده است.','Data could not be loaded. Recorded status has not changed.');}
-async function load(){const generation=++loadGeneration;try{notice(t('در حال بررسی دسترسی و شواهد سرور…','Checking access and server evidence…'));const requestedAt=Date.now();const session=await api('/session');if(generation!==loadGeneration)return;csrf=session.csrfToken;$('ops-mfa-form').hidden=!session.mfaRequired;if(session.mfaRequired){lock(t('کد دومرحله‌ای مدیر را وارد کنید.','Enter your administrator second-factor code.'));csrf=session.csrfToken;return;}const deadline=requestedAt+Math.max(0,Number(session.mfaExpiresIn)||0)*1000;const expired=()=>lock(t('تأیید مدیر منقضی شد؛ دوباره بررسی کنید.','Administrator verification expired. Check access again.'));clearTimeout(expiryTimer);if(Date.now()>=deadline){expired();return;}expiryTimer=setTimeout(expired,deadline-Date.now());const data=await api('');if(generation!==loadGeneration)return;if(Date.now()>=deadline){expired();return;}alertCenterCurrent=null;httpHealthCurrent=null;qualityResult=null;qualityDetail=null;sourceDirectoryState=null;sourceControlState=null;sourceMetricState=null;sourceDirectoryPage=0;sourceDirectoryFilter={kind:'',engine:'',query:''};snapshot=data;actionRuns=Array.isArray(data.reporting?.actionExecution?.recentRuns)?data.reporting.actionExecution.recentRuns:[];$('ops-auth').hidden=true;$('ops-workspace').hidden=false;render();$('ops-workspace').dispatchEvent(new Event('jr:operations-ready'));notice(t('داده از سرور دریافت شد؛ برآوردهای تاریخی از پیشرفت تأییدشده جدا هستند.','Server data loaded. Historical estimates are separate from verified progress.'));}catch(error){
+async function load(){const generation=++loadGeneration;try{notice(t('در حال بررسی دسترسی و شواهد سرور…','Checking access and server evidence…'));const requestedAt=Date.now();const session=await api('/session');if(generation!==loadGeneration)return;csrf=session.csrfToken;$('ops-mfa-form').hidden=!session.mfaRequired;if(session.mfaRequired){lock(t('کد دومرحله‌ای مدیر را وارد کنید.','Enter your administrator second-factor code.'));csrf=session.csrfToken;return;}const deadline=requestedAt+Math.max(0,Number(session.mfaExpiresIn)||0)*1000;const expired=()=>lock(t('تأیید مدیر منقضی شد؛ دوباره بررسی کنید.','Administrator verification expired. Check access again.'));clearTimeout(expiryTimer);if(Date.now()>=deadline){expired();return;}expiryTimer=setTimeout(expired,deadline-Date.now());const data=await api('');if(generation!==loadGeneration)return;if(Date.now()>=deadline){expired();return;}alertCenterCurrent=null;httpHealthCurrent=null;qualityResult=null;qualityDetail=null;sourceDirectoryState=null;sourceControlState=null;sourceMetricState=null;sourceDirectoryPage=0;sourceDirectoryFilter={kind:'',engine:'',query:''};snapshot=data;actionRuns=Array.isArray(data.reporting?.actionExecution?.recentRuns)?data.reporting.actionExecution.recentRuns:[];$('ops-auth').hidden=true;$('ops-workspace').hidden=false;render();
+ // Existing trusted owner snapshot only: expose a minimal, PRIVATE, in-memory
+ // engine evidence vector for the visual Command Deck. These are NOT live
+ // uptime claims, nor personal, financial or user data.
+ const engineEvidence=(Array.isArray(snapshot.reporting?.engines)?snapshot.reporting.engines:[])
+  .filter(engine=>engine&&typeof engine.id==='string'&&Array.isArray(engine.reportIds))
+  .slice(0,20).map(engine=>{
+   const ids=new Set(engine.reportIds);
+   const reports=[...snapshot.reports,snapshot.dashboard].filter(r=>ids.has(r.id));
+   return {id:engine.id,label:engineName(engine),total:reports.length,
+     verified:reports.filter(r=>r.status==='verified_complete'&&r.closed===true).length,
+     regressed:reports.filter(r=>r.status==='regressed').length,
+     blocked:reports.filter(r=>r.status==='blocked').length,
+     progress:reports.filter(r=>r.status==='in_progress').length};
+  });
+ $('ops-workspace').dispatchEvent(new Event('jr:operations-ready'));
+ $('ops-workspace').dispatchEvent(new CustomEvent('jr:operations-engine-evidence',{
+  detail:{engines:engineEvidence}
+ }));
+ notice(t('داده از سرور دریافت شد؛ برآوردهای تاریخی از پیشرفت تأییدشده جدا هستند.','Server data loaded. Historical estimates are separate from verified progress.'));}catch(error){
  if(generation!==loadGeneration)return;
  // An unauthorised or expired MFA session is security-critical: wipe
  // previously displayed private data immediately. A temporary reporting
