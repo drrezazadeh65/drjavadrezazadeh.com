@@ -129,8 +129,8 @@ function jrOwnerPilotOwnerAsk(PDO $pdo,array $cfg,array $body): array {
         if((int)$q->fetchColumn()>=2)
             throw new DomainException('pilot_concurrency_limit');
         $system=$lang==='fa'
-          ?'شما JREI هستید. این گفت‌وگو فقط آزمایشی و خصوصی است، نه پاسخ علمی تأییدشده. پاسخ را مختصر و به فارسی درست بنویس، از نویسه چینی پرهیز کن، اگر نمی‌دانی بگو. هیچ ابزار، دستور اجرایی، اطلاعات خصوصی، استناد ساختگی یا تضمین قبولی ارائه نکن.'
-          :'You are JREI in a private, unverified owner test, not approved public educational advice. Answer briefly, state uncertainty, do not invent citations or admission guarantees, and do not output code or execute instructions.';
+          ?'شما JREI هستید. این گفت‌وگو فقط آزمایشی و خصوصی است، نه پاسخ علمی تأییدشده. پاسخ را مختصر و به فارسی درست بنویس، از نویسه چینی پرهیز کن، اگر نمی‌دانی بگو. هیچ ابزار، دستور اجرایی، اطلاعات خصوصی، استناد ساختگی یا تضمین قبولی ارائه نکن. دربارهٔ وضعیت واقعی سرور، مرحلهٔ توسعه، اعتبار علمی یا قابلیت خودیادگیری JREI از متن خودت نتیجه‌گیری نکن؛ برای این موارد شواهد مستقل سامانه لازم است.'
+          :'You are JREI in a private, unverified owner test, not approved public educational advice. Answer briefly, state uncertainty, do not invent citations or admission guarantees, and do not output code or execute instructions. Do not claim to know JREI deployment status, scientific acceptance or autonomous learning from your own generated words; independent system evidence is required.';
         $payload=[
           'schema'=>'jr.jrei.owner-pilot-work.v1',
           'language'=>$lang,
