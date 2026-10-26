@@ -170,6 +170,7 @@ function jrApexMissionSnapshot(PDO $pdo, array $cfg, string $accountId): array
             ];
         }
     }
+    jrApexPythonAttachSnapshot($pdo,$base,$ids);
     return $base;
 }
 function jrApexMissionOwnerChange(PDO $pdo,array $cfg,string $accountId,array $body): array
@@ -178,7 +179,7 @@ function jrApexMissionOwnerChange(PDO $pdo,array $cfg,string $accountId,array $b
         throw new RuntimeException('mission_db_unavailable');
     $action=$body['action']??null;
     if(!is_string($action)||!in_array($action,
-        ['plan','cancel','emergency-stop','resume-planning'],true))
+        ['plan','plan-python','cancel','emergency-stop','resume-planning'],true))
         throw new InvalidArgumentException('mission_action_invalid');
     $readOnlySwitch=($cfg['jrei_apex_missions_owner_write_enabled']??false)!==true;
     // Emergency stop and cancellation remain accessible when the new-write
@@ -186,12 +187,16 @@ function jrApexMissionOwnerChange(PDO $pdo,array $cfg,string $accountId,array $b
     if($readOnlySwitch && !in_array($action,['cancel','emergency-stop'],true))
         throw new DomainException('mission_planning_source_only');
     $expectedKeys=match($action) {
-        'plan'=>['action','intent','requestKey'],
+        'plan','plan-python'=>['action','intent','requestKey'],
         'cancel'=>['action','missionId'],
         default=>['action']
     };
     $keys=array_keys($body);sort($keys);sort($expectedKeys);
     if($keys!==$expectedKeys)throw new InvalidArgumentException('mission_body_invalid');
+    // Python preflight runs BEFORE mother-DB locks. It cannot mutate state.
+    // Recheck the control revision after lock, before recording the receipt.
+    $prepared=$action==='plan-python'
+        ? jrApexPythonPrepare($pdo,$cfg,$accountId,$body) : null;
     $at=nowTs();
     $pdo->beginTransaction();
     try {
@@ -213,7 +218,7 @@ function jrApexMissionOwnerChange(PDO $pdo,array $cfg,string $accountId,array $b
                   revision=revision+1,updated_at=?,updated_by_account_id=?
               WHERE singleton_id=1')->execute([$at,$accountId]);
             operationsAudit($pdo,$accountId,'jrei_apex_planning_only_resume','owner_missions');
-        } elseif($action==='plan') {
+        } elseif($action==='plan'||$action==='plan-python') {
             $intent=$body['intent'];
             $requestKey=$body['requestKey'];
             if(!is_string($intent)||!in_array($intent,JR_APEX_MISSION_INTENTS,true)||
@@ -235,10 +240,14 @@ function jrApexMissionOwnerChange(PDO $pdo,array $cfg,string $accountId,array $b
                (int)$control['planning_enabled']!==1 ||
                (int)$control['execution_enabled']!==0)
                 throw new DomainException('mission_planning_stopped');
-                $id=jrApexMissionUuid();
+                $id=$prepared['missionId']??jrApexMissionUuid();
                 // Policy digest ties the plan to the recorded control revision,
                 // not to a model, user text, unverifiable external source or URL.
                 $policyHash=hash('sha256','jr.apex.planning.v1|'.$control['revision']);
+                if($action==='plan-python' && (!$prepared ||
+                   $prepared['policyDigest']!==$policyHash ||
+                   $prepared['controlRevision']!==(int)$control['revision']))
+                    throw new DomainException('mission_python_control_changed');
                 $pdo->prepare('INSERT INTO jrei_apex_owner_missions
                   (mission_id,owner_account_id,request_key,intent_code,
                   request_digest,policy_digest,status,revision,last_event_seq,
@@ -249,7 +258,9 @@ function jrApexMissionOwnerChange(PDO $pdo,array $cfg,string $accountId,array $b
                 $row=jrApexMissionOwnerRead($pdo,$accountId,$id,true);
                 if(!$row)throw new RuntimeException('mission_insert_unavailable');
                 jrApexMissionAppend($pdo,$row,'PLANNED','MISSION_PLANNED',$accountId,$at);
-                operationsAudit($pdo,$accountId,'jrei_apex_owner_plan',$id);
+                if($action==='plan-python') jrApexPythonStore($pdo,$id,$prepared,$at);
+                operationsAudit($pdo,$accountId,$action==='plan-python'
+                    ?'jrei_apex_python_plan_stored':'jrei_apex_owner_plan',$id);
             }
         } elseif($action==='cancel') {
             $id=$body['missionId'];
