@@ -54,7 +54,7 @@ link.dataset.jrAssistantStyle='1';
 document.head.appendChild(link);
 }
 const script=document.createElement('script');
-script.src=new URL('assistant.js?v=20261024-jrei-owned-local-first-v1',siteScript.src).href;
+script.src=new URL('assistant.js?v=jrei-public-qwen-20261026',siteScript.src).href;
 script.defer=true;
 script.dataset.jrAssistant='1';
 document.head.appendChild(script);
