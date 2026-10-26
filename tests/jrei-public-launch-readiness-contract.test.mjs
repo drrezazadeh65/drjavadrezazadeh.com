@@ -76,6 +76,24 @@ test('explicit owner public mode never impersonates independent model certificat
  assert.ok(read('assets/js/assistant.js').includes('اعتبار علمی مستقل آن‌ها تأیید نشده است'));
 });
 
+test('owner runtime-only action cannot falsely promote scientific quality',()=>{
+ const model=read('api/jrei-hybrid-owner-models.php');
+ const owner=read('api/jrei-hybrid-owner.php');
+ const ui=read('assets/js/operations-jrei-hybrid-nodes-v1.js');
+ assert.ok(owner.includes("'attest_local_model_runtime_only'"));
+ assert.ok(model.includes("OWNER_ACCEPTS_MEASURED_RUNTIME_NOT_SCIENTIFIC_QUALITY"));
+ assert.ok(model.includes("ownerReviewedQualityLimitations"));
+ assert.ok(model.includes("runtimeOnlyNoScientificPromotion"));
+ const start=model.indexOf("$update=$pdo->prepare($runtimeOnly?");
+ const end=model.indexOf("$update->execute",start);
+ assert.ok(start>=0&&end>start);
+ const update=model.slice(start,end);
+ const first=update.slice(0,update.indexOf("':\n              'UPDATE"));
+ assert.ok(first.includes('weights_installed_verified=1,runtime_verified=1'));
+ assert.ok(!first.includes('independent_quality_accepted=1'));
+ assert.ok(ui.includes("Record real runtime only — not scientific certification"));
+});
+
 test('Windows preflight is read-only, localhost only, does not turn on chat',()=>{
  const src=read('platform/jrei-v5/windows-worker/jrei-public-launch-preflight.ps1');
  assert.match(src,/READ ONLY/);
