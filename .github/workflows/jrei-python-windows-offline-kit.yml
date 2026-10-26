@@ -6,6 +6,7 @@ on:
       - migration/bertina-linux6
     paths:
       - .github/workflows/jrei-python-windows-offline-kit.yml
+      - 'platform/jrei-python/**'
   workflow_dispatch:
 
 permissions:
