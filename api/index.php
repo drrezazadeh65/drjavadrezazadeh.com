@@ -194,6 +194,7 @@ function cfg(): array {
         // Default OFF; NEVER exposes Python 8091 or authorizes skill execution.
         'jrei_python_node_heartbeat_enabled' =>
             getenv('JR_JREI_PYTHON_NODE_HEARTBEAT_ENABLED') === 'true',
+        'jrei_python_canary_enabled' => getenv('JR_JREI_PYTHON_CANARY_ENABLED') === 'true',
         // Source-only Python intelligence seam (private worker/VPS only).
         // OFF until independent owner, host, replay-ledger and TLS acceptance;
         // never assume a Python process is available on Bertina hosting.
@@ -781,6 +782,41 @@ if ($path==='/exams/catalog' && $verb==='GET') {
     }catch(Throwable $e){fail('exam_catalogue_read_unavailable',503);}
 }
 if (str_starts_with($path, '/admin/operations')) operationsRoute($path, $verb);
+// Minimal real signed job: one fixed arithmetic computation, no model tools.
+if (in_array($path,['/jrei/v1/python-canary/poll',
+                    '/jrei/v1/python-canary/complete'],true)) {
+    require_once __DIR__.'/jrei-hybrid-worker.php';
+    require_once __DIR__.'/jrei-python-canary-bridge.php';
+    header('Cache-Control: no-store, private, max-age=0');
+    if ($verb!=='POST'||!jrHybridHttps($_SERVER))
+        fail('python_canary_signed_https_required',403);
+    $pc=cfg();
+    if (($pc['jrei_python_canary_enabled']??false)!==true)
+        fail('python_canary_disabled',403);
+    $pdo=db();
+    if (!($pdo instanceof PDO) || !jrHybridSchemaReady($pdo) ||
+        !jrPythonCanaryReady($pdo))
+        fail('python_canary_schema_unavailable',503);
+    $raw=jrHybridReadBody($_SERVER);
+    if ($raw===null) fail('python_canary_invalid_request',422);
+    try {
+        $signed=jrHybridAuthenticate($pdo,'POST',$path,$raw,$_SERVER,time());
+        if(!is_array($signed) ||
+           !in_array($signed['provider_type']??null,
+             ['LOCAL_WINDOWS_WORKER','LOCAL_SECONDARY_WORKER'],true))
+            fail('python_canary_signed_node_denied',403);
+        if(!rateAllowed($pdo,'jrei_python_canary_signed',
+             (string)$signed['node_id'],100,300))
+            fail('python_canary_rate_limit',429);
+        $body=jrHybridDecode($raw);
+        if($body===null)fail('python_canary_invalid_json',422);
+        respond($path==='/jrei/v1/python-canary/poll'
+            ?jrPythonCanaryPoll($pdo,(string)$signed['node_id'],$body,time())
+            :jrPythonCanaryComplete($pdo,(string)$signed['node_id'],$body,time()));
+    } catch(InvalidArgumentException $e){fail('python_canary_bad_contract',422);}
+      catch(DomainException $e){fail('python_canary_lease_denied',409);}
+      catch(Throwable $e){fail('python_canary_temporarily_unavailable',503);}
+}
 // Signed Python process observation: authenticated EXISTING Ed25519 node,
  // original durable replay guard, HTTPS only, no public 8091 connectivity.
 if ($path==='/jrei/v1/python-node/heartbeat') {
