@@ -13,6 +13,7 @@ from jrei_core.contracts import (
 )
 from jrei_core.mission import MissionDependencyError, propose_mission
 from jrei_learning.prioritizer import prioritize
+from jrei_learning.heldout import HeldoutReviewRequest, HeldoutReviewResult, review_heldout
 from jrei_skills import EvidenceTriageRequest, EvidenceTriageResult, triage_evidence_revision
 from jrei_skills.registry import skill_catalog
 
@@ -60,6 +61,7 @@ async def capabilities():
             "aggregate_gap_prioritization_v1",
             "scoped_mission_dag_proposal_v1",
             "evidence_revision_triage_v1",
+            "paired_bilingual_heldout_review_v1",
         ],
         "live_model_inference": False,
         "durable_missions": False,
@@ -108,3 +110,14 @@ async def registered_skills():
 async def evidence_revision_triage(payload: EvidenceTriageRequest):
     # Computation only. Source/rights approval stays with independent mother-DB review.
     return triage_evidence_revision(payload)
+
+
+@app.post(
+    "/internal/v1/learning/heldout/review",
+    response_model=HeldoutReviewResult,
+    dependencies=[Depends(require_internal_gateway)],
+)
+async def heldout_evidence_review(payload: HeldoutReviewRequest):
+    # Caller data only. No test fixture rights or independence is attested;
+    # no knowledge or model promotion is applied, and no DB is changed.
+    return review_heldout(payload)
