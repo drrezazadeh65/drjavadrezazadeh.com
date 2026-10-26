@@ -77,6 +77,11 @@ footer.appendChild(holder);
 /* Existing SW lifecycle: notify open installed app sessions after an update. */
 jrAfterFirstPaint(()=>{
 if(!('serviceWorker' in navigator)||document.querySelector('[data-jr-release-notice-loader]'))return;
+// A first-time browser visitor with no controlling worker has no installed
+// session update to announce. Avoid two optional network requests there.
+const installed=window.matchMedia?.('(display-mode:standalone)')?.matches===true||
+ navigator.standalone===true;
+if(!installed&&!navigator.serviceWorker.controller)return;
 const css=document.createElement('link');css.rel='stylesheet';css.href='/assets/css/pwa-release-notice.css?v=20261019-v1';css.dataset.jrReleaseNoticeLoader='1';document.head.append(css);
 const js=document.createElement('script');js.src='/assets/js/pwa-release-notice.js?v=20261019-v1';js.defer=true;document.head.append(js);
 });
@@ -152,7 +157,11 @@ jrAfterFirstPaint(()=>{
  if(!portrait||typeof window.matchMedia!=='function')return;
  const pointer=window.matchMedia('(hover:hover) and (pointer:fine)');
  const reduced=window.matchMedia('(prefers-reduced-motion: reduce)');
- if(!pointer.matches||reduced.matches)return;
+ // Cosmetic portrait movement must never compete with interaction latency
+ // on data-saver or slow mobile links.
+ const link=navigator.connection||navigator.mozConnection||navigator.webkitConnection;
+ if(!pointer.matches||reduced.matches||link?.saveData||
+    /(?:^|\b)2g\b/i.test(link?.effectiveType||''))return;
  let pending=null,frame=0;
  const reset=()=>{
   pending=null;
