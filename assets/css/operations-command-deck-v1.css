@@ -134,7 +134,8 @@ body:has(.ops.ops-console-layout){height:100dvh;overflow:hidden}
  gap:clamp(7px,1vw,14px);min-width:0;
 }
 .ops #ops-workspace .ops-command-signal,
-.ops #ops-workspace .ops-command-freshness{
+.ops #ops-workspace .ops-command-freshness,
+.ops #ops-workspace .ops-command-release{
  display:flex;align-items:center;gap:11px;
  padding:9px 12px;min-width:0;
  border:1px solid var(--cmd-edge);
@@ -158,14 +159,17 @@ body:has(.ops.ops-console-layout){height:100dvh;overflow:hidden}
  background:var(--cmd-gold);border-color:rgba(240,206,135,.6);
 }
 .ops #ops-workspace .ops-command-signal-copy,
-.ops #ops-workspace .ops-command-freshness{min-width:0}
+.ops #ops-workspace .ops-command-freshness,
+.ops #ops-workspace .ops-command-release{min-width:0}
 .ops #ops-workspace .ops-command-signal-copy strong,
-.ops #ops-workspace .ops-command-freshness strong{
+.ops #ops-workspace .ops-command-freshness strong,
+.ops #ops-workspace .ops-command-release strong{
  display:block;font-size:.82rem;line-height:1.5;
  color:var(--cmd-text);white-space:normal;
 }
 .ops #ops-workspace .ops-command-signal-copy small,
-.ops #ops-workspace .ops-command-freshness small{
+.ops #ops-workspace .ops-command-freshness small,
+.ops #ops-workspace .ops-command-release small{
  display:block;color:var(--cmd-muted);font-size:.66rem;
  line-height:1.45;max-width:310px;
 }
@@ -689,4 +693,16 @@ body:has(.ops.ops-console-layout){height:100dvh;overflow:hidden}
 }
 @media print{
  .ops #ops-workspace .ops-command-plan-board{display:none!important}
+}
+
+.ops #ops-workspace .ops-command-release strong{
+ font:700 .76rem/1.5 ui-monospace,SFMono-Regular,Consolas,monospace;
+ letter-spacing:.025em;direction:ltr;unicode-bidi:isolate;
+ color:var(--cmd-gold);
+}
+.ops #ops-workspace .ops-command-release small{
+ font:600 .6rem/1.5 Arial,sans-serif;letter-spacing:.17em;
+}
+@media(max-width:1050px){
+ .ops #ops-workspace .ops-command-release{display:none}
 }
