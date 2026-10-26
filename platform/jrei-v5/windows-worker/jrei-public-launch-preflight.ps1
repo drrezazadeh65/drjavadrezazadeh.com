@@ -45,6 +45,13 @@ Gate 'RIGHTS_REVIEWED_LOCAL' ($chat.rightsReviewed -eq $true)
 Gate 'OWNER_APPROVED_LOCAL' ($chat.ownerApproved -eq $true)
 Gate 'MODEL_RUNTIME_ACCEPTED_LOCAL' ($chat.modelRuntimeVerified -eq $true)
 Gate 'INDEPENDENT_QUALITY_ACCEPTED_LOCAL' ($chat.independentQualityAccepted -eq $true)
+Gate 'PUBLIC_GENERAL_UNVALIDATED_OWNER_APPROVED_LOCAL' ($chat.publicUnvalidatedOwnerApproved -eq $true)
+if($chat.independentQualityAccepted -ne $true -and
+   $chat.publicUnvalidatedOwnerApproved -eq $true) {
+  Report 'ACTIVATION_POLICY' 'OWNER_APPROVED_GENERAL_NONCERTIFIED'
+} else {
+  Report 'ACTIVATION_POLICY' 'INDEPENDENT_SCIENCE_OR_UNCONFIGURED'
+}
 Gate 'GENERATIVE_WORKER_ENABLED_LOCAL' ($chat.enabled -eq $true)
 try {
   $healthUri='http://127.0.0.1:'+([string]$expected.Port)+'/health'
