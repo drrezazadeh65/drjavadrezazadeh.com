@@ -35,6 +35,14 @@ Search visibility is a search-engine decision, not a deterministic result of sou
 12. Strengthened the English VIP hub's comparison and low-specificity VIP typography without changing established URLs. Versioned existing site/community resources and staged, but did not execute, compatible community pagination assertions.
 13. Future source-only commits use `[skip ci]` because the repository's existing Actions may otherwise start automatically on push. No intentional/manual test was invoked in this development phase; **automatic runs from earlier unmarked commits were not audited or ruled out**.
 
+## 26 October source extension — standalone moderated article ratings
+
+The existing `community_comments` mother-database table already permits a non-null 1–5 `rating` with an empty but non-null `body_text`. The frontend and PHP submission handler now allow verified article readers to submit **a rating without composing a written comment**. An empty submission with no rating remains invalid; service questions still require substantive text and reject unverified star ratings. The one-account/one-page unique key, consent, CSRF, verified account, same-origin requirement, rate controls, owner moderation and pending state remain in force. The public view labels approved rating-only rows truthfully, displaying verified stars but no fabricated review body; the owner queue explicitly distinguishes these entries from missing comment text. Existing comments and coupled comment-plus-rating remain supported.
+
+This is **source-level code only**. The feature flags remain off by default and the 2026-10-21 owner-observed production table structure has not been reinstalled or changed. Browser and source acceptance examples were added to existing test files but **not executed**, consistent with the single final QA directive. The present schema allows only one submission per verified account and page, so submitting a rating alone precludes a second comment on that same page unless a separate, audited edit lifecycle is later explicitly designed. Do not quietly remove the unique constraint to simulate multiple reviews.
+
+The new source audit checks the existing public route policy so that noindex-private routes cannot be accidentally treated as public, and separately diagnoses hreflang target language disagreements. These new checks are also **not executed**.
+
 ## Verification gates to run only after development
 
 **SEO + technical:** compare GSC exported affected URLs against the frozen URL manifest and route policy; HTML 200/301/404 semantics; a single descriptive H1 in main; heading hierarchy; useful copy with distinct intent; canonical and exact reciprocal hreflang; private noindex; sitemap URLs and actual lastmod; robots policies; crawlable public resources; JSON-LD parser and provable entity identity; internal links; mobile layout; HTTP status, redirect chains, feed/XML content type.
