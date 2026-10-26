@@ -67,8 +67,8 @@ async function load(){
  const mean=summary?.mean;
  if(Number.isInteger(count)&&count>0&&count<=100000000 &&
     typeof mean==='number'&&Number.isFinite(mean)&&mean>=1&&mean<=5){
-  ratingSummary.textContent=tr('میانگین امتیازهای تأییدشده: ','Mean of approved article ratings: ')+mean.toLocaleString(en?'en-US':'fa-IR',
-    {minimumFractionDigits:1,maximumFractionDigits:1})+tr(' از ۵ · ',' / 5 · ')+count.toLocaleString(en?'en-US':'fa-IR')+tr(' رأی',' ratings');
+  ratingSummary.textContent=tr('میانگین امتیازهای تأییدشده: ','Mean of approved article ratings: ')+mean.toLocaleString(locale,
+    {minimumFractionDigits:1,maximumFractionDigits:1})+tr(' از ۵ · ',' / 5 · ')+count.toLocaleString(locale)+tr(' رأی',' ratings');
   ratingSummary.hidden=false;
  }else{ratingSummary.hidden=true;ratingSummary.textContent='';}
  const more=el('button','jr-community-more',tr('نمایش دیدگاه‌های بیشتر','Load more comments'));
@@ -83,7 +83,13 @@ async function load(){
   // Only server-approved comments and published replies are ever rendered here.
   const box=el('details','jr-community-comment');
   const meta=el('summary','jr-community-comment-meta',tr('پرسش یا دیدگاه خواننده تأییدشده','Question or comment from a verified reader'));
-  if(Number.isInteger(c.rating)&&c.rating>=1&&c.rating<=5)meta.textContent+=tr(' · '+String(c.rating)+' از ۵ ستاره',' · '+String(c.rating)+' / 5 stars');
+  if(!isService&&Number.isInteger(c.rating)&&c.rating>=1&&c.rating<=5){
+   meta.textContent+=tr(' · '+String(c.rating)+' از ۵ ستاره',' · '+String(c.rating)+' / 5 stars');
+   const stars=el('span','jr-community-comment-stars','★'.repeat(c.rating)+'☆'.repeat(5-c.rating));
+   stars.setAttribute('aria-hidden','true');
+   stars.setAttribute('dir','ltr');
+   meta.append(stars);
+  }
   const body=el('p','jr-community-body',c.body);
   box.append(meta,body);
   const replies=Array.isArray(c.replies)?c.replies.slice(0,30):[];
