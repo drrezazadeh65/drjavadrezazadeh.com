@@ -49,7 +49,18 @@ holder.innerHTML="<a referrerpolicy='origin' target='_blank' href='https://trust
 footer.appendChild(holder);
 })();
 
-import('/assets/js/mobile-app-v431.js?v=20261022-need-primary-nav-v1');
+// Avoid downloading a 20KB mobile module on journal and private workspace
+// routes where that very module would immediately exit without rendering.
+(()=>{
+ const raw=location.pathname.replace(/index\\.html$/,'');
+ const base='/drjavadrezazadeh.com/';
+ const route=raw.includes(base)?'/'+raw.split(base)[1]:raw;
+ const excluded=['/fa/app/','/app/','/en/account/','/fa/assessments/',
+  '/assessments/','/en/golden-talent/assessment/','/en/golden-talent/dashboard/',
+  '/en/golden-talent/observer/','/en/golden-talent/roles/','/en/golden-talent/student/'];
+ if(route.startsWith('/journal/')||excluded.some(prefix=>route.startsWith(prefix)))return;
+ import('/assets/js/mobile-app-v431.js?v=20261022-need-primary-nav-v1');
+})();
 
 /* Existing SW lifecycle: notify open installed app sessions after an update. */
 jrAfterFirstPaint(()=>{
