@@ -20,7 +20,7 @@ UuidText = Annotated[
 ]
 Status = Literal[
     "QUEUED", "LEASED", "REVIEW_REQUIRED", "NEEDS_REVIEW", "EXPIRED",
-    "CANCELLED", "REJECTED", "CLOSED_UNKNOWN",
+    "CANCELLED", "REVIEWED", "REJECTED", "CLOSED_UNKNOWN",
 ]
 ObservationCode = Literal[
     "QUEUED_NO_EXECUTION_RECEIPT",
