@@ -1,0 +1,65 @@
+name: JREI V2 Python-first Isolated QA (NO DEPLOY)
+on:
+  push:
+    branches: [migration/bertina-linux6]
+    paths:
+      - '.github/workflows/jrei-v2-python-isolated-qa.yml'
+      - 'platform/jrei-python/**'
+      - 'api/jrei-apex-owner-missions.php'
+      - 'api/jrei-apex-python-plan.php'
+      - 'api/jrei-python-owner-skills.php'
+      - 'api/operations.php'
+      - 'api/index.php'
+      - 'docs/migrations/20261026_jrei_*.sql'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: jrei-v2-python-isolated-qa-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  python-unit:
+    name: Model-free Python contracts (no network/data writes)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          cache: pip
+          cache-dependency-path: platform/jrei-python/pyproject.toml
+      - name: Install locked direct source requirements
+        working-directory: platform/jrei-python
+        run: python -m pip install -e .
+      - name: Compile every Python module
+        working-directory: platform/jrei-python
+        run: python -m compileall -q jrei_core jrei_learning jrei_orchestrator jrei_service jrei_skills jrei_memory
+      - name: Deterministic model-free suite
+        working-directory: platform/jrei-python
+        env:
+          JREI_PYTHON_PRIVATE_ENABLED: '0'
+          JREI_PYTHON_OWNER_MEMORY_ENABLED: '0'
+          JREI_PYTHON_OWNER_MEMORY_REVOKE_ENABLED: '0'
+        run: python -m unittest discover -s tests -p 'test_*.py' -v
+      - name: Explicit no-deploy result
+        if: always()
+        run: echo 'Python source QA only. No Bertina SSH/FTP/SQL, Windows changes, Qwen activation or automatic model training.' >> "$GITHUB_STEP_SUMMARY"
+  php-syntax:
+    name: Original owner gateway and proposal syntax
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Lint new and unchanged PHP routes
+        run: |
+          set -euo pipefail
+          php -l api/jrei-apex-owner-missions.php
+          php -l api/jrei-apex-python-plan.php
+          php -l api/jrei-python-owner-skills.php
+          php -l platform/jrei-python/php/jrei-python-internal-client.php
+          php -l api/operations.php
+          php -l api/index.php
+      - name: Report no-live-DB boundary
+        if: always()
+        run: echo 'No MySQL migrations applied. Only php -l. Owner MFA, DB and worker runtime require separately observed stage.' >> "$GITHUB_STEP_SUMMARY"
