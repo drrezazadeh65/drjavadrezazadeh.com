@@ -20,6 +20,7 @@ const make=(tag,className,textContent)=>{
 const ZONES=[
  ['overview',tr('نبض مجموعه','Overview'),'activity','cyan'],
  ['engines',tr('موتورها و گزارش‌ها','Engines & reports'),'cpu','gold'],
+ ['planning',tr('برنامه‌ریزی','Planning'),'clipboard-list','violet'],
  ['ai',tr('هوش مصنوعی و JREI','AI & JREI'),'brain','blue'],
  ['seo',tr('سئو و رشد','SEO & growth'),'trending-up','cyan'],
  ['education',tr('آموزش و ارزیابی','Education'),'graduation-cap','gold'],
@@ -32,7 +33,7 @@ const ZONE_IDS=Object.freeze({
  'ops-executive-stats':'overview',
  'ops-immediate-triage':'overview','ops-health-summary':'overview',
  'ops-detail':'engines','ops-cards':'engines','ops-reporting':'engines',
- 'ops-audit-timeline':'systems','ops-stage7-blueprint':'systems',
+ 'ops-audit-timeline':'systems','ops-stage7-blueprint':'planning',
  'ops-social':'media','ops-social-composer':'media','ops-social-review':'media',
  'ops-social-settings':'media','ops-organic-growth':'seo',
  'ops-free-resources':'systems','ops-jhela-workstream':'journal',
@@ -55,6 +56,7 @@ const ZONE_IDS=Object.freeze({
 const ICONS={
  'activity':['M3 12h4l3 6 4-12 3 6h4'],
  'cpu':['M6 6h12v12H6z','M9 1v5 M15 1v5 M9 18v5 M15 18v5 M1 9h5 M1 15h5 M18 9h5 M18 15h5'],
+ 'clipboard-list':['M8 4h8 M9 2h6v4H9z','M6 4H4v18h16V4h-2','M8 12h2 M13 12h4 M8 17h2 M13 17h4'],
  'brain':['M12 5a4 4 0 0 0-7 2 4 4 0 0 0-1 7 4 4 0 0 0 3 6h1 M12 5a4 4 0 0 1 7 2 4 4 0 0 1 1 7 4 4 0 0 1-3 6h-1 M12 5v14 M8 8v3 M16 8v3'],
  'trending-up':['M3 17l6-6 4 4 8-8','M15 7h6v6'],
  'graduation-cap':['M2 9l10-5 10 5-10 5-10-5z','M6 12v5c4 3 8 3 12 0v-5 M22 9v7'],
@@ -206,7 +208,31 @@ const engineEmpty=make('p','ops-command-engine-empty',
  tr('پس از دریافت گزارش مجاز مدیر، وضعیت مستند موتورهای ثبت‌شده نمایش داده خواهد شد.',
     'Registered engine evidence appears after an authorized owner report is received.'));
 engineCells.append(engineEmpty);engineMatrix.append(engineMatrixHead,engineCells);
-shell.append(heading,timeline,nav,subtitle,moduleBar,overview,engineMatrix);
+const planBoard=make('section','ops-command-plan-board');
+planBoard.setAttribute('aria-label',tr('دستورکار مبتنی بر شواهد','Evidence-based work priorities'));
+planBoard.hidden=true;
+const planHead=make('div','ops-command-plan-head');
+const planHeading=make('h3',null,tr('دستورکار مدیریتی · کارهای باز ثبت‌شده',
+ 'Decision desk · recorded open work'));
+const planDescription=make('p',null,tr(
+ 'این صف از اولویت‌ها و وضعیت‌های گزارش اصلی ساخته می‌شود. پیشنهاد تصمیم است؛ وظیفه جدید ایجاد نمی‌کند، ترتیب ثبت‌شده را تغییر نمی‌دهد و ذخیره برنامه نیست.',
+ 'This queue reads recorded priorities and statuses. It does not create tasks, reorder the owner register or save a plan.'));
+planHead.append(planHeading,planDescription);
+const planControls=make('div','ops-command-plan-controls');
+const prioritySelector=make('select','ops-command-plan-filter');
+prioritySelector.setAttribute('aria-label',tr('فیلتر اولویت کارها','Filter work priority'));
+for(const [value,label] of [
+ ['',tr('همه اولویت‌ها','All priorities')],['P0','P0'],
+ ['P1','P1'],['P2','P2']
+]){
+ const o=make('option',null,label);o.value=value;prioritySelector.append(o);
+}
+planControls.append(prioritySelector);
+const planItems=make('div','ops-command-plan-items');
+planItems.append(make('p','ops-command-plan-empty',
+ tr('هنوز گزارش معتبری برای این نشست دریافت نشده است.','No valid work register is loaded for this session.')));
+planBoard.append(planHead,planControls,planItems);
+shell.append(heading,timeline,nav,subtitle,moduleBar,overview,engineMatrix,planBoard);
 workspace.prepend(shell);
 let active='overview';
 const selectedModules=new Map();
@@ -217,7 +243,48 @@ let heartbeat=0;
 let heartbeatBusy=false;
 let lastProbeAttempt=0;
 const observations=[];
+let planEvidence=[];
 const formatNumber=value=>new Intl.NumberFormat(fa?'fa-IR':'en-US').format(value);
+function renderPlan(){
+ planItems.replaceChildren();
+ if(workspace.hidden)return;
+ const priority=prioritySelector.value;
+ const chosen=planEvidence.filter(row=>!priority||row.priority===priority)
+   .sort((a,b)=>['P0','P1','P2'].indexOf(a.priority)-['P0','P1','P2'].indexOf(b.priority))
+   .slice(0,36);
+ if(!chosen.length){
+  planItems.append(make('p','ops-command-plan-empty',tr(
+   'در اولویت انتخاب‌شده کار بازی وجود ندارد، یا شواهد این بخش هنوز دریافت نشده‌اند.',
+   'There is no open work under this filter, or its evidence has not been loaded.')));
+  return;
+ }
+ for(const row of chosen){
+  const card=make('article','ops-command-plan-item');
+  card.dataset.priority=row.priority;
+  card.dataset.status=row.status;
+  const tags=make('div','ops-command-plan-tags');
+  tags.append(make('strong','ops-command-plan-priority',row.priority),
+              make('small',null,row.id+' · '+String(row.engine||'')));
+  const name=make('h4',null,String(row.label||row.id).slice(0,150));
+  const status=make('span','ops-command-plan-status',({
+   regressed:tr('خطای ثبت‌شده','Regressed evidence'),
+   blocked:tr('وابستگی باز','Blocked'),
+   ready_for_verification:tr('نیازمند ارزیابی','Review needed'),
+   in_progress:tr('در جریان','In progress'),
+   not_started:tr('بدون شواهد','No evidence')
+  })[row.status]||tr('وضعیت اعلام‌شده در پرونده','Recorded status'));
+  const button=make('button','ops-command-plan-open',
+                    tr('بررسی گزارش و اقدامات','Review report & actions'));
+  button.type='button';
+  button.addEventListener('click',()=>{
+   if(workspace.hidden)return;
+   workspace.dispatchEvent(new CustomEvent('jr:ops-open-report',{detail:{id:row.id}}));
+  });
+  card.append(tags,name,status,button);
+  planItems.append(card);
+ }
+}
+prioritySelector.addEventListener('change',renderPlan);
 function renderEngineEvidence(engines){
  if(workspace.hidden)return;
  engineCells.replaceChildren();
@@ -369,6 +436,8 @@ function activate(next,{focus=false}={}){
  sectionTitle.textContent=ZONES.find(([id])=>id===next)?.[1]||'';
  overview.hidden=next!=='overview';
  engineMatrix.hidden=next!=='overview';
+ planBoard.hidden=next!=='planning';
+ if(next==='planning')renderPlan();
  renderModules();annotate();
  // Internal viewport, not a 200-kilometre document scrollbar.
  workspace.scrollTo({top:0,behavior:'instant'});
@@ -502,7 +571,7 @@ function pulse(){
 }
 function locked(){
  lastSuccess=0;lastProbeAttempt=0;connectionError=false;selectedModules.clear();
- observations.length=0;timelineBars.replaceChildren();
+ observations.length=0;planEvidence=[];prioritySelector.value='';planItems.replaceChildren();timelineBars.replaceChildren();
  engineCells.replaceChildren();
  engineCells.append(make('p','ops-command-engine-empty',
    tr('دسترسی قفل شده است؛ گزارش جدید فقط پس از احراز هویت بارگیری می‌شود.',
@@ -567,6 +636,13 @@ workspace.addEventListener('jr:operations-locked',locked);
 workspace.addEventListener('jr:operations-engine-evidence',event=>{
  if(workspace.hidden||auth.hidden!==true)return;
  renderEngineEvidence(event.detail?.engines);
+});
+workspace.addEventListener('jr:operations-planning-evidence',event=>{
+ if(workspace.hidden||auth.hidden!==true)return;
+ planEvidence=Array.isArray(event.detail?.items)
+  ?event.detail.items.filter(row=>row&&/^OP-[0-9]{2}$/.test(row.id)&&
+    ['P0','P1','P2'].includes(row.priority)).slice(0,36):[];
+ if(active==='planning')renderPlan();
 });
 // New operational tiles and panels may be appended after an authenticated
 // response. Observe direct children only: never re-render the entire dashboard.
