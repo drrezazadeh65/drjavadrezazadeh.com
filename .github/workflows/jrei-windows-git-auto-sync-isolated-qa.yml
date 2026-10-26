@@ -47,8 +47,12 @@ jobs:
               throw 'JREI_SYNC_READ_ONLY_CONTRACT_INVALID'
           }
           'locally modified, must survive' | Add-Content -LiteralPath (Join-Path $repo 'synthetic.txt')
-          $result=& powershell.exe -NoProfile -NonInteractive -File $script -Mode Check 2>&1
-          if($LASTEXITCODE -eq 0){throw 'JREI_LOCAL_MODIFICATIONS_NOT_PRESERVED'}
+          $stderr=Join-Path $env:RUNNER_TEMP 'jrei-local-modification-stderr.txt'
+          $stdout=Join-Path $env:RUNNER_TEMP 'jrei-local-modification-stdout.txt'
+          $check=Start-Process -FilePath "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell.exe" `
+            -ArgumentList @('-NoProfile','-NonInteractive','-File',('"' + $script + '"'),'-Mode','Check') `
+            -Wait -PassThru -NoNewWindow -RedirectStandardOutput $stdout -RedirectStandardError $stderr
+          if($check.ExitCode -eq 0){throw 'JREI_LOCAL_MODIFICATIONS_NOT_PRESERVED'}
           if((Get-Content -LiteralPath (Join-Path $repo 'synthetic.txt') -Raw) -notmatch 'locally modified'){
             throw 'JREI_LOCAL_MODIFICATION_OVERWRITTEN'
           }
