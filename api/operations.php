@@ -53,6 +53,7 @@ require_once __DIR__.'/jrei-hybrid-owner.php';
 require_once __DIR__.'/jrei-owner-private-pilot.php';
 require_once __DIR__.'/jrei-python-owner-skills.php';
 require_once __DIR__.'/jrei-apex-owner-missions.php';
+require_once __DIR__.'/jrei-apex-worker-observations.php';
 require_once __DIR__.'/jrei-exam-research-owner.php';
 require_once __DIR__.'/jrei-ka-independent-source-review.php';
 require_once __DIR__.'/jrei-exam-commercial-catalogue.php';
@@ -438,6 +439,35 @@ function operationsRoute(string $path, string $verb): never {
                 fail('jrei_apex_mission_not_authorized_or_conflicted',409);
             } catch(Throwable $e) {
                 fail('jrei_apex_mission_write_unavailable',503);
+            }
+        }
+
+        // Existing signed-worker job observations, NOT a job dispatcher.
+        // Original MFA, owner role, CSRF, rate limits and drjavad1_store only.
+        if($path==='/admin/operations/jrei-apex-worker-observations' &&
+           in_array($verb,['GET','POST'],true)) {
+            if(($configuration['operations_admins'][$accountId]['role']??'')!=='SUPER_ADMIN')
+                fail('super_admin_required',403);
+            if(!rateAllowed($pdo,'jrei_apex_worker_observations',$accountId,24,300))
+                fail('rate_limited',429);
+            if($verb==='GET') {
+                try{respond(jrApexWorkerSnapshot($pdo,$configuration,$accountId));}
+                catch(Throwable $e){fail('jrei_apex_worker_snapshot_unavailable',503);}
+            }
+            if(!operationsMutationAllowed($_SERVER,
+                (string)($_SERVER['HTTP_X_CSRF_TOKEN']??''),$csrf))
+                fail('csrf_forbidden',403);
+            try {
+                $body=jsonBody();
+                if(!is_array($body)||array_is_list($body))
+                    fail('jrei_apex_worker_request_invalid',422);
+                respond(jrApexWorkerOwnerChange($pdo,$configuration,$accountId,$body));
+            }catch(InvalidArgumentException $e) {
+                fail('jrei_apex_worker_request_invalid',422);
+            }catch(DomainException $e) {
+                fail('jrei_apex_worker_link_conflict_or_not_authorized',409);
+            }catch(Throwable $e){
+                fail('jrei_apex_worker_observation_unavailable',503);
             }
         }
 
