@@ -2,7 +2,6 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 const read=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
-
 test('one pre-existing server identity and verified same-origin community gate protects all mutations',()=>{
  const php=read('api/community.php');
  assert.match(php,/function communityAvailable\(PDO \$pdo\)/);
@@ -124,11 +123,9 @@ test('academic brand, native accessible accordions, revision controls and SUPER_
   assert.match(html,/operations-community-moderation\.js\?v=20261021-academic-v2/);
   assert.match(html,/operations-community-moderation\.css\?v=20261021-academic-v2/);
  }
- assert.match(read('assets/js/site-extras.js'),/community-comments\.js\?v=20261026-community-r2/);
- assert.match(read('assets/js/site-extras.js'),/community-comments\.css\?v=20261026-community-r2/);
+ assert.match(read('assets/js/site-extras.js'),/community-comments\.js\?v=20261026-community-r3/);
+ assert.match(pub,/community-comments\.css\?v=20261026-community-r3/);
 });
-
-
 test('public reply result caps preserve approved-only publication and bounded memory',()=>{
  const php=read('api/community.php');
  const begin=php.indexOf('function communityListApprovedReplies(');
@@ -146,7 +143,6 @@ test('administrator relock guard stops CSRF races before a mutation is sent',()=
  assert.match(js,/if\(workspace\.hidden\|\|active!==generation\)throw Error\('locked'\)/);
  assert.match(js,/const key=await token\(\);\s*if\(workspace\.hidden\)throw Error\('locked'\)/);
 });
-
 test('reader rating summary counts only fully approved valid votes across the complete page, not a display limit',()=>{
  const php=read('api/community.php');
  assert.match(php,/COUNT\(\*\) AS n,AVG\(rating\) AS mean_value/);
@@ -159,7 +155,6 @@ test('reader rating summary counts only fully approved valid votes across the co
  assert.match(ui,/ratingSummary\.textContent=/);
  assert.doesNotMatch(ui,/JSON-LD|aggregateRating|ReviewCount/);
 });
-
 test('approved-only public pagination remains bounded and leaves rating aggregation independent',()=>{
  const php=read('api/community.php');
  const ui=read('assets/js/community-comments.js');
