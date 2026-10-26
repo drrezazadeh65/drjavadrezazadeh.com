@@ -9,11 +9,11 @@ if (!defined('BERTINA_API_BOOTSTRAPPED')) { http_response_code(404); exit; }
  * No browser-selected Python URL, key, tool identifier, SQL, shell or model.
  * This module neither authenticates a human nor grants any new permissions.
  */
-function jrOwnerJreiPythonSkillDispatch(array $privateConfig, array $body): array
+function jrOwnerJreiPythonSkillDispatch(array $privateConfig, array $body, ?string $ownerAccountId=null): array
 {
     $action=$body['action']??null;
     if (!is_string($action) ||
-        !in_array($action,['catalog','triage-evidence','heldout-review','calculate'],true)) {
+        !in_array($action,['catalog','triage-evidence','heldout-review','calculate','memory-save','memory-read','memory-revoke'],true)) {
         throw new InvalidArgumentException('python_skill_action_invalid');
     }
 
@@ -62,7 +62,7 @@ function jrOwnerJreiPythonSkillDispatch(array $privateConfig, array $body): arra
         $route='/internal/v1/learning/heldout/review';
         $payload=$body['payload'];
         $expected='jr.jrei.heldout-review-result.v1';
-    } else {
+    } elseif ($action==='calculate') {
         if (count($body)!==2 || !array_key_exists('payload',$body) ||
             !is_array($body['payload']) || array_is_list($body['payload']) ||
             count($body['payload'])<1 ||
@@ -73,6 +73,36 @@ function jrOwnerJreiPythonSkillDispatch(array $privateConfig, array $body): arra
         $route='/internal/v1/skills/arithmetic/calculate';
         $payload=$body['payload'];
         $expected='jr.jrei.arithmetic-result.v1';
+    } else {
+        if (!is_string($ownerAccountId) ||
+            !preg_match('/^[a-f0-9]{8}-(?:[a-f0-9]{4}-){3}[a-f0-9]{12}$/Di',$ownerAccountId)) {
+            throw new InvalidArgumentException('python_owner_memory_account_missing');
+        }
+        if ($action==='memory-revoke') {
+            if (($privateConfig['jrei_python_owner_memory_enabled']??false)!==true &&
+                ($privateConfig['jrei_python_owner_memory_revoke_enabled']??false)!==true) {
+                throw new RuntimeException('JREI_OWNER_MEMORY_REVOKE_DISABLED');
+            }
+        } elseif (($privateConfig['jrei_python_owner_memory_enabled']??false)!==true) {
+            throw new RuntimeException('JREI_OWNER_MEMORY_DISABLED');
+        }
+        if (count($body)!==2 || !isset($body['payload']) ||
+            !is_array($body['payload']) || array_is_list($body['payload']) ||
+            array_key_exists('owner_account_id',$body['payload']) ||
+            strlen(json_encode($body['payload'],JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR))>12000) {
+            throw new InvalidArgumentException('python_owner_memory_payload_invalid');
+        }
+        $payload=$body['payload'];
+        $payload['owner_account_id']=strtolower($ownerAccountId);
+        $suffix=match($action) {
+            'memory-save'=>'save','memory-read'=>'read','memory-revoke'=>'revoke'
+        };
+        $route='/internal/v1/memory/owner/'.$suffix;
+        $expected=match($action) {
+            'memory-save'=>'jr.jrei.owner-memory-receipt.v1',
+            'memory-read'=>'jr.jrei.owner-memory-read.v1',
+            'memory-revoke'=>'jr.jrei.owner-memory-revoked.v1'
+        };
     }
     // Preserve existing authenticated operations routes and isolated MySQL
     // fixtures when this optional Python service is disabled. Never require
@@ -122,6 +152,22 @@ function jrOwnerJreiPythonSkillDispatch(array $privateConfig, array $body): arra
          !is_int($result['denominator']??null) ||
          $result['denominator']<1)) {
         throw new RuntimeException('JREI_PYTHON_ARITHMETIC_CONTRACT_MISMATCH');
+    }
+    if (str_starts_with($action,'memory-')) {
+        if (($result['used_for_model_training']??null)!==false ||
+            ($action==='memory-save' && ($result['persist_result']??null)!=='MOTHER_DB_ATOMIC_INSERT') ||
+            ($action==='memory-read' && ($result['available_to_other_tenants']??null)!==false) ||
+            ($action==='memory-revoke' && ($result['historical_backups_erased']??null)!==false)) {
+            throw new RuntimeException('JREI_PYTHON_MEMORY_CONTRACT_MISMATCH');
+        }
+        // Only a real successful signed Python+mother-DB reply may change
+        // these response indicators. Never infer live memory from source.
+        $base['sourceOnly']=false;
+        $base['motherDbConnectedByPython']=true;
+        return $base+[
+            'status'=>'PRIVATE_OWNER_MEMORY_RESULT_RECEIVED',
+            'result'=>$result,
+        ];
     }
     return $base+[
         'status'=>'PRIVATE_SKILL_RESPONSE_RECEIVED',
