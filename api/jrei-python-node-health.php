@@ -61,7 +61,7 @@ function jrPythonNodeOwnerSnapshot(PDO $pdo, array $cfg): array
     $result=[
        'ok'=>true,'schema'=>'jr.jrei.python-node-owner-snapshot.v1',
        'bridgeEnabled'=>$enabled,'motherTableReady'=>$ready,
-       'signaturesVerifiedByGateway'=>true, // applies only to persisted reports
+       'signaturesVerifiedByGateway'=>$ready, // only stored reports pass signed route
        'pythonApiConnectedToMotherDb'=>false,
        'modelInferenceAttested'=>false,
        'autonomousLearningActive'=>false,
