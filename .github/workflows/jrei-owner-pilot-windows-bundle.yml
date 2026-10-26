@@ -38,7 +38,7 @@ jobs:
           node --test tests/jrei-owner-private-pilot.test.mjs
           node --test tests/jrei-node-a-persistent-connect.test.mjs
           if command -v pwsh >/dev/null 2>&1; then
-            pwsh -NoProfile -NonInteractive -Command '$ErrorActionPreference="Stop"; foreach($name in @("jrei-connect-existing-node-a.ps1","jrei-managed-startup.ps1","jrei-local-model-start.ps1")) { $null=[System.Management.Automation.Language.Parser]::ParseFile("platform/jrei-v5/windows-worker/$name",[ref]$null,[ref]$errors); if($errors.Count -gt 0) {throw "PowerShell source syntax invalid: $name"} }'
+            pwsh -NoProfile -NonInteractive -Command '$ErrorActionPreference="Stop"; foreach($name in @("jrei-connect-existing-node-a.ps1","jrei-managed-startup.ps1","jrei-local-model-start.ps1")) { $tokens=$null; $parseErrors=$null; [System.Management.Automation.Language.Parser]::ParseFile("platform/jrei-v5/windows-worker/$name",[ref]$tokens,[ref]$parseErrors) | Out-Null; if($parseErrors.Count -gt 0) {throw "PowerShell source syntax invalid: $name"} }'
           fi
       - name: Package source update without owner keys, model or private config
         shell: bash
