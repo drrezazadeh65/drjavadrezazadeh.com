@@ -10,6 +10,7 @@ on:
       - 'platform/jrei-v5/windows-worker/JREI-OWNER-PRIVATE-PILOT.cmd'
       - 'platform/jrei-v5/windows-worker/JREI-CONNECT-EXISTING-NODE-A.cmd'
       - 'platform/jrei-v5/windows-worker/JREI-CONNECT-EXISTING-NODE-B.cmd'
+      - 'platform/jrei-v5/windows-worker/JREI-CHECK-NODE-B.cmd'
       - 'platform/jrei-v5/windows-worker/jrei-connect-existing-node-b.ps1'
       - 'platform/jrei-v5/windows-worker/jrei-node-b-stability-status.ps1'
       - 'tests/jrei-node-a-persistent-connect.test.mjs'
@@ -49,7 +50,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p bundle/platform/jrei-v5/windows-worker bundle/platform/jrei-v5
-          for file in JREI-OWNER-PRIVATE-PILOT.cmd JREI-CONNECT-EXISTING-NODE-A.cmd JREI-CONNECT-EXISTING-NODE-B.cmd JREI-READINESS-CHECK.cmd jrei-connect-existing-node-a.ps1 jrei-connect-existing-node-b.ps1 jrei-node-b-stability-status.ps1 jrei-managed-startup.ps1 jrei-local-model-start.ps1 jrei-local-doctor.mjs jrei-worker.mjs jrei-local-chat-worker.mjs jrei-owner-pilot-worker.mjs jrei-loopback-model-adapter.mjs jrei-worker-error-code.mjs jrei-windows-dpapi.ps1; do
+          for file in JREI-OWNER-PRIVATE-PILOT.cmd JREI-CONNECT-EXISTING-NODE-A.cmd JREI-CONNECT-EXISTING-NODE-B.cmd JREI-CHECK-NODE-B.cmd JREI-READINESS-CHECK.cmd jrei-connect-existing-node-a.ps1 jrei-connect-existing-node-b.ps1 jrei-node-b-stability-status.ps1 jrei-managed-startup.ps1 jrei-local-model-start.ps1 jrei-local-doctor.mjs jrei-worker.mjs jrei-local-chat-worker.mjs jrei-owner-pilot-worker.mjs jrei-loopback-model-adapter.mjs jrei-worker-error-code.mjs jrei-windows-dpapi.ps1; do
             cp "platform/jrei-v5/windows-worker/$file" "bundle/platform/jrei-v5/windows-worker/$file"
           done
           for file in jrei-educational-answer-review.mjs jrei-deterministic-arithmetic.mjs; do
@@ -75,8 +76,7 @@ jobs:
              model and signed worker are scheduled under the signed-in
              Windows owner, not exposed to the public network.
           4. Verify LOCAL status without revealing private credentials:
-             powershell.exe -NoProfile -File
-             platform/jrei-v5/windows-worker/jrei-node-b-stability-status.ps1
+             double-click platform/jrei-v5/windows-worker/JREI-CHECK-NODE-B.cmd
              Expect the model HEALTHY and the pilot task RUNNING.
           5. Then use the existing MFA owner-only Qwen pilot on the site
              to verify an actual signed round trip. Local status alone
