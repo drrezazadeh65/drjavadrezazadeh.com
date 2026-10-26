@@ -11,15 +11,15 @@
  const panel=document.createElement('details');
  panel.className='jr-hybrid-jobs jr-hybrid-form-panel';
  const heading=document.createElement('summary');
- heading.textContent=T('آزمایش خصوصی Qwen روی Node A — بدون انتشار عمومی',
-   'Private Qwen pilot on Node A — no public release');
+ heading.textContent=T('آزمایش خصوصی Qwen روی گره ویندوز مجاز — بدون انتشار عمومی',
+   'Private Qwen pilot on authorised Windows node — no public release');
  panel.append(heading);
  const form=document.createElement('form');
  form.className='jr-hybrid-form';
  const note=document.createElement('p');
  note.textContent=T(
-  'صرفاً برای مدیر. پاسخ آزمایشی اعتبار علمی ندارد؛ اطلاعات شخصی، رمز یا مدارک خصوصی وارد نکنید. برای کارکردن، مدل و Worker آزمایشی روی Node A باید روشن باشند.',
-  'Owner-only. Provisional unverified model responses. Do not enter personal data, secrets or private documents. Requires Qwen and signed pilot Worker on Node A.');
+  'صرفاً برای مدیر. پاسخ آزمایشی اعتبار علمی ندارد؛ اطلاعات شخصی، رمز یا مدارک خصوصی وارد نکنید. برای کارکردن، مدل و Worker آزمایشی باید روی همان گره ویندوز دارای مجوز روشن باشند.',
+  'Owner-only. Provisional unverified model responses. Do not enter personal data, secrets or private documents. Requires Qwen and the signed pilot Worker on the same approved Windows node.');
  const field=document.createElement('label');
  field.textContent=T('پرسش آزمایشی','Pilot question');
  const input=document.createElement('textarea');
@@ -85,7 +85,7 @@
    const question=input.value.trim();
    if(!question||question.length>650)return;
    running=true;submit.disabled=true;ctl=new AbortController();
-   status.textContent=T('در حال درخواست از Node A…','Sending to Node A…');
+   status.textContent=T('در حال ارسال درخواست به گره مجاز…','Sending to approved Windows node…');
    answer.textContent='';
    try{
      const start=await command({action:'ask',language:en?'en':'fa',
