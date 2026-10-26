@@ -22,6 +22,19 @@
 5. **Read-only final-only regression contracts:** `tests/private-cache-behavior.test.mjs`, `tests/release-fingerprint-core-styles.test.mjs` and source acceptance suites cover the distinction between digest-addressed static content and mutable/private responses; these have **not been run**.
 6. **Source performance budgets across all pages:** existing `scripts/performance-source-audit.mjs` now groups per-route HTML, CSS, JS and eager-image costs and surfaces their top contributors instead of reporting only a global passing count. The raw byte counts do not claim Brotli or real network timings.
 
+## Non-regression rule: visuals and SEO are co-equal to speed
+
+The owner requires **all current visual effects to survive** performance work, with a richer luxury identity where the effects can be implemented efficiently. Do not remove cinematic approved imagery, homepage portrait pointer tilt, the 15 visual banners, premium gradients, journal artwork, motion-enabled product cards, mobile app shell or branded storefront effects merely to increase a Lighthouse result. Progressive enhancement must leave HTML headings, text, links and images available without JS, preserve their natural layout and retain the approved black/gold/ivory identity.
+
+Source additions dated 26 October:
+- `assets/css/style.css`: additive gold illumination, subtle depth on service/news/authority/product cards, stronger focus indicators and continued use of existing transform effects.
+- `assets/css/store-premium-editorial-2026.css`: brass-edged book bibliography cards with subtle hover lighting.
+- `assets/css/journal-v2.css`: restrained scholarly card depth and navigation highlights.
+- `assets/css/jr-bilingual-semantic-flow-2026.css`: Persian VIP gold focus and hover detailing.
+- Effects are restricted to genuine hover/fine pointer devices and avoid nonessential continuous animation. `prefers-reduced-motion: reduce` continues to be respected. There is no new third-party JS, tracking, imagery, hidden-until-visible SEO content or constant compositing budget.
+
+Release acceptance must compare screenshots/video of key effects to the previous approved build at mobile, tablet and desktop resolutions, including touch devices, pointer hover, keyboard navigation and reduced-motion settings. **These tests are deferred and not executed.** Lab 100 is a target only; removal of functioning design to game a numeric score would be a regression.
+
 ## Existing Bertina evidence and host verification requests
 
 The previously reviewed `docs/governance/BERTINA_IRAN_FIRST_CACHE_IMPLEMENTATION_20261020.md` records owner-provided PHP CLI 8.3.35 with **OPcache enabled, 128 MB and 2-second timestamp revalidation**. Redis, Memcached and APCu were **not installed in the CLI** at that time. This is **not evidence of the web-facing LSAPI/PHP SAPI**. The earlier documented compression diagnostic observed **Brotli and gzip** on sampled static/public paths; HTTP/2 was observed and HTTP/3 was advertised by Alt-Svc, but actual HTTP/3 negotiation and LiteSpeed full-page cache were **not established**.
