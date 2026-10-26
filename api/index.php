@@ -174,6 +174,12 @@ function cfg(): array {
         'jrei_news_independent_qa_model' => (string)(getenv('JR_JREI_NEWS_INDEPENDENT_QA_MODEL') ?: ''),
 
 
+        // JREI APEX owner mission ledger: OFF for new plans until private
+        // owner authorization and mother-DB migration acceptance. Revocation
+        // and emergency stop remain available to authenticated MFA owner.
+        // No planner switch can enable a worker or live tool execution.
+        'jrei_apex_missions_owner_write_enabled' =>
+            getenv('JR_JREI_APEX_MISSIONS_OWNER_WRITE_ENABLED') === 'true',
         // Source-only Python intelligence seam (private worker/VPS only).
         // OFF until independent owner, host, replay-ledger and TLS acceptance;
         // never assume a Python process is available on Bertina hosting.
