@@ -528,9 +528,15 @@ function operationsRoute(string $path, string $verb): never {
         // JREI owner-only research pilot. This is NOT a public-chat release.
         // Uses the existing SUPER_ADMIN session, current TOTP, CSRF,
         // one-time secret and a strictly separate ephemeral queue state.
-        if($path==='/admin/operations/jrei-owner-pilot' && $verb==='POST'){
+        if($path==='/admin/operations/jrei-owner-pilot' &&
+           in_array($verb,['GET','POST'],true)){
             if(($configuration['operations_admins'][$accountId]['role']??'')!=='SUPER_ADMIN')
                 fail('super_admin_required',403);
+            if($verb==='GET'){
+                if(!rateAllowed($pdo,'jrei_owner_private_pilot_snapshot',$accountId,15,300))
+                    fail('rate_limited',429);
+                respond(jrOwnerPilotOwnerSnapshot($pdo,$configuration));
+            }
             if(!operationsMutationAllowed($_SERVER,
                 (string)($_SERVER['HTTP_X_CSRF_TOKEN']??''),$csrf))
                 fail('csrf_forbidden',403);
