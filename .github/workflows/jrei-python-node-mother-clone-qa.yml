@@ -1,0 +1,50 @@
+name: JREI Python Node Mother-DB Clone Migration QA (NO DEPLOY)
+on:
+  push:
+    branches: [migration/bertina-linux6]
+    paths:
+      - '.github/workflows/jrei-python-node-mother-clone-qa.yml'
+      - 'docs/migrations/20261027_jrei_python_node_health_mother_mysql.sql'
+      - 'api/jrei-python-node-health.php'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  disposable-mother-table-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    services:
+      mariadb:
+        image: mariadb:11.4
+        env:
+          MARIADB_ROOT_PASSWORD: jrei_disposable_ci_only
+          MARIADB_DATABASE: jrei_clone
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply ONLY additive JREI node-health DDL on disposable database
+        run: |
+          docker exec -i "${{ job.services.mariadb.id }}" mariadb -uroot -pjrei_disposable_ci_only jrei_clone < docs/migrations/20261027_jrei_python_node_health_mother_mysql.sql
+          docker exec -i "${{ job.services.mariadb.id }}" mariadb -uroot -pjrei_disposable_ci_only jrei_clone < docs/migrations/20261027_jrei_python_node_health_mother_mysql.sql
+      - name: Verify primary-key uniqueness and metadata-only contract
+        run: |
+          DB="${{ job.services.mariadb.id }}"
+          docker exec "$DB" mariadb -uroot -pjrei_disposable_ci_only jrei_clone -e "
+            INSERT INTO jrei_python_node_health (node_id,python_process,health_schema,node_observed_at,server_received_at)
+            VALUES ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','RESPONDING','jr.jrei.python-health.v1',1761436800,1761436801);
+            INSERT INTO jrei_python_node_health (node_id,python_process,health_schema,node_observed_at,server_received_at)
+            VALUES ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','UNAVAILABLE','NOT_OBSERVED',1761436810,1761436811)
+            ON DUPLICATE KEY UPDATE python_process=VALUES(python_process),health_schema=VALUES(health_schema),node_observed_at=VALUES(node_observed_at),server_received_at=VALUES(server_received_at);
+          "
+          row_count=$(docker exec "$DB" mariadb -N -uroot -pjrei_disposable_ci_only jrei_clone -e 'SELECT COUNT(*) FROM jrei_python_node_health')
+          status=$(docker exec "$DB" mariadb -N -uroot -pjrei_disposable_ci_only jrei_clone -e 'SELECT python_process FROM jrei_python_node_health')
+          test "$row_count" = "1"
+          test "$status" = "UNAVAILABLE"
+          echo "Disposable SQL acceptance PASS; no production DB accessed"
+      - name: Prohibit deployment inference
+        if: always()
+        run: echo 'Disposable MariaDB only. The real mother DB schema, owner backup, migrations, flags, Bertina release and Windows services are not inspected or changed.' >> "$GITHUB_STEP_SUMMARY"
