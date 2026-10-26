@@ -74,6 +74,14 @@ The article-only rating form now provides explicit accessible names for 1–5 st
 
 Existing public homepage paths already link to the English shop, and the English services hub links to the VIP comparison; a `Crawled — currently not indexed` Search Console report cannot by itself justify inventing redirects or duplicate links. Source improvements may enhance clarity but cannot guarantee Google indexation.
 
+## Public article performance refinement — 26 October
+
+The former public-article loader inserted the moderated-community stylesheet before checking whether the backend feature was enabled. On the majority of sites where the owner flags are still OFF, this created an unnecessary CSS request. The existing `site-extras.js` loader now injects only the versioned community JavaScript; `community-comments.js` requests its stylesheet **only after** the canonical, owner-gated public API returns the expected approved-comments schema. An already present stylesheet on bilingual service pages is reused. Loading is bounded with success/error callbacks and a two-second fallback, retaining the fail-closed behaviour of the disabled module.
+
+The public resource version was advanced coherently to `20261026-community-r3` in article loader, service projection and final-only source assertions. The existing style-token and reduced-motion safeguards remain intact. No server community flag was modified, no private user information was exposed, and no tests were run.
+
+Final integrated QA must specifically check disabled-API article transfer budgets, enabled-API comment layout after deferred CSS, authenticated rating and comment submissions, the English service Q&A, and the absence of double-loaded styles or scripts. This is **not a measured Core Web Vitals improvement**; field evidence is required after approved release.
+
 ## Verification gates to run only after development
 
 **SEO + technical:** compare GSC exported affected URLs against the frozen URL manifest and route policy; HTML 200/301/404 semantics; a single descriptive H1 in main; heading hierarchy; useful copy with distinct intent; canonical and exact reciprocal hreflang; private noindex; sitemap URLs and actual lastmod; robots policies; crawlable public resources; JSON-LD parser and provable entity identity; internal links; mobile layout; HTTP status, redirect chains, feed/XML content type.
