@@ -1610,9 +1610,18 @@ if(in_array($path,['/assistant/v1/chat','/assistant/v1/local/result',
     $bucketAction=$path==='/assistant/v1/chat'?'jrei_ai_public':
       ($path==='/assistant/v1/local/result'?'jrei_local_result':'jrei_local_cancel');
     $limit=$path==='/assistant/v1/chat'?6:
-      ($path==='/assistant/v1/local/result'?70:12);
+      ($path==='/assistant/v1/local/result'?100:12);
     $window=$path==='/assistant/v1/chat'?600:180;
-    if(!rateAllowed($aiDb,$bucketAction,'public',$limit,$window))
+    // The old singleton 'public' rate key gave the entire Internet just
+    // six requests per ten minutes. Use a keyed short pseudonymous peer
+    // bucket, never raw IP, browser-created identity or forwarded headers.
+    // A 2-job encrypted-queue cap still guards the owner's Windows CPU.
+    $rateIdentity='public';
+    $peer=(string)($_SERVER['REMOTE_ADDR']??'');
+    $rateKey=(string)($aiCfg['jrei_local_chat_key_b64']??'');
+    if($peer!==''&&$rateKey!=='')
+        $rateIdentity='peer:'.substr(hash_hmac('sha256',$peer,$rateKey),0,32);
+    if(!rateAllowed($aiDb,$bucketAction,$rateIdentity,$limit,$window))
         fail('assistant_rate_limited',429);
     try{
         $body=jsonBody();
