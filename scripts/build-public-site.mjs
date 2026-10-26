@@ -211,6 +211,13 @@ fs.writeFileSync(
   {flag:'wx'});
 for(const pagePath of ['fa/app/admin/index.html','en/account/admin/index.html']){
   const shell=fs.readFileSync(path.join(out,pagePath),'utf8');
+  // Owner redesign is an additive, MFA-guarded enhancement. Every release must
+  // keep both private dashboards and ship BOTH source files atomically.
+  if(!/<meta name="robots" content="noindex,nofollow,noarchive"/.test(shell) ||
+     !shell.includes('id="ops-mfa-form"') ||
+     !shell.includes('/assets/css/operations-command-deck-v1.css') ||
+     !shell.includes('/assets/js/operations-command-deck-v1.js'))
+    throw Error('Owner command deck or existing private auth shell missing: '+pagePath);
   if(!shell.includes('id="ops-workspace"') ||
      !shell.includes('id="ops-jrei-newsroom"') ||
      !shell.includes('/assets/js/operations-jrei-newsroom-v1.js') ||
@@ -381,6 +388,9 @@ const required=[
   // Never bundle a live private GSC snapshot or service-account credentials.
   'api/operations-gsc-direct.php','assets/js/operations-gsc-direct.js',
   'fa/app/admin/index.html','en/account/admin/index.html',
+  // New protected command deck remains tied to the original MFA operations UI.
+  'assets/js/operations-command-deck-v1.js',
+  'assets/css/operations-command-deck-v1.css',
   'api/internal/.htaccess','assets/js/jr-publishing-checkout-v1.js',
   'assets/js/book-store.js','assets/js/jr-author-workspace-v1.js',
   'assets/css/jr-author-dashboard-v52.css','assets/css/jr-publishing-store-catalog-v1.css',
