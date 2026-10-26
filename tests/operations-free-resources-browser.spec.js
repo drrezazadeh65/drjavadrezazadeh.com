@@ -3,6 +3,14 @@ const opRegistry=require('../api/internal/operations-registry.json');
 const freeRegistry=require('../platform/free-resources-registry.json');
 test.use({serviceWorkers:'block'});
 const base='http://127.0.0.1:4173';
+// Retain genuine access to the historical admin panels through the owner's
+// MFA-protected full-tools view; modern tabs are separately certified.
+const fullTools=url=>{
+ const parsed=new URL(url);
+ if(['/fa/app/admin/','/en/account/admin/'].includes(parsed.pathname))
+  parsed.searchParams.set('ops_view','classic');
+ return parsed.href;
+};
 function fixture(){
  const wrap=r=>({...r,measuredProgress:null,status:'not_started',closed:false,openDependencies:r.dependencies,
   openWork:Object.values(r.gates),currentBlocker:null,verifiedGates:Object.entries(r.gates).map(([id,label])=>({id,label,state:'unknown',evidence:null}))});
@@ -28,7 +36,7 @@ for(const [lang,path] of [['fa','/fa/app/admin/'],['en','/en/account/admin/']]){
     }
     return route.fulfill({json:fixture()});
    });
-   await page.goto(base+path);
+   await page.goto(fullTools(base+path));
    await expect(page.locator('#ops-workspace')).toBeVisible();
    expect(catalogueCalls).toBe(0);
    await page.locator('#ops-free-resources summary').click();
@@ -52,7 +60,7 @@ test('Unverified visitor cannot load private manager resources',async({page})=>{
   if(route.request().url().includes('/free-resources'))requested++;
   return route.fulfill({status:401,json:{ok:false,error:'unauthorized'}});
  });
- await page.goto(base+'/fa/app/admin/');
+ await page.goto(fullTools(base+'/fa/app/admin/'));
  await expect(page.locator('#ops-workspace')).toBeHidden();
  await expect(page.locator('#ops-free-resources')).toBeHidden();
  expect(requested).toBe(0);
@@ -68,7 +76,7 @@ test('scholarly observation is available only inside authenticated manager and c
    resources:freeRegistry.resources.map(r=>({id:r.id,name:r.name,url:r.official_url,category:r.category,ownerEngine:r.owner_engine,accessPath:r.access_path,purpose:r.purpose,connection:r.external_connection,automatedDataInUse:false}))}});
   return route.fulfill({json:fixture()});
  });
- await page.goto(base+'/fa/app/admin/');
+ await page.goto(fullTools(base+'/fa/app/admin/'));
  await expect(page.locator('#ops-scholar-observation')).toHaveCount(0);
  await page.locator('#ops-free-resources summary').click();
  await expect(page.locator('#ops-scholar-observation')).toContainText('Crossref');
@@ -91,7 +99,7 @@ test('quota-limited mobile observation never fabricates a PageSpeed score',async
     resources:freeRegistry.resources.map(r=>({id:r.id,name:r.name,url:r.official_url,category:r.category,ownerEngine:r.owner_engine,accessPath:r.access_path,purpose:r.purpose,connection:r.external_connection,automatedDataInUse:false}))}});
   return route.fulfill({json:fixture()});
  });
- await page.goto(base+'/en/account/admin/');
+ await page.goto(fullTools(base+'/en/account/admin/'));
  await page.locator('#ops-free-resources summary').click();
  await expect(page.locator('#ops-performance-observation')).toContainText('http-429');
  await expect(page.locator('#ops-performance-observation')).toContainText('No score');
@@ -114,7 +122,7 @@ test('local lab categories are distinctly labelled and do not imply live speed',
     ownerEngine:r.owner_engine,accessPath:r.access_path,purpose:r.purpose,connection:r.external_connection,automatedDataInUse:false}))}});
   return route.fulfill({json:fixture()});
  });
- await page.goto(base+'/en/account/admin/');
+ await page.goto(fullTools(base+'/en/account/admin/'));
  await page.locator('#ops-free-resources summary').click();
  await expect(page.locator('#ops-local-lighthouse-observation')).toContainText('Performance 98/100');
  await expect(page.locator('#ops-local-lighthouse-observation')).toContainText('Accessibility 100/100');
@@ -135,7 +143,7 @@ test('owner-supplied PageSpeed snapshots remain distinct from 429 and local CI w
    resources:freeRegistry.resources.map(r=>({id:r.id,name:r.name,url:r.official_url,category:r.category,ownerEngine:r.owner_engine,accessPath:r.access_path,purpose:r.purpose,connection:r.external_connection,automatedDataInUse:false}))}});
   return route.fulfill({json:fixture()});
  });
- await page.goto(base+'/fa/app/admin/');
+ await page.goto(fullTools(base+'/fa/app/admin/'));
  await expect(page.locator('#ops-manual-pagespeed-observation')).toHaveCount(0);
  await page.locator('#ops-free-resources summary').click();
  const panel=page.locator('#ops-manual-pagespeed-observation');
