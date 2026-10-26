@@ -892,7 +892,7 @@ body:has(#ops-workspace:not([hidden])) .jr-assistant{display:none}
  font-weight:100 900;
  font-style:normal;
  font-display:swap;
- unicode-range:U+0600-06FF,U+0750-077F,U+08A0-08FF,U+FB50-FDFF,U+FE70-FEFF,U+200C-200D,U+06F0-06F9;
+ /* Full variable font aligns Persian and embedded Latin names in one heading. */
 }
 :root{
  --jr-fa-display:"JR Persian Display","Vazirmatn","Noto Naskh Arabic","Noto Sans Arabic",Tahoma,sans-serif;
