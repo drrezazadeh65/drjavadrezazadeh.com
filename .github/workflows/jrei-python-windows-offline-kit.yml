@@ -1,0 +1,69 @@
+name: JREI Python Windows Offline Kit (NO DEPLOY)
+
+on:
+  push:
+    branches:
+      - migration/bertina-linux6
+    paths:
+      - .github/workflows/jrei-python-windows-offline-kit.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: jrei-python-windows-offline-kit-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-windows-wheelhouse:
+    name: Prepare and validate Python 3.13 Windows x64 offline wheels
+    runs-on: windows-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          architecture: 'x64'
+      - name: Build complete wheelhouse including local JREI package
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          New-Item -ItemType Directory -Force wheelhouse | Out-Null
+          python -m pip wheel --wheel-dir wheelhouse 'setuptools>=69,<76' 'wheel'
+          if ($LASTEXITCODE -ne 0) { throw 'Build-tool wheel download failed' }
+          python -m pip wheel --wheel-dir wheelhouse './platform/jrei-python'
+          if ($LASTEXITCODE -ne 0) { throw 'JREI dependency wheel download or package build failed' }
+          if (-not (Get-ChildItem wheelhouse -Filter 'jrei_intelligence_core-0.1.0-*.whl')) {
+            throw 'Expected local JREI package wheel missing'
+          }
+          Get-ChildItem wheelhouse -Filter '*.whl' | Sort-Object Name | ForEach-Object {
+            $hash = (Get-FileHash -Algorithm SHA256 -LiteralPath $_.FullName).Hash.ToLowerInvariant()
+            "$hash  $($_.Name)"
+          } | Set-Content -Encoding ascii 'wheelhouse/SHA256SUMS.txt'
+      - name: Verify entire installation with network disabled for pip
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          python -m venv offline-check
+          $offlinePy = Join-Path (Get-Location) 'offline-check/Scripts/python.exe'
+          & $offlinePy -m pip install --no-index --find-links wheelhouse 'jrei-intelligence-core==0.1.0'
+          if ($LASTEXITCODE -ne 0) { throw 'OFFLINE_WHEEL_INSTALL_FAILED' }
+          & $offlinePy -c 'import fastapi, pydantic, uvicorn, jrei_service.app; print("JREI_OFFLINE_IMPORT_OK")'
+          if ($LASTEXITCODE -ne 0) { throw 'OFFLINE_IMPORT_FAILED' }
+          & $offlinePy -m unittest discover -s 'platform/jrei-python/tests' -p 'test_*.py' -q
+          if ($LASTEXITCODE -ne 0) { throw 'OFFLINE_UNIT_TESTS_FAILED' }
+      - name: Upload verified offline wheelhouse
+        uses: actions/upload-artifact@v4
+        with:
+          name: jrei-python-win313-offline-wheels
+          path: wheelhouse/
+          retention-days: 14
+          if-no-files-found: error
+          compression-level: 0
+      - name: Confirm no production operations
+        if: always()
+        shell: pwsh
+        run: |
+          'This workflow only builds Windows Python 3.13 x64 wheels, verifies offline installation/unit tests, and uploads an artifact. It never deploys, changes Bertina DB/host, or touches Qwen.' >> $env:GITHUB_STEP_SUMMARY
