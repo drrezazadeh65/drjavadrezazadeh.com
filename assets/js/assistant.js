@@ -92,8 +92,8 @@
     :'Hello, I am JREI. The public-site navigation guide is available; live AI inference has not been confirmed. Ask about published services and educational pathways.'+contextIntroduction;
   // Topic cues are derived only from the published page route.
   const liveGreeting=isFa
-    ?'JREI به یک مدل گفت‌وگوی زنده متصل شده است. پس از رضایت آگاهانه می‌توانید پرسش عمومی بپرسید. پاسخ مدل ممکن است خطا داشته باشد و تأیید علمی محسوب نمی‌شود.'
-    :'JREI has an available live inference provider. With informed consent, ask general questions; generated replies can be inaccurate and are not independently scientifically verified.';
+    ?'JREI به مدل گفت‌وگوی زنده متصل شده است. سؤال خود را مستقیم بپرسید. متن سؤال برای تولید پاسخ روی رایانهٔ پردازشی اختصاصی JREI پردازش می‌شود. پاسخ ممکن است خطا داشته باشد و تأیید علمی محسوب نمی‌شود.'
+    :'JREI is connected to a live model. Ask directly. Your submitted question is processed on a dedicated JREI computer; answers may be inaccurate and are not independently scientifically validated.';
   let history=[];
   let busy=false;
   let lastQuery='';
@@ -186,8 +186,8 @@
   detailsTitle.textContent=isFa?'جزئیات حریم خصوصی و استفاده از داده':'Privacy and data-use details';
   const detailsBody=document.createElement('p');
   detailsBody.textContent=isFa?
-    'انتخاب شما فعلاً فقط در این مرورگر ذخیره می‌شود؛ هیچ متن گفت‌وگویی برای آموزش مدل جمع‌آوری یا به حافظه JREI ارسال نمی‌شود. گفت‌وگوی زنده، در صورت فعال‌شدن، رضایت پردازش جداگانه دارد. استفاده پژوهشی از متن گفتگو یا اطلاعات شخصی مستلزم اطلاع‌رسانی، رضایت معتبر جداگانه و کنترل‌های حفاظتی است. لطفاً اطلاعات حساس نفرستید؛ می‌توانید این انتخاب را تغییر دهید.':
-    'This preference is stored only in this browser. No chat transcripts are currently collected for model training or sent to the JREI memory. Live inference, if available, requests separate processing consent. Using personal details or conversation text for research requires a separate valid notice and permission with safeguards. Do not share sensitive details. You can change this preference.';
+    'انتخاب مشارکت در بهبود سامانه فقط در همین مرورگر ذخیره می‌شود و متن گفت‌وگو به‌طور خودکار برای آموزش مدل استفاده نمی‌شود. ارسال پرسش برای پاسخ‌گویی در رایانهٔ JREI پردازش می‌شود؛ استفادهٔ پژوهشی یا ذخیره‌سازی اطلاعات شخصی سیاست جداگانه دارد. لطفاً اطلاعات حساس نفرستید.':
+    'Feedback preferences are stored only in this browser. Chat transcripts are not automatically used for model training or JREI memory. Submitting a question sends it for processing on a JREI computer; research use and retention of personal information are separate. Do not send sensitive details.';
   welcomeDetails.append(detailsTitle,detailsBody);
   const choiceActions=document.createElement('div');
   choiceActions.className='jr-assistant-onboarding-actions';
@@ -239,10 +239,10 @@
   const stopButton=wrap.querySelector('.jr-assistant-stop');
   // Actual inference is optional and cannot be switched on by a page's
   // arbitrary metadata: the same-origin server must report ready, and the
-  // visitor must explicitly opt in to provider-side message processing.
+  // visitor explicitly submits a question; only OPTIONAL CLOUD needs another checkbox.
   let approvedLiveEndpoint='';
   let liveCapabilitiesChecked=false;
-  const providerLabel=document.createElement('label');
+  const providerLabel=document.createElement('div');
   providerLabel.className='jr-assistant-provider-consent';
   providerLabel.hidden=true;
   const providerConsent=document.createElement('input');
@@ -265,16 +265,18 @@
         });
         if(!res.ok)return;
         const policy=await res.json();
-        if(policy?.schema!=='jr.jrei.assistant-capability.v1'||
-           policy.live!==true||policy.providerConsentRequired!==true)return;
+        if(policy?.schema!=='jr.jrei.assistant-capability.v1'||policy.live!==true)return;
         const mode=policy.providerMode;
-        if(!['JREI_LM_LOCAL_WINDOWS','OPTIONAL_OPENAI'].includes(mode))return;
+        if(!['JREI_LM_LOCAL_WINDOWS','OPTIONAL_OPENAI'].includes(mode)||
+           (mode==='OPTIONAL_OPENAI'&&policy.providerConsentRequired!==true))return;
         providerMode=mode;
         approvedLiveEndpoint=location.origin+'/api/assistant/v1/chat';
+        providerConsent.hidden=mode==='JREI_LM_LOCAL_WINDOWS';
+        providerConsent.checked=false;
         providerConsentText.textContent=mode==='JREI_LM_LOCAL_WINDOWS'
           ?(isFa?
-            ' گفت‌وگوی عمومی با JREI: پیام شما با رضایتتان در رایانهٔ پردازشی اختصاصی JREI تحلیل می‌شود. این پاسخ‌ها ممکن است خطا داشته باشند و اعتبار علمی مستقل آن‌ها تأیید نشده است؛ برای تصمیم‌های آموزشی مهم راستی‌آزمایی کنید. مکالمهٔ شما به‌طور خودکار برای آموزش مدل استفاده نمی‌شود.':
-            ' Public JREI conversation: with your consent, your message is processed on a dedicated JREI computer. Answers may be wrong and are not independently scientifically validated; independently verify important educational decisions. This conversation is not automatically used to train the model.')
+            ' با ارسال سؤال، متن آن روی رایانهٔ پردازشی اختصاصی JREI پردازش می‌شود. پاسخ ممکن است خطا داشته باشد و اعتبار علمی مستقل ندارد. لطفاً اطلاعات حساس نفرستید. مکالمه به‌طور خودکار برای آموزش مدل استفاده نمی‌شود.':
+            ' Submitting your question sends it to a dedicated JREI computer for a response. Answers may be inaccurate and are not independently scientifically validated. Do not share sensitive information; messages are not automatically used to train the model.')
           :(isFa?
             ' استفاده اختیاری از مدل ابری؛ متن گفت‌وگو برای پردازش به ارائه‌دهندهٔ API خارجی ارسال می‌شود.':
             ' Optional external-cloud AI: this conversation is sent to an external API provider for processing.');
@@ -489,7 +491,8 @@
   };
   async function ask(message){
     if(busy||!message.trim()) return;
-    const chatEndpoint=providerConsent.checked?approvedLiveEndpoint:'';
+    const chatEndpoint=providerMode==='JREI_LM_LOCAL_WINDOWS'?
+      approvedLiveEndpoint:(providerConsent.checked?approvedLiveEndpoint:'');
     if(!chatEndpoint){
       addMessage('user',message.trim());
       const local=fallback(message.trim());
@@ -518,7 +521,7 @@
         headers:{'Content-Type':'application/json','X-JR-Visitor':visitorId()},
         body:JSON.stringify({
           message:lastQuery,
-          providerConsent:true,
+          ...(providerMode==='OPTIONAL_OPENAI'?{providerConsent:true}:{}),
           history:history.slice(-8),
           page:{path:route||'/',title:document.title,lang:isFa?'fa':'en'}
         }),
