@@ -93,6 +93,16 @@ function details(route){
  const h1=(html.match(/<h1\b/gi)||[]).length===1;
  return {exists:true,indexableSource:!noindex,canonical,title,h1};
 }
+function safeReportRoute(route,policy){
+ // CSV URLs can embed recovery tokens or personal data in path segments.
+ // Keep such data in memory only; public reports receive a category label.
+ if(policy.cache==='NO_STORE')return '[private route: '+policy.policy+']';
+ if(/(?:%40|@|token|secret|password|session|auth-key)/i.test(route))
+  return '[redacted sensitive path]';
+ if(route.split('/').some(segment=>segment.length>72))
+  return '[redacted unusually long path]';
+ return route;
+}
 function recommend(reason,policy,meta,route){
  if(policy.indexing==='NOINDEX')
   return 'Expected private/noindex policy: preserve noindex and no-store; review only if the URL was mistakenly published as public.';
@@ -134,11 +144,11 @@ if(!input){
    const policy=classifyRoute(route);
    const meta=details(route);
    records.push({
-    route,
+    route:safeReportRoute(route,policy),
     reason,
     sourcePresent:meta.exists,
     sourceIndexable:meta.indexableSource,
-    declaredCanonical:meta.canonical,
+    declaredCanonical:policy.cache==='NO_STORE'?null:meta.canonical,
     titlePresent:meta.title,
     oneH1:meta.h1,
     routeIndexPolicy:policy.indexing,
