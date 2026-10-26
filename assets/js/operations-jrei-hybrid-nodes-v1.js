@@ -226,6 +226,34 @@
              ownerReviewedNoCloudExecution:true,
              confirmation:'OWNER_ACCEPTS_MEASURED_LOCAL_MODEL_NOT_CLOUD'});
          });
+         // Distinct runtime-only attestation: the owner has independently
+         // demonstrated real GGUF inference, but the uploaded bilingual
+         // reports contain incorrect arithmetic and Persian text.
+         // Do NOT set the scientific acceptance field from this action.
+         const runtimeOnly=el('button',T(
+           'ثبت اجرای واقعی مدل، بدون تأیید علمی',
+           'Record real runtime only — not scientific certification'));
+         runtimeOnly.type='button';
+         runtimeOnly.addEventListener('click',()=>{
+           if(!visible()||busy||!att.reportValidity())return;
+           if(!confirmAction(
+             'آیا تأیید می‌کنید که فایل واقعی مدل، اجرای محلی، اندازه‌گیری‌ها و محدودیت‌های کیفیت را شخصاً بررسی کرده‌اید؟ این کار تأیید علمی یا انتشار عمومی نیست.',
+             'Confirm you personally reviewed the real model file, local inference, measurements and known quality limitations? This neither certifies quality nor activates public chat.'))return;
+           mutate({action:'attest_local_model_runtime_only',
+             modelId:model.modelId,modelVersion:model.modelVersion,
+             nodeId:nodeSelect.value,artifactSha256:model.artifactSha256,
+             revision:model.revision,
+             evaluationFixtureSha256:fixture.value.trim(),
+             runEvidenceSha256:report.value.trim(),
+             measuredTokensPerSecond:Number(tokens.value),
+             measuredP95LatencyMs:Number(p95.value),
+             measuredPeakRamMb:Number(peak.value),
+             realLocalGGUFHashChecked:true,
+             ownerReviewedQualityLimitations:true,
+             ownerReviewedNoCloudExecution:true,
+             confirmation:'OWNER_ACCEPTS_MEASURED_RUNTIME_NOT_SCIENTIFIC_QUALITY'});
+         });
+         att.append(runtimeOnly);
          acceptance.append(att);
        }
        item.append(acceptance);
