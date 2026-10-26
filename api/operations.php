@@ -52,6 +52,7 @@ require_once __DIR__.'/jrei-learning-operations.php';
 require_once __DIR__.'/jrei-hybrid-owner.php';
 require_once __DIR__.'/jrei-owner-private-pilot.php';
 require_once __DIR__.'/jrei-python-node-health.php';
+require_once __DIR__.'/jrei-python-canary-bridge.php';
 require_once __DIR__.'/jrei-python-owner-skills.php';
 require_once __DIR__.'/jrei-apex-owner-missions.php';
 require_once __DIR__.'/jrei-apex-python-plan.php';
@@ -471,6 +472,34 @@ function operationsRoute(string $path, string $verb): never {
             }catch(Throwable $e){
                 fail('jrei_apex_worker_observation_unavailable',503);
             }
+        }
+
+        // Explicit owner MFA/CSRF creates ONE fixed 12*7 job in the
+        // existing mother DB. Neither model command nor general executor.
+        if ($path==='/admin/operations/jrei-python-canary' &&
+            in_array($verb,['GET','POST'],true)) {
+            if (($configuration['operations_admins'][$accountId]['role']??'')!=='SUPER_ADMIN')
+                fail('super_admin_required',403);
+            if (!rateAllowed($pdo,'jrei_python_canary_owner',$accountId,8,300))
+                fail('rate_limited',429);
+            if ($verb==='GET') {
+                try {
+                    respond(jrPythonCanaryOwnerSnapshot($pdo,$accountId));
+                } catch(Throwable $e) { fail('python_canary_snapshot_unavailable',503); }
+            }
+            if (($configuration['jrei_python_canary_enabled']??false)!==true)
+                fail('python_canary_disabled',403);
+            if (!operationsMutationAllowed($_SERVER,
+                 (string)($_SERVER['HTTP_X_CSRF_TOKEN']??''),$csrf))
+                fail('csrf_forbidden',403);
+            try {
+                $body=jsonBody();
+                if(!is_array($body)||array_is_list($body))
+                    fail('python_canary_body_invalid',422);
+                respond(jrPythonCanaryOwner($pdo,$accountId,$body,time()));
+            } catch(InvalidArgumentException $e) {
+                fail('python_canary_body_invalid',422);
+            } catch(Throwable $e) { fail('python_canary_request_unavailable',503); }
         }
 
         // Owner-only view of signed Python 8091 process reports.
