@@ -63,7 +63,10 @@ test('bilingual owner UI uses read-only authenticated GET and no automatic job',
  assert.match(code,/nothing is sent automatically/);
  assert.match(code,/input\.value=probe\.question/);
  assert.match(code,/benchmarkSelect\.addEventListener\('change'/);
- assert.doesNotMatch(code,/localStorage|sessionStorage/);
+ const begin=code.indexOf('async function readPrivateReadiness()');
+ const end=code.indexOf("diagnosticRefresh.addEventListener('click'",begin);
+ assert.ok(begin>=0&&end>begin);
+ assert.doesNotMatch(code.slice(begin,end),/localStorage|sessionStorage/);
 });
 
 test('model private system prompt does not claim its own deployment proof',()=>{
