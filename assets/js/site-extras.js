@@ -84,8 +84,12 @@ area.append(button,note);footer.parentNode.insertBefore(area,footer);
 (()=>{
  const path=location.pathname.replace(/index\.html$/,'');
  if(!/^\/fa\/(?:akhbar|rahnamaha)\/[a-z0-9-]+\/$/.test(path)||document.querySelector('[data-jr-community-loader]'))return;
- const css=document.createElement('link');css.rel='stylesheet';css.href='/assets/css/community-comments.css?v=20261026-community-r2';css.dataset.jrCommunityLoader='1';document.head.append(css);
- const script=document.createElement('script');script.src='/assets/js/community-comments.js?v=20261026-community-r2';script.defer=true;document.head.append(script);
+ // The public JS checks the server feature gate before requesting its stylesheet.
+ // Disabled communities no longer download an unused style layer on every article.
+ const script=document.createElement('script');
+ script.src='/assets/js/community-comments.js?v=20261026-community-r3';
+ script.defer=true;script.dataset.jrCommunityLoader='1';
+ document.head.append(script);
 })();
 
 /* Bilingual public USDT/toman calculator: informational only, never a money quote. */
