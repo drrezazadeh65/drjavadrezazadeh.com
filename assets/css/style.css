@@ -936,3 +936,43 @@ html[lang="fa"] :where(.hero,.article-hero,.authority-hero,.service-hero,.journa
   overflow-wrap:anywhere;
  }
 }
+
+/* JR 2026 luxury motion polish — additive only. Existing cinematic imagery,
+   parallax, hero tilt, banners, glass layers and transforms are untouched.
+   SEO content never starts hidden: no entry opacity/visibility animations. */
+:root{
+ --jr-effect-gold:rgba(229,191,113,.52);
+ --jr-effect-halo:rgba(199,157,78,.13);
+ --jr-effect-ease:cubic-bezier(.2,.8,.2,1);
+}
+@media(hover:hover) and (pointer:fine) and (prefers-reduced-motion:no-preference){
+ :is(.public-home-page,.public-content-page,.foundation-page,.journal-page,.book-store-shell)
+ :is(.service-card,.authority-card,.news-card,.book-product-card,.store-discovery-grid>article,.journal-grid>article):hover{
+   border-color:var(--jr-effect-gold);
+   box-shadow:0 14px 38px rgba(0,0,0,.27),0 0 0 1px var(--jr-effect-halo);
+ }
+ :is(.public-home-page,.public-content-page,.foundation-page)
+ :is(.button,.service-card,.authority-card,.news-card) :where(a):hover{
+   text-decoration-color:var(--jr-effect-gold);
+ }
+ :is(.public-home-page,.public-content-page,.book-store-shell)
+ :is(.button,.hero-pathway-cta .button,.store-discovery-grid h3>a):hover{
+   filter:brightness(1.07);
+ }
+}
+:is(.public-home-page,.public-content-page,.foundation-page,.journal-page,.book-store-shell)
+ :is(.service-card,.authority-card,.news-card,.book-product-card,.store-discovery-grid>article,.journal-grid>article):focus-within{
+ border-color:var(--jr-effect-gold);
+ box-shadow:0 0 0 2px rgba(237,209,144,.34);
+}
+:is(.public-home-page,.public-content-page,.foundation-page,.journal-page,.book-store-shell)
+ :where(a,button,summary):focus-visible{
+ outline:3px solid #f3d897;
+ outline-offset:3px;
+}
+@media(prefers-reduced-motion:reduce){
+ :is(.public-home-page,.public-content-page,.foundation-page,.journal-page,.book-store-shell)
+ :is(.service-card,.authority-card,.news-card,.book-product-card,.store-discovery-grid>article,.journal-grid>article){
+  scroll-behavior:auto;
+ }
+}
