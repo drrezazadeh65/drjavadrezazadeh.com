@@ -127,7 +127,7 @@ for (const file of (visit(root),htmlFiles.sort())) {
     const url=canonical[0].href||'';
     if(!url.startsWith(origin+'/'))issue('P1',route,'CANONICAL_ORIGIN',url);
     if(!noindex){
-      if(url!==origin+route)issue('P1',route,'CANONICAL_NON_SELF','Review; never silently rewrite frozen URL: '+url);
+      if(url!==origin+route)issue('P2',route,'CANONICAL_NON_SELF','Review intentional alias against frozen URL registry: '+url);
       const old=canonicalRoutes.get(url);
       if(old)issue('P1',route,'CANONICAL_DUPLICATE','Also used by '+old);
       else canonicalRoutes.set(url,route);
@@ -176,7 +176,7 @@ for(const file of ['sitemap-core.xml','sitemap-fa.xml','sitemap-en.xml','sitemap
   }
 }
 for(const route of indexableRoutes.keys())if(!sitemapRoutes.has(route))
-  issue('P1',route,'SITEMAP_OMISSION','Indexable route absent from child sitemaps');
+  issue('P2',route,'SITEMAP_OMISSION','Indexable route absent from listed sitemaps; optional inclusion requires policy review');
 for(const route of sitemapRoutes)if(!indexableRoutes.has(route))
   issue('P1',route,'SITEMAP_NONINDEXABLE','Sitemap path has no indexable HTML source');
 for(const entry of hreflangLinks){
@@ -188,17 +188,17 @@ for(const entry of hreflangLinks){
   }
   const target=entry.url.slice(origin.length);
   const targetFile=indexableRoutes.get(target);
-  if(!targetFile)issue('P2',entry.route,'HREFLANG_TARGET','Target lacks indexable source: '+target);
-  else {
+  if(!targetFile){
+    issue('P2',entry.route,'HREFLANG_TARGET','Target lacks indexable source: '+target);
+  }else{
     const targetHtml=fs.readFileSync(targetFile,'utf8');
     const lang=attributes(tags(targetHtml,'html')[0]||'').lang;
     if(lang!==entry.language)issue('P1',entry.route,'HREFLANG_MISMATCH',
       entry.language+' alternate points to '+target+' with html[lang]='+String(lang));
-  }
-  else if(target!==entry.route){
-    const targetHtml=fs.readFileSync(targetFile,'utf8');
-    const reverse=links(targetHtml,'alternate').some(a=>a.hreflang&&a.href===origin+entry.route);
-    if(!reverse)issue('P2',entry.route,'HREFLANG_RECIPROCITY','No reciprocal alternate on '+target);
+    if(target!==entry.route){
+      const reverse=links(targetHtml,'alternate').some(a=>a.hreflang&&a.href===origin+entry.route);
+      if(!reverse)issue('P2',entry.route,'HREFLANG_RECIPROCITY','No reciprocal alternate on '+target);
+    }
   }
 }
 const report={
