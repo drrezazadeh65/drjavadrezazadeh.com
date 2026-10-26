@@ -208,7 +208,11 @@ function render(c,kind,active){
  summary.append(elt('span','jr-community-admin-summary-state',states.find(s=>s[0]===kind)?.[1]||kind));
  row.append(summary);
  const content=elt('div','jr-community-admin-item-content');
- content.append(elt('p','jr-community-admin-message',c.body));
+ content.append(elt('p','jr-community-admin-message',c.body.trim()
+   ?c.body
+   :c.rating&&Number.isInteger(c.rating)
+     ?t('ثبت امتیاز بدون دیدگاه متنی؛ ابتدا عدد رأی و شرایط انتشار را بررسی کنید.','Rating submitted without written commentary; review the vote and publication conditions.')
+     :t('متن دیدگاه موجود نیست؛ پیش از تأیید بررسی شود.','Comment text is absent; review before approval.')));
  const actions=elt('div','jr-community-admin-actions');
  for(const [decision,label] of (kind==='pending'
   ?[['approved',t('تأیید و انتشار','Approve and publish')],['rejected',t('رد دیدگاه','Reject')]]
