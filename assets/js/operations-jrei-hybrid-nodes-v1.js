@@ -675,13 +675,17 @@
          publicLaunch.blocked.length:0;
        const missing=Array.isArray(publicLaunch.unknown)?
          publicLaunch.unknown.length:0;
+       const signedBridge=publicLaunch.publicSignedPilotBridgeLive===true;
        cell(summary,T('تصمیم واقعی دربارهٔ انتشار عمومی JREI',
          'JREI public-launch decision'),
+         signedBridge?
+           T('مسیر عمومی با Worker امضاشدهٔ Qwen موجود زنده است؛ اتصال و پاسخ واقعی باید پایش شود',
+             'Existing signed Qwen worker public bridge is live; monitor real responses'):
          allowed?
-           T('گیت‌های سمت سرور تکمیل؛ پذیرش عملیاتی جداگانه لازم است',
-             'Server gates satisfied; independent operational acceptance still required'):
-           T('انتشار عمومی هنوز مسدود است: ',
-             'Public activation remains blocked: ')+
+           T('گیت‌های اختصاصی مکالمهٔ عمومی تکمیل؛ پذیرش عملیاتی جداگانه لازم است',
+             'Dedicated chat gates satisfied; independently verify live responses'):
+           T('مسیر اختصاصی عمومی مسدود است: ',
+             'Dedicated public-chat path is blocked: ')+
              number(absent)+T(' مانع، ',' blockers, ')+
              number(missing)+T(' نامعلوم',' unknown'));
        if(publicLaunch.launchMode==='OWNER_APPROVED_PUBLIC_GENERAL_UNVALIDATED'){
