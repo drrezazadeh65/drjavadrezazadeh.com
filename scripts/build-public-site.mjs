@@ -9,6 +9,7 @@ import {generateQualityInventory} from './operations-page-quality.mjs';
 import {hiddenFeatureSourceInventory} from './operations-hidden-features.mjs';
 import {includeJreiAssistant} from './jrei-public-assistant-surface.mjs';
 import {fingerprintCoreStyles} from './release-fingerprint-core-styles.mjs';
+import {bundleOwnerStyles} from './release-bundle-owner-styles.mjs';
 
 checkStylesheetBundles();
 
@@ -739,6 +740,11 @@ if(failures.length){
 // All confidentiality, canonical, ownership and frozen-route assertions above
 // must pass before producing immutable copies. Only packaged HTML is rewritten;
 // authoring sources and source-side SEO audit paths remain unchanged.
+// Private HTML remains no-store. The 20–22 public CSS files referenced by
+// each authenticated owner shell are combined without changing their order.
+// This reduces style request overhead on high-RTT mobile connections in Iran.
+const ownerStyles=bundleOwnerStyles(out);
 const sharedStyleAliases=fingerprintCoreStyles(out);
+console.log('Release owner styles:',JSON.stringify(ownerStyles));
 console.log('Release core styles:',JSON.stringify(sharedStyleAliases));
 console.log('Sanitized public-site artifact built:',all.length,'files;',html.length,'HTML routes; internal engineering directories excluded.');
