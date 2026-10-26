@@ -126,8 +126,28 @@ function WaitHealth([switch]$RequireCanary){
  }
  return $false
 }
+function QuoteWindowsArgument([string]$value){
+ if($value.Contains([char]0)){throw 'JREI_INVALID_COMMAND_ARGUMENT'}
+ if($value.Length -eq 0){return '""'}
+ if($value -notmatch '[\s"]'){return $value}
+ $res='"'
+ $slashes=0
+ foreach($c in $value.ToCharArray()){
+  if($c -eq [char]92){$slashes++;continue}
+  if($c -eq '"'){
+   $res+=([string]([char]92) * ($slashes*2+1))+'"'
+   $slashes=0
+   continue
+  }
+  if($slashes -gt 0){$res+=([string]([char]92) * $slashes);$slashes=0}
+  $res+=$c
+ }
+ if($slashes -gt 0){$res+=([string]([char]92) * ($slashes*2))}
+ return $res+'"'
+}
 function RunChecked([string]$exe,[string[]]$arguments,[string]$output,[string]$error){
- $proc=Start-Process -FilePath $exe -ArgumentList $arguments `
+ $cmdline=(@($arguments|ForEach-Object{QuoteWindowsArgument $_}) -join ' ')
+ $proc=Start-Process -FilePath $exe -ArgumentList $cmdline `
     -WorkingDirectory $root -NoNewWindow -PassThru `
     -RedirectStandardOutput $output -RedirectStandardError $error
  try{
