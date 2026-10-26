@@ -2,6 +2,16 @@ const {test,expect}=require('@playwright/test');
 const registry=require('../api/internal/operations-registry.json');
 test.use({serviceWorkers:'block'});
 const base='http://127.0.0.1:4173';
+// Legacy operations regression intentionally exercises the original,
+// all-tools-visible presentation. Modern Command Deck behaviour is tested
+// separately below and in owner-command-deck.browser.spec.js. Both views use
+// identical MFA/CSRF/API authorization; this fallback is owner-accessible.
+function legacyOpsUrl(raw){
+ const url=new URL(raw);
+ if(url.pathname==='/fa/app/admin/'||url.pathname==='/en/account/admin/')
+  url.searchParams.set('ops_view','classic');
+ return url.href;
+}
 function fixture(){
  const wrap=r=>({...r,measuredProgress:null,status:'not_started',closed:false,openDependencies:r.dependencies,openWork:Object.values(r.gates),currentBlocker:null,verifiedGates:Object.entries(r.gates).map(([id,label])=>({id,label,state:'unknown',evidence:null}))});
  return {ok:true,schema:'operations-live-v1',version:'4.4.1',releaseSha:'a'.repeat(40),checkedAt:Math.floor(Date.now()/1000),reports:registry.reports.map(wrap),dashboard:wrap(registry.dashboard),sourceSections:registry.sourceSections,summary:{total:36,verified:0,measuredCoverage:0,measuredProgress:null},history:[]};
@@ -17,7 +27,7 @@ async function authorized(page,{data=fixture(),expiry=600,mfa=false}={}){
 }
 for(const [lang,path] of [['fa','/fa/app/admin/'],['en','/en/account/admin/']])for(const width of [320,390,430,1440]){
  test(lang+' operations at '+width+'px show server facts and filters',async({page})=>{
-  await page.setViewportSize({width,height:900});const errors=[];page.on('pageerror',e=>errors.push(String(e)));await authorized(page);await page.goto(base+path);
+  await page.setViewportSize({width,height:900});const errors=[];page.on('pageerror',e=>errors.push(String(e)));await authorized(page);await page.goto(legacyOpsUrl(base+path));
   await expect(page.locator('#ops-workspace')).toBeVisible();await expect(page.locator('#ops-cards article')).toHaveCount(36);
   await expect(page.locator('#ops-cards')).toBeHidden();
   await page.locator('#ops-section-toggle').click();await expect(page.locator('#ops-cards')).toBeVisible();
@@ -31,18 +41,18 @@ for(const [lang,path] of [['fa','/fa/app/admin/'],['en','/en/account/admin/']])f
 }
 for(const [code,status] of [['unauthorized',401],['admin_forbidden',403],['operations_schema_unavailable',503]])test(code+' keeps privileged workspace empty',async({page})=>{
  await page.addInitScript(()=>localStorage.setItem('role','SUPER_ADMIN'));
- await page.route('**/api/admin/operations**',route=>route.fulfill({status,json:{ok:false,error:code}}));await page.goto(base+'/fa/app/admin/');
+ await page.route('**/api/admin/operations**',route=>route.fulfill({status,json:{ok:false,error:code}}));await page.goto(legacyOpsUrl(base+'/fa/app/admin/'));
  await expect(page.locator('#ops-workspace')).toBeHidden();await expect(page.locator('#ops-cards article')).toHaveCount(0);await expect(page.locator('#ops-notice')).toHaveClass(/ops-error/);
 });
 test('MFA code uses session CSRF and unlocks only after server confirmation',async({page})=>{
- await authorized(page,{mfa:true});await page.goto(base+'/fa/app/admin/');await expect(page.locator('#ops-mfa-form')).toBeVisible();await expect(page.locator('#ops-workspace')).toBeHidden();
+ await authorized(page,{mfa:true});await page.goto(legacyOpsUrl(base+'/fa/app/admin/'));await expect(page.locator('#ops-mfa-form')).toBeVisible();await expect(page.locator('#ops-workspace')).toBeHidden();
  await page.locator('#ops-mfa-code').fill('123456');await page.locator('#ops-mfa-form button').click();await expect(page.locator('#ops-workspace')).toBeVisible();await expect(page.locator('#ops-mfa-code')).toHaveValue('');
 });
 test('returning to an existing tab revalidates MFA without losing the owner workspace',async({page})=>{
  let sessionReads=0;
  await authorized(page);
  page.on('request',request=>{if(new URL(request.url()).pathname==='/api/admin/operations/session')sessionReads++;});
- await page.goto(base+'/fa/app/admin/');
+ await page.goto(legacyOpsUrl(base+'/fa/app/admin/'));
  await expect(page.locator('#ops-workspace')).toBeVisible();
  const before=sessionReads;
  await page.locator('#ops-search').fill('OP-03');
@@ -67,7 +77,7 @@ test('returning to an existing tab revalidates MFA without losing the owner work
 
 test('worker registration clearly distinguishes active submit from disabled worker state',async({page})=>{
  await authorized(page,{data:fixture()});
- await page.goto(base+'/fa/app/admin/');
+ await page.goto(legacyOpsUrl(base+'/fa/app/admin/'));
  const nodes=page.locator('#ops-jrei-hybrid-nodes');
  await nodes.evaluate(el=>{el.open=true;el.dispatchEvent(new Event('toggle'));});
  // Owner snapshot depends on DB and must not be faked as live connectivity.
@@ -91,7 +101,7 @@ test('temporary report failure does not log out an otherwise verified administra
   }});
   return route.fulfill({json:fixture()});
  });
- await page.goto(base+'/fa/app/admin/');
+ await page.goto(legacyOpsUrl(base+'/fa/app/admin/'));
  await expect(page.locator('#ops-workspace')).toBeVisible();
  await page.locator('#ops-refresh-data').click();
  await expect(page.locator('#ops-notice')).toHaveClass(/ops-error/);
@@ -102,17 +112,17 @@ test('temporary report failure does not log out an otherwise verified administra
 
 test('Expired MFA clears previously loaded reports',async({page})=>{
  // One second can expire before a loaded CI browser paints the authenticated workspace.
- await authorized(page,{expiry:3});await page.goto(base+'/fa/app/admin/');await expect(page.locator('#ops-workspace')).toBeVisible();await expect(page.locator('#ops-workspace')).toBeHidden({timeout:5500});await expect(page.locator('#ops-cards article')).toHaveCount(0);
+ await authorized(page,{expiry:3});await page.goto(legacyOpsUrl(base+'/fa/app/admin/'));await expect(page.locator('#ops-workspace')).toBeVisible();await expect(page.locator('#ops-workspace')).toBeHidden({timeout:5500});await expect(page.locator('#ops-cards article')).toHaveCount(0);
 });
 test('Written reports use current evidence and render untrusted strings as text',async({page})=>{
- const data=fixture();data.reports[0].titleFa='<img src=x onerror=alert(1)>';await authorized(page,{data});await page.goto(base+'/fa/app/admin/');await expect(page.locator('#ops-cards article')).toHaveCount(36);await expect(page.locator('#ops-cards img')).toHaveCount(0);
+ const data=fixture();data.reports[0].titleFa='<img src=x onerror=alert(1)>';await authorized(page,{data});await page.goto(legacyOpsUrl(base+'/fa/app/admin/'));await expect(page.locator('#ops-cards article')).toHaveCount(36);await expect(page.locator('#ops-cards img')).toHaveCount(0);
  const download=page.waitForEvent('download');await page.locator('#ops-report').click();expect((await download).suggestedFilename()).toBe('operations-all.txt');
  await page.keyboard.press('Tab');expect(await page.evaluate(()=>document.activeElement.tagName)).not.toBe('BODY');
 });
 for(const [lang,path] of [['fa','/fa/app/admin/'],['en','/en/account/admin/']])test(lang+' engine observations distinguish false, zero and stale from completion',async({page})=>{
  const data=fixture(),at=Math.floor(Date.now()/1000),record=data.reports.find(r=>r.id==='OP-07');
  record.signals=[{id:'gateway_configured',labelFa:'وجود کلید خصوصی درگاه',labelEn:'Private gateway key configured',value:false,source:'Bertina runtime',limitation:'Configuration does not prove payment.',checkedAt:at,expiresAt:at+60},{id:'captured',labelFa:'تعداد سفارش ثبت‌شده',labelEn:'Captured order count',value:0,source:'Bertina MySQL',limitation:'No real transaction certified.',checkedAt:at-600,expiresAt:at-1}];
- await page.setViewportSize({width:320,height:900});await authorized(page,{data});await page.goto(base+path);await page.locator('#ops-search').fill('OP-07');await page.locator('#ops-cards button').click();
+ await page.setViewportSize({width:320,height:900});await authorized(page,{data});await page.goto(legacyOpsUrl(base+path));await page.locator('#ops-search').fill('OP-07');await page.locator('#ops-cards button').click();
  const signals=page.locator('#ops-detail .ops-signals');await expect(signals.locator('article')).toHaveCount(2);await expect(signals).toContainText(lang==='en'?'No':'خیر');await expect(signals).toContainText('0');await expect(signals).toContainText(lang==='en'?'Stale':'قدیمی');await expect(page.locator('#ops-admin-score')).toHaveText(lang==='en'?'Unknown':'نامشخص');
  expect(await page.evaluate(()=>Math.max(document.documentElement.scrollWidth,document.body.scrollWidth)-innerWidth)).toBeLessThanOrEqual(1);
  const downloadEvent=page.waitForEvent('download');await page.getByRole('button',{name:lang==='en'?'Download written report':'دریافت گزارش مکتوب',exact:true}).click();const download=await downloadEvent;const fs=require('node:fs');const text=fs.readFileSync(await download.path(),'utf8');expect(text).toContain(lang==='en'?'Private gateway key configured: No':'وجود کلید خصوصی درگاه: خیر');expect(text).toContain('Configuration does not prove payment.');
@@ -123,7 +133,7 @@ test('Bertina unified dashboard preserves all modules and makes path switching p
  await page.setViewportSize({width:390,height:844});
  await page.route('**/api/auth/health',route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,ready:true,registrationReady:false,emailDeliveryVerified:false})}));
  await page.route('**/api/auth/me',route=>route.fulfill({status:401,contentType:'application/json',body:JSON.stringify({ok:false,error:'unauthorized'})}));
- const response=await page.goto(base+'/fa/customer-dashboard/',{waitUntil:'domcontentloaded'});
+ const response=await page.goto(legacyOpsUrl(base+'/fa/customer-dashboard/'),{waitUntil:'domcontentloaded'});
  expect(response.status()).toBe(200);
  expect(await page.locator('meta[name="robots"]').getAttribute('content')).toContain('noindex');
  for(const id of ['overview','journey','command-center','student-support','ecosystem','academic-profile','progress','consultations','records','account']){
@@ -154,7 +164,7 @@ test('Bertina unified dashboard preserves all modules and makes path switching p
 test('dashboard navigation shows account summary first, exactly one workspace and supports mobile deep links',async({page})=>{
  const errors=[];page.on('pageerror',e=>errors.push(e.message));
  await page.setViewportSize({width:390,height:844});
- await page.goto(base+'/fa/customer-dashboard/',{waitUntil:'domcontentloaded'});
+ await page.goto(legacyOpsUrl(base+'/fa/customer-dashboard/'),{waitUntil:'domcontentloaded'});
  const shown=()=>page.locator('[data-dashboard-panel]:visible').evaluateAll(nodes=>[...new Set(nodes.map(n=>n.dataset.dashboardPanel))]);
  await expect(page.locator('.cd-statusbar')).toBeVisible();
  await expect(page.locator('#overview')).toBeVisible();
@@ -177,12 +187,12 @@ test('dashboard navigation shows account summary first, exactly one workspace an
  expect(await shown()).toEqual(['progress']);
  await page.goBack();
  await expect(page.locator('#academic-profile')).toBeVisible();
- await page.goto(base+'/fa/customer-dashboard/#service-market',{waitUntil:'domcontentloaded'});
+ await page.goto(legacyOpsUrl(base+'/fa/customer-dashboard/#service-market'),{waitUntil:'domcontentloaded'});
  await expect(page.locator('#ecosystem')).toBeVisible();
  await expect(page.locator('#service-market')).toBeVisible();
  await expect(page.locator('#student-support')).toBeHidden();
  expect(await shown()).toEqual(['ecosystem']);
- await page.goto(base+'/fa/customer-dashboard/#student-support',{waitUntil:'domcontentloaded'});
+ await page.goto(legacyOpsUrl(base+'/fa/customer-dashboard/#student-support'),{waitUntil:'domcontentloaded'});
  await expect(page.locator('#student-support')).toBeVisible();
  await expect(page.locator('#ecosystem')).toBeHidden();
  expect(await shown()).toEqual(['student-support']);
@@ -215,7 +225,7 @@ test('FA/EN account-first dashboard keeps every workspace and shows one at a tim
  const states=async()=>page.locator('[data-dashboard-panel]:visible').evaluateAll(nodes=>[...new Set(nodes.map(n=>n.dataset.dashboardPanel))]);
  for(const [lang,route] of [['fa','/fa/customer-dashboard/'],['en','/en/account/']]){
   await page.setViewportSize({width:390,height:844});
-  await page.goto(base+route,{waitUntil:'domcontentloaded'});
+  await page.goto(legacyOpsUrl(base+route),{waitUntil:'domcontentloaded'});
   await expect(page.locator('.cd-statusbar')).toBeVisible();
   await expect(page.locator('.cd-home-priority')).toBeVisible();
   await expect(page.locator('[data-home-action]')).toHaveAttribute('href','/'+lang+'/login/');
@@ -256,7 +266,7 @@ test('authenticated accounts receive only a verified personal greeting in both l
  // never an invented order or a legacy static primary action.
  await page.route('**/api/commerce/history',r=>r.fulfill({status:200,contentType:'application/json',body:JSON.stringify({ok:true,orders:[]})}));
  for(const [lang,route] of [['fa','/fa/customer-dashboard/'],['en','/en/account/']]){
-  await page.goto(base+route,{waitUntil:'domcontentloaded'});
+  await page.goto(legacyOpsUrl(base+route),{waitUntil:'domcontentloaded'});
   await expect(page.locator('[data-account-email]')).toHaveText('member@example.test');
   await expect(page.locator('[data-home-action]')).toHaveAttribute('href','/'+lang+'/services/');
   await expect(page.locator('html')).toHaveAttribute('data-customer-authenticated','true');
@@ -299,7 +309,7 @@ for(const [lang,path] of [['fa','/fa/app/admin/'],['en','/en/account/admin/']]){
    hits++;expect(route.request().method()).toBe('GET');
    return route.fulfill({json:payload});
   });
-  await page.goto(base+path);
+  await page.goto(legacyOpsUrl(base+path));
   await expect(page.locator('#ops-workspace')).toBeVisible();
   await expect(page.locator('#ops-commerce-results article')).toHaveCount(0);
   await page.locator('#ops-commerce > summary').click();
@@ -338,7 +348,7 @@ test('English owner commerce formats real ledger amounts without implying bank s
    paidStateOrdersLast30Days:1,pendingOlderThan24Hours:0,pendingOlderThan7Days:0,
    createdOlderThan24Hours:0,refundRequestsAwaitingAction:0}
  }}));
- await page.goto(base+'/en/account/admin/');
+ await page.goto(legacyOpsUrl(base+'/en/account/admin/'));
  await page.locator('#ops-commerce > summary').click();
  const value=page.locator('#ops-commerce-results article').filter({hasText:'Paid-state order value'}).first().locator('.ops-number');
  await expect(value).toHaveText('1,234,567 toman');
@@ -351,7 +361,7 @@ test('MFA-protected commerce reports never manufacture zero when server refuses 
  await authorized(page);
  await page.route('**/api/admin/operations/commerce',route=>route.fulfill({
   status:403,json:{ok:false,error:'admin_mfa_required'}}));
- await page.goto(base+'/fa/app/admin/');
+ await page.goto(legacyOpsUrl(base+'/fa/app/admin/'));
  await expect(page.locator('#ops-workspace')).toBeVisible();
  await page.locator('#ops-commerce > summary').click();
  await expect(page.locator('#ops-commerce-status')).toContainText('قابل دریافت نیست');
@@ -376,7 +386,7 @@ test('MFA expiry destroys service-order worklist references instead of merely hi
      serviceActionQueue:[{orderId:order,sku:'service:academic_consult_60',
        status:'awaiting_contact',providerClaimMatchesOrder:true}]}
  }}));
- await page.goto(base+'/fa/app/admin/');
+ await page.goto(legacyOpsUrl(base+'/fa/app/admin/'));
  await expect(page.locator('#ops-workspace')).toBeVisible();
  await page.locator('#ops-commerce > summary').click();
  await expect(page.locator('#ops-commerce-results details')).toHaveCount(1);
@@ -393,7 +403,7 @@ test('MFA expiry destroys service-order worklist references instead of merely hi
 
 for(const [locale,route] of [['fa','/fa/app/admin/'],['en','/en/account/admin/']]){
  for(const width of [320,1440])test(locale+' Stage 7 masterplan contains six development briefs and twelve delivery packages at '+width+'px',async({page})=>{
-  await page.setViewportSize({width,height:900});await authorized(page);await page.goto(base+route);
+  await page.setViewportSize({width,height:900});await authorized(page);await page.goto(legacyOpsUrl(base+route));
   const panel=page.locator('#ops-stage7-blueprint');
   await expect(panel).toBeVisible();
   await expect(panel.locator('article.ops-card')).toHaveCount(6);
@@ -410,7 +420,7 @@ for(const [locale,route] of [['fa','/fa/app/admin/'],['en','/en/account/admin/']
  });
 }
 test('Stage 7 development instructions stay within MFA-protected workspace',async({page})=>{
- await authorized(page,{mfa:true});await page.goto(base+'/fa/app/admin/');
+ await authorized(page,{mfa:true});await page.goto(legacyOpsUrl(base+'/fa/app/admin/'));
  await expect(page.locator('#ops-stage7-blueprint')).toBeHidden();
 });
 
@@ -472,7 +482,7 @@ for(const [lang,path] of [['fa','/fa/app/admin/'],['en','/en/account/admin/']]){
       change:{state:'booked',customerNotified:false,serviceDelivered:false}
     }});
   });
-  await page.goto(base+path);
+  await page.goto(legacyOpsUrl(base+path));
   await expect(page.locator('#ops-workspace')).toBeVisible();
   await page.locator('#ops-commerce > summary').click();
   const calendar=page.locator('#ops-commerce-results .ops-calendar');
@@ -545,7 +555,7 @@ test('owner-only capacity editor converts Tehran hours and submits after fresh M
  });
  page.on('dialog',dialog=>dialog.accept());
  await page.setViewportSize({width:390,height:844});
- await page.goto(base+'/fa/app/admin/');
+ await page.goto(legacyOpsUrl(base+'/fa/app/admin/'));
  await page.locator('#ops-commerce > summary').click();
  const editor=page.locator('#ops-commerce-results .ops-capacity');
  await expect(editor).toHaveCount(1);
@@ -585,7 +595,7 @@ test('without verified consultation capacity schema the owner cannot publish tim
    serviceActionQueue:[],parcelActionQueue:[],
    internalAvailability:{schemaReady:false,windows:[],openWindowCount:null}}
  }}));
- await page.goto(base+'/en/account/admin/');
+ await page.goto(legacyOpsUrl(base+'/en/account/admin/'));
  await page.locator('#ops-commerce > summary').click();
  const availability=page.locator('#ops-commerce-results .ops-capacity');
  await expect(availability).toHaveCount(1);
@@ -619,7 +629,7 @@ for(const [locale,route,intake] of [
         customerReservationEnabled:false,externalCalendarConfirmed:false,days}});
     });
     await page.setViewportSize({width:390,height:844});
-    await page.goto(base+route);
+    await page.goto(legacyOpsUrl(base+route));
     await page.locator('.cd-mobile-dock [data-dashboard-more]').click();
     await page.locator('[data-dashboard-sheet] a[href="#consultations"]').click();
     const week=page.locator('#consultations [data-consultation-week]');
@@ -643,7 +653,7 @@ for(const [locale,route,intake] of [
         requests:[{service_id:'service:academic_consult_60',state:'NEW'},
           {service_id:'vip:golden-talent-signature',state:'WITHDRAWN'}]}});
     });
-    await page.goto(base+route);
+    await page.goto(legacyOpsUrl(base+route));
     await page.locator('.cd-mobile-dock [data-dashboard-more]').click();
     await page.locator('[data-dashboard-sheet] a[href="#consultations"]').click();
     const lead=page.locator('#consultations [data-customer-consultation-leads]');
@@ -672,7 +682,7 @@ for(const [locale,route,intake] of [
 test('10k USD scenario studio remains strictly hypothetical, costed and capacity-aware',async({page})=>{
   await authorized(page);
   await page.setViewportSize({width:390,height:844});
-  await page.goto(base+'/en/account/admin/',{waitUntil:'domcontentloaded'});
+  await page.goto(legacyOpsUrl(base+'/en/account/admin/'),{waitUntil:'domcontentloaded'});
   await expect(page.locator('#ops-workspace')).toBeVisible();
   const section=page.locator('#ops-revenue-planning');
   await section.locator('summary').click();
@@ -755,7 +765,7 @@ test('owner can inspect more than twenty consented enquiries without persisting 
      items,limit:20,asOf:1700000100,nextCursor:first?cursor:null,
      privacy:'MFA_ONLY_CURRENT_CONSENT_NO_MARKETING_PERMISSION'}});
  });
- await page.goto(base+'/en/account/admin/',{waitUntil:'domcontentloaded'});
+ await page.goto(legacyOpsUrl(base+'/en/account/admin/'),{waitUntil:'domcontentloaded'});
  await expect(page.locator('#ops-workspace')).toBeVisible();
  const growth=page.locator('#ops-organic-growth');
  await growth.locator(':scope > summary').click();
@@ -796,7 +806,7 @@ test('administrator audit history filters by event and reference without changin
   reads++;
   return route.fulfill({json:{ok:true,events}});
  });
- await page.goto(base+'/fa/app/admin/');
+ await page.goto(legacyOpsUrl(base+'/fa/app/admin/'));
  await expect(page.locator('#ops-workspace')).toBeVisible();
  const audit=page.locator('#ops-audit-timeline');
  await audit.locator('summary').click();
@@ -836,7 +846,7 @@ test('MFA lock purges confidential manuscript, reviewer, and author records from
   ok:true,authors:[{id:'a1',display_name_fa:'Confidential Author',status:'submitted',
    bank_name:'Private Bank',card_last4:'1234',iban_last4:'5678',documents:[]}]
  }}));
- await page.goto(base+'/fa/app/admin/');
+ await page.goto(legacyOpsUrl(base+'/fa/app/admin/'));
  await expect(page.locator('#ops-workspace')).toBeVisible();
  await page.locator('#ops-jhela-workstream > summary').click();
  await page.locator('[data-jhela-reviewer-owner] > summary').click();
@@ -883,7 +893,7 @@ test('JHELA owner diagnostics never retain or repaint data after the administrat
   if(delay)await new Promise(resolve=>delayed.push(resolve));
   await route.fulfill({json:host});
  });
- await page.goto(base+'/fa/app/admin/');
+ await page.goto(legacyOpsUrl(base+'/fa/app/admin/'));
  await expect(page.locator('#ops-workspace')).toBeVisible();
  await page.locator('#ops-jhela-workstream > summary').click();
  await page.locator('#ops-jhela-maturity > summary').click();
@@ -921,7 +931,7 @@ for(const [locale,route,width] of [['fa','/fa/app/admin/',320],['en','/en/accoun
   const writes=[];
   page.on('request',request=>{if(request.method()==='POST')writes.push(request.url());});
   await page.setViewportSize({width,height:870});
-  await page.goto(base+route);
+  await page.goto(legacyOpsUrl(base+route));
   await expect(page.locator('#ops-workspace')).toBeVisible();
   await page.locator('#ops-search').fill('OP-11');
   await expect(page.locator('#ops-cards article')).toHaveCount(1);
@@ -958,7 +968,7 @@ test('owner evidence report never makes untrusted URL schemes clickable',async({
  record.verifiedGates[0].evidence=evidence('Unsafe injected evidence','javascript:alert(1)');
  record.verifiedGates[1].evidence=evidence('Valid audit source','https://github.com/example/audits');
  await authorized(page,{data});
- await page.goto(base+'/fa/app/admin/');
+ await page.goto(legacyOpsUrl(base+'/fa/app/admin/'));
  await page.locator('#ops-search').fill('OP-11');
  await page.locator('#ops-cards button').click();
  const details=page.locator('#ops-detail');
@@ -987,7 +997,7 @@ for(const [locale,route] of [['fa','/fa/app/admin/'],['en','/en/account/admin/']
    reads++;return r.fulfill({json:projected});
   });
   await page.setViewportSize({width:320,height:880});
-  await page.goto(base+route);
+  await page.goto(legacyOpsUrl(base+route));
   const workspace=page.locator('#ops-workspace');
   const aisv=page.locator('#ops-ai-visibility');
   await expect(workspace).toBeVisible();
@@ -1019,7 +1029,7 @@ for(const [locale,route] of [['fa','/fa/app/admin/'],['en','/en/account/admin/']
   await authorized(page);
   await page.route('**/api/admin/operations/ai-visibility',r=>
    r.fulfill({status:403,json:{ok:false,error:'owner_ai_visibility_forbidden'}}));
-  await page.goto(base+route);
+  await page.goto(legacyOpsUrl(base+route));
   const panel=page.locator('#ops-ai-visibility');
   await expect(page.locator('#ops-workspace')).toBeVisible();
   await panel.locator(':scope > summary').click();
@@ -1036,7 +1046,7 @@ for(const [language,route] of [['fa','/fa/app/admin/'],['en','/en/account/admin/
  test(language+' owner wayfinding stays in the MFA workspace at mobile width',async({page})=>{
   await page.setViewportSize({width:360,height:800});
   await authorized(page);
-  await page.goto(base+route);
+  await page.goto(legacyOpsUrl(base+route));
   const nav=page.locator('#ops-workspace nav.ops-jump');
   await expect(nav).toBeVisible();
   const links=nav.locator('a');
@@ -1055,3 +1065,27 @@ for(const [language,route] of [['fa','/fa/app/admin/'],['en','/en/account/admin/
   expect(await page.evaluate(()=>localStorage.length)).toBe(0);
  });
 }
+
+for(const [lang,path] of [['fa','/fa/app/admin/'],['en','/en/account/admin/']])
+test(lang+' owner can switch between modern command deck and all-tools classic workspace under unchanged MFA',async({page})=>{
+ await authorized(page);
+ await page.goto(base+path);
+ await expect(page.locator('#ops-workspace')).toBeVisible();
+ await expect(page.locator('#ops-command-deck')).toBeVisible();
+ await expect(page.locator('#ops-command-deck .ops-command-tab')).toHaveCount(10);
+ const legacy=page.locator('#ops-command-deck .ops-command-classic-link');
+ await expect(legacy).toBeVisible();
+ await expect(legacy).toHaveAttribute('href',new RegExp('ops_view=classic'));
+ await legacy.click();
+ await expect(page).toHaveURL(/ops_view=classic/);
+ await expect(page.locator('#ops-workspace')).toBeVisible();
+ await expect(page.locator('#ops-command-deck')).toHaveCount(0);
+ await expect(page.locator('#ops-search')).toBeVisible();
+ await expect(page.locator('#ops-cards article')).toHaveCount(36);
+ const modern=page.locator('#ops-workspace .ops-command-classic-return');
+ await expect(modern).toBeVisible();
+ await modern.click();
+ await expect(page.locator('#ops-command-deck')).toBeVisible();
+ await expect(page.locator('#ops-mfa-form')).toBeHidden();
+ await expect(page.locator('#ops-workspace')).toBeVisible();
+});
