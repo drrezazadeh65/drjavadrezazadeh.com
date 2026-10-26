@@ -9,6 +9,10 @@ on:
       - 'platform/jrei-v5/windows-worker/jrei-owner-pilot-worker.mjs'
       - 'platform/jrei-v5/windows-worker/JREI-OWNER-PRIVATE-PILOT.cmd'
       - 'platform/jrei-v5/windows-worker/JREI-CONNECT-EXISTING-NODE-A.cmd'
+      - 'platform/jrei-v5/windows-worker/JREI-CONNECT-EXISTING-NODE-B.cmd'
+      - 'platform/jrei-v5/windows-worker/jrei-connect-existing-node-b.ps1'
+      - 'platform/jrei-v5/windows-worker/jrei-node-b-stability-status.ps1'
+      - 'tests/jrei-node-a-persistent-connect.test.mjs'
       - 'platform/jrei-v5/windows-worker/jrei-connect-existing-node-a.ps1'
       - 'platform/jrei-v5/windows-worker/jrei-managed-startup.ps1'
       - 'platform/jrei-v5/windows-worker/jrei-local-model-start.ps1'
@@ -38,57 +42,62 @@ jobs:
           node --test tests/jrei-owner-private-pilot.test.mjs
           node --test tests/jrei-node-a-persistent-connect.test.mjs
           if command -v pwsh >/dev/null 2>&1; then
-            pwsh -NoProfile -NonInteractive -Command '$ErrorActionPreference="Stop"; foreach($name in @("jrei-connect-existing-node-a.ps1","jrei-managed-startup.ps1","jrei-local-model-start.ps1")) { $tokens=$null; $parseErrors=$null; [System.Management.Automation.Language.Parser]::ParseFile("platform/jrei-v5/windows-worker/$name",[ref]$tokens,[ref]$parseErrors) | Out-Null; if($parseErrors.Count -gt 0) {throw "PowerShell source syntax invalid: $name"} }'
+            pwsh -NoProfile -NonInteractive -Command '$ErrorActionPreference="Stop"; foreach($name in @("jrei-connect-existing-node-a.ps1","jrei-connect-existing-node-b.ps1","jrei-node-b-stability-status.ps1","jrei-managed-startup.ps1","jrei-local-model-start.ps1")) { $tokens=$null; $parseErrors=$null; [System.Management.Automation.Language.Parser]::ParseFile("platform/jrei-v5/windows-worker/$name",[ref]$tokens,[ref]$parseErrors) | Out-Null; if($parseErrors.Count -gt 0) {throw "PowerShell source syntax invalid: $name"} }'
           fi
       - name: Package source update without owner keys, model or private config
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p bundle/platform/jrei-v5/windows-worker bundle/platform/jrei-v5
-          for file in JREI-OWNER-PRIVATE-PILOT.cmd JREI-CONNECT-EXISTING-NODE-A.cmd JREI-READINESS-CHECK.cmd jrei-connect-existing-node-a.ps1 jrei-managed-startup.ps1 jrei-local-model-start.ps1 jrei-local-doctor.mjs jrei-worker.mjs jrei-local-chat-worker.mjs jrei-owner-pilot-worker.mjs jrei-loopback-model-adapter.mjs jrei-worker-error-code.mjs jrei-windows-dpapi.ps1; do
+          for file in JREI-OWNER-PRIVATE-PILOT.cmd JREI-CONNECT-EXISTING-NODE-A.cmd JREI-CONNECT-EXISTING-NODE-B.cmd JREI-READINESS-CHECK.cmd jrei-connect-existing-node-a.ps1 jrei-connect-existing-node-b.ps1 jrei-node-b-stability-status.ps1 jrei-managed-startup.ps1 jrei-local-model-start.ps1 jrei-local-doctor.mjs jrei-worker.mjs jrei-local-chat-worker.mjs jrei-owner-pilot-worker.mjs jrei-loopback-model-adapter.mjs jrei-worker-error-code.mjs jrei-windows-dpapi.ps1; do
             cp "platform/jrei-v5/windows-worker/$file" "bundle/platform/jrei-v5/windows-worker/$file"
           done
           for file in jrei-educational-answer-review.mjs jrei-deterministic-arithmetic.mjs; do
             cp "platform/jrei-v5/$file" "bundle/platform/jrei-v5/$file"
           done
           cat > bundle/README-JREI-OWNER-PILOT.txt <<'EOF'
-          JREI EXPERIMENTAL PRIVATE OWNER PILOT — NOT PUBLIC AI
+          JREI PRIVATE QWEN PILOT - WINDOWS A/B, NOT PUBLIC AI
 
-          1. Extract ALL contents INTO the existing JREI-Development folder
-             so the platform/jrei-v5/windows-worker paths match exactly.
-             Replace only the provided source files when Windows asks.
-          2. DO NOT move or upload any private DPAPI key or JSON config.
-          3. On EXISTING 32GB Node A, double-click:
-             platform/jrei-v5/windows-worker/
-             JREI-CONNECT-EXISTING-NODE-A.cmd
-             Approve Y. It keeps existing signed keys, model weights and
-             Node B unchanged. It installs missing owner logon tasks only.
-             It starts the hash-pinned model if the loopback model is down.
-             If the separately reviewed live chat configuration is ON,
-             it starts the signed chat worker. Otherwise, it starts the
-             private pilot ONLY if the private model rights-review
-             approval already exists. It never sets private approval flags.
-          4. For an optional read-only check, double-click
-             JREI-READINESS-CHECK.cmd. It never changes credentials.
-          5. Review the existing MFA owner JREI diagnostics for actual
-             signed model queue receipts and any remaining private host
-             encryption, migration, retention or release gates.
-          6. Do not call public AI LIVE until actual bilingual website-to-
-             Bertina-to-model-to-site results and host privacy gates pass.
+          VERIFIED OWNER TOPOLOGY 2026-10-26
+          Node A identifier: 28b1c0d2-b833-41cb-97e2-df92c9373de0
+          Node B identifier: 7f742039-6c42-4cb7-9bd3-044e30b059f7
+          Owner observed the first real private Bertina -> Node B Qwen ->
+          Bertina round trip. A running model is not public-AI release proof.
 
-          No model downloaded or replaced. No public release flag or
-          quality acceptance is changed. Responses may be incorrect.
-          The server needs the existing registered Node A to be ENABLED,
-          a rights-reviewed model with exact matching SHA and the private
-          local-chat encryption key configured.
-          This bundle alone does NOT guarantee a successful pilot, which
-          must be confirmed by a real signed round-trip from Node A.
+          1. Extract the bundle INTO the existing JREI-Development folder;
+             preserve ALL existing private JSON/DPAPI keys and GGUF files.
+          2. On the owner Windows PC with the EXISTING, proven Node B Qwen,
+             run platform/jrei-v5/windows-worker/
+             JREI-CONNECT-EXISTING-NODE-B.cmd and authorize Y.
+             The installer checks the exact Node B identifier, GGUF and
+             llama.cpp SHA pins, existing signed config and memory budget.
+          3. Keep the original Qwen loopback port 127.0.0.1:8081;
+             model and signed worker are scheduled under the signed-in
+             Windows owner, not exposed to the public network.
+          4. Verify LOCAL status without revealing private credentials:
+             powershell.exe -NoProfile -File
+             platform/jrei-v5/windows-worker/jrei-node-b-stability-status.ps1
+             Expect the model HEALTHY and the pilot task RUNNING.
+          5. Then use the existing MFA owner-only Qwen pilot on the site
+             to verify an actual signed round trip. Local status alone
+             does not prove Bertina connectivity.
+          6. If Node A must be separately prepared, use the Node A script
+             on its OWN Windows PC only. Never copy or edit node identity,
+             private config, DPAPI key or public model-release flags.
+
+          Worker idle polling backs off to at most 20s, transient errors
+          retry with bounded delays; revoked keys still stop immediately.
+          Automatic startup occurs after the matching Windows owner LOGS IN
+          and that PC remains powered, awake and connected to the Internet.
+          Existing functioning scheduled tasks are preserved.
+          NO website deploy, SQL migration, model download, weight training
+          payment action, or public generative approval is in this bundle.
           EOF
           (cd bundle && find platform -type f -print0 | sort -z | xargs -0 sha256sum > SHA256SUMS.txt)
       - name: Publish owner-downloadable no-secret update
         uses: actions/upload-artifact@v4
         with:
-          name: JREI-OWNER-PILOT-NODE-A
+          name: JREI-OWNER-PILOT-WINDOWS-NODES
           path: bundle/
           retention-days: 30
           if-no-files-found: error
