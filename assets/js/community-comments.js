@@ -31,6 +31,13 @@ host.append(identity,explanation,ratingSummary,listing,status);
 const form=el('form','jr-community-form');
 form.setAttribute('dir',en?'ltr':'rtl');
 form.innerHTML='<h3>دیدگاه خود را ثبت کنید</h3><fieldset class="jr-community-rating"><legend>امتیاز اختیاری به این مقاله</legend><div class="jr-community-rating-options"><label><input type="radio" name="rating" value="" checked><span>بدون امتیاز</span></label><label><input type="radio" name="rating" value="1"><span aria-label="۱ از ۵ ستاره">★</span></label><label><input type="radio" name="rating" value="2"><span aria-label="۲ از ۵ ستاره">★★</span></label><label><input type="radio" name="rating" value="3"><span aria-label="۳ از ۵ ستاره">★★★</span></label><label><input type="radio" name="rating" value="4"><span aria-label="۴ از ۵ ستاره">★★★★</span></label><label><input type="radio" name="rating" value="5"><span aria-label="۵ از ۵ ستاره">★★★★★</span></label></div></fieldset><label>متن دیدگاه (در صورت انتخاب امتیاز، نوشتن دیدگاه اختیاری است)<textarea name="body" minlength="12" maxlength="2000" rows="5" placeholder="دیدگاه خود را محترمانه و مرتبط با این مقاله بنویسید."></textarea></label><p class="jr-community-privacy">لطفاً اطلاعات خصوصی دانش‌آموزان یا اشخاص دیگر را وارد نکنید. متن دیدگاه و امتیاز، فقط پس از تأیید مدیر، برای عموم قابل مشاهده است. <a href="/fa/harim-khosusi/">سیاست حریم خصوصی</a></p><label class="jr-community-consent"><input type="checkbox" name="consent" required> با بررسی و انتشار عمومی احتمالی دیدگاه و امتیاز خود پس از تأیید مدیر موافقم.</label><button type="submit">ارسال برای بررسی مدیر</button><p class="jr-community-form-status" role="status" aria-live="polite"></p>';
+// The star glyphs are visual only. Each radio has an explicit accessible name.
+for(const input of form.querySelectorAll('.jr-community-rating-options input[type="radio"]')){
+ const value=Number(input.value);
+ input.setAttribute('aria-label',input.value===''
+  ?tr('بدون امتیاز','No rating')
+  :tr(String(value)+' ستاره از ۵',String(value)+' out of 5 stars'));
+}
 if(isService){
  // Service Q&A is NOT a buyer-verified review. Never collect/display stars.
  const faq=tr('<h3>پرسش خود را درباره این خدمت مطرح کنید</h3><label>متن پرسش<textarea name="body" required minlength="12" maxlength="2000" rows="5" placeholder="پرسشی روشن و مرتبط با شرایط این خدمت بنویسید."></textarea></label><p class="jr-community-privacy">اطلاعات خصوصی یا محتوای محرمانه پژوهشی را درج نکنید. پرسش فقط پس از تأیید مدیر منتشر می‌شود. <a href="/fa/harim-khosusi/">سیاست حریم خصوصی</a></p><label class="jr-community-consent"><input type="checkbox" name="consent" required> با بررسی و انتشار احتمالی پرسش خود موافقم.</label><button type="submit">ارسال پرسش برای بررسی</button><p class="jr-community-form-status" role="status" aria-live="polite"></p>',
@@ -95,6 +102,9 @@ async function load(){
   }
   box.append(meta);
   if(c.body.trim())box.append(el('p','jr-community-body',c.body));
+  else if(ratingOnly)box.append(el('p','jr-community-rating-only-note',
+    tr('این امتیاز بدون نظر متنی ثبت و پس از بررسی مدیر تأیید شده است.',
+      'This rating has no written review and was approved by the moderator.')));
   const replies=Array.isArray(c.replies)?c.replies.slice(0,30):[];
   if(replies.length){
    const replyList=el('div','jr-community-official-replies');
