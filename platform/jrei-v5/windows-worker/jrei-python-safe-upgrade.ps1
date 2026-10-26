@@ -282,30 +282,9 @@ try{
   Event 'PYTHON_AUTO_UPGRADE_ACTIVATED_AND_VERIFIED'
  }catch{
   $reason=$_.Exception.Message
-  if($reason -match '^[A-Z0-9_]{5,65}
-   try{
-    Stop-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue
-    $old=New-ScheduledTaskAction -Execute $before -Argument $beforeArgs -WorkingDirectory $beforeDir
-    Set-ScheduledTask -TaskName $taskName -Action $old|Out-Null
-    Start-ScheduledTask -TaskName $taskName
-    if(WaitHealth){Event 'PYTHON_AUTO_UPGRADE_OLD_CORE_RESTORED'}
-    else{Event 'PYTHON_AUTO_UPGRADE_MANUAL_RECOVERY_REQUIRED'}
-   }catch{Event 'PYTHON_AUTO_UPGRADE_MANUAL_RECOVERY_REQUIRED'}
-  }
-  Persist $stateFile @{schema='jr.jrei.windows-python-installed.v1';
-     sourceTree=if($priorState){$priorState.sourceTree}else{''};
-     failedTree=$tree; failedAt=[DateTimeOffset]::UtcNow.ToUnixTimeSeconds()}
-  Event 'PYTHON_AUTO_UPGRADE_FAILED_OLD_CORE_PRESERVED'
- }
-}catch{
- Event 'PYTHON_AUTO_UPGRADE_PRECHECK_FAILED_NO_SERVICE_CHANGE'
- throw
-}
-){
+  if($reason -match '^[A-Z0-9_]{5,65}$'){
    Event ('PYTHON_UPGRADE_REASON_'+$reason)
   }elseif($env:JREI_UPGRADE_FIXTURE_DIAGNOSTICS -eq 'CI_ISOLATED'){
-   # Debug only in disposable GitHub Windows runner; never echo user paths,
-   # credentials or raw installation stdout in production upgrade logs.
    Write-Output ('CI_PRIVATE_FIXTURE_FAILURE='+$reason)
   }
   if($changed){
