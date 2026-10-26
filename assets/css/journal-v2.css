@@ -468,3 +468,19 @@
   min-inline-size:0;max-inline-size:100%;
  }
 }
+
+/* JHELA scholarly gold-line polish: no distraction from peer-review content. */
+.journal-page .journal-grid article{
+ box-shadow:inset 0 1px 0 rgba(231,199,137,.04);
+}
+@media(hover:hover) and (pointer:fine) and (prefers-reduced-motion:no-preference){
+ .journal-page .journal-grid article:hover{
+  box-shadow:inset 0 1px 0 rgba(231,199,137,.12),0 15px 34px rgba(0,0,0,.22);
+ }
+ .journal-page .journal-header nav a:hover{
+  border-color:rgba(222,188,118,.60);
+ }
+}
+.journal-page .journal-header nav a:focus-visible{
+ outline:3px solid #f4d99f;outline-offset:3px;
+}
