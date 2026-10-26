@@ -71,13 +71,16 @@ function publicSource(route){
 function firstTag(html,tag,attr,value){
  const pattern=new RegExp('<'+tag+'\\b[^>]*>','gi');
  for(const match of html.matchAll(pattern)){
-  if(new RegExp('\\b'+attr+'\\s*=\\s*(["\\\'])'+value+'\\1','i').test(match[0]))return match[0];
+  if((attribute(match[0],attr)||'').toLowerCase()===value.toLowerCase())
+   return match[0];
  }
  return '';
 }
 function attribute(tag,key){
- const m=tag.match(new RegExp('\\b'+key+'\\s*=\\s*(["\\\'])(.*?)\\1','i'));
- return m?m[2]:null;
+ for(const match of String(tag).matchAll(/([\w:-]+)\s*=\s*(?:"([^"]*)"|'([^']*)')/g)){
+  if(match[1].toLowerCase()===key.toLowerCase())return match[2]??match[3];
+ }
+ return null;
 }
 function details(route){
  const p=publicSource(route);
