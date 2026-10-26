@@ -16,6 +16,7 @@ from jrei_learning.prioritizer import prioritize
 from jrei_learning.heldout import HeldoutReviewRequest, HeldoutReviewResult, review_heldout
 from jrei_skills import EvidenceTriageRequest, EvidenceTriageResult, triage_evidence_revision
 from jrei_skills.registry import skill_catalog
+from jrei_skills.arithmetic import ArithmeticRequest, ArithmeticResult, ArithmeticRejected, calculate_exact
 
 app = FastAPI(
     title="JREI Private Intelligence Contracts",
@@ -62,6 +63,7 @@ async def capabilities():
             "scoped_mission_dag_proposal_v1",
             "evidence_revision_triage_v1",
             "paired_bilingual_heldout_review_v1",
+            "bounded_exact_arithmetic_v1",
         ],
         "live_model_inference": False,
         "durable_missions": False,
@@ -121,3 +123,16 @@ async def heldout_evidence_review(payload: HeldoutReviewRequest):
     # Caller data only. No test fixture rights or independence is attested;
     # no knowledge or model promotion is applied, and no DB is changed.
     return review_heldout(payload)
+
+
+@app.post(
+    "/internal/v1/skills/arithmetic/calculate",
+    response_model=ArithmeticResult,
+    dependencies=[Depends(require_internal_gateway)],
+)
+async def exact_arithmetic(payload: ArithmeticRequest):
+    # Deterministic local-only computation; no model/provider, DB or learner data.
+    try:
+        return calculate_exact(payload)
+    except ArithmeticRejected as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
