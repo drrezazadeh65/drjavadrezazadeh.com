@@ -1,0 +1,82 @@
+name: JREI First Real Signed Python Mission Isolated QA (NO DEPLOY)
+on:
+  push:
+    branches: [migration/bertina-linux6]
+    paths:
+      - '.github/workflows/jrei-first-real-python-mission-isolated-qa.yml'
+      - 'api/jrei-python-canary-bridge.php'
+      - 'api/index.php'
+      - 'api/operations.php'
+      - 'platform/jrei-python/jrei_service/app.py'
+      - 'platform/jrei-python/tests/test_first_signed_canary.py'
+      - 'platform/jrei-v5/windows-worker/jrei-worker.mjs'
+      - 'platform/jrei-v5/windows-worker/jrei-python-canary-worker.mjs'
+      - 'assets/js/operations-jrei-python-canary-v1.js'
+      - 'fa/app/admin/index.html'
+      - 'en/account/admin/index.html'
+      - 'tests/jrei-python-canary-bridge.test.mjs'
+      - 'tests/jrei-python-canary-mysql.php'
+      - 'docs/migrations/20261027_jrei_python_canary_roundtrip_mother_mysql.sql'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: jrei-first-python-job-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  isolated-real-execution-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: jrei_fixture_only
+          MYSQL_ROOT_HOST: '%'
+          MYSQL_DATABASE: jrei_fixture
+        ports: ['3306:3306']
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -pjrei_fixture_only"
+          --health-interval=10s --health-timeout=5s --health-retries=10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: pdo_mysql
+      - name: PHP and JS module syntax
+        run: |
+          php -l api/index.php
+          php -l api/operations.php
+          php -l api/jrei-python-canary-bridge.php
+          php -l tests/jrei-python-canary-mysql.php
+          node --check platform/jrei-v5/windows-worker/jrei-worker.mjs
+          node --check platform/jrei-v5/windows-worker/jrei-python-canary-worker.mjs
+          node --check assets/js/operations-jrei-python-canary-v1.js
+      - name: Python 3.13 original full unit suite including real fixed loopback skill
+        run: |
+          python -m pip install --disable-pip-version-check -e ./platform/jrei-python
+          (cd platform/jrei-python && python -m unittest discover -s tests -p 'test_*.py' -q)
+      - name: Strict Node signed-job contract tests
+        run: node --test tests/jrei-python-canary-bridge.test.mjs
+      - name: Disposable MySQL 8.0 fixture schema only
+        run: |
+          docker exec -i "${{ job.services.mysql.id }}" mysql -uroot -pjrei_fixture_only jrei_fixture < docs/migrations/20261027_jrei_python_node_health_mother_mysql.sql
+          docker exec -i "${{ job.services.mysql.id }}" mysql -uroot -pjrei_fixture_only jrei_fixture < docs/migrations/20261027_jrei_python_canary_roundtrip_mother_mysql.sql
+      - name: Real signed job lifecycle on disposable MySQL (never Bertina)
+        env:
+          CI_DB_DSN: mysql:host=127.0.0.1;port=3306;dbname=jrei_fixture;charset=utf8mb4
+          CI_DB_USER: root
+          CI_DB_PASSWORD: jrei_fixture_only
+        run: |
+          php tests/jrei-python-canary-mysql.php
+      - name: Explicit evidence scope
+        if: always()
+        run: |
+          echo 'Isolated end-to-end contracts on disposable MySQL. This run makes NO production MySQL change, Bertina deploy, Windows task activation, model inference, crawl, autonomous training, or news publication.' >> "$GITHUB_STEP_SUMMARY"
