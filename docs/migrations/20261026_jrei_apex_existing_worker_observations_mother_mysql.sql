@@ -19,6 +19,7 @@ CREATE TABLE IF NOT EXISTS jrei_apex_worker_links (
   last_checkpoint_sha256 CHAR(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
   last_job_revision BIGINT UNSIGNED NOT NULL DEFAULT 0,
   last_job_status VARCHAR(22) NOT NULL DEFAULT 'UNOBSERVED',
+  last_observation_code VARCHAR(55) NOT NULL DEFAULT 'UNOBSERVED',
   last_observed_at BIGINT UNSIGNED NULL,
   UNIQUE KEY uq_apex_worker_job_once(job_id),
   KEY idx_apex_worker_owner(owner_account_id,linked_at),
