@@ -190,6 +190,10 @@ function cfg(): array {
         // independently accepted single-process replay / TLS controls.
         'jrei_apex_mission_python_plan_enabled' =>
             getenv('JR_JREI_APEX_MISSION_PYTHON_PLAN_ENABLED') === 'true',
+        // Signed Windows-node report of localhost Python process only.
+        // Default OFF; NEVER exposes Python 8091 or authorizes skill execution.
+        'jrei_python_node_heartbeat_enabled' =>
+            getenv('JR_JREI_PYTHON_NODE_HEARTBEAT_ENABLED') === 'true',
         // Source-only Python intelligence seam (private worker/VPS only).
         // OFF until independent owner, host, replay-ledger and TLS acceptance;
         // never assume a Python process is available on Bertina hosting.
@@ -777,6 +781,43 @@ if ($path==='/exams/catalog' && $verb==='GET') {
     }catch(Throwable $e){fail('exam_catalogue_read_unavailable',503);}
 }
 if (str_starts_with($path, '/admin/operations')) operationsRoute($path, $verb);
+// Signed Python process observation: authenticated EXISTING Ed25519 node,
+ // original durable replay guard, HTTPS only, no public 8091 connectivity.
+if ($path==='/jrei/v1/python-node/heartbeat') {
+    require_once __DIR__.'/jrei-hybrid-worker.php';
+    require_once __DIR__.'/jrei-python-node-health.php';
+    header('Cache-Control: no-store, private, max-age=0');
+    if ($verb!=='POST') fail('python_node_method_invalid',405);
+    if (!jrHybridHttps($_SERVER)) fail('python_node_tls_required',403);
+    $pc=cfg();
+    if (($pc['jrei_python_node_heartbeat_enabled']??false)!==true)
+        fail('python_node_not_enabled',503);
+    $pdo=db();
+    if (!($pdo instanceof PDO) || !jrHybridSchemaReady($pdo) ||
+        !jrPythonNodeSchemaReady($pdo))
+        fail('python_node_schema_unavailable',503);
+    $raw=jrHybridReadBody($_SERVER);
+    if ($raw===null) fail('python_node_invalid_request',422);
+    try {
+        $signed=jrHybridAuthenticate($pdo,'POST',$path,$raw,$_SERVER,time());
+        if (!is_array($signed) ||
+            !in_array($signed['provider_type']??null,
+                ['LOCAL_WINDOWS_WORKER','LOCAL_SECONDARY_WORKER'],true))
+            fail('python_node_auth_denied',403);
+        if (!rateAllowed($pdo,'jrei_python_node_signed',
+                (string)$signed['node_id'],90,300))
+            fail('python_node_rate_limit',429);
+        $body=jrPythonNodeValidate(jrHybridDecode($raw),time());
+        if ($body===null) fail('python_node_bad_contract',422);
+        jrPythonNodeStore($pdo,(string)$signed['node_id'],$body,time());
+        respond(['ok'=>true,'schema'=>'jr.jrei.python-node-receipt.v1',
+            'accepted'=>true,'productionReady'=>false,
+            'pythonSkillExecutionEnabled'=>false,
+            'newsPublicationEnabled'=>false]);
+    } catch (Throwable $e) {
+        fail('python_node_report_unavailable',503);
+    }
+}
 // Private SUPER_ADMIN test worker is deliberately distinct from public
 // chat. No model-quality claim, public release or inbound Windows port.
 if(in_array($path,['/jrei/v1/owner-pilot/poll',
