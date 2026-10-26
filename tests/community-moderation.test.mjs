@@ -107,3 +107,20 @@ test('bilingual service questions remain behind a THIRD flag and only allow cata
  assert.match(s,/if \(!\$root \|\| !\$page \|\| !str_starts_with/);
  assert.match(s,/str_starts_with\(\$page,\$root\.DIRECTORY_SEPARATOR\)/);
 });
+
+test('optional article-only stars use existing moderated table and do not fabricate written commentary',()=>{
+ const server=php();
+ const client=read('assets/js/community-comments.js');
+ const moderator=read('assets/js/operations-community-moderation.js');
+ assert.match(server,/\$ratingOnly=\$rating!==null && \$content===''/);
+ assert.match(server,/!\$ratingOnly && \(textLen\(\$content\)<12/);
+ assert.match(server,/service_ratings_not_verified/);
+ assert.match(server,/UNIQUE KEY|community_moderation_audit/);
+ assert.match(client,/rating===null/);
+ assert.match(client,/Approved reader rating/);
+ assert.match(client,/value\?tr\(/);
+ assert.match(moderator,/Rating submitted without written commentary/);
+ const sql=read('database/bertina/021_community_moderation.sql');
+ assert.match(sql,/body_text TEXT NOT NULL/);
+ assert.match(sql,/uq_community_one_review_per_account_page/);
+});
