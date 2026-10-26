@@ -64,6 +64,16 @@ function jrPythonCanaryOwnerSnapshot(PDO $db,string $owner): array {
 function jrPythonCanaryPoll(PDO $db,string $node,array $body,int $now): array {
     if(array_keys($body)!==['schema']||$body['schema']!==JR_PY_CANARY_SCHEMA)
         throw new InvalidArgumentException('python_canary_poll_contract');
+    // The original signed node must have recently reported Python 8091
+    // RESPONDING into the verified mother DB before it can lease a job.
+    // This prevents a healthy Qwen-only secondary node stealing the work.
+    $ready=$db->prepare('SELECT server_received_at FROM jrei_python_node_health
+      WHERE node_id=? AND python_process=? LIMIT 1');
+    $ready->execute([$node,'RESPONDING']);
+    $received=$ready->fetchColumn();
+    if($received===false || (int)$received>$now+5 ||
+       (int)$received<$now-90)
+        throw new DomainException('python_canary_worker_has_no_fresh_health');
     $db->beginTransaction();
     try {
         // No retries after lease expiry in this first canary. Operator can
