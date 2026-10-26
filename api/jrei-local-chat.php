@@ -750,7 +750,7 @@ function jrLocalChatOwnerSnapshot(PDO $pdo,array $cfg): array {
     ];
     if(!$ready){
         $result['readinessGates']=jrLocalChatOwnerReadinessGates($result,$cfg);
-        return $result;
+        return jrJreiLocalLaunchReadinessAttach($result,$cfg);
     }
     try{
         $modelCounts=$pdo->query("SELECT COUNT(*) AS registered,
@@ -869,5 +869,21 @@ function jrLocalChatOwnerSnapshot(PDO $pdo,array $cfg): array {
         $result['live']=jrLocalChatReady($pdo,$cfg);
     }catch(Throwable $e){}
     $result['readinessGates']=jrLocalChatOwnerReadinessGates($result,$cfg);
-    return $result;
+    return jrJreiLocalLaunchReadinessAttach($result,$cfg);
 }
+function jrJreiLocalLaunchReadinessAttach(array $snapshot,array $cfg): array {
+    // This optional diagnostics module has no influence on real chat
+    // eligibility. Missing source files must never crash isolated CI fixtures.
+    $helper=__DIR__.'/jrei-local-public-launch.php';
+    if(is_file($helper))require_once $helper;
+    $snapshot['publicLaunchDecision']=function_exists('jrJreiLocalPublicLaunchDecision')
+      ?jrJreiLocalPublicLaunchDecision($snapshot,$cfg)
+      :[
+          'schema'=>'jr.jrei.public-launch-decision.v1',
+          'launchMode'=>'UNAVAILABLE',
+          'publicChatEligibleOnServer'=>false,
+          'blocked'=>[],'unknown'=>['LAUNCH_DIAGNOSTIC_NOT_INSTALLED']
+       ];
+    return $snapshot;
+}
+
