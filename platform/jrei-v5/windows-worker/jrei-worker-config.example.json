@@ -15,6 +15,7 @@
     "rightsReviewed": false,
     "modelRuntimeVerified": false,
     "independentQualityAccepted": false,
+    "publicUnvalidatedOwnerApproved": false,
     "modelId": "REPLACE_WITH_OWNER_APPROVED_MODEL_ID",
     "modelVersion": "REPLACE_WITH_APPROVED_GGUF_VERSION",
     "modelSha256": "REPLACE_WITH_SHA256_OF_ACTUAL_LOCAL_GGUF",
