@@ -1,0 +1,11 @@
+{
+  "schema": "jr.jrei.windows-python-runtime-approval.v1",
+  "sourceTree": "54e968b6b1fa25e57472f5c1bcceff37704782a7",
+  "verifiedCISha": "7bc45156ba7cb73c7e281847d56cb3efb753d32f",
+  "verifiedCIUrl": "https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/40419536593",
+  "pythonVersion": "3.13",
+  "architecture": "win_amd64",
+  "approvedForAutomaticOfflineInstall": true,
+  "approvalScope": "EXACT_SOURCE_TREE_ONLY_NO_MODEL_NO_NEWS_NO_SITE_DEPLOY",
+  "notes": "Additive repository-reviewed allowlist for source tree verified in disposable Windows CI, including failed-cutover rollback. Future source tree changes MUST pass equivalent QA and receive a separate reviewed manifest update before Windows will auto-install."
+}
