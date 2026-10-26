@@ -202,6 +202,7 @@ let lastSuccess=0;
 let connectionError=false;
 let heartbeat=0;
 let heartbeatBusy=false;
+let lastProbeAttempt=0;
 const observations=[];
 const formatNumber=value=>new Intl.NumberFormat(fa?'fa-IR':'en-US').format(value);
 function zoneOf(element){
@@ -263,7 +264,7 @@ function renderModules(){
    selectedModules.set(active,moduleId(node));
    if(node.tagName==='DETAILS')node.open=true;
    annotate();
-   workspace.scrollTo({top:0,behavior:'instant'});
+   workspace.scrollTo({top:0,behavior:'auto'});
   });
   moduleButtons.append(button);
  }
@@ -350,10 +351,11 @@ function metrics(){
  const verified=readNumber('ops-verified');
  const coverage=document.getElementById('ops-coverage')?.textContent?.trim()||'—';
  metricNodes.total.textContent=total===null?'—':formatNumber(total);
- metricNodes.coverage.textContent=/\d/.test(coverage)?coverage:'—';
+ metricNodes.coverage.textContent=/[0-9۰-۹٠-٩]/.test(coverage)?coverage:'—';
  ringNumber.textContent=verified===null?'—':formatNumber(verified);
  const fraction=total&&verified!==null?Math.min(1,Math.max(0,verified/total)):0;
  score.style.setProperty('--ops-ring-completion',String(fraction));
+ ring.querySelector('.ops-command-ring-fill').style.strokeDasharray=(fraction*263.8938)+' 263.8938';
  score.setAttribute('aria-label',verified===null||total===null
    ?tr('پوشش تأییدشده نامشخص','Verified coverage unknown')
    :tr(verified+' بخش از '+total+' بخش تأیید شده',
@@ -384,8 +386,9 @@ function recordObservation(ok,kind){
    observations.length+' real session observations, '+observations.filter(x=>!x.ok).length+' failed attempts'));
 }
 async function heartbeatProbe(){
- if(workspace.hidden||auth.hidden!==true||document.hidden||heartbeatBusy)return;
- heartbeatBusy=true;
+ if(workspace.hidden||auth.hidden!==true||document.hidden||heartbeatBusy||
+    Date.now()-lastProbeAttempt<60000)return;
+ lastProbeAttempt=Date.now();heartbeatBusy=true;
  const controller=new AbortController();
  const timer=setTimeout(()=>controller.abort(),9000);
  try{
@@ -441,13 +444,14 @@ function pulse(){
  })[state];
 }
 function locked(){
- lastSuccess=0;connectionError=false;selectedModules.clear();
+ lastSuccess=0;lastProbeAttempt=0;connectionError=false;selectedModules.clear();
  observations.length=0;timelineBars.replaceChildren();
  timeline.setAttribute('aria-label',tr('سابقه ارتباط پاک شد','Connection history cleared'));
  moduleButtons.replaceChildren();moduleBar.hidden=true;
  clearInterval(heartbeat);heartbeat=0;
  freshnessValue.textContent='—';
  ringNumber.textContent='—';score.style.setProperty('--ops-ring-completion','0');
+ ring.querySelector('.ops-command-ring-fill').style.strokeDasharray='0 263.8938';
  for(const node of Object.values(metricNodes))node.textContent='—';
  for(const child of workspace.children){
   if(child===shell)continue;
