@@ -55,6 +55,15 @@ node scripts/gsc-coverage-reconcile.mjs --input work/private-gsc-export.csv --re
 
 The output is an evidence-reconciliation report, not a Search Console API connection or ranking forecast.
 
+## Further source changes — bilingual rendering and user feedback
+
+- The shared stylesheet and the dedicated bilingual shop, JHELA journal, English service, Persian VIP and existing MFA-protected moderation styles now use logical alignment and mixed-script isolation where appropriate, without changing the canonical visual hierarchy or established navigation URLs.
+- Approved article ratings may appear as visible five-star glyphs **only when a real moderated 1–5 rating is present**. The accessible written rating remains visible, and no `Review`/`AggregateRating` schema is manufactured.
+- Rating-only submissions remain mutually exclusive with a second comment on the same page because the original mother-database unique key is preserved. HTTP 409 now gives explicit one-submission guidance and disables misleading immediate retries; HTTP 401/403 and 429 receive distinguishable user messages.
+- The newsroom launch archive's newly nested H3 card titles retain their visual font rules, and the final-only Playwright acceptance contract no longer incorrectly assumes the archive can never grow beyond its original 13 entries.
+- The new private CSV reconciliation intentionally omits query strings and fragments and redacts private, suspicious or unusually long URL paths; its output is not a substitute for real Google Search Console access.
+- Source contract tests and browser scenarios are **written only**; neither tests nor production probes have been intentionally run during this development pass.
+
 ## Verification gates to run only after development
 
 **SEO + technical:** compare GSC exported affected URLs against the frozen URL manifest and route policy; HTML 200/301/404 semantics; a single descriptive H1 in main; heading hierarchy; useful copy with distinct intent; canonical and exact reciprocal hreflang; private noindex; sitemap URLs and actual lastmod; robots policies; crawlable public resources; JSON-LD parser and provable entity identity; internal links; mobile layout; HTTP status, redirect chains, feed/XML content type.
