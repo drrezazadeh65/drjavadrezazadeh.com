@@ -85,6 +85,13 @@ Header always set Cache-Control "public, no-cache, must-revalidate" env=!PRIVATE
 Header always set Cache-Control "public, no-cache, must-revalidate" env=!PRIVATE_ROUTE
 </FilesMatch>
 
+# Content-addressed, locally hosted Persian heading font: blob identity is pinned
+# in its actual filename. Safe to retain for repeat visits on slower networks.
+# No mutable CSS/JS, HTML, API, checkout, dashboard or user content qualifies.
+<FilesMatch "^vazirmatn-variable-a501289a8559\\.woff2$">
+Header always set Cache-Control "public, max-age=31536000, immutable" env=!PRIVATE_ROUTE
+</FilesMatch>
+
 # Private, authenticated, API and payment routes override every public cache rule.
 Header always set Cache-Control "no-store, private, max-age=0" env=PRIVATE_ROUTE
 Header always set Pragma "no-cache" env=PRIVATE_ROUTE
