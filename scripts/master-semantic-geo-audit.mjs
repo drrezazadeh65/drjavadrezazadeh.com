@@ -29,6 +29,9 @@ const canonicalRoutes = new Map();
 const hreflangLinks = [];
 const sitemapRoutes = new Set();
 const htmlFiles = [];
+// One lightweight parsed record per URL; reciprocal hreflang is checked against
+// the same source snapshot without repeatedly reading whole HTML documents.
+const pageEvidence = new Map();
 const issue = (severity, route, code, detail) =>
   findings.push({severity, route, code, detail});
 
@@ -147,6 +150,7 @@ for (const file of (visit(root),htmlFiles.sort())) {
     }
   }
   const alternates=links(html,'alternate').filter(x=>x.hreflang);
+  pageEvidence.set(route,{language,alternates});
   if(noindex&&alternates.length)
     issue('P2',route,'PRIVATE_HREFLANG','Private or noindex pages should not be promoted as public hreflang alternates');
   if(alternates.length){
@@ -241,15 +245,15 @@ for(const entry of hreflangLinks){
     continue;
   }
   const targetFile=indexableRoutes.get(target);
-  if(!targetFile){
+  const evidence=pageEvidence.get(target);
+  if(!targetFile||!evidence){
     issue('P2',entry.route,'HREFLANG_TARGET','Target lacks indexable source: '+target);
   }else{
-    const targetHtml=fs.readFileSync(targetFile,'utf8');
-    const lang=attributes(tags(targetHtml,'html')[0]||'').lang;
-    if(lang!==entry.language)issue('P1',entry.route,'HREFLANG_MISMATCH',
-      entry.language+' alternate points to '+target+' with html[lang]='+String(lang));
+    if(evidence.language!==entry.language)
+      issue('P1',entry.route,'HREFLANG_MISMATCH',
+        entry.language+' alternate points to '+target+' with html[lang]='+String(evidence.language));
     if(target!==entry.route){
-      const reverse=links(targetHtml,'alternate').some(a=>a.hreflang&&a.href===origin+entry.route);
+      const reverse=evidence.alternates.some(a=>a.hreflang&&a.href===origin+entry.route);
       if(!reverse)issue('P2',entry.route,'HREFLANG_RECIPROCITY','No reciprocal alternate on '+target);
     }
   }
