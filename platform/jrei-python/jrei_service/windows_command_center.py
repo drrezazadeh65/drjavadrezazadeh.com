@@ -8,6 +8,7 @@ retrain model weights, or pretend CI/CD implies production verification.
 from __future__ import annotations
 
 import argparse
+from contextlib import closing
 import hashlib
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
@@ -56,7 +57,7 @@ def utc() -> int:
 
 
 def record(kind: str, state: str, detail: str = "", digest: str = "") -> None:
-    with sqlite3.connect(DB_PATH, timeout=10) as db:
+    with closing(sqlite3.connect(DB_PATH, timeout=10)) as db:
         db.execute("INSERT INTO events (ts,kind,state,detail,sha) VALUES(?,?,?,?,?)",
                    (utc(), kind, state, detail[:1400], digest[:64]))
         db.commit()
@@ -68,7 +69,7 @@ def setup() -> str:
         # Exclusive create; the Windows user's LOCALAPPDATA is the local trust boundary.
         with TOKEN_PATH.open("x", encoding="ascii") as f:
             f.write(secrets.token_urlsafe(48))
-    with sqlite3.connect(DB_PATH, timeout=10) as db:
+    with closing(sqlite3.connect(DB_PATH, timeout=10)) as db:
         db.execute("""CREATE TABLE IF NOT EXISTS events(
             id INTEGER PRIMARY KEY AUTOINCREMENT, ts INTEGER NOT NULL,
             kind TEXT NOT NULL, state TEXT NOT NULL, detail TEXT NOT NULL,
@@ -275,7 +276,7 @@ def scheduler():
 
 
 def recent(limit: int = 25):
-    with sqlite3.connect(DB_PATH, timeout=8) as db:
+    with closing(sqlite3.connect(DB_PATH, timeout=8)) as db:
         rows = db.execute(
             "SELECT ts,kind,state,detail,sha FROM events ORDER BY id DESC LIMIT ?",
             (min(60, max(1, limit)),)).fetchall()
@@ -285,7 +286,7 @@ def recent(limit: int = 25):
 
 def status():
     base, model = local_model()
-    with sqlite3.connect(DB_PATH, timeout=8) as db:
+    with closing(sqlite3.connect(DB_PATH, timeout=8)) as db:
         total = db.execute("SELECT COUNT(*) FROM events WHERE state='PROPOSED_NOT_VERIFIED'").fetchone()[0]
     return {
         "schema": "jr.jrei.windows-command-center.v1",
