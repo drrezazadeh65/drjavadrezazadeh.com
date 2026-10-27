@@ -110,11 +110,14 @@ function jrMetaJournalValidateOutcome(array $payload,array $result): void {
         'HOLD_INSUFFICIENT_BENCHMARK','PROPOSE_ISOLATED_EXPERIMENT',
         'REVIEW_CHALLENGER_WITH_OWNER'
     ];
-    $allowedActions=[
-        'REQUEST_SOURCE_RIGHTS_REVIEW','REPAIR_SOURCE_PROVENANCE',
-        'OBTAIN_INDEPENDENT_EVIDENCE_REVIEW','REVISE_OR_REJECT_CHALLENGER',
-        'CURATE_PAIRED_BILINGUAL_HELDOUT','DESIGN_BOUNDED_EXPERIMENT',
-        'REQUEST_OWNER_SCIENTIFIC_DECISION'
+    $expectedActions=[
+        'HOLD_RIGHTS_REVIEW'=>'REQUEST_SOURCE_RIGHTS_REVIEW',
+        'HOLD_SOURCE_OR_CITATION'=>'REPAIR_SOURCE_PROVENANCE',
+        'HOLD_INDEPENDENT_EVIDENCE'=>'OBTAIN_INDEPENDENT_EVIDENCE_REVIEW',
+        'HOLD_HELDOUT_REGRESSION'=>'REVISE_OR_REJECT_CHALLENGER',
+        'HOLD_INSUFFICIENT_BENCHMARK'=>'CURATE_PAIRED_BILINGUAL_HELDOUT',
+        'PROPOSE_ISOLATED_EXPERIMENT'=>'DESIGN_BOUNDED_EXPERIMENT',
+        'REVIEW_CHALLENGER_WITH_OWNER'=>'REQUEST_OWNER_SCIENTIFIC_DECISION',
     ];
     $seen=[];
     foreach($decisions as $decision) {
@@ -127,7 +130,8 @@ function jrMetaJournalValidateOutcome(array $payload,array $result): void {
            ($expected[$id]['claims']??null)===null ||
            $claims!==$expected[$id]['claims'] ||
            !in_array($decision['decision']??null,$allowedStates,true) ||
-           !in_array($decision['next_action']??null,$allowedActions,true) ||
+           ($decision['next_action']??null)!==
+             ($expectedActions[$decision['decision']??'']??null) ||
            ($decision['owner_approval_required']??null)!==true ||
            ($decision['knowledge_promoted']??null)!==false ||
            ($decision['model_training_started']??null)!==false ||
