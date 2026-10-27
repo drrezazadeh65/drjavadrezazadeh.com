@@ -16,6 +16,8 @@ on:
       - "api/news-public-*.php"
       - "api/jrei-news-*.php"
       - "assets/js/jrei-news-*.js"
+      - "assets/js/jrei-news-owner-panel-v1.mjs"
+      - "assets/js/operations-jrei-newsroom-v1.js"
       - "assets/css/jrei-news-*.css"
       - "fa/akhbar/index.html"
       - "en/news-insights/index.html"
@@ -74,6 +76,8 @@ jobs:
           set -euo pipefail
           for file in api/news-public-*.php; do php -l "$file"; done
           for file in assets/js/jrei-news-*.js; do node --check "$file"; done
+          node --check assets/js/jrei-news-owner-panel-v1.mjs
+          node --check assets/js/operations-jrei-newsroom-v1.js
       - name: Offline Node contract and newsroom UI source regressions, no network/provider
         run: node --test platform/news-intelligence/tests/*.test.mjs
       - name: Build exact sanitized Bertina release candidate without deployment
