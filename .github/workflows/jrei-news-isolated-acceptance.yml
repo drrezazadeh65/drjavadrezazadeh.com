@@ -8,6 +8,11 @@ on:
       - "api/jrei-news-*.php"
       - "api/internal/jrei-news-*.php"
       - "api/operations-jrei-news.php"
+      - "api/news-public-*.php"
+      - "assets/js/jrei-news-*.js"
+      - "assets/css/jrei-news-*.css"
+      - "fa/akhbar/index.html"
+      - "en/news-insights/index.html"
       - "docs/migrations/20261024_jrei_news_*.sql"
   workflow_dispatch:
 permissions:
@@ -58,7 +63,12 @@ jobs:
           for file in api/jrei-news-*.php api/operations-jrei-news.php api/internal/jrei-news-*.php; do
             php -l "$file"
           done
-      - name: Offline Node contract regressions, no network/provider
+      - name: Shipping News UI and read-only public API syntax
+        run: |
+          set -euo pipefail
+          for file in api/news-public-*.php; do php -l "$file"; done
+          for file in assets/js/jrei-news-*.js; do node --check "$file"; done
+      - name: Offline Node contract and newsroom UI source regressions, no network/provider
         run: node --test platform/news-intelligence/tests/*.test.mjs
       - name: Offline PHP source boundaries
         run: php platform/news-intelligence/tests/news-source-contracts.php
