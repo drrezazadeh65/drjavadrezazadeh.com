@@ -404,7 +404,7 @@ async def loopback_fixed_worker_canary(payload: ArithmeticRequest, request: Requ
 )
 async def save_private_owner_memory(payload: OwnerMemorySave):
     try:
-        return save_owner_note(payload)
+        return await run_in_threadpool(save_owner_note, payload)
     except OwnerMemoryConflict as exc:
         raise HTTPException(status_code=409, detail="OWNER_MEMORY_IDEMPOTENCY_CONFLICT") from exc
     except OwnerMemoryUnavailable as exc:
@@ -418,7 +418,7 @@ async def save_private_owner_memory(payload: OwnerMemorySave):
 )
 async def read_private_owner_memory(payload: OwnerMemoryRef):
     try:
-        return read_owner_note(payload)
+        return await run_in_threadpool(read_owner_note, payload)
     except OwnerMemoryUnavailable as exc:
         raise HTTPException(status_code=503, detail="OWNER_MEMORY_UNAVAILABLE") from exc
 
@@ -432,7 +432,7 @@ async def list_private_owner_memory(payload: OwnerMemoryListQuery):
     # Metadata-only. An MFA session-bound PHP gateway supplies owner_account_id.
     # No plaintext, ciphertext, internal DB keys or global tenant lookup.
     try:
-        return list_owner_memory_metadata(payload)
+        return await run_in_threadpool(list_owner_memory_metadata, payload)
     except OwnerMemoryUnavailable as exc:
         raise HTTPException(status_code=503, detail="OWNER_MEMORY_UNAVAILABLE") from exc
 
@@ -444,6 +444,6 @@ async def list_private_owner_memory(payload: OwnerMemoryListQuery):
 )
 async def revoke_private_owner_memory(payload: OwnerMemoryRef):
     try:
-        return revoke_owner_note(payload)
+        return await run_in_threadpool(revoke_owner_note, payload)
     except OwnerMemoryUnavailable as exc:
         raise HTTPException(status_code=503, detail="OWNER_MEMORY_UNAVAILABLE") from exc
