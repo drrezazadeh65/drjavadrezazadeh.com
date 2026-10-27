@@ -132,7 +132,10 @@ def plan_native_language_growth(
     """
     grouped: dict[tuple[str, str], list[LanguageEpisode]] = defaultdict(list)
     for item in payload.episodes:
-        grouped[(item.language, item.competency)].append(item)
+        # Sealed HELDOUT cases must not influence what/how JREI studies.
+        # They belong exclusively to a later independent comparison.
+        if item.data_role == "LEARNING":
+            grouped[(item.language, item.competency)].append(item)
     goals: list[LanguageGrowthGoal] = []
     methods: dict[str, TrainingMethod] = {
         "MATHEMATICAL_LANGUAGE": "DETERMINISTIC_PYTHON_SKILL_INTEGRATION",
