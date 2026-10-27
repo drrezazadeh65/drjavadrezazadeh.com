@@ -17,3 +17,8 @@
 .jr-decision-guide .jr-guide-actions a:first-child{background:#f0cb87;color:#241a0c}
 .jr-decision-guide .jr-notice{font-size:14px;opacity:.92;border-top:1px solid #665337;padding-top:14px}
 @media(max-width:700px){.jr-decision-guide .jr-guide-grid{grid-template-columns:1fr}.jr-decision-guide .jr-guide-actions{flex-direction:column}.jr-decision-guide .jr-guide-actions a{justify-content:center;width:100%}}
+
+.jr-guide-jump{margin:14px 0 22px;line-height:1.8}
+.jr-guide-jump a{display:inline-flex;align-items:center;min-height:44px;padding:8px 16px;border:1px solid #bc995b;border-radius:12px;color:#f6db9e;background:rgba(30,25,18,.85);text-decoration:underline;text-underline-offset:3px}
+.jr-guide-jump a:hover{background:#3b2b19}
+.jr-guide-jump a:focus-visible{outline:3px solid #ffe0a0;outline-offset:4px}
