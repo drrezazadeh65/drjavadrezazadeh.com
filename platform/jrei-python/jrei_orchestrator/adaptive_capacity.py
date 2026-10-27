@@ -30,6 +30,12 @@ class ResourceNode(StrictContract):
     outbound_https_healthy: bool
     model_reserved_memory_mb: int = Field(ge=0, le=4_194_304)
     disk_free_mb: int = Field(ge=0, le=2_147_483_647)
+    # Zero means no available accelerator; never infer GPU presence from
+    # a Windows driver name or from a separate machine's VRAM.
+    gpu_total_memory_mb: int = Field(default=0, ge=0, le=1_048_576)
+    gpu_available_memory_mb: int = Field(default=0, ge=0, le=1_048_576)
+    gpu_reserved_model_mb: int = Field(default=0, ge=0, le=1_048_576)
+    gpu_compute_enabled_by_owner: bool = False
     eligible_work_classes: list[Literal[
         "PUBLIC_DISCOVERY", "LICENSED_ACQUISITION", "EVIDENCE_EXTRACTION",
         "LOCAL_EVALUATION", "RETRIEVAL_INDEXING", "MODEL_BENCHMARK",
@@ -41,6 +47,9 @@ class ResourceNode(StrictContract):
             raise ValueError("NODE_OBSERVATION_TIMEZONE_REQUIRED")
         if self.memory_available_mb + self.model_reserved_memory_mb > self.memory_total_mb:
             raise ValueError("RESOURCE_MEMORY_TOTAL_INCONSISTENT")
+        if (self.gpu_available_memory_mb + self.gpu_reserved_model_mb >
+                self.gpu_total_memory_mb):
+            raise ValueError("RESOURCE_GPU_MEMORY_TOTAL_INCONSISTENT")
         if len(set(self.eligible_work_classes)) != len(self.eligible_work_classes):
             raise ValueError("DUPLICATE_NODE_WORK_CLASS")
         return self
@@ -64,9 +73,15 @@ class ProposedWork(StrictContract):
     approved_to_schedule: bool = False
     owner_scope_digest: Digest
     execution_class: Literal["BACKGROUND", "INTERACTIVE_SENSITIVE", "HEAVY"]
+    requires_gpu: bool = False
+    requested_gpu_memory_mb: int = Field(default=0, ge=0, le=1_048_576)
 
     @model_validator(mode="after")
     def license_source_link(self) -> "ProposedWork":
+        if self.requires_gpu and self.requested_gpu_memory_mb == 0:
+            raise ValueError("GPU_TASK_NEEDS_MEASURED_GPU_REQUIREMENT")
+        if not self.requires_gpu and self.requested_gpu_memory_mb != 0:
+            raise ValueError("GPU_MEMORY_REQUEST_WITHOUT_ACCELERATOR")
         if self.task_kind in ("PUBLIC_DISCOVERY", "LICENSED_ACQUISITION", "EVIDENCE_EXTRACTION") and not self.source_id:
             raise ValueError("SOURCE_WORK_REQUIRES_REVIEWABLE_SOURCE_ID")
         return self
@@ -140,7 +155,7 @@ def propose_capacity_placements(request: CapacityPlanRequest) -> CapacityPlan:
     heavy_window = 2 <= tehran_hour < 5
     remaining = request.remaining_authorized_network_bytes
     allocations: dict[str, dict[str, int]] = {
-        n.node_id: {"jobs": n.running_jobs, "memory": 0, "disk": 0}
+        n.node_id: {"jobs": n.running_jobs, "memory": 0, "disk": 0, "gpu": 0}
         for n in request.nodes
     }
     nodes = {n.node_id: n for n in request.nodes}
@@ -188,6 +203,14 @@ def propose_capacity_placements(request: CapacityPlanRequest) -> CapacityPlan:
                 continue
             if node.disk_free_mb - allotted["disk"] < work.estimated_disk_mb:
                 continue
+            if work.requires_gpu:
+                if not node.gpu_compute_enabled_by_owner:
+                    continue
+                remaining_gpu = (
+                    node.gpu_available_memory_mb - allotted["gpu"]
+                )
+                if remaining_gpu < work.requested_gpu_memory_mb:
+                    continue
             # Lowest active load, most unused memory. Never mix RAM of nodes.
             load = allotted["jobs"] / node.capacity_threads
             ranked_nodes.append((load - available / max(node.memory_total_mb, 1), node_id))
@@ -204,6 +227,7 @@ def propose_capacity_placements(request: CapacityPlanRequest) -> CapacityPlan:
         allocations[chosen]["jobs"] += 1
         allocations[chosen]["memory"] += work.estimated_memory_mb
         allocations[chosen]["disk"] += work.estimated_disk_mb
+        allocations[chosen]["gpu"] += work.requested_gpu_memory_mb
         remaining -= work.estimated_network_bytes
         placements.append(WorkPlacement(
             work_id=work.work_id, status="PROPOSED", node_id=chosen,
