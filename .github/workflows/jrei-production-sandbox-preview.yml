@@ -55,6 +55,17 @@ jobs:
           for route in / /fa/ /en/ /journal/ /robots.txt /sitemap.xml; do
             curl --fail --silent --show-error --max-time 10 "http://127.0.0.1:4173${route}" >/dev/null
           done
+      - name: Capture bilingual mobile and desktop previews in the isolated sandbox
+        run: |
+          set -euo pipefail
+          npm install --no-save @playwright/test@1.56.0
+          npx playwright install chromium
+          node scripts/jrei-sandbox-preview-screenshots.mjs
+          test -s jrei-preview-screenshots/fa-mobile.png
+          test -s jrei-preview-screenshots/en-mobile.png
+          test -s jrei-preview-screenshots/fa-desktop.png
+          test -s jrei-preview-screenshots/en-desktop.png
+          test -s jrei-preview-screenshots/journal-desktop.png
       - name: Archive immutable preview and exact file hashes
         env:
           RELEASE_SHA: ${{ github.sha }}
@@ -96,6 +107,7 @@ jobs:
           path: |
             jrei-isolated-preview.zip
             jrei-preview-evidence.json
+            jrei-preview-screenshots/
           if-no-files-found: error
           retention-days: 14
       - name: Explicit nonproduction guarantee
