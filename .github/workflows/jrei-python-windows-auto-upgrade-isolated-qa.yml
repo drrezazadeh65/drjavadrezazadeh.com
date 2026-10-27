@@ -133,6 +133,23 @@ jobs:
             git -C $repo add platform/jrei-python/CI_ROLLBACK_FIXTURE.txt
             git -C $repo commit -q -m 'CI isolated second Python source tree'
             if($LASTEXITCODE -ne 0){throw 'CI_FAULT_REVISION_CREATION_FAILED'}
+            # A NEW Python source tree MUST be blocked until its own
+            # reviewed allowlist is present, irrespective of local consent.
+            $blocked=& powershell.exe -NoProfile -NonInteractive -File $script -Mode Auto
+            if($LASTEXITCODE -ne 0 -or ($blocked -join ';') -notmatch 'PYTHON_SOURCE_TREE_AWAITING_QA_APPROVAL'){
+              throw 'CI_UNREVIEWED_SOURCE_TREE_WAS_NOT_BLOCKED'
+            }
+            # The following artificial approval exists ONLY inside the
+            # disposable GitHub fixture to exercise real rollback on a
+            # second source revision. Never publish this synthetic approval.
+            $tree=(git -C $repo rev-parse 'HEAD:platform/jrei-python' | Out-String).Trim()
+            $approval=Join-Path $repo 'docs\governance\JREI_WINDOWS_PYTHON_RUNTIME_APPROVAL_V1.json'
+            $manifest=Get-Content $approval -Raw | ConvertFrom-Json
+            $manifest.sourceTree=$tree
+            $manifest | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath $approval -Encoding UTF8
+            git -C $repo add docs/governance/JREI_WINDOWS_PYTHON_RUNTIME_APPROVAL_V1.json
+            git -C $repo commit -q -m 'CI-only temporary second source-tree authorization'
+            if($LASTEXITCODE -ne 0){throw 'CI_FIXTURE_ALLOWLIST_COMMIT_FAILED'}
             $beforeFail=(Get-ScheduledTask -TaskName $task).Actions[0].Execute
             $env:JREI_UPGRADE_FIXTURE_FAIL_AFTER_SWITCH='CI_ONLY'
             try {
