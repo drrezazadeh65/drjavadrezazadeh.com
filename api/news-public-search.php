@@ -38,7 +38,14 @@ function jrNewsPublicSearchRoute(string $method): never {
         fail('news_search_query_invalid',400);
     $q=$_GET['q']??'';
     $locale=$_GET['language']??'fa';
-    if(!is_string($q)||trim($q)===''||strlen($q)>220||
+    // Allow category-only browsing through the existing authenticated
+    // published-only index; empty unfiltered searches remain forbidden.
+    $browseCategories=['school','examinations','universities',
+        'employment','language','international','research'];
+    $browseOnly=is_string($q)&&trim($q)===''&&
+        in_array($_GET['category']??null,$browseCategories,true);
+    if(!is_string($q)||strlen($q)>220||
+       (trim($q)===''&&!$browseOnly)||
        !is_string($locale)||!in_array($locale,['fa','en'],true)) {
         fail('news_search_query_invalid',400);
     }
