@@ -67,3 +67,66 @@ Weekly operator review: public high-intent route health, verified consented enqu
 The implementation does not activate or certify real Bertina database migration, SMTP deliverability, owner-MFA production access, live booking capacity, card/BitPay acceptance, bank settlement, domain/payment compliance, international merchant collection, psychometric standardisation, search engine indexing or USD 10,000 revenue. Nondeploying CI is not live proof. Protect existing payment fail-closed and manual deployment gates, current assets, exact canonical routes and recovery/backup conditions.
 
 The growth feature is commercially useful only when it creates *real, qualified, ethically obtained enquiries* and subsequently correctly delivered, reconciled transactions. Release must follow the common verified v5.1.0 candidate and production acceptance dossier.
+
+
+## 28 October 2026 — Content, CRO, SEO and AI-discovery implementation (source-only)
+
+**Status:** Changes below are committed to `migration/bertina-linux6` only. They have NOT been subjected to a final integrated audit, approved for release, deployed to Bertina or validated against live buyer traffic. Never describe a source change as live, a submitted form as a received lead, or a paid order as delivered. Maintain current URL paths and canonical/hreflang logic, account boundaries, server authority and data minimisation.
+
+### Observed baseline and primary commercial diagnosis
+Owner-provided Google Search Console screenshots for the latest 28 days show 30 clicks, 457 impressions, average CTR 6.6%, average position 6.9, 194 indexed URLs and 87 not indexed (including 56 noindex, 12 crawled-not-indexed, 9 discovered-not-indexed). Seven observed sitemap submissions show Success. This is a very small discovery baseline; it is not evidence of a Google penalty, a proven organic conversion rate or an accurate account of all traffic and purchases. The registered Search Console property was added 2026-10-07; interpretation must preserve sampling window and historical property context.
+
+No authenticated GA4 conversion export, order/settlement ledger, consented-lead totals, cohort or checkout-abandonment observations were available in this review. These are **unknown**, not zero. Do not invent demand, keyword volumes, rank changes, business testimonials or channel ROI.
+
+### Implemented in this source iteration
+- All **21 FA** and **21 EN** standard service detail pages now have specific descriptions of the initial problem, preparation required, scope and limitations, hypothetical illustration, comparison with a related canonical service, and non-deceptive next actions.
+- All **six FA** and **six EN** VIP detail pages now have documented decisions for suitability, evidence needed, an illustrative deliverable and conditions to be confirmed before purchase.
+- New responsive, keyboard-accessible component stylesheet: `assets/css/jr-service-decision-guides-20261028.css`; no third-party fonts, trackers, cookie banners, or personal data collection.
+- Core routes `fa/khadamat/`, `fa/services/`, `en/services/`, `fa/`, `en/` expose a direct and audience-appropriate need → service route with ethical boundaries and contextual cross-links.
+- Consultation request pages `fa/darkhast-moshavere/` and `en/request-consultation/` explicitly distinguish *email draft preparation* from *actual dispatch* and authenticated consented-interest capture. No new mail sender, CRM, account, payment or booking subsystem has been created.
+- Four priority Persian details (diagnostic manuscript review, academic editing, transcript analysis, comprehensive university selection) show expanded hypothetical report reasoning to demonstrate professional value without fabricated client evidence.
+
+### Positioning and source-to-buyer decision map
+
+| Need and search intent (hypotheses; volumes NOT verified) | Canonical existing route | Distinctive useful answer / next step | Commercial guardrail |
+| --- | --- | --- | --- |
+| تحلیل کارنامه کنکور، تحلیل نمره آزمون | `/fa/services/transcript_analysis/` | Interpret validity, trends, limitations; example diagnostic reasoning | No invented admission probabilities |
+| انتخاب رشته دانشگاهی، انتخاب رشته ماتریسی | `/fa/services/field_selection_standard/` and `/fa/services/field_selection_comprehensive/` | Criteria, official rules, transparent preference changes | No guaranteed admission or fake formula |
+| برنامه ریزی کنکور یک ماهه | `/fa/services/konkur_month/` | Explicit written session frequency, check-ins and review boundaries *before* purchase | No indefinite access or implied booking |
+| استعدادیابی دانش آموز، شناخت استعداد | `/fa/golden-talent/`, `/fa/services/talent_initial/` | Free inquiry, developmental evidence, consent and scientific uncertainty | No fixed talent labels or unsupported validation |
+| ویرایش مقاله انگلیسی، ویرایش علمی مقاله | `/fa/services/academic_editing/` | Example of voice-preserving correction and scientific limits | No ghostwriting or fabricated changes |
+| بازبینی مقاله قبل ارسال، major revision | `/fa/services/manuscript_diagnostic/` | Structured diagnostic example and revision priorities | No journal acceptance guarantee |
+| پاسخ به داوران مقاله | `/fa/services/reviewer_response/` | Evidence-backed response workflow | Actual revisions remain author's responsibility |
+| academic manuscript editing | `/en/services/academic_editing/` | Terminology, disciplinary voice and example | International payment not presumed |
+| manuscript diagnostic review | `/en/services/manuscript_diagnostic/` | Inferential diagnosis versus line editing | No evidence tampering |
+| teacher professional development and assessment | `/en/services/teacher_dev_90/` | Situation-based professional judgment | No unearned certificate |
+| institutional educational consultation | `/en/vip/institutional-advisory/` | Scope, participants, options report, implementation limits | Pre-contract approval; no disguised offer |
+
+**These are candidate keyword topics, not independently measured search-volume leaders.** Confirm geography, keyword intent, actual impressions, difficulty and targeting with genuine Search Console/Ahrefs evidence before any claim of priority based on demand. Ahrefs Keywords Explorer was unavailable under the connected plan at this point; no volume figures may be populated from guesswork.
+
+### Organic acquisition and distribution rules
+
+1. **People-first publishing:** Prefer one expert-approved, evidence-rich answer per user problem; no mass page or AI-generated paraphrase clusters. Preserve authorial voice, source checking and original contributions.
+2. **Search intent:** On each existing canonical page, align a concise unique title/H1, introduction, table of contents where useful, the actual practical answer, related guide and clear next action. Avoid title stuffing, fabricated reviews or superficial “2026 updates.”
+3. **AI answer eligibility:** Maintain accessible text, normal Google Search eligibility, descriptive links, consistent author/provider information and accurate, visible structured data. AI Overviews/AI Mode have no separate special schema or paid submission. Do not promise ChatGPT, Gemini or other systems will cite a page.
+4. **FAQ and structured data:** JSON-LD must match visible, accurate current content; only use supported types as appropriate. FAQ copy on a page is not a promise of a Google rich result. Do not invent ratings, testimonials or certification badges.
+5. **Earned distribution:** With editorial review and platform consent, share concise educational explanations in relevant professional groups and existing personal channels. Invite discussion; prohibit scraped recipient lists, automated unsolicited DMs, fabricated academic endorsements, paid link schemes or spam.
+6. **Social and partnerships:** Candidate formats include an anonymised worked example, a one-page decision rubric, an original practitioner reflection and a brief tutorial leading to the appropriate free route. School, teacher and academic outreach must follow the institution's contact norms and author permission; no bulk messages without verified legitimate basis.
+7. **Zero-budget paid-media posture:** Do not launch Google/Meta advertising or create financial commitments without a separate explicit budget and account permissions. Organic content, existing readership, email opt-in, direct professional networks and creator collaboration are primary near-term channels.
+8. **Pricing ethics:** Maintain 21 canonical service and six VIP catalogue prices as sole price authorities; do not invent discounts, deadlines, testimonials, urgency or guaranteed results to force conversion. Require clear contract/availability for high-value VIP and monthly services.
+
+### Measurement and acceptance gates
+- Keep pageview/intent monitoring consent-aware, use existing `JR_CONVERSION_INTENT` and `analytics-adapter.js`; never track confidential document content, messages, email, phone, child records or checkout data in marketing analytics.
+- Separate `impression → organic click → useful-content engagement → service-detail view → enquiry intent → *received* consented lead → human qualification → accepted scope → paid order → verified fulfilment → settlement`. Each transition requires its own source and denominator.
+- Dashboard comparisons must segment FA/EN, branded/non-branded queries, commercial/informational intent, top queries/pages, device and time windows. Where no measured baseline exists, show **unknown** rather than zero.
+- Release acceptance requires: no accidental `noindex` on public details; private/transactional paths remain `noindex`; canonical/hreflang unchanged; sitemap contains only intended indexable routes; no new 404 links; responsive keyboard/mobile checks; style contrast and correct Persian RTL/English LTR; request paths honest; payment and privacy regression; authenticated data guards; real content review of examples, and source/live fingerprint match after authorized deployment.
+- No provider platform automation or social posting before per-platform credentials, editorial review, opt-in, rate limits, terms compliance and audit trail are confirmed.
+
+### Sequence of independent implementation batches
+1. **Now/source:** Service guides, comparison and truthful enquiry choice (implemented, not released).
+2. **Next/source:** Verify top-of-page guide discovery, capture only consented intent events, align all English enquiry links, and finish trustworthy FAQ/delivery previews.
+3. **Final pre-release:** Code and content audit of all 54 pages, page templates, JS paths, SEO/JSON-LD/sitemap, privacy and mobile at representative widths; repair all errors.
+4. **Authorized deployment only:** One phased Bertina release with live origin SHA check, rollback readiness and isolated smoke verification. Never deploy merely because changes are committed.
+5. **After actual launch:** Gather 7/14/28-day measured data, prioritize existing pages by impressions and qualified leads, not hypothetical keyword volume. If visibility rises but qualification does not, evaluate offer relevance and intake; if no impressions, evaluate canonical/indexation and demand match before adding content.
+
+Google Search Central references: https://developers.google.com/search/docs/fundamentals/creating-helpful-content , https://developers.google.com/search/docs/essentials , https://developers.google.com/search/docs/appearance/ai-features , https://developers.google.com/search/docs/appearance/title-link and https://developers.google.com/search/docs/appearance/structured-data/sd-policies .
