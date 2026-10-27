@@ -260,6 +260,20 @@ _SKILLS = (
         "cms_writer_authorized": False,
         "model_training_authorized": False,
     },
+    {
+        "skill_id": "jrei.learning.bilingual_answer_citation_review.v1",
+        "version": "1.0.0",
+        "entry_route": "/internal/v1/learning/answers/grounding-review",
+        "execution": "MODEL_FREE_DETERMINISTIC",
+        "data_class": "SHA_ONLY_DRAFT_SENTENCE_CLAIM_VERSION_CITATION_LINKS",
+        "required_service_authority": "SIGNED_PRIVATE_GATEWAY",
+        "owner_action_authorized": False,
+        "mutates_mother_db": False,
+        "network_access": False,
+        "verified_source_grant": False,
+        "languages": ["fa", "en"],
+        "review": "INDEPENDENT_CLAIM_SEMANTICS_AND_PUBLICATION_APPROVAL_REQUIRED",
+    },
 )
 _IDS = tuple(skill["skill_id"] for skill in _SKILLS)
 if len(set(_IDS)) != len(_IDS):
