@@ -85,6 +85,44 @@ if(!fs.existsSync(parentDeny) ||
    !/Require\s+all\s+denied/i.test(fs.readFileSync(parentDeny,'utf8')))
   throw Error('News private PHP cannot be packaged without original api/internal deny policy');
 fs.mkdirSync(newsPrivateDir,{recursive:true});
+
+/**
+ * JREI News additive owner-authorized DDL projection. Four FIXED source-
+ * reviewed CREATE TABLE statements only; never ship the docs directory,
+ * never apply migrations during a site build or a public web request.
+ * The private CLI worker separately requires the verified fresh backup,
+ * restore rehearsal, owner switch and mother-DB lock.
+ */
+const newsTableMigrationSpecs=[
+  ['jrei_news_standing_policies',
+   '20261025_jrei_news_standing_official_publication_mother_mysql.sql'],
+  ['jrei_news_independent_qa_receipts',
+   '20261025_jrei_news_independent_qa_mother_mysql.sql'],
+  ['jrei_news_owner_exceptions',
+   '20261025_jrei_news_owner_exception_queue_mother_mysql.sql'],
+  ['jrei_news_admin_source_submissions',
+   '20261025_jrei_news_admin_source_submissions_mother_mysql.sql']
+];
+const newsCreateEntries=newsTableMigrationSpecs.map(([table,name])=>{
+  const original=fs.readFileSync(path.join(root,'docs/migrations',name),'utf8');
+  if(original.length>14000)throw Error('JREI News reviewed DDL source oversized');
+  const clean=original.replace(/^\s*--[^\r\n]*$/gm,'')
+    .replace(/^\s*SET NAMES utf8mb4\s*;/gim,'');
+  const statements=clean.split(';').map(v=>v.trim()).filter(Boolean);
+  const create=statements.filter(v=>v.startsWith('CREATE TABLE IF NOT EXISTS '+table+' '));
+  if(create.length!==1 || statements.filter(v=>/^CREATE TABLE/i.test(v)).length!==1)
+    throw Error('JREI News additive DDL source inventory incompatible');
+  const sql=create[0];
+  if(!sql.endsWith(') ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci')||
+     /\b(?:DROP|TRUNCATE|INSERT|DELETE|UPDATE|GRANT|REVOKE|CREATE DATABASE)\b/i.test(sql))
+    throw Error('JREI News additive DDL unsafe');
+  return {table,sha256:crypto.createHash('sha256').update(sql).digest('hex'),sql};
+});
+fs.writeFileSync(path.join(out,'api/internal/jrei-news-reviewed-additive-ddl-v1.json'),
+  JSON.stringify({schema:'jr.jrei.news-reviewed-additive-ddl.v1',
+    entries:newsCreateEntries})+'\n',{flag:'wx',mode:0o600});
+// End JREI News private reviewed DDL projection.
+
 const newsModelName='public-read-model.php';
 const newsModelSrc=path.join(root,'platform/news-intelligence/php',newsModelName);
 const newsModelBody=fs.readFileSync(newsModelSrc,'utf8');
