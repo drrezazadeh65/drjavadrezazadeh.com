@@ -50,7 +50,7 @@ CREATE TABLE IF NOT EXISTS jrei_knowledge_citation_edges (
   edge_id CHAR(36) CHARACTER SET ascii COLLATE ascii_bin NOT NULL PRIMARY KEY,
   claim_version_id CHAR(36) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
   source_id CHAR(36) NOT NULL,
-  source_version_id VARCHAR(80) NOT NULL,
+  source_version_id VARCHAR(100) NOT NULL,
   source_content_sha256 CHAR(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
   excerpt_sha256 CHAR(64) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
   citation_anchor VARCHAR(80) NOT NULL,
@@ -91,7 +91,7 @@ CREATE TABLE IF NOT EXISTS jrei_knowledge_claim_dependencies (
 CREATE TABLE IF NOT EXISTS jrei_knowledge_invalidation_events (
   event_id CHAR(36) CHARACTER SET ascii COLLATE ascii_bin NOT NULL PRIMARY KEY,
   source_id CHAR(36) NOT NULL,
-  source_version_id VARCHAR(80) NOT NULL,
+  source_version_id VARCHAR(100) NOT NULL,
   prior_source_sha256 CHAR(64) CHARACTER SET ascii COLLATE ascii_bin NULL,
   new_source_sha256 CHAR(64) CHARACTER SET ascii COLLATE ascii_bin NULL,
   reason_code VARCHAR(40) NOT NULL,
