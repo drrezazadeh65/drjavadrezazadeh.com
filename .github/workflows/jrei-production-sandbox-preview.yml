@@ -12,7 +12,59 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  source-acceptance:
+    if: github.ref == 'refs/heads/migration/bertina-linux6'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Compile all JREI Python first-birth modules and run synthetic isolated suite
+        run: |
+          set -euo pipefail
+          python -m pip install --disable-pip-version-check -e ./platform/jrei-python
+          python -m compileall -q platform/jrei-python/jrei_core platform/jrei-python/jrei_learning platform/jrei-python/jrei_orchestrator platform/jrei-python/jrei_service platform/jrei-python/jrei_memory
+          (cd platform/jrei-python && python -m unittest discover -s tests -p 'test_*.py' -q)
+      - name: Original owner PHP and signed-worker source acceptance
+        run: |
+          set -euo pipefail
+          php -l api/jrei-apex-owner-missions.php
+          php -l api/jrei-apex-python-plan.php
+          php -l api/jrei-python-owner-skills.php
+          php -l api/jrei-python-canary-bridge.php
+          node --check platform/jrei-v5/windows-worker/jrei-python-canary-worker.mjs
+          node --check assets/js/operations-jrei-apex-command-room-v1.js
+      - name: Isolated scope disclosure
+        run: echo 'Synthetic source acceptance only: no live Qwen, Bertina MySQL, worker task or payments.' >> "$GITHUB_STEP_SUMMARY"
+  windows-supervisor-source:
+    if: github.ref == 'refs/heads/migration/bertina-linux6'
+    runs-on: windows-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Parse Windows autocode launcher without installing a scheduled task
+        shell: pwsh
+        run: |
+          $tokens=$null
+          $errors=$null
+          $p=(Resolve-Path 'platform/jrei-v5/windows-worker/jrei-autocode-sandbox-startup.ps1').Path
+          $null=[System.Management.Automation.Language.Parser]::ParseFile($p,[ref]$tokens,[ref]$errors)
+          if($errors.Count -gt 0){
+            $errors|ForEach-Object { Write-Error $_.Message }
+            exit 1
+          }
+          Write-Output 'WINDOWS_AUTOCODE_STARTUP_SYNTAX_CHECK_ONLY'
   isolated-preview:
+    needs: [source-acceptance, windows-supervisor-source]
     if: github.ref == 'refs/heads/migration/bertina-linux6'
     runs-on: ubuntu-latest
     timeout-minutes: 20
