@@ -13,6 +13,15 @@ from jrei_core.contracts import (
 )
 from jrei_core.mission import MissionDependencyError, propose_mission
 from jrei_learning.prioritizer import prioritize
+from jrei_learning.evidence_graph import (
+    EvidenceGraphRequest, EvidenceGraphReview, review_evidence_graph,
+)
+from jrei_learning.metacognitive_cycle import (
+    MetacognitiveCycleRequest, MetacognitiveCycleResult, plan_metacognitive_cycle,
+)
+from jrei_orchestrator.adaptive_capacity import (
+    CapacityPlanRequest, CapacityPlan, propose_capacity_placements,
+)
 from jrei_learning.heldout import HeldoutReviewRequest, HeldoutReviewResult, review_heldout
 from jrei_skills import EvidenceTriageRequest, EvidenceTriageResult, triage_evidence_revision
 from jrei_skills.registry import skill_catalog
@@ -71,6 +80,9 @@ async def capabilities():
             "evidence_revision_triage_v1",
             "paired_bilingual_heldout_review_v1",
             "bounded_exact_arithmetic_v1",
+            "versioned_claim_dependency_and_revocation_review_v1",
+            "gap_to_experiment_metacognitive_cycle_v1",
+            "adaptive_24_7_capacity_placement_v1",
         ],
         "live_model_inference": False,
         "durable_missions": False,
@@ -89,6 +101,39 @@ async def capabilities():
 )
 async def prioritize_gaps(payload: LearningBatch):
     return prioritize(payload)
+
+
+@app.post(
+    "/internal/v1/learning/evidence-graph/review",
+    response_model=EvidenceGraphReview,
+    dependencies=[Depends(require_internal_gateway)],
+)
+async def evidence_graph_review(payload: EvidenceGraphRequest):
+    # SHA-bound evidence pointers, source withdrawal and transitive invalidation
+    # are computed without claiming rights verification, retrieval or indexing.
+    return review_evidence_graph(payload)
+
+
+@app.post(
+    "/internal/v1/learning/metacognitive/plan",
+    response_model=MetacognitiveCycleResult,
+    dependencies=[Depends(require_internal_gateway)],
+)
+async def metacognitive_plan(payload: MetacognitiveCycleRequest):
+    # Select next learning method using aggregate gaps + supported claims +
+    # paired bilingual comparison. Proposals only: no jobs or model training.
+    return plan_metacognitive_cycle(payload)
+
+
+@app.post(
+    "/internal/v1/orchestration/capacity/plan",
+    response_model=CapacityPlan,
+    dependencies=[Depends(require_internal_gateway)],
+)
+async def adaptive_work_placement(payload: CapacityPlanRequest):
+    # 24/7, no artificial daily cap; Tehran 02-05 boosts heavy-job PRIORITY
+    # only. Measured headroom, approved resources/rights remain mandatory.
+    return propose_capacity_placements(payload)
 
 
 @app.post(
