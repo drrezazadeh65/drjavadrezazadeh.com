@@ -71,12 +71,53 @@
       [T('کمینه فاصله Cron مجاز برتینا','Bertina minimum allowed host tick'),
        T('پنج دقیقه؛ نصب هنوز تأیید نشده','FIVE MINUTES; installation not yet verified')],
       [T('نصب Cron در برتینا','Bertina host schedule'),
-       T('تأیید نشده؛ نصب نشده فرض شود','NOT VERIFIED; never assume installed')]
+       T('تأیید نشده؛ نصب نشده فرض شود','NOT VERIFIED; never assume installed')],
+      [T('آخرین آغاز کار ثبت‌شده توسط یک Worker','Last recorded worker start'),
+       clock(snapshot.latestDbWorkerStartedAt)],
+      [T('آخرین پایان موفق ثبت‌شدهٔ Worker','Last recorded successful worker exit'),
+       clock(snapshot.latestDbWorkerCompletedAt)],
+      [T('آخرین آغاز کار در زنجیرهٔ خبر','Last recorded news pipeline worker start'),
+       clock(snapshot.latestDbNewsWorkerStartedAt)],
+      [T('موتورهای ضروری خبر: ثبت / فعال','News required workers: registered / enabled'),
+       fmt.format(snapshot.newsPipelineRegisteredCount||0)+' / '+
+       fmt.format(snapshot.newsPipelineEnabledCount||0)+' / '+
+       fmt.format(Array.isArray(snapshot.newsPipelineRequiredJobIds)
+           ?snapshot.newsPipelineRequiredJobIds.length:0)]
     ];
     for(const [label,value] of facts){
       const item=el('div','jr-cron-fact');
       item.append(el('strong','',label),el('span','',value));
       summary.append(item);
+    }
+    const missingFlags=Array.isArray(snapshot.newsPipelineMissingPrivateFlags)
+      ?snapshot.newsPipelineMissingPrivateFlags.filter(x=>typeof x==='string'&&
+        /^[a-z0-9_]{1,90}$/.test(x)):null;
+    const flagState=el('div','jr-cron-fact');
+    flagState.append(el('strong','',T('پیش‌نیازهای خصوصی فعال‌سازی اخبار',
+      'Private news-activation prerequisites')));
+    flagState.append(el('span','',missingFlags===null
+      ?T('نامشخص؛ سرویس پاسخ نداد','UNKNOWN')
+      :missingFlags.length===0
+        ?T('کلیدهای لازم آماده؛ همچنان نیازمند رسید CMS و سیاست معتبر',
+            'Private flags ready; authentic CMS receipt and owner policy still required')
+        :T('خاموش یا تعریف‌نشده: ','OFF / missing: ')+missingFlags.join(', ')));
+    summary.append(flagState);
+    if(snapshot.schemaReady===true&&snapshot.masterEnabled===true&&
+       snapshot.newsPipelineConfigReady===true&&missingFlags?.length===0){
+      const activateNews=el('button','jr-cron-activate-news',
+        T('فعال‌سازی یکجای خط خبر رسمی در Cron موجود',
+          'Activate original verified News pipeline on existing Cron'));
+      activateNews.type='button';
+      activateNews.addEventListener('click',()=>{
+        if(!open()||busy)return;
+        if(!window.confirm(T(
+          'تمام پیش‌نیازهای خصوصی روشن گزارش شده‌اند. سرور پیش از ثبت، اعتبار سیاست دائمی مالک، دیتابیس اصلی و آماده‌بودن فایل‌های واقعی را دوباره بررسی می‌کند. هیچ Cron جدیدی ایجاد نمی‌شود. ادامه می‌دهید؟',
+          'Enable the existing original News pipeline? The server independently rechecks signed standing owner policy, real schema, approved worker source, and MFA; it does NOT install a second Cron.'
+        )))return;
+        write({action:'activate_news_pipeline',
+          confirmation:'ACTIVATE_ORIGINAL_VERIFIED_NEWS_PIPELINE'});
+      });
+      summary.append(activateNews);
     }
     const newsJobs=Array.isArray(snapshot.jobs)
       ?snapshot.jobs.filter(j=>typeof j?.jobId==='string'&&
