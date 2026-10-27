@@ -251,3 +251,22 @@ precondition may bypass or weaken that frozen gate. This preview does not certif
 live PHP/MySQL operations, payments, real SEO rankings or independent
 backup restoration; those remain separate release acceptance gates.
 No tests or deployments are initiated by adding these source files.
+
+## First-birth v1 acceptance — separately verified evidence
+
+The frozen birth criteria are in
+`docs/governance/JREI_FIRST_BIRTH_V1_RELEASE_BOUNDARY_20261027.md`.
+The standing-grant **disabled example** is
+`platform/jrei-python/examples/standing-development-manifest.sample.json`.
+The owner-reviewed Windows limited-privilege logon installer is
+`platform/jrei-v5/windows-worker/jrei-autocode-sandbox-startup.ps1`.
+Once actually installed, `python -m jrei_orchestrator.birth_preflight`
+performs a safe **read-only** local-process, public-key/grant and private
+heartbeat observation. It never claims mother-DB end-to-end proof.
+
+A fully autonomous learning quality improvement is not implied by a new
+source proposal, a parser result, a chat answer or a model self-evaluation.
+Every real promotion must retain independent fixtures and negative outcomes,
+must be reversible and must preserve original release authority.
+The owner must first inspect one successful exact-SHA isolated preview
+before running the originally frozen Bertina deployment workflow.
