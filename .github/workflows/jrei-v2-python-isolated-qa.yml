@@ -7,6 +7,7 @@ on:
       - 'platform/jrei-python/**'
       - 'platform/jrei-v5/windows-worker/jrei-autocode-sandbox-startup.ps1'
       - 'platform/jrei-v5/windows-worker/jrei-vulkan-qwen-single-pass.ps1'
+      - 'platform/jrei-v5/windows-worker/jrei-gpu-private-activate.ps1'
       - 'api/jrei-apex-owner-missions.php'
       - 'api/jrei-apex-python-plan.php'
       - 'api/jrei-python-owner-skills.php'
@@ -143,3 +144,30 @@ jobs:
             throw 'JREI_VULKAN_OPTIONAL_RESPONSE_REGRESSION'
           }
           Write-Output 'JREI_VULKAN_ABSENT_OPTIONAL_FIELDS_MOCK_PASS'
+          # Parse the owner-only private GPU startup source; do NOT install.
+          $gpuOwnerScript='platform/jrei-v5/windows-worker/jrei-gpu-private-activate.ps1'
+          $gpuOwnerTokens=$null
+          $gpuOwnerErrors=$null
+          $null=[System.Management.Automation.Language.Parser]::ParseFile(
+            (Resolve-Path $gpuOwnerScript).Path,
+            [ref]$gpuOwnerTokens,[ref]$gpuOwnerErrors)
+          if($gpuOwnerErrors.Count -gt 0){
+            $gpuOwnerErrors | ForEach-Object { Write-Error $_.Message }
+            exit 1
+          }
+          $privateGpuSource=Get-Content -LiteralPath $gpuOwnerScript -Raw
+          foreach($must in @(
+            'JREI_GPU_OWNER_APPROVAL_REQUIRED',
+            'CheckGpu',
+            "--n-gpu-layers','37'",
+            '127.0.0.1:8082',
+            'LogonType Interactive -RunLevel Limited',
+            'Local\JREI-GPU-Qwen-Private-8082',
+            'PUBLIC_CHAT_STILL_DISABLED_AND_CPU_FALLBACK_UNCHANGED',
+            'ORIGINAL_CPU_8081_AND_PYTHON_8091_NOT_MANAGED_HERE'
+          )){
+            if(-not $privateGpuSource.Contains($must)){
+              throw 'JREI_GPU_OWNER_PERSISTENCE_SOURCE_MISSING_GUARD'
+            }
+          }
+          Write-Output 'JREI_PRIVATE_GPU_37_LAYER_OWNER_TASK_SOURCE_PARSED_NO_INSTALL'
