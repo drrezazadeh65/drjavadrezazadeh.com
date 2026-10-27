@@ -143,7 +143,7 @@ function draw(data){
      'Run audited read-only observation'));
    observe.type='button';observe.disabled=busy;
    const receipt=make('p');
-   observe.addEventListener('click',()=>runObservation(actionId,observe,receipt));
+   observe.addEventListener('click',()=>runObservation(mission.missionId,actionId,observe,receipt));
    card.append(observe,receipt);
   }
   history.append(card);
@@ -155,6 +155,11 @@ function draw(data){
   li.append(make('strong',String(event.event||'UNKNOWN')));
   li.append(make('span',' — '+String(event.missionId||'').slice(0,8)+
    ' · '+localTime(event.recordedAt)));
+  if(event.event==='OWNER_READONLY_OBSERVATION_LINKED'&&
+     /^[a-f0-9]{64}$/.test(event.sourceObservationRunId||'')){
+   li.append(make('small',T(' · رسید مشاهده: ',' · linked observation: ')+
+     event.sourceObservationRunId.slice(0,12)));
+  }
   list.append(li);
  }
  eventList.append(list);
@@ -172,7 +177,7 @@ async function sessionCsrf(signal){
    !/^[a-f0-9]{64}$/i.test(auth.csrfToken||''))throw Error('MFA_REQUIRED');
  return auth.csrfToken;
 }
-async function runObservation(actionId,button,receipt){
+async function runObservation(missionId,actionId,button,receipt){
  if(!current()||busy||!Object.values(readonlyObservations).includes(actionId))return;
  const mark=++serial;
  busy=true;button.disabled=true;
@@ -196,9 +201,35 @@ async function runObservation(actionId,button,receipt){
      data.run?.actionId!==actionId||
      !['succeeded','blocked','failed','interrupted'].includes(data.run?.status))
      throw Error('READONLY_OBSERVATION_RESULT_INVALID');
-  receipt.textContent=T('مشاهده: ','Observation: ')+data.run.status+
-    T(' · اجرای مأموریت اصلی هنوز تأیید نشده است.',
-      ' · JREI mission execution remains unverified.');
+  if(!['succeeded','blocked'].includes(data.run.status)){
+   receipt.textContent=T('مشاهده تکمیل نشده است: ','Observation not completed: ')+
+     data.run.status;
+   return;
+  }
+  if(!/^[a-f0-9]{64}$/.test(data.run.runId||''))
+   throw Error('OBSERVATION_RUN_ID_UNVERIFIED');
+  receipt.textContent=T('در حال پیوند دادن رسید به دفتر مأموریت…',
+    'Attaching the audited observation to the mission ledger…');
+  const attached=await fetch(URL,{
+   method:'POST',credentials:'same-origin',cache:'no-store',signal:ctl.signal,
+   headers:{Accept:'application/json','Content-Type':'application/json',
+     'X-CSRF-Token':csrf},
+   body:JSON.stringify({action:'link-observation',missionId,runId:data.run.runId})
+  });
+  if(!attached.ok)throw Error('MISSION_OBSERVATION_LINK_UNCONFIRMED');
+  const snapshot=await attached.json();
+  if(mark!==serial||!current())return;
+  if(snapshot?.ok!==true||snapshot.schema!=='jr.jrei.apex-owner-missions.v1'||
+     snapshot.workerDispatchImplemented!==false||
+     !Array.isArray(snapshot.events)||
+     !snapshot.events.some(item=>
+       item.event==='OWNER_READONLY_OBSERVATION_LINKED'&&
+       item.missionId===missionId&&item.sourceObservationRunId===data.run.runId))
+    throw Error('MISSION_OBSERVATION_RECEIPT_UNVERIFIED');
+  draw(snapshot);
+  setStatus(T(
+   'رسید مشاهده به مأموریت پیوند داده شد؛ اجرای مأموریت اصلی همچنان تأیید نشده است.',
+   'Observation receipt linked to the mission; autonomous mission execution remains unverified.'));
  }catch{
   if(mark===serial&&current())receipt.textContent=T(
     'نتیجهٔ مشاهده قطعی نیست؛ سابقهٔ اجرا در گزارش عملیات بررسی شود.',
