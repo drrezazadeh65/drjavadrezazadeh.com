@@ -7,6 +7,20 @@
  'use strict';
  const workspace=document.getElementById('ops-workspace');
  if(!workspace)return;
+ // The consolidated command layout is a private, additive presentation layer.
+ // It does not perform a second login, fetch personal data, or change any action.
+ if(!document.getElementById('ops-unified-style-v2')){
+  const style=document.createElement('link');
+  style.id='ops-unified-style-v2';style.rel='stylesheet';
+  style.href='/assets/css/operations-command-unified-v2.css?v=20261027-rtl-mobile-v2';
+  document.head.append(style);
+ }
+ if(!document.getElementById('ops-unified-script-v2')){
+  const script=document.createElement('script');
+  script.id='ops-unified-script-v2';
+  script.src='/assets/js/operations-command-unified-v2.js?v=20261027-rtl-mobile-v2';
+  script.async=false;document.head.append(script);
+ }
  const en=document.documentElement.lang==='en';
  const text=en?{
    placeholder:'Filter existing operations sections…',
