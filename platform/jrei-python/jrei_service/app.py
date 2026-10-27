@@ -128,6 +128,15 @@ async def metacognitive_plan(payload: MetacognitiveCycleRequest):
 
 
 @app.post(
+    "/internal/v1/learning/metacognitive/mission-bind",
+    response_model=LearningMissionBinding,
+    dependencies=[Depends(require_internal_gateway)],
+)
+async def learning_mission_binding(payload: LearningMissionBindingRequest):
+    return bind_learning_mission(payload)
+
+
+@app.post(
     "/internal/v1/orchestration/capacity/plan",
     response_model=CapacityPlan,
     dependencies=[Depends(require_internal_gateway)],
