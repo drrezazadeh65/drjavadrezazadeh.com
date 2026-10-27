@@ -163,13 +163,32 @@ function jrApexPythonAttachSnapshot(PDO $pdo, array &$base, array $ids): void
         FROM jrei_apex_mission_python_plans WHERE mission_id IN ('.$slots.')');
     $q->execute($ids);
     foreach ($q as $row) {
-        $proposal=json_decode((string)$row['proposal_json'],true,20);
+        $serialized=(string)$row['proposal_json'];
+        $digest=(string)$row['proposal_sha256'];
+        $proposal=strlen($serialized)<=12000
+            ?json_decode($serialized,true,20):null;
+        $intact=preg_match('/^[a-f0-9]{64}$/D',$digest)===1 &&
+            hash_equals(hash('sha256',$serialized),$digest) &&
+            is_array($proposal) &&
+            ($proposal['schema_version']??null)==='jr.jrei.scoped-mission.v1' &&
+            ($proposal['mission_id']??null)===(string)$row['mission_id'] &&
+            ($proposal['executed']??null)===false &&
+            ($proposal['authorized']??null)===false &&
+            ($proposal['site_modified']??null)===false &&
+            ($proposal['private_data_access_granted']??null)===false &&
+            ($proposal['model_training_started']??null)===false &&
+            is_array($proposal['graph']??null) &&
+            array_is_list($proposal['graph']) &&
+            count($proposal['graph'])<=32;
         $base['pythonProposals'][]=[
             'missionId'=>(string)$row['mission_id'],
-            'proposalSha256'=>(string)$row['proposal_sha256'],
+            'proposalSha256'=>$digest,
             'createdAt'=>(int)$row['created_at'],
-            'graph'=>is_array($proposal)?($proposal['graph']??[]):[],
-            'state'=>'PYTHON_PROPOSAL_STORED_NOT_EXECUTED',
+            'integrityVerified'=>$intact,
+            'graph'=>$intact?$proposal['graph']:[],
+            'state'=>$intact
+                ?'PYTHON_PROPOSAL_STORED_NOT_EXECUTED'
+                :'PYTHON_PROPOSAL_QUARANTINED_INTEGRITY_FAILURE',
             'signedWorkerCompletionVerified'=>false,
             'productionOutcomeVerified'=>false
         ];
