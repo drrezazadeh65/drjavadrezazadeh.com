@@ -214,7 +214,7 @@ def plan_metacognitive_cycle(
             strategy is not None and strategy.proposed_next_method is not None
             and any(
                 entry.method == strategy.proposed_next_method
-                and entry.negative_outcome_count > 0
+                and entry.language_or_latency_regressions > 0
                 and entry.evidence_state != "NO_INDEPENDENTLY_ATTESTED_RECORDS"
                 for entry in strategy.compared_method_evidence
             )
