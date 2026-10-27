@@ -323,7 +323,7 @@ function jrOwnerJreiPythonSkillDispatch(array $privateConfig, array $body, ?stri
          ($result['model_alias']??null)!=='jrei-qwen3-4b-q4km' ||
          ($result['model_weights_modified']??null)!==false ||
          ($result['training_started']??null)!==false ||
-         ($result['output_has_source_citations']??null)!==false ||
+         ($result['source_citations_independently_verified']??null)!==false ||
          ($result['factual_accuracy_independently_verified']??null)!==false ||
          ($result['source_rights_verified']??null)!==false ||
          ($result['owner_scientific_review_required']??null)!==true ||
@@ -360,6 +360,15 @@ function jrOwnerJreiPythonSkillDispatch(array $privateConfig, array $body, ?stri
         $base['motherDbConnectedByPython']=true;
         return $base+[
             'status'=>'PRIVATE_OWNER_MEMORY_RESULT_RECEIVED',
+            'result'=>$result,
+        ];
+    }
+    if ($action==='model-draft') {
+        // A returned unverified local answer is not a scientific citation,
+        // validated claim, model-quality pass or public publication.
+        $base['sourceOnly']=false;
+        return $base+[
+            'status'=>'PRIVATE_OWNER_MODEL_DRAFT_RECEIVED_UNVERIFIED',
             'result'=>$result,
         ];
     }
