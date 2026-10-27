@@ -13,6 +13,7 @@ declare(strict_types=1);
  * Third-party terms, robots and media rights remain separately checked.
  */
 if(!defined('BERTINA_API_BOOTSTRAPPED')){http_response_code(404);exit;}
+require_once __DIR__.'/original-autonomous-institution-discovery.php';
 
 function jrNewsOfficialInstitutionDirectory(): array {
     return [
