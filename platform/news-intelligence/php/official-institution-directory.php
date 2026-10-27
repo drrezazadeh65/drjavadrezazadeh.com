@@ -138,7 +138,8 @@ function jrNewsAutonomousInstitutionCandidateInventory(PDO $pdo,int $limit=40):a
               AND o.source_id=src.source_id
               AND o.source_policy_revision=p.revision
              WHERE d.discovery_kind='OFFICIAL_SITE_CANDIDATE'
-               AND d.state='DISCOVERED_REQUIRES_RIGHTS_REVIEW'
+               AND d.state IN ('DISCOVERED_REQUIRES_RIGHTS_REVIEW',
+                           'SOURCE_DISCOVERED_PENDING_REVIEW')
                AND src.review_state='AUTHORITATIVE_REVIEWED'
                AND src.rights_state IN
                    ('PERMITTED_PRIVATE_ANALYSIS','PERMITTED_REPRODUCTION')
