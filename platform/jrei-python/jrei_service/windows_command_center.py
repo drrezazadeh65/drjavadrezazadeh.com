@@ -392,7 +392,7 @@ document.querySelector('#directive').onclick=async()=>{
  const command=q.value.trim();if(!command)return;
  const button=document.querySelector('#directive');button.disabled=true;
  try{const result=await call('/api/directive',{command});
-   el('owner',command);el('bot','نتیجه اجرا: '+result.state+'\n'+result.detail);
+   el('owner',command);el('bot','نتیجه اجرا: '+result.state+'\\n'+result.detail);
    q.value='';await refresh();
  }catch(e){el('bot','خطای دستور: '+e.message)}
  finally{button.disabled=false}
