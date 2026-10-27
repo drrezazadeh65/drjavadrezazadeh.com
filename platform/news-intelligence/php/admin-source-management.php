@@ -162,7 +162,9 @@ function jrNewsAdminSourceApprove(PDO $pdo,array $session,string $submissionId,
 function jrNewsAdminRegisterOriginalPendingSource(
     PDO $pdo,array $owner,string $submissionId,int $now
 ):array {
-    jrNewsOwnerAuthority($owner);
+    // Normalize the verified owner identity before writing audit receipts.
+    // Callers pass the existing MFA session, not an already-normalized actor.
+    $owner=jrNewsOwnerAuthority($owner);
     $pdo->beginTransaction();
     try{
         $q=$pdo->prepare(
