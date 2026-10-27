@@ -23,7 +23,7 @@ function jrNewsOriginalPublishedSyndication(PDO $pdo,string $siteRoot,
        'JOIN jrei_news_owner_decisions d ON d.decision_id=p.approved_decision_id';
     $q=$pdo->prepare(
         "SELECT s.language_code,s.public_route,s.title,s.summary,s.published_at,
-                s.content_sha256,s.category_code,c.priority_code,p.publisher_receipt_reference,
+                s.content_sha256,s.category_code,s.event_code,c.priority_code,p.publisher_receipt_reference,
                 p.fa_content_sha256,p.en_content_sha256
          FROM jrei_news_search_documents s
          JOIN jrei_news_publications p ON p.publication_id=s.publication_id
@@ -70,6 +70,8 @@ function jrNewsOriginalPublishedSyndication(PDO $pdo,string $siteRoot,
                 ['school','examinations','universities','employment',
                  'language','international','research'],true)?
                 (string)$row['category_code']:'unclassified',
+            'event'=>preg_match('/^[a-z0-9_-]{2,64}$/D',(string)$row['event_code'])===1?
+                (string)$row['event_code']:'general',
             'priority'=>in_array((string)$row['priority_code'],['P0','P1','P2'],true)?
                 (string)$row['priority_code']:'P2'
         ];
@@ -93,7 +95,9 @@ function jrNewsPublicXmlResponse(array $stories,string $kind,string $lang,int $n
                 '<description>'.jrNewsPublicXmlText($r['summary']).'</description>'.
                 '<category domain="jrei-news-topic">'.
                   jrNewsPublicXmlText($r['category']).'</category>'.
-                '<category>'.(($r['priority']==='P0'&&
+                '<category domain="jrei-news-event">'.
+                  jrNewsPublicXmlText($r['event']).'</category>'.
+                '<category>.(($r['priority']==='P0'&&
                   $now-$r['publishedAt']>=0&&$now-$r['publishedAt']<=48*3600)?
                     'BREAKING':'NEWS').'</category>'.
                 '<pubDate>'.gmdate(DATE_RSS,$r['publishedAt']).'</pubDate></item>';
