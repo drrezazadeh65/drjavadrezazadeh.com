@@ -159,3 +159,43 @@ acceptance. Every new permission remains explicitly OFF without that decision.
 **Owner code-only directive:** This change was committed to the development
 branch. No QA, runtime installation, live config edit, database migration,
 service reload, or Bertina deployment was performed here.
+
+## Source-only metacognitive and correction architecture (27 October 2026)
+
+This section supplements, but does not replace, the initial 26 October source
+baseline above. The user's Windows Python 8091 fixed 12×7 canary was later
+observed answering 84 locally. That historical receipt does **not** attest
+this new code, automatically promote the new Python source tree, or establish
+that any learning/news/exam capability is operational.
+
+- `jrei_learning.evidence_graph`: SHA-bound bilingual citations, source-rights
+  and independent-review holds, version changes and transitive withdrawal.
+- `jrei_learning.metacognitive_cycle`: aggregate gap→provenance→held-out
+  results→repeatable next learning-method recommendation; no promotions.
+- `jrei_orchestrator.adaptive_capacity`: measured, per-node CPU/RAM/disk/GPU
+  resource placement proposals, source/robots/terms/transport gating, no
+  arbitrary per-day crawl cutoff. Heavy work gets priority from 02:00–05:00
+  Asia/Tehran, but eligible background work is not limited to that window.
+- `jrei_learning.knowledge_correction`: cross-product impact proposals for
+  original CMS news, exam keys, answers and retrieval indexes when a source or
+  dependent claim is held/withdrawn/revised. It never changes a URL, key,
+  result or published article, and cannot forge the original CMS receipt.
+- `jrei_service.app`, `php/jrei-python-internal-client.php` and
+  `api/jrei-python-owner-skills.php`: static HMAC-only route allowlists,
+  original owner MFA/CSRF, bounded caller payloads and no-privilege response
+  assertions. They remain disabled unless their independent private service
+  security prerequisites have been accepted.
+- `tests/test_knowledge_correction.py` and
+  `tests/test_adaptive_capacity_source.py`: added as **unexecuted** fixture
+  sources for future release acceptance.
+- `.github/workflows/jrei-metacognition-final-rc-isolated-qa.yml`: manual,
+  dispatch-only future QA workflow; NOT executed or deployed in this coding
+  phase.
+
+Canonical scoped release ledger:
+`docs/governance/JREI_META_LEARNING_PRIVATE_RC_CODE_ONLY_20261027.md`.
+
+**Do not run a Windows auto-upgrade merely because source files changed.**
+The auto-installer's exact-tree approval manifest must not be expanded until
+the *new* Python tree passes reviewed isolated QA. The last verified
+arithmetical canary and original signed Qwen workers remain frozen.
