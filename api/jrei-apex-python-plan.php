@@ -37,6 +37,17 @@ function jrApexPythonNodesForIntent(string $intent): array
         'LEARNING_EVIDENCE_REVIEW' => [
             ['id'=>'review-01','kind'=>'EDUCATIONAL_RESPONSE_REVIEW','after'=>[]]
         ],
+        'WEBSITE_CODE_REVIEW', 'WEBSITE_SEO_GEO_REVIEW',
+        'WEBSITE_DESIGN_ACCESSIBILITY_REVIEW',
+        'WEBSITE_OPERATIONS_ENGINES_REVIEW' => [
+            ['id'=>'observe-01','kind'=>'SITE_CHANGE_OBSERVE','after'=>[]],
+            ['id'=>'patch-02','kind'=>'SITE_PATCH_PROPOSAL','after'=>['observe-01']]
+        ],
+        'WEBSITE_DATABASE_SCHEMA_REVIEW' => [
+            // The existing mother database remains the authority: planning
+            // cannot install, alter or delete any table, index or row.
+            ['id'=>'observe-01','kind'=>'SITE_CHANGE_OBSERVE','after'=>[]]
+        ],
         default => throw new InvalidArgumentException('unregistered_apex_intent')
     };
 }
