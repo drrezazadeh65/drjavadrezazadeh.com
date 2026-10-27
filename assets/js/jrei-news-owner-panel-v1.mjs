@@ -45,6 +45,12 @@ export function mountNewsOwnerPanel({root,csrfResolver,apiBase,locale='fa'}={}){
   const title=create('h3',tr('مدیریت منابع اصلی JREI News',
     'Original JREI News source administration'));
   const actions=create('div',null,'jr-news-owner-actions');
+  const activation=create('section',null,'jr-news-owner-activation');
+  activation.setAttribute('aria-label',tr('فعال‌سازی کنترل‌شدهٔ موتور خبر',
+      'Controlled newsroom activation'));
+  const readiness=create('div',null,'jr-news-owner-readiness');
+  const standing=create('div',null,'jr-news-owner-standing');
+  activation.append(readiness,standing);
   const list=create('div',null,'jr-news-owner-sources');
   const suggestions=create('div',null,'jr-news-owner-suggested');
   const form=create('form',null,'jr-news-owner-source-form');
@@ -110,6 +116,133 @@ export function mountNewsOwnerPanel({root,csrfResolver,apiBase,locale='fa'}={}){
     }finally{
       if(active===abort)active=null;
       pending=false;
+    }
+  }
+  // Original read-only SUPER_ADMIN/MFA integration status. This is metadata
+  // from the real mother DB, not a claim of actual Cron execution, publication
+  // rights, AI drafting or public release. No speculative success defaults.
+  function drawReadiness(data){
+    if(data?.schema!=='jr.jrei.news-owner-integration-readiness.v1')
+      throw Error('JREI_NEWS_READINESS_CONTRACT');
+    readiness.replaceChildren(create('h4',tr('پیش‌نیازهای موتور خبری',
+      'News engine release prerequisites')));
+    const signals=[
+      [data.schemaMetadataProbeSucceeded===true,
+        tr('بررسی ساختار دیتابیس مادر','Mother-DB schema metadata')],
+      [data.requiredMotherSchemaAvailable===true,
+        tr('جدول‌ها و قیود مصوب خبر','Reviewed news tables and constraints')],
+      [data.standingOfficialPolicySchemaAvailable===true,
+        tr('ساختار مجوز دائمی انتشار رسمی','Standing official publication policy schema')],
+      [data.packagedPrivateNewsLibraryAvailable===true,
+        tr('بستهٔ خصوصی موتور خبر','Private newsroom engine package')],
+      [data.integratedReleaseAccepted===true,
+        tr('تأیید انتشار یکپارچه','Integrated release acceptance')],
+      [data.explicitOriginalApiFlagEnabled===true,
+        tr('درگاه اصلی خبر','Original news API gate')],
+      [data.firstPartyModelAndEvidencePortReadiness?.originalCmsPublishingPipelinePackaged===true,
+        tr('پایپ‌لاین CMS اصلی','Original CMS publication pipeline')]
+    ];
+    const ul=create('ul',null,'jr-news-owner-preflight-list');
+    for(const [ok,label] of signals)ul.append(
+      create('li',(ok?'✓ ':'× ')+label,ok?'jr-news-ready':'jr-news-held')
+    );
+    readiness.append(ul);
+    const actual=Number.isInteger(data.verifiedMotherTableCount)
+      ?data.verifiedMotherTableCount:null;
+    const expected=Number.isInteger(data.requiredMotherTableCount)
+      ?data.requiredMotherTableCount:null;
+    if(actual!==null&&expected!==null)readiness.append(create('p',
+      tr('جدول‌های تأییدشده: ','Verified tables: ')+actual+' / '+expected));
+    if(data.schemaBlockers&&typeof data.schemaBlockers==='object'&&
+      !Array.isArray(data.schemaBlockers)){
+      const tableNames=Object.keys(data.schemaBlockers).slice(0,20);
+      if(tableNames.length)readiness.append(create('p',tr(
+        'موارد نیازمند اصلاح ساختار: ','Schema review needed for: ')+
+        tableNames.join(' · ')));
+    }
+    readiness.append(create('p',tr(
+      'این بررسی، اجرای Cron، کسب مجوز منبع یا انتشار خبر را تأیید نمی‌کند.',
+      'This view does not attest host Cron runs, source licences, or real publication.'
+    ),'jr-news-owner-disclosure'));
+    return data.standingOfficialPolicySchemaAvailable===true;
+  }
+  function drawStanding(data){
+    if(data?.schema!=='jr.jrei.news-owner-standing-policies.v1'||
+      !Array.isArray(data.policies))throw Error('JREI_NEWS_POLICY_CONTRACT');
+    standing.replaceChildren(create('h4',tr(
+      'مجوز دائمی انتشار اطلاعیه‌های رسمی تأییدشده',
+      'Standing consent for independently verified official notices')));
+    const now=Math.floor(Date.now()/1000);
+    const activePolicies=data.policies.filter(row=>
+      row?.revoked_at===null && Number(row.effective_at)<=now &&
+      Number(row.expires_at)>now && /^[a-f0-9-]{36}$/i.test(String(row.policy_id||'')));
+    standing.append(create('p',activePolicies.length?tr(
+      'مجوز معتبر در دیتابیس ثبت شده است؛ فعال‌بودن انتشار باید جداگانه احراز شود.',
+      'A mother-DB authorization exists; live publishing still requires separate evidence.'
+    ):tr(
+      'مجوز فعالی ثبت نشده است؛ اخبار حتی با منبع معتبر خودکار منتشر نمی‌شوند.',
+      'No active standing policy is recorded; verified sources alone cannot auto-publish.'
+    )));
+    const grant=makeButton(tr('ثبت مجوز ۹۰روزهٔ انتشار خودکار فقط منابع رسمی احراز‌شده',
+      'Authorize 90-day publication of independently verified official notices'),()=>{
+      if(disposed||pending)return;
+      const sure=window.confirm(tr(
+        'مجوز ثبت شود؟ این مجوز فقط اطلاعیه‌های رسمی با شواهد، حقوق نشر، بررسی مستقل و رسید CMS معتبر را شامل می‌شود؛ حق انتشار خبر تأییدنشده ایجاد نمی‌کند.',
+        'Record standing consent? Only independently verified, licensed official notices with valid CMS receipts qualify; no unverified news is authorized.'
+      ));
+      if(!sure)return;
+      mutateStanding('/owner/standing-policy/grant',{
+        confirmation:'AUTHORIZE_VERIFIED_PRIMARY_OFFICIAL_NEWS',durationDays:90
+      });
+    });
+    if(activePolicies.length===0)standing.append(grant);
+    for(const row of activePolicies.slice(0,4)){
+      const revoke=makeButton(tr('لغو مجوز و جلوگیری از انتشار جدید',
+        'Revoke standing consent; prevent new publications'),()=>{
+        if(disposed||pending)return;
+        if(!window.confirm(tr('مجوز دائمی برای انتشارهای آتی لغو شود؟',
+            'Revoke this policy for future publications?')))return;
+        mutateStanding('/owner/standing-policy/revoke',{policyId:row.policy_id});
+      });
+      standing.append(revoke);
+    }
+  }
+  async function mutateStanding(route,body){
+    if(disposed||pending)return;
+    state(tr('در حال ثبت دستور محدود در دیتابیس مادر…',
+      'Recording bounded authorization in mother database…'));
+    try{
+      const result=await request(route,body);
+      if(!result||!(result.schema==='jr.jrei.news-standing-policy-receipt.v1'||
+          result.revoked===true))throw Error('NEWS_STANDING_MUTATION_NOT_CONFIRMED');
+      state(tr('رسید ثبت شد. بررسی‌های مستقل منابع و انتشار همچنان الزامی است.',
+        'Authorization receipt recorded. Independent source and publication gates remain mandatory.'));
+      await load();
+    }catch{error();}
+  }
+  async function loadActivation(){
+    if(disposed||pending)return;
+    readiness.replaceChildren(create('p',tr(
+      'در حال بررسی آمادگی واقعی موتور خبر…','Reading actual newsroom readiness…')));
+    standing.replaceChildren();
+    try{
+      const data=await request('/owner/integration-readiness');
+      if(disposed)return;
+      const canRead=drawReadiness(data);
+      if(!canRead){
+        standing.append(create('p',tr(
+          'جدول مجوز انتشار رسمی هنوز تأیید نشده؛ فعال‌سازی ممنوع است.',
+          'Standing authorization schema is unverified; activation is blocked.'
+        )));
+        return;
+      }
+      const policies=await request('/owner/standing-policy');
+      if(!disposed)drawStanding(policies);
+    }catch{
+      if(!disposed)readiness.replaceChildren(create('p',tr(
+        'آمادگی واقعی قابل استعلام نیست؛ هیچ مرحله‌ای فعال فرض نمی‌شود.',
+        'Readiness is unavailable; no component is presumed active.'
+      )));
     }
   }
   function error(){state(labels.unavailable);}
@@ -225,6 +358,7 @@ export function mountNewsOwnerPanel({root,csrfResolver,apiBase,locale='fa'}={}){
          !Array.isArray(result.entries)||!Array.isArray(result.suggestedInstitutions))
         throw Error('SOURCE_SCHEMA_INVALID');
       drawEntries(result.entries);drawSuggested(result.suggestedInstitutions);
+      await loadActivation();
       state(tr('نمایش وضعیت واقعی از دیتابیس مادر؛ این فهرست تأیید حقوق انتشار نیست.',
         'Actual mother-DB records; these entries do not constitute publishing licences.'));
     }catch{error();}
@@ -245,7 +379,7 @@ export function mountNewsOwnerPanel({root,csrfResolver,apiBase,locale='fa'}={}){
       category:category.value,priority:priority.value
     });
   });
-  root.append(head,explanatory,notice,form,list,suggestions);
+  root.append(head,activation,explanatory,notice,form,list,suggestions);
   return {load,unmount(){
     disposed=true;serial++;active?.abort();active=null;
     root.replaceChildren();
