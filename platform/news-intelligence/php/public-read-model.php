@@ -144,7 +144,8 @@ function jrNewsPublishedSearch(PDO $pdo,string $query,string $locale='fa',
         $browse->bindValue(':row_limit',$rowLimit,PDO::PARAM_INT);
         $browse->execute();
         $rows=$browse->fetchAll(PDO::FETCH_ASSOC);
-    } else try {
+    } else {
+      try {
         $statement=$pdo->prepare($querySql);
         foreach ($args as $key=>$value) $statement->bindValue($key,$value,
             is_int($value)?PDO::PARAM_INT:PDO::PARAM_STR);
@@ -159,6 +160,7 @@ function jrNewsPublishedSearch(PDO $pdo,string $query,string $locale='fa',
         // escaped exact-text fallback remains safe for Persian queries.
         // Never expose schema or query errors to a public search client.
         $rows=[];
+      }
     }
     if (!$rows && !$browseCategory) {
         $literal=str_replace(['!','%','_'],['!!','!%','!_'],$query);
