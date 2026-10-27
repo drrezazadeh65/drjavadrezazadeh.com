@@ -97,4 +97,11 @@ jobs:
           $path = (Resolve-Path 'platform/jrei-v5/windows-worker/jrei-python-canary-startup.ps1').Path
           $null = [System.Management.Automation.Language.Parser]::ParseFile($path,[ref]$tokens,[ref]$errors)
           if($errors.Count -gt 0) { $errors | ForEach-Object { Write-Error $_.Message }; exit 1 }
-          Write-Output 'JREI_CANARY_WINDOWS_SCRIPT_PARSER_PASS_NOT_INSTALLED'
+          $code=Get-Content -LiteralPath $path -Raw
+          if($code -notmatch 'LocalPythonCanaryReady' -or
+             $code -notmatch 'LOCAL_PYTHON_CANARY_SKILL_NOT_VERIFIED' -or
+             $code -notmatch '127[.]0[.]0[.]1:8091/internal/v1/worker/arithmetic' -or
+             $code -notmatch "start-python-canary") {
+            throw 'JREI_WINDOWS_CANARY_INSTALLER_DID_NOT_VERIFY_REAL_LOCAL_PYTHON_TOOL'
+          }
+          Write-Output 'JREI_CANARY_WINDOWS_SCRIPT_PARSER_AND_EXACT_SKILL_PROTECTION_PASS'
