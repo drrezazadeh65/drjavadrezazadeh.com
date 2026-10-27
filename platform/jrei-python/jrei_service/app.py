@@ -13,6 +13,9 @@ from jrei_core.contracts import (
 )
 from jrei_core.mission import MissionDependencyError, propose_mission
 from jrei_learning.prioritizer import prioritize
+from jrei_learning.grounded_retrieval import (
+    RetrievalRequest, GroundedRetrievalResult, select_grounded_excerpts,
+)
 from jrei_learning.evidence_graph import (
     EvidenceGraphRequest, EvidenceGraphReview, review_evidence_graph,
 )
@@ -89,6 +92,7 @@ async def capabilities():
             "adaptive_24_7_capacity_placement_v1",
             "metacognitive_decision_to_scoped_mission_binding_v1",
             "experiment_feedback_on_learning_methods_v1",
+            "bilingual_versioned_grounded_retrieval_proposal_v1",
         ],
         "live_model_inference": False,
         "durable_missions": False,
@@ -107,6 +111,17 @@ async def capabilities():
 )
 async def prioritize_gaps(payload: LearningBatch):
     return prioritize(payload)
+
+
+@app.post(
+    "/internal/v1/knowledge/retrieval/propose",
+    response_model=GroundedRetrievalResult,
+    dependencies=[Depends(require_internal_gateway)],
+)
+async def grounded_retrieval_proposal(payload: RetrievalRequest):
+    # Caller metadata and excerpts are untrusted; no public response, model,
+    # licence grant, DB query, or independent source attestation occurs.
+    return select_grounded_excerpts(payload)
 
 
 @app.post(
