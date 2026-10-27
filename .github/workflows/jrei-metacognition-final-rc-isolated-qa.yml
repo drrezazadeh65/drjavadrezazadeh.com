@@ -1,5 +1,12 @@
 name: JREI Metacognition and Source-Correction Final RC (MANUAL, NO DEPLOY)
 on:
+  push:
+    branches: [migration/bertina-linux6]
+    paths:
+      - '.github/workflows/jrei-metacognition-final-rc-isolated-qa.yml'
+      - 'platform/jrei-python/**'
+      - 'api/jrei-python-owner-skills.php'
+      - 'assets/js/operations-jrei-metacognitive-journal-v1.js'
   workflow_dispatch:
 permissions:
   contents: read
