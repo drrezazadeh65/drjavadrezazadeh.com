@@ -243,3 +243,140 @@ function jrNewsStageAutonomousInstitutionCandidates(
     }
     return $summary;
 }
+
+/**
+ * Unattended candidate -> original UNREVIEWED source-registry projection.
+ * This eliminates the owner's manual "enter each university URL" busywork,
+ * without fabricating an independent reviewer or allowing a crawler to fetch
+ * URLs from the nominations. The original JREI-KA policy still requires
+ * separate issuer, copyright, robots, TLS and scheduling approval.
+ *
+ * Uses ONLY the existing mother database. A rejected/revoked source may
+ * never be revived by a later observed backlink.
+ */
+function jrNewsEnqueueNewInstitutionalSourceCandidates(
+    PDO $pdo,array $cfg,array $context,int $now,int $limit=12
+):array {
+    if(($context['source']??null)!=='ORIGINAL_JREI_PRIVATE_NEWS_WORKER'||
+       ($context['originalCronLeaseVerified']??null)!==true||
+       ($cfg['operations_cron_master_enabled']??null)!==true||
+       ($cfg['jrei_news_integrated_release_accepted']??null)!==true||
+       ($cfg['jrei_news_source_activation_accepted']??null)!==true||
+       ($cfg['jrei_news_autonomous_institution_discovery_enabled']??null)!==true||
+       $now<1||$limit<1||$limit>30)
+        throw new RuntimeException('news_original_institution_enqueue_disabled');
+
+    $summary=['schema'=>'jr.jrei.news-autonomous-institution-enrollment.v1',
+       'considered'=>0,'registeredForIndependentReview'=>0,
+       'alreadyRegisteredOrRevoked'=>0,'technicalHolds'=>0,
+       'approvedSourcePolicies'=>0,'networkRequests'=>0,
+       'sourceMonitorsActivated'=>0,'publicationWrites'=>0];
+
+    $q=$pdo->prepare('SELECT GET_LOCK(?,0)');
+    $q->execute(['jrei-news-autonomous-registration']);
+    if((int)$q->fetchColumn()!==1)
+        return $summary+['busy'=>true];
+    try{
+        $stmt=$pdo->prepare(
+            "SELECT d.candidate_id,d.candidate_url,d.candidate_label,
+                    d.candidate_url_sha256,d.seed_source_id,
+                    s.source_id AS verified_seed
+             FROM jrei_ka_discovery_candidates d
+             JOIN jrei_exam_sources s ON s.source_id=d.seed_source_id
+             JOIN jrei_ka_source_policies p ON p.source_id=s.source_id
+             JOIN jrei_ka_private_observations o
+               ON o.observation_id=d.originating_observation_id
+              AND o.source_id=s.source_id
+              AND o.source_policy_revision=p.revision
+             WHERE d.discovery_kind='OFFICIAL_SITE_CANDIDATE'
+               AND d.state='DISCOVERED_REQUIRES_RIGHTS_REVIEW'
+               AND s.review_state='AUTHORITATIVE_REVIEWED'
+               AND s.rights_state IN
+                   ('PERMITTED_PRIVATE_ANALYSIS','PERMITTED_REPRODUCTION')
+               AND s.is_revoked=0 AND s.is_superseded=0
+               AND s.reviewer_account_id IS NOT NULL
+               AND s.verified_at IS NOT NULL
+               AND p.scheduling_state='APPROVED'
+               AND p.rights_reviewed=1 AND p.robots_terms_reviewed=1
+               AND p.transport_reviewed=1
+             ORDER BY d.first_discovered_at,d.candidate_id LIMIT ?"
+        );
+        $stmt->bindValue(1,$limit,PDO::PARAM_INT);
+        $stmt->execute();
+        $check=$pdo->prepare(
+            'SELECT source_id,is_revoked,is_superseded
+             FROM jrei_exam_sources
+             WHERE BINARY source_locator_uri=BINARY ? LIMIT 1 FOR UPDATE'
+        );
+        $insert=$pdo->prepare(
+            "INSERT INTO jrei_exam_sources
+             (source_id,source_authority_id,source_title,
+              source_version,source_locator_digest,source_locator_uri,
+              country_code,educational_level,exam_category,
+              curriculum_version,subject_id,examination_year,
+              source_kind,rights_state,review_state,created_at,updated_at)
+             VALUES (?,?,?,'AUTONOMOUS_DISCOVERY_V1',?,?,'IR',
+               'EDUCATIONAL_NEWS','OFFICIAL_ANNOUNCEMENTS',
+               'NEWS_CURRENT','NEWS_SOURCE',?,
+               ?,'PERMISSION_UNVERIFIED','DISCOVERED',?,?)"
+        );
+        $policy=$pdo->prepare(
+            "INSERT INTO jrei_ka_source_policies
+             (source_id,priority_tier,refresh_interval_seconds,
+              next_due_at,updated_at,scheduling_state)
+             VALUES(?,'P2',3600,?,?,'PENDING_REVIEW')"
+        );
+        $mark=$pdo->prepare(
+            "UPDATE jrei_ka_discovery_candidates
+             SET state='SOURCE_DISCOVERED_PENDING_REVIEW',
+                 last_discovered_at=?
+             WHERE candidate_id=? AND state='DISCOVERED_REQUIRES_RIGHTS_REVIEW'"
+        );
+        foreach($stmt->fetchAll(PDO::FETCH_ASSOC) as $candidate){
+            $summary['considered']++;
+            $origin=(string)$candidate['candidate_url'];
+            $host=strtolower((string)parse_url($origin,PHP_URL_HOST));
+            $digest=(string)$candidate['candidate_url_sha256'];
+            $label=(string)$candidate['candidate_label'];
+            if(jrNewsNetworkExactInstitutionOrigin($origin)!==$origin||
+               !hash_equals(hash('sha256',$origin),$digest)||
+               !preg_match('//u',$label)||strlen($label)>220||
+               !str_ends_with($host,'.ir')){
+                $summary['technicalHolds']++;continue;
+            }
+            $pdo->beginTransaction();
+            try{
+                $check->execute([$origin]);
+                if($check->fetch(PDO::FETCH_ASSOC)!==false){
+                    $summary['alreadyRegisteredOrRevoked']++;
+                }else{
+                    // Classification is deliberately preliminary. For non-
+                    // .ac.ir/.gov.ir hosts there is no issuer presumption.
+                    // ALL three cases still require original human or
+                    // separately auditable independent primary verification.
+                    $sourceKind=str_ends_with($host,'.ac.ir')?
+                        'OFFICIAL_UNIVERSITY_NEWS':'OFFICIAL_EDUCATION_NEWS';
+                    $id=jrNewsPrivateUuid();
+                    $insert->execute([
+                        $id,'autodiscovery-'.substr($digest,0,18),
+                        $label,$digest,$origin,(int)gmdate('Y',$now),
+                        $sourceKind,$now,$now
+                    ]);
+                    $policy->execute([$id,$now,$now]);
+                    $summary['registeredForIndependentReview']++;
+                }
+                // A successful original registration remains an unreviewed
+                // source, not a new authority, monitor or public article.
+                $mark->execute([$now,$candidate['candidate_id']]);
+                $pdo->commit();
+            }catch(Throwable $e){
+                if($pdo->inTransaction())$pdo->rollBack();
+                $summary['technicalHolds']++;
+            }
+        }
+    }finally{
+        $pdo->prepare('SELECT RELEASE_LOCK(?)')
+            ->execute(['jrei-news-autonomous-registration']);
+    }
+    return $summary;
+}
