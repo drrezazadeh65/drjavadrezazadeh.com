@@ -119,8 +119,7 @@ function jrOwnerJreiPythonSkillDispatch(array $privateConfig, array $body, ?stri
             !in_array($input['language']??null,['fa','en'],true) ||
             !is_string($input['question']??null) ||
             strlen($input['question'])>4000 ||
-            mb_strlen($input['question'],'UTF-8')<5 ||
-            mb_strlen($input['question'],'UTF-8')>1000 ||
+            preg_match('/\A[\s\S]{5,1000}\z/uD',$input['question'])!==1 ||
             (array_key_exists('max_output_tokens',$input) &&
               (!is_int($input['max_output_tokens']) ||
                $input['max_output_tokens']<32 ||
