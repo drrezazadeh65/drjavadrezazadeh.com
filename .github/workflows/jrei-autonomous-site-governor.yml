@@ -1,0 +1,59 @@
+name: JREI Autonomous Site Governor - continuous site oversight
+on:
+  schedule:
+    - cron: '12,42 * * * *'
+  workflow_dispatch:
+  push:
+    branches:
+      - migration/bertina-linux6
+    paths:
+      - 'platform/jrei-v5/jrei-autonomous-site-governor.mjs'
+      - 'scripts/jrei-autonomous-site-governor.mjs'
+      - 'tests/jrei-autonomous-site-governor.test.mjs'
+      - '.github/workflows/jrei-autonomous-site-governor.yml'
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: jrei-autonomous-site-governor
+  cancel-in-progress: false
+
+jobs:
+  site-operations:
+    name: Read actual public site health and triage source gaps (NO DEPLOY)
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      GITHUB_REPOSITORY: ${{ github.repository }}
+      GITHUB_REF_NAME: ${{ github.ref_name }}
+      GITHUB_SHA: ${{ github.sha }}
+      GITHUB_EVENT_NAME: ${{ github.event_name }}
+    steps:
+      - name: Use canonical source without writable checkout token
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+      - name: Set up deterministic Node.js runner
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Independently verify full-site decision contract
+        run: |
+          node --check platform/jrei-v5/jrei-autonomous-site-governor.mjs
+          node --check scripts/jrei-autonomous-site-governor.mjs
+          node --test tests/jrei-autonomous-site-governor.test.mjs
+      - name: Observe real public site and source; open deduplicated incidents
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node scripts/jrei-autonomous-site-governor.mjs
+      - name: Retain attributable observation receipt
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jrei-autonomous-site-governor-${{ github.run_id }}
+          path: ${{ runner.temp }}/jrei-site-governor/site-governor-observation.json
+          retention-days: 14
+          if-no-files-found: warn
