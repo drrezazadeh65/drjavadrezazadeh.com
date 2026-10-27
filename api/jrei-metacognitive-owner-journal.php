@@ -50,6 +50,84 @@ function jrMetaJournalFind(PDO $pdo,string $owner,string $key): ?array {
     return is_array($row)?$row:null;
 }
 
+/**
+ * The private Python response is a proposal, not a grant of owner authority.
+ * Bind every proposed decision to the exact submitted aggregate gap and
+ * citation context before committing any receipt to the mother ledger.
+ */
+function jrMetaJournalValidateOutcome(array $payload,array $result): void {
+    $gaps=$payload['gaps']['gaps']??null;
+    $contexts=$payload['contexts']??null;
+    $decisions=$result['decisions']??null;
+    if (!is_array($gaps) || !array_is_list($gaps) ||
+        count($gaps)<1 || count($gaps)>200 ||
+        !is_array($contexts) || !array_is_list($contexts) ||
+        !is_array($decisions) || !array_is_list($decisions) ||
+        count($contexts)!==count($gaps) ||
+        count($decisions)!==count($gaps) ||
+        ($result['gap_count']??null)!==count($gaps) ||
+        ($result['learning_method_selection_executed']??null)!==true ||
+        !preg_match('/^[a-f0-9]{64}$/D',(string)($result['evidence_graph_sha256']??''))) {
+        throw new DomainException('metacognitive_decision_binding_invalid');
+    }
+    $expected=[];
+    foreach($gaps as $gap) {
+        if(!is_array($gap) || !is_string($gap['gap_id']??null) ||
+           !is_string($gap['domain']??null) ||
+           array_key_exists($gap['gap_id'],$expected)) {
+            throw new DomainException('metacognitive_gap_identity_invalid');
+        }
+        $expected[$gap['gap_id']]=['domain'=>$gap['domain'],'claims'=>null];
+    }
+    foreach($contexts as $context) {
+        $id=$context['gap_id']??null;
+        $claims=$context['supporting_claim_ids']??null;
+        if(!is_string($id) || !array_key_exists($id,$expected) ||
+           $expected[$id]['claims']!==null ||
+           !is_array($claims) || !array_is_list($claims) ||
+           count($claims)>16 || count(array_unique($claims))!==count($claims)) {
+            throw new DomainException('metacognitive_claim_context_invalid');
+        }
+        foreach($claims as $claim) {
+            if(!is_string($claim))throw new DomainException('metacognitive_claim_identity_invalid');
+        }
+        sort($claims,SORT_STRING);
+        $expected[$id]['claims']=$claims;
+    }
+    $allowedStates=[
+        'HOLD_RIGHTS_REVIEW','HOLD_SOURCE_OR_CITATION',
+        'HOLD_INDEPENDENT_EVIDENCE','HOLD_HELDOUT_REGRESSION',
+        'HOLD_INSUFFICIENT_BENCHMARK','PROPOSE_ISOLATED_EXPERIMENT',
+        'REVIEW_CHALLENGER_WITH_OWNER'
+    ];
+    $allowedActions=[
+        'REQUEST_SOURCE_RIGHTS_REVIEW','REPAIR_SOURCE_PROVENANCE',
+        'OBTAIN_INDEPENDENT_EVIDENCE_REVIEW','REVISE_OR_REJECT_CHALLENGER',
+        'CURATE_PAIRED_BILINGUAL_HELDOUT','DESIGN_BOUNDED_EXPERIMENT',
+        'REQUEST_OWNER_SCIENTIFIC_DECISION'
+    ];
+    $seen=[];
+    foreach($decisions as $decision) {
+        $id=$decision['gap_id']??null;
+        $claims=$decision['supporting_claim_ids']??null;
+        if(!is_array($decision) || !is_string($id) ||
+           !isset($expected[$id]) || isset($seen[$id]) ||
+           ($decision['domain']??null)!==$expected[$id]['domain'] ||
+           !is_array($claims) || !array_is_list($claims) ||
+           ($expected[$id]['claims']??null)===null ||
+           $claims!==$expected[$id]['claims'] ||
+           !in_array($decision['decision']??null,$allowedStates,true) ||
+           !in_array($decision['next_action']??null,$allowedActions,true) ||
+           ($decision['owner_approval_required']??null)!==true ||
+           ($decision['knowledge_promoted']??null)!==false ||
+           ($decision['model_training_started']??null)!==false ||
+           ($decision['mission_executed']??null)!==false) {
+            throw new DomainException('metacognitive_unbound_or_privileged_decision');
+        }
+        $seen[$id]=true;
+    }
+}
+
 /** Existing owner-MFA router is authoritative; never accept browser owner IDs. */
 function jrMetaJournalPropose(PDO $pdo,array $cfg,string $owner,array $body): array {
     if (($cfg['jrei_metacognitive_owner_journal_enabled']??false)!==true ||
@@ -116,6 +194,7 @@ function jrMetaJournalPropose(PDO $pdo,array $cfg,string $owner,array $body): ar
         !is_array($result['decisions']??null)) {
         throw new DomainException('metacognitive_python_untrusted_result');
     }
+    jrMetaJournalValidateOutcome($payload,$result);
     $outcome=json_encode($result,
         JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);
     if (!is_string($outcome) || strlen($outcome)>64000 ||
