@@ -78,6 +78,10 @@ export function mountNewsOwnerPanel({root,csrfResolver,
   const cronStatus=document.createElement('p');
   cronStatus.setAttribute('role','status');
   const cronRows=document.createElement('ul');
+  const cronBlockers=document.createElement('p');
+  cronBlockers.setAttribute('role','status');
+  const cronActionResult=document.createElement('p');
+  cronActionResult.setAttribute('role','status');
   const cronRefresh=document.createElement('button');
   cronRefresh.type='button';
   cronRefresh.textContent=say('بازخوانی Cron','Refresh Cron');
@@ -93,7 +97,7 @@ export function mountNewsOwnerPanel({root,csrfResolver,
     'Requires live reviewed sources, original CMS, verified backup and standing owner policy');
   let cronActionInFlight=false;
   cronControls.append(cronHeading,cronDisclosure,cronRefresh,cronRegister,
-    cronActivate,cronStatus,cronRows);
+    cronActivate,cronStatus,cronBlockers,cronActionResult,cronRows);
   async function originalCronRequest(method='GET',body=null){
     const csrf=csrfResolver();
     if(typeof csrf!=='string'||!/^[a-f0-9]{64}$/i.test(csrf))
@@ -116,17 +120,40 @@ export function mountNewsOwnerPanel({root,csrfResolver,
       const snapshot=await originalCronRequest();
       if(snapshot?.schema!=='jr.operations-cron-owner.v1'||
         !Array.isArray(snapshot.jobs))throw Error('JREI_NEWS_CRON_CONTRACT');
-      const jobs=snapshot.jobs.filter(job=>
+      const newsOnly=snapshot.jobs.filter(job=>
         typeof job?.jobId==='string'&&
         job.jobId.startsWith('jrei_news_'));
+      // Exact eight-job publisher chain includes TWO knowledge-acquisition
+      // workers not present in the jrei_news_ namespace. A count of eight
+      // ancillary News rows was previously mistaken for pipeline readiness.
+      const ids=snapshot.newsPipelineRequiredJobIds;
+      const exact=Array.isArray(ids)&&ids.length===8&&
+        new Set(ids).size===8&&ids.includes('jrei_ka_schedule')&&
+        ids.includes('jrei_ka_private_acquisition')&&
+        ids.every(id=>typeof id==='string'&&
+          snapshot.jobs.some(job=>job.jobId===id));
+      const jobs=exact?snapshot.jobs.filter(job=>ids.includes(job.jobId)):newsOnly;
       const registered=jobs.filter(j=>j.registered===true).length;
       const enabled=jobs.filter(j=>j.enabled===true).length;
-      cronStatus.textContent=say('ثبت‌شده: ','Registered: ')+registered+
+      cronStatus.textContent=(exact?
+        say('زنجیرهٔ اصلی انتشار: ','Original publication pipeline: '):
+        say('Workerهای خبری: ','News-named workers: '))+registered+
         ' / '+jobs.length+' · '+say('فعال: ','Enabled: ')+enabled+
         ' · '+(snapshot.masterEnabled===true?'MASTER ON':'MASTER OFF')+
         ' · '+(snapshot.serverCronVerified===true?
           say('Cron میزبانی تأییدشده','Host Cron verified'):
           say('اجرای Cron میزبانی اثبات نشده','Host Cron unverified'));
+      const warnings=[];
+      if(!exact)warnings.push(say(
+        'نقشهٔ دقیق ۸ Worker اصلی در نسخهٔ فعلی API برتینا موجود نیست؛ این تعداد فقط Workerهای نام‌گذاری‌شدهٔ خبر را نشان می‌دهد.',
+        'The deployed API has not supplied the exact 8-job pipeline; this is only a count of news-named workers.'));
+      if(snapshot.masterEnabled!==true)warnings.push(say(
+        'MASTER OFF: زمان‌بند در تنظیمات خصوصی سرور خاموش است؛ با ثبت یا فعال‌کردن ردیف‌ها روشن نمی‌شود.',
+        'MASTER OFF: enable the original server-side private master setting; registering/enabling DB rows cannot override it.'));
+      if(snapshot.serverCronVerified!==true)warnings.push(say(
+        'اجرای Cron واقعی روی برتینا اثبات نشده؛ حتی MASTER ON نیز به‌تنهایی رسید اجرای Worker نیست.',
+        'Real Bertina host Cron execution is unverified; even MASTER ON is not worker-execution evidence.'));
+      cronBlockers.textContent=warnings.join(' · ');
       for(const job of jobs){
         const li=document.createElement('li');
         const when=(Number.isSafeInteger(job.lastFinishedAt)&&
@@ -137,6 +164,24 @@ export function mountNewsOwnerPanel({root,csrfResolver,
           ' · '+(job.enabled?'ON':'OFF')+' · '+
           String(job.lastState??'UNKNOWN').slice(0,44)+' · '+when;
         cronRows.append(li);
+      }
+      if(exact){
+        const auxiliary=new Set(ids);
+        const extras=newsOnly.filter(job=>!auxiliary.has(job.jobId));
+        if(extras.length){
+          const legend=document.createElement('li');
+          legend.textContent=say(
+            'Workerهای جانبی خبر؛ جزو ۸ گام الزامی انتشار نیستند:',
+            'Ancillary news workers; not part of the exact eight required publication jobs:');
+          cronRows.append(legend);
+          for(const job of extras){
+            const li=document.createElement('li');
+            li.textContent=job.jobId+' · '+
+              (job.enabled?'ON':'OFF')+' · '+
+              String(job.lastState??'UNKNOWN').slice(0,44);
+            cronRows.append(li);
+          }
+        }
       }
     }catch{
       cronStatus.textContent=say('وضعیت Cron قابل احراز نیست؛ اجرای موتور تأیید نشده است.',
@@ -154,11 +199,11 @@ export function mountNewsOwnerPanel({root,csrfResolver,
       });
       if(receipt?.ok!==true||receipt.allNewsWorkersInitiallyDisabled!==true)
         throw Error('NEWS_CRON_REGISTRATION_NOT_CONFIRMED');
-      cronStatus.textContent=say(
+      cronActionResult.textContent=say(
         'Workerها ثبت شدند، اما غیرفعال باقی ماندند؛ حقوق نشر و مجوز انتشار جداگانه‌اند.',
         'News workers registered but remain disabled; rights and publishing gates are independent.');
     }catch{
-      cronStatus.textContent=say(
+      cronActionResult.textContent=say(
         'ثبت Workerها تأیید نشد؛ دیتابیس و نشست MFA را بررسی کنید.',
         'Worker registration was not confirmed; inspect mother DB and owner MFA.');
     }finally{
@@ -183,11 +228,11 @@ export function mountNewsOwnerPanel({root,csrfResolver,
          receipt.sourcePolicyAndStandingAuthorityChecked!==true||
          receipt.publicationExecutedByActivation!==false)
         throw Error('JREI_NEWS_ORIGINAL_PIPELINE_ACTIVATION_NOT_CONFIRMED');
-      cronStatus.textContent=say(
+      cronActionResult.textContent=say(
         'فعال‌سازی صف اجرایی اخبار در دیتابیس ثبت شد؛ انتشار واقعی فقط پس از تکمیل فرایند و دریافت رسید CMS اثبات می‌شود.',
         'Original News job schedules activated. A genuine bilingual CMS receipt is still required to prove publication.');
     }catch{
-      cronStatus.textContent=say(
+      cronActionResult.textContent=say(
         'فعال‌سازی انجام نشد: یکی از مجوزهای خصوصی، سیاست ماندگار، جداول مادر، Workerها یا وضعیت بررسی اجرای قبلی ناقص است. فهرست موانع پایین صفحه را مشاهده کنید.',
         'News activation not accepted: check private release switches, signed standing policy, mother schema, worker sources and prior-job reconciliation below.');
     }finally{
