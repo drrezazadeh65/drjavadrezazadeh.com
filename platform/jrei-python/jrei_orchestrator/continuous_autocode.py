@@ -246,13 +246,47 @@ def _tehran_heavy_window() -> bool:
     return 2 <= hour < 5
 
 
+def _windows_owner_idle_seconds() -> float:
+    """Foreground user inactivity measured by Windows, no permissions or IO."""
+    if os.name != "nt":
+        return 0.0
+    try:
+        import ctypes
+
+        class LastInput(ctypes.Structure):
+            _fields_ = [("cbSize", ctypes.c_uint32),
+                        ("dwTime", ctypes.c_uint32)]
+
+        user32 = ctypes.WinDLL("user32", use_last_error=True)
+        kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+        kernel32.GetTickCount64.restype = ctypes.c_uint64
+        state = LastInput()
+        state.cbSize = ctypes.sizeof(LastInput)
+        if user32.GetLastInputInfo(ctypes.byref(state)) == 0:
+            return 0.0
+        # LASTINPUTINFO is DWORD based; account for normal 32-bit wrap.
+        return ((int(kernel32.GetTickCount64()) -
+                 int(state.dwTime)) % (2 ** 32)) / 1000.0
+    except (AttributeError, OSError, ValueError):
+        return 0.0
+
+
 def _headroom() -> bool:
-    """Require measured idle CPU and free RAM, without a new pip dependency."""
+    """Exploit owner idle headroom while protecting an interactive machine.
+
+    No daily quota: the check is applied each proposal, on each pass. This
+    measures only host CPU/RAM; GPU inference remains independently gated by
+    a verified Vulkan backend and a separately reviewed owner configuration.
+    """
+    interactive_idle = _windows_owner_idle_seconds()
+    owner_away = os.name == "nt" and interactive_idle >= 600.0
+    cpu_ceiling = 90.0 if owner_away else 72.0
+    reserve_bytes = (2 if owner_away else 4) * 1_073_741_824
     try:
         import psutil  # type: ignore[import-not-found]
         sample = psutil.cpu_percent(interval=0.15)
         available = psutil.virtual_memory().available
-        return sample < 72.0 and available >= 1_073_741_824
+        return sample < cpu_ceiling and available >= reserve_bytes
     except (ImportError, OSError, AttributeError):
         pass
 
@@ -289,7 +323,7 @@ def _headroom() -> bool:
         mem.length = ctypes.sizeof(MemoryStatus)
         if not ctypes.windll.kernel32.GlobalMemoryStatusEx(ctypes.byref(mem)):
             return False
-        if mem.avail_phys < 1_073_741_824:
+        if mem.avail_phys < reserve_bytes:
             return False
         first = cpu_snapshot()
         time.sleep(0.15)
@@ -298,7 +332,7 @@ def _headroom() -> bool:
             return False
         idle = second[0] - first[0]
         total = second[1] - first[1] + second[2] - first[2]
-        return total > 0 and 0 <= idle <= total and (1 - idle / total) < 0.72
+        return total > 0 and 0 <= idle <= total and (1 - idle / total) < (cpu_ceiling / 100.0)
 
     # Linux CI or dedicated machines: fail closed without valid host metrics.
     if os.name == "posix":
@@ -309,7 +343,7 @@ def _headroom() -> bool:
                 )
             available = int(line.split()[1]) * 1024
             cpu_load = os.getloadavg()[0] / max(1, os.cpu_count() or 1)
-            return available >= 1_073_741_824 and cpu_load < 0.72
+            return available >= reserve_bytes and cpu_load < (cpu_ceiling / 100.0)
         except (OSError, ValueError, StopIteration):
             return False
     return False
