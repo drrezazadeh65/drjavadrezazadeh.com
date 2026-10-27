@@ -72,9 +72,12 @@
   const statusSummary=el('summary',null,tr(
    'شواهد ارتباط، نسخه و تازه‌سازی','Connection, release and evidence details'));
   const signals=heading.querySelector('.ops-command-signals');
+  const classicLink=signals?.querySelector('.ops-command-classic-link');
   statusDetails.append(statusSummary);
   if(signals)statusDetails.append(signals);
   statusDetails.append(timeline);
+  // The all-tools fallback must remain available without opening diagnostics.
+  if(classicLink)sidebar.append(classicLink);
   sidebar.append(heading,finder,nav,subtitle,modules,statusDetails);
   deck.replaceChildren(sidebar,mobileBar,stage,backdrop);
   const tabs=[...nav.querySelectorAll('[data-ops-zone]')];
