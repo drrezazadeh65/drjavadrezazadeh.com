@@ -577,6 +577,11 @@ function operationsRoute(string $path, string $verb): never {
                 fail('rate_limited',429);
             $skillBody=jsonBody();
             if (!is_array($skillBody)) fail('jrei_python_request_invalid',422);
+            // Expensive local model drafting is a private owner-only subset,
+            // never an unlimited general skills quota or public chatbot.
+            if (($skillBody['action']??null)==='model-draft' &&
+                !rateAllowed($pdo,'jrei_python_owner_model_draft',$accountId,3,300))
+                fail('rate_limited',429);
             try {
                 respond(jrOwnerJreiPythonSkillDispatch($configuration,$skillBody,$accountId));
             } catch (InvalidArgumentException $e) {
