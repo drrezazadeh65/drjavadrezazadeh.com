@@ -1,0 +1,236 @@
+{
+  "schema": "jr.jrei.news.master21.presentation.v3",
+  "source": "JREI_GLOBAL_EDUCATION_NEWS_INTELLIGENCE_MASTER_V1_2026-10-23.md#10",
+  "ownerSupersedingPolicy": "2026-10-25-verified-official-primary-auto-publish-with-exception-only-review",
+  "repo": "drrezazadeh65/drjavadrezazadeh.com",
+  "branch": "migration/bertina-linux6",
+  "status": "BILINGUAL_UI_SOURCE_COMPLETE_FINAL_SINGLE_PACKAGE_QA_AND_DEPLOYMENT_NOT_PERFORMED",
+  "masterSections": [
+    {
+      "number": 1,
+      "id": "lead-story",
+      "localeCoverage": [
+        "fa",
+        "en"
+      ],
+      "visibleWithoutAI": true
+    },
+    {
+      "number": 2,
+      "id": "breaking-news",
+      "localeCoverage": [
+        "fa",
+        "en"
+      ],
+      "visibleWithoutAI": true
+    },
+    {
+      "number": 3,
+      "id": "latest-news",
+      "localeCoverage": [
+        "fa",
+        "en"
+      ],
+      "visibleWithoutAI": true
+    },
+    {
+      "number": 4,
+      "id": "official-announcements",
+      "localeCoverage": [
+        "fa",
+        "en"
+      ],
+      "visibleWithoutAI": true
+    },
+    {
+      "number": 5,
+      "id": "exam-calendar",
+      "localeCoverage": [
+        "fa",
+        "en"
+      ],
+      "visibleWithoutAI": true
+    },
+    {
+      "number": 6,
+      "id": "registration-deadlines",
+      "localeCoverage": [
+        "fa",
+        "en"
+      ],
+      "visibleWithoutAI": true
+    },
+    {
+      "number": 7,
+      "id": "examination-results",
+      "localeCoverage": [
+        "fa",
+        "en"
+      ],
+      "visibleWithoutAI": true
+    },
+    {
+      "number": 8,
+      "id": "university-news",
+      "localeCoverage": [
+        "fa",
+        "en"
+      ],
+      "visibleWithoutAI": true
+    },
+    {
+      "number": 9,
+      "id": "scholarships-international",
+      "localeCoverage": [
+        "fa",
+        "en"
+      ],
+      "visibleWithoutAI": true
+    },
+    {
+      "number": 10,
+      "id": "school-education",
+      "localeCoverage": [
+        "fa",
+        "en"
+      ],
+      "visibleWithoutAI": true
+    },
+    {
+      "number": 11,
+      "id": "employment-professional-exams",
+      "localeCoverage": [
+        "fa",
+        "en"
+      ],
+      "visibleWithoutAI": true
+    },
+    {
+      "number": 12,
+      "id": "ai-edtech",
+      "localeCoverage": [
+        "fa",
+        "en"
+      ],
+      "visibleWithoutAI": true
+    },
+    {
+      "number": 13,
+      "id": "original-analysis",
+      "localeCoverage": [
+        "fa",
+        "en"
+      ],
+      "visibleWithoutAI": true
+    },
+    {
+      "number": 14,
+      "id": "special-reports",
+      "localeCoverage": [
+        "fa",
+        "en"
+      ],
+      "visibleWithoutAI": true
+    },
+    {
+      "number": 15,
+      "id": "most-read",
+      "localeCoverage": [
+        "fa",
+        "en"
+      ],
+      "visibleWithoutAI": true
+    },
+    {
+      "number": 16,
+      "id": "personalized",
+      "localeCoverage": [
+        "fa",
+        "en"
+      ],
+      "visibleWithoutAI": true
+    },
+    {
+      "number": 17,
+      "id": "education-fact-check",
+      "localeCoverage": [
+        "fa",
+        "en"
+      ],
+      "visibleWithoutAI": true
+    },
+    {
+      "number": 18,
+      "id": "advanced-news-search",
+      "localeCoverage": [
+        "fa",
+        "en"
+      ],
+      "visibleWithoutAI": true
+    },
+    {
+      "number": 19,
+      "id": "newsletter-alerts",
+      "localeCoverage": [
+        "fa",
+        "en"
+      ],
+      "visibleWithoutAI": true
+    },
+    {
+      "number": 20,
+      "id": "jrei-access",
+      "localeCoverage": [
+        "fa",
+        "en"
+      ],
+      "visibleWithoutAI": true
+    },
+    {
+      "number": 21,
+      "id": "education-services-products",
+      "localeCoverage": [
+        "fa",
+        "en"
+      ],
+      "visibleWithoutAI": true
+    }
+  ],
+  "canonicalRoutes": {
+    "fa": "/fa/akhbar/",
+    "en": "/en/news-insights/"
+  },
+  "sourceAssets": [
+    "assets/css/jrei-news-21-v3.css",
+    "assets/js/jrei-news-21-v3.js",
+    "assets/js/jrei-news-archive-v1.js",
+    "assets/css/jrei-news-archive-v1.css",
+    "api/news-public-feeds.php",
+    "api/news-public-search.php",
+    "platform/news-intelligence/php/public-read-model.php",
+    "fa/akhbar/index.html",
+    "en/news-insights/index.html"
+  ],
+  "readOnlyIntegrations": {
+    "publishedFeed": "/api/news/v1/rss?language={fa|en}",
+    "publishedSearch": "/api/news/v1/search",
+    "verifiedCalendar": "/api/news/v1/calendar",
+    "calendarRequiresOriginalSignedAuthorityResolver": true,
+    "mostReadRequiresObservedPublicAnalytics": true,
+    "newsletterUsesOriginalAccountConsent": true,
+    "JreiAssistantUsesOriginalJreiProvider": true
+  },
+  "editorialBoundaries": {
+    "noFabricatedNews": true,
+    "noFabricatedTraffic": true,
+    "noInventedDeadlines": true,
+    "noDraftsInPublicRSS": true,
+    "verifiedP0OnlyBreaking": true,
+    "noInferredOwnerArticleApprovals": true,
+    "noNewParallelDatabase": true,
+    "preserveJreiPythonAndWindowsWorkers": true,
+    "retainOriginalCmsReceipt": true
+  },
+  "noTestOrDeployDuringCoding": true,
+  "finalRelease": "ONE_GUARDED_BERTINA_PACKAGE_ONLY_AFTER_DEFERRED_SINGLE_ACCEPTANCE"
+}
