@@ -2,6 +2,55 @@
 
 > **BINDING PROVIDER RESPONSE — ticket t975913, received 23 October 2026:** Bertina technical support explicitly confirmed that the **minimum supported host Cron interval is FIVE MINUTES**. The previous one-minute example and the historical seven-or-four isolated Cron templates below are NOT installation instructions. Current preferred source design: a single master Cron entry scheduled `*/5 * * * *`, provided Bertina independently confirms the PHP 8.3 CLI binary and whether `proc_open` is permitted on the specific shared plan. The provider supplied an EXAMPLE of the PHP command beginning `/usr/local/bin/php /home/drjavad1/public_html/path/to/cron/script`; the PHP version and exact working file path remain unconfirmed. The owner requested a grateful follow-up by Gmail, but sending failed; do not represent that reply as delivered. No host task has been installed or executed as part of this source change.
 
+## 27 October 2026 — provider-mailbox reconciliation and original News activation
+
+The owner's Bertina support ticket **t975913** was re-read from the actual
+Gmail conversation (last provider reply 23 October). Bertina explicitly
+confirmed the CLI PHP 8.3.35 binary
+`/opt/alt/php83/usr/bin/php`, allowed `proc_open` for this account in
+PHP CLI, and a **five-minute minimum** Cron interval. They also stated
+that shared-hosting customers cannot configure Cron directly in cPanel;
+Bertina support must do so. The support-message example
+`/home/drjavad1/public_html/path/to/cron/script` does **not**
+independently attest the deployed absolute project root. The accessible
+mailbox contains no provider-issued installed-crontab receipt, last-run
+exit status, or positive notice that the single master Cron was installed.
+**Do not create a second host Cron just because no Gmail receipt was found**:
+verify the existing task with support before installation.
+
+The **only** canonical central entrypoint is
+`api/internal/operations-master-dispatcher.php`, managed by the original
+MFA-protected `/api/admin/operations/cron-master`. Original JREI News
+has exactly eight required producer/QA/CMS/indexer jobs in
+`operationsCronNewsPipelineIds()`; never schedule eight host tasks.
+The `activate_news_pipeline` owner action is already present in
+`assets/js/jrei-news-owner-panel-v1.mjs`, and applies the existing
+standing-policy and private-environment gates before enabling these
+source-fixed rows. The trigger does not authorize rights, simulate a CMS
+receipt or install host Cron.
+
+**New source diagnostics (27 October)**: the cron-master read now reports
+`latestDbWorkerStartedAt`, `latestDbWorkerCompletedAt`,
+`latestDbNewsWorkerStartedAt`, and the **names only** of missing
+`newsPipelineMissingPrivateFlags`, in the existing SUPER_ADMIN/MFA UI.
+The original Newsroom and cron panels expose these facts without private
+values. A DB worker start is evidence of a recorded claim, **not proof
+of host cron installation or genuine bilingual news publication**.
+Current authoritative server flags, actual deployment SHA, tables and
+CMS publication receipts still require private Bertina observation.
+
+**Provider-confirmed binary + host-path template (not installation proof):**
+
+```text
+*/5 * * * * /opt/alt/php83/usr/bin/php /home/drjavad1/public_html/api/internal/operations-master-dispatcher.php
+```
+
+The file/root of this **example** must be checked against the actual
+Bertina deploy directory before using it; logs belong in a private
+rotated directory outside `public_html`. First ask Bertina whether
+this exact master already exists. Never install competing Cron entries
+or claim that source CI confirms the host scheduler.
+
 ## 23 October 2026 — Five-minute master schedule correction and JREI daily slot
 
 - `api/operations-cron-dispatcher.php` now enforces an exact **300-second minimum**, with every ordinary job cadence an integer multiple of 300 seconds; the original 600-second collector remains unchanged. The existing `api/internal/operations-master-dispatcher.php` enforces this floor again in CLI even if DB values were modified outside the owner dashboard.
