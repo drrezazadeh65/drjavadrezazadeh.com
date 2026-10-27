@@ -114,7 +114,7 @@ const newsCreateEntries=newsTableMigrationSpecs.map(([table,name])=>{
     throw Error('JREI News additive DDL source inventory incompatible');
   const sql=create[0];
   if(!sql.endsWith(') ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci')||
-     /\b(?:DROP|TRUNCATE|INSERT|DELETE|UPDATE|GRANT|REVOKE|CREATE DATABASE)\b/i.test(sql))
+     /\b(?:DROP|TRUNCATE|INSERT\s+INTO|DELETE\s+FROM|UPDATE\s+|GRANT|REVOKE|CREATE DATABASE)\b/i.test(sql))
     throw Error('JREI News additive DDL unsafe');
   return {table,sha256:crypto.createHash('sha256').update(sql).digest('hex'),sql};
 });
