@@ -24,6 +24,11 @@ const descriptions={
  'WEBSITE_DATABASE_SCHEMA_REVIEW':T('ممیزی ساختار پایگاه داده مادر؛ فقط خواندنی','Review mother DB schema, read-only'),
  'WEBSITE_OPERATIONS_ENGINES_REVIEW':T('بازبینی موتورهای مدیریتی و گزارش‌گیری','Review operations engines and reports')
 };
+// Reuse the EXISTING seven low-risk executors, never a model-supplied tool.
+const readonlyObservations=Object.freeze({
+ WEBSITE_SEO_GEO_REVIEW:'ENG-01.ACT-011',
+ WEBSITE_OPERATIONS_ENGINES_REVIEW:'ENG-11.ACT-009'
+});
 const make=(tag,content)=>{
  const e=document.createElement(tag);
  if(content!==undefined)e.textContent=content;
@@ -121,6 +126,17 @@ function draw(data){
    cancel.addEventListener('click',()=>post({action:'cancel',missionId:mission.missionId}));
    card.append(cancel);
   }
+  // This is a real owner-triggered existing read-only executor, not a
+  // mission completion or authorization for JREI to change the website.
+  const actionId=readonlyObservations[mission.intent];
+  if(actionId&&mission.status==='PLANNED'&&!halted){
+   const observe=make('button',T('اجرای مشاهدهٔ خواندنی ثبت‌شونده',
+     'Run audited read-only observation'));
+   observe.type='button';observe.disabled=busy;
+   const receipt=make('p');
+   observe.addEventListener('click',()=>runObservation(actionId,observe,receipt));
+   card.append(observe,receipt);
+  }
   history.append(card);
  }
  const rows=Array.isArray(data.events)?data.events:[];
@@ -146,6 +162,41 @@ async function sessionCsrf(signal){
  if(auth?.ok!==true||auth.mfaRequired!==false||
    !/^[a-f0-9]{64}$/i.test(auth.csrfToken||''))throw Error('MFA_REQUIRED');
  return auth.csrfToken;
+}
+async function runObservation(actionId,button,receipt){
+ if(!current()||busy||!Object.values(readonlyObservations).includes(actionId))return;
+ const mark=++serial;
+ busy=true;button.disabled=true;
+ const ctl=new AbortController();controller=ctl;
+ receipt.textContent=T('در حال مشاهدهٔ ایمن از موتور موجود…',
+   'Running the existing bounded read-only observation…');
+ try{
+  const csrf=await sessionCsrf(ctl.signal);
+  const bytes=new Uint8Array(16);crypto.getRandomValues(bytes);
+  const requestKey=Array.from(bytes,x=>x.toString(16).padStart(2,'0')).join('');
+  const response=await fetch('/api/admin/operations/action-runs',{
+   method:'POST',credentials:'same-origin',cache:'no-store',signal:ctl.signal,
+   headers:{Accept:'application/json','Content-Type':'application/json',
+     'X-CSRF-Token':csrf},
+   body:JSON.stringify({actionId,requestKey})
+  });
+  if(!response.ok)throw Error('READONLY_OBSERVATION_UNAVAILABLE');
+  const data=await response.json();
+  if(mark!==serial||!current())return;
+  if(data?.ok!==true||data.schema!=='operations-readonly-action-run-v1'||
+     data.run?.actionId!==actionId||
+     !['succeeded','blocked','failed','interrupted'].includes(data.run?.status))
+     throw Error('READONLY_OBSERVATION_RESULT_INVALID');
+  receipt.textContent=T('مشاهده: ','Observation: ')+data.run.status+
+    T(' · اجرای مأموریت اصلی هنوز تأیید نشده است.',
+      ' · JREI mission execution remains unverified.');
+ }catch{
+  if(mark===serial&&current())receipt.textContent=T(
+    'نتیجهٔ مشاهده قطعی نیست؛ سابقهٔ اجرا در گزارش عملیات بررسی شود.',
+    'Observation outcome uncertain; review the existing operations action history.');
+ }finally{
+  if(mark===serial){controller=null;busy=false;button.disabled=false;}
+ }
 }
 async function run(body=null){
  if(!current()||busy)return;
