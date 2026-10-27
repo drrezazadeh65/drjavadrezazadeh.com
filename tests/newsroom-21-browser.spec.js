@@ -48,6 +48,14 @@ for(const site of locations)for(const viewport of viewports){
      sections=>sections.filter(s=>!s.querySelector('h2')||!s.id).map(s=>s.getAttribute('data-jrn21-section'))
    );
    expect(missing).toEqual([]);
+   // Capture the actual first-screen masthead after exercising the category,
+   // not the scroll position Playwright selected for the summary control.
+   await firstDesk.locator('summary').click();
+   await page.evaluate(()=>{
+     document.documentElement.style.scrollBehavior='auto';
+     document.body.style.scrollBehavior='auto';
+     window.scrollTo(0,0);
+   });
    const shot=testInfo.outputPath('jrei-news-'+site.lang+'-'+viewport.name+'.png');
    await page.screenshot({path:shot,fullPage:false,animations:'disabled'});
    await testInfo.attach('newsroom-'+site.lang+'-'+viewport.name,{
