@@ -9,9 +9,9 @@ from __future__ import annotations
 
 import hashlib
 import json
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from typing import Literal
-from zoneinfo import ZoneInfo
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from pydantic import Field, model_validator
 
@@ -127,7 +127,16 @@ class CapacityPlan(StrictContract):
 
 
 def propose_capacity_placements(request: CapacityPlanRequest) -> CapacityPlan:
-    tehran_hour = request.evaluated_at.astimezone(ZoneInfo("Asia/Tehran")).hour
+    try:
+        clock = ZoneInfo("Asia/Tehran")
+    except ZoneInfoNotFoundError:
+        # Windows often lacks system IANA tzdb. Iran has used permanent UTC
+        # +03:30 since the 2022 DST abolition; refuse historical dates where
+        # a fixed offset would misrepresent the requested local work window.
+        if request.evaluated_at.year < 2023:
+            raise ValueError("ASIA_TEHRAN_TIMEZONE_DATA_REQUIRED")
+        clock = timezone(timedelta(hours=3, minutes=30))
+    tehran_hour = request.evaluated_at.astimezone(clock).hour
     heavy_window = 2 <= tehran_hour < 5
     remaining = request.remaining_authorized_network_bytes
     allocations: dict[str, dict[str, int]] = {
