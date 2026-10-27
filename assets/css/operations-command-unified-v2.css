@@ -98,6 +98,25 @@ html[lang=en] .ops #ops-workspace #ops-command-sidebar .ops-command-tab[aria-pre
 }
 .ops #ops-workspace #ops-command-mobile-bar,
 .ops #ops-workspace #ops-command-backdrop{display:none}
+.ops #ops-workspace #ops-command-sidebar .ops-unified-status{
+ margin-top:auto;min-width:0;
+ padding:7px 9px;border:1px solid rgba(240,206,135,.25);
+ border-radius:13px;background:rgba(4,12,23,.45);
+}
+.ops #ops-workspace #ops-command-sidebar .ops-unified-status>summary{
+ display:list-item;cursor:pointer;min-height:42px;
+ padding:10px 7px;color:#f0d7ab;font-size:.85rem;font-weight:700;
+ line-height:1.5;list-style-position:inside;
+}
+.ops #ops-workspace #ops-command-sidebar .ops-unified-status[open]{
+ border-color:rgba(240,206,135,.52);
+}
+.ops #ops-workspace #ops-command-sidebar .ops-unified-status .ops-command-signals{
+ display:grid;gap:7px;padding:8px 0;
+}
+.ops #ops-workspace #ops-command-sidebar .ops-unified-status .ops-command-network-timeline{
+ margin:7px 0 0;
+}
 .ops #ops-workspace .ops-unified-finder{display:grid;gap:7px}
 .ops #ops-workspace .ops-unified-finder label{
  font-size:.81rem;font-weight:740;color:#f0d6a5;
