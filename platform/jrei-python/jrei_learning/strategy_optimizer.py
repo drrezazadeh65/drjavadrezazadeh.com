@@ -109,6 +109,7 @@ class MethodEvidence(StrictContract):
     eligible_episode_count: int
     demonstrated_candidate_count: int
     negative_outcome_count: int
+    language_or_latency_regressions: int
     ineligible_episode_count: int
     mean_cost: float
     mean_risk: float
@@ -240,6 +241,7 @@ def propose_learning_method(
         evidence.append(MethodEvidence(
             method=method, eligible_episode_count=n,
             demonstrated_candidate_count=success, negative_outcome_count=failures,
+            language_or_latency_regressions=regressions[method],
             ineligible_episode_count=excluded[method], mean_cost=round(cost, 6),
             mean_risk=round(risk, 6),
             smoothed_observed_success_rate=round(frequency, 6),
