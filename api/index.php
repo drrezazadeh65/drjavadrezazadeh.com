@@ -214,6 +214,11 @@ function cfg(): array {
         // This does not enable public inference, crawling or publication.
         'jrei_python_owner_model_draft_enabled' =>
             getenv('JR_JREI_PYTHON_OWNER_MODEL_DRAFT_ENABLED') === 'true',
+        // Proposal-only autonomous self-improvement; independently gated
+        // behind SUPER_ADMIN MFA and the existing signed Python connection.
+        // This is NOT a code-write, model-training or production grant.
+        'jrei_python_self_improvement_enabled' =>
+            getenv('JR_JREI_PYTHON_SELF_IMPROVEMENT_ENABLED') === 'true',
         // Immutable metadata-only learning-cycle journal. Separate OFF gate.
         'jrei_metacognitive_owner_journal_enabled' =>
             getenv('JR_JREI_METACOGNITIVE_OWNER_JOURNAL_ENABLED') === 'true',
