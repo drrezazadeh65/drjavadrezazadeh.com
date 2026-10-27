@@ -44,7 +44,7 @@ _SOURCE_LIMIT = 24576
 _SENSITIVE = re.compile(
     r"(?i)(-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----|"
     r"\b(?:api[_-]?key|secret|password|private[_-]?key)\b\s*[:=]\s*"
-    r"['\\"]?[^,\s'\\"]{8,}|authorization\s*:\s*bearer\s+\S+|"
+    r"\S{8,}|authorization\s*:\s*bearer\s+\S+|"
     r"bearer\s+[a-z0-9._-]{16,})"
 )
 _SCOPE_PREFIXES = (
