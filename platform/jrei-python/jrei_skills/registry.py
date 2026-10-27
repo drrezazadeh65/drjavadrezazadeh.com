@@ -1,8 +1,10 @@
 """Static skill registry. A model's text is never an executable tool declaration.
 
 This file registers contracts, not privileged operations or third-party
-plugins. Skills cannot reach the network, filesystem, SQL or a shell.
-All capabilities are read-only and advisory until independent PHP/MFA gates.
+plugins. Deterministic skills never reach network, filesystem, SQL or shell.
+The separately gated owner-draft skill may contact ONLY local Qwen loopback;
+it never grants model code execution, source rights, public publication,
+persistent memory or internet/cloud access.
 """
 from __future__ import annotations
 
