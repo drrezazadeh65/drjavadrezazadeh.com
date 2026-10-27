@@ -295,9 +295,17 @@ if(!ownerNewsroomSource.includes('export function mountNewsOwnerPanel') ||
    !ownerNewsroomSource.includes("apiBase='/api/admin/operations/jrei-news'") ||
    ownerNewsroomSource.includes("apiBase='/api/news/v1'"))
   throw Error('JREI News owner module is not bound to the original MFA API');
-fs.writeFileSync(
-  path.join(out,'assets/js/jrei-news-owner-panel-v1.mjs'),ownerNewsroomSource,
-  {flag:'wx'});
+// The reviewed owner panel is already copied from assets/js by copy().
+// Do not overwrite it with the separate platform source: the browser loads
+// precisely this public asset and the existing MFA/CSRF contract must survive.
+const ownerPanelAsset=path.join(out,'assets/js/jrei-news-owner-panel-v1.mjs');
+if(!fs.existsSync(ownerPanelAsset))throw Error('JREI News owner asset missing from release');
+const shippedOwnerPanel=fs.readFileSync(ownerPanelAsset,'utf8');
+if(!shippedOwnerPanel.includes('export function mountNewsOwnerPanel') ||
+   !shippedOwnerPanel.includes('/api/admin/operations/jrei-news') ||
+   !shippedOwnerPanel.includes("credentials:'same-origin'") ||
+   shippedOwnerPanel.includes("apiBase='/api/news/v1'"))
+  throw Error('JREI News release owner panel violates original MFA route');
 for(const pagePath of ['fa/app/admin/index.html','en/account/admin/index.html']){
   const shell=fs.readFileSync(path.join(out,pagePath),'utf8');
   // Owner redesign is an additive, MFA-guarded enhancement. Every release must
