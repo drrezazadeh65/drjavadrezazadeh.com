@@ -76,6 +76,84 @@ function jrNewsOfficialDirectoryMatch(string $rawUrl): ?array {
     return null;
 }
 
+/**
+ * Discover candidates by institutional interlinking, NOT by owner-supplied
+ * hardcoded domain names. This is an original mother-DB read over recorded
+ * links from independently approved primary sources.
+ *
+ * The scored signal is solely a triage priority: self-links, leaked private
+ * links and single-source endorsements can NEVER confer issuer authority,
+ * source reuse rights, publication or a new monitor.
+ */
+function jrNewsAutonomousInstitutionCandidateInventory(PDO $pdo,int $limit=40):array{
+    if($limit<1||$limit>100)
+        throw new InvalidArgumentException('news_network_inventory_limit_invalid');
+    $rows=[];
+    try{
+        $query=$pdo->prepare(
+            "SELECT d.candidate_url,d.candidate_url_sha256,
+                    MIN(d.candidate_label) AS candidate_label,
+                    COUNT(DISTINCT d.seed_source_id) AS endorsed_by,
+                    MAX(d.last_discovered_at) AS last_discovered_at
+             FROM jrei_ka_discovery_candidates d
+             JOIN jrei_exam_sources src ON src.source_id=d.seed_source_id
+             JOIN jrei_ka_source_policies p ON p.source_id=src.source_id
+             JOIN jrei_ka_private_observations o
+               ON o.observation_id=d.originating_observation_id
+              AND o.source_id=src.source_id
+              AND o.source_policy_revision=p.revision
+             WHERE d.discovery_kind='OFFICIAL_SITE_CANDIDATE'
+               AND d.state='DISCOVERED_REQUIRES_RIGHTS_REVIEW'
+               AND src.review_state='AUTHORITATIVE_REVIEWED'
+               AND src.rights_state IN
+                   ('PERMITTED_PRIVATE_ANALYSIS','PERMITTED_REPRODUCTION')
+               AND src.is_revoked=0 AND src.is_superseded=0
+               AND src.reviewer_account_id IS NOT NULL
+               AND src.verified_at IS NOT NULL
+               AND p.scheduling_state='APPROVED'
+               AND p.rights_reviewed=1 AND p.robots_terms_reviewed=1
+               AND p.transport_reviewed=1
+             GROUP BY d.candidate_url,d.candidate_url_sha256
+             ORDER BY endorsed_by DESC,last_discovered_at DESC,
+                      d.candidate_url_sha256
+             LIMIT ?"
+        );
+        $query->bindValue(1,$limit,PDO::PARAM_INT);
+        $query->execute();
+        $rows=$query->fetchAll(PDO::FETCH_ASSOC);
+    }catch(Throwable $e){
+        // A not-yet-applied additive candidate schema or a restricted owner
+        // read grant cannot make the EXISTING known-institution view fail.
+        return [];
+    }
+    $items=[];
+    foreach($rows as $r){
+        $url=(string)$r['candidate_url'];
+        $origin=jrNewsNetworkExactInstitutionOrigin($url);
+        if($origin===null||$origin!==$url)continue;
+        $host=(string)parse_url($url,PHP_URL_HOST);
+        $name=(string)$r['candidate_label'];
+        $referrals=(int)$r['endorsed_by'];
+        $items[]=[
+            'id'=>'network-'.substr((string)$r['candidate_url_sha256'],0,16),
+            'nameFa'=>$name,
+            'nameEn'=>$host,
+            'origin'=>$url,
+            'category'=>str_ends_with($host,'.gov.ir')?
+                'examinations':'universities',
+            'priority'=>$referrals>=2?'P1':'P2',
+            'status'=>'AUTONOMOUSLY_DISCOVERED_REQUIRES_INDEPENDENT_REVIEW',
+            'registeredSources'=>0,
+            'activeReviewedSources'=>0,
+            'independentVerifiedSourceReferrals'=>$referrals,
+            'actualFeedEndpointIndependentlyConfirmed'=>false,
+            'publicationRightsAutomaticallyGranted'=>false,
+            'issuerVerifiedByDomainHeuristic'=>false
+        ];
+    }
+    return $items;
+}
+
 /** A read-only owner inventory; never fakes an active news feed. */
 function jrNewsOriginalInstitutionSourceInventory(PDO $pdo,int $limit=50): array {
     if($limit<1||$limit>50)
@@ -117,6 +195,19 @@ function jrNewsOriginalInstitutionSourceInventory(PDO $pdo,int $limit=50): array
             'publicationRightsAutomaticallyGranted'=>false
         ];
         if(count($items)>=$limit)break;
+    }
+    // Expand beyond the original illustrative seed directory. Discoveries
+    // appear without asking the owner to list all institutions by name.
+    foreach(jrNewsAutonomousInstitutionCandidateInventory($pdo,$limit) as $new){
+        if(count($items)>=$limit)break;
+        $seen=false;
+        foreach($items as $known){
+            if(($known['origin']??null)===$new['origin'] ||
+                jrNewsOfficialDirectoryMatch($new['origin'])!==null){
+                $seen=true;break;
+            }
+        }
+        if(!$seen)$items[]=$new;
     }
     return [
         'schema'=>'jr.jrei.news-official-institutions.v1',
