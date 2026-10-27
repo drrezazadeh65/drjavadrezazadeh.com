@@ -44,6 +44,13 @@ from jrei_learning.knowledge_correction import (
 from jrei_learning.metacognitive_cycle import (
     MetacognitiveCycleRequest, MetacognitiveCycleResult, plan_metacognitive_cycle,
 )
+from jrei_learning.native_language_growth import (
+    NativeLanguageGrowthRequest, NativeLanguageGrowthResult,
+    plan_native_language_growth,
+)
+from jrei_core.model_portfolio import (
+    ModelPortfolioRequest, ModelPortfolioResult, plan_model_portfolio,
+)
 from jrei_learning.self_improvement import (
     SelfImprovementCycleRequest, SelfImprovementCycleResult, plan_self_improvement,
 )
@@ -218,6 +225,27 @@ async def knowledge_correction_preflight(payload: CorrectionReviewRequest):
     # Observes caller-supplied citation SHA and original CMS receipts only.
     # Revoked evidence yields a review recommendation, NOT a live withdrawal.
     return prepare_knowledge_corrections(payload)
+
+
+@app.post(
+    "/internal/v1/learning/native-language/plan",
+    response_model=NativeLanguageGrowthResult,
+    dependencies=[Depends(require_internal_gateway)],
+)
+async def private_native_language_growth(payload: NativeLanguageGrowthRequest):
+    # Model-free language competence planning. No source text or transcripts,
+    # independent holdout never used to train, no weights changed.
+    return await run_in_threadpool(plan_native_language_growth, payload)
+
+
+@app.post(
+    "/internal/v1/model/portfolio/plan",
+    response_model=ModelPortfolioResult,
+    dependencies=[Depends(require_internal_gateway)],
+)
+async def private_model_portfolio(payload: ModelPortfolioRequest):
+    # Selection proposal only. Does not contact or switch a provider.
+    return await run_in_threadpool(plan_model_portfolio, payload)
 
 
 @app.post(
