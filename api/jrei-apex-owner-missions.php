@@ -204,9 +204,11 @@ function jrApexMissionOwnerChange(PDO $pdo,array $cfg,string $accountId,array $b
         if(!$control)throw new RuntimeException('mission_control_row_missing');
         if($action==='emergency-stop') {
             if((int)$control['emergency_stop']!==1||
-               (int)$control['planning_enabled']!==0) {
+               (int)$control['planning_enabled']!==0||
+               (int)$control['execution_enabled']!==0) {
                 $pdo->prepare('UPDATE jrei_apex_mission_controls
-                  SET planning_enabled=0,emergency_stop=1,revision=revision+1,
+                  SET planning_enabled=0,emergency_stop=1,execution_enabled=0,
+                      revision=revision+1,
                       updated_at=?,updated_by_account_id=? WHERE singleton_id=1')
                   ->execute([$at,$accountId]);
                 operationsAudit($pdo,$accountId,'jrei_apex_emergency_stop','owner_missions');
