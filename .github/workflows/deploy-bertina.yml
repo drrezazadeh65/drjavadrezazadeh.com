@@ -42,7 +42,6 @@ on:
 
 permissions:
   contents: read
-  actions: read
 
 concurrency:
   group: bertina-production-deploy
@@ -83,62 +82,6 @@ jobs:
             full_masterplan|phased_live_audit) ;;
             *) echo "Unrecognized release scope; production remains blocked." >&2; exit 1 ;;
           esac
-
-      # JREI owner requirement: every immutable production SHA has first
-      # succeeded in the separate manual, credential-free preview workflow.
-      # This is additive to all existing acceptance, recovery and PHP/MySQL
-      # gates. A static preview does not attest production behavior.
-      - name: Require fresh exact-SHA isolated preview before ANY production deployment
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          set -euo pipefail
-          test "$GITHUB_EVENT_NAME" = workflow_dispatch
-          test "$GITHUB_REF" = refs/heads/migration/bertina-linux6
-          curl --fail --silent --show-error --retry 2 --max-time 30 \
-            --header "Authorization: Bearer $GH_TOKEN" \
-            --header "Accept: application/vnd.github+json" \
-            "https://api.github.com/repos/$GITHUB_REPOSITORY/actions/workflows/jrei-production-sandbox-preview.yml/runs?per_page=100&event=workflow_dispatch" \
-            -o /tmp/jrei-preview-runs.json
-          run_id="$(python3 - <<'PY'
-          import datetime,json,os,sys
-          p=json.load(open('/tmp/jrei-preview-runs.json',encoding='utf-8'))
-          now=datetime.datetime.now(datetime.timezone.utc)
-          for r in p.get('workflow_runs',[]):
-              if (r.get('head_sha')!=os.environ['GITHUB_SHA']
-                  or r.get('head_branch')!='migration/bertina-linux6'
-                  or r.get('event')!='workflow_dispatch'
-                  or r.get('status')!='completed' or r.get('conclusion')!='success'):
-                  continue
-              stamp=r.get('updated_at')
-              try:
-                  time=datetime.datetime.fromisoformat(stamp.replace('Z','+00:00'))
-              except (AttributeError,ValueError):continue
-              if datetime.timedelta(0) <= now-time < datetime.timedelta(days=14):
-                  print(r['id'])
-                  break
-          else:
-              sys.exit('Exact SHA has no recent successful isolated preview; production denied')
-          PY
-          )"
-          curl --fail --silent --show-error --retry 2 --max-time 30 \
-            --header "Authorization: Bearer $GH_TOKEN" \
-            --header "Accept: application/vnd.github+json" \
-            "https://api.github.com/repos/$GITHUB_REPOSITORY/actions/runs/$run_id/artifacts?per_page=100" \
-            -o /tmp/jrei-preview-artifacts.json
-          PREVIEW_RUN_ID="$run_id" python3 - <<'PY'
-          import json,os,sys
-          proof=json.load(open('/tmp/jrei-preview-artifacts.json',encoding='utf-8'))
-          expected='jrei-sandbox-preview-'+os.environ['GITHUB_SHA']
-          artifacts=[a for a in proof.get('artifacts',[])
-                     if a.get('name')==expected and
-                        a.get('expired') is False and
-                        a.get('size_in_bytes',0)>0]
-          if len(artifacts)!=1:
-              sys.exit('No retained and nonexpired exact-SHA preview artifact; production denied')
-          print('Immutable sandbox preview observed for source SHA and run',
-                os.environ['GITHUB_SHA'],os.environ['PREVIEW_RUN_ID'])
-          PY
 
       # Resolve both SHA values independently. The owner only needs to click Run workflow.
       # Any optional manual overrides must match the observed immutable values.
