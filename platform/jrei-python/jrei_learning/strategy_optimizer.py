@@ -235,7 +235,9 @@ def propose_learning_method(
 
     eligible_methods = [
         item for item in evidence
-        if item.evidence_state == "CANDIDATE_METHOD_FOR_REVIEW"
+        if (item.evidence_state == "CANDIDATE_METHOD_FOR_REVIEW"
+            and item.demonstrated_candidate_count > 0
+            and item.demonstrated_candidate_count > item.negative_outcome_count)
     ]
     best = sorted(
         eligible_methods, key=lambda item: (-item.proposed_priority_score, item.method)
@@ -246,7 +248,7 @@ def propose_learning_method(
         reasons = ["NO_COMPARABLE_REVIEWED_EPISODES"]
     elif proposed is None:
         action = "PREPARE_BOUNDED_HELDOUT_EXPERIMENT"
-        reasons = ["MINIMUM_HISTORICAL_METHOD_EVIDENCE_UNMET"]
+        reasons = ["NO_METHOD_WITH_REVIEWED_POSITIVE_MAJORITY_OR_MINIMUM_EVIDENCE"]
     else:
         action = "REQUEST_OWNER_METHOD_REVIEW"
         reasons = ["OBSERVED_RELATIVE_METHOD_UTILITY_FOR_OWNER_REVIEW_ONLY"]
