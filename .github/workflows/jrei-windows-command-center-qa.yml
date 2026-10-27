@@ -1,0 +1,59 @@
+name: JREI Windows Command Center - Functional Source QA (NO DEPLOY)
+on:
+  push:
+    branches: [migration/bertina-linux6]
+    paths:
+      - 'platform/jrei-python/jrei_service/windows_command_center.py'
+      - 'platform/jrei-python/tests/test_windows_command_center.py'
+      - 'platform/jrei-v5/windows-worker/jrei-command-center-startup.ps1'
+      - '.github/workflows/jrei-windows-command-center-qa.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  isolated-desktop-ui:
+    runs-on: windows-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Parse Windows installer without installing or starting services
+        shell: pwsh
+        run: |
+          $path=(Resolve-Path 'platform/jrei-v5/windows-worker/jrei-command-center-startup.ps1').Path
+          $tokens=$null
+          $errors=$null
+          $null=[System.Management.Automation.Language.Parser]::ParseFile($path,[ref]$tokens,[ref]$errors)
+          if($errors.Count -gt 0){ $errors | ForEach-Object { Write-Error $_.Message }; exit 1 }
+          $source=Get-Content -LiteralPath $path -Raw
+          foreach($guard in @('127.0.0.1:8092','RunLevel Limited','OwnerApproved','New-ScheduledTaskTrigger -AtLogOn','Mode Open')){
+            if(-not $source.Contains($guard)){ throw 'JREI_OWNER_CONSOLE_INSTALLER_GUARD_MISSING' }
+          }
+          Write-Output 'JREI_WINDOWS_COMMAND_INSTALLER_SOURCE_PARSED'
+      - name: Compile local-only Python and run real mocked mission tests
+        shell: pwsh
+        env:
+          PYTHONPATH: platform/jrei-python
+        run: |
+          python -m py_compile platform/jrei-python/jrei_service/windows_command_center.py
+          python -m unittest discover -s platform/jrei-python/tests -p 'test_windows_command_center.py' -v
+      - name: Validate generated browser UI JavaScript
+        shell: pwsh
+        env:
+          PYTHONPATH: platform/jrei-python
+        run: |
+          python -c "from jrei_service.windows_command_center import render_html; from pathlib import Path; html=render_html(); assert '<script>' in html; Path('jrei-generated-command-ui.js').write_text(html.split('<script>',1)[1].split('</script>',1)[0],encoding='utf-8')"
+          node --check jrei-generated-command-ui.js
+          Remove-Item jrei-generated-command-ui.js
+      - name: Document actual boundary
+        if: always()
+        shell: pwsh
+        run: |
+          Add-Content $env:GITHUB_STEP_SUMMARY 'Owner UI/mission source QA; no local model, production DB, CMS, GitHub push, Windows task or Bertina deployment performed.'
