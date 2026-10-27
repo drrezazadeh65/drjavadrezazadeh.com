@@ -14,7 +14,7 @@ function jrOwnerJreiPythonSkillDispatch(array $privateConfig, array $body, ?stri
     $action=$body['action']??null;
     if (!is_string($action) ||
         !in_array($action,['catalog','triage-evidence','heldout-review','calculate',
-          'evidence-graph','metacognitive-plan','capacity-plan','exam-blueprint-review','news-editorial-preflight','strategy-propose','mission-bind','method-feedback','grounded-retrieval','source-extract',
+          'evidence-graph','metacognitive-plan','learning-value-plan','capacity-plan','exam-blueprint-review','news-editorial-preflight','strategy-propose','mission-bind','method-feedback','grounded-retrieval','source-extract',
           'model-draft','memory-save','memory-read','memory-revoke'],true)) {
         throw new InvalidArgumentException('python_skill_action_invalid');
     }
@@ -65,7 +65,7 @@ function jrOwnerJreiPythonSkillDispatch(array $privateConfig, array $body, ?stri
         $payload=$body['payload'];
         $expected='jr.jrei.heldout-review-result.v1';
     } elseif (in_array($action,
-        ['evidence-graph','metacognitive-plan','capacity-plan','exam-blueprint-review','strategy-propose','mission-bind','method-feedback','grounded-retrieval','source-extract','news-editorial-preflight'],true)) {
+        ['evidence-graph','metacognitive-plan','learning-value-plan','capacity-plan','exam-blueprint-review','strategy-propose','mission-bind','method-feedback','grounded-retrieval','source-extract','news-editorial-preflight'],true)) {
         // All three are strictly read-only: no browser-selected endpoint,
         // unreviewed model tool, raw learner records, action execution or
         // assignment authority. The original admin MFA/CSRF gate is retained.
@@ -83,6 +83,7 @@ function jrOwnerJreiPythonSkillDispatch(array $privateConfig, array $body, ?stri
         $route=match($action) {
             'evidence-graph'=>'/internal/v1/learning/evidence-graph/review',
             'metacognitive-plan'=>'/internal/v1/learning/metacognitive/plan',
+            'learning-value-plan'=>'/internal/v1/learning/value-of-information/plan',
             'capacity-plan'=>'/internal/v1/orchestration/capacity/plan',
             'exam-blueprint-review'=>'/internal/v1/exams/blueprint/review',
             'strategy-propose'=>'/internal/v1/learning/strategy/propose',
@@ -95,6 +96,7 @@ function jrOwnerJreiPythonSkillDispatch(array $privateConfig, array $body, ?stri
         $expected=match($action) {
             'evidence-graph'=>'jr.jrei.evidence-graph-review.v1',
             'metacognitive-plan'=>'jr.jrei.metacognitive-cycle-result.v1',
+            'learning-value-plan'=>'jr.jrei.learning-voi-result.v1',
             'capacity-plan'=>'jr.jrei.adaptive-placement-result.v1',
             'exam-blueprint-review'=>'jr.jrei.exam-blueprint-review-result.v1',
             'strategy-propose'=>'jr.jrei.learning-strategy-proposal.v1',
@@ -275,6 +277,16 @@ function jrOwnerJreiPythonSkillDispatch(array $privateConfig, array $body, ?stri
          ($result['original_exam_authority']??null)!=='PHP_MOTHER_DB_ONLY' ||
          !is_array($result['findings']??null))) {
         throw new RuntimeException('JREI_PYTHON_EXAM_METADATA_PRIVILEGE_ESCALATION');
+    }
+    if ($action==='learning-value-plan' &&
+        (($result['network_or_worker_job_started']??null)!==false ||
+         ($result['model_training_started']??null)!==false ||
+         ($result['mother_database_written']??null)!==false ||
+         ($result['learner_outcome_improved']??null)!==false ||
+         ($result['source_attestation_independently_verified']??null)!==false ||
+         ($result['measurement_scientifically_validated']??null)!==false ||
+         !is_array($result['selections']??null))) {
+        throw new RuntimeException('JREI_PYTHON_VALUE_OF_LEARNING_PRIVILEGE_ESCALATION');
     }
     if ($action==='capacity-plan' &&
         (($result['scheduler_enabled_by_this_plan']??null)!==false ||
