@@ -62,11 +62,13 @@ from jrei_skills.registry import skill_catalog
 from jrei_skills.arithmetic import ArithmeticRequest, ArithmeticResult, ArithmeticRejected, calculate_exact
 from jrei_memory.contracts import (
     OwnerMemorySave, OwnerMemoryRef, OwnerMemoryReceipt,
+    OwnerMemoryListQuery, OwnerMemoryListResult,
     OwnerMemoryReadResult, OwnerMemoryRevokeReceipt,
 )
 from jrei_memory.store import (
     OwnerMemoryUnavailable, OwnerMemoryConflict,
     save_owner_note, read_owner_note, revoke_owner_note,
+    list_owner_memory_metadata,
 )
 
 app = FastAPI(
@@ -410,6 +412,20 @@ async def save_private_owner_memory(payload: OwnerMemorySave):
 async def read_private_owner_memory(payload: OwnerMemoryRef):
     try:
         return read_owner_note(payload)
+    except OwnerMemoryUnavailable as exc:
+        raise HTTPException(status_code=503, detail="OWNER_MEMORY_UNAVAILABLE") from exc
+
+
+@app.post(
+    "/internal/v1/memory/owner/list",
+    response_model=OwnerMemoryListResult,
+    dependencies=[Depends(require_internal_gateway)],
+)
+async def list_private_owner_memory(payload: OwnerMemoryListQuery):
+    # Metadata-only. An MFA session-bound PHP gateway supplies owner_account_id.
+    # No plaintext, ciphertext, internal DB keys or global tenant lookup.
+    try:
+        return list_owner_memory_metadata(payload)
     except OwnerMemoryUnavailable as exc:
         raise HTTPException(status_code=503, detail="OWNER_MEMORY_UNAVAILABLE") from exc
 
