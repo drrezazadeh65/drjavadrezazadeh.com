@@ -80,6 +80,31 @@ test('All genuine source and independent evidence toggles exist in authoritative
  assert.ok(feed.includes("'jrei_news_automatic_official_monitor_enabled'"));
 });
 
+
+test('Actual publication chain is a canonical eight-job API contract, not eight news-named helpers',()=>{
+ const cron=read('api/operations-cron-dispatcher.php');
+ const ui=read('assets/js/jrei-news-owner-panel-v1.mjs');
+ const definition=/function operationsCronNewsPipelineIds\(\): array \{\s*return \[([\s\S]*?)\];\s*\}/.exec(cron);
+ assert.ok(definition,'original PHP must own exact pipeline identifiers');
+ const actual=[...definition[1].matchAll(/'([a-z0-9_]+)'/g)].map(x=>x[1]);
+ assert.deepEqual(actual,[
+  'jrei_ka_schedule','jrei_ka_private_acquisition',
+  'jrei_news_original_feed_projection','jrei_news_independent_primary_evidence',
+  'jrei_news_original_article_intake','jrei_news_original_private_draft',
+  'jrei_news_original_private_publisher','jrei_news_original_public_index'
+ ]);
+ assert.match(cron,/\$ids=operationsCronNewsPipelineIds\(\);/);
+ assert.match(cron,/'newsPipelineRequiredJobIds'=>\$newsPipelineIds/);
+ assert.match(cron,/'newsPipelineRegisteredCount'=>\$newsPipelineRegistered/);
+ assert.match(cron,/'newsPipelineEnabledCount'=>\$newsPipelineEnabled/);
+ assert.match(ui,/snapshot\.newsPipelineRequiredJobIds/);
+ assert.match(ui,/ids\.includes\('jrei_ka_schedule'\)/);
+ assert.match(ui,/ids\.includes\('jrei_ka_private_acquisition'\)/);
+ assert.match(ui,/snapshot\.masterEnabled!==true/);
+ assert.match(ui,/cronActionResult\.textContent=say\(/);
+ assert.doesNotMatch(ui,/new Set\(\[\s*'jrei_news_'/);
+});
+
 test('Publishing worker recovers authentic, pending search archive from earlier runs',()=>{
  const publisher=read('api/internal/jrei-news-private-publisher-worker.php');
  const indexer=read('platform/news-intelligence/php/original-public-index-runner.php');
