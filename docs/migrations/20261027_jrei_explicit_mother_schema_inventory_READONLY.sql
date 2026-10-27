@@ -24,14 +24,14 @@ LEFT JOIN (
   SELECT TABLE_NAME, COUNT(*) AS col_count
   FROM information_schema.COLUMNS
   WHERE TABLE_SCHEMA='drjavad1_store'
-    AND (TABLE_NAME LIKE 'jrei\\_%' ESCAPE '\\'
+    AND (LEFT(TABLE_NAME,5)='jrei_'
          OR TABLE_NAME='customer_accounts'
          OR TABLE_NAME='operations_cron_jobs')
   GROUP BY TABLE_NAME
 ) AS c ON c.TABLE_NAME=t.TABLE_NAME
 WHERE t.TABLE_SCHEMA='drjavad1_store'
   AND t.TABLE_TYPE='BASE TABLE'
-  AND (t.TABLE_NAME LIKE 'jrei\\_%' ESCAPE '\\'
+  AND (t.LEFT(TABLE_NAME,5)='jrei_'
        OR t.TABLE_NAME='customer_accounts'
        OR t.TABLE_NAME='operations_cron_jobs')
 ORDER BY t.TABLE_NAME;
