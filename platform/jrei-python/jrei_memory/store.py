@@ -25,6 +25,11 @@ class OwnerMemoryUnavailable(RuntimeError):
     pass
 
 
+class OwnerMemoryConflict(OwnerMemoryUnavailable):
+    """An already-used request key cannot mutate its original note."""
+    pass
+
+
 def _key() -> bytes:
     if os.environ.get("JREI_PYTHON_OWNER_MEMORY_ENABLED") != "1":
         raise OwnerMemoryUnavailable("OWNER_MEMORY_DISABLED")
@@ -88,6 +93,7 @@ def save_owner_note(request: OwnerMemorySave) -> OwnerMemoryReceipt:
     now = int(time.time())
     expiry = now + request.retention_days * 86400
     record_id = str(uuid.uuid4())
+    replayed = False
     nonce = secrets.token_bytes(12)
     plaintext = request.note.encode("utf-8")
     ciphertext = aes.encrypt(
@@ -122,7 +128,7 @@ def save_owner_note(request: OwnerMemorySave) -> OwnerMemoryReceipt:
                 )
                 row = cur.fetchone()
                 if row is None:
-                    raise OwnerMemoryUnavailable("OWNER_MEMORY_IDEMPOTENCY_CONFLICT") from exc
+                    raise OwnerMemoryConflict("OWNER_MEMORY_IDEMPOTENCY_CONFLICT") from exc
                 old_id, old_purpose, old_nonce, old_cipher, old_hash, created, old_expiry, revoked = row
                 if (revoked is not None or int(old_expiry) <= now
                         or old_purpose != request.purpose
@@ -134,17 +140,18 @@ def save_owner_note(request: OwnerMemorySave) -> OwnerMemoryReceipt:
                         or not hmac.compare_digest(
                             hashlib.sha256(old_cipher).hexdigest(), old_hash
                         )):
-                    raise OwnerMemoryUnavailable("OWNER_MEMORY_IDEMPOTENCY_CONFLICT") from exc
+                    raise OwnerMemoryConflict("OWNER_MEMORY_IDEMPOTENCY_CONFLICT") from exc
                 try:
                     existing = aes.decrypt(
                         old_nonce, old_cipher,
                         _aad(request.owner_account_id, old_id, old_purpose, int(old_expiry)),
                     )
                 except Exception as decrypt_exc:
-                    raise OwnerMemoryUnavailable("OWNER_MEMORY_IDEMPOTENCY_CONFLICT") from decrypt_exc
+                    raise OwnerMemoryConflict("OWNER_MEMORY_IDEMPOTENCY_CONFLICT") from decrypt_exc
                 if not hmac.compare_digest(existing, plaintext):
-                    raise OwnerMemoryUnavailable("OWNER_MEMORY_IDEMPOTENCY_CONFLICT") from exc
+                    raise OwnerMemoryConflict("OWNER_MEMORY_IDEMPOTENCY_CONFLICT") from exc
                 record_id, expiry = old_id, int(old_expiry)
+                replayed = True
         conn.commit()
     except OwnerMemoryUnavailable:
         conn.rollback()
@@ -156,6 +163,7 @@ def save_owner_note(request: OwnerMemorySave) -> OwnerMemoryReceipt:
         conn.close()
     return OwnerMemoryReceipt(
         record_id=record_id, purpose=request.purpose, expires_at=expiry,
+        idempotent_replay=replayed,
     )
 
 
