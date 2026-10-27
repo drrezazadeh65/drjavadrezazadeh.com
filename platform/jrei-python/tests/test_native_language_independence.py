@@ -85,6 +85,19 @@ class JreiLanguageIndependenceTests(unittest.TestCase):
                          "COLLECT_FRESH_INDEPENDENT_EVIDENCE")
         self.assertEqual(r.goals[0].reviewed_failures, 0)
 
+    def test_heldout_outcomes_not_used_in_learning_curriculum(self):
+        r = plan_native_language_growth(NativeLanguageGrowthRequest(
+            cycle_id="language-cycle-holdout", policy_sha256=POLICY,
+            episodes=[
+                episode(22, data_role="LEARNING"),
+                episode(23, data_role="HELDOUT",
+                        failure="CORRECT", competency="ASSESSMENT_CONCEPTS"),
+            ],
+        ))
+        self.assertEqual(len(r.goals), 1)
+        self.assertEqual(r.goals[0].competency, "PERSIAN_ORTHOGRAPHY")
+        self.assertEqual(r.goals[0].reviewed_failures, 1)
+
     def test_unsafe_rights_require_review(self):
         r = plan_native_language_growth(NativeLanguageGrowthRequest(
             cycle_id="language-cycle-004", policy_sha256=POLICY,
