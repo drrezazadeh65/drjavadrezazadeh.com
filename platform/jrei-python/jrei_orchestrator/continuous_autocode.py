@@ -245,15 +245,72 @@ def _tehran_heavy_window() -> bool:
 
 
 def _headroom() -> bool:
-    # No optimistic scheduling if the original measured Windows resource
-    # information is absent. psutil is optional but REQUIRED to do work.
+    """Require measured idle CPU and free RAM, without a new pip dependency."""
     try:
-        import psutil
+        import psutil  # type: ignore[import-not-found]
         sample = psutil.cpu_percent(interval=0.15)
-        memory = psutil.virtual_memory()
-    except (ImportError, OSError):
-        return False
-    return sample < 72.0 and memory.available >= 1_073_741_824
+        available = psutil.virtual_memory().available
+        return sample < 72.0 and available >= 1_073_741_824
+    except (ImportError, OSError, AttributeError):
+        pass
+
+    if os.name == "nt":
+        # Standard-library Windows performance and memory APIs; do not
+        # assume an optional offline psutil wheel was installed on Node A.
+        import ctypes
+        from ctypes import wintypes
+
+        class MemoryStatus(ctypes.Structure):
+            _fields_ = [
+                ("length", wintypes.DWORD), ("memory_load", wintypes.DWORD),
+                ("total_phys", ctypes.c_ulonglong),
+                ("avail_phys", ctypes.c_ulonglong),
+                ("total_page", ctypes.c_ulonglong),
+                ("avail_page", ctypes.c_ulonglong),
+                ("total_virtual", ctypes.c_ulonglong),
+                ("avail_virtual", ctypes.c_ulonglong),
+                ("avail_extended_virtual", ctypes.c_ulonglong),
+            ]
+
+        def ticks(v: wintypes.FILETIME) -> int:
+            return (v.dwHighDateTime << 32) | v.dwLowDateTime
+
+        def cpu_snapshot() -> tuple[int, int, int] | None:
+            idle, kernel, user = (wintypes.FILETIME() for _ in range(3))
+            if not ctypes.windll.kernel32.GetSystemTimes(
+                ctypes.byref(idle), ctypes.byref(kernel), ctypes.byref(user)
+            ):
+                return None
+            return ticks(idle), ticks(kernel), ticks(user)
+
+        mem = MemoryStatus()
+        mem.length = ctypes.sizeof(MemoryStatus)
+        if not ctypes.windll.kernel32.GlobalMemoryStatusEx(ctypes.byref(mem)):
+            return False
+        if mem.avail_phys < 1_073_741_824:
+            return False
+        first = cpu_snapshot()
+        time.sleep(0.15)
+        second = cpu_snapshot()
+        if first is None or second is None:
+            return False
+        idle = second[0] - first[0]
+        total = second[1] - first[1] + second[2] - first[2]
+        return total > 0 and 0 <= idle <= total and (1 - idle / total) < 0.72
+
+    # Linux CI or dedicated machines: fail closed without valid host metrics.
+    if os.name == "posix":
+        try:
+            with open("/proc/meminfo", encoding="ascii") as handle:
+                line = next(
+                    s for s in handle if s.startswith("MemAvailable:")
+                )
+            available = int(line.split()[1]) * 1024
+            cpu_load = os.getloadavg()[0] / max(1, os.cpu_count() or 1)
+            return available >= 1_073_741_824 and cpu_load < 0.72
+        except (OSError, ValueError, StopIteration):
+            return False
+    return False
 
 
 def stage_one(
