@@ -382,7 +382,6 @@ class OwnerHTTP(BaseHTTPRequestHandler):
         self.send_header("X-Content-Type-Options", "nosniff")
         self.send_header("Content-Security-Policy",
                          "default-src 'self'; connect-src 'self'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; object-src 'none'; frame-ancestors 'none'; base-uri 'none'")
-        self.send_header("Access-Control-Allow-Origin", "null")
         self.send_header("Referrer-Policy", "no-referrer")
         self.end_headers()
         self.wfile.write(body)
@@ -462,8 +461,8 @@ def main():
         return
     if args.status:
         try:
-            data = get_json(f"http://{HOST}:{PORT}/api/status", 3)
-            print(json.dumps(data, ensure_ascii=False))
+            with urllib.request.urlopen(f"http://{HOST}:{PORT}/", timeout=3) as response:
+                print("JREI_COMMAND_CENTER_RESPONDING" if response.status == 200 else "JREI_COMMAND_CENTER_UNAVAILABLE")
         except OSError:
             print("JREI_COMMAND_CENTER_NOT_RESPONDING")
         return
