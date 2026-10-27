@@ -243,9 +243,11 @@ The manual GitHub workflow
 and serves a separate sanitized static website candidate on the CI
 localhost, producing an immutable exact-SHA preview ZIP and evidence file
 without contacting Bertina or its database. It must be run **after source
-coding is finished**. The existing production workflow now requires a
-successful, retained exact-SHA sandbox candidate **before** invoking any
-of its other existing production gates. This preview does not certify
+coding is finished**. The owner must run and inspect the successful exact-SHA preview
+**before** manually invoking the frozen Bertina production deployment workflow.
+The deployment workflow itself is deliberately unchanged: its immutable SHA
+is protected by a successful-release regression test, and no new preview
+precondition may bypass or weaken that frozen gate. This preview does not certify
 live PHP/MySQL operations, payments, real SEO rankings or independent
 backup restoration; those remain separate release acceptance gates.
 No tests or deployments are initiated by adding these source files.
