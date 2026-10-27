@@ -1,0 +1,9 @@
+{
+  "schema_version": "jr.jrei.continuous-autocode-manifest.v1",
+  "policy_digest": "0000000000000000000000000000000000000000000000000000000000000000",
+  "owner_approved": false,
+  "emergency_stop": true,
+  "autonomous_source_discovery_enabled": true,
+  "per_pass_source_scan": 80,
+  "tasks": []
+}
