@@ -199,3 +199,53 @@ Canonical scoped release ledger:
 The auto-installer's exact-tree approval manifest must not be expanded until
 the *new* Python tree passes reviewed isolated QA. The last verified
 arithmetical canary and original signed Qwen workers remain frozen.
+
+
+## Continuous learning, self-coding and mandatory production preview (source-stage)
+
+The 24/7-capable source modules are `jrei_learning/self_improvement.py`,
+`jrei_orchestrator/standing_discovery.py`,
+`jrei_orchestrator/continuous_autocode.py`,
+`jrei_orchestrator/sandbox_patch.py` and
+`jrei_orchestrator/owner_grant.py`.
+
+A **single standing Ed25519 owner grant** can authorize repeatedly discovering
+review markers within the already allowlisted local Python/CSS directories,
+asking the installed Qwen to propose improvements, and writing immutable,
+source-SHA-pinned review artifacts in a private, physically separate
+workspace. The owner does not need to authorize every eligible experiment.
+JREI will not impose a fixed daily learning quota or a fixed time-only
+work schedule. Each iteration still respects actual CPU/RAM headroom,
+transport/source permissions and backpressure; 02:00-05:00 Tehran merely
+boosts approved heavy proposals. Continuous operation requires a real
+local OS supervisor, an installed dependency set, an operational local
+Qwen and an explicitly configured owner standing grant; GitHub source
+commits alone do **not** start a running agent.
+
+The local owner grant can be generated with
+`python -m jrei_orchestrator.owner_grant generate-key`, supplying private
+key and public key output locations **outside** the website checkout.
+A reviewed `jr.jrei.continuous-autocode-manifest.v1` can be signed with
+`python -m jrei_orchestrator.owner_grant sign`. The runner verifies the
+signature and scope with `JREI_AUTOCODE_OWNER_PUBLIC_KEY_B64` and requires
+the separate opt-in gate `JREI_CONTINUOUS_AUTOCODE_ENABLED=1`. Its
+signing private key is never sent to Bertina, Qwen, GitHub or the website.
+An open-ended signed standing grant is revocable by setting the local
+emergency stop, disabling the worker, or removing/replacing the public
+verification key. It is **not** authority to modify production.
+
+A machine-readable candidate can be materialized with
+`sandbox_patch.materialize_preview` into an isolated directory.
+The resulting HTML diff is an **offline code preview**, not a functional
+website test or a claim of correctness; the live checkout remains unchanged.
+The manual GitHub workflow
+`.github/workflows/jrei-production-sandbox-preview.yml` assembles
+and serves a separate sanitized static website candidate on the CI
+localhost, producing an immutable exact-SHA preview ZIP and evidence file
+without contacting Bertina or its database. It must be run **after source
+coding is finished**. The existing production workflow now requires a
+successful, retained exact-SHA sandbox candidate **before** invoking any
+of its other existing production gates. This preview does not certify
+live PHP/MySQL operations, payments, real SEO rankings or independent
+backup restoration; those remain separate release acceptance gates.
+No tests or deployments are initiated by adding these source files.
