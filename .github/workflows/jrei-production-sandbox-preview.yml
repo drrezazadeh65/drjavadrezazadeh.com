@@ -1,7 +1,19 @@
 name: JREI Production Candidate - isolated sandbox preview
 # Always build a nonproduction preview before an owner production release.
-# Manual-only while source development remains underway.
+# Automatically validate eligible canonical source commits, but NEVER deploy.
+# Owner may also dispatch a fresh exact-SHA preview after a code freeze.
 on:
+  push:
+    branches: [migration/bertina-linux6]
+    paths:
+      - '.github/workflows/jrei-production-sandbox-preview.yml'
+      - 'platform/jrei-python/**'
+      - 'platform/jrei-v5/windows-worker/jrei-autocode-sandbox-startup.ps1'
+      - 'api/jrei-python-owner-skills.php'
+      - 'api/jrei-apex-owner-missions.php'
+      - 'api/jrei-apex-python-plan.php'
+      - 'api/index.php'
+      - 'assets/js/operations-jrei-apex-command-room-v1.js'
   workflow_dispatch:
 
 permissions:
