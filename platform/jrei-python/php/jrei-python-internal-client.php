@@ -34,6 +34,7 @@ function jrJreiPythonInternalPropose(array $privateConfig, string $route, array 
         '/internal/v1/skills/arithmetic/calculate',
         '/internal/v1/memory/owner/save',
         '/internal/v1/memory/owner/read',
+        '/internal/v1/memory/owner/list',
         '/internal/v1/memory/owner/revoke',
         '/internal/v1/missions/propose',
         '/internal/v1/skills/catalog',
