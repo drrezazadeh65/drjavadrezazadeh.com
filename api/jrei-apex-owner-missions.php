@@ -142,6 +142,13 @@ function jrApexMissionSnapshot(PDO $pdo, array $cfg, string $accountId): array
         'executionEnabled'=>false,
         'durableMissionCapability'=>'NOT_ACCEPTED_IN_PRODUCTION',
         'workerDispatchImplemented'=>false,
+        'pythonPlanningSourceEnabled'=>(
+            ($cfg['jrei_apex_mission_python_plan_enabled']??false)===true &&
+            ($cfg['jrei_python_internal_enabled']??false)===true &&
+            ($cfg['jrei_apex_missions_owner_write_enabled']??false)===true &&
+            function_exists('jrApexPythonPlanSchemaReady') &&
+            jrApexPythonPlanSchemaReady($pdo)
+        ),
         'modelInferenceVerified'=>false,
         'checkedAt'=>time(),
         'intents'=>JR_APEX_MISSION_INTENTS,
