@@ -152,7 +152,8 @@ function draw(data){
   }
   if(mission.status==='PLANNED'&&!halted&&
      (Object.hasOwn(diagnosticDimensions,mission.intent)||
-      mission.intent==='WEBSITE_DATABASE_SCHEMA_REVIEW')){
+      (mission.intent==='WEBSITE_DATABASE_SCHEMA_REVIEW'||
+       mission.intent==='WEBSITE_CODE_REVIEW'))){
    const inspect=make('button',T('مشاهدهٔ شواهد موجود سایت',
       'Inspect existing site evidence'));
    inspect.type='button';inspect.disabled=busy;
@@ -185,14 +186,45 @@ function draw(data){
 async function runSiteDiagnostics(intent,button,output){
  if(busy||!current()||
     !(Object.hasOwn(diagnosticDimensions,intent)||
-      intent==='WEBSITE_DATABASE_SCHEMA_REVIEW'))return;
+      intent==='WEBSITE_DATABASE_SCHEMA_REVIEW'||
+      intent==='WEBSITE_CODE_REVIEW'))return;
  const mark=++serial;
  busy=true;button.disabled=true;output.replaceChildren();
  const ctl=new AbortController();controller=ctl;
  output.append(make('p',T('در حال دریافت مشاهدات واقعی ذخیره‌شده…',
    'Reading existing source-derived evidence…')));
  try{
-  if(intent==='WEBSITE_DATABASE_SCHEMA_REVIEW'){
+  if(intent==='WEBSITE_CODE_REVIEW'){
+   const res=await fetch('/api/admin/operations/github-audits',{
+    credentials:'same-origin',cache:'no-store',signal:ctl.signal,
+    headers:{Accept:'application/json'}
+   });
+   if(!res.ok)throw Error('GITHUB_READONLY_AUDIT_UNAVAILABLE');
+   const data=await res.json();
+   if(mark!==serial||!current())return;
+   if(data?.ok!==true||data.schema!=='operations-github-audits-v1'||
+      data.releaseScope!=='migration/bertina-linux6'||
+      !Array.isArray(data.audits))
+     throw Error('GITHUB_AUDIT_CONTRACT_INVALID');
+   output.replaceChildren();
+   const heading=make('p',T(
+     'شواهد GitHub از مخزن و شاخهٔ اصلی پروژه (بدون اجرای Workflow):',
+     'Existing canonical-branch GitHub workflow observations (no dispatch):'));
+   output.append(heading);
+   for(const audit of data.audits.slice(0,8)){
+    if(typeof audit.workflow!=='string'||!/^[a-z0-9.-]+\.yml$/.test(audit.workflow))continue;
+    const state=typeof audit.status==='string'?audit.status:'unknown';
+    const runs=Array.isArray(audit.runs)?audit.runs:[];
+    const latest=runs.find(row=>row?.status==='completed'&&
+      /^[a-f0-9]{40}$/.test(row.sourceSha||''));
+    output.append(make('p',audit.workflow+' · '+state+
+      (latest?' · '+String(latest.conclusion||'unknown')+
+       ' · '+latest.sourceSha.slice(0,9):'')));
+   }
+   output.append(make('small',T(
+    'گزارش CI جایگزین بازبینی کد، تأیید انتشار یا بررسی سایت زنده نیست.',
+    'CI observations do not certify code quality, site deployment, or live functionality.')));
+  }else if(intent==='WEBSITE_DATABASE_SCHEMA_REVIEW'){
    const res=await fetch('/api/admin/operations/jrei-mother-schema/inventory',{
     credentials:'same-origin',cache:'no-store',signal:ctl.signal,
     headers:{Accept:'application/json'}
