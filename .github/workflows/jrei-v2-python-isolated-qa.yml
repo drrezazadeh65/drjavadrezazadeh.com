@@ -106,7 +106,9 @@ jobs:
           $gpuCode=Get-Content -LiteralPath $gpu -Raw
           foreach($must in @('finally{','LAB_PROCESS_CLEANUP_REQUESTED',
             'APPROVED_MODEL_HASH_MISMATCH','VULKAN_ARCHIVE_SHA256_MISMATCH',
-            '--n-gpu-layers','127.0.0.1:8082','enable_thinking')){
+            '--n-gpu-layers','127.0.0.1:8082','enable_thinking',
+            'ValidateRange(0,32)','RX580_VRAM_HEADROOM_UNSAFE',
+            'gpuFreeMiB -lt 4096')){
             if(-not $gpuCode.Contains($must)){
               throw 'JREI_GPU_LAB_MISSING_OWNER_GUARD'
             }
