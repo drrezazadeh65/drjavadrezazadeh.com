@@ -29,6 +29,10 @@ const readonlyObservations=Object.freeze({
  WEBSITE_SEO_GEO_REVIEW:'ENG-01.ACT-011',
  WEBSITE_OPERATIONS_ENGINES_REVIEW:'ENG-11.ACT-009'
 });
+const diagnosticDimensions=Object.freeze({
+ WEBSITE_SEO_GEO_REVIEW:['onPageSeo','geo','aiReadiness'],
+ WEBSITE_DESIGN_ACCESSIBILITY_REVIEW:['mobile','ui','ux','accessibility']
+});
 const make=(tag,content)=>{
  const e=document.createElement(tag);
  if(content!==undefined)e.textContent=content;
@@ -146,6 +150,17 @@ function draw(data){
    observe.addEventListener('click',()=>runObservation(mission.missionId,actionId,observe,receipt));
    card.append(observe,receipt);
   }
+  if(mission.status==='PLANNED'&&!halted&&
+     (Object.hasOwn(diagnosticDimensions,mission.intent)||
+      mission.intent==='WEBSITE_DATABASE_SCHEMA_REVIEW')){
+   const inspect=make('button',T('مشاهدهٔ شواهد موجود سایت',
+      'Inspect existing site evidence'));
+   inspect.type='button';inspect.disabled=busy;
+   const findings=make('div');
+   inspect.addEventListener('click',()=>
+     runSiteDiagnostics(mission.intent,inspect,findings));
+   card.append(inspect,findings);
+  }
   history.append(card);
  }
  const rows=Array.isArray(data.events)?data.events:[];
@@ -166,6 +181,92 @@ function draw(data){
  setStatus(T(
   'ثبت رویدادها قابل مشاهده است؛ شواهد اجرای واقعی مأموریت هنوز تأیید نشده است.',
   'Recorded metadata is available; actual task execution has not been verified.'));
+}
+async function runSiteDiagnostics(intent,button,output){
+ if(busy||!current()||
+    !(Object.hasOwn(diagnosticDimensions,intent)||
+      intent==='WEBSITE_DATABASE_SCHEMA_REVIEW'))return;
+ const mark=++serial;
+ busy=true;button.disabled=true;output.replaceChildren();
+ const ctl=new AbortController();controller=ctl;
+ output.append(make('p',T('در حال دریافت مشاهدات واقعی ذخیره‌شده…',
+   'Reading existing source-derived evidence…')));
+ try{
+  if(intent==='WEBSITE_DATABASE_SCHEMA_REVIEW'){
+   const res=await fetch('/api/admin/operations/jrei-mother-schema/inventory',{
+    credentials:'same-origin',cache:'no-store',signal:ctl.signal,
+    headers:{Accept:'application/json'}
+   });
+   if(!res.ok)throw Error('SCHEMA_INVENTORY_UNAVAILABLE');
+   const data=await res.json();
+   if(mark!==serial||!current())return;
+   if(data?.ok!==true||
+      data.schema!=='jr.jrei.mother-structure-inventory.v1'||
+      data.targetSchema!=='drjavad1_store'||
+      data.readOnly!==true||data.provisioningOrMigrationExecuted!==false||
+      !data.groups||typeof data.groups!=='object')
+     throw Error('SCHEMA_METADATA_INVALID');
+   output.replaceChildren();
+   for(const [group,items] of Object.entries(data.groups).slice(0,10)){
+    if(!Array.isArray(items))continue;
+    const confirmed=items.filter(row=>row?.status==='STRUCTURE_OBSERVED').length;
+    output.append(make('p',group+': '+confirmed+'/'+items.length+
+      T(' جدول مشاهده‌شده',' tables observed')));
+   }
+   output.append(make('small',T(
+     'این اطلاعات فقط فرا‌دادهٔ پایگاه داده است؛ هیچ تغییری اعمال نشده.',
+     'Database metadata only. No schema or data changes were made.')));
+  }else{
+   const dimensions=diagnosticDimensions[intent];
+   // All dimensions and URL paths are static owner-console choices.
+   // Results are heuristic SOURCE observations, never live PSI or rankings.
+   const rows=[];
+   for(const dimension of dimensions){
+    const path='/api/admin/operations/page-quality?index=public&sort=weakest'+
+      '&page=1&dimension='+encodeURIComponent(dimension);
+    const res=await fetch(path,{credentials:'same-origin',
+      cache:'no-store',signal:ctl.signal,headers:{Accept:'application/json'}});
+    if(!res.ok)throw Error('SITE_SOURCE_INVENTORY_UNAVAILABLE');
+    const data=await res.json();
+    if(mark!==serial||!current())return;
+    if(data?.ok!==true||data.schema!=='operations-page-quality-results-v1'||
+       !['source_only','unavailable'].includes(data.status)||
+       !Array.isArray(data.records)||data.records.length>50||
+       data.status==='source_only'&&data.dimension!==dimension)
+      throw Error('SITE_SOURCE_INVENTORY_INVALID');
+    rows.push({dimension,data});
+   }
+   output.replaceChildren();
+   for(const {dimension,data} of rows){
+    const d=make('details');
+    const summary=make('summary',dimension+' · '+
+      (Number.isSafeInteger(data.total)?data.total:T('نامعلوم','unknown'))+
+      T(' مسیر',' routes'));
+    d.append(summary);
+    const list=make('ul');
+    for(const entry of data.records.slice(0,8)){
+     if(typeof entry.route!=='string'||
+        !/^\/(?:fa|en|journal)\/[a-zA-Z0-9/_-]*$/.test(entry.route))continue;
+     const value=entry.grades?.[dimension];
+     const grade=typeof value==='number'&&Number.isFinite(value)?
+       value.toFixed(1):T('بدون نمره','not scored');
+     list.append(make('li',entry.route+' · '+grade));
+    }
+    d.append(list);output.append(d);
+   }
+   output.append(make('small',T(
+     'امتیازها بر پایهٔ تحلیل فایل‌های سایت‌اند؛ رتبهٔ گوگل یا ارزیابی زنده نیستند.',
+     'Scores describe site-source heuristics, not verified rankings or live UX.')));
+  }
+ }catch{
+  if(mark===serial&&current()){
+   output.replaceChildren(make('p',T(
+    'دادهٔ معتبر دریافت نشد. اجرای اصلاح یا ممیزی زنده تأیید نشده است.',
+    'Verified source evidence unavailable; no live audit or correction is claimed.')));
+  }
+ }finally{
+  if(mark===serial){controller=null;busy=false;button.disabled=false;}
+ }
 }
 async function sessionCsrf(signal){
  const res=await fetch('/api/admin/operations/session',{
