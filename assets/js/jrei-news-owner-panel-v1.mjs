@@ -797,6 +797,41 @@ export function mountNewsOwnerPanel({root,csrfResolver,
       modelTitle.textContent=say('آمادگی اجزای هوش مصنوعی و انتشار',
         'AI and publishing component readiness');
       modelStatus.append(modelTitle);
+      const requiredSwitches=readiness.operationalActivationSwitches||{};
+      const switchHeading=document.createElement('h4');
+      switchHeading.textContent=say('موانع مشخص راه‌اندازی اجرایی اخبار',
+        'Exact live newsroom configuration gates');
+      modelStatus.append(switchHeading);
+      const gateLabels=[
+        ['masterCronConfigured','زمان‌بند مادر برتینا','Bertina original master scheduler'],
+        ['integratedNewsAccepted','پذیرش انتشار یکپارچه','Integrated newsroom release acceptance'],
+        ['sourceActivationAuthorized','مجوز پایش منابع','Original source-monitoring authorization'],
+        ['automaticOfficialCatalogueSeedEnabled','کشف اولیهٔ وبگاه‌های نهادی','Discover original institutional origins'],
+        ['officialFeedProjectionEnabled','دریافت شواهد RSS مجاز','Approved feed receipt projection'],
+        ['officialArticleIntakeEnabled','ورود شواهد مقالهٔ اصلی','Original article evidence intake'],
+        ['modelDraftEnabled','آماده‌سازی پیش‌نویس مدل','Bounded model drafting'],
+        ['originalCmsWriterEnabled','ناشر اصلی دوزبانه','Original bilingual CMS writer'],
+        ['standingOfficialPublisherEnabled','مجوز ماندگار انتشار رسمی','Standing verified-official publication'],
+        ['restoreAcceptanceRecorded','پشتیبان و بازیابی تأییدشده','Verified restore prerequisite'],
+        ['publisherReceiptsAccepted','تأیید رسید واقعی انتشار','Actual publication receipt acceptance'],
+        ['verifiedPublicSearchEnabled','آرشیو جست‌وجوی دارای رسید','Receipt-backed public archive']
+      ];
+      const gateList=document.createElement('ul');
+      gateList.className='ni-admin-launch-gates';
+      for(const [key,faLabel,enLabel] of gateLabels){
+        const item=document.createElement('li');
+        const configured=requiredSwitches[key]===true;
+        item.textContent=(configured?'✓ ':'○ ')+say(faLabel,enLabel)+
+          (configured?say(' — تنظیم شده',' — configured'):
+            say(' — هنوز فعال نشده',' — not enabled'));
+        gateList.append(item);
+      }
+      modelStatus.append(gateList);
+      const noAttestation=document.createElement('p');
+      noAttestation.textContent=say(
+        'این وضعیت از تنظیمات خصوصی خوانده می‌شود؛ گزینه‌های فعال، اثبات اجرای Cron یا صحت علمی اخبار نیستند. مجوز حقوق نشر و بررسی مستقل منبع همچنان جداگانه لازم است.',
+        'These are private configuration states, not proof of Cron runs or scientific news validity. Source rights and independent review remain distinct mandatory gates.');
+      modelStatus.append(noAttestation);
       for(const [key,faText,enText] of portNames){
         const item=document.createElement('p');
         item.textContent=(ports[key]===true?'✓ ':'○ ')+
