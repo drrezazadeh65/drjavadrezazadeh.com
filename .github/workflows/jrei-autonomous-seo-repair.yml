@@ -1,0 +1,101 @@
+name: JREI Autonomous SEO Repair - Execute Reviewed Source Fixes
+on:
+  schedule:
+    - cron: '23 */2 * * *'
+  workflow_dispatch:
+  push:
+    branches:
+      - migration/bertina-linux6
+    paths:
+      - 'scripts/jrei-autonomous-seo-repair.mjs'
+      - 'tests/jrei-autonomous-seo-repair.test.mjs'
+      - '.github/workflows/jrei-autonomous-seo-repair.yml'
+permissions:
+  contents: write
+concurrency:
+  group: jrei-autonomous-source-repair
+  cancel-in-progress: false
+jobs:
+  repair-source:
+    name: Automatically repair bounded SEO defects and commit if regression-clean
+    runs-on: ubuntu-latest
+    timeout-minutes: 14
+    env:
+      GITHUB_REPOSITORY: ${{ github.repository }}
+      GITHUB_REF_NAME: ${{ github.ref_name }}
+    steps:
+      - name: Checkout original canonical JREI source
+        uses: actions/checkout@v4
+        with:
+          ref: migration/bertina-linux6
+          persist-credentials: true
+          fetch-depth: 1
+      - name: Install Node for deterministic non-model source repair
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Confirm checkout and existing source status
+        run: |
+          set -euo pipefail
+          test "$(git branch --show-current)" = "migration/bertina-linux6"
+          test -z "$(git status --porcelain)"
+          node --check scripts/jrei-autonomous-seo-repair.mjs
+          node --test tests/jrei-autonomous-seo-repair.test.mjs
+      - name: Apply owner-delegated narrow HTML changes on temporary runner
+        run: node scripts/jrei-autonomous-seo-repair.mjs --apply
+      - name: Full SEO regression after changes before any source commit
+        run: |
+          set -euo pipefail
+          git diff --check
+          node scripts/seo-regression.mjs
+          node scripts/seo-robots-sitemap-audit.mjs > /dev/null
+      - name: Verify only hash-receipted reviewed HTML changed
+        id: accept
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          import cp from 'node:child_process';
+          import path from 'node:path';
+          import crypto from 'node:crypto';
+          const root=path.join(process.env.RUNNER_TEMP,'jrei-seo-repair','repair-receipt.json');
+          const report=JSON.parse(fs.readFileSync(root,'utf8'));
+          if(report.schema!=='jr.jrei.autonomous-seo-repair.v1'||
+             report.mode!=='APPLIED_TO_CI_CHECKOUT_PENDING_QA'||
+             report.changedFiles>6||report.productionDeployed!==false)
+            throw Error('JREI_REPAIR_RECEIPT_INVALID');
+          const modified=cp.execFileSync('git',['diff','--name-only','-z','--'],{
+            encoding:'utf8'}).split('\0').filter(Boolean).sort();
+          const recorded=report.changes.map(x=>x.file).sort();
+          if(JSON.stringify(modified)!==JSON.stringify(recorded))
+            throw Error('JREI_UNRECEIPTED_SOURCE_CHANGE');
+          for(const row of report.changes){
+            if(!/^(fa|en|journal)\/[a-z0-9_./-]+\.html$/.test(row.file)||
+               row.file.includes('..')||!/^[a-f0-9]{64}$/.test(row.resultingSha256)||
+               !Number.isSafeInteger(row.imagesClassified)||row.imagesClassified<1)
+              throw Error('JREI_REPAIR_SCOPE_UNSAFE');
+            const digest=crypto.createHash('sha256').update(fs.readFileSync(row.file)).digest('hex');
+            if(digest!==row.resultingSha256)throw Error('JREI_REPAIR_OUTPUT_HASH_CHANGED');
+          }
+          fs.appendFileSync(process.env.GITHUB_OUTPUT,
+            'changed='+(modified.length?'true':'false')+'\n');
+          console.log('[JREI] BOUNDED_REAL_SOURCE_REPAIR_ACCEPTED='+modified.length);
+          NODE
+      - name: Commit verified SEO repairs to the canonical branch
+        if: steps.accept.outputs.changed == 'true'
+        run: |
+          set -euo pipefail
+          git config user.name "JREI Autonomous Repair"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- 'fa/**/*.html' 'en/**/*.html' 'journal/**/*.html'
+          test -n "$(git diff --cached --name-only)"
+          git commit -m "fix(seo): JREI automatically classify below-fold verified images"
+          git push origin HEAD:migration/bertina-linux6
+      - name: Retain accountable source-action receipt
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jrei-autonomous-seo-repair-${{ github.run_id }}
+          path: ${{ runner.temp }}/jrei-seo-repair/repair-receipt.json
+          retention-days: 30
+          if-no-files-found: warn
