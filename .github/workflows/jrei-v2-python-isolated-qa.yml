@@ -6,6 +6,7 @@ on:
       - '.github/workflows/jrei-v2-python-isolated-qa.yml'
       - 'platform/jrei-python/**'
       - 'platform/jrei-v5/windows-worker/jrei-autocode-sandbox-startup.ps1'
+      - 'platform/jrei-v5/windows-worker/jrei-vulkan-qwen-single-pass.ps1'
       - 'api/jrei-apex-owner-missions.php'
       - 'api/jrei-apex-python-plan.php'
       - 'api/jrei-python-owner-skills.php'
@@ -92,3 +93,22 @@ jobs:
             throw 'JREI_BIRTH_SUPERVISOR_SOURCE_UNSAFE'
           }
           Write-Output 'JREI_WINDOWS_SANDBOX_SUPERVISOR_SOURCE_PARSED_NO_INSTALLATION'
+          # Source-only parser: Vulkan lab must not start a process in CI.
+          $gpu='platform/jrei-v5/windows-worker/jrei-vulkan-qwen-single-pass.ps1'
+          $gpuTokens=$null
+          $gpuErrors=$null
+          $null=[System.Management.Automation.Language.Parser]::ParseFile(
+            (Resolve-Path $gpu).Path,[ref]$gpuTokens,[ref]$gpuErrors)
+          if($gpuErrors.Count -gt 0){
+            $gpuErrors|ForEach-Object { Write-Error $_.Message }
+            exit 1
+          }
+          $gpuCode=Get-Content -LiteralPath $gpu -Raw
+          foreach($must in @('finally{','LAB_PROCESS_CLEANUP_REQUESTED',
+            'APPROVED_MODEL_HASH_MISMATCH','VULKAN_ARCHIVE_SHA256_MISMATCH',
+            '--n-gpu-layers','127.0.0.1:8082','enable_thinking')){
+            if(-not $gpuCode.Contains($must)){
+              throw 'JREI_GPU_LAB_MISSING_OWNER_GUARD'
+            }
+          }
+          Write-Output 'JREI_VULKAN_SOURCE_PARSED_NO_GPU_OR_LOCAL_MODEL_STARTED'
