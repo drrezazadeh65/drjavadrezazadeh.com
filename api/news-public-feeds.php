@@ -23,7 +23,7 @@ function jrNewsOriginalPublishedSyndication(PDO $pdo,string $siteRoot,
        'JOIN jrei_news_owner_decisions d ON d.decision_id=p.approved_decision_id';
     $q=$pdo->prepare(
         "SELECT s.language_code,s.public_route,s.title,s.summary,s.published_at,
-                s.content_sha256,c.priority_code,p.publisher_receipt_reference,
+                s.content_sha256,s.category_code,c.priority_code,p.publisher_receipt_reference,
                 p.fa_content_sha256,p.en_content_sha256
          FROM jrei_news_search_documents s
          JOIN jrei_news_publications p ON p.publication_id=s.publication_id
@@ -66,6 +66,10 @@ function jrNewsOriginalPublishedSyndication(PDO $pdo,string $siteRoot,
             'language'=>$lang,'url'=>'https://drjavadrezazadeh.com'.$route,
             'title'=>(string)$row['title'],'summary'=>(string)$row['summary'],
             'publishedAt'=>(int)$row['published_at'],
+            'category'=>in_array((string)$row['category_code'],
+                ['school','examinations','universities','employment',
+                 'language','international','research'],true)?
+                (string)$row['category_code']:'unclassified',
             'priority'=>in_array((string)$row['priority_code'],['P0','P1','P2'],true)?
                 (string)$row['priority_code']:'P2'
         ];
@@ -87,6 +91,8 @@ function jrNewsPublicXmlResponse(array $stories,string $kind,string $lang,int $n
                 '<link>'.jrNewsPublicXmlText($r['url']).'</link>'.
                 '<guid isPermaLink="true">'.jrNewsPublicXmlText($r['url']).'</guid>'.
                 '<description>'.jrNewsPublicXmlText($r['summary']).'</description>'.
+                '<category domain="jrei-news-topic">'.
+                  jrNewsPublicXmlText($r['category']).'</category>'.
                 '<category>'.(($r['priority']==='P0'&&
                   $now-$r['publishedAt']>=0&&$now-$r['publishedAt']<=48*3600)?
                     'BREAKING':'NEWS').'</category>'.
