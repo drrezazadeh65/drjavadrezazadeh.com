@@ -22,6 +22,7 @@ from jrei_learning.metacognitive_cycle import (
 from jrei_orchestrator.adaptive_capacity import (
     CapacityPlanRequest, CapacityPlan, propose_capacity_placements,
 )
+from jrei_learning.mission_binding import LearningMissionBindingRequest, LearningMissionBinding, bind_learning_mission
 from jrei_learning.heldout import HeldoutReviewRequest, HeldoutReviewResult, review_heldout
 from jrei_skills import EvidenceTriageRequest, EvidenceTriageResult, triage_evidence_revision
 from jrei_skills.registry import skill_catalog
