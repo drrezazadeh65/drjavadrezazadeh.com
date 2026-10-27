@@ -7,7 +7,7 @@
  * The parent GitHub workflow owns CI, diff review, immutable commit and push.
  */
 import {execFileSync} from 'node:child_process';
-import {readFile,writeFile,mkdir} from 'node:fs/promises';
+import {readFile,writeFile,mkdir,lstat} from 'node:fs/promises';
 import {resolve,join,sep} from 'node:path';
 import {tmpdir} from 'node:os';
 import {createHash} from 'node:crypto';
@@ -27,7 +27,7 @@ const pathAllowed=p=>p.length<220&&p.endsWith('.html')&&
  !p.includes('\\')&&!p.startsWith('/')&&
  !p.split('/').some(x=>x==='.'||x==='..'||x==='')&&
  !IGNORED.test(p)&&!PRIVATE.test(p)&&
- (p==='index.html'||/^(?:fa|en|journal)\//.test(p));
+ /^(?:fa|en|journal)\//.test(p);
 const safeTarget=p=>{
  const full=resolve(ROOT,p);
  if(!full.startsWith(ROOT+sep))throw Error('JREI_SEO_SOURCE_ESCAPE');
@@ -63,8 +63,8 @@ export async function repairRepository({apply=false,maxFiles=6}={}){
  for(const file of tracked()){
    if(!pathAllowed(file))continue;
    const full=safeTarget(file);
-   const {size}=await import('node:fs/promises').then(m=>m.lstat(full));
-   if(size>1e6)continue;
+   const info=await lstat(full);
+   if(!info.isFile()||info.isSymbolicLink()||info.size>1e6)continue;
    const original=await readFile(full,'utf8');
    const outcome=repairPageImages(original);
    if(!outcome.changes)continue;
