@@ -212,6 +212,23 @@ _SKILLS = (
         "public_output_allowed": False,
         "weight_updates_enabled": False,
     },
+    {
+        "skill_id": "jrei.exams.blueprint_key_integrity_review.v1",
+        "version": "1.0.0",
+        "entry_route": "/internal/v1/exams/blueprint/review",
+        "execution": "MODEL_FREE_DETERMINISTIC",
+        "data_class": "RIGHTS_AND_KEY_REVIEW_DIGEST_METADATA_ONLY_NO_STUDENT_RECORDS",
+        "required_service_authority": "SIGNED_PRIVATE_GATEWAY_PLUS_OWNER_MFA",
+        "owner_action_authorized": False,
+        "mutates_mother_db": False,
+        "network_access": False,
+        "verified_source_grant": False,
+        "languages": ["fa", "en"],
+        "review": "ORIGINAL_MOTHER_DB_EXAM_ITEM_RIGHTS_KEY_AND_INDEPENDENT_AUTHORITY_REQUIRED",
+        "default_enabled": False,
+        "testly_humanability_independently_validated": False,
+        "exam_publishing_enabled": False,
+    },
 )
 _IDS = tuple(skill["skill_id"] for skill in _SKILLS)
 if len(set(_IDS)) != len(_IDS):
