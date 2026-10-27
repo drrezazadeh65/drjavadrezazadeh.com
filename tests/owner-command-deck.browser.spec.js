@@ -72,8 +72,18 @@ for(const [language,route] of [
    const panel=document.getElementById('ops-workspace');
    panel.hidden=false;panel.dispatchEvent(new Event('jr:operations-ready'));
   });
-  await expect(page.locator('#ops-command-deck .ops-command-tab').first()).toBeVisible();
+  // The unified 390px layout keeps navigation in an accessible, closed
+  // right-hand drawer until the owner deliberately opens the Menu control.
+  const menu=page.locator('#ops-command-menu-toggle');
+  await expect(menu).toBeVisible();
+  await expect(menu).toHaveAttribute('aria-expanded','false');
   await expect(page.locator('#ops-command-deck .ops-command-overview')).toBeVisible();
+  await menu.click();
+  await expect(menu).toHaveAttribute('aria-expanded','true');
+  await expect(page.locator('#ops-command-deck .ops-command-tab').first()).toBeVisible();
+  await page.locator('#ops-command-deck [data-ops-zone="planning"]').click();
+  await expect(menu).toHaveAttribute('aria-expanded','false');
+  await expect(page.locator('.ops-command-plan-board')).toBeVisible();
   const width=await page.evaluate(()=>document.documentElement.scrollWidth);
   expect(width).toBeLessThanOrEqual(392);
  });
