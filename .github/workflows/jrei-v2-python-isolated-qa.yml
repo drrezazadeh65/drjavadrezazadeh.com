@@ -112,3 +112,31 @@ jobs:
             }
           }
           Write-Output 'JREI_VULKAN_SOURCE_PARSED_NO_GPU_OR_LOCAL_MODEL_STARTED'
+          # Mock response regression: llama.cpp can omit usage and
+          # reasoning_content. The owner experiment must still report a
+          # real nonempty content string under strict PowerShell mode.
+          $source=Get-Content -LiteralPath $gpu -Raw
+          $functionNode=($null -ne $gpuTokens) -and ($gpuTokens.Count -ge 0)
+          $gpuAst=[System.Management.Automation.Language.Parser]::ParseFile(
+            (Resolve-Path $gpu).Path,[ref]$gpuTokens,[ref]$gpuErrors)
+          $helpers=@($gpuAst.FindAll({
+            param($node)
+            $node -is [System.Management.Automation.Language.FunctionDefinitionAst] -and
+            $node.Name -eq 'Get-OptionalJsonField'
+          },$true))
+          if($helpers.Count -ne 1){
+            throw 'JREI_VULKAN_OPTIONAL_FIELD_HELPER_MISSING'
+          }
+          . ([scriptblock]::Create($helpers[0].Extent.Text))
+          $sample='{"choices":[{"message":{"content":"Hello"},"finish_reason":"stop"}]}'
+          $parsed=$sample | ConvertFrom-Json
+          Set-StrictMode -Version Latest
+          $message=Get-OptionalJsonField $parsed.choices[0] 'message'
+          $content=Get-OptionalJsonField $message 'content'
+          $missingReasoning=Get-OptionalJsonField $message 'reasoning_content'
+          $missingUsage=Get-OptionalJsonField $parsed 'usage'
+          if($content -cne 'Hello' -or $null -ne $missingReasoning -or
+             $null -ne $missingUsage){
+            throw 'JREI_VULKAN_OPTIONAL_RESPONSE_REGRESSION'
+          }
+          Write-Output 'JREI_VULKAN_ABSENT_OPTIONAL_FIELDS_MOCK_PASS'
