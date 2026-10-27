@@ -40,7 +40,41 @@ function jrNewsOfficialInstitutionDirectory(): array {
          'origin'=>'https://www.iust.ac.ir/','category'=>'universities','priority'=>'P1'],
         ['id'=>'modares','nameFa'=>'دانشگاه تربیت مدرس',
          'nameEn'=>'Tarbiat Modares University',
-         'origin'=>'https://modares.ac.ir/','category'=>'universities','priority'=>'P2']
+         'origin'=>'https://modares.ac.ir/','category'=>'universities','priority'=>'P2'],
+        // Initial discovery roots, not a closed list: the original JREI-KA
+        // archived-link analyzer discovers additional institutions without
+        // requiring the owner to specify each university or ministry.
+        // Every root is DISCOVERED only until real independent review.
+        ['id'=>'msrt','nameFa'=>'وزارت علوم، تحقیقات و فناوری',
+         'nameEn'=>'Ministry of Science, Research and Technology',
+         'origin'=>'https://www.msrt.ir/','category'=>'research','priority'=>'P0'],
+        ['id'=>'medu','nameFa'=>'وزارت آموزش و پرورش',
+         'nameEn'=>'Ministry of Education',
+         'origin'=>'https://www.medu.ir/','category'=>'school','priority'=>'P0'],
+        ['id'=>'sbu','nameFa'=>'دانشگاه شهید بهشتی',
+         'nameEn'=>'Shahid Beheshti University',
+         'origin'=>'https://www.sbu.ac.ir/','category'=>'universities','priority'=>'P1'],
+        ['id'=>'atu','nameFa'=>'دانشگاه علامه طباطبائی',
+         'nameEn'=>'Allameh Tabataba'i University',
+         'origin'=>'https://www.atu.ac.ir/','category'=>'universities','priority'=>'P1'],
+        ['id'=>'khu','nameFa'=>'دانشگاه خوارزمی',
+         'nameEn'=>'Kharazmi University',
+         'origin'=>'https://khu.ac.ir/','category'=>'universities','priority'=>'P1'],
+        ['id'=>'alzahra','nameFa'=>'دانشگاه الزهرا',
+         'nameEn'=>'Alzahra University',
+         'origin'=>'https://www.alzahra.ac.ir/','category'=>'universities','priority'=>'P1'],
+        ['id'=>'kntu','nameFa'=>'دانشگاه صنعتی خواجه نصیرالدین طوسی',
+         'nameEn'=>'K. N. Toosi University of Technology',
+         'origin'=>'https://kntu.ac.ir/','category'=>'universities','priority'=>'P1'],
+        ['id'=>'cfu','nameFa'=>'دانشگاه فرهنگیان',
+         'nameEn'=>'Farhangian University',
+         'origin'=>'https://cfu.ac.ir/','category'=>'universities','priority'=>'P1'],
+        ['id'=>'tums','nameFa'=>'دانشگاه علوم پزشکی تهران',
+         'nameEn'=>'Tehran University of Medical Sciences',
+         'origin'=>'https://tums.ac.ir/','category'=>'universities','priority'=>'P1'],
+        ['id'=>'shahd','nameFa'=>'دانشگاه شاهد',
+         'nameEn'=>'Shahed University',
+         'origin'=>'https://shahed.ac.ir/','category'=>'universities','priority'=>'P2']
     ];
 }
 
