@@ -17,7 +17,11 @@ try{
           ($cfg['jrei_news_integrated_release_accepted']??false)===true&&
           ($cfg['jrei_news_original_cms_writer_enabled']??false)===true&&
           ($cfg['jrei_news_standing_official_publishing_enabled']??false)===true&&
-          ($cfg['jrei_news_verified_restore_accepted']??false)===true;
+          ($cfg['jrei_news_verified_restore_accepted']??false)===true&&
+          // Never write a public CMS page if its original verified
+          // search/RSS reader is not independently authorized to show it.
+          ($cfg['jrei_news_search_enabled']??false)===true&&
+          ($cfg['jrei_news_publisher_receipts_accepted']??false)===true;
     if(!$gate){
         fwrite(STDOUT,"JREI official-news publisher OFF by original private policy.\n");
         exit(0);
