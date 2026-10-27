@@ -1,6 +1,8 @@
 """Offline acceptance for the actual JREI Windows console (no GPU or cloud)."""
 from __future__ import annotations
 
+from contextlib import closing
+
 import os
 from pathlib import Path
 import sqlite3
@@ -64,7 +66,7 @@ class WindowsCommandCenterTests(unittest.TestCase):
                 cc.record("study", "PROPOSED_NOT_VERIFIED", "source draft, not model training")
                 rows = cc.recent(5)
                 self.assertEqual(rows[0]["state"], "PROPOSED_NOT_VERIFIED")
-                with sqlite3.connect(path) as db:
+                with closing(sqlite3.connect(path)) as db:
                     self.assertEqual(db.execute("SELECT COUNT(*) FROM events").fetchone()[0], 1)
 
     def test_study_uses_source_anchor_and_marks_model_draft_not_verified(self):
