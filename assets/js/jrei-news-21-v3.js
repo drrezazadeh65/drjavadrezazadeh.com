@@ -127,7 +127,9 @@
     });
     var section=list.closest('.jrn21-section');
     var empty=section&&section.querySelector('[data-jrn21-empty]');
-    if(empty)empty.hidden=portion.length>0;
+    if(empty)empty.hidden=Array.prototype.some.call(
+      section.querySelectorAll('.jrn21-story-grid,.jrn21-event-list'),
+      function(group){return group.children.length>0;});
     list.hidden=portion.length===0;
   }
   function setLead(){
@@ -160,6 +162,14 @@
   function updateFeeds(){
     showFeed('latest',feed,9);
     showFeed('official',feed,6);
+    var deadlinePattern=/register|deadline|application|closing|submit|extension|ثبت.?نام|مهلت|تمدید/i;
+    var resultPattern=/result|score|admission-result|نتیجه|نتایج|کارنامه|قبولی/i;
+    showFeed('deadline-reports',feed.filter(function(item){
+      return deadlinePattern.test(item.kind+' '+item.title);
+    }),5);
+    showFeed('results-reports',feed.filter(function(item){
+      return resultPattern.test(item.kind+' '+item.title);
+    }),5);
     ['universities','international','school','employment'].forEach(function(cat){
       showFeed(cat,feed.filter(function(item){return item.category===cat;}),4);
     });
@@ -234,10 +244,9 @@
          item.ownerPublicationApproved!==true||
          item.sourceVerifiedAtReadTime!==true)return;
       var title=text(item[fa?'titleFa':'titleEn'],220);
-      var time=date(item.startsAt,false);
-      // Event dates are future timestamps; check them separately from
-      // publication timestamps, which must never be future-dated.
-      time=date(item.startsAt,true);
+      // Event dates are future timestamps; keep them separate from the
+      // already-published RSS timestamp contract.
+      var time=date(item.startsAt,true);
       var source=officialUrl(item.sourceUrl);
       var key=text(item.eventId,60);
       if(title.length<4||!time||!source||key.length<12||seen.has(key))return;
@@ -265,7 +274,9 @@
     });
     var section=list.closest('.jrn21-section');
     var empty=section&&section.querySelector('[data-jrn21-empty]');
-    if(empty)empty.hidden=entries.length>0;
+    if(empty)empty.hidden=Array.prototype.some.call(
+      section.querySelectorAll('.jrn21-story-grid,.jrn21-event-list'),
+      function(group){return group.children.length>0;});
     list.hidden=entries.length===0;
   }
   if(typeof fetch==='function'){
