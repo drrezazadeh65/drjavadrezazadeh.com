@@ -34,6 +34,7 @@ jobs:
       - name: Use canonical source without writable checkout token
         uses: actions/checkout@v4
         with:
+          ref: ${{ github.event_name == 'schedule' && 'migration/bertina-linux6' || github.ref_name }}
           fetch-depth: 1
           persist-credentials: false
       - name: Set up deterministic Node.js runner
