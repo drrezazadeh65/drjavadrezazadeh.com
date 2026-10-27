@@ -164,6 +164,20 @@ _SKILLS = (
         "languages": ["fa", "en"],
         "review": "SOURCE_PERMISSIONS_AND_CITATION_QUALITY_NOT_ATTESTED_BY_SKILL",
     },
+    {
+        "skill_id": "jrei.knowledge.private_source_extraction.v1",
+        "version": "1.0.0",
+        "entry_route": "/internal/v1/knowledge/extraction/propose",
+        "execution": "MODEL_FREE_DETERMINISTIC",
+        "data_class": "BOUNDED_PRIVATE_OFFLINE_HTML_TEXT_TO_SHA_ANCHORS_ONLY",
+        "required_service_authority": "SIGNED_PRIVATE_GATEWAY",
+        "owner_action_authorized": False,
+        "mutates_mother_db": False,
+        "network_access": False,
+        "verified_source_grant": False,
+        "languages": ["fa", "en"],
+        "review": "REAL_KA_SOURCE_RIGHTS_AND_ORIGINAL_DOCUMENT_HASH_REVIEW_REQUIRED",
+    },
 )
 _IDS = tuple(skill["skill_id"] for skill in _SKILLS)
 if len(set(_IDS)) != len(_IDS):
