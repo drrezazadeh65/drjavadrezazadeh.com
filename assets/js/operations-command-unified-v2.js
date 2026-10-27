@@ -68,7 +68,14 @@
    'روی رایانه، کلید / یا Ctrl+K جست‌وجو را باز می‌کند.',
    'Press / or Ctrl+K to find any tool.'));
   finder.append(label,input,tally,results,hint);
-  sidebar.append(heading,timeline,finder,nav,subtitle,modules);
+  const statusDetails=el('details','ops-unified-status');
+  const statusSummary=el('summary',null,tr(
+   'شواهد ارتباط، نسخه و تازه‌سازی','Connection, release and evidence details'));
+  const signals=heading.querySelector('.ops-command-signals');
+  statusDetails.append(statusSummary);
+  if(signals)statusDetails.append(signals);
+  statusDetails.append(timeline);
+  sidebar.append(heading,finder,nav,subtitle,modules,statusDetails);
   deck.replaceChildren(sidebar,mobileBar,stage,backdrop);
   const tabs=[...nav.querySelectorAll('[data-ops-zone]')];
   const tabOf=zone=>tabs.find(button=>button.dataset.opsZone===zone);
