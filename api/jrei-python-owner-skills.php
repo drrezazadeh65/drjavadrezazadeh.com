@@ -15,7 +15,7 @@ function jrOwnerJreiPythonSkillDispatch(array $privateConfig, array $body, ?stri
     if (!is_string($action) ||
         !in_array($action,['catalog','triage-evidence','heldout-review','calculate',
           'evidence-graph','knowledge-correction','answer-grounding-review','metacognitive-plan','learning-value-plan','capacity-plan','exam-blueprint-review','news-editorial-preflight','strategy-propose','mission-bind','method-feedback','grounded-retrieval','source-extract',
-          'self-improvement','model-draft','memory-save','memory-read','memory-list','memory-revoke'],true)) {
+          'self-improvement','language-growth','model-portfolio','model-draft','memory-save','memory-read','memory-list','memory-revoke'],true)) {
         throw new InvalidArgumentException('python_skill_action_invalid');
     }
 
@@ -65,7 +65,7 @@ function jrOwnerJreiPythonSkillDispatch(array $privateConfig, array $body, ?stri
         $payload=$body['payload'];
         $expected='jr.jrei.heldout-review-result.v1';
     } elseif (in_array($action,
-        ['evidence-graph','knowledge-correction','answer-grounding-review','metacognitive-plan','learning-value-plan','capacity-plan','exam-blueprint-review','strategy-propose','mission-bind','method-feedback','grounded-retrieval','source-extract','news-editorial-preflight','self-improvement'],true)) {
+        ['evidence-graph','knowledge-correction','answer-grounding-review','metacognitive-plan','learning-value-plan','capacity-plan','exam-blueprint-review','strategy-propose','mission-bind','method-feedback','grounded-retrieval','source-extract','news-editorial-preflight','self-improvement','language-growth','model-portfolio'],true)) {
         // All three are strictly read-only: no browser-selected endpoint,
         // unreviewed model tool, raw learner records, action execution or
         // assignment authority. The original admin MFA/CSRF gate is retained.
@@ -95,6 +95,8 @@ function jrOwnerJreiPythonSkillDispatch(array $privateConfig, array $body, ?stri
             'mission-bind'=>'/internal/v1/learning/metacognitive/mission-bind',
             'method-feedback'=>'/internal/v1/learning/metacognitive/method-feedback',
             'self-improvement'=>'/internal/v1/learning/self-improvement/plan',
+            'language-growth'=>'/internal/v1/learning/native-language/plan',
+            'model-portfolio'=>'/internal/v1/model/portfolio/plan',
             'grounded-retrieval'=>'/internal/v1/knowledge/retrieval/propose',
             'source-extract'=>'/internal/v1/knowledge/extraction/propose',
             'news-editorial-preflight'=>'/internal/v1/news/official/editorial-preflight'
@@ -111,6 +113,8 @@ function jrOwnerJreiPythonSkillDispatch(array $privateConfig, array $body, ?stri
             'mission-bind'=>'jr.jrei.metacognitive-mission-binding-result.v1',
             'method-feedback'=>'jr.jrei.method-feedback-result.v1',
             'self-improvement'=>'jr.jrei.self-improvement-cycle-result.v1',
+            'language-growth'=>'jr.jrei.native-language-growth-result.v1',
+            'model-portfolio'=>'jr.jrei.model-portfolio-result.v1',
             'grounded-retrieval'=>'jr.jrei.grounded-retrieval-result.v1',
             'source-extract'=>'jr.jrei.knowledge-extract-result.v1',
             'news-editorial-preflight'=>'jr.jrei.news-editorial-preflight-result.v1'
@@ -250,6 +254,28 @@ function jrOwnerJreiPythonSkillDispatch(array $privateConfig, array $body, ?stri
             unset($expected[$id]);
         }
         if($expected)throw new RuntimeException('JREI_SELF_IMPROVEMENT_UNBOUND_CANDIDATES');
+    }
+    if ($action==='language-growth' &&
+        (($result['cycle_id']??null)!==($payload['cycle_id']??null) ||
+         ($result['model_weights_updated']??null)!==false ||
+         ($result['quality_promotion_executed']??null)!==false ||
+         ($result['model_training_started']??null)!==false ||
+         ($result['independently_verified']??null)!==false ||
+         ($result['qwen_exclusive_dependency_required']??null)!==false ||
+         !is_array($result['goals']??null) ||
+         !array_is_list($result['goals']))) {
+        throw new RuntimeException('JREI_LANGUAGE_GROWTH_UNTRUSTED');
+    }
+    if ($action==='model-portfolio' &&
+        (($result['production_switch_executed']??null)!==false ||
+         ($result['chosen_runtime_started']??null)!==false ||
+         ($result['language_independence_proven']??null)!==false ||
+         ($result['actual_native_jrei_inference_independently_observed']??null)!==false ||
+         !is_array($result['eligible_sandbox_engine_ids']??null) ||
+         !array_is_list($result['eligible_sandbox_engine_ids']) ||
+         !is_array($result['reason_codes']??null) ||
+         !array_is_list($result['reason_codes']))) {
+        throw new RuntimeException('JREI_MODEL_PORTFOLIO_UNTRUSTED');
     }
     if ($action==='catalog' &&
         (($result['privileged_execution_enabled']??null)!==false ||
