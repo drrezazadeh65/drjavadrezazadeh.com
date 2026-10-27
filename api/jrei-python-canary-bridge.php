@@ -184,23 +184,46 @@ function jrPythonCanaryComplete(PDO $db,string $node,array $body,int $now): arra
        $body['skillId']!=='jrei.math.exact_arithmetic.v1' ||
        $body['performedWithoutModel']!==true)
         throw new InvalidArgumentException('python_canary_complete_contract');
+
+    $digest=hash('sha256',JR_PY_CANARY_SCHEMA.'|'.$body['jobId'].'|'.$body['leaseId'].'|84/1');
     $db->beginTransaction();
     try {
-        $q=$db->prepare('SELECT state,assigned_node,lease_id,lease_expires_at,expires_at FROM jrei_python_canary_jobs WHERE job_id=? FOR UPDATE');
-        $q->execute([$body['jobId']]);$row=$q->fetch(PDO::FETCH_ASSOC);
-        if(!is_array($row)||$row['state']!=='LEASED' ||
-           !hash_equals((string)$row['assigned_node'],$node) ||
-           !hash_equals((string)$row['lease_id'],$body['leaseId']) ||
+        // A lost HTTPS response must never invalidate a committed result.
+        // Only the same signed node, immutable job, lease and exact result
+        // can obtain a replayed completion acknowledgement.
+        $q=$db->prepare('SELECT state,assigned_node,lease_id,lease_expires_at,expires_at,
+          numerator,denominator,result_sha256 FROM jrei_python_canary_jobs WHERE job_id=? FOR UPDATE');
+        $q->execute([$body['jobId']]);
+        $row=$q->fetch(PDO::FETCH_ASSOC);
+        if(!is_array($row) ||
+           !is_string($row['assigned_node']) ||
+           !is_string($row['lease_id']) ||
+           !hash_equals($row['assigned_node'],$node) ||
+           !hash_equals($row['lease_id'],$body['leaseId']))
+            throw new DomainException('python_canary_lease_invalid');
+        if($row['state']==='COMPLETED') {
+            if((int)$row['numerator']!==84 || (int)$row['denominator']!==1 ||
+               !is_string($row['result_sha256']) ||
+               !hash_equals($row['result_sha256'],$digest))
+                throw new DomainException('python_canary_completed_receipt_mismatch');
+            $db->commit();
+            return ['ok'=>true,'schema'=>'jr.jrei.python-canary-completion.v1',
+              'accepted'=>true,'resultSha256'=>$digest,'exactFraction'=>'84',
+              'replayed'=>true,'productionReady'=>false,'modelTrainingStarted'=>false];
+        }
+        if($row['state']!=='LEASED' ||
            (int)$row['lease_expires_at']<=$now ||
            (int)$row['expires_at']<=$now)
             throw new DomainException('python_canary_lease_invalid');
-        $digest=hash('sha256',JR_PY_CANARY_SCHEMA.'|'.$body['jobId'].'|'.$body['leaseId'].'|84/1');
-        $db->prepare("UPDATE jrei_python_canary_jobs
+        $write=$db->prepare("UPDATE jrei_python_canary_jobs
           SET state='COMPLETED',completed_at=?,numerator=84,denominator=1,result_sha256=?
-          WHERE job_id=? AND state='LEASED'")->execute([$now,$digest,$body['jobId']]);
+          WHERE job_id=? AND state='LEASED'");
+        $write->execute([$now,$digest,$body['jobId']]);
+        if($write->rowCount()!==1)
+            throw new DomainException('python_canary_completion_not_persisted');
         $db->commit();
         return ['ok'=>true,'schema'=>'jr.jrei.python-canary-completion.v1',
           'accepted'=>true,'resultSha256'=>$digest,'exactFraction'=>'84',
-          'productionReady'=>false,'modelTrainingStarted'=>false];
+          'replayed'=>false,'productionReady'=>false,'modelTrainingStarted'=>false];
     }catch(Throwable $e){if($db->inTransaction())$db->rollBack();throw $e;}
 }
