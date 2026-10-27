@@ -128,9 +128,36 @@ def materialize_preview(
     ], separators=(",", ":")).encode("utf-8")).hexdigest()
 
     stage = box / package_key
+    receipt = SandboxPatchReceipt(
+        proposal_id=proposal.proposal_id,
+        base_sha256=proposal.original_sha256,
+        candidate_sha256=candidate_sha,
+        evidence_sha256=proposal.evidence_sha256,
+        owner_policy_digest=proposal.owner_policy_digest,
+        preview_relative_html=package_key + "/preview.html",
+        sandbox_relative_source=package_key + "/" + proposal.target_path,
+    )
+    file = stage.joinpath(*PurePosixPath(proposal.target_path).parts)
+    if stage.exists():
+        if stage.is_symlink() or not stage.is_dir():
+            raise RuntimeError("SANDBOX_PREVIEW_STAGE_INTEGRITY_UNVERIFIED")
+        existing_receipt = stage / "receipt.json"
+        existing_html = stage / "preview.html"
+        if (existing_receipt.is_symlink() or existing_html.is_symlink()
+                or file.is_symlink() or not existing_receipt.is_file()
+                or not existing_html.is_file() or not file.is_file()
+                or existing_receipt.stat().st_size > 8000
+                or file.stat().st_size != len(candidate)):
+            raise RuntimeError("SANDBOX_PREVIEW_INTERRUPTED_OR_TAMPERED")
+        old_receipt = SandboxPatchReceipt.model_validate_json(
+            existing_receipt.read_bytes()
+        )
+        if (old_receipt != receipt or
+                hashlib.sha256(file.read_bytes()).hexdigest() != candidate_sha):
+            raise RuntimeError("SANDBOX_PREVIEW_RECEIPT_CONFLICT")
+        return receipt
     # No overwrite: each immutable input produces one isolated preview.
     stage.mkdir(mode=0o700)
-    file = stage.joinpath(*PurePosixPath(proposal.target_path).parts)
     file.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
     with file.open("xb") as out:
         out.write(candidate)
@@ -153,15 +180,6 @@ def materialize_preview(
         1,
     )
     preview.write_text(document, encoding="utf-8")
-    receipt = SandboxPatchReceipt(
-        proposal_id=proposal.proposal_id,
-        base_sha256=proposal.original_sha256,
-        candidate_sha256=candidate_sha,
-        evidence_sha256=proposal.evidence_sha256,
-        owner_policy_digest=proposal.owner_policy_digest,
-        preview_relative_html=package_key + "/preview.html",
-        sandbox_relative_source=package_key + "/" + proposal.target_path,
-    )
     (stage / "receipt.json").write_text(
         receipt.model_dump_json(indent=2) + "\n", encoding="utf-8",
     )
