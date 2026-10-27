@@ -84,6 +84,10 @@ class ProposedWork(StrictContract):
             raise ValueError("GPU_MEMORY_REQUEST_WITHOUT_ACCELERATOR")
         if self.task_kind in ("PUBLIC_DISCOVERY", "LICENSED_ACQUISITION", "EVIDENCE_EXTRACTION") and not self.source_id:
             raise ValueError("SOURCE_WORK_REQUIRES_REVIEWABLE_SOURCE_ID")
+        if self.task_kind in ("PUBLIC_DISCOVERY", "LICENSED_ACQUISITION") and self.estimated_network_bytes == 0:
+            # Outbound collection cannot bypass an owner-approved transfer
+            # allowance by advertising that a network request costs zero.
+            raise ValueError("NETWORK_COLLECTION_REQUIRES_NONZERO_TRANSFER_ESTIMATE")
         return self
 
 
