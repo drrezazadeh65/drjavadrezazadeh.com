@@ -603,6 +603,12 @@ function operationsRoute(string $path, string $verb): never {
                 $accountId,$verb==='GET'?30:5,300))
                 fail('rate_limited',429);
             if ($verb==='GET') {
+                // Descriptive history is read-only; approval and experiment
+                // evidence remain in separate original owner-controlled flows.
+                if(($_GET['view']??null)==='trend') {
+                    try { respond(jrMetaJournalOwnerTrend($pdo,$accountId)); }
+                    catch(Throwable $e) { fail('jrei_metacognitive_trend_unavailable',503); }
+                }
                 // The existing authenticated owner session may retrieve one
                 // immutable learning-cycle result for inspection. No GET
                 // request can approve, execute, or revise that proposal.
