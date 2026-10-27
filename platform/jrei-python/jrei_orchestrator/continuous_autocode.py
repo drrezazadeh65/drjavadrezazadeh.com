@@ -14,6 +14,7 @@ separate owner activation and worker integration checks are complete.
 from __future__ import annotations
 
 import hashlib
+import base64
 import json
 import os
 from pathlib import Path, PurePosixPath
@@ -26,6 +27,8 @@ from datetime import datetime, timezone, timedelta
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from pydantic import Field, model_validator
+from cryptography.exceptions import InvalidSignature
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
 from typing import Literal
 
 from jrei_core.contracts import Digest, Identifier, StrictContract, Unit
@@ -74,6 +77,16 @@ class ContinuousCodingTask(StrictContract):
         return self
 
 
+class SignedCodingEnvelope(StrictContract):
+    schema_version: Literal["jr.jrei.continuous-autocode-envelope.v1"] = (
+        "jr.jrei.continuous-autocode-envelope.v1"
+    )
+    issued_at: int = Field(ge=1)
+    expires_at: int = Field(ge=1)
+    manifest: dict
+    signature_b64: str = Field(min_length=86, max_length=90)
+
+
 class ContinuousCodingManifest(StrictContract):
     schema_version: Literal["jr.jrei.continuous-autocode-manifest.v1"] = (
         "jr.jrei.continuous-autocode-manifest.v1"
@@ -90,6 +103,30 @@ class ContinuousCodingManifest(StrictContract):
         if any(t.owner_scope_digest != self.policy_digest for t in self.tasks):
             raise ValueError("AUTOCODE_POLICY_SCOPE_MISMATCH")
         return self
+
+
+def _signed_manifest(raw: bytes) -> ContinuousCodingManifest:
+    envelope = SignedCodingEnvelope.model_validate_json(raw)
+    now = int(time.time())
+    if (envelope.issued_at > now + 60 or
+        envelope.expires_at <= now or
+        envelope.expires_at - envelope.issued_at > 86400):
+        raise ValueError("AUTOCODE_OWNER_GRANT_EXPIRED_OR_FUTURE")
+    encoded_key = os.environ.get("JREI_AUTOCODE_OWNER_PUBLIC_KEY_B64", "")
+    try:
+        public_key = base64.b64decode(encoded_key, validate=True)
+        signature = base64.b64decode(envelope.signature_b64, validate=True)
+        if len(public_key) != 32 or len(signature) != 64:
+            raise ValueError("AUTOCODE_OWNER_SIGNATURE_FORMAT_INVALID")
+        canonical = json.dumps([
+            envelope.schema_version, envelope.issued_at, envelope.expires_at,
+            envelope.manifest,
+        ], sort_keys=True, ensure_ascii=False, separators=(",", ":"))
+        message = b"JREI-AUTOCODE-OWNER-GRANT-V1\\n" + canonical.encode("utf-8")
+        Ed25519PublicKey.from_public_bytes(public_key).verify(signature, message)
+    except (InvalidSignature, ValueError, TypeError) as exc:
+        raise ValueError("AUTOCODE_OWNER_SIGNATURE_INVALID") from exc
+    return ContinuousCodingManifest.model_validate(envelope.manifest)
 
 
 def _open_private_db(root: Path) -> sqlite3.Connection:
@@ -266,7 +303,7 @@ def run_forever(repo: Path, workspace: Path, manifest_path: Path) -> None:
                 raw = manifest_path.read_bytes()
                 if len(raw) > 100_000:
                     raise ValueError("AUTOCODE_MANIFEST_TOO_LARGE")
-                manifest = ContinuousCodingManifest.model_validate_json(raw)
+                manifest = _signed_manifest(raw)
                 status = stage_one(repo, workspace, conn, manifest)
                 if status == "STAGED_UNVERIFIED":
                     delay = 12.0
