@@ -151,6 +151,13 @@ function jrApexMissionLinkObservation(PDO $pdo, string $accountId,
     ];
     $pdo->beginTransaction();
     try {
+        // The owner emergency stop must also govern recording new
+        // automation evidence, not merely future mission creation.
+        $control=jrApexMissionControl($pdo,true);
+        if(!$control || (int)$control['emergency_stop']!==0 ||
+           (int)$control['planning_enabled']!==1 ||
+           (int)$control['execution_enabled']!==0)
+            throw new DomainException('mission_observation_recording_stopped');
         $row=jrApexMissionOwnerRead($pdo,$accountId,$missionId,true);
         if(!$row || (string)$row['status']!=='PLANNED' ||
            (int)$row['expires_at']<=$at)
@@ -291,7 +298,7 @@ function jrApexMissionOwnerChange(PDO $pdo,array $cfg,string $accountId,array $b
     $readOnlySwitch=($cfg['jrei_apex_missions_owner_write_enabled']??false)!==true;
     // Emergency stop and cancellation remain accessible when the new-write
     // feature flag is OFF. They still demand original owner MFA+CSRF+role.
-    if($readOnlySwitch && !in_array($action,['cancel','emergency-stop','link-observation'],true))
+    if($readOnlySwitch && !in_array($action,['cancel','emergency-stop'],true))
         throw new DomainException('mission_planning_source_only');
     $expectedKeys=match($action) {
         'plan','plan-python'=>['action','intent','requestKey'],
