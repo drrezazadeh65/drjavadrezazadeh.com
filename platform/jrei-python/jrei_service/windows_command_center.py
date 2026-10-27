@@ -26,6 +26,7 @@ import urllib.request
 import urllib.error
 
 from jrei_service.owner_candidate_pipeline import stage_candidate
+from jrei_service.ci_observer import observe_ci
 
 HOST = "127.0.0.1"
 PORT = 8092
@@ -257,6 +258,17 @@ def execute(job: str):
             return "OBSERVED", "Private Python process: " + str(result.get("service_process", "UNKNOWN")) + "; mother DB: " + str(result.get("mother_db", "UNKNOWN"))
         except (OSError, ValueError):
             return "UNAVAILABLE", "JREI Python 8091 not responding"
+    if job == "ci_health":
+        try:
+            result = observe_ci()
+        except (OSError, ValueError, KeyError, urllib.error.URLError):
+            return "UNAVAILABLE", "GITHUB_CI_EVIDENCE_NOT_AVAILABLE"
+        detail = ("HEAD=" + result["head_sha"] + "; RECEIPT=" +
+                  result["receipt_sha256"] + "; " +
+                  "; ".join(x["workflow"] + ":" + x["state"] +
+                            (":" + str(x["id"]) if "id" in x else "")
+                            for x in result["findings"]))
+        return result["state"], detail
     if job == "study":
         return study()
     if job == "patch_candidate":
@@ -365,6 +377,7 @@ def route_directive(command: str):
     for pattern, job in [
         (r"(اصلاح کد|پچ|patch|candidate patch|code proposal)", "patch_candidate"),
         (r"(مطالعه|یادگیر|یادگیری|رشد|learn|study|improv)", "study"),
+        (r"(ci|گیت.?هاب|github|اکشن|workflow|گردش.?کار|خطاهای توسعه)", "ci_health"),
         (r"(robots|sitemap|ربات|سایت.?مپ)", "robots_audit"),
         (r"(geo|aeo|هوش.?مصنوعی.?جستجو)", "geo_audit"),
         (r"(seo|سئو|جستجو|ایندکس)", "seo_audit"),
@@ -407,8 +420,12 @@ def scheduler():
     if _STOP.wait(120):
         return
     next_study = time.monotonic() + 30
+    next_ci_check = time.monotonic() + 120
     misses = 0
     while not _STOP.is_set():
+        if time.monotonic() >= next_ci_check and not _BUSY.locked():
+            run_job("ci_health", background=True)
+            next_ci_check = time.monotonic() + 1800
         gpu_alive = False
         try:
             gpu_alive = bool(get_json(GPU + "/v1/models", 3).get("data"))
@@ -461,7 +478,7 @@ def status():
         "database_write_control": "NOT_CONNECTED",
         "git_auto_seo": "SEPARATE_GITHUB_ACTIONS",
         "model_weights_training": False,
-        "tool_actions": list(JOBS) + ["news_readiness", "python_health", "study", "patch_candidate"],
+        "tool_actions": list(JOBS) + ["news_readiness", "python_health", "study", "patch_candidate", "ci_health"],
         "candidate_pipeline": "ISOLATED_SYNTAX_ONLY_NO_SOURCE_MUTATION"
     }
 
@@ -505,6 +522,7 @@ footer{margin-top:14px;font-size:12px;color:#bbb} .wide{grid-column:1/-1}
 <button data-job="geo_audit">ممیزی GEO</button>
 <button data-job="robots_audit">Robots / Sitemap</button>
 <button data-job="source_audit">بررسی کد مخزن</button>
+<button data-job="ci_health">پایش CI و خطاهای GitHub</button>
 <button data-job="news_readiness">وضعیت مسیرهای خبر</button>
 <button data-job="python_health">سلامت Python</button>
 <button data-job="study">مطالعه و پیشنهاد بهبود</button>
@@ -577,7 +595,7 @@ document.querySelectorAll('[data-job]').forEach(button=>button.onclick=async()=>
  catch(e){showResult('JREI '+job,'ERROR',e.message)}
  finally{button.disabled=false;button.textContent={
  seo_audit:'ممیزی SEO',geo_audit:'ممیزی GEO',robots_audit:'Robots / Sitemap',
- source_audit:'بررسی کد مخزن',news_readiness:'وضعیت مسیرهای خبر',
+ source_audit:'بررسی کد مخزن',ci_health:'پایش CI و خطاهای GitHub',news_readiness:'وضعیت مسیرهای خبر',
  python_health:'سلامت Python',study:'مطالعه و پیشنهاد بهبود',
 patch_candidate:'ساخت نمونه اصلاح کد'}[job];refresh()}
 });
@@ -671,7 +689,7 @@ class OwnerHTTP(BaseHTTPRequestHandler):
             if self.path == "/api/mission":
                 job = data.get("job")
                 if not isinstance(job, str) or len(job) > 40 or \
-                    job not in (*JOBS, "news_readiness", "python_health", "study", "patch_candidate"):
+                    job not in (*JOBS, "news_readiness", "python_health", "study", "patch_candidate", "ci_health"):
                     raise ValueError("JREI_UNREGISTERED_ACTION")
                 return self._send(200, run_job(job))
             return self._send(404, {"error": "NOT_FOUND"})
