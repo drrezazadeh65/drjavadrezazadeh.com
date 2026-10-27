@@ -48,7 +48,7 @@
   var form=element('form','ni-archive-form');
   var input=element('input');
   input.type='search';input.name='q';input.maxLength=160;
-  input.required=true;input.placeholder=copy.placeholder;
+  input.required=false;input.placeholder=copy.placeholder;
   input.autocomplete='off';
   var topic=element('select');topic.name='category';
   topics.forEach(function(t){
@@ -68,6 +68,15 @@
   status.setAttribute('role','status');status.setAttribute('aria-live','polite');
   var list=element('div','ni-archive-results');
   host.append(form,status,list);
+  // Same form handles keyword search and category-only browsing. It remains
+  // explicit, bounded, and backed by the existing PUBLISHED-only index.
+  host.addEventListener('jr-news-select-category',function(event){
+    var key=event.detail&&event.detail.category;
+    if(!topics.some(function(value){return value[0]===key&&key!=='';}))return;
+    topic.value=key;
+    if(typeof form.requestSubmit==='function')form.requestSubmit();
+    else submit.click();
+  });
   var inflight=null;
   function utcEpoch(date,isEnd){
     if(!/^\d{4}-\d{2}-\d{2}$/.test(date))return null;
@@ -77,8 +86,8 @@
   form.addEventListener('submit',async function(event){
     event.preventDefault();
     var searchText=input.value.trim();
-    if(!searchText){
-      status.textContent=fa?'عبارت جست‌وجو را وارد کنید.':'Enter a search phrase.';
+    if(!searchText && !topic.value){
+      status.textContent=fa?'عبارت جست‌وجو یا یکی از موضوعات را انتخاب کنید.':'Enter a search phrase or select a topic.';
       list.replaceChildren();return;
     }
     if(inflight)inflight.abort();
@@ -86,7 +95,8 @@
     submit.disabled=true;status.textContent=fa?'در حال جست‌وجو…':'Searching…';
     try{
       var params=new URLSearchParams();
-      params.set('q',searchText);params.set('language',language);
+      if(searchText)params.set('q',searchText);
+      params.set('language',language);
       if(topic.value)params.set('category',topic.value);
       if(country.value.trim())params.set('country',country.value.trim().toUpperCase());
       if(from.value)params.set('after',utcEpoch(from.value,false));
