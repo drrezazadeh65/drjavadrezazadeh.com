@@ -140,10 +140,10 @@ try{
   $after=(GitCommand -arguments @('rev-parse','HEAD') | Out-String).Trim()
   if($before -ceq $after){Report 'REPO_SYNC_UP_TO_DATE'}
   else{Report 'REPO_SYNC_FAST_FORWARDED'}
-  // Separate owner-approved Python upgrade. The local opt-in marker is NEVER
-  // committed or downloaded, and absent consent is a code-transfer-only run.
-  // The upgrader stages in an isolated venv and may restart ONLY Python 8091.
-  // Neither Qwen (8081) nor signed website workers are restarted.
+  # Separate owner-approved Python upgrade. The local opt-in marker is NEVER
+  # committed or downloaded, and absent consent is a code-transfer-only run.
+  # The upgrader stages in an isolated venv and may restart ONLY Python 8091.
+  # Neither Qwen (8081) nor signed website workers are restarted.
   $optIn=Join-Path $root 'python-auto-upgrade-approved.json'
   $upgrader=Join-Path $repo 'platform\jrei-v5\windows-worker\jrei-python-safe-upgrade.ps1'
   if((Test-Path -LiteralPath $optIn -PathType Leaf) -and
