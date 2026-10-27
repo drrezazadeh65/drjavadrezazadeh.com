@@ -563,9 +563,10 @@ function operationsRoute(string $path, string $verb): never {
             catch (Throwable $e) { fail('python_node_owner_snapshot_unavailable',503); }
         }
 
-        // A model-free, read-only capability within the EXISTING operations
-        // session. No second admin login, direct browser-to-worker URL,
-        // credential disclosure, command shell or mother-DB mutation.
+        // Existing MFA-gated owner-only Python capabilities. Deterministic
+        // reviews remain model-free; separately approved local Qwen drafts
+        // are explicitly labelled unverified and cannot publish or execute.
+        // No second login, browser-to-worker URL, shell or DB mutation.
         if ($path==='/admin/operations/jrei-python-skills' && $verb==='POST') {
             if (($configuration['operations_admins'][$accountId]['role']??'')!=='SUPER_ADMIN')
                 fail('super_admin_required',403);
