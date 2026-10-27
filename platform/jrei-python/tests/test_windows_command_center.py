@@ -85,6 +85,62 @@ class WindowsCommandCenterTests(unittest.TestCase):
                 self.assertNotIn("model weights trained", details)
                 self.assertFalse((repo / ".git").exists())
 
+    def test_gpu_recovery_only_reuses_explicitly_named_owner_task(self):
+        from types import SimpleNamespace
+        import time
+        with patch.object(cc, "os", SimpleNamespace(name="nt")), \
+             patch.object(cc, "get_json", side_effect=OSError("offline")), \
+             patch.object(cc, "_activity_at", 0.0), \
+             patch.object(cc, "_recovery_last_at", 0.0), \
+             patch.object(cc, "_recovery_failures", 0), \
+             patch.object(cc, "record") as recorder, \
+             patch.object(cc.subprocess, "run") as run:
+            run.return_value.returncode = 0
+            response = cc.gpu_task_recovery()
+            self.assertEqual(response["state"], "RESTART_REQUESTED")
+            self.assertEqual(run.call_count, 3)
+            calls = [args[0][0] for args in run.call_args_list]
+            self.assertEqual(calls, [
+                ["schtasks.exe", "/Query", "/TN", cc._GPU_TASK],
+                ["schtasks.exe", "/End", "/TN", cc._GPU_TASK],
+                ["schtasks.exe", "/Run", "/TN", cc._GPU_TASK],
+            ])
+            for args, kwargs in run.call_args_list:
+                self.assertFalse(kwargs["shell"])
+                self.assertEqual(kwargs["stderr"], cc.subprocess.DEVNULL)
+            self.assertEqual(recorder.call_count, 2)
+
+    def test_gpu_recovery_requires_installed_task_and_owner_idle(self):
+        from types import SimpleNamespace
+        import time
+        with patch.object(cc, "os", SimpleNamespace(name="nt")), \
+             patch.object(cc, "get_json", side_effect=OSError("offline")), \
+             patch.object(cc, "_activity_at", time.monotonic()), \
+             patch.object(cc.subprocess, "run") as run:
+            response = cc.gpu_task_recovery()
+            self.assertEqual(response["state"], "DEFERRED")
+            run.assert_not_called()
+        with patch.object(cc, "os", SimpleNamespace(name="nt")), \
+             patch.object(cc, "get_json", side_effect=OSError("offline")), \
+             patch.object(cc, "_activity_at", 0.0), \
+             patch.object(cc, "_recovery_last_at", 0.0), \
+             patch.object(cc.subprocess, "run") as run:
+            run.return_value.returncode = 1
+            response = cc.gpu_task_recovery()
+            self.assertEqual(response["state"], "NOT_INSTALLED")
+            self.assertEqual(run.call_count, 1)
+
+    def test_gpu_recovery_never_intervenes_during_owner_mission(self):
+        from types import SimpleNamespace
+        with patch.object(cc, "os", SimpleNamespace(name="nt")), \
+             patch.object(cc.subprocess, "run") as run:
+            cc._BUSY.acquire()
+            try:
+                self.assertEqual(cc.gpu_task_recovery()["state"], "DEFERRED")
+                run.assert_not_called()
+            finally:
+                cc._BUSY.release()
+
     def test_client_has_actual_tools_and_private_token_path(self):
         html = cc.render_html()
         self.assertIn("/api/chat", html)
