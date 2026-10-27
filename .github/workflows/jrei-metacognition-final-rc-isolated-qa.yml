@@ -1,0 +1,86 @@
+name: JREI Metacognition and Source-Correction Final RC (MANUAL, NO DEPLOY)
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: jrei-metacognition-final-rc-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  signed-private-source-contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+      - name: Python source installation into disposable virtual environment
+        run: python -m pip install --disable-pip-version-check -e ./platform/jrei-python
+      - name: Entire private JREI Python unittest suite
+        run: |
+          cd platform/jrei-python
+          python -m unittest discover -s tests -p 'test_*.py' -q
+      - name: Source adapters and original owner MFA dispatch syntax
+        run: |
+          php -l api/jrei-python-owner-skills.php
+          php -l platform/jrei-python/php/jrei-python-internal-client.php
+          php -l api/operations.php
+      - name: Static Python route contracts retain fail-closed authority
+        shell: python
+        run: |
+          from pathlib import Path
+          service=Path('platform/jrei-python/jrei_service/app.py').read_text('utf-8')
+          php=Path('api/jrei-python-owner-skills.php').read_text('utf-8')
+          client=Path('platform/jrei-python/php/jrei-python-internal-client.php').read_text('utf-8')
+          for path in (
+              '/internal/v1/learning/evidence-graph/review',
+              '/internal/v1/learning/metacognitive/plan',
+              '/internal/v1/orchestration/capacity/plan',
+              '/internal/v1/knowledge/corrections/review',
+          ):
+              assert path in service and path in client, path
+          for label in ('knowledge-correction','metacognitive-plan','capacity-plan'):
+              assert "'"+label+"'" in php, label
+          assert 'dependencies=[Depends(require_internal_gateway)]' in service
+          for key in ('publication_executed', 'correction_executed',
+                      'autonomous_model_training_started', 'network_requests_issued'):
+              assert key in Path(
+                  'platform/jrei-python/jrei_learning/knowledge_correction.py'
+                  if key in ('publication_executed','correction_executed')
+                  else 'platform/jrei-python/jrei_learning/metacognitive_cycle.py'
+                  if key == 'autonomous_model_training_started'
+                  else 'platform/jrei-python/jrei_orchestrator/adaptive_capacity.py'
+              ).read_text('utf-8')
+          print('JREI_SOURCE_ONLY_FAIL_CLOSED_CONTRACTS_PRESENT')
+
+  isolated-windows-source-compatibility:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          architecture: x64
+      - name: Install private core in runner environment only
+        shell: pwsh
+        run: |
+          python -m pip install --disable-pip-version-check -e ./platform/jrei-python
+          if($LASTEXITCODE -ne 0){throw 'SOURCE_INSTALL_FAILED'}
+      - name: Full Python contracts on disposable Windows runner
+        shell: pwsh
+        run: |
+          Push-Location platform/jrei-python
+          try {
+            python -m unittest discover -s tests -p 'test_*.py' -q
+            if($LASTEXITCODE -ne 0){throw 'PRIVATE_AI_UNIT_TESTS_FAILED'}
+          } finally { Pop-Location }
+      - name: No Task Scheduler writes or owner Qwen access
+        if: always()
+        shell: pwsh
+        run: |
+          'Manual isolated Python tests on GitHub Windows only. No Task Scheduler modifications, Bertina deployment, production SQL, Qwen process, Windows owner machine, model changes, source crawl, or news publication.' >> $env:GITHUB_STEP_SUMMARY
