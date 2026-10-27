@@ -66,7 +66,12 @@ function jrNewsProjection(array $publication, string $locale): ?array {
  */
 function jrNewsPublishedSearch(PDO $pdo,string $query,string $locale='fa',
     int $limit=20,array $filters=[]): array {
-    $query=jrNewsSafeQuery($query);
+    // Category browsing does not require inventing a keyword. An empty query
+    // is permitted ONLY with one of the seven original controlled taxonomies.
+    // Every browse result still satisfies the exact published authority joins.
+    $query=trim($query);
+    $browseCategory=($query==='' && isset($filters['category']));
+    if (!$browseCategory) $query=jrNewsSafeQuery($query);
     if (!in_array($locale,['fa','en'],true)||$limit<1||$limit>30 ||
         !is_array($filters)) {
         throw new InvalidArgumentException('news_search_options_invalid');
@@ -87,7 +92,8 @@ function jrNewsPublishedSearch(PDO $pdo,string $query,string $locale='fa',
     if (isset($filters['category'])) {
         $category=$filters['category'];
         if (!is_string($category) ||
-            !preg_match('/^[a-z0-9_-]{2,48}$/D',$category)) {
+            !in_array($category,['school','examinations','universities',
+                'employment','language','international','research'],true)) {
             throw new InvalidArgumentException('news_search_category_invalid');
         }
         $where[]='s.category_code=:category';
@@ -127,7 +133,18 @@ function jrNewsPublishedSearch(PDO $pdo,string $query,string $locale='fa',
         $joins.' AND MATCH(s.title,s.summary,s.searchable_body) AGAINST(:matched IN NATURAL LANGUAGE MODE)>0'.
         ' ORDER BY relevance DESC,s.published_at DESC LIMIT :row_limit';
     $rows=[];
-    try {
+    if ($browseCategory) {
+        // No search terms are fabricated: browse the newest authenticated
+        // published category rows, bounded by the same limit and filters.
+        $browseSql='SELECT s.public_route,s.title,s.summary,s.published_at'.
+            $joins.' ORDER BY s.published_at DESC LIMIT :row_limit';
+        $browse=$pdo->prepare($browseSql);
+        foreach ($args as $key=>$value) $browse->bindValue($key,$value,
+            is_int($value)?PDO::PARAM_INT:PDO::PARAM_STR);
+        $browse->bindValue(':row_limit',$rowLimit,PDO::PARAM_INT);
+        $browse->execute();
+        $rows=$browse->fetchAll(PDO::FETCH_ASSOC);
+    } else try {
         $statement=$pdo->prepare($querySql);
         foreach ($args as $key=>$value) $statement->bindValue($key,$value,
             is_int($value)?PDO::PARAM_INT:PDO::PARAM_STR);
@@ -143,7 +160,7 @@ function jrNewsPublishedSearch(PDO $pdo,string $query,string $locale='fa',
         // Never expose schema or query errors to a public search client.
         $rows=[];
     }
-    if (!$rows) {
+    if (!$rows && !$browseCategory) {
         $literal=str_replace(['!','%','_'],['!!','!%','!_'],$query);
         $sql='SELECT s.public_route,s.title,s.summary,s.published_at'.
           $joins." AND (s.title LIKE :title ESCAPE '!'".
