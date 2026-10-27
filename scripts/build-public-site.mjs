@@ -174,6 +174,40 @@ for(const [locale,route] of [
      !page.includes('/assets/css/jrei-news-archive-v1.css'))
     throw Error('JREI News bilingual public archive entry not packaged: '+route);
 }
+// The 23 October owner master lists exactly 21 newsroom sections.
+// These are finished FIRST-PARTY canonical pages, not an optional mockup.
+// Packaging must refuse an incomplete bilingual release; it never activates
+// the private Python JREI AI, owner CMS, social APIs, or news source workers.
+for(const [locale,route] of [
+  ['fa','fa/akhbar/index.html'],
+  ['en','en/news-insights/index.html']
+]){
+  const page=fs.readFileSync(path.join(out,route),'utf8');
+  const canonical='https://drjavadrezazadeh.com/'+
+    (locale==='fa'?'fa/akhbar/':'en/news-insights/');
+  if(!page.includes('<link rel="canonical" href="'+canonical+'">')||
+     (page.match(/<h1(?=[ >])/g)||[]).length!==1||
+     !page.includes('data-jrn21 data-jr-language="'+locale+'"')||
+     !page.includes('/assets/css/jrei-news-21-v3.css')||
+     !page.includes('/assets/js/jrei-news-21-v3.js')||
+     (page.match(/data-ni-archive-search data-ni-language=/g)||[]).length!==1)
+    throw Error('JREI News canonical bilingual master-21 page not packaged: '+locale);
+  for(let section=1;section<=21;section++){
+    const marker='data-jrn21-section="'+String(section).padStart(2,'0')+'"';
+    if(page.split(marker).length!==2)
+      throw Error('JREI News master section missing or duplicated: '+locale+'/'+section);
+  }
+}
+for(const asset of [
+  'assets/css/jrei-news-21-v3.css',
+  'assets/js/jrei-news-21-v3.js'
+]){
+  const full=path.join(out,asset);
+  if(!fs.existsSync(full)||fs.statSync(full).size<2000)
+    throw Error('JREI News full newsroom asset unavailable: '+asset);
+}
+// End master-21 release projection contract.
+
 // Every ORIGINAL CMS news page references these first-party public assets.
 // A missing companion used to leave the on-page JREI button inert and the
 // public article unstyled even though isolated publisher SQL tests passed.
