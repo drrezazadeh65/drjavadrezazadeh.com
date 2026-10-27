@@ -6,7 +6,23 @@ const failures=[];
 for(const name of workflows){
   const source=fs.readFileSync(root+name,'utf8');
   if(/branches:\s*\[[^\]]*\bmain\b|^\s+- main\s*$/m.test(source)) failures.push(name+': stale main trigger');
-  if(/contents:\s*write|git push|HEAD:main|ref:\s*main\b/.test(source)) failures.push(name+': automatic source writer or main checkout');
+  // Exactly one isolated, deterministic PR proposer is allowed. It must
+  // never push to the canonical source, merge, deploy or request secrets.
+  const pushes=source.match(/^\s*git push[^\n]*$/gm)||[];
+  const scopedSeoProposal=(name==='jrei-autonomous-seo-repair.yml'&&
+    source.includes('  pull-requests: write')&&
+    source.includes('branch="jrei/auto-seo-')&&
+    source.includes('git push origin "HEAD:refs/heads/$branch"')&&
+    source.includes('gh pr create --base migration/bertina-linux6')&&
+    source.includes('node scripts/seo-regression.mjs')&&
+    source.includes('JREI_UNRECEIPTED_SOURCE_CHANGE')&&
+    pushes.length===1&&
+    pushes[0].trim()==='git push origin "HEAD:refs/heads/$branch"'&&
+    !/gh pr merge|git merge|deploy-bertina|workflow_dispatch.*deploy/i.test(source));
+  if(/HEAD:main|ref:\s*main\b/.test(source)||
+    ((/contents:\s*write|\bgit push\b/.test(source))&&!scopedSeoProposal))
+    failures.push(name+': automatic writer outside narrowly verified PR-only exception');
+
   if(/(?:working-directory:\s*edge\/|node (?:--check |--test )?edge\/|['"](?:payment-api|edge)\/)/.test(source)) failures.push(name+': removed runtime input');
   if(source.includes('  schedule:')&&!source.includes("github.event_name == 'schedule' && 'migration/bertina-linux6'")) failures.push(name+': scheduled checkout must select Bertina source');
 }
