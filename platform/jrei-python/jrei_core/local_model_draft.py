@@ -48,7 +48,7 @@ class LocalDraftRequest(StrictContract):
     # execute code, retrieve external data or claim scientific verification.
     academic_task: Literal[
         "EXPLAIN", "SOCRATIC_TUTOR", "CRITICAL_REVIEW", "ASSESSMENT_DESIGN",
-        "CODING_PROPOSAL", "SITE_ARCHITECTURE"
+        "CODING_PROPOSAL", "CODING_PATCH_JSON", "SITE_ARCHITECTURE"
     ] = "EXPLAIN"
     # Owner explicit instruction to draft; not consent to access sensitive
     # records or an attestation that source content is licensed.
@@ -75,7 +75,7 @@ class LocalDraftResult(StrictContract):
     )
     request_id: Identifier
     language: Literal["fa", "en"]
-    academic_task: Literal["EXPLAIN", "SOCRATIC_TUTOR", "CRITICAL_REVIEW", "ASSESSMENT_DESIGN", "CODING_PROPOSAL", "SITE_ARCHITECTURE"] = "EXPLAIN"
+    academic_task: Literal["EXPLAIN", "SOCRATIC_TUTOR", "CRITICAL_REVIEW", "ASSESSMENT_DESIGN", "CODING_PROPOSAL", "CODING_PATCH_JSON", "SITE_ARCHITECTURE"] = "EXPLAIN"
     result_state: Literal["UNVERIFIED_MODEL_DRAFT"] = "UNVERIFIED_MODEL_DRAFT"
     model_alias: Literal["jrei-qwen3-4b-q4km"] = "jrei-qwen3-4b-q4km"
     model_output: str = Field(min_length=1, max_length=6000)
@@ -173,6 +173,19 @@ def create_local_owner_draft(payload: LocalDraftRequest) -> LocalDraftResult:
                 "required independent tests and rollback instructions. "
                 "Never claim a patch was applied, committed, tested, or "
                 "deployed. Do not expose credentials or run any tools."
+            ),
+            "CODING_PATCH_JSON": (
+                "You are drafting a single isolated source patch preview, NOT "
+                "executing, testing, committing or deploying code. Return ONLY "
+                "one JSON object with exactly two string fields: "
+                "original_fragment and replacement_fragment. The first MUST "
+                "be an exact nonempty substring present in the supplied source "
+                "excerpt; the second MUST be a revised version with a small "
+                "reversible improvement. Do not include markdown fences, "
+                "credentials, network calls, shell commands, DB changes, "
+                "or imaginary source lines. If uncertain return the JSON "
+                "object with the same two fragments; the patch validator "
+                "will reject a no-op. Preserve interfaces and tests."
             ),
             "SITE_ARCHITECTURE": (
                 "Review the specified website system as an architect: "
