@@ -130,9 +130,13 @@ def prepare_knowledge_corrections(
                 affected_claims.append(claim_id)
                 reasons.update(claim.reason_codes)
                 reasons.add("ARTIFACT_REFERENCES_HELD_CLAIM")
-        if artifact.lifecycle == "LIVE" and (
-            artifact.original_cms_publication_receipt_sha256 is None
-        ):
+        # The original CMS receipt is mandatory only for LIVE news
+        # articles, as enforced by CitedArtifact. An index entry, exam item
+        # or answer is not a news article and cannot be marked affected just
+        # because it lacks a NEWS publication receipt.
+        if (artifact.lifecycle == "LIVE"
+                and artifact.artifact_kind == "NEWS_ARTICLE"
+                and artifact.original_cms_publication_receipt_sha256 is None):
             reasons.add("ORIGINAL_PUBLICATION_RECEIPT_NOT_AVAILABLE")
         if affected_claims or reasons:
             affected.append(artifact.artifact_id)
