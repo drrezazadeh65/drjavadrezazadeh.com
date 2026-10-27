@@ -23,6 +23,9 @@ from jrei_orchestrator.adaptive_capacity import (
     CapacityPlanRequest, CapacityPlan, propose_capacity_placements,
 )
 from jrei_learning.mission_binding import LearningMissionBindingRequest, LearningMissionBinding, bind_learning_mission
+from jrei_learning.method_feedback import (
+    LearningMethodFeedbackRequest, MethodFeedbackResult, rank_learning_methods,
+)
 from jrei_learning.heldout import HeldoutReviewRequest, HeldoutReviewResult, review_heldout
 from jrei_skills import EvidenceTriageRequest, EvidenceTriageResult, triage_evidence_revision
 from jrei_skills.registry import skill_catalog
@@ -85,6 +88,7 @@ async def capabilities():
             "gap_to_experiment_metacognitive_cycle_v1",
             "adaptive_24_7_capacity_placement_v1",
             "metacognitive_decision_to_scoped_mission_binding_v1",
+            "experiment_feedback_on_learning_methods_v1",
         ],
         "live_model_inference": False,
         "durable_missions": False,
@@ -125,6 +129,15 @@ async def metacognitive_plan(payload: MetacognitiveCycleRequest):
     # Select next learning method using aggregate gaps + supported claims +
     # paired bilingual comparison. Proposals only: no jobs or model training.
     return plan_metacognitive_cycle(payload)
+
+
+@app.post(
+    "/internal/v1/learning/metacognitive/method-feedback",
+    response_model=MethodFeedbackResult,
+    dependencies=[Depends(require_internal_gateway)],
+)
+async def metacognitive_method_feedback(payload: LearningMethodFeedbackRequest):
+    return rank_learning_methods(payload)
 
 
 @app.post(
