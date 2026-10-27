@@ -77,6 +77,7 @@
   function updateCurrent(){
    const zone=workspace.dataset.opsActiveZone||'overview';
    current.textContent=zoneTitle(zone)||tr('مدیریت','Administration');
+   stage.hidden=zone!=='overview'&&zone!=='planning';
   }
   function close(restoreFocus=false){
    workspace.classList.remove('ops-unified-drawer-open');
@@ -162,7 +163,7 @@
    const q=normalize(input.value);
    results.replaceChildren();results.hidden=!q;
    nav.hidden=!!q;subtitle.hidden=!!q;
-   modules.hidden=!!q;
+   modules.hidden=!!q||(['overview','engines'].includes(workspace.dataset.opsActiveZone||'overview'))||(!q&&modules.querySelectorAll('.ops-command-module').length<2);
    if(!q){tally.textContent='';return;}
    const found=entries().filter(x=>
     normalize(x.name+' '+zoneTitle(x.zone)).includes(q)).slice(0,40);
@@ -201,7 +202,7 @@
   });
   window.addEventListener('resize',()=>{if(!mobileWidth())close();});
   workspace.addEventListener('jr:operations-locked',()=>{
-   close();input.value='';renderResults();
+   close();input.value='';renderResults();stage.hidden=true;
   });
   workspace.addEventListener('jr:operations-ready',()=>{
    close();input.value='';renderResults();updateCurrent();
