@@ -84,6 +84,7 @@ async def capabilities():
             "versioned_claim_dependency_and_revocation_review_v1",
             "gap_to_experiment_metacognitive_cycle_v1",
             "adaptive_24_7_capacity_placement_v1",
+            "metacognitive_decision_to_scoped_mission_binding_v1",
         ],
         "live_model_inference": False,
         "durable_missions": False,
