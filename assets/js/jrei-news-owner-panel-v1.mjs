@@ -151,8 +151,29 @@ export function mountNewsOwnerPanel({root,csrfResolver,
         'MASTER OFF: زمان‌بند در تنظیمات خصوصی سرور خاموش است؛ با ثبت یا فعال‌کردن ردیف‌ها روشن نمی‌شود.',
         'MASTER OFF: enable the original server-side private master setting; registering/enabling DB rows cannot override it.'));
       if(snapshot.serverCronVerified!==true)warnings.push(say(
-        'اجرای Cron واقعی روی برتینا اثبات نشده؛ حتی MASTER ON نیز به‌تنهایی رسید اجرای Worker نیست.',
-        'Real Bertina host Cron execution is unverified; even MASTER ON is not worker-execution evidence.'));
+        'نصب Cron در برتینا هنوز تأیید مستقل ندارد؛ زمان اجرای Worker ثبت‌شده در دیتابیس با رسید نصب هاست متفاوت است.',
+        'Host Cron installation is still independently unverified; recorded worker start is not a host installation receipt.'));
+      const latest=snapshot.latestDbWorkerStartedAt;
+      if(Number.isSafeInteger(latest)&&latest>0){
+        warnings.push(say('آخرین اجرای ثبت‌شدهٔ Worker: ','Last recorded worker start: ')+
+          new Date(latest*1000).toLocaleString(fa?'fa-IR':'en-GB'));
+      }else warnings.push(say('هیچ شروع Worker در دیتابیس ثبت نشده است.',
+        'No worker start has been recorded in the mother DB.'));
+      const newsLatest=snapshot.latestDbNewsWorkerStartedAt;
+      if(Number.isSafeInteger(newsLatest)&&newsLatest>0){
+        warnings.push(say('آخرین شروع زنجیرهٔ خبر: ','Last news worker start: ')+
+          new Date(newsLatest*1000).toLocaleString(fa?'fa-IR':'en-GB'));
+      }
+      const missing=snapshot.newsPipelineMissingPrivateFlags;
+      if(Array.isArray(missing)){
+        if(missing.length)warnings.push(say(
+          'تنظیمات خصوصی خاموش یا تعریف‌نشدهٔ خبر: ',
+          'Missing/disabled private news flags: ')+
+          missing.filter(x=>typeof x==='string'&&/^[a-z0-9_]{1,90}$/.test(x)).join(', '));
+        else warnings.push(say(
+          'کلیدهای خصوصی خبر فعال‌اند؛ مجوز دائمی و رسید واقعی همچنان مستقل بررسی می‌شوند.',
+          'Private news flags are ready; standing authority and actual CMS receipts remain independently required.'));
+      }
       cronBlockers.textContent=warnings.join(' · ');
       for(const job of jobs){
         const li=document.createElement('li');
