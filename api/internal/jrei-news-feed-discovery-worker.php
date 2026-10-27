@@ -11,6 +11,7 @@ define('BERTINA_MAIL_SMOKE_CONTEXT',true);
 require_once dirname(__DIR__).'/index.php';
 define('BERTINA_API_BOOTSTRAPPED',true);
 require_once dirname(__DIR__).'/jrei-news-private-feed-bridge.php';
+require_once dirname(__DIR__).'/jrei-ka-acquisition-dispatch.php';
 require_once dirname(__DIR__).'/internal/jrei-news/delegated-official-source-enrollment.php';
 require_once dirname(__DIR__).'/internal/jrei-news/admin-source-management.php';
 require_once dirname(__DIR__).'/internal/jrei-news/original-official-source-bootstrap.php';
