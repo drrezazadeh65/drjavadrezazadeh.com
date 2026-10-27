@@ -19,6 +19,9 @@ from jrei_core.local_model_draft import (
     LocalDraftRequest, LocalDraftResult, LocalModelUnavailable, create_local_owner_draft,
 )
 from jrei_learning.prioritizer import prioritize
+from jrei_learning.exam_blueprint_review import (
+    ExamReviewRequest, ExamBlueprintReview, review_exam_blueprint,
+)
 from jrei_learning.document_extraction import (
     DocumentExtractionRequest, DocumentExtractionResult, propose_private_extraction,
 )
@@ -98,6 +101,7 @@ async def capabilities():
             "scoped_mission_dag_proposal_v1",
             "evidence_revision_triage_v1",
             "paired_bilingual_heldout_review_v1",
+            "nonpublishing_exam_item_key_accessibility_blueprint_integrity_v1",
             "bounded_exact_arithmetic_v1",
             "versioned_claim_dependency_and_revocation_review_v1",
             "gap_to_experiment_metacognitive_cycle_v1",
@@ -253,6 +257,17 @@ async def registered_skills():
 async def evidence_revision_triage(payload: EvidenceTriageRequest):
     # Computation only. Source/rights approval stays with independent mother-DB review.
     return triage_evidence_revision(payload)
+
+
+@app.post(
+    "/internal/v1/exams/blueprint/review",
+    response_model=ExamBlueprintReview,
+    dependencies=[Depends(require_internal_gateway)],
+)
+async def exam_blueprint_integrity_review(payload: ExamReviewRequest):
+    # Metadata only: no private student/session records, question text,
+    # independently attested correct keys, sale, timed exam or publication.
+    return review_exam_blueprint(payload)
 
 
 @app.post(
