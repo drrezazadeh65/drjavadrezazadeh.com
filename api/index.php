@@ -195,6 +195,9 @@ function cfg(): array {
         'jrei_python_node_heartbeat_enabled' =>
             getenv('JR_JREI_PYTHON_NODE_HEARTBEAT_ENABLED') === 'true',
         'jrei_python_canary_enabled' => getenv('JR_JREI_PYTHON_CANARY_ENABLED') === 'true',
+        // Immutable metadata-only learning-cycle journal. Separate OFF gate.
+        'jrei_metacognitive_owner_journal_enabled' =>
+            getenv('JR_JREI_METACOGNITIVE_OWNER_JOURNAL_ENABLED') === 'true',
         // Source-only Python intelligence seam (private worker/VPS only).
         // OFF until independent owner, host, replay-ledger and TLS acceptance;
         // never assume a Python process is available on Bertina hosting.
