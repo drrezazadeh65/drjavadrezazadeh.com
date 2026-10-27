@@ -51,27 +51,28 @@ try{
     // fabricated SQL receipt, browser authority or public source bypass.
     $indexed=0;
     $syndication=0;
-    if((int)($result['published']??0)>0){
-        if(($cfg['jrei_news_publisher_receipts_accepted']??false)!==true||
-           ($cfg['jrei_news_search_enabled']??false)!==true)
-            throw new RuntimeException('news_original_public_archive_switches_not_accepted');
-        $index=jrNewsOriginalIndexVerifiedPublishedPages(
-            $pdo,$root,time(),min(50,max(2,$requested*2)));
-        $indexed=(int)($index['indexedLanguages']??0);
-        if($indexed<(int)$result['published']*2)
-            throw new RuntimeException('news_original_public_index_not_caught_up');
-        // The public RSS endpoint queries the verified index live. Static
-        // JREI-owned feed/sitemap assets are optional and never overwrite
-        // the website's historical feed.xml or sitemap-news.xml.
-        if(($cfg['jrei_news_verified_syndication_enabled']??false)===true){
-            $written=jrNewsWriteOriginalSyndication(
-                $pdo,$root,time(),[
-                   'source'=>'ORIGINAL_JREI_PRIVATE_INDEX_WORKER',
-                   'actualPublishedCmsReceiptsRequired'=>true,
-                   'originalSyndicationActivated'=>true
-                ]);
-            $syndication=(int)($written['writtenAssets']??0);
-        }
+    // Reconcile durable PUBLISHED receipts on EVERY authorized tick, even
+    // after a previous publisher crashed between a successful CMS write and
+    // indexing, or when this tick has no newly eligible editorial revision.
+    // The indexer is independently rights/SHA/CMS-receipt gated. An index
+    // batch can legitimately contain older backlog first; comparing its
+    // indexed count to newly published items would falsely reject success.
+    $index=jrNewsOriginalIndexVerifiedPublishedPages(
+        $pdo,$root,time(),min(50,max(16,$requested*4)));
+    $indexed=(int)($index['indexedLanguages']??0);
+    if((int)($index['invalidOriginalCmsProofs']??0)>0)
+        throw new RuntimeException('news_original_cms_receipt_reconciliation_hold');
+    // Only real public-index receipts are eligible for syndication. The
+    // original static sitemap-news.xml and feed.xml remain untouched.
+    if($indexed>0&&
+       ($cfg['jrei_news_verified_syndication_enabled']??false)===true){
+        $written=jrNewsWriteOriginalSyndication(
+            $pdo,$root,time(),[
+               'source'=>'ORIGINAL_JREI_PRIVATE_INDEX_WORKER',
+               'actualPublishedCmsReceiptsRequired'=>true,
+               'originalSyndicationActivated'=>true
+            ]);
+        $syndication=(int)($written['writtenAssets']??0);
     }
     $state=(string)($result['state']??'UNKNOWN');
     $code=preg_match('/^[A-Z_]{3,70}$/D',$state)?$state:'REQUIRES_REVIEW';
