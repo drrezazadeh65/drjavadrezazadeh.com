@@ -139,7 +139,8 @@
     "php/original-reviewed-news-evidence-port.php",
     "php/original-independent-news-qa-service.php",
     "php/original-native-news-style-media.php",
-    "php/original-draft-runtime-adapter.php"
+    "php/original-draft-runtime-adapter.php",
+    "knowledge-revocation-impact.mjs"
   ],
   "criticalInteroperabilityNotes": [
     "Original JREI-KA approved source policy currently requires at least 3600-second refresh intervals; faster official P0 radar needs separately authorized original-scheduler extension",
@@ -269,6 +270,8 @@
     "isolatedModelDraftEndToEndLiveVerified": false,
     "externalFactAndIndependentAuditServiceRunning": false,
     "legacyManualNewsRoutePreserved": true,
-    "codeFirstThenConsolidatedTestsThenRelease": "IN_PROGRESS"
+    "codeFirstThenConsolidatedTestsThenRelease": "IN_PROGRESS",
+    "originalJreiKnowledgeRevocationImpactBridgeSource": "knowledge-revocation-impact.mjs",
+    "realNewsKnowledgeInvalidationRuntimeVerified": false
   }
 }
