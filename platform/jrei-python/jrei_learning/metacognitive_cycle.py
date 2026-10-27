@@ -204,11 +204,24 @@ def plan_metacognitive_cycle(
             reasons.update(comparison.reason_codes)
         method = goal.selected_method
         strategy = strategy_proposals.get(goal.domain)
+        # A favorable held-out result does not erase a historically observed
+        # regression for the proposed learning method. Keep the current
+        # experiment in owner review, while refusing to reuse that method.
+        strategy_has_regression = bool(
+            strategy is not None and strategy.proposed_next_method is not None
+            and any(
+                entry.method == strategy.proposed_next_method
+                and entry.negative_outcome_count > 0
+                and entry.evidence_state != "NO_INDEPENDENTLY_ATTESTED_RECORDS"
+                for entry in strategy.compared_method_evidence
+            )
+        )
         # A reviewed *historical method proposal* may influence only a
         # rights-eligible, evidence-eligible, unblocked NEXT experiment. It
         # cannot override a RIGHTS_REVIEW or independent evidence hold.
         if (strategy is not None and strategy.proposed_next_method is not None
                 and goal.decision == "PROPOSED"
+                and not strategy_has_regression
                 and context.supporting_claim_ids and not blocked
                 and decision in (
                     "PROPOSE_ISOLATED_EXPERIMENT", "REVIEW_CHALLENGER_WITH_OWNER",
