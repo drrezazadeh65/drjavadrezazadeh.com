@@ -8,13 +8,15 @@ import {createHash} from 'node:crypto';
 export const CANARY='jr.jrei.python-canary.v1';
 export function validateCanaryJob(job){
   return job && Object.getPrototypeOf(job)===Object.prototype &&
-    Object.keys(job).join(',')==='jobId,leaseId,expression,taskType,expiresAt' &&
+    Object.keys(job).length===5 &&
+    ['jobId','leaseId','expression','taskType','expiresAt']
+      .every(name=>Object.hasOwn(job,name)) &&
     /^[a-f0-9]{8}-(?:[a-f0-9]{4}-){3}[a-f0-9]{12}$/.test(job.jobId) &&
     /^[a-f0-9]{8}-(?:[a-f0-9]{4}-){3}[a-f0-9]{12}$/.test(job.leaseId) &&
     job.expression==='12*7' &&
     job.taskType==='EXACT_ARITHMETIC_CANARY' &&
-    Number.isSafeInteger(job.expiresAt) &&
-    job.expiresAt>Math.floor(Date.now()/1000);
+    // The signed mother server owns lease time; Windows clock may be skewed.
+    Number.isSafeInteger(job.expiresAt) && job.expiresAt>0;
 }
 export async function runPythonLocalCanary(job,{fetchLocal=fetch}={}){
   if(!validateCanaryJob(job))throw Error('PYTHON_CANARY_JOB_INVALID');
@@ -41,8 +43,7 @@ export async function runPythonLocalCanary(job,{fetchLocal=fetch}={}){
        parsed.performed_without_model!==true ||
        parsed.any_model_weights_changed!==false)
       throw Error('PYTHON_CANARY_ARITHMETIC_UNTRUSTED');
-    if(job.expiresAt<=Math.floor(Date.now()/1000))
-      throw Error('PYTHON_CANARY_LEASE_EXPIRED_LOCALLY');
+    // Remote completion performs authoritative expiry checking under a DB lock.
     return {schema:CANARY,jobId:job.jobId,leaseId:job.leaseId,
       numerator:parsed.numerator,denominator:parsed.denominator,
       exactFraction:parsed.exact_fraction,skillId:parsed.skill_id,
