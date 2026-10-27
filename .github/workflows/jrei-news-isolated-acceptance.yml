@@ -1,8 +1,22 @@
 name: JREI News Isolated Acceptance (NO DEPLOYMENT)
-# Owner's 27 October directive: no mid-development tests. Entire
-# newsroom releases as one package, with one explicitly invoked QA campaign.
+# One consolidated, source-only acceptance campaign requested by the
+# owner for the completed bilingual 21-desk JREI News release candidate.
+# No FTP, Bertina access, real customer DB or automatic deployment here.
 on:
   workflow_dispatch:
+  push:
+    branches: [migration/bertina-linux6]
+    paths:
+      - ".github/workflows/jrei-news-isolated-acceptance.yml"
+      - "platform/news-intelligence/**"
+      - "api/news-public-*.php"
+      - "api/jrei-news-*.php"
+      - "assets/js/jrei-news-*.js"
+      - "assets/css/jrei-news-*.css"
+      - "fa/akhbar/index.html"
+      - "en/news-insights/index.html"
+      - "scripts/build-public-site.mjs"
+      - "docs/migrations/2026102*_jrei_news_*.sql"
 permissions:
   contents: read
 concurrency:
