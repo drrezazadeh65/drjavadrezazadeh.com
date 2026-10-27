@@ -157,7 +157,7 @@ function jrApexMissionLinkObservation(PDO $pdo, string $accountId,
             throw new DomainException('mission_not_open_for_observation');
         $action=$allowed[(string)$row['intent_code']]??null;
         if($action===null)throw new DomainException('mission_observation_not_allowlisted');
-        $run=$pdo->prepare('SELECT action_id,release_sha,status,finished_at,result_json
+        $run=$pdo->prepare('SELECT action_id,release_sha,status,created_at,finished_at,result_json
             FROM operations_action_runs WHERE run_id=? AND account_id=? LIMIT 1');
         $run->execute([$runId,$accountId]);
         $observed=$run->fetch(PDO::FETCH_ASSOC);
@@ -165,6 +165,9 @@ function jrApexMissionLinkObservation(PDO $pdo, string $accountId,
            $observed['action_id']!==$action ||
            !in_array($observed['status'],['succeeded','blocked'],true) ||
            $observed['finished_at']===null ||
+           (int)$observed['created_at']<(int)$row['created_at'] ||
+           (int)$observed['created_at']>(int)$observed['finished_at'] ||
+           (int)$observed['finished_at']>$at+5 ||
            !preg_match('/^[a-f0-9]{40}$/D',(string)$observed['release_sha']) ||
            !is_string($observed['result_json']) ||
            strlen($observed['result_json'])>10000)
@@ -185,8 +188,8 @@ function jrApexMissionLinkObservation(PDO $pdo, string $accountId,
         $evidenceDigest=hash('sha256',json_encode([
             'jr.jrei.original-readonly-observation.v1',
             $missionId,$runId,$action,$observed['release_sha'],
-            $observed['status'],(int)$observed['finished_at'],
-            hash('sha256',$observed['result_json'])
+            $observed['status'],(int)$observed['created_at'],
+            (int)$observed['finished_at'],hash('sha256',$observed['result_json'])
         ],JSON_THROW_ON_ERROR|JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES));
         $eventDigest=hash('sha256',json_encode([
             'jr.jrei.apex-mission-observation-event.v1',
