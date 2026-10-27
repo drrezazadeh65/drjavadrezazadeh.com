@@ -157,6 +157,7 @@ def propose_learning_method(
     }
     excluded: dict[str, int] = {method: 0 for method in _METHODS}
     negative: dict[str, list[str]] = {method: [] for method in _METHODS}
+    regressions: dict[str, int] = {method: 0 for method in _METHODS}
 
     for episode in payload.episodes:
         if (episode.domain != payload.target_domain
@@ -184,6 +185,8 @@ def propose_learning_method(
             )
             continue
         success = reviewed.decision == "REVIEW_CANDIDATE_ONLY"
+        if reviewed.decision in ("HOLD_LANGUAGE_REGRESSION", "HOLD_LATENCY_REGRESSION"):
+            regressions[episode.method] += 1
         records[episode.method].append((
             episode.episode_id, success, episode.total_resource_cost,
             episode.observed_operational_risk,
@@ -237,7 +240,8 @@ def propose_learning_method(
         item for item in evidence
         if (item.evidence_state == "CANDIDATE_METHOD_FOR_REVIEW"
             and item.demonstrated_candidate_count > 0
-            and item.demonstrated_candidate_count > item.negative_outcome_count)
+            and item.demonstrated_candidate_count > item.negative_outcome_count
+            and regressions[item.method] == 0)
     ]
     best = sorted(
         eligible_methods, key=lambda item: (-item.proposed_priority_score, item.method)
