@@ -41,6 +41,11 @@ $arguments=@(
   '--ctx-size','1024','--threads','4','--parallel','1',
   '--log-verbosity','4','--n-gpu-layers',[string]$GpuLayers
 )
+# Force the baseline to CPU-only. Otherwise Vulkan may offload operator
+# kernels with zero weight layers and invalidate the comparison.
+if($GpuLayers -eq 0){
+  $arguments+=@('--device','none','--no-op-offload')
+}
 function Get-OptionalJsonField($Object,[string]$PropertyName){
   # llama-server response schemas differ: reasoning_content and usage can
   # be entirely absent under Set-StrictMode -Version Latest.
