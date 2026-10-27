@@ -229,6 +229,23 @@ _SKILLS = (
         "testly_humanability_independently_validated": False,
         "exam_publishing_enabled": False,
     },
+    {
+        "skill_id": "jrei.news.original_cms_evidence_editorial_preflight.v1",
+        "version": "1.0.0",
+        "entry_route": "/internal/v1/news/official/editorial-preflight",
+        "execution": "MODEL_FREE_DETERMINISTIC",
+        "data_class": "CLAIM_CITATION_ISSUER_RIGHTS_RECEIPT_DIGEST_METADATA_ONLY",
+        "required_service_authority": "SIGNED_PRIVATE_GATEWAY_PLUS_OWNER_MFA",
+        "owner_action_authorized": False,
+        "mutates_mother_db": False,
+        "network_access": False,
+        "verified_source_grant": False,
+        "languages": ["fa", "en"],
+        "review": "ORIGINAL_KA_SOURCE_POLICY_AND_CMS_PUBLISHER_STANDING_AUTHORITY_REQUIRED",
+        "default_enabled": False,
+        "cms_writer_authorized": False,
+        "model_training_authorized": False,
+    },
 )
 _IDS = tuple(skill["skill_id"] for skill in _SKILLS)
 if len(set(_IDS)) != len(_IDS):
