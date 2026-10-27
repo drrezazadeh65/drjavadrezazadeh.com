@@ -5,6 +5,7 @@ on:
     paths:
       - '.github/workflows/jrei-v2-python-isolated-qa.yml'
       - 'platform/jrei-python/**'
+      - 'platform/jrei-v5/windows-worker/jrei-autocode-sandbox-startup.ps1'
       - 'api/jrei-apex-owner-missions.php'
       - 'api/jrei-apex-python-plan.php'
       - 'api/jrei-python-owner-skills.php'
@@ -63,3 +64,31 @@ jobs:
       - name: Report no-live-DB boundary
         if: always()
         run: echo 'No MySQL migrations applied. Only php -l. Owner MFA, DB and worker runtime require separately observed stage.' >> "$GITHUB_STEP_SUMMARY"
+
+  windows-birth-supervisor:
+    name: Source-only Windows startup parser (NO TASK INSTALLATION)
+    runs-on: windows-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Parse owner-gated JREI sandbox startup source
+        shell: pwsh
+        run: |
+          $tokens=$null
+          $errors=$null
+          $path=(Resolve-Path 'platform/jrei-v5/windows-worker/jrei-autocode-sandbox-startup.ps1').Path
+          $null=[System.Management.Automation.Language.Parser]::ParseFile(
+            $path,[ref]$tokens,[ref]$errors)
+          if($errors.Count -gt 0){
+            $errors|ForEach-Object { Write-Error $_.Message }
+            exit 1
+          }
+          $code=Get-Content -LiteralPath $path -Raw
+          if($code -notmatch "RunLevel Limited" -or
+             $code -notmatch "AUTOCODE_OWNER_APPROVAL_REQUIRED" -or
+             $code -notmatch "autocode-settings.v1.json" -or
+             $code -notmatch "JREI_CONTINUOUS_AUTOCODE_ENABLED" -or
+             $code -match "Start-ScheduledTask"){
+            throw 'JREI_BIRTH_SUPERVISOR_SOURCE_UNSAFE'
+          }
+          Write-Output 'JREI_WINDOWS_SANDBOX_SUPERVISOR_SOURCE_PARSED_NO_INSTALLATION'
