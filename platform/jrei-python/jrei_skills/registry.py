@@ -122,6 +122,20 @@ _SKILLS = (
         "languages": ["fa", "en"],
         "review": "OWNER_SIGNED_LEASE_RESOURCE_RIGHTS_AND_CRAWL_POLICY_REQUIRED",
     },
+    {
+        "skill_id": "jrei.learning.scoped_mission_binding.v1",
+        "version": "1.0.0",
+        "entry_route": "/internal/v1/learning/metacognitive/mission-bind",
+        "execution": "MODEL_FREE_DETERMINISTIC",
+        "data_class": "BOUNDED_AGGREGATE_DECISION_TO_REGISTERED_DAG_KINDS_ONLY",
+        "required_service_authority": "SIGNED_PRIVATE_GATEWAY",
+        "owner_action_authorized": False,
+        "mutates_mother_db": False,
+        "network_access": False,
+        "verified_source_grant": False,
+        "languages": ["fa", "en"],
+        "review": "EXISTING_MFA_OWNER_JOURNAL_AND_WORKER_LEASE_REQUIRED",
+    },
 )
 _IDS = tuple(skill["skill_id"] for skill in _SKILLS)
 if len(set(_IDS)) != len(_IDS):
