@@ -76,13 +76,10 @@ jobs:
           git clone --quiet $env:GITHUB_WORKSPACE $repo
           if($LASTEXITCODE -ne 0){throw 'CI_LOCAL_REPO_CLONE_FAILED'}
           git -C $repo remote set-url origin 'https://github.com/drrezazadeh65/drjavadrezazadeh.com'
-          # Review-bound release approval is intentionally pinned to an older,
-          # independently accepted SOURCE TREE. A newly developed tree MUST
-          # remain blocked on user Windows. In this DISPOSABLE CI fixture ONLY,
-          # authorize the current checkout to exercise candidate installation;
-          # never publish this fixture-generated authorization to the branch.
+          # CI-only independently staged authorization of the current source
+          # tree. NEVER publish or reuse this fixture approval on user Windows.
           $currentTree=(git -C $repo rev-parse 'HEAD:platform/jrei-python' | Out-String).Trim()
-          if($LASTEXITCODE -ne 0 -or $currentTree -notmatch '^[a-f0-9]{40} 'platform\jrei-v5\windows-worker\jrei-python-safe-upgrade.ps1'
+          if($LASTEXITCODE -ne 0 -or $currentTree -notmatch '^[a-f0-9]{40}
           $task='JREI-Python-Core'
           $base=Join-Path $root 'venv\Scripts\python.exe'
           $args='-m uvicorn jrei_service.app:app --host 127.0.0.1 --port 8091 --workers 1'
