@@ -55,11 +55,15 @@ function jrNewsOriginalSeedOfficialInstitutionSources(
         // roots. This is bounded, owner-policy gated and never approves rights.
         $entries=jrNewsOfficialInstitutionDirectory();
         $registered=[];
+        // Exact bounded catalogue lookup scales even when the mother source
+        // registry contains far more than 4,000 legitimate source records.
+        $allOrigins=array_column($entries,'origin');
+        $placeholders=implode(',',array_fill(0,count($allOrigins),'?'));
         $lookup=$pdo->prepare(
             'SELECT source_locator_uri FROM jrei_exam_sources
-             WHERE source_locator_uri LIKE ? ORDER BY source_id LIMIT 4000'
+             WHERE source_locator_uri IN ('.$placeholders.')'
         );
-        $lookup->execute(['https://%']);
+        $lookup->execute($allOrigins);
         foreach($lookup->fetchAll(PDO::FETCH_COLUMN) as $registeredUrl)
             $registered[(string)$registeredUrl]=true;
         usort($entries,static function(array $a,array $b)use($registered):int{
