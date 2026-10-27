@@ -8,6 +8,13 @@ if (!defined('BERTINA_API_BOOTSTRAPPED')) { http_response_code(404); exit; }
  * No model training, acquisition, executable command or knowledge promotion.
  * A Python-side prediction is never treated as independent scientific proof.
  */
+function jrMetaJournalExactFields(array $body,array $fields): bool {
+    $actual=array_keys($body);
+    sort($actual,SORT_STRING);
+    sort($fields,SORT_STRING);
+    return $actual===$fields;
+}
+
 function jrMetaJournalReady(PDO $pdo): bool {
     try {
         $pdo->query('SELECT cycle_id,owner_account_id,request_key,policy_version,'.
@@ -85,11 +92,14 @@ function jrMetaJournalValidateOutcome(array $payload,array $result): void {
         if(!is_string($id) || !array_key_exists($id,$expected) ||
            $expected[$id]['claims']!==null ||
            !is_array($claims) || !array_is_list($claims) ||
-           count($claims)>16 || count(array_unique($claims))!==count($claims)) {
+           count($claims)>16) {
             throw new DomainException('metacognitive_claim_context_invalid');
         }
         foreach($claims as $claim) {
             if(!is_string($claim))throw new DomainException('metacognitive_claim_identity_invalid');
+        }
+        if(count(array_unique($claims,SORT_STRING))!==count($claims)) {
+            throw new DomainException('metacognitive_duplicate_context_claim');
         }
         sort($claims,SORT_STRING);
         $expected[$id]['claims']=$claims;
@@ -140,7 +150,7 @@ function jrMetaJournalPropose(PDO $pdo,array $cfg,string $owner,array $body): ar
     if (!preg_match('/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/Di',$owner)) {
         throw new InvalidArgumentException('owner_identity_contract');
     }
-    if (array_keys($body)!==['action','requestKey','payload'] ||
+    if (!jrMetaJournalExactFields($body,['action','requestKey','payload']) ||
         $body['action']!=='propose-learning-cycle' ||
         !is_string($body['requestKey']) ||
         preg_match('/^[a-f0-9]{32}$/D',$body['requestKey'])!==1 ||
