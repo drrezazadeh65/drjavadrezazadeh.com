@@ -247,7 +247,7 @@ function operationsCronOwnerChange(PDO $pdo,array $config,
             throw new InvalidArgumentException('cron_news_bundle_confirmation_required');
         $newsIds=array_keys(array_filter(operationsCronRegistry(),
             static fn(array $job,string $id):bool=>
-                str_starts_with($id,'jrei_news_original_'),
+                str_starts_with($id,'jrei_news_'),
             ARRAY_FILTER_USE_BOTH));
         if(!$newsIds)throw new DomainException('cron_news_bundle_registry_empty');
         foreach($newsIds as $id)
@@ -277,6 +277,134 @@ function operationsCronOwnerChange(PDO $pdo,array $config,
         $snapshot['newRowsCreated']=$inserted;
         $snapshot['allNewsWorkersInitiallyDisabled']=true;
         $snapshot['automaticCronOrNewsPublicationActivated']=false;
+        return $snapshot;
+    }
+    // An owner-MFA/CSRF-scoped SINGLE activation of the ORIGINAL approved
+    // official-news production chain.  This is a scheduler switch, not a
+    // replacement for original rights/QA, a host Cron installation, a
+    // publication receipt, or bypass of the one mother database.
+    //
+    // Keep unrelated workers, payments, schemas and the caretaker untouched.
+    // Every branch fails closed BEFORE any mother-DB mutation.
+    if(($body['action']??null)==='activate_news_pipeline'){
+        if(($body['confirmation']??null)!=='ACTIVATE_ORIGINAL_VERIFIED_NEWS_PIPELINE')
+            throw new InvalidArgumentException('news_pipeline_owner_confirmation_required');
+        $flags=[
+            'operations_cron_master_enabled',
+            'jrei_news_integrated_release_accepted',
+            'jrei_news_feed_discovery_enabled',
+            'jrei_news_article_intake_enabled',
+            'jrei_news_independent_evidence_enabled',
+            'jrei_news_source_activation_accepted',
+            'jrei_ka_schedule_enabled',
+            'jrei_ka_autofetch_enabled',
+            'jrei_news_model_drafting_enabled',
+            'jrei_live_ai_enabled',
+            'jrei_news_original_cms_writer_enabled',
+            'jrei_news_standing_official_publishing_enabled',
+            'jrei_news_verified_restore_accepted',
+            'jrei_news_publisher_receipts_accepted',
+            'jrei_news_search_enabled'
+        ];
+        foreach($flags as $flag)
+            if(($config[$flag]??false)!==true)
+                throw new DomainException('news_pipeline_private_policy_incomplete');
+        if(!function_exists('jrOperationsNewsReadiness'))
+            throw new DomainException('news_pipeline_original_owner_readiness_unavailable');
+        $ready=jrOperationsNewsReadiness($pdo,$config);
+        if(($ready['requiredMotherSchemaAvailable']??null)!==true||
+           ($ready['standingOfficialPolicySchemaAvailable']??null)!==true||
+           ($ready['packagedPrivateNewsLibraryAvailable']??null)!==true||
+           ($ready['explicitOriginalApiFlagEnabled']??null)!==true)
+            throw new DomainException('news_pipeline_mother_schema_or_original_api_not_ready');
+        // The source of durable standing authority is the SAME original
+        // mother database used by the publisher. No invented MFA receipt.
+        $now=time();
+        $q=$pdo->prepare(
+            "SELECT policy_id,policy_digest,owner_account_id,revision_number,
+                    effective_at,expires_at,owner_mfa_audit_ref
+             FROM jrei_news_standing_policies
+             WHERE policy_code='OFFICIAL_PRIMARY_AUTO_NEWS'
+               AND revoked_at IS NULL AND effective_at<=? AND expires_at>?
+             ORDER BY effective_at DESC,revision_number DESC LIMIT 1");
+        $q->execute([$now,$now]);
+        $policy=$q->fetch(PDO::FETCH_ASSOC);
+        if(!is_array($policy)||
+           !preg_match('/^[a-zA-Z0-9._:-]{5,100}$/D',
+                (string)($policy['owner_mfa_audit_ref']??'')))
+            throw new DomainException('news_pipeline_no_current_owner_standing_authority');
+        $digest=hash('sha256',implode('|',[
+            'jr.jrei.news-standing-owner-policy.v1',
+            $policy['policy_id'],$policy['owner_account_id'],
+            'OFFICIAL_PRIMARY_AUTO_NEWS',$policy['revision_number'],
+            $policy['effective_at'],$policy['expires_at']
+        ]));
+        if(!is_string($policy['policy_digest'])||
+           !hash_equals($digest,$policy['policy_digest']))
+            throw new DomainException('news_pipeline_owner_authority_digest_invalid');
+
+        // Only fixed source-controlled workers. They use their own
+        // proof/rights/QA gates; ineligible content cannot be published.
+        $ids=[
+            'jrei_ka_schedule',
+            'jrei_ka_private_acquisition',
+            'jrei_news_original_feed_projection',
+            'jrei_news_independent_primary_evidence',
+            'jrei_news_original_article_intake',
+            'jrei_news_original_private_draft',
+            'jrei_news_original_private_publisher',
+            'jrei_news_original_public_index'
+        ];
+        $registry=operationsCronRegistry();
+        foreach($ids as $id){
+            if(!isset($registry[$id])||operationsCronSourcePath($id)===null)
+                throw new DomainException('news_pipeline_required_worker_source_missing');
+        }
+        $pdo->beginTransaction();
+        try{
+            $insert=$pdo->prepare(
+                'INSERT IGNORE INTO operations_cron_jobs
+                 (job_id,enabled,cadence_seconds,next_due_at,updated_at,updated_by_account_id)
+                 VALUES(?,0,?,0,?,?)');
+            $select=$pdo->prepare(
+                'SELECT enabled,needs_owner_review,last_state,row_revision
+                 FROM operations_cron_jobs WHERE job_id=? FOR UPDATE');
+            $update=$pdo->prepare(
+                'UPDATE operations_cron_jobs SET enabled=1,cadence_seconds=?,
+                  next_due_at=?,row_revision=row_revision+1,
+                  updated_at=?,updated_by_account_id=?
+                 WHERE job_id=? AND row_revision=? AND enabled=0
+                   AND needs_owner_review=0');
+            $activated=0;
+            foreach($ids as $id){
+                $insert->execute([$id,$registry[$id]['defaultCadence'],$now,$accountId]);
+                $select->execute([$id]);
+                $row=$select->fetch(PDO::FETCH_ASSOC);
+                if(!is_array($row)||(int)$row['needs_owner_review']===1||
+                   (string)$row['last_state']==='running')
+                    throw new DomainException('news_pipeline_prior_worker_outcome_requires_review');
+                if((int)$row['enabled']===1)continue;
+                $update->execute([
+                    $registry[$id]['defaultCadence'],$now,$now,
+                    $accountId,$id,(int)$row['row_revision']
+                ]);
+                if($update->rowCount()!==1)
+                    throw new DomainException('news_pipeline_concurrent_schedule_conflict');
+                $activated++;
+            }
+            operationsAudit($pdo,$accountId,'news_pipeline_owner_mfa_schedule_activated',
+                'jrei-original-news-bilingual-authorized-v1');
+            $pdo->commit();
+        }catch(Throwable $e){
+            if($pdo->inTransaction())$pdo->rollBack();
+            throw $e;
+        }
+        $snapshot=operationsCronOwnerSnapshot($pdo,$config);
+        $snapshot['newsPipelineScheduledWorkers']=count($ids);
+        $snapshot['newWorkersActivated']=$activated;
+        $snapshot['sourcePolicyAndStandingAuthorityChecked']=true;
+        $snapshot['publicationExecutedByActivation']=false;
+        $snapshot['hostCronExecutionIndependentlyVerified']=false;
         return $snapshot;
     }
     $jobId=$body['jobId']??null;
