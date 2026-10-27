@@ -194,6 +194,8 @@ function jrMetaJournalPropose(PDO $pdo,array $cfg,string $owner,array $body): ar
     );
     if (($result['schema_version']??null)!=='jr.jrei.metacognitive-cycle-result.v1' ||
         ($result['policy_version']??null)!==$policy ||
+        !is_string($result['submitted_payload_sha256']??null) ||
+        !hash_equals($digest,$result['submitted_payload_sha256']) ||
         ($result['learning_improvement_proven']??null)!==false ||
         ($result['automatic_skill_promotion']??null)!==false ||
         ($result['source_acquisition_started']??null)!==false ||
