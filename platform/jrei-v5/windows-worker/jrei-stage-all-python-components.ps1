@@ -60,12 +60,10 @@ function EnsureCanonical{
   if($LASTEXITCODE -ne 0){throw 'JREI_STAGE_LOCAL_MODIFICATIONS_PRESERVED'}
   & $script:gitExe -C $repo diff --cached --quiet --exit-code 1>$null 2>$null
   if($LASTEXITCODE -ne 0){throw 'JREI_STAGE_STAGED_CHANGES_PRESERVED'}
-  # Package only the canonical tracked Python tree; unknown local files can
-  # affect setuptools package discovery even without a Git tracked diff.
-  $untracked=Git -arguments @('ls-files','--others','--exclude-standard','--','platform/jrei-python')
-  if(-not [string]::IsNullOrWhiteSpace($untracked)){
-    throw 'JREI_STAGE_UNTRACKED_PROJECT_FILES_PRESERVED'
-  }
+  # Untracked local files (e.g. .egg-info and __pycache__) remain exactly
+  # where they are. Packaging never reads the working project directory:
+  # Install exports only the HEAD-tracked Python tree into its own directory.
+  # Tracked edits still fail closed above rather than getting overwritten.
   return $tree
 }
 function OfflineCommand([string]$exe,[string[]]$arguments,[string]$label){
@@ -111,6 +109,22 @@ if(Test-Path -LiteralPath $target){
   $receipt=Join-Path $target $receiptName
 }
 New-Item -ItemType Directory -Path $target -Force|Out-Null
+# Export exactly the committed Python tree. Never delete, move, install from,
+# or silently overwrite local untracked files in the working repository.
+$archive=Join-Path $target 'canonical-python-tree.zip'
+$sourceRoot=Join-Path $target 'canonical-source'
+$projectSnapshot=Join-Path $sourceRoot 'platform\jrei-python'
+& $script:gitExe -C $repo archive --format=zip "--output=$archive" HEAD platform/jrei-python 1>$null 2>$null
+if($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath $archive -PathType Leaf)){
+  throw 'JREI_STAGE_CANONICAL_ARCHIVE_FAILED'
+}
+# The ZIP is built from our already-verified canonical HEAD. Extract only
+# inside the newly allocated, isolated staging directory.
+New-Item -ItemType Directory -Path $sourceRoot -Force | Out-Null
+Expand-Archive -LiteralPath $archive -DestinationPath $sourceRoot
+if(-not (Test-Path -LiteralPath (Join-Path $projectSnapshot 'pyproject.toml') -PathType Leaf)){
+  throw 'JREI_STAGE_CANONICAL_SNAPSHOT_MISSING'
+}
 $stdout=Join-Path $target 'stage-stdout.txt'
 $stderr=Join-Path $target 'stage-stderr.txt'
 $base=(& $python -c "import sys; print(str(sys.version_info.major)+'.'+str(sys.version_info.minor)+'.'+str(sys.maxsize>2**32))")
@@ -123,7 +137,7 @@ $newPython=Join-Path $target 'Scripts\python.exe'
 $built=Join-Path $target 'wheel-build'
 New-Item -ItemType Directory -Force -Path $built|Out-Null
 OfflineCommand $newPython @('-m','pip','wheel','--no-index','--disable-pip-version-check',
- '--find-links',$wheelhouse,'--wheel-dir',$built,'--no-deps',$project) 'WHEEL_BUILD'
+ '--find-links',$wheelhouse,'--wheel-dir',$built,'--no-deps',$projectSnapshot) 'WHEEL_BUILD'
 $package=@(Get-ChildItem -LiteralPath $built -Filter 'jrei_intelligence_core-*.whl' -File)
 if($package.Count -ne 1){throw 'JREI_STAGE_PROJECT_WHEEL_MISSING'}
 OfflineCommand $newPython @('-m','pip','install','--no-index','--disable-pip-version-check',
@@ -135,6 +149,8 @@ if($after -cne $tree){throw 'JREI_STAGE_REPO_CHANGED_DURING_INSTALL'}
 $manifest=@{
   schema='jr.jrei.python-components-source-stage.v1'
   sourceTree=$tree
+  sourceOrigin='GIT_ARCHIVE_HEAD_TRACKED_PYTHON_TREE'
+  untrackedRepositoryFilesPreserved=$true
   createdAtUtc=[DateTime]::UtcNow.ToString('o')
   installedWheelSha256=(Get-FileHash -LiteralPath $package[0].FullName -Algorithm SHA256).Hash.ToLowerInvariant()
   staged=$true
