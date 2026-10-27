@@ -14,7 +14,7 @@ function jrOwnerJreiPythonSkillDispatch(array $privateConfig, array $body, ?stri
     $action=$body['action']??null;
     if (!is_string($action) ||
         !in_array($action,['catalog','triage-evidence','heldout-review','calculate',
-          'evidence-graph','metacognitive-plan','capacity-plan',
+          'evidence-graph','metacognitive-plan','capacity-plan','mission-bind',
           'memory-save','memory-read','memory-revoke'],true)) {
         throw new InvalidArgumentException('python_skill_action_invalid');
     }
@@ -65,7 +65,7 @@ function jrOwnerJreiPythonSkillDispatch(array $privateConfig, array $body, ?stri
         $payload=$body['payload'];
         $expected='jr.jrei.heldout-review-result.v1';
     } elseif (in_array($action,
-        ['evidence-graph','metacognitive-plan','capacity-plan'],true)) {
+        ['evidence-graph','metacognitive-plan','capacity-plan','mission-bind'],true)) {
         // All three are strictly read-only: no browser-selected endpoint,
         // unreviewed model tool, raw learner records, action execution or
         // assignment authority. The original admin MFA/CSRF gate is retained.
@@ -83,12 +83,14 @@ function jrOwnerJreiPythonSkillDispatch(array $privateConfig, array $body, ?stri
         $route=match($action) {
             'evidence-graph'=>'/internal/v1/learning/evidence-graph/review',
             'metacognitive-plan'=>'/internal/v1/learning/metacognitive/plan',
-            'capacity-plan'=>'/internal/v1/orchestration/capacity/plan'
+            'capacity-plan'=>'/internal/v1/orchestration/capacity/plan',
+            'mission-bind'=>'/internal/v1/learning/metacognitive/mission-bind'
         };
         $expected=match($action) {
             'evidence-graph'=>'jr.jrei.evidence-graph-review.v1',
             'metacognitive-plan'=>'jr.jrei.metacognitive-cycle-result.v1',
-            'capacity-plan'=>'jr.jrei.adaptive-placement-result.v1'
+            'capacity-plan'=>'jr.jrei.adaptive-placement-result.v1',
+            'mission-bind'=>'jr.jrei.metacognitive-mission-binding-result.v1'
         };
     } elseif ($action==='calculate') {
         if (count($body)!==2 || !array_key_exists('payload',$body) ||
@@ -197,6 +199,20 @@ function jrOwnerJreiPythonSkillDispatch(array $privateConfig, array $body, ?stri
          ($result['resource_measurements_independently_verified']??null)!==false ||
          !is_array($result['placements']??null))) {
         throw new RuntimeException('JREI_PYTHON_CAPACITY_PRIVILEGE_ESCALATION');
+    }
+    if ($action==='mission-bind' &&
+        (($result['mission_submitted']??null)!==false ||
+         ($result['worker_lease_issued']??null)!==false ||
+         ($result['rights_granted']??null)!==false ||
+         ($result['independent_review_completed']??null)!==false ||
+         ($result['improvement_proven']??null)!==false ||
+         ($result['original_owner_authority_required']??null)!==true ||
+         !is_array($result['proposal']??null) ||
+         ($result['proposal']['executed']??null)!==false ||
+         ($result['proposal']['authorized']??null)!==false ||
+         ($result['proposal']['site_modified']??null)!==false ||
+         ($result['proposal']['model_training_started']??null)!==false)) {
+        throw new RuntimeException('JREI_PYTHON_MISSION_BIND_PRIVILEGE_ESCALATION');
     }
     if ($action==='calculate' &&
         (($result['performed_without_model']??null)!==true ||
