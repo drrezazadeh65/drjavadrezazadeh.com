@@ -13,6 +13,69 @@
   var topics=['school','examinations','universities','employment',
     'language','international','research'];
   var feed=[];
+  // Visible source directory is a reader convenience, not an assertion of
+  // current source licensing, JREI acquisition or a published news article.
+  // These institution origins are the same bounded candidates used in the
+  // original JREI News official-institution directory.
+  var officialOrigins=[
+    {fa:'سازمان سنجش آموزش کشور',en:'National Organization of Educational Testing',url:'https://www.sanjesh.org/'},
+    {fa:'وزارت علوم، تحقیقات و فناوری',en:'Ministry of Science, Research and Technology',url:'https://www.msrt.ir/'},
+    {fa:'وزارت آموزش و پرورش',en:'Ministry of Education',url:'https://www.medu.ir/'},
+    {fa:'دانشگاه تهران',en:'University of Tehran',url:'https://ut.ac.ir/'},
+    {fa:'دانشگاه پیام نور',en:'Payame Noor University',url:'https://pnu.ac.ir/'},
+    {fa:'دانشگاه آزاد اسلامی',en:'Islamic Azad University',url:'https://iau.ir/'}
+  ];
+  var sourceDesk=null,feedState=null;
+  function sourceHub(){
+    if(sourceDesk)return;
+    var cover=root.querySelector('.jrn21-cover');
+    if(!cover)return;
+    sourceDesk=document.createElement('section');
+    sourceDesk.className='jrn21-source-hub';
+    sourceDesk.setAttribute('aria-label',fa?'دسترسی به مراجع اطلاع‌رسانی آموزشی':'Educational source directory');
+    var intro=document.createElement('div');
+    intro.className='jrn21-source-hub-head';
+    var heading=document.createElement('h2');
+    heading.textContent=fa?'مراجع اصلی اطلاع‌رسانی آموزشی':'Educational information sources';
+    var explanation=document.createElement('p');
+    explanation.textContent=fa?
+      'پیوند مستقیم به وبگاه نهادها؛ درج این پیوندها به‌معنای تأیید یک خبر، مجوز بازنشر یا فعال‌بودن پایش JREI نیست.':
+      'Direct links to institutional websites. Listing a link does not verify an announcement, grant republication rights, or attest JREI monitoring.';
+    intro.append(heading,explanation);
+    feedState=document.createElement('p');
+    feedState.className='jrn21-source-feed-state';
+    feedState.setAttribute('role','status');
+    feedState.setAttribute('aria-live','polite');
+    var list=document.createElement('ul');
+    list.className='jrn21-source-links';
+    officialOrigins.forEach(function(source){
+      var url=officialUrl(source.url);
+      if(!url)return;
+      var item=document.createElement('li');
+      var link=document.createElement('a');
+      link.textContent=fa?source.fa:source.en;
+      link.href=url;
+      link.target='_blank';
+      link.rel='noopener noreferrer external';
+      item.append(link);list.append(item);
+    });
+    sourceDesk.append(intro,feedState,list);
+    cover.insertAdjacentElement('afterend',sourceDesk);
+    setSourceStatus('loading');
+  }
+  function setSourceStatus(state){
+    if(!feedState)return;
+    var status={
+      loading:fa?'در حال بررسی فهرست خبرهای منتشرشده و دارای رسید…':'Checking receipt-backed published stories…',
+      ready:fa?'خبرهای دارای رسید انتشار در آرشیو زیر نمایش داده می‌شوند.':'Published, receipt-backed stories appear in the archive below.',
+      empty:fa?'هنوز خبر دارای رسید انتشار برای نمایش دریافت نشده است. از مراجع اصلی زیر استفاده کنید.':
+        'No receipt-backed stories are available yet. Use the direct institutional links below.',
+      unavailable:fa?'دریافت آرشیو معتبر فعلاً ممکن نیست؛ این وضعیت به معنی نبود یا انتشار خبر نیست.':
+        'The verified archive is temporarily unavailable; no story status is inferred.'
+    };
+    feedState.textContent=status[state]||status.unavailable;
+    sourceDesk.dataset.feedState=state;
+  }
   function text(s,max){
     return typeof s==='string'?s.replace(/\s+/g,' ').trim().slice(0,max):'';
   }
@@ -217,6 +280,7 @@
     selectArchive(category,text(target.getAttribute('data-jrn21-query'),160));
     // The original fragment link remains functional if the search endpoint is disabled.
   });
+  sourceHub();
   if(typeof fetch==='function'&&typeof DOMParser!=='undefined'){
     fetch('/api/news/v1/rss?language='+locale,{
       method:'GET',credentials:'omit',redirect:'error',cache:'no-store',
@@ -229,9 +293,10 @@
     }).then(function(xml){
       feed=fromRss(xml);
       updateFeeds();
+      setSourceStatus(feed.length?'ready':'empty');
     }).catch(function(){
-      // No fabricated stories, private fallbacks or misleading "live" claims.
-      feed=[];updateFeeds();
+      // Distinguish inaccessible feed from a valid empty archive.
+      feed=[];updateFeeds();setSourceStatus('unavailable');
     });
   }
   function verifiedEvents(data){
