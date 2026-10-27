@@ -121,12 +121,14 @@ function jrOwnerJreiPythonSkillDispatch(array $privateConfig, array $body, ?stri
             throw new InvalidArgumentException('jrei_model_draft_body_invalid');
         }
         $input=$body['payload'];
-        if (count($input)<3 || count($input)>4 ||
+        if (count($input)<3 || count($input)>5 ||
             count(array_diff(array_keys($input),
-                ['request_id','language','question','max_output_tokens']))!==0 ||
+                ['request_id','language','question','max_output_tokens','academic_task']))!==0 ||
             !is_string($input['request_id']??null) ||
             !preg_match('/^[A-Za-z0-9][A-Za-z0-9._:-]{2,79}$/D',$input['request_id']) ||
             !in_array($input['language']??null,['fa','en'],true) ||
+            !in_array($input['academic_task']??'EXPLAIN',
+              ['EXPLAIN','SOCRATIC_TUTOR','CRITICAL_REVIEW','ASSESSMENT_DESIGN'],true) ||
             !is_string($input['question']??null) ||
             strlen($input['question'])>4000 ||
             preg_match('/\A[\s\S]{5,1000}\z/uD',$input['question'])!==1 ||
@@ -141,6 +143,7 @@ function jrOwnerJreiPythonSkillDispatch(array $privateConfig, array $body, ?stri
             'schema_version'=>'jr.jrei.owner-local-model-draft.v1',
             'request_id'=>$input['request_id'],
             'language'=>$input['language'],
+            'academic_task'=>$input['academic_task']??'EXPLAIN',
             'question'=>$input['question'],
             'purpose'=>'PRIVATE_EDUCATIONAL_DRAFT',
             'max_output_tokens'=>$input['max_output_tokens']??384
@@ -404,6 +407,7 @@ function jrOwnerJreiPythonSkillDispatch(array $privateConfig, array $body, ?stri
          ($result['persisted_to_mother_db']??null)!==false ||
          ($result['request_id']??null)!==$payload['request_id'] ||
          ($result['language']??null)!==$payload['language'] ||
+         ($result['academic_task']??null)!==$payload['academic_task'] ||
          !is_string($result['model_output']??null) ||
          strlen($result['model_output'])>24000 ||
          !preg_match('/^[a-f0-9]{64}$/D',(string)($result['response_sha256']??'')) ||
