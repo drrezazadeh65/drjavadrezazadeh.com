@@ -133,9 +133,16 @@ function jrNewsOriginalPublicNewsHtml(
       '<script type="application/ld+json">'.$jsonld.'</script></head><body>'.
       '<a class="skip-link" href="#main">'.
       ($language==='fa'?'رفتن به متن':'Skip to article').'</a>'.
-      '<header class="site-header"><a href="'.$home.'">JREI News</a></header>'.
+      '<header class="site-header"><a class="ni-news-wordmark" href="'.$home.'">JREI <span>NEWS</span></a>'.
+      '<nav class="ni-public-news-nav" aria-label="'.($language==='fa'?'ناوبری اخبار':'News navigation').'">'.
+      '<a href="'.$home.'">'.($language==='fa'?'همه اخبار':'All news').'</a>'.
+      '<a href="'.$other.'" hreflang="'.$alt.'">'.($language==='fa'?'English':'فارسی').'</a>'.
+      '</nav></header>'.
       '<main id="main"><article class="ni-article"><header><h1>'.$title.'</h1>'.
-      '<p>'.$summary.'</p><time datetime="'.$date.'">'.substr($date,0,10).'</time></header>'.
+      '<p>'.$summary.'</p><time datetime="'.$date.'">'.substr($date,0,10).'</time>'.
+      '<div class="ni-story-provenance"><span>'.($language==='fa'?'منبع مستقل و تاریخ بررسی‌شده':'Source-checked publication').'</span>'.
+      '<a href="'.$sourceUrl.'" rel="noopener noreferrer external" target="_blank">'.
+      jrNewsHtmlEscape($sourceLabel).'</a></div></header>'.
       '<figure><img src="'.jrNewsHtmlEscape($image).'" alt="'.jrNewsHtmlEscape($imageAlt).'" loading="lazy"></figure>'.
       '<section>'.$sections['body'].'</section>'.
       '<section aria-label="'.jrNewsHtmlEscape($nextLabel).'"><h2>'.
