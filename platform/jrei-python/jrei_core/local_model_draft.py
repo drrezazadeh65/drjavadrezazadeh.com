@@ -133,7 +133,9 @@ def create_local_owner_draft(payload: LocalDraftRequest) -> LocalDraftResult:
             "invent a bibliographic reference, DOI, quotation or citation. "
             "Do not request credentials, perform tool calls, or make claims "
             "about what has been published. Distinguish uncertainty, acknowledge "
-            "limitations. Respond in Persian."
+            "limitations. Respond in fluent standard Persian only. Avoid Han or "
+            "Chinese script in Persian answers; distinguish assessment construct "
+            "validity from score consistency and do not invent facts."
             if payload.language == "fa" else
             "You are a private academic writing assistant. Generate ONLY an "
             "unverified educational draft from the supplied question. Do not "
@@ -220,6 +222,7 @@ def create_local_owner_draft(payload: LocalDraftRequest) -> LocalDraftResult:
             ],
             "stream": False, "temperature": 0.15,
             "max_tokens": payload.max_output_tokens,
+            "chat_template_kwargs": {"enable_thinking": False},
             "tools": [],
         }
         body_bytes = json.dumps(
@@ -253,14 +256,19 @@ def create_local_owner_draft(payload: LocalDraftRequest) -> LocalDraftResult:
             if not isinstance(choices, list) or len(choices) != 1:
                 raise ValueError("unexpected choice count")
             finish = choices[0].get("finish_reason")
-            if finish not in ("stop", "length"):
-                raise ValueError("unexpected finish reason")
+            if finish != "stop":
+                raise ValueError("truncated or incomplete model response")
             output = choices[0]["message"]["content"]
             if not isinstance(output, str):
                 raise ValueError("unexpected content type")
             output = output.strip()
             if not output or len(output) > 6000:
                 raise ValueError("output out of bounds")
+            # Negative-only output quality firewall, never a claim of science.
+            if payload.language == "fa" and re.search(r"[\u3400-\u9fff]", output):
+                raise ValueError("Han characters in Persian response")
+            if re.search(r"<\/?think(?:\s|>)", output, re.IGNORECASE):
+                raise ValueError("visible private reasoning in response")
             usage = parsed.get("usage")
             tokens = (usage.get("completion_tokens")
                       if isinstance(usage, dict) else None)
