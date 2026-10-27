@@ -178,6 +178,20 @@ _SKILLS = (
         "languages": ["fa", "en"],
         "review": "REAL_KA_SOURCE_RIGHTS_AND_ORIGINAL_DOCUMENT_HASH_REVIEW_REQUIRED",
     },
+    {
+        "skill_id": "jrei.learning.strategy_optimizer.v1",
+        "version": "1.0.0",
+        "entry_route": "/internal/v1/learning/strategy/propose",
+        "execution": "MODEL_FREE_DETERMINISTIC",
+        "data_class": "PAIRED_HELDOUT_DIGESTS_AND_REVIEW_REFERENCES_ONLY",
+        "required_service_authority": "SIGNED_PRIVATE_GATEWAY",
+        "owner_action_authorized": False,
+        "mutates_mother_db": False,
+        "network_access": False,
+        "verified_source_grant": False,
+        "languages": ["fa", "en"],
+        "review": "OWNER_METHOD_AND_INDEPENDENT_REVIEW_REQUIRED_BEFORE_POLICY_CHANGE",
+    },
 )
 _IDS = tuple(skill["skill_id"] for skill in _SKILLS)
 if len(set(_IDS)) != len(_IDS):
