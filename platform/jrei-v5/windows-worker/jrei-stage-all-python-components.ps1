@@ -60,6 +60,12 @@ function EnsureCanonical{
   if($LASTEXITCODE -ne 0){throw 'JREI_STAGE_LOCAL_MODIFICATIONS_PRESERVED'}
   & $script:gitExe -C $repo diff --cached --quiet --exit-code 1>$null 2>$null
   if($LASTEXITCODE -ne 0){throw 'JREI_STAGE_STAGED_CHANGES_PRESERVED'}
+  # Package only the canonical tracked Python tree; unknown local files can
+  # affect setuptools package discovery even without a Git tracked diff.
+  $untracked=Git -arguments @('ls-files','--others','--exclude-standard','--','platform/jrei-python')
+  if(-not [string]::IsNullOrWhiteSpace($untracked)){
+    throw 'JREI_STAGE_UNTRACKED_PROJECT_FILES_PRESERVED'
+  }
   return $tree
 }
 function OfflineCommand([string]$exe,[string[]]$arguments,[string]$label){
