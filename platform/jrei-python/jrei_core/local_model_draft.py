@@ -75,7 +75,7 @@ class LocalDraftResult(StrictContract):
     response_sha256: Digest
     inference_latency_ms: int = Field(ge=0)
     tokens_reported: int | None = Field(default=None, ge=0)
-    output_has_source_citations: Literal[False] = False
+    source_citations_independently_verified: Literal[False] = False
     factual_accuracy_independently_verified: Literal[False] = False
     source_rights_verified: Literal[False] = False
     model_weights_modified: Literal[False] = False
