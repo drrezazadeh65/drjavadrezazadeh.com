@@ -14,7 +14,7 @@ function jrOwnerJreiPythonSkillDispatch(array $privateConfig, array $body, ?stri
     $action=$body['action']??null;
     if (!is_string($action) ||
         !in_array($action,['catalog','triage-evidence','heldout-review','calculate',
-          'evidence-graph','metacognitive-plan','capacity-plan','mission-bind','method-feedback','grounded-retrieval','source-extract',
+          'evidence-graph','metacognitive-plan','capacity-plan','strategy-propose','mission-bind','method-feedback','grounded-retrieval','source-extract',
           'memory-save','memory-read','memory-revoke'],true)) {
         throw new InvalidArgumentException('python_skill_action_invalid');
     }
@@ -65,7 +65,7 @@ function jrOwnerJreiPythonSkillDispatch(array $privateConfig, array $body, ?stri
         $payload=$body['payload'];
         $expected='jr.jrei.heldout-review-result.v1';
     } elseif (in_array($action,
-        ['evidence-graph','metacognitive-plan','capacity-plan','mission-bind','method-feedback','grounded-retrieval','source-extract'],true)) {
+        ['evidence-graph','metacognitive-plan','capacity-plan','strategy-propose','mission-bind','method-feedback','grounded-retrieval','source-extract'],true)) {
         // All three are strictly read-only: no browser-selected endpoint,
         // unreviewed model tool, raw learner records, action execution or
         // assignment authority. The original admin MFA/CSRF gate is retained.
@@ -84,6 +84,7 @@ function jrOwnerJreiPythonSkillDispatch(array $privateConfig, array $body, ?stri
             'evidence-graph'=>'/internal/v1/learning/evidence-graph/review',
             'metacognitive-plan'=>'/internal/v1/learning/metacognitive/plan',
             'capacity-plan'=>'/internal/v1/orchestration/capacity/plan',
+            'strategy-propose'=>'/internal/v1/learning/strategy/propose',
             'mission-bind'=>'/internal/v1/learning/metacognitive/mission-bind',
             'method-feedback'=>'/internal/v1/learning/metacognitive/method-feedback',
             'grounded-retrieval'=>'/internal/v1/knowledge/retrieval/propose',
@@ -93,6 +94,7 @@ function jrOwnerJreiPythonSkillDispatch(array $privateConfig, array $body, ?stri
             'evidence-graph'=>'jr.jrei.evidence-graph-review.v1',
             'metacognitive-plan'=>'jr.jrei.metacognitive-cycle-result.v1',
             'capacity-plan'=>'jr.jrei.adaptive-placement-result.v1',
+            'strategy-propose'=>'jr.jrei.learning-strategy-proposal.v1',
             'mission-bind'=>'jr.jrei.metacognitive-mission-binding-result.v1',
             'method-feedback'=>'jr.jrei.method-feedback-result.v1',
             'grounded-retrieval'=>'jr.jrei.grounded-retrieval-result.v1',
@@ -197,6 +199,15 @@ function jrOwnerJreiPythonSkillDispatch(array $privateConfig, array $body, ?stri
          ($result['public_site_changed']??null)!==false ||
          !is_array($result['decisions']??null))) {
         throw new RuntimeException('JREI_PYTHON_METACOGNITION_PRIVILEGE_ESCALATION');
+    }
+    if ($action==='strategy-propose' &&
+        (($result['automatic_method_change_applied']??null)!==false ||
+         ($result['changes_executed']??null)!==false ||
+         ($result['model_weights_changed']??null)!==false ||
+         ($result['scientific_improvement_proven']??null)!==false ||
+         ($result['inputs_independently_attested_by_service']??null)!==false ||
+         !is_array($result['compared_method_evidence']??null))) {
+        throw new RuntimeException('JREI_PYTHON_STRATEGY_PRIVILEGE_ESCALATION');
     }
     if ($action==='capacity-plan' &&
         (($result['scheduler_enabled_by_this_plan']??null)!==false ||
