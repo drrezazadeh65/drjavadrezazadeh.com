@@ -14,7 +14,7 @@ function jrOwnerJreiPythonSkillDispatch(array $privateConfig, array $body, ?stri
     $action=$body['action']??null;
     if (!is_string($action) ||
         !in_array($action,['catalog','triage-evidence','heldout-review','calculate',
-          'evidence-graph','metacognitive-plan','learning-value-plan','capacity-plan','exam-blueprint-review','news-editorial-preflight','strategy-propose','mission-bind','method-feedback','grounded-retrieval','source-extract',
+          'evidence-graph','answer-grounding-review','metacognitive-plan','learning-value-plan','capacity-plan','exam-blueprint-review','news-editorial-preflight','strategy-propose','mission-bind','method-feedback','grounded-retrieval','source-extract',
           'model-draft','memory-save','memory-read','memory-revoke'],true)) {
         throw new InvalidArgumentException('python_skill_action_invalid');
     }
@@ -82,6 +82,7 @@ function jrOwnerJreiPythonSkillDispatch(array $privateConfig, array $body, ?stri
         $payload=$body['payload'];
         $route=match($action) {
             'evidence-graph'=>'/internal/v1/learning/evidence-graph/review',
+            'answer-grounding-review'=>'/internal/v1/learning/answers/grounding-review',
             'metacognitive-plan'=>'/internal/v1/learning/metacognitive/plan',
             'learning-value-plan'=>'/internal/v1/learning/value-of-information/plan',
             'capacity-plan'=>'/internal/v1/orchestration/capacity/plan',
@@ -95,6 +96,7 @@ function jrOwnerJreiPythonSkillDispatch(array $privateConfig, array $body, ?stri
         };
         $expected=match($action) {
             'evidence-graph'=>'jr.jrei.evidence-graph-review.v1',
+            'answer-grounding-review'=>'jr.jrei.answer-grounding-review-result.v1',
             'metacognitive-plan'=>'jr.jrei.metacognitive-cycle-result.v1',
             'learning-value-plan'=>'jr.jrei.learning-voi-result.v1',
             'capacity-plan'=>'jr.jrei.adaptive-placement-result.v1',
@@ -223,6 +225,20 @@ function jrOwnerJreiPythonSkillDispatch(array $privateConfig, array $body, ?stri
            'NO_DEMONSTRATED_IMPROVEMENT','REVIEW_CANDIDATE_ONLY'
          ],true))) {
         throw new RuntimeException('JREI_PYTHON_HELDOUT_PRIVILEGE_ESCALATION');
+    }
+    if ($action==='answer-grounding-review' &&
+        (($result['public_answer_authorized']??null)!==false ||
+         ($result['claim_truth_verified']??null)!==false ||
+         ($result['source_rights_independently_attested']??null)!==false ||
+         ($result['citations_validated_in_mother_db']??null)!==false ||
+         ($result['model_weights_changed']??null)!==false ||
+         !is_array($result['sentences']??null) ||
+         !is_array($result['held_sentence_ids']??null) ||
+         !in_array($result['decision']??null,[
+           'HOLD_UNGROUNDED_OR_CONFLICTING_DRAFT',
+           'CANDIDATE_REQUIRES_INDEPENDENT_REVIEW'
+         ],true))) {
+        throw new RuntimeException('JREI_DRAFT_GROUNDING_PRIVILEGE_ESCALATION');
     }
     if ($action==='evidence-graph' &&
         (($result['publication_executed']??null)!==false ||
