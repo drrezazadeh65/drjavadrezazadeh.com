@@ -474,13 +474,30 @@ function operationsRoute(string $path, string $verb): never {
             }
         }
 
+        // Informational SUPER_ADMIN preflight: derives all readiness
+        // fields from real mother DB rows and current private release switches.
+        if ($path==='/admin/operations/jrei-python-canary/preflight' && $verb==='GET') {
+            if (($configuration['operations_admins'][$accountId]['role']??'')!=='SUPER_ADMIN')
+                fail('super_admin_required',403);
+            if (!rateAllowed($pdo,'jrei_python_canary_preflight',$accountId,30,300))
+                fail('rate_limited',429);
+            try {
+                respond(jrPythonCanaryPreflight($pdo,$configuration,time()));
+            } catch(Throwable $e) { fail('python_canary_preflight_unavailable',503); }
+        }
+
         // Explicit owner MFA/CSRF creates ONE fixed 12*7 job in the
         // existing mother DB. Neither model command nor general executor.
         if ($path==='/admin/operations/jrei-python-canary' &&
             in_array($verb,['GET','POST'],true)) {
             if (($configuration['operations_admins'][$accountId]['role']??'')!=='SUPER_ADMIN')
                 fail('super_admin_required',403);
-            if (!rateAllowed($pdo,'jrei_python_canary_owner',$accountId,8,300))
+            // A read-only receipt view may be refreshed while a job is
+            // in progress; actual POST submission is separately capped.
+            $readOnly=($verb==='GET');
+            if (!rateAllowed($pdo,
+                $readOnly?'jrei_python_canary_owner_read':'jrei_python_canary_owner_write',
+                $accountId,$readOnly?72:8,300))
                 fail('rate_limited',429);
             if ($verb==='GET') {
                 try {
