@@ -9,6 +9,13 @@ if (!defined('BERTINA_API_BOOTSTRAPPED')) { http_response_code(404); exit; }
  * registry (worker route), SAME drjavad1_store, and a separately gated table.
  */
 const JR_PY_CANARY_SCHEMA = 'jr.jrei.python-canary.v1';
+/** Exact JSON object contract, independent of harmless property ordering. */
+function jrPythonCanaryExactFields(array $body,array $allowed): bool {
+    $keys=array_keys($body);
+    sort($keys,SORT_STRING);
+    sort($allowed,SORT_STRING);
+    return $keys===$allowed;
+}
 function jrPythonCanaryReady(PDO $db): bool {
     try {
         $db->query('SELECT job_id,owner_account_id,request_key,state,assigned_node,lease_id,lease_expires_at,created_at,expires_at,completed_at,numerator,denominator,result_sha256 FROM jrei_python_canary_jobs LIMIT 0');
@@ -74,7 +81,7 @@ function jrPythonCanaryPreflight(PDO $db,array $cfg,int $now): array {
 }
 
 function jrPythonCanaryOwner(PDO $db,string $account,array $body,int $now): array {
-    if(array_keys($body)!==['action','requestKey'] ||
+    if(!jrPythonCanaryExactFields($body,['action','requestKey']) ||
        $body['action']!=='run-fixed-arithmetic' ||
        !is_string($body['requestKey']) ||
        preg_match('/^[a-f0-9]{32}$/D',$body['requestKey'])!==1)
@@ -124,7 +131,7 @@ function jrPythonCanaryOwnerSnapshot(PDO $db,string $owner): array {
       'newsOrCrawlingEnabled'=>false,'jobs'=>$rows];
 }
 function jrPythonCanaryPoll(PDO $db,string $node,array $body,int $now): array {
-    if(array_keys($body)!==['schema']||$body['schema']!==JR_PY_CANARY_SCHEMA)
+    if(!jrPythonCanaryExactFields($body,['schema'])||$body['schema']!==JR_PY_CANARY_SCHEMA)
         throw new InvalidArgumentException('python_canary_poll_contract');
     // The original signed node must have recently reported Python 8091
     // RESPONDING into the verified mother DB before it can lease a job.
@@ -168,8 +175,8 @@ function jrPythonCanaryPoll(PDO $db,string $node,array $body,int $now): array {
     }catch(Throwable $e){if($db->inTransaction())$db->rollBack();throw $e;}
 }
 function jrPythonCanaryComplete(PDO $db,string $node,array $body,int $now): array {
-    if(array_keys($body)!==['schema','jobId','leaseId','numerator','denominator',
-          'exactFraction','skillId','performedWithoutModel'] ||
+    if(!jrPythonCanaryExactFields($body,['schema','jobId','leaseId','numerator','denominator',
+          'exactFraction','skillId','performedWithoutModel']) ||
        $body['schema']!==JR_PY_CANARY_SCHEMA ||
        !jrHybridUuid($body['jobId'])||!jrHybridUuid($body['leaseId']) ||
        $body['numerator']!==84||$body['denominator']!==1||
