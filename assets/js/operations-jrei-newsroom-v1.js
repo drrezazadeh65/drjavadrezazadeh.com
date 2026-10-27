@@ -41,7 +41,7 @@
        throw Error('MFA_REQUIRED');
      if(myRevision!==revision||!visible())return;
      csrf=auth.csrfToken;
-     const module=await import('/assets/js/jrei-news-owner-panel-v1.mjs?v=20261025-r1');
+     const module=await import('/assets/js/jrei-news-owner-panel-v1.mjs?v=20261027-news-activation-gates-v1');
      if(myRevision!==revision||!visible())return;
      panel=module.mountNewsOwnerPanel({
        root,csrfResolver:()=>csrf,
