@@ -135,8 +135,9 @@ test('unavailable original receipt-backed feed cannot trigger a false alert',asy
 });
 test('rejects external, private, or parameterized URLs from nominal RSS',async()=>{
   const app=mount({storySequence:[
-    story('https://untrusted.example/fa/akhbar/forged/','Forger',recent1),
+    story(original,'Official original',recent1),
     [story(original,'Official original',recent1),
+     story('https://untrusted.example/fa/akhbar/forged/','Forger',recent2),
      story('https://drjavadrezazadeh.com/fa/akhbar/evil/?tracking=1','Fake',recent2),
      story('https://drjavadrezazadeh.com/fa/app/admin/','Private',recent2)].join('|')
   ]});
