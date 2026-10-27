@@ -36,3 +36,21 @@ Reference: 66-point master `JREI_GLOBAL_EDUCATION_NEWS_INTELLIGENCE_MASTER_V1_20
 3. Verify genuine source-approved calendar API or keep its not-connected state truthful; verify no leaking draft/PII.
 4. Ensure deployment workflow and production HEAD parity, obtain actual build + rollout evidence, and confirm 200/indexability for frozen original routes.
 5. Obtain the owner's guarded production publication decision. Do not report LIVE without independently observed production acceptance.
+
+## Subsequent enhancement — real topic browsing and newsroom lead (27 October 2026)
+
+- The two frozen archive URLs now have reciprocal FA/EN and x-default hreflang.
+- Search client and bundled artifact remain byte-identical. Keyword-free browsing is allowed only when a recognised category is supplied, with the same original publication authority, receipt, index-state and IP rate-limit restrictions. Normal empty unrestricted queries still fail.
+- The public RSS contains the original category_code from published index rows plus an independent BREAKING signal for a recent P0-only item; private rows are never syndicated.
+- The single first-party UX client now renders the newest genuine publication as a lead story and filters its published latest-feed list by the selected desk. A desk also triggers the original same-origin category-only archive request.
+- The exam calendar no longer rejects genuine future milestones as invalid publication dates. Its UI requires the original independently verified official-date contract and keeps truthful failure messaging.
+- The original JREI assistant and user account/alert destinations were checked as existing source routes, and bilingual direct links added without a second model or consent mechanism.
+- New local source acceptance checks: `platform/news-intelligence/tests/newsroom-ui-v2.test.mjs`. File creation does not imply these tests have executed or passed. Exact-SHA workflow evidence is required for acceptance.
+
+### Remaining hard blocker
+
+The original public `/api/news/v1/calendar` endpoint does not exist in the inspected original `api/index.php`. Although the independent official calendar read model and private adapter contracts exist, a trusted original JREI source-current/rights resolver and its public release controls must be integrated and demonstrated before the calendar is declared LIVE. Do not create a permissive substitute resolver or publicise speculative dates.
+
+### Preservation
+
+Do not modify shared JREI Python runtime, independent model deployment, mother schema or backend source-authority shortcuts while addressing this UI workstream. Deployment remains owner-controlled and must be backed by browser, PHP syntax, build, SEO and exact public release evidence.
