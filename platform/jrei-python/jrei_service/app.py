@@ -6,6 +6,8 @@ proposal into an approved, saved, executed or published action.
 """
 from __future__ import annotations
 
+import os
+
 from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.concurrency import run_in_threadpool
 from jrei_core.auth import require_internal_gateway
@@ -105,8 +107,17 @@ async def capabilities():
             "experiment_feedback_on_learning_methods_v1",
             "bilingual_versioned_grounded_retrieval_proposal_v1",
             "offline_source_sha_anchored_document_extraction_v1",
+            "separately_gated_owner_loopback_qwen_draft_source_v1",
         ],
         "live_model_inference": False,
+        # Policy switches alone do not establish actual localhost Qwen uptime,
+        # lawful model rights or acceptable response quality.
+        "owner_local_draft_source_registered": True,
+        "owner_local_draft_switches_enabled": (
+            os.environ.get("JREI_PYTHON_OWNER_MODEL_DRAFT_ENABLED") == "1"
+            and os.environ.get("JREI_PYTHON_LOCAL_MODEL_RIGHTS_OWNER_REVIEWED") == "1"
+        ),
+        "owner_local_model_health_independently_attested": False,
         "durable_missions": False,
         "mother_db_connected": False,
         "owner_memory_runtime": "NOT_ATTESTED_SOURCE_STAGED",
