@@ -239,7 +239,51 @@ function operationsCronOwnerSnapshot(PDO $pdo,array $config): array {
         static fn(array $row):bool=>$row['registered']===true));
     $newsPipelineEnabled=count(array_filter($newsPipelineRows,
         static fn(array $row):bool=>$row['enabled']===true));
+    // Real DB job timestamps are bounded observational receipts, not proof
+    // of an installed host crontab or an authenticated CMS publication.
+    // This remains useful when Bertina manages the sole host Cron externally.
+    $recentStarted=null;$recentNewsStarted=null;$recentCompleted=null;
+    foreach($rows as $item){
+        $started=$item['lastStartedAt'];
+        $ended=$item['lastFinishedAt'];
+        if($started!==null&&($recentStarted===null||$started>$recentStarted))
+            $recentStarted=$started;
+        if($ended!==null&&$item['lastState']==='completed'&&
+           ($recentCompleted===null||$ended>$recentCompleted))
+            $recentCompleted=$ended;
+        if(in_array($item['jobId'],$newsPipelineIds,true)&&$started!==null&&
+           ($recentNewsStarted===null||$started>$recentNewsStarted))
+            $recentNewsStarted=$started;
+    }
+    $newsRequiredPrivateFlags=[
+        'operations_cron_master_enabled',
+        'jrei_news_integrated_release_accepted',
+        'jrei_news_feed_discovery_enabled',
+        'jrei_news_article_intake_enabled',
+        'jrei_news_independent_evidence_enabled',
+        'jrei_news_source_activation_accepted',
+        'jrei_ka_schedule_enabled',
+        'jrei_ka_autofetch_enabled',
+        'jrei_news_model_drafting_enabled',
+        'jrei_live_ai_enabled',
+        'jrei_news_original_cms_writer_enabled',
+        'jrei_news_standing_official_publishing_enabled',
+        'jrei_news_verified_restore_accepted',
+        'jrei_news_publisher_receipts_accepted',
+        'jrei_news_search_enabled'
+    ];
+    // Return missing flag NAMES to the original MFA owner only; never
+    // disclose actual config.local.php content, credentials or private paths.
+    $missingNewsFlags=array_values(array_filter(
+        $newsRequiredPrivateFlags,
+        static fn(string $name):bool=>($config[$name]??false)!==true
+    ));
     return ['ok'=>true,'schema'=>'jr.operations-cron-owner.v1',
+        'latestDbWorkerStartedAt'=>$recentStarted,
+        'latestDbWorkerCompletedAt'=>$recentCompleted,
+        'latestDbNewsWorkerStartedAt'=>$recentNewsStarted,
+        'newsPipelineMissingPrivateFlags'=>$missingNewsFlags,
+        'newsPipelineConfigReady'=>count($missingNewsFlags)===0,
         'newsPipelineRequiredJobIds'=>$newsPipelineIds,
         'newsPipelineRegisteredCount'=>$newsPipelineRegistered,
         'newsPipelineEnabledCount'=>$newsPipelineEnabled,
