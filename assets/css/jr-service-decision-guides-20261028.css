@@ -1,0 +1,19 @@
+/* Content-first service purchase guidance. Preserves existing visual identity and navigation. */
+.jr-decision-guide{max-width:1100px;margin:clamp(28px,5vw,64px) auto;padding:clamp(18px,3.5vw,36px);border:1px solid #a88b59;border-radius:22px;background:#15130f;color:#f4eadb;line-height:2}
+.jr-decision-guide *{box-sizing:border-box}
+.jr-decision-guide h2{font-size:clamp(23px,3vw,32px);line-height:1.55;margin:0 0 16px;color:#f3d597}
+.jr-decision-guide h3{font-size:clamp(18px,2.2vw,23px);margin:22px 0 9px;color:#f0d69e}
+.jr-decision-guide p,.jr-decision-guide li{font-size:clamp(15px,1.4vw,17px);line-height:2.1;overflow-wrap:anywhere}
+.jr-decision-guide p{margin:8px 0 14px}
+.jr-decision-guide ul,.jr-decision-guide ol{padding-inline-start:26px;margin:12px 0 20px}
+.jr-decision-guide .jr-example{margin:16px 0;padding:16px 20px;border-inline-start:4px solid #e5bd71;background:#282219;border-radius:12px}
+.jr-decision-guide .jr-example strong{color:#ffe0a0}
+.jr-decision-guide .jr-guide-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:clamp(14px,2.6vw,24px);margin:18px 0}
+.jr-decision-guide .jr-guide-grid>div{padding:16px;border:1px solid #665337;border-radius:16px;background:#201c16}
+.jr-decision-guide a{color:#ffe0a0;text-decoration:underline;text-underline-offset:3px}
+.jr-decision-guide a:focus-visible{outline:3px solid #ffe4a8;outline-offset:5px}
+.jr-decision-guide .jr-guide-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:22px}
+.jr-decision-guide .jr-guide-actions a{border:1px solid #d8ac69;border-radius:12px;padding:10px 16px;min-height:48px;display:inline-flex;align-items:center;text-decoration:none;font-weight:700}
+.jr-decision-guide .jr-guide-actions a:first-child{background:#f0cb87;color:#241a0c}
+.jr-decision-guide .jr-notice{font-size:14px;opacity:.92;border-top:1px solid #665337;padding-top:14px}
+@media(max-width:700px){.jr-decision-guide .jr-guide-grid{grid-template-columns:1fr}.jr-decision-guide .jr-guide-actions{flex-direction:column}.jr-decision-guide .jr-guide-actions a{justify-content:center;width:100%}}
