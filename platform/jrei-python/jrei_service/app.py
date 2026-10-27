@@ -65,7 +65,8 @@ from jrei_memory.contracts import (
     OwnerMemoryReadResult, OwnerMemoryRevokeReceipt,
 )
 from jrei_memory.store import (
-    OwnerMemoryUnavailable, save_owner_note, read_owner_note, revoke_owner_note,
+    OwnerMemoryUnavailable, OwnerMemoryConflict,
+    save_owner_note, read_owner_note, revoke_owner_note,
 )
 
 app = FastAPI(
@@ -395,6 +396,8 @@ async def loopback_fixed_worker_canary(payload: ArithmeticRequest, request: Requ
 async def save_private_owner_memory(payload: OwnerMemorySave):
     try:
         return save_owner_note(payload)
+    except OwnerMemoryConflict as exc:
+        raise HTTPException(status_code=409, detail="OWNER_MEMORY_IDEMPOTENCY_CONFLICT") from exc
     except OwnerMemoryUnavailable as exc:
         raise HTTPException(status_code=503, detail="OWNER_MEMORY_UNAVAILABLE") from exc
 
