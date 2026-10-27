@@ -37,6 +37,9 @@ from jrei_learning.answer_grounding_review import (
 from jrei_learning.evidence_graph import (
     EvidenceGraphRequest, EvidenceGraphReview, review_evidence_graph,
 )
+from jrei_learning.knowledge_correction import (
+    CorrectionReviewRequest, CorrectionReview, prepare_knowledge_corrections,
+)
 from jrei_learning.metacognitive_cycle import (
     MetacognitiveCycleRequest, MetacognitiveCycleResult, plan_metacognitive_cycle,
 )
@@ -114,6 +117,7 @@ async def capabilities():
             "original_cms_news_bilingual_fact_rights_exception_preflight_v1",
             "bounded_exact_arithmetic_v1",
             "versioned_claim_dependency_and_revocation_review_v1",
+            "source_change_news_exam_answer_retraction_review_only_v1",
             "sha_bound_bilingual_draft_claim_grounding_audit_v1",
             "gap_to_experiment_metacognitive_cycle_v1",
             "paired_outcome_strategy_learning_v1",
@@ -196,6 +200,17 @@ async def evidence_graph_review(payload: EvidenceGraphRequest):
     # SHA-bound evidence pointers, source withdrawal and transitive invalidation
     # are computed without claiming rights verification, retrieval or indexing.
     return review_evidence_graph(payload)
+
+
+@app.post(
+    "/internal/v1/knowledge/corrections/review",
+    response_model=CorrectionReview,
+    dependencies=[Depends(require_internal_gateway)],
+)
+async def knowledge_correction_preflight(payload: CorrectionReviewRequest):
+    # Observes caller-supplied citation SHA and original CMS receipts only.
+    # Revoked evidence yields a review recommendation, NOT a live withdrawal.
+    return prepare_knowledge_corrections(payload)
 
 
 @app.post(
