@@ -5,6 +5,7 @@ define('BERTINA_API_BOOTSTRAPPED',true);
 function jrHybridUuid($v): bool {
     return is_string($v)&&preg_match('/^[a-f0-9]{8}-(?:[a-f0-9]{4}-){3}[a-f0-9]{12}$/D',$v)===1;
 }
+require_once __DIR__.'/../api/jrei-python-node-health.php';
 require_once __DIR__.'/../api/jrei-python-canary-bridge.php';
 function verdict(bool $ok,string $what):void{
     if(!$ok){fwrite(STDERR,'FAILED '.$what."\n");exit(1);}
@@ -16,8 +17,33 @@ $db=new PDO(getenv('CI_DB_DSN'),getenv('CI_DB_USER'),getenv('CI_DB_PASSWORD'),[
 ]);
 verdict(jrPythonCanaryReady($db),'canary schema');
 $now=time();$owner=jrPythonCanaryUuid();$node=jrPythonCanaryUuid();
+$db->prepare("INSERT INTO jrei_hybrid_nodes (node_id,status,revoked_at) VALUES(?,'ENABLED',NULL)")
+   ->execute([$node]);
 $db->prepare('INSERT INTO jrei_python_node_health (node_id,python_process,health_schema,node_observed_at,server_received_at) VALUES(?,?,?,?,?)')
    ->execute([$node,'RESPONDING','jr.jrei.python-health.v1',$now,$now]);
+// Observe true signed-node receipt freshness, explicit owner policy
+// and real DB table readiness, but never infer actual Python job completion.
+$approvedCfg=['jrei_python_canary_enabled'=>true,
+              'jrei_python_node_heartbeat_enabled'=>true];
+$ready=jrPythonCanaryPreflight($db,$approvedCfg,$now);
+verdict($ready['motherTableReady']===true,'owner preflight mother schema');
+verdict($ready['signedPythonHealthTableReady']===true,'owner preflight health table');
+verdict($ready['operationallyPollable']===true,'preflight active registered signed node');
+verdict($ready['freshEnabledNodeReports']===1,'one fresh registered node');
+verdict($ready['modelInferenceProven']===false,'never invent model execution');
+verdict($ready['autonomousLearningProven']===false,'never invent learning');
+verdict($ready['newsCrawlingOrPublicationActive']===false,'never invent news');
+$disabled=jrPythonCanaryPreflight($db,[
+ 'jrei_python_canary_enabled'=>false,
+ 'jrei_python_node_heartbeat_enabled'=>true
+],$now);
+verdict($disabled['operationallyPollable']===false,'canary off must not be ready');
+$db->prepare("UPDATE jrei_hybrid_nodes SET status='DISABLED' WHERE node_id=?")->execute([$node]);
+$revoked=jrPythonCanaryPreflight($db,$approvedCfg,$now);
+verdict($revoked['operationallyPollable']===false,'disabled registered node rejected');
+$db->prepare("UPDATE jrei_hybrid_nodes SET status='ENABLED' WHERE node_id=?")->execute([$node]);
+$stale=jrPythonCanaryPreflight($db,$approvedCfg,$now+100);
+verdict($stale['operationallyPollable']===false,'stale heartbeat must not be ready');
 $req=['action'=>'run-fixed-arithmetic','requestKey'=>bin2hex(random_bytes(16))];
 $a=jrPythonCanaryOwner($db,$owner,$req,$now);
 $b=jrPythonCanaryOwner($db,$owner,$req,$now);
