@@ -80,7 +80,8 @@ class ModelPortfolioResult(StrictContract):
     eligible_sandbox_engine_ids: list[str]
     original_model_weights_required: Literal[False] = False
     tool_only_tasks_can_operate_without_llm: Literal[True] = True
-    tested_native_jrei_model_exists: bool = False
+    declared_native_jrei_candidate_has_review_metadata: bool = False
+    actual_native_jrei_inference_independently_observed: Literal[False] = False
     reason_codes: list[str]
     chosen_runtime_started: Literal[False] = False
     production_switch_executed: Literal[False] = False
@@ -126,7 +127,7 @@ def plan_model_portfolio(payload: ModelPortfolioRequest) -> ModelPortfolioResult
     return ModelPortfolioResult(
         recommended_engine_id=selected,
         eligible_sandbox_engine_ids=[e.engine_id for e in eligible],
-        tested_native_jrei_model_exists=any(
+        declared_native_jrei_candidate_has_review_metadata=any(
             e.origin == "JREI_TRAINED_WEIGHTS"
             and e.bilingual_independent_evidence_sha256
             and e.independently_reviewed_fa
