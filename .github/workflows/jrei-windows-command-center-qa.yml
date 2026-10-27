@@ -4,7 +4,9 @@ on:
     branches: [migration/bertina-linux6]
     paths:
       - 'platform/jrei-python/jrei_service/windows_command_center.py'
+      - 'platform/jrei-python/jrei_service/owner_candidate_pipeline.py'
       - 'platform/jrei-python/tests/test_windows_command_center.py'
+      - 'platform/jrei-python/tests/test_owner_candidate_pipeline.py'
       - 'platform/jrei-v5/windows-worker/jrei-command-center-startup.ps1'
       - '.github/workflows/jrei-windows-command-center-qa.yml'
   workflow_dispatch:
@@ -42,8 +44,9 @@ jobs:
         env:
           PYTHONPATH: platform/jrei-python
         run: |
-          python -m py_compile platform/jrei-python/jrei_service/windows_command_center.py
+          python -m py_compile platform/jrei-python/jrei_service/windows_command_center.py platform/jrei-python/jrei_service/owner_candidate_pipeline.py
           python -m unittest discover -s platform/jrei-python/tests -p 'test_windows_command_center.py' -v
+          python -m unittest discover -s platform/jrei-python/tests -p 'test_owner_candidate_pipeline.py' -v
       - name: Validate generated browser UI JavaScript
         shell: pwsh
         env:
@@ -56,4 +59,4 @@ jobs:
         if: always()
         shell: pwsh
         run: |
-          Add-Content $env:GITHUB_STEP_SUMMARY 'Owner UI/mission source QA; no local model, production DB, CMS, GitHub push, Windows task or Bertina deployment performed.'
+          Add-Content $env:GITHUB_STEP_SUMMARY 'Owner UI, candidate-stage and integrity source QA; no local model, production DB, CMS, GitHub push, Windows task or Bertina deployment performed.'
