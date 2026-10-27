@@ -14,6 +14,7 @@
   var list=latest&&latest.querySelector('[data-jr-latest-list]');
   var feedStatus=latest&&latest.querySelector('[data-jr-feed-status]');
   var urgent=root.querySelector('[data-jr-breaking-status]');
+  var lead=document.querySelector('[data-jr-news-lead]');
   var topicLinks=Array.prototype.slice.call(document.querySelectorAll('[data-jr-news-topic]'));
   var publishedFeedItems=null,selectedTopic='all';
   function renderPublished(){
@@ -133,6 +134,36 @@
         }
         publishedFeedItems=valid;
         renderPublished();
+        // Only an originally published, already-receipted public item can
+        // become the editorial lead. No dates, engagement or images invented.
+        var primary=valid[0]||null;
+        if(lead&&primary){
+          var primaryTitle=lead.querySelector('[data-jr-news-lead-title]');
+          var primarySummary=lead.querySelector('[data-jr-news-lead-summary]');
+          var primaryTime=lead.querySelector('[data-jr-news-lead-time]');
+          var primaryCategory=lead.querySelector('[data-jr-news-lead-category]');
+          var labels=fa?{
+            school:'آموزش‌وپرورش',examinations:'کنکور و آزمون‌ها',
+            universities:'دانشگاه‌ها',employment:'آزمون‌های استخدامی',
+            language:'آموزش زبان',international:'فرصت‌های بین‌المللی',
+            research:'پژوهش و فناوری'}:{
+            school:'Schools',examinations:'Examinations',
+            universities:'Universities',employment:'Employment examinations',
+            language:'Language education',international:'International opportunities',
+            research:'Research & EdTech'};
+          if(primaryTitle&&primarySummary&&primaryTime&&primaryCategory){
+            primaryTitle.href=primary.link;
+            primaryTitle.textContent=primary.title;
+            primarySummary.textContent=primary.summary;
+            primaryCategory.textContent=labels[primary.category]||
+              (fa?'آخرین خبر تأییدشده':'Latest verified publication');
+            primaryTime.textContent=new Intl.DateTimeFormat(
+              fa?'fa-IR':'en-GB',{dateStyle:'medium',timeZone:'UTC'})
+              .format(primary.date);
+            primaryTime.dateTime=primary.date.toISOString();
+            lead.hidden=false;
+          }
+        }
       }).catch(function(){
         // An unavailable official feed is not an empty feed or proof of live
         // source monitoring. Existing static, canonical articles remain usable.
