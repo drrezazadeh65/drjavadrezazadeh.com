@@ -102,7 +102,7 @@ class ContinuousCodingManifest(StrictContract):
     # for every individual source-gap proposal. Production stays separate.
     autonomous_source_discovery_enabled: bool = False
     per_pass_source_scan: int = Field(default=80, ge=1, le=400)
-    tasks: list[ContinuousCodingTask] = Field(max_length=_TASKS_MAX)
+    tasks: list[ContinuousCodingTask] = Field(default_factory=list, max_length=_TASKS_MAX)
 
     @model_validator(mode="after")
     def unique_scope(self) -> "ContinuousCodingManifest":
@@ -453,6 +453,38 @@ def stage_one(
     return "NO_ELIGIBLE_NEW_WORK"
 
 
+def _write_observable_status(workspace: Path, conn: sqlite3.Connection,
+                             state: str) -> None:
+    """Private activity heartbeat, not a claim of autonomous learning quality."""
+    if not re.fullmatch(r"[A-Z_]{3,72}", state):
+        raise ValueError("AUTOCODE_STATUS_INVALID")
+    stored = conn.execute(
+        "SELECT COUNT(*), MAX(recorded_at) FROM source_proposals"
+    ).fetchone()
+    report = {
+        "schema": "jr.jrei.sandbox-autocode-status.v1",
+        "status": state,
+        "observed_at": int(time.time()),
+        "staged_unverified_proposals": int(stored[0]),
+        "last_staged_at": stored[1],
+        "independent_learning_improvement_verified": False,
+        "source_checkout_modified": False,
+        "production_deployed": False,
+        "mother_db_connected": False,
+        "public_chat_modified": False,
+    }
+    data = json.dumps(report, separators=(",", ":")).encode("utf-8") + b"\\n"
+    target = workspace / "jrei-autocode-status.json"
+    temporary = workspace / "jrei-autocode-status.tmp"
+    if target.is_symlink() or temporary.is_symlink():
+        raise RuntimeError("AUTOCODE_STATUS_SYMLINK_DENIED")
+    with temporary.open("wb") as handle:
+        handle.write(data)
+        handle.flush()
+        os.fsync(handle.fileno())
+    os.replace(temporary, target)
+
+
 def run_forever(repo: Path, workspace: Path, manifest_path: Path) -> None:
     """Persistent foreground supervisor: no hidden service installation."""
     if os.environ.get(_ENABLE_ENV) != "1":
@@ -483,10 +515,15 @@ def run_forever(repo: Path, workspace: Path, manifest_path: Path) -> None:
                     delay = 12.0
                 elif status in ("RESOURCE_BACKPRESSURE", "OWNER_STOP"):
                     delay = 120.0
+                _write_observable_status(workspace, conn, status)
             except (ValueError, OSError, RuntimeError, LocalModelUnavailable,
                     sqlite3.Error):
-                # No invented success or tight retry loop after failed writes.
+                # A fault heartbeat records no invented successful inference.
                 delay = 180.0
+                try:
+                    _write_observable_status(workspace, conn, "UNCONFIRMED_ERROR")
+                except (ValueError, OSError, RuntimeError, sqlite3.Error):
+                    pass
             _EXIT.wait(delay)
     finally:
         conn.close()
