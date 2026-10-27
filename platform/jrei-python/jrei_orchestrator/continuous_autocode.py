@@ -184,8 +184,24 @@ def _source_slice(repo: Path, task: ContinuousCodingTask) -> str:
     code = raw.decode("utf-8")
     if _SENSITIVE.search(code):
         raise ValueError("AUTOCODE_SOURCE_MAY_CONTAIN_CREDENTIALS")
-    # The local model has an intentionally bounded user question.
-    return code[:430]
+    # Show the model the actual defect marker, not just a license/header.
+    # The excerpt is bounded to the original local-model input contract and
+    # is still untrusted source data, never an instruction to run a tool.
+    match = re.search(
+        r"(?im)^.{0,150}(?:TODO|FIXME|NotImplementedError|"
+        r"\\b(?:not implemented|needs review|regression|deprecated)\\b).{0,150}$",
+        code,
+    )
+    pivot = match.start() if match else 0
+    begin = max(0, pivot - 100)
+    if begin:
+        eol = code.find("\\n", begin, pivot)
+        if eol >= 0:
+            begin = eol + 1
+    excerpt = code[begin:begin + 430]
+    if _SENSITIVE.search(excerpt):
+        raise ValueError("AUTOCODE_EXCERPT_MAY_CONTAIN_CREDENTIALS")
+    return excerpt
 
 
 def _maybe_build_sandbox_preview(
