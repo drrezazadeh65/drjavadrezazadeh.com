@@ -33,6 +33,7 @@ from typing import Literal
 
 from jrei_core.contracts import Digest, Identifier, StrictContract, Unit
 from jrei_orchestrator.standing_discovery import discover_candidates
+from jrei_orchestrator.sandbox_patch import SandboxPatchRequest, materialize_preview
 from jrei_core.local_model_draft import (
     LocalDraftRequest, LocalModelUnavailable, create_local_owner_draft,
 )
@@ -187,6 +188,37 @@ def _source_slice(repo: Path, task: ContinuousCodingTask) -> str:
     return code[:430]
 
 
+def _maybe_build_sandbox_preview(
+    repo: Path, workspace: Path, manifest: ContinuousCodingManifest,
+    task: ContinuousCodingTask, output: str,
+) -> dict | None:
+    """Try an isolated source copy; never execute arbitrary model output."""
+    try:
+        suggestion = json.loads(output)
+        if not isinstance(suggestion, dict) or set(suggestion) != {
+            "original_fragment", "replacement_fragment"
+        }:
+            return None
+        patch = SandboxPatchRequest(
+            proposal_id=task.task_id,
+            owner_policy_digest=manifest.policy_digest,
+            target_path=task.path,
+            original_sha256=task.source_sha256,
+            evidence_sha256=task.evidence_sha256,
+            original_fragment=suggestion["original_fragment"],
+            replacement_fragment=suggestion["replacement_fragment"],
+        )
+        result = materialize_preview(
+            repo, workspace / "sandbox-previews", patch,
+        )
+        return result.model_dump(mode="json")
+    except (ValueError, TypeError, KeyError, OSError, RuntimeError):
+        # A Qwen proposal may be prose, invalid JSON, an ambiguous edit or an
+        # unsafe diff. Retain the draft for review without pretending a
+        # patch was materialized or that a test succeeded.
+        return None
+
+
 def _tehran_heavy_window() -> bool:
     now = datetime.now(timezone.utc)
     try:
@@ -292,7 +324,7 @@ def stage_one(
         )[:995]
         draft = create_local_owner_draft(LocalDraftRequest(
             request_id=task.task_id, language=task.language,
-            academic_task="CODING_PROPOSAL",
+            academic_task="CODING_PATCH_JSON",
             question=query, max_output_tokens=640
         ))
         # Never write model-generated text into a live checkout; stage as
@@ -302,6 +334,9 @@ def stage_one(
         target = proposals / (key + ".json")
         if target.is_symlink():
             raise ValueError("AUTOCODE_PROPOSAL_SYMLINK_DENIED")
+        sandbox_preview = _maybe_build_sandbox_preview(
+            repo, workspace, manifest, task, draft.model_output
+        )
         receipt = {
             "schema": "jr.jrei.autocode-staged-proposal.v1",
             "task_id": task.task_id, "proposal_key": key,
@@ -314,6 +349,7 @@ def stage_one(
             "status": "STAGED_UNVERIFIED",
             "committed": False, "tests_run": False, "deployed": False,
             "owner_independent_review_required": True,
+            "sandbox_preview": sandbox_preview,
             "created_at": int(time.time()),
         }
         data = json.dumps(receipt, ensure_ascii=False,
