@@ -473,7 +473,7 @@ def _write_observable_status(workspace: Path, conn: sqlite3.Connection,
         "mother_db_connected": False,
         "public_chat_modified": False,
     }
-    data = json.dumps(report, separators=(",", ":")).encode("utf-8") + b"\\n"
+    data = json.dumps(report, separators=(",", ":")).encode("utf-8") + b"\n"
     target = workspace / "jrei-autocode-status.json"
     temporary = workspace / "jrei-autocode-status.tmp"
     if target.is_symlink() or temporary.is_symlink():
