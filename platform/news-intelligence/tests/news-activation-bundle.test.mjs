@@ -62,6 +62,24 @@ test('Core original newspaper agents are in one exact allowlist and independent 
  assert.match(ui,/job\.jobId\.startsWith\('jrei_news_'\)/);
  assert.match(ui,/newsPipelineScheduledWorkers!==8/);
 });
+test('All genuine source and independent evidence toggles exist in authoritative PHP config',()=>{
+ const cfg=read('api/index.php');
+ for(const [field,env] of [
+  ['jrei_news_independent_evidence_enabled','JR_JREI_NEWS_INDEPENDENT_EVIDENCE_ENABLED'],
+  ['jrei_news_official_catalogue_auto_seed_enabled','JR_JREI_NEWS_OFFICIAL_CATALOGUE_AUTO_SEED_ENABLED'],
+  ['jrei_news_automatic_official_monitor_enabled','JR_JREI_NEWS_AUTOMATIC_OFFICIAL_MONITOR_ENABLED'],
+ ]) {
+   const exact="'"+field+"'";
+   assert.ok(cfg.includes(exact),field+" missing from PHP config");
+   assert.ok(cfg.includes("getenv('"+env+"') === 'true'"),env+" must remain opt-in");
+ }
+ const evidence=read('api/internal/jrei-news-private-evidence-worker.php');
+ const feed=read('api/internal/jrei-news-feed-discovery-worker.php');
+ assert.ok(evidence.includes("'jrei_news_independent_evidence_enabled'"));
+ assert.ok(feed.includes("'jrei_news_official_catalogue_auto_seed_enabled'"));
+ assert.ok(feed.includes("'jrei_news_automatic_official_monitor_enabled'"));
+});
+
 test('Publishing worker recovers authentic, pending search archive from earlier runs',()=>{
  const publisher=read('api/internal/jrei-news-private-publisher-worker.php');
  const indexer=read('platform/news-intelligence/php/original-public-index-runner.php');
