@@ -120,7 +120,6 @@ function jrNewsStageAutonomousInstitutionCandidates(
        ($cfg['operations_cron_master_enabled']??null)!==true||
        ($cfg['jrei_news_integrated_release_accepted']??null)!==true||
        ($cfg['jrei_news_source_activation_accepted']??null)!==true||
-       ($cfg['jrei_news_autonomous_institution_discovery_enabled']??null)!==true||
        $now<1||$limit<1||$limit>25)
         throw new RuntimeException('news_original_autonomous_institution_discovery_disabled');
     $archive=realpath($privateArchive);
@@ -262,7 +261,6 @@ function jrNewsEnqueueNewInstitutionalSourceCandidates(
        ($cfg['operations_cron_master_enabled']??null)!==true||
        ($cfg['jrei_news_integrated_release_accepted']??null)!==true||
        ($cfg['jrei_news_source_activation_accepted']??null)!==true||
-       ($cfg['jrei_news_autonomous_institution_discovery_enabled']??null)!==true||
        $now<1||$limit<1||$limit>30)
         throw new RuntimeException('news_original_institution_enqueue_disabled');
 
