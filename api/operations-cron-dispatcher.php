@@ -173,6 +173,20 @@ function operationsCronSchemaReady(PDO $pdo): bool {
 function operationsCronMasterEnabled(array $config): bool {
     return ($config['operations_cron_master_enabled']??false)===true;
 }
+/** The exact fixed signed-owner publication pipeline. Ancillary news tasks
+ * (schema caretaker, consent digest) are NOT substitutes for these jobs. */
+function operationsCronNewsPipelineIds(): array {
+    return [
+        'jrei_ka_schedule',
+        'jrei_ka_private_acquisition',
+        'jrei_news_original_feed_projection',
+        'jrei_news_independent_primary_evidence',
+        'jrei_news_original_article_intake',
+        'jrei_news_original_private_draft',
+        'jrei_news_original_private_publisher',
+        'jrei_news_original_public_index'
+    ];
+}
 function operationsCronOwnerSnapshot(PDO $pdo,array $config): array {
     $registry=operationsCronRegistry();
     $schema=operationsCronSchemaReady($pdo);
@@ -218,7 +232,17 @@ function operationsCronOwnerSnapshot(PDO $pdo,array $config): array {
             'rowRevision'=>$r?(int)$r['row_revision']:null
         ];
     }
+    $newsPipelineIds=operationsCronNewsPipelineIds();
+    $newsPipelineRows=array_values(array_filter($rows,
+        static fn(array $row):bool=>in_array($row['jobId'],$newsPipelineIds,true)));
+    $newsPipelineRegistered=count(array_filter($newsPipelineRows,
+        static fn(array $row):bool=>$row['registered']===true));
+    $newsPipelineEnabled=count(array_filter($newsPipelineRows,
+        static fn(array $row):bool=>$row['enabled']===true));
     return ['ok'=>true,'schema'=>'jr.operations-cron-owner.v1',
+        'newsPipelineRequiredJobIds'=>$newsPipelineIds,
+        'newsPipelineRegisteredCount'=>$newsPipelineRegistered,
+        'newsPipelineEnabledCount'=>$newsPipelineEnabled,
         'dataState'=>$schema?'SOURCE_POLICY_READ':'MOTHER_DB_MIGRATION_REQUIRED',
         'masterEnabled'=>$master,'webRuntimePhp83Observed'=>$phpReady,
         'webRuntimeProcOpenObserved'=>$spawnReady,
@@ -345,16 +369,7 @@ function operationsCronOwnerChange(PDO $pdo,array $config,
 
         // Only fixed source-controlled workers. They use their own
         // proof/rights/QA gates; ineligible content cannot be published.
-        $ids=[
-            'jrei_ka_schedule',
-            'jrei_ka_private_acquisition',
-            'jrei_news_original_feed_projection',
-            'jrei_news_independent_primary_evidence',
-            'jrei_news_original_article_intake',
-            'jrei_news_original_private_draft',
-            'jrei_news_original_private_publisher',
-            'jrei_news_original_public_index'
-        ];
+        $ids=operationsCronNewsPipelineIds();
         $registry=operationsCronRegistry();
         foreach($ids as $id){
             if(!isset($registry[$id])||operationsCronSourcePath($id)===null)
