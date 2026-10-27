@@ -21,13 +21,23 @@ panel.append(el('p',T(
 const buttons=el('div');buttons.className='jr-jrei-apex-tools';
 const inspect=el('button',T('بررسی آمادگی و نتیجه','Check readiness and result'));inspect.type='button';
 const run=el('button',T('اجرای محدود ۱۲×۷','Queue bounded 12×7'));run.type='button';
-buttons.append(inspect,run);panel.append(buttons);
+const inventory=el('button',T('ساختار واقعی دیتابیس مادر','Inspect mother DB structure'));inventory.type='button';
+buttons.append(inspect,run,inventory);panel.append(buttons);
 const preflight=el('p');preflight.setAttribute('aria-live','polite');
 const status=el('p',T('در انتظار استعلام وضعیت واقعی…','Awaiting actual status query…'));
 status.setAttribute('role','status');status.setAttribute('aria-live','polite');
-const history=el('div');panel.append(preflight,status,history);
+const history=el('div');
+const inventoryView=el('details');
+const inventoryCaption=el('summary',T('ساختار جدول‌های JREI در drjavad1_store','JREI tables in drjavad1_store'));
+inventoryView.append(inventoryCaption);
+const inventoryStatus=el('p',T('این نما فقط پس از درخواست مدیر، فرادادهٔ جدول‌ها را می‌خواند.','This view reads only table metadata on explicit owner request.'));
+inventoryStatus.setAttribute('aria-live','polite');
+const inventoryResults=el('div');
+inventoryView.append(inventoryStatus,inventoryResults);
+panel.append(preflight,status,history,inventoryView);
 root.append(panel);
 let timer=null,activeRequest=null,busy=false,generation=0,remaining=0;
+let inventoryAbort=null,inventoryBusy=false;
 const isActive=()=>root.open&&panel.open&&!workspace.hidden&&!document.hidden;
 const csrf=/^[a-f0-9]{64}$/i;
 const uuid=/^[a-f0-9]{8}-(?:[a-f0-9]{4}-){3}[a-f0-9]{12}$/i;
@@ -36,6 +46,7 @@ function cancel(){
  generation++;clearTimeout(timer);timer=null;
  activeRequest?.abort();activeRequest=null;
  remaining=0;busy=false;inspect.disabled=false;run.disabled=false;
+ inventoryAbort?.abort();inventoryAbort=null;inventoryBusy=false;inventory.disabled=false;
 }
 async function request(path,body,abort){
  const opt={credentials:'same-origin',cache:'no-store',headers:{Accept:'application/json'},
@@ -145,6 +156,58 @@ async function create(){
  }
  if(token===generation&&isActive()&&remaining>0)refresh(token,false);
 }
+async function loadMotherInventory(){
+ if(!isActive()||inventoryBusy)return;
+ inventoryBusy=true;inventory.disabled=true;
+ const token=generation;
+ const ac=new AbortController();inventoryAbort=ac;
+ inventoryStatus.textContent=T('در حال دریافت فرادادهٔ ساختاری…','Reading structural metadata…');
+ try{
+  const result=await request('/api/admin/operations/jrei-mother-schema/inventory',null,ac);
+  if(token!==generation||!isActive())return;
+  if(result.schema!=='jr.jrei.mother-structure-inventory.v1' ||
+     result.targetSchema!=='drjavad1_store'||result.readOnly!==true ||
+     result.provisioningOrMigrationExecuted!==false ||
+     !result.groups||typeof result.groups!=='object')throw Error('INVALID_STRUCTURE_CONTRACT');
+  inventoryResults.replaceChildren();
+  const groups=['identity','hybrid','python_runtime','knowledge','news','examinations','operations'];
+  const labels={
+   identity:T('هویت','Identity'),hybrid:T('ارتباط امن','Signed hybrid worker'),
+   python_runtime:T('هسته Python','Python runtime'),
+   knowledge:T('دانش و منابع','Knowledge'),news:T('موتور خبر','News'),
+   examinations:T('آزمون‌ها','Exams'),operations:T('عملیات','Operations')
+  };
+  for(const key of groups){
+   const items=result.groups[key];
+   if(!Array.isArray(items))throw Error('INVALID_STRUCTURE_GROUP');
+   const block=el('details');
+   const head=el('summary',labels[key]+' · '+items.filter(x=>x.status==='STRUCTURE_OBSERVED').length+'/'+items.length);
+   block.append(head);
+   const ul=el('ul');
+   for(const x of items.slice(0,32)){
+    if(!/^[a-z][a-z0-9_]{2,63}$/.test(x.name||''))continue;
+    const state=['STRUCTURE_OBSERVED','NOT_OBSERVED_IN_TARGET_SCHEMA',
+      'NOT_A_BASE_TABLE','ENGINE_NOT_INNODB'].includes(x.status)?x.status:'UNKNOWN';
+    ul.append(el('li',x.name+' · '+state));
+   }
+   block.append(ul);inventoryResults.append(block);
+  }
+  inventoryView.open=true;
+  inventoryStatus.textContent=result.pdoCurrentContextMatchesTarget
+   ?T('فرادادهٔ واقعی از پایگاه مادر خوانده شد؛ این نتیجه به معنای نصب یا فعال‌سازی نیست.',
+      'Mother metadata read. No installation or activation is inferred.')
+   :T('هشدار: زمینهٔ SQL متفاوت است؛ داده‌ها فقط با نام صریح پایگاه مادر جست‌وجو شدند.',
+      'SQL context differs; metadata was filtered by the explicit mother DB schema.');
+ }catch(e){
+  if(e?.name!=='AbortError'&&token===generation&&isActive())
+   inventoryStatus.textContent=T('ساختار دیتابیس تأیید نشد؛ هیچ تغییری انجام نشد.',
+     'Mother DB structure unavailable; no changes were made.');
+ }finally{
+  if(inventoryAbort===ac)inventoryAbort=null;
+  inventoryBusy=false;inventory.disabled=false;
+ }
+}
+inventory.addEventListener('click',loadMotherInventory);
 inspect.addEventListener('click',()=>{cancel();remaining=12;refresh(generation,false);});
 run.addEventListener('click',create);
 panel.addEventListener('toggle',()=>{cancel();if(isActive())refresh(generation,false);});
