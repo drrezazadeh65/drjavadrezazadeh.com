@@ -106,8 +106,17 @@ test('calendar uses reviewed future dates only and fails visibly when unmounted'
   for(const locale of ['fa','en'])
     assert.ok(read(routes[locale]).includes('data-jrn21-event="upcoming"'));
   const api=read('api/index.php');
-  assert.ok(!api.includes("if ($path==='/news/v1/calendar')"),
-    'original signed resolver and calendar route remain separate activation gates');
+  const calendar=read('api/news-public-calendar.php');
+  assert.ok(api.includes("if ($path==='/news/v1/calendar')"),
+    'calendar route must use original reviewed issuer/rights source resolver');
+  assert.match(api,/jrNewsOriginalPublicCalendarRoute/);
+  assert.match(calendar,/jrNewsOriginalPublicCalendarSource/);
+  assert.match(calendar,/jrei_news_calendar_enabled/);
+  assert.match(calendar,/jrei_news_source_activation_accepted/);
+  assert.match(calendar,/AUTHORITATIVE_REVIEWED/);
+  assert.match(calendar,/PERMITTED_REPRODUCTION/);
+  assert.match(calendar,/rights_evidence_sha256/);
+  assert.match(calendar,/is_revoked/);
 });
 
 test('all new public-facing files are shipped as first-party source assets',()=>{
