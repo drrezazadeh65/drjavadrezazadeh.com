@@ -54,7 +54,8 @@ jobs:
           node --check platform/jrei-v5/windows-worker/jrei-python-canary-worker.mjs
           node --check assets/js/operations-jrei-apex-command-room-v1.js
       - name: Isolated scope disclosure
-        run: echo 'Synthetic source acceptance only: no live Qwen, Bertina MySQL, worker task or payments.' >> "$GITHUB_STEP_SUMMARY"
+        run: |
+          echo 'Synthetic source acceptance only: no live Qwen, Bertina MySQL, worker task or payments.' >> "$GITHUB_STEP_SUMMARY"
   windows-supervisor-source:
     if: github.ref == 'refs/heads/migration/bertina-linux6'
     runs-on: windows-latest
