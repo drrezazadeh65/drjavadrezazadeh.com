@@ -603,6 +603,22 @@ function operationsRoute(string $path, string $verb): never {
                 $accountId,$verb==='GET'?30:5,300))
                 fail('rate_limited',429);
             if ($verb==='GET') {
+                // The existing authenticated owner session may retrieve one
+                // immutable learning-cycle result for inspection. No GET
+                // request can approve, execute, or revise that proposal.
+                $cycleId=$_GET['cycleId']??null;
+                if($cycleId!==null) {
+                    if(!is_string($cycleId))
+                        fail('jrei_metacognitive_cycle_id_invalid',422);
+                    try { respond(jrMetaJournalOwnerDetail($pdo,$accountId,$cycleId)); }
+                    catch(InvalidArgumentException $e) {
+                        fail('jrei_metacognitive_cycle_id_invalid',422);
+                    } catch(DomainException $e) {
+                        fail('jrei_metacognitive_cycle_not_found',404);
+                    } catch(Throwable $e) {
+                        fail('jrei_metacognitive_cycle_integrity_unavailable',503);
+                    }
+                }
                 try { respond(jrMetaJournalOwnerList($pdo,$accountId)); }
                 catch(Throwable $e){ fail('jrei_metacognitive_journal_unavailable',503); }
             }
