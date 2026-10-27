@@ -15,6 +15,7 @@ import re
 import threading
 import time
 from fastapi import HTTPException, Request
+from fastapi.concurrency import run_in_threadpool
 
 _NONCE = re.compile(r"^[A-Za-z0-9_-]{16,96}$")
 _HEX = re.compile(r"^[0-9a-f]{64}$")
@@ -62,7 +63,9 @@ async def require_internal_gateway(request: Request) -> None:
             NonceAlreadyClaimed, ReplayStoreUnavailable, claim_mother_mysql_nonce,
         )
         try:
-            claim_mother_mysql_nonce(nonce, now, now + 2 * _WINDOW + 5)
+            await run_in_threadpool(
+                claim_mother_mysql_nonce, nonce, now, now + 2 * _WINDOW + 5
+            )
         except NonceAlreadyClaimed as exc:
             raise HTTPException(status_code=409, detail="REPLAYED_REQUEST") from exc
         except ReplayStoreUnavailable as exc:
