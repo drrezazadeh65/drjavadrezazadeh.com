@@ -123,6 +123,22 @@ fs.writeFileSync(path.join(out,'api/internal/jrei-news-reviewed-additive-ddl-v1.
     entries:newsCreateEntries})+'\n',{flag:'wx',mode:0o600});
 // End JREI News private reviewed DDL projection.
 
+/* Fail the future sanitized release rather than silently shipping a front
+ * page whose original news engine, calendar or MFA newsroom module is absent.
+ * This check does NOT install DB schema, activate Cron or publish a story.
+ */
+for(const [relative,required] of [
+  ['api/news-public-calendar.php','jrNewsOriginalPublicCalendarRoute'],
+  ['api/jrei-news-schema-caretaker.php','jrNewsAdditiveSchemaCaretaker'],
+  ['api/internal/jrei-news-schema-caretaker-worker.php','PHP_SAPI'],
+  ['assets/js/jrei-news-owner-panel-v1.mjs','mountNewsOwnerPanel']
+]){
+  const file=path.join(out,relative);
+  if(!fs.existsSync(file)||!fs.readFileSync(file,'utf8').includes(required))
+    throw Error('JREI News original delivery component missing: '+relative);
+}
+
+
 const newsModelName='public-read-model.php';
 const newsModelSrc=path.join(root,'platform/news-intelligence/php',newsModelName);
 const newsModelBody=fs.readFileSync(newsModelSrc,'utf8');
