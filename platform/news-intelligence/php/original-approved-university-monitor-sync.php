@@ -11,6 +11,7 @@ declare(strict_types=1);
  */
 if(!defined('BERTINA_API_BOOTSTRAPPED')){http_response_code(404);exit;}
 require_once __DIR__.'/admin-source-management.php';
+require_once __DIR__.'/official-institution-directory.php';
 
 function jrNewsOriginalSyncReviewedUniversityMonitors(
     PDO $pdo,array $config,array $context,int $now,int $limit=50
@@ -99,8 +100,24 @@ function jrNewsOriginalSyncReviewedUniversityMonitors(
             if(!$valid){$summary['notEligible']++;continue;}
             $priority=in_array($source['priority_tier'],
                 ['P0','P1','P2'],true)?$source['priority_tier']:'P2';
-            $category=$source['source_kind']==='OFFICIAL_EXAM_NOTICE'?
-                'examinations':'universities';
+            // Preserve the original 21-section controlled taxonomy for
+            // ministry roots. A candidate does not automatically become a
+            // registered, enabled feed or inherit acquisition permissions.
+            $directory=jrNewsOfficialDirectoryMatch($url);
+            $institution=null;
+            if($directory!==null){
+                foreach(jrNewsOfficialInstitutionDirectory() as $entry){
+                    if($entry['id']===$directory['institutionId']){
+                        $institution=$entry;break;
+                    }
+                }
+            }
+            $category=($institution!==null&&
+                       in_array($institution['category'],
+                           ['school','research','universities','examinations'],true))
+                ?$institution['category']
+                :($source['source_kind']==='OFFICIAL_EXAM_NOTICE'
+                    ?'examinations':'universities');
             $hash=hash('sha256',$url);
             try{
                 $pdo->beginTransaction();
