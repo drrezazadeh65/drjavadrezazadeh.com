@@ -4,6 +4,10 @@ name: JREI News Isolated Acceptance (NO DEPLOYMENT)
 # No FTP, Bertina access, real customer DB or automatic deployment here.
 on:
   workflow_dispatch:
+  pull_request:
+    branches: [migration/bertina-linux6]
+    paths:
+      - ".github/workflows/jrei-news-isolated-acceptance.yml"
   push:
     branches: [migration/bertina-linux6]
     paths:
