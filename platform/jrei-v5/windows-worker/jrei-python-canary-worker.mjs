@@ -14,8 +14,7 @@ export function validateCanaryJob(job){
     job.expression==='12*7' &&
     job.taskType==='EXACT_ARITHMETIC_CANARY' &&
     Number.isSafeInteger(job.expiresAt) &&
-    job.expiresAt>Math.floor(Date.now()/1000) &&
-    job.expiresAt<=Math.floor(Date.now()/1000)+65;
+    job.expiresAt>Math.floor(Date.now()/1000);
 }
 export async function runPythonLocalCanary(job,{fetchLocal=fetch}={}){
   if(!validateCanaryJob(job))throw Error('PYTHON_CANARY_JOB_INVALID');
