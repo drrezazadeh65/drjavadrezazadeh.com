@@ -159,8 +159,11 @@ function jrApexPythonAttachSnapshot(PDO $pdo, array &$base, array $ids): void
     $base['pythonProposalSchemaReady']=jrApexPythonPlanSchemaReady($pdo);
     if (!$base['pythonProposalSchemaReady'] || !$ids) return;
     $slots=implode(',',array_fill(0,count($ids),'?'));
-    $q=$pdo->prepare('SELECT mission_id,proposal_sha256,proposal_json,created_at
-        FROM jrei_apex_mission_python_plans WHERE mission_id IN ('.$slots.')');
+    $q=$pdo->prepare('SELECT p.mission_id,p.proposal_sha256,p.proposal_json,
+            p.created_at,m.policy_digest,m.created_at AS mission_created_at
+        FROM jrei_apex_mission_python_plans p
+        JOIN jrei_apex_owner_missions m ON m.mission_id=p.mission_id
+        WHERE p.mission_id IN ('.$slots.')');
     $q->execute($ids);
     foreach ($q as $row) {
         $serialized=(string)$row['proposal_json'];
@@ -172,6 +175,8 @@ function jrApexPythonAttachSnapshot(PDO $pdo, array &$base, array $ids): void
             is_array($proposal) &&
             ($proposal['schema_version']??null)==='jr.jrei.scoped-mission.v1' &&
             ($proposal['mission_id']??null)===(string)$row['mission_id'] &&
+            ($proposal['policy_digest']??null)===(string)$row['policy_digest'] &&
+            (int)$row['created_at']>=(int)$row['mission_created_at'] &&
             ($proposal['executed']??null)===false &&
             ($proposal['authorized']??null)===false &&
             ($proposal['site_modified']??null)===false &&
