@@ -274,6 +274,20 @@ _SKILLS = (
         "languages": ["fa", "en"],
         "review": "INDEPENDENT_CLAIM_SEMANTICS_AND_PUBLICATION_APPROVAL_REQUIRED",
     },
+    {
+        "skill_id": "jrei.knowledge.cross_product_correction_review.v1",
+        "version": "1.0.0",
+        "entry_route": "/internal/v1/knowledge/corrections/review",
+        "execution": "MODEL_FREE_DETERMINISTIC",
+        "data_class": "VERSIONED_CLAIM_DIGESTS_AND_ORIGINAL_CMS_RECEIPT_REFERENCES_ONLY",
+        "required_service_authority": "SIGNED_PRIVATE_GATEWAY",
+        "owner_action_authorized": False,
+        "mutates_mother_db": False,
+        "network_access": False,
+        "verified_source_grant": False,
+        "languages": ["fa", "en"],
+        "review": "ORIGINAL_CMS_EXAM_EDITOR_AND_RIGHTS_AUTHORITY_REQUIRED",
+    },
 )
 _IDS = tuple(skill["skill_id"] for skill in _SKILLS)
 if len(set(_IDS)) != len(_IDS):
