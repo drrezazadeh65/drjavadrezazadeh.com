@@ -189,13 +189,13 @@ def _source_slice(repo: Path, task: ContinuousCodingTask) -> str:
     # is still untrusted source data, never an instruction to run a tool.
     match = re.search(
         r"(?im)^.{0,150}(?:TODO|FIXME|NotImplementedError|"
-        r"\\b(?:not implemented|needs review|regression|deprecated)\\b).{0,150}$",
+        r"\b(?:not implemented|needs review|regression|deprecated)\b).{0,150}$",
         code,
     )
     pivot = match.start() if match else 0
     begin = max(0, pivot - 100)
     if begin:
-        eol = code.find("\\n", begin, pivot)
+        eol = code.find("\n", begin, pivot)
         if eol >= 0:
             begin = eol + 1
     excerpt = code[begin:begin + 430]
