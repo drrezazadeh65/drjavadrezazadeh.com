@@ -72,13 +72,14 @@ try{
     '/no_think'+[Environment]::NewLine+'Reply with exactly one word: Hello'
   }
   Write-Output ('[JREI] THROUGHPUT_PROBE='+[bool]$ThroughputProbe)
+  $maxTokens=if($ThroughputProbe){256}else{192}
   $body=@{
     model='jrei-gpu-lab'
     messages=@(
       @{role='system';content='Answer without reasoning text. Give only the requested final answer.'},
       @{role='user';content=$userPrompt}
     )
-    max_tokens=if($ThroughputProbe){256}else{192}
+    max_tokens=$maxTokens
     temperature=0
     stream=$false
     chat_template_kwargs=@{enable_thinking=$false}
