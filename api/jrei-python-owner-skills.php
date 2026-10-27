@@ -13,7 +13,9 @@ function jrOwnerJreiPythonSkillDispatch(array $privateConfig, array $body, ?stri
 {
     $action=$body['action']??null;
     if (!is_string($action) ||
-        !in_array($action,['catalog','triage-evidence','heldout-review','calculate','memory-save','memory-read','memory-revoke'],true)) {
+        !in_array($action,['catalog','triage-evidence','heldout-review','calculate',
+          'evidence-graph','metacognitive-plan','capacity-plan',
+          'memory-save','memory-read','memory-revoke'],true)) {
         throw new InvalidArgumentException('python_skill_action_invalid');
     }
 
@@ -62,6 +64,32 @@ function jrOwnerJreiPythonSkillDispatch(array $privateConfig, array $body, ?stri
         $route='/internal/v1/learning/heldout/review';
         $payload=$body['payload'];
         $expected='jr.jrei.heldout-review-result.v1';
+    } elseif (in_array($action,
+        ['evidence-graph','metacognitive-plan','capacity-plan'],true)) {
+        // All three are strictly read-only: no browser-selected endpoint,
+        // unreviewed model tool, raw learner records, action execution or
+        // assignment authority. The original admin MFA/CSRF gate is retained.
+        if (count($body)!==2 || !array_key_exists('payload',$body) ||
+            !is_array($body['payload']) || array_is_list($body['payload'])) {
+            throw new InvalidArgumentException('python_learning_proposal_payload_invalid');
+        }
+        $raw=json_encode($body['payload'],
+            JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);
+        if (!is_string($raw) || strlen($raw)>52000 ||
+            count($body['payload'])>18) {
+            throw new InvalidArgumentException('python_learning_proposal_size_invalid');
+        }
+        $payload=$body['payload'];
+        $route=match($action) {
+            'evidence-graph'=>'/internal/v1/learning/evidence-graph/review',
+            'metacognitive-plan'=>'/internal/v1/learning/metacognitive/plan',
+            'capacity-plan'=>'/internal/v1/orchestration/capacity/plan'
+        };
+        $expected=match($action) {
+            'evidence-graph'=>'jr.jrei.evidence-graph-review.v1',
+            'metacognitive-plan'=>'jr.jrei.metacognitive-cycle-result.v1',
+            'capacity-plan'=>'jr.jrei.adaptive-placement-result.v1'
+        };
     } elseif ($action==='calculate') {
         if (count($body)!==2 || !array_key_exists('payload',$body) ||
             !is_array($body['payload']) || array_is_list($body['payload']) ||
@@ -143,6 +171,32 @@ function jrOwnerJreiPythonSkillDispatch(array $privateConfig, array $body, ?stri
            'NO_DEMONSTRATED_IMPROVEMENT','REVIEW_CANDIDATE_ONLY'
          ],true))) {
         throw new RuntimeException('JREI_PYTHON_HELDOUT_PRIVILEGE_ESCALATION');
+    }
+    if ($action==='evidence-graph' &&
+        (($result['publication_executed']??null)!==false ||
+         ($result['knowledge_promoted']??null)!==false ||
+         ($result['citations_retrieved_or_verified']??null)!==false ||
+         ($result['inputs_independently_attested']??null)!==false ||
+         !is_array($result['claims']??null))) {
+        throw new RuntimeException('JREI_PYTHON_PROVENANCE_PRIVILEGE_ESCALATION');
+    }
+    if ($action==='metacognitive-plan' &&
+        (($result['automatic_skill_promotion']??null)!==false ||
+         ($result['autonomous_model_training_started']??null)!==false ||
+         ($result['learning_improvement_proven']??null)!==false ||
+         ($result['knowledge_written']??null)!==false ||
+         ($result['source_acquisition_started']??null)!==false ||
+         ($result['public_site_changed']??null)!==false ||
+         !is_array($result['decisions']??null))) {
+        throw new RuntimeException('JREI_PYTHON_METACOGNITION_PRIVILEGE_ESCALATION');
+    }
+    if ($action==='capacity-plan' &&
+        (($result['scheduler_enabled_by_this_plan']??null)!==false ||
+         ($result['network_requests_issued']??null)!==false ||
+         ($result['autonomous_executions_confirmed']??null)!==false ||
+         ($result['resource_measurements_independently_verified']??null)!==false ||
+         !is_array($result['placements']??null))) {
+        throw new RuntimeException('JREI_PYTHON_CAPACITY_PRIVILEGE_ESCALATION');
     }
     if ($action==='calculate' &&
         (($result['performed_without_model']??null)!==true ||
