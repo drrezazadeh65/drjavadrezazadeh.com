@@ -1384,11 +1384,24 @@ ensure($officialSeed['examined']>=9&&
        $officialSeed['sourcePermissionsGranted']===0&&
        $officialSeed['activeMonitorsAdded']===0,
     'official Sanjesh and university origins may be discovered automatically but never approved');
+// Discover every catalogue entry through bounded 12-item Cron batches.
+// A larger first-party directory legitimately needs more than one tick;
+// true idempotency is tested only after all pending origins were examined.
+$batchSize=12;
+$batchCount=(int)ceil(count(jrNewsOfficialInstitutionDirectory())/$batchSize);
+for($batch=1;$batch<$batchCount;$batch++){
+    $progress=jrNewsOriginalSeedOfficialInstitutionSources(
+        $pdo,$seedContext,1792823500+$batch,$batchSize);
+    ensure($progress['sourcePermissionsGranted']===0&&
+           $progress['activeMonitorsAdded']===0&&
+           $progress['publicationsCreated']===0,
+        'additional institution seed batches never confer publication or source rights');
+}
 $seedRepeated=jrNewsOriginalSeedOfficialInstitutionSources(
-    $pdo,$seedContext,1792823501,12);
+    $pdo,$seedContext,1792823500+$batchCount,12);
 ensure($seedRepeated['newDiscovered']===0&&
        $seedRepeated['alreadyRegistered']>=8,
-    'repeat original JREI institution bootstrap is idempotent');
+    'fully processed original institution catalogue is idempotent');
 $badSeed=false;
 try {
     jrNewsOriginalSeedOfficialInstitutionSources($pdo,[
