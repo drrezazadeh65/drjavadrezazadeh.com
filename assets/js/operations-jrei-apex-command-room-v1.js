@@ -17,7 +17,12 @@ const descriptions={
  'JREI_NODE_HEALTH_REVIEW':T('بازبینی وضعیت واقعی گره‌ها','Review actual AI node health'),
  'EDUCATION_SOURCE_GAP_REVIEW':T('شکاف منابع علمی و آموزشی','Review education source gaps'),
  'MOTHER_DB_METADATA_REVIEW':T('بازبینی ساختار دیتابیس مادر','Review mother DB metadata'),
- 'LEARNING_EVIDENCE_REVIEW':T('بازبینی شواهد یادگیری','Review learning evidence')
+ 'LEARNING_EVIDENCE_REVIEW':T('بازبینی شواهد یادگیری','Review learning evidence'),
+ 'WEBSITE_CODE_REVIEW':T('بررسی کد و پیشنهاد اصلاح ایمن سایت','Review site code and propose a safe patch'),
+ 'WEBSITE_SEO_GEO_REVIEW':T('ممیزی هوشمند سئو و دیده‌شدن در هوش مصنوعی','Review SEO and AI-search visibility'),
+ 'WEBSITE_DESIGN_ACCESSIBILITY_REVIEW':T('بازبینی طراحی موبایل و دسترس‌پذیری','Review mobile design and accessibility'),
+ 'WEBSITE_DATABASE_SCHEMA_REVIEW':T('ممیزی ساختار پایگاه داده مادر؛ فقط خواندنی','Review mother DB schema, read-only'),
+ 'WEBSITE_OPERATIONS_ENGINES_REVIEW':T('بازبینی موتورهای مدیریتی و گزارش‌گیری','Review operations engines and reports')
 };
 const make=(tag,content)=>{
  const e=document.createElement(tag);
