@@ -15,6 +15,35 @@
   var feedStatus=latest&&latest.querySelector('[data-jr-feed-status]');
   var urgent=root.querySelector('[data-jr-breaking-status]');
   var topicLinks=Array.prototype.slice.call(document.querySelectorAll('[data-jr-news-topic]'));
+  var publishedFeedItems=null,selectedTopic='all';
+  function renderPublished(){
+    if(!latest||!list||!feedStatus||!Array.isArray(publishedFeedItems))return;
+    var approved=publishedFeedItems.filter(function(item){
+      return selectedTopic==='all'||item.category===selectedTopic;
+    });
+    list.replaceChildren();
+    approved.slice(0,9).forEach(function(item){
+      var li=textEl('li');
+      var time=textEl('time',null,new Intl.DateTimeFormat(
+        fa?'fa-IR':'en-GB',{year:'numeric',month:'short',day:'numeric',
+          timeZone:'UTC'}).format(item.date));
+      time.dateTime=item.date.toISOString();
+      var a=textEl('a',null,item.title);a.href=item.link;
+      li.append(time,a);
+      if(item.summary)li.append(textEl('p',null,item.summary));
+      list.append(li);
+    });
+    if(approved.length){
+      feedStatus.textContent=fa?
+        'خبرهای دارای سند انتشار معتبر از سامانه اصلی JREI.':
+        'Published updates verified by the original JREI publication record.';
+    }else{
+      feedStatus.textContent=fa?
+        'در این دسته هنوز خبر منتشرشده و تأییدشده‌ای وجود ندارد.':
+        'No verified published story is available in this news desk.';
+    }
+    latest.hidden=publishedFeedItems.length===0&&selectedTopic==='all';
+  }
   function safeUrl(raw){
     if(typeof raw!=='string'||raw.length>300)return null;
     try{
@@ -42,6 +71,15 @@
        timestamp<946684800000)return null;
     return new Date(timestamp);
   }
+  // A verified calendar milestone MUST be in the future. Do not reuse the
+  // past-only publication timestamp guard for an upcoming event.
+  function futureEventDate(s){
+    if(typeof s!=='string'||!/^[0-9]{4}-[0-9]{2}-[0-9]{2}T/.test(s))return null;
+    var timestamp=Date.parse(s);
+    if(!Number.isFinite(timestamp)||timestamp<Date.now()||
+       timestamp>Date.now()+10*365*24*60*60*1000)return null;
+    return new Date(timestamp);
+  }
   if(latest&&list&&feedStatus&&typeof fetch==='function'&&
      typeof DOMParser!=='undefined'){
     var controller=typeof AbortController!=='undefined'?
@@ -67,10 +105,20 @@
           var headline=cleanText(item.querySelector('title')?.textContent,180);
           var summary=cleanText(item.querySelector('description')?.textContent,450);
           var date=feedDate(item.querySelector('pubDate')?.textContent||'');
-          var breaking=cleanText(item.querySelector('category')?.textContent,24)==='BREAKING';
+          var kind=Array.prototype.slice.call(item.querySelectorAll('category'));
+          var breaking=kind.some(function(c){
+            return c.getAttribute('domain')===null&&
+              cleanText(c.textContent,24)==='BREAKING';
+          });
+          var categoryNode=kind.find(function(c){
+            return c.getAttribute('domain')==='jrei-news-topic';
+          });
+          var category=cleanText(categoryNode&&categoryNode.textContent,48);
+          if(!/^(school|examinations|universities|employment|language|international|research)$/.test(category))
+            category='unclassified';
           if(!link||!headline||!date||used.has(link))return;
           used.add(link);valid.push({link:link,title:headline,
-            summary:summary,date:date,breaking:breaking});
+            summary:summary,date:date,breaking:breaking,category:category});
         });
         valid.sort(function(a,b){return b.date-a.date;});
         var urgentItem=valid.find(function(item){
@@ -83,26 +131,8 @@
           urgentLink.href=urgentItem.link;
           urgent.append(urgentLink);
         }
-        list.replaceChildren();
-        valid.slice(0,6).forEach(function(item){
-          var li=textEl('li'),time=textEl('time',null,
-            new Intl.DateTimeFormat(fa?'fa-IR':'en-GB',
-              {year:'numeric',month:'short',day:'numeric'}).format(item.date));
-          time.dateTime=item.date.toISOString();
-          var a=textEl('a',null,item.title);
-          a.href=item.link;
-          li.append(time,a);
-          if(item.summary)li.append(textEl('p',null,item.summary));
-          list.append(li);
-        });
-        if(valid.length){
-          latest.hidden=false;
-          feedStatus.textContent=fa?
-            'فقط خبرهای منتشرشده با ثبت معتبر در سامانه اصلی.':
-            'Only published updates with an original publication record.';
-        }else{
-          latest.hidden=true;
-        }
+        publishedFeedItems=valid;
+        renderPublished();
       }).catch(function(){
         // An unavailable official feed is not an empty feed or proof of live
         // source monitoring. Existing static, canonical articles remain usable.
@@ -116,21 +146,16 @@
         return;
       topicLinks.forEach(function(other){other.removeAttribute('aria-current');});
       link.setAttribute('aria-current','true');
-      // Search is the original same-origin public archive, not a new index.
-      // Keep the anchor working if scripts, data or API are unavailable.
-      var tries=0;
-      function selectWhenReady(){
-        var archive=document.querySelector('[data-ni-archive-search]');
-        var select=archive&&archive.querySelector('select[name="category"]');
-        var q=archive&&archive.querySelector('input[name="q"]');
-        if(select){
-          select.value=category;
-          if(q&&typeof q.focus==='function')q.focus({preventScroll:true});
-          return;
-        }
-        if(++tries<4)queueMicrotask(selectWhenReady);
+      selectedTopic=category;
+      renderPublished();
+      // Reuse the original PUBLISHED-only archive, with no new crawler or
+      // secondary index. A normal anchor still works without JavaScript.
+      var archive=document.querySelector('[data-ni-archive-search]');
+      if(archive&&typeof CustomEvent==='function'){
+        archive.dispatchEvent(new CustomEvent('jr-news-select-category',{
+          detail:{category:category}
+        }));
       }
-      queueMicrotask(selectWhenReady);
     });
   });
   var curated=document.querySelector('.launch-news-grid');
@@ -173,7 +198,7 @@
              event.ownerPublicationApproved!==true||
              event.sourceVerifiedAtReadTime!==true)return;
           var title=cleanText(event[fa?'titleFa':'titleEn'],220);
-          var date=feedDate(event.startsAt);
+          var date=futureEventDate(event.startsAt);
           var url;
           try{
             url=new URL(event.sourceUrl);
