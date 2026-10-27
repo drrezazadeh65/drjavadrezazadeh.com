@@ -66,7 +66,7 @@ function CheckGpu([string]$exe){
   if($valid.Count -ne 1){throw 'JREI_RX580_VULKAN_NOT_READY'}
   $m=[regex]::Match($valid[0],'\((\d+) MiB, (\d+) MiB free\)')
   if(-not $m.Success -or [int]$m.Groups[1].Value -lt 7168 -or
-     [int]$m.Groups[2].Value -lt 4096){
+     [int]$m.Groups[2].Value -lt 5120){
     throw 'JREI_RX580_INSUFFICIENT_VRAM'
   }
 }
@@ -107,11 +107,11 @@ if($Mode -eq 'Install'){
       Log 'GPU_PRIVATE_ALREADY_RUNNING'
       return
     }
-    if((ActiveListener).Count -ne 0){throw 'JREI_PORT_8082_UNVERIFIED_OCCUPANT'}
+    if(@(ActiveListener).Count -ne 0){throw 'JREI_PORT_8082_UNVERIFIED_OCCUPANT'}
     Start-ScheduledTask -TaskName $taskName -ErrorAction Stop
     Log 'GPU_EXISTING_TASK_START_REQUESTED'
   }else{
-    if((ActiveListener).Count -ne 0){throw 'JREI_PORT_8082_ALREADY_USED'}
+    if(@(ActiveListener).Count -ne 0){throw 'JREI_PORT_8082_ALREADY_USED'}
     if(Test-Path -LiteralPath $settings){throw 'JREI_EXISTING_OWNER_GPU_SETTINGS_REVIEW_REQUIRED'}
     $null=New-Item -ItemType Directory -Path $approvedDir -Force
     $source=[IO.Path]::GetFullPath($PSCommandPath)
@@ -189,11 +189,11 @@ if($Mode -eq 'Run'){
   $held=$false
   try{
     try{$held=$mutex.WaitOne(0)}
-    catch[Threading.AbandonedMutexException]{$held=$true}
+    catch [System.Threading.AbandonedMutexException]{$held=$true}
     if(-not $held){throw 'JREI_GPU_PRIVATE_ALREADY_RUNNING'}
     $failures=0
     while($true){
-      if((ActiveListener).Count -gt 0){throw 'JREI_PRIVATE_GPU_PORT_OCCUPIED'}
+      if(@(ActiveListener).Count -gt 0){throw 'JREI_PRIVATE_GPU_PORT_OCCUPIED'}
       try{CheckGpu $exe}
       catch{
         Log 'GPU_HEADROOM_NOT_READY_RETRY_LATER'
