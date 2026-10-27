@@ -74,6 +74,11 @@ function operationsCronRegistry(): array {
         'en'=>'JREI-KA lawful private document acquisition',
         'relative'=>'internal/jrei-ka-private-acquire-worker.php',
         'defaultCadence'=>3600,'minimumCadence'=>3600,'sensitive'=>true],
+      'jrei_news_original_schema_caretaker'=>[
+        'fa'=>'تکمیل افزایشی جدول‌های مصوب خبر در دیتابیس مادر',
+        'en'=>'JREI News approved additive mother-DB table caretaker',
+        'relative'=>'internal/jrei-news-schema-caretaker-worker.php',
+        'defaultCadence'=>3600,'minimumCadence'=>3600,'sensitive'=>true],
       'jrei_news_original_feed_projection'=>[
         'fa'=>'کشف خصوصی پیوندهای خبری از خوراک‌های تأییدشدهٔ JREI-KA',
         'en'=>'JREI News reviewed original private feed projection',
