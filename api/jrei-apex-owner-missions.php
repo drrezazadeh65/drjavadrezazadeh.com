@@ -129,6 +129,93 @@ function jrApexMissionAppend(PDO $pdo, array $mission, string $to,
         throw new DomainException('mission_event_atomic_update_conflict');
     // No separate "successful action" event: this is metadata-only journaling.
 }
+/**
+ * Link a previously COMPLETED existing low-risk observation to an owner
+ * mission. This NEVER executes the task, advances mission status, authorizes
+ * a worker, or trusts model-supplied action ids and evidence.
+ *
+ * evidence_sha256 stores the already opaque SHA-256-shaped operations run id,
+ * permitting the owner to locate the exact run in the existing run journal.
+ * The immutable event hash commits to that run's release, state and response.
+ */
+function jrApexMissionLinkObservation(PDO $pdo, string $accountId,
+    string $missionId, string $runId, int $at): void
+{
+    if(!jrApexMissionAccountId($accountId) ||
+       !jrApexMissionAccountId($missionId) ||
+       preg_match('/^[a-f0-9]{64}$/D',$runId)!==1)
+        throw new InvalidArgumentException('mission_observation_reference_invalid');
+    $allowed=[
+        'WEBSITE_SEO_GEO_REVIEW'=>'ENG-01.ACT-011',
+        'WEBSITE_OPERATIONS_ENGINES_REVIEW'=>'ENG-11.ACT-009'
+    ];
+    $pdo->beginTransaction();
+    try {
+        $row=jrApexMissionOwnerRead($pdo,$accountId,$missionId,true);
+        if(!$row || (string)$row['status']!=='PLANNED' ||
+           (int)$row['expires_at']<=$at)
+            throw new DomainException('mission_not_open_for_observation');
+        $action=$allowed[(string)$row['intent_code']]??null;
+        if($action===null)throw new DomainException('mission_observation_not_allowlisted');
+        $run=$pdo->prepare('SELECT action_id,release_sha,status,finished_at,result_json
+            FROM operations_action_runs WHERE run_id=? AND account_id=? LIMIT 1');
+        $run->execute([$runId,$accountId]);
+        $observed=$run->fetch(PDO::FETCH_ASSOC);
+        if(!is_array($observed) ||
+           $observed['action_id']!==$action ||
+           !in_array($observed['status'],['succeeded','blocked'],true) ||
+           $observed['finished_at']===null ||
+           !preg_match('/^[a-f0-9]{40}$/D',(string)$observed['release_sha']) ||
+           !is_string($observed['result_json']) ||
+           strlen($observed['result_json'])>10000)
+            throw new DomainException('observation_run_not_final_or_allowed');
+        // Replaying a link does not create a second event or confuse the
+        // original Action execution with completion of the JREI mission.
+        $prior=$pdo->prepare('SELECT seq FROM jrei_apex_mission_events
+            WHERE mission_id=? AND event_code=? AND evidence_sha256=? LIMIT 1');
+        $prior->execute([$missionId,'OWNER_READONLY_OBSERVATION_LINKED',$runId]);
+        if($prior->fetchColumn()!==false){$pdo->commit();return;}
+        $seq=(int)$row['last_event_seq']+1;
+        if($seq>1000000)throw new DomainException('mission_event_limit_reached');
+        $previous=(string)$row['last_event_hash'];
+        if(!preg_match('/^[a-f0-9]{64}$/D',$previous))
+            throw new DomainException('mission_event_chain_invalid');
+        $code='OWNER_READONLY_OBSERVATION_LINKED';
+        $state='PLANNED';
+        $evidenceDigest=hash('sha256',json_encode([
+            'jr.jrei.original-readonly-observation.v1',
+            $missionId,$runId,$action,$observed['release_sha'],
+            $observed['status'],(int)$observed['finished_at'],
+            hash('sha256',$observed['result_json'])
+        ],JSON_THROW_ON_ERROR|JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES));
+        $eventDigest=hash('sha256',json_encode([
+            'jr.jrei.apex-mission-observation-event.v1',
+            $missionId,$seq,$code,$state,$state,$accountId,
+            $previous,$at,$runId,$evidenceDigest
+        ],JSON_THROW_ON_ERROR|JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES));
+        $pdo->prepare('INSERT INTO jrei_apex_mission_events
+            (mission_id,seq,event_code,from_status,to_status,actor_account_id,
+            previous_sha256,event_sha256,evidence_sha256,occurred_at)
+            VALUES(?,?,?,?,?,?,?,?,?,?)')->execute([
+                $missionId,$seq,$code,$state,$state,$accountId,
+                $previous,$eventDigest,$runId,$at
+            ]);
+        $updated=$pdo->prepare('UPDATE jrei_apex_owner_missions
+            SET revision=revision+1,last_event_seq=?,last_event_hash=?,updated_at=?
+            WHERE mission_id=? AND owner_account_id=?
+              AND last_event_seq=? AND last_event_hash=? AND status=?');
+        $updated->execute([$seq,$eventDigest,$at,$missionId,$accountId,
+            $seq-1,$previous,$state]);
+        if($updated->rowCount()!==1)
+            throw new DomainException('mission_observation_atomic_conflict');
+        operationsAudit($pdo,$accountId,'jrei_apex_readonly_observation_linked',$missionId);
+        $pdo->commit();
+    }catch(Throwable $e) {
+        if($pdo->inTransaction())$pdo->rollBack();
+        throw $e;
+    }
+}
+
 function jrApexMissionSnapshot(PDO $pdo, array $cfg, string $accountId): array
 {
     $ready=jrApexMissionReady($pdo);
@@ -172,7 +259,7 @@ function jrApexMissionSnapshot(PDO $pdo, array $cfg, string $accountId): array
     }
     if($ids){
         $slots=implode(',',array_fill(0,count($ids),'?'));
-        $ev=$pdo->prepare('SELECT mission_id,seq,event_code,from_status,to_status,previous_sha256,event_sha256,occurred_at FROM jrei_apex_mission_events WHERE mission_id IN ('.$slots.') ORDER BY occurred_at DESC,mission_id DESC,seq DESC LIMIT 100');
+        $ev=$pdo->prepare('SELECT mission_id,seq,event_code,from_status,to_status,previous_sha256,event_sha256,evidence_sha256,occurred_at FROM jrei_apex_mission_events WHERE mission_id IN ('.$slots.') ORDER BY occurred_at DESC,mission_id DESC,seq DESC LIMIT 100');
         $ev->execute($ids);
         foreach($ev as $row){
             $base['events'][]=[
@@ -180,7 +267,10 @@ function jrApexMissionSnapshot(PDO $pdo, array $cfg, string $accountId): array
                 'event'=>(string)$row['event_code'],'from'=>$row['from_status'],
                 'to'=>(string)$row['to_status'],'recordedAt'=>(int)$row['occurred_at'],
                 'eventDigest'=>(string)$row['event_sha256'],
-                'previousDigest'=>(string)$row['previous_sha256']
+                'previousDigest'=>(string)$row['previous_sha256'],
+                'sourceObservationRunId'=>$row['event_code']==='OWNER_READONLY_OBSERVATION_LINKED'
+                    ?(string)$row['evidence_sha256']:null,
+                'missionExecutionVerified'=>false
             ];
         }
     }
@@ -193,16 +283,17 @@ function jrApexMissionOwnerChange(PDO $pdo,array $cfg,string $accountId,array $b
         throw new RuntimeException('mission_db_unavailable');
     $action=$body['action']??null;
     if(!is_string($action)||!in_array($action,
-        ['plan','plan-python','cancel','emergency-stop','resume-planning'],true))
+        ['plan','plan-python','cancel','link-observation','emergency-stop','resume-planning'],true))
         throw new InvalidArgumentException('mission_action_invalid');
     $readOnlySwitch=($cfg['jrei_apex_missions_owner_write_enabled']??false)!==true;
     // Emergency stop and cancellation remain accessible when the new-write
     // feature flag is OFF. They still demand original owner MFA+CSRF+role.
-    if($readOnlySwitch && !in_array($action,['cancel','emergency-stop'],true))
+    if($readOnlySwitch && !in_array($action,['cancel','emergency-stop','link-observation'],true))
         throw new DomainException('mission_planning_source_only');
     $expectedKeys=match($action) {
         'plan','plan-python'=>['action','intent','requestKey'],
         'cancel'=>['action','missionId'],
+        'link-observation'=>['action','missionId','runId'],
         default=>['action']
     };
     $keys=array_keys($body);sort($keys);sort($expectedKeys);
@@ -212,6 +303,12 @@ function jrApexMissionOwnerChange(PDO $pdo,array $cfg,string $accountId,array $b
     $prepared=$action==='plan-python'
         ? jrApexPythonPrepare($pdo,$cfg,$accountId,$body) : null;
     $at=nowTs();
+    if($action==='link-observation') {
+        if(!is_string($body['missionId']) || !is_string($body['runId']))
+            throw new InvalidArgumentException('mission_observation_reference_invalid');
+        jrApexMissionLinkObservation($pdo,$accountId,$body['missionId'],$body['runId'],$at);
+        return jrApexMissionSnapshot($pdo,$cfg,$accountId);
+    }
     $pdo->beginTransaction();
     try {
         $control=jrApexMissionControl($pdo,true);
