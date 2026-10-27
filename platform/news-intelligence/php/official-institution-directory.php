@@ -56,7 +56,7 @@ function jrNewsOfficialInstitutionDirectory(): array {
          'nameEn'=>'Shahid Beheshti University',
          'origin'=>'https://www.sbu.ac.ir/','category'=>'universities','priority'=>'P1'],
         ['id'=>'atu','nameFa'=>'دانشگاه علامه طباطبائی',
-         'nameEn'=>'Allameh Tabataba'i University',
+         'nameEn'=>"Allameh Tabataba'i University",
          'origin'=>'https://www.atu.ac.ir/','category'=>'universities','priority'=>'P1'],
         ['id'=>'khu','nameFa'=>'دانشگاه خوارزمی',
          'nameEn'=>'Kharazmi University',
