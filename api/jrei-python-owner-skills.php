@@ -15,7 +15,7 @@ function jrOwnerJreiPythonSkillDispatch(array $privateConfig, array $body, ?stri
     if (!is_string($action) ||
         !in_array($action,['catalog','triage-evidence','heldout-review','calculate',
           'evidence-graph','knowledge-correction','answer-grounding-review','metacognitive-plan','learning-value-plan','capacity-plan','exam-blueprint-review','news-editorial-preflight','strategy-propose','mission-bind','method-feedback','grounded-retrieval','source-extract',
-          'model-draft','memory-save','memory-read','memory-revoke'],true)) {
+          'model-draft','memory-save','memory-read','memory-list','memory-revoke'],true)) {
         throw new InvalidArgumentException('python_skill_action_invalid');
     }
 
@@ -179,12 +179,14 @@ function jrOwnerJreiPythonSkillDispatch(array $privateConfig, array $body, ?stri
         $payload=$body['payload'];
         $payload['owner_account_id']=strtolower($ownerAccountId);
         $suffix=match($action) {
-            'memory-save'=>'save','memory-read'=>'read','memory-revoke'=>'revoke'
+            'memory-save'=>'save','memory-read'=>'read',
+            'memory-list'=>'list','memory-revoke'=>'revoke'
         };
         $route='/internal/v1/memory/owner/'.$suffix;
         $expected=match($action) {
             'memory-save'=>'jr.jrei.owner-memory-receipt.v1',
             'memory-read'=>'jr.jrei.owner-memory-read.v1',
+            'memory-list'=>'jr.jrei.owner-memory-list-result.v1',
             'memory-revoke'=>'jr.jrei.owner-memory-revoked.v1'
         };
     }
@@ -424,6 +426,40 @@ function jrOwnerJreiPythonSkillDispatch(array $privateConfig, array $body, ?stri
             ($action==='memory-read' && ($result['available_to_other_tenants']??null)!==false) ||
             ($action==='memory-revoke' && ($result['historical_backups_erased']??null)!==false)) {
             throw new RuntimeException('JREI_PYTHON_MEMORY_CONTRACT_MISMATCH');
+        }
+        if ($action==='memory-list') {
+            if (($result['payload_contains_plaintext']??null)!==false ||
+                ($result['available_to_other_tenants']??null)!==false ||
+                !is_array($result['entries']??null) ||
+                !array_is_list($result['entries']) ||
+                count($result['entries'])>50 ||
+                !is_bool($result['has_more']??null)) {
+                throw new RuntimeException('JREI_OWNER_MEMORY_LIST_UNTRUSTED');
+            }
+            $max=(int)($payload['limit']??25);
+            if ($max<1 || $max>50 || count($result['entries'])>$max) {
+                throw new RuntimeException('JREI_OWNER_MEMORY_LIST_LIMIT_INVALID');
+            }
+            foreach ($result['entries'] as $entry) {
+                if(!is_array($entry) ||
+                   count(array_diff(array_keys($entry),
+                       ['record_id','purpose','created_at','expires_at']))!==0 ||
+                   count($entry)!==4 ||
+                   !is_string($entry['record_id']??null) ||
+                   !preg_match('/^[a-f0-9]{8}-(?:[a-f0-9]{4}-){3}[a-f0-9]{12}$/D',
+                       $entry['record_id']) ||
+                   !in_array($entry['purpose']??null,
+                       ['OWNER_WORK_NOTE','OWNER_RESEARCH_NOTE','OWNER_PREFERENCE'],true) ||
+                   !is_int($entry['created_at']??null) ||
+                   !is_int($entry['expires_at']??null)) {
+                    throw new RuntimeException('JREI_OWNER_MEMORY_LIST_ENTRY_INVALID');
+                }
+            }
+            if (($result['has_more']===true) !==
+                ($result['next_before_created_at']!==null &&
+                 $result['next_before_record_id']!==null)) {
+                throw new RuntimeException('JREI_OWNER_MEMORY_LIST_CURSOR_INVALID');
+            }
         }
         // Only a real successful signed Python+mother-DB reply may change
         // these response indicators. Never infer live memory from source.
