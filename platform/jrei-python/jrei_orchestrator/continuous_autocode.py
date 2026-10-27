@@ -348,6 +348,14 @@ def run_forever(repo: Path, workspace: Path, manifest_path: Path) -> None:
         raise RuntimeError("AUTOCODE_OWNER_ACTIVATION_REQUIRED")
     if manifest_path.is_symlink() or workspace.is_symlink():
         raise RuntimeError("AUTOCODE_CONFIGURATION_SYMLINK_DENIED")
+    source_root=repo.resolve(strict=True)
+    workspace.mkdir(parents=True, exist_ok=True, mode=0o700)
+    isolated=workspace.resolve(strict=True)
+    if (isolated==source_root or isolated.is_relative_to(source_root)
+        or source_root.is_relative_to(isolated)):
+        raise RuntimeError("AUTOCODE_WORKSPACE_MUST_BE_ISOLATED_FROM_SOURCE")
+    if manifest_path.resolve(strict=True).is_relative_to(source_root):
+        raise RuntimeError("AUTOCODE_OWNER_MANIFEST_MUST_NOT_BE_IN_PUBLIC_SOURCE")
     signal.signal(signal.SIGINT, lambda *_: _EXIT.set())
     signal.signal(signal.SIGTERM, lambda *_: _EXIT.set())
     conn = _open_private_db(workspace)
