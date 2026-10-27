@@ -269,13 +269,32 @@ function jrMetaJournalOwnerList(PDO $pdo,string $owner): array {
         throw new RuntimeException('JREI_METACOGNITIVE_MOTHER_SCHEMA_MISSING');
     }
     $q=$pdo->prepare('SELECT cycle_id,owner_account_id,request_key,policy_version,'.
-        'input_sha256,outcome_sha256,lifecycle,recorded_at FROM '.
+        'input_sha256,outcome_sha256,outcome_json,lifecycle,recorded_at FROM '.
         'jrei_metacognitive_owner_cycles WHERE owner_account_id=? '.
         'ORDER BY recorded_at DESC,cycle_id DESC LIMIT 25');
     $q->execute([$owner]);
     $items=[];
     foreach($q->fetchAll(PDO::FETCH_ASSOC) as $row) {
-        $items[]=jrMetaJournalReceipt($row);
+        $raw=$row['outcome_json'];
+        if(!is_string($raw) || strlen($raw)>64000 ||
+           $row['lifecycle']!=='PROPOSAL_ONLY') {
+            throw new RuntimeException('JREI_META_OWNER_LIST_INTEGRITY_FAILED');
+        }
+        $decoded=json_decode($raw,true,32,JSON_THROW_ON_ERROR);
+        if(!is_array($decoded) || array_is_list($decoded) ||
+           !hash_equals((string)$row['outcome_sha256'],
+              jrMetaJournalOutcomeDigest($decoded)) &&
+           !hash_equals((string)$row['outcome_sha256'],hash('sha256',$raw)) ||
+           ($decoded['submitted_payload_sha256']??null)!==$row['input_sha256'] ||
+           ($decoded['policy_version']??null)!==$row['policy_version'] ||
+           ($decoded['learning_improvement_proven']??null)!==false ||
+           ($decoded['knowledge_written']??null)!==false ||
+           ($decoded['automatic_skill_promotion']??null)!==false) {
+            throw new RuntimeException('JREI_META_OWNER_LIST_INTEGRITY_FAILED');
+        }
+        $receipt=jrMetaJournalReceipt($row);
+        $receipt['storedOutcomeDigestVerified']=true;
+        $items[]=$receipt;
     }
     return [
         'ok'=>true,'schema'=>'jr.jrei.metacognitive-owner-journal-list.v1',
