@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import base64
 import hashlib
+import hmac
 import os
 from pathlib import Path
 import secrets
@@ -77,7 +78,12 @@ def _aad(owner_id: str, record_id: str, purpose: str, expires_at: int) -> bytes:
 
 
 def save_owner_note(request: OwnerMemorySave) -> OwnerMemoryReceipt:
-    # Explicit invocation only: this function never reads public chat history.
+    """Atomically persist a note or recover an identical idempotent submission.
+
+    A repeated request key is never allowed to change a note, restore a
+    revoked note, or extend its original retention interval. Reconciliation
+    reads the existing ciphertext under a row lock, not another data store.
+    """
     aes = _cipher()
     now = int(time.time())
     expiry = now + request.retention_days * 86400
@@ -92,18 +98,59 @@ def save_owner_note(request: OwnerMemorySave) -> OwnerMemoryReceipt:
     conn = _connect()
     try:
         with conn.cursor() as cur:
-            cur.execute(
-                "INSERT INTO jrei_python_owner_memory_records "
-                "(record_id,owner_account_id,request_key,purpose,nonce,"
-                "ciphertext,ciphertext_sha256,created_at,expires_at,revoked_at) "
-                "VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,NULL)",
-                (record_id, request.owner_account_id, request.request_key,
-                 request.purpose, nonce, ciphertext, checksum, now, expiry),
-            )
+            try:
+                cur.execute(
+                    "INSERT INTO jrei_python_owner_memory_records "
+                    "(record_id,owner_account_id,request_key,purpose,nonce,"
+                    "ciphertext,ciphertext_sha256,created_at,expires_at,revoked_at) "
+                    "VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,NULL)",
+                    (record_id, request.owner_account_id, request.request_key,
+                     request.purpose, nonce, ciphertext, checksum, now, expiry),
+                )
+            except Exception as exc:
+                # Only a unique-key collision is a possible idempotent replay.
+                # Never reinterpret schema, connectivity or permission failures.
+                if not getattr(exc, "args", ()) or exc.args[0] != 1062:
+                    raise
+                cur.execute(
+                    "SELECT record_id,purpose,nonce,ciphertext,"
+                    "ciphertext_sha256,created_at,expires_at,revoked_at "
+                    "FROM jrei_python_owner_memory_records "
+                    "WHERE owner_account_id=%s AND request_key=%s "
+                    "LIMIT 1 FOR UPDATE",
+                    (request.owner_account_id, request.request_key),
+                )
+                row = cur.fetchone()
+                if row is None:
+                    raise OwnerMemoryUnavailable("OWNER_MEMORY_IDEMPOTENCY_CONFLICT") from exc
+                old_id, old_purpose, old_nonce, old_cipher, old_hash, created, old_expiry, revoked = row
+                if (revoked is not None or int(old_expiry) <= now
+                        or old_purpose != request.purpose
+                        or int(old_expiry) - int(created) != request.retention_days * 86400
+                        or not isinstance(old_nonce, bytes)
+                        or not isinstance(old_cipher, bytes)
+                        or len(old_nonce) != 12
+                        or not isinstance(old_hash, str)
+                        or not hmac.compare_digest(
+                            hashlib.sha256(old_cipher).hexdigest(), old_hash
+                        )):
+                    raise OwnerMemoryUnavailable("OWNER_MEMORY_IDEMPOTENCY_CONFLICT") from exc
+                try:
+                    existing = aes.decrypt(
+                        old_nonce, old_cipher,
+                        _aad(request.owner_account_id, old_id, old_purpose, int(old_expiry)),
+                    )
+                except Exception as decrypt_exc:
+                    raise OwnerMemoryUnavailable("OWNER_MEMORY_IDEMPOTENCY_CONFLICT") from decrypt_exc
+                if not hmac.compare_digest(existing, plaintext):
+                    raise OwnerMemoryUnavailable("OWNER_MEMORY_IDEMPOTENCY_CONFLICT") from exc
+                record_id, expiry = old_id, int(old_expiry)
         conn.commit()
+    except OwnerMemoryUnavailable:
+        conn.rollback()
+        raise
     except Exception as exc:
         conn.rollback()
-        # Duplicate key or other DB failure must not become a second memory.
         raise OwnerMemoryUnavailable("OWNER_MEMORY_WRITE_UNAVAILABLE") from exc
     finally:
         conn.close()
