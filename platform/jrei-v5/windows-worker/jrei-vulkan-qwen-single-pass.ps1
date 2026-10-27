@@ -7,7 +7,7 @@
 #>
 [CmdletBinding()]
 param(
-  [ValidateRange(0,32)][int]$GpuLayers=4,
+  [ValidateRange(0,37)][int]$GpuLayers=4,
   [switch]$ThroughputProbe
 )
 Set-StrictMode -Version Latest
@@ -45,7 +45,10 @@ if($GpuLayers -gt 16){
   if(-not $matchResult.Success){throw 'JREI_RX580_GPU_MEMORY_REPORT_MISSING'}
   $gpuTotalMiB=[int]$matchResult.Groups[1].Value
   $gpuFreeMiB=[int]$matchResult.Groups[2].Value
-  if($gpuTotalMiB -lt 7168 -or $gpuFreeMiB -lt 4096){
+  # The full 37-layer setting requires extra margin above the already
+  # observed 32-layer 2.1 GiB model allocation; never force GPU overcommit.
+  $minimumFreeMiB=if($GpuLayers -ge 33){5120}else{4096}
+  if($gpuTotalMiB -lt 7168 -or $gpuFreeMiB -lt $minimumFreeMiB){
     throw 'JREI_RX580_VRAM_HEADROOM_UNSAFE'
   }
   Write-Output ('[JREI] GPU_DEVICE_VERIFIED_RX580')
