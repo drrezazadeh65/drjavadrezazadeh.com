@@ -32,6 +32,7 @@ from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
 from typing import Literal
 
 from jrei_core.contracts import Digest, Identifier, StrictContract, Unit
+from jrei_orchestrator.standing_discovery import discover_candidates
 from jrei_core.local_model_draft import (
     LocalDraftRequest, LocalModelUnavailable, create_local_owner_draft,
 )
@@ -94,6 +95,10 @@ class ContinuousCodingManifest(StrictContract):
     policy_digest: Digest
     owner_approved: bool = False
     emergency_stop: bool = True
+    # One standing approval enables discovery without owner confirmation
+    # for every individual source-gap proposal. Production stays separate.
+    autonomous_source_discovery_enabled: bool = False
+    per_pass_source_scan: int = Field(default=80, ge=1, le=400)
     tasks: list[ContinuousCodingTask] = Field(max_length=_TASKS_MAX)
 
     @model_validator(mode="after")
@@ -215,8 +220,19 @@ def stage_one(
     if not _headroom():
         return "RESOURCE_BACKPRESSURE"
     heavy = _tehran_heavy_window()
+    discovered = []
+    if manifest.autonomous_source_discovery_enabled:
+        discovered = [
+            ContinuousCodingTask.model_validate(record)
+            for record in discover_candidates(
+                repo, manifest.policy_digest,
+                max_files_per_pass=manifest.per_pass_source_scan,
+            )
+        ]
+    # Explicitly owner-pinned jobs take priority over autonomous discovery,
+    # while finite per-pass scanning applies backpressure without daily caps.
     tasks = sorted(
-        manifest.tasks,
+        [*manifest.tasks, *discovered],
         key=lambda t: (-t.priority * (1.2 if heavy and
                          t.requires_heavy_window_priority else 1.0), t.task_id),
     )
