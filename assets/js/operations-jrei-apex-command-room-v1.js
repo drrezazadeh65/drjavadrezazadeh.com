@@ -60,7 +60,13 @@ for(const [kind,description] of Object.entries(descriptions)){
 label.append(select);
 const create=make('button',T('ثبت برنامهٔ قابل پیگیری','Register accountable plan'));
 create.type='submit';
-request.append(label,create);
+const pythonLabel=make('label');
+const pythonToggle=make('input');pythonToggle.type='checkbox';pythonToggle.disabled=true;
+pythonLabel.append(pythonToggle,document.createTextNode(T(
+ ' پیشنهاد برنامهٔ Python با قرارداد امضاشده؛ بدون اجرا',
+ ' Signed Python planning proposal only; no execution'
+)));
+request.append(label,pythonLabel,create);
 const note=make('p',T(
  'هر مأموریت تنها شناسه، نوع درخواست، وضعیت و هش رویدادها را ذخیره می‌کند؛ متن خصوصی یا رمز وارد نمی‌شود. ساخت برنامه به معنی اجرای آن نیست.',
  'Only mission IDs, intent codes, states and event hashes are stored; private text or credentials are not collected. No work is executed on plan creation.'
@@ -82,6 +88,7 @@ const reset=()=>{
  pendingKey=null;pendingIntent=null;
  history.replaceChildren();eventList.replaceChildren();
  create.disabled=true;resume.disabled=true;stop.disabled=true;
+ pythonToggle.disabled=true;pythonToggle.checked=false;
  reload.disabled=false;
  setStatus(T('ابتدا وضعیت را از سرور بخوانید.','Load current server status first.'));
 };
@@ -94,6 +101,8 @@ function draw(data){
  const halted=data.emergencyStop===true;
  const canCreate=ready&&ownerWrites&&planning&&!halted&&data.executionEnabled===false;
  create.disabled=!canCreate;
+ pythonToggle.disabled=!canCreate||data.pythonPlanningSourceEnabled!==true;
+ if(pythonToggle.disabled)pythonToggle.checked=false;
  resume.disabled=!ready||!ownerWrites||busy||canCreate;
  stop.disabled=!ready||halted||busy;
  if(!ready){
@@ -222,7 +231,7 @@ async function run(body=null){
   if(serial!==marker||!current())return;
   if(result?.ok!==true||result.schema!=='jr.jrei.apex-owner-missions.v1'||
     result.workerDispatchImplemented!==false)throw Error('CONTRACT_INVALID');
-  if(body?.action==='plan'){pendingKey=null;pendingIntent=null;}
+  if(['plan','plan-python'].includes(body?.action)){pendingKey=null;pendingIntent=null;}
   draw(result);
  }catch{
   if(serial===marker&&current()){
@@ -242,6 +251,7 @@ reload.addEventListener('click',()=>run());
 stop.addEventListener('click',()=>post({action:'emergency-stop'}));
 resume.addEventListener('click',()=>post({action:'resume-planning'}));
 select.addEventListener('change',()=>{pendingKey=null;pendingIntent=null;});
+pythonToggle.addEventListener('change',()=>{pendingKey=null;pendingIntent=null;});
 request.addEventListener('submit',event=>{
  event.preventDefault();
  if(!current()||busy||create.disabled)return;
@@ -252,7 +262,8 @@ request.addEventListener('submit',event=>{
   pendingKey=Array.from(bytes,b=>b.toString(16).padStart(2,'0')).join('');
   pendingIntent=intent;
  }
- post({action:'plan',intent,requestKey:pendingKey});
+ post({action:pythonToggle.checked?'plan-python':'plan',intent,
+   requestKey:pendingKey});
 });
 shell.addEventListener('toggle',()=>{if(shell.open&&root.open)run();else reset();});
 root.addEventListener('toggle',()=>{if(!root.open)reset();});
