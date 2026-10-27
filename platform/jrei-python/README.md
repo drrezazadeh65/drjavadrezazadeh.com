@@ -272,3 +272,36 @@ Every real promotion must retain independent fixtures and negative outcomes,
 must be reversible and must preserve original release authority.
 The owner must first inspect one successful exact-SHA isolated preview
 before running the originally frozen Bertina deployment workflow.
+
+## RX 580 8 GiB GPU and 24/7 owner-aware compute (source-stage)
+
+The owner machine observed in Windows Task Manager on 2026-10-27 has an
+AMD Radeon RX 580 **8 GiB dedicated VRAM** (not 4 GiB) and 31.8 GiB usable
+system RAM; the displayed 15.9 GiB shared graphics memory is system RAM,
+**not additional fast dedicated GPU memory**. Windows `Win32_VideoController`
+can report a truncated/wrapped `AdapterRAM` on cards with more than 4 GiB;
+do not turn its reported 4 GiB into a scheduling or model-training cap.
+
+The existing `jrei-local-model-start.ps1` currently uses
+`--n-gpu-layers 0`: it is a CPU-first original baseline, even though the
+GPU exists. The new **read-only** owner tool
+`platform/jrei-v5/windows-worker/jrei-amd-vulkan-readiness.ps1`
+inspects the running model process for an explicit GPU-layer flag, an AMD
+adapter, Vulkan loader and locally hash-pinned executable. It cannot
+independently prove real GPU offload. Vulkan-enabled llama.cpp binaries,
+compatible GPU drivers and a separate, isolated benchmark are required
+before any owner-approved change to model offload. Do not automatically
+update GPU drivers, swap a known-working model binary or claim CUDA is
+available. Keep headroom for the Windows desktop and Qwen runtime.
+
+The sandbox autonomous coding worker uses measured CPU and free RAM, with
+an **owner-aware 24/7** resource policy: when foreground input is active,
+the measured CPU ceiling is 72% with at least 4 GiB system memory free; after
+600 seconds of owner inactivity, the ceiling is raised to 90% with a 2 GiB
+free-memory reserve. These are instantaneous measured-resource safeguards,
+not daily job counts or allowed-hours constraints. The worker backs off if
+limits are reached and resumes when measurements permit. Heavy 02:00–05:00
+Tehran processing is a relative priority boost only. GPU compute is **not**
+silently enabled, and the signed standing owner sandbox grant is still
+required. This release is source-only until Windows integration, owner
+installation and independent execution receipts succeed.
