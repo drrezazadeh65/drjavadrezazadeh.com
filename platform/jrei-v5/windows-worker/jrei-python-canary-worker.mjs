@@ -54,21 +54,39 @@ export async function runPythonCanaryWorker(config,key,{post,log,signal,
   if(typeof post!=='function'||typeof log!=='function'||
      !Number.isInteger(intervalMs)||intervalMs<5000)
     throw Error('SIGNED_WORKER_REQUIRED');
+  // Retry only the immutable completion envelope, never lease acquisition.
+  // If the first ACK was lost after commit the PHP endpoint returns a
+  // matching idempotent completion instead of creating a second execution.
+  const completeWithRecovery=async (result)=>{
+    let lastError;
+    for(let attempt=0;attempt<2;attempt++){
+      if(signal?.aborted)throw Error('PYTHON_CANARY_WORKER_STOPPED');
+      try{
+        return await post(config,key,'/api/jrei/v1/python-canary/complete',result);
+      }catch(error){
+        lastError=error;
+        if(attempt===0&& !signal?.aborted)
+          await new Promise(resolve=>setTimeout(resolve,300));
+      }
+    }
+    throw lastError;
+  };
   log('PYTHON_CANARY_SIGNED_WORKER_STARTED');
   while(!signal?.aborted){
     try {
       const polled=await post(config,key,'/api/jrei/v1/python-canary/poll',{schema:CANARY});
-      if(polled?.schema!=='jr.jrei.python-canary-poll.v1'||
+      if(polled?.ok!==true||polled?.schema!=='jr.jrei.python-canary-poll.v1'||
          polled.productionReady!==false)
         throw Error('PYTHON_CANARY_POLL_INVALID');
       if(polled.job!==null){
         const result=await runPythonLocalCanary(polled.job,{fetchLocal});
-        const receipt=await post(config,key,'/api/jrei/v1/python-canary/complete',result);
+        const receipt=await completeWithRecovery(result);
         // A generic 200/accepted response is not a mother-DB receipt.
         // Bind the acknowledgement to the exact signed job and lease.
         const expectedDigest=createHash('sha256').update(
           `${CANARY}|${result.jobId}|${result.leaseId}|84/1`,'utf8').digest('hex');
-        if(receipt?.accepted!==true ||
+        if(receipt?.ok!==true || receipt?.accepted!==true ||
+           typeof receipt.replayed!=='boolean' ||
            receipt.schema!=='jr.jrei.python-canary-completion.v1'||
            receipt.exactFraction!=='84'||
            receipt.productionReady!==false||
