@@ -31,6 +31,8 @@ function jrJreiPythonInternalPropose(array $privateConfig, string $route, array 
         '/internal/v1/learning/metacognitive/mission-bind',
         '/internal/v1/learning/metacognitive/method-feedback',
         '/internal/v1/learning/self-improvement/plan',
+        '/internal/v1/learning/native-language/plan',
+        '/internal/v1/model/portfolio/plan',
         '/internal/v1/orchestration/capacity/plan',
         '/internal/v1/skills/arithmetic/calculate',
         '/internal/v1/memory/owner/save',
