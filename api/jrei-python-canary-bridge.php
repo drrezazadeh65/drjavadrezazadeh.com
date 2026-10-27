@@ -97,11 +97,20 @@ function jrPythonCanaryOwner(PDO $db,string $account,array $body,int $now): arra
 }
 function jrPythonCanaryOwnerSnapshot(PDO $db,string $owner): array {
     if(!jrPythonCanaryReady($db))throw new RuntimeException('python_canary_schema_missing');
-    $q=$db->prepare('SELECT job_id,state,created_at,expires_at,completed_at,numerator,denominator,
-         result_sha256 FROM jrei_python_canary_jobs WHERE owner_account_id=? ORDER BY created_at DESC LIMIT 10');
-    $q->execute([$owner]);$rows=[];
+    $q=$db->prepare('SELECT job_id,state,created_at,expires_at,lease_expires_at,completed_at,numerator,denominator,
+         result_sha256 FROM jrei_python_canary_jobs WHERE owner_account_id=? ORDER BY created_at DESC,job_id DESC LIMIT 10');
+    $q->execute([$owner]);$rows=[];$now=time();
     foreach($q->fetchAll(PDO::FETCH_ASSOC) as $r){
+        // A worker may be offline indefinitely. The stored state then stays
+        // QUEUED/LEASED until its next poll. Expose the clock-expired truth
+        // without performing an implicit write from this read-only route.
+        $expiredByClock=in_array($r['state'],['QUEUED','LEASED'],true) && (
+            (int)$r['expires_at']<=$now ||
+            ($r['state']==='LEASED' && $r['lease_expires_at']!==null &&
+             (int)$r['lease_expires_at']<=$now)
+        );
         $rows[]=['jobId'=>$r['job_id'],'state'=>$r['state'],
+          'effectiveState'=>$expiredByClock?'EXPIRED_BY_CLOCK':$r['state'],
           'createdAt'=>(int)$r['created_at'],'expiresAt'=>(int)$r['expires_at'],
           'completedAt'=>$r['completed_at']===null?null:(int)$r['completed_at'],
           'numerator'=>$r['numerator']===null?null:(int)$r['numerator'],
@@ -135,21 +144,26 @@ function jrPythonCanaryPoll(PDO $db,string $node,array $body,int $now): array {
           WHERE state IN ('QUEUED','LEASED') AND
           (expires_at<=? OR (state='LEASED' AND lease_expires_at<=?))")
           ->execute([$now,$now]);
-        $q=$db->prepare("SELECT job_id FROM jrei_python_canary_jobs
+        $q=$db->prepare("SELECT job_id,expires_at FROM jrei_python_canary_jobs
           WHERE state='QUEUED' AND expires_at>? ORDER BY created_at,job_id
           LIMIT 1 FOR UPDATE");
-        $q->execute([$now]);$id=$q->fetchColumn();
-        if(!$id){$db->commit();return ['ok'=>true,'schema'=>'jr.jrei.python-canary-poll.v1','job'=>null,'productionReady'=>false];}
+        $q->execute([$now]);$job=$q->fetch(PDO::FETCH_ASSOC);
+        if(!is_array($job)){$db->commit();return ['ok'=>true,'schema'=>'jr.jrei.python-canary-poll.v1','job'=>null,'productionReady'=>false];}
+        // The worker must never receive a deadline later than the mother's
+        // immutable job expiry. An almost-expired job gets a short lease.
+        $deadline=min($now+60,(int)$job['expires_at']);
+        if($deadline<=$now)throw new DomainException('python_canary_job_expired');
         $lease=jrPythonCanaryUuid();
-        $db->prepare("UPDATE jrei_python_canary_jobs
+        $update=$db->prepare("UPDATE jrei_python_canary_jobs
           SET state='LEASED',assigned_node=?,lease_id=?,lease_expires_at=?
-          WHERE job_id=? AND state='QUEUED'")
-          ->execute([$node,$lease,min($now+60,$now+600),$id]);
+          WHERE job_id=? AND state='QUEUED' AND expires_at>?");
+        $update->execute([$node,$lease,$deadline,$job['job_id'],$now]);
+        if($update->rowCount()!==1)throw new DomainException('python_canary_lease_not_acquired');
         $db->commit();
         return ['ok'=>true,'schema'=>'jr.jrei.python-canary-poll.v1',
-          'job'=>['jobId'=>$id,'leaseId'=>$lease,'expression'=>'12*7',
+          'job'=>['jobId'=>$job['job_id'],'leaseId'=>$lease,'expression'=>'12*7',
             'taskType'=>'EXACT_ARITHMETIC_CANARY',
-            'expiresAt'=>$now+60],
+            'expiresAt'=>$deadline],
           'productionReady'=>false];
     }catch(Throwable $e){if($db->inTransaction())$db->rollBack();throw $e;}
 }
