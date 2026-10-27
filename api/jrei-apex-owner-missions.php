@@ -232,6 +232,19 @@ function jrApexMissionOwnerChange(PDO $pdo,array $cfg,string $accountId,array $b
             if($existing){
                 if(!hash_equals((string)$existing['request_digest'],$digest))
                     throw new DomainException('mission_request_key_conflict');
+                // The same key cannot silently change between original PHP
+                // planning and HMAC/Python planning. The legacy request digest
+                // does not encode mode, so the immutable Python plan row does.
+                $pythonModeRecorded=false;
+                if(jrApexPythonPlanSchemaReady($pdo)) {
+                    $mode=$pdo->prepare('SELECT 1 FROM jrei_apex_mission_python_plans WHERE mission_id=? LIMIT 1');
+                    $mode->execute([(string)$existing['mission_id']]);
+                    $pythonModeRecorded=$mode->fetchColumn()!==false;
+                } elseif($action==='plan-python') {
+                    throw new DomainException('mission_python_plan_schema_missing');
+                }
+                if(($action==='plan-python')!==$pythonModeRecorded)
+                    throw new DomainException('mission_request_key_mode_conflict');
                 // The same idempotent request never creates a second event.
             } else {
                 // A duplicate can be read after an emergency stop, but no
