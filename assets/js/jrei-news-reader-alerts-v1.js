@@ -99,7 +99,7 @@
   }
  }
  function poll(){
-  if(!enabled||polling||document.hidden)return Promise.resolve();
+  if(!enabled||polling)return Promise.resolve();
   polling=true;state.textContent=stateText('wait');
   var controller=typeof AbortController==='function'?new AbortController():null;
   var deadline=controller?setTimeout(function(){controller.abort();},12000):null;
@@ -113,8 +113,8 @@
   }).then(function(xml){
    if(!enabled)return;
    var rows=parseFeed(xml),last=read();
-   if(!last||last.enabled!==true){
-    save({enabled:true,latest:rows[0]?.published||0,paths:rows.slice(0,30).map(x=>x.path)});
+   if(!last||last.enabled!==true||last.initialized!==true){
+    save({enabled:true,initialized:true,latest:rows[0]?.published||0,paths:rows.slice(0,30).map(x=>x.path)});
     state.textContent=stateText(rows.length?'on':'empty');return;
    }
    var known=new Set(Array.isArray(last.paths)?last.paths:[]);
@@ -123,7 +123,7 @@
    });
    if(newest.length)maybeNotify(newest[0]);
    else state.textContent=stateText(rows.length?'on':'empty');
-   save({enabled:true,latest:Math.max(Number(last.latest||0),rows[0]?.published||0),
+   save({enabled:true,initialized:true,latest:Math.max(Number(last.latest||0),rows[0]?.published||0),
      paths:[...new Set(rows.slice(0,30).map(x=>x.path).concat(Array.from(known).slice(0,20)))].slice(0,50)});
   }).catch(function(){if(enabled)state.textContent=stateText('unavailable');})
     .finally(function(){if(deadline)clearTimeout(deadline);polling=false;});
@@ -132,7 +132,7 @@
   if(enabled){
    enabled=false;save(null);if(timer)clearInterval(timer);timer=null;view();return;
   }
-  enabled=true;save({enabled:true,latest:0,paths:[]});view();
+  enabled=true;save({enabled:true,initialized:false,latest:0,paths:[]});view();
   state.textContent=stateText('wait');
   poll();
   timer=setInterval(poll,5*60000);
