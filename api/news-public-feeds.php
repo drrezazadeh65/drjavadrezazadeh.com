@@ -97,7 +97,7 @@ function jrNewsPublicXmlResponse(array $stories,string $kind,string $lang,int $n
                   jrNewsPublicXmlText($r['category']).'</category>'.
                 '<category domain="jrei-news-event">'.
                   jrNewsPublicXmlText($r['event']).'</category>'.
-                '<category>.(($r['priority']==='P0'&&
+                '<category>'.(($r['priority']==='P0'&&
                   $now-$r['publishedAt']>=0&&$now-$r['publishedAt']<=48*3600)?
                     'BREAKING':'NEWS').'</category>'.
                 '<pubDate>'.gmdate(DATE_RSS,$r['publishedAt']).'</pubDate></item>';
