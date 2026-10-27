@@ -53,6 +53,7 @@ require_once __DIR__.'/jrei-hybrid-owner.php';
 require_once __DIR__.'/jrei-owner-private-pilot.php';
 require_once __DIR__.'/jrei-python-node-health.php';
 require_once __DIR__.'/jrei-python-canary-bridge.php';
+require_once __DIR__.'/jrei-mother-schema-inventory.php';
 require_once __DIR__.'/jrei-python-owner-skills.php';
 require_once __DIR__.'/jrei-knowledge-evidence-projection.php';
 require_once __DIR__.'/jrei-metacognitive-owner-journal.php';
@@ -490,6 +491,19 @@ function operationsRoute(string $path, string $verb): never {
             try {
                 respond(jrKnowledgeEvidenceReconciliation($pdo,time()));
             } catch(Throwable $e) { fail('jrei_knowledge_evidence_unavailable',503); }
+        }
+
+        // Read-only, explicitly scoped structure catalogue: the PHP/MySQL
+        // navigation context may differ from the actual canonical mother DB.
+        // No table contents, tenant rows, secrets or DDL are disclosed/run.
+        if ($path==='/admin/operations/jrei-mother-schema/inventory' && $verb==='GET') {
+            if (($configuration['operations_admins'][$accountId]['role']??'')!=='SUPER_ADMIN')
+                fail('super_admin_required',403);
+            if (!rateAllowed($pdo,'jrei_mother_schema_inventory',$accountId,12,300))
+                fail('rate_limited',429);
+            try {
+                respond(jrJreiMotherStructureInventory($pdo));
+            } catch(Throwable $e) { fail('jrei_mother_schema_inventory_unavailable',503); }
         }
 
         // Informational SUPER_ADMIN preflight: derives all readiness
