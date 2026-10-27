@@ -121,3 +121,41 @@ table or feature switch was activated by this commit.
 **Evidence taxonomy:** all newly added features are SOURCE_PRESENT or
 SOURCE_INTEGRATED. No TESTED_AT_SHA, DEPLOYED_AT_SHA or new
 OBSERVED_OPERATIONAL assertion follows from these commits.
+
+### Source-only private owner Qwen draft seam (later-stage code; default disabled)
+
+`jrei_core.local_model_draft` adds **one** local inference adapter targeting only
+`http://127.0.0.1:8081/v1/chat/completions` (unchanged installed Qwen alias
+`jrei-qwen3-4b-q4km`). It uses no proxy, redirects, cloud API, arbitrary
+tool list, user files, student records, SQL, model-update facility or inbound
+Windows listener; JSON response size and tokens are bounded, and model access
+is single-concurrency within this Python process. The original signed outbound
+Qwen public worker stays separate and is not modified. Existing public Qwen
+model or worker files are **not** replaced.
+
+The new route `POST /internal/v1/model/owner-draft` requires the original
+private HMAC middleware, an existing PHP `SUPER_ADMIN` MFA/CSRF owner session,
+**and three distinct opt-in conditions**:
+
+- private Bertina config `jrei_python_internal_enabled` (existing OFF gate);
+- private Bertina config `jrei_python_owner_model_draft_enabled` (new OFF gate);
+- private Python environment `JREI_PYTHON_OWNER_MODEL_DRAFT_ENABLED=1` and
+  separately owner-attested `JREI_PYTHON_LOCAL_MODEL_RIGHTS_OWNER_REVIEWED=1`.
+
+This is **not** a direct Bertina→Windows connection design. The direct private
+client works only with an explicitly provisioned reachable PRIVATE Python
+origin, preserving the production Windows outbound-only security constraint.
+Do NOT publish a Windows port or infer private-network reachability merely
+because this code is committed.
+
+A result is always labelled `UNVERIFIED_MODEL_DRAFT`. It contains a SHA-256
+of returned text and a bounded latency, not reviewed evidence, a scientific
+finding, a permitted public answer, or actual source citations. There is no
+automatic persistence, retriever-citation promotion, continuous training,
+node enrollment, LLM-as-tool execution, News publication or paid product.
+Private model use requires independent owner model licensing and quality
+acceptance. Every new permission remains explicitly OFF without that decision.
+
+**Owner code-only directive:** This change was committed to the development
+branch. No QA, runtime installation, live config edit, database migration,
+service reload, or Bertina deployment was performed here.
