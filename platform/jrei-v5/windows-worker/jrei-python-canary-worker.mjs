@@ -3,6 +3,8 @@
  * Only server-authored fixed expression 12*7; neither general-purpose tool
  * execution nor an arbitrary task interpreter. Separate opt-in process.
  */
+import {createHash} from 'node:crypto';
+
 export const CANARY='jr.jrei.python-canary.v1';
 export function validateCanaryJob(job){
   return job && Object.getPrototypeOf(job)===Object.prototype &&
@@ -12,7 +14,8 @@ export function validateCanaryJob(job){
     job.expression==='12*7' &&
     job.taskType==='EXACT_ARITHMETIC_CANARY' &&
     Number.isSafeInteger(job.expiresAt) &&
-    job.expiresAt>Math.floor(Date.now()/1000);
+    job.expiresAt>Math.floor(Date.now()/1000) &&
+    job.expiresAt<=Math.floor(Date.now()/1000)+65;
 }
 export async function runPythonLocalCanary(job,{fetchLocal=fetch}={}){
   if(!validateCanaryJob(job))throw Error('PYTHON_CANARY_JOB_INVALID');
@@ -39,6 +42,8 @@ export async function runPythonLocalCanary(job,{fetchLocal=fetch}={}){
        parsed.performed_without_model!==true ||
        parsed.any_model_weights_changed!==false)
       throw Error('PYTHON_CANARY_ARITHMETIC_UNTRUSTED');
+    if(job.expiresAt<=Math.floor(Date.now()/1000))
+      throw Error('PYTHON_CANARY_LEASE_EXPIRED_LOCALLY');
     return {schema:CANARY,jobId:job.jobId,leaseId:job.leaseId,
       numerator:parsed.numerator,denominator:parsed.denominator,
       exactFraction:parsed.exact_fraction,skillId:parsed.skill_id,
@@ -60,9 +65,16 @@ export async function runPythonCanaryWorker(config,key,{post,log,signal,
       if(polled.job!==null){
         const result=await runPythonLocalCanary(polled.job,{fetchLocal});
         const receipt=await post(config,key,'/api/jrei/v1/python-canary/complete',result);
+        // A generic 200/accepted response is not a mother-DB receipt.
+        // Bind the acknowledgement to the exact signed job and lease.
+        const expectedDigest=createHash('sha256').update(
+          `${CANARY}|${result.jobId}|${result.leaseId}|84/1`,'utf8').digest('hex');
         if(receipt?.accepted!==true ||
            receipt.schema!=='jr.jrei.python-canary-completion.v1'||
-           receipt.exactFraction!=='84'||receipt.productionReady!==false)
+           receipt.exactFraction!=='84'||
+           receipt.productionReady!==false||
+           receipt.modelTrainingStarted!==false||
+           receipt.resultSha256!==expectedDigest)
           throw Error('PYTHON_CANARY_RECEIPT_INVALID');
         log('PYTHON_CANARY_REAL_MOTHER_DB_ROUNDTRIP_CONFIRMED');
       }
