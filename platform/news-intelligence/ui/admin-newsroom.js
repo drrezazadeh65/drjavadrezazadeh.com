@@ -41,8 +41,10 @@ export function mountNewsOwnerPanel({root,csrfResolver,
   standingControls.className='ni-admin-custom-source-manager';
   const exceptionDesk=document.createElement('section');
   exceptionDesk.className='ni-admin-custom-source-manager';
+  const cronControls=document.createElement('section');
+  cronControls.className='ni-admin-custom-source-manager';
   root.replaceChildren(header,refresh,status,standingControls,customSources,
-    delegatedControls,exceptionDesk,integration,metrics,sources,articles,
+    delegatedControls,exceptionDesk,cronControls,integration,metrics,sources,articles,
     acquisition,publications,list);
   const show=s=>{status.textContent=s;};
   const request=async (path,options)=>{
@@ -61,6 +63,103 @@ export function mountNewsOwnerPanel({root,csrfResolver,
   };
   const label=(value)=>{const node=document.createElement('span');
     node.textContent=String(value??'');return node;};
+
+  // The original Cron registry is the only scheduler. This panel reads
+  // actual mother-DB job states; there is no inference of live host execution
+  // from source presence or a previous success receipt. Registration is a
+  // separate owner-click operation and ALWAYS creates DISABLED jobs.
+  const cronHeading=document.createElement('h3');
+  cronHeading.textContent=say('وضعیت موتور اجرایی اخبار',
+    'Original newsroom automation');
+  const cronDisclosure=document.createElement('p');
+  cronDisclosure.textContent=say(
+    'این جدول وضعیت واقعی Workerها و Cron ثبت‌شده در دیتابیس مادر را نمایش می‌دهد؛ ثبت تسک به معنی اجازهٔ خزش، تأیید حقوق نشر یا انتشار خبر نیست.',
+    'Actual mother-DB Cron and worker states. Registering a task never grants crawl rights, source licensing or publication.');
+  const cronStatus=document.createElement('p');
+  cronStatus.setAttribute('role','status');
+  const cronRows=document.createElement('ul');
+  const cronRefresh=document.createElement('button');
+  cronRefresh.type='button';
+  cronRefresh.textContent=say('بازخوانی Cron','Refresh Cron');
+  const cronRegister=document.createElement('button');
+  cronRegister.type='button';
+  cronRegister.textContent=say('ثبت تمام Workerهای خبر (غیرفعال)',
+    'Register all News workers (disabled)');
+  let cronActionInFlight=false;
+  cronControls.append(cronHeading,cronDisclosure,cronRefresh,cronRegister,
+    cronStatus,cronRows);
+  async function originalCronRequest(method='GET',body=null){
+    const csrf=csrfResolver();
+    if(typeof csrf!=='string'||!/^[a-f0-9]{64}$/i.test(csrf))
+      throw Error('JREI_NEWS_OWNER_CSRF_REQUIRED');
+    const response=await fetch('/api/admin/operations/cron-master',{
+      method,credentials:'same-origin',cache:'no-store',redirect:'error',
+      headers:{Accept:'application/json','Content-Type':'application/json',
+        'X-CSRF-Token':csrf},
+      ...(body===null?{}:{body:JSON.stringify(body)})
+    });
+    if(!response.ok)throw Error('JREI_NEWS_ORIGINAL_CRON_UNAVAILABLE');
+    return response.json();
+  }
+  async function refreshOriginalCronStatus(){
+    if(cronActionInFlight)return;
+    cronStatus.textContent=say('در حال استعلام وضعیت ثبت‌شدهٔ Cron…',
+      'Reading recorded Cron state…');
+    cronRows.replaceChildren();
+    try{
+      const snapshot=await originalCronRequest();
+      if(snapshot?.schema!=='jr.operations-cron-owner.v1'||
+        !Array.isArray(snapshot.jobs))throw Error('JREI_NEWS_CRON_CONTRACT');
+      const jobs=snapshot.jobs.filter(job=>
+        typeof job?.jobId==='string'&&
+        job.jobId.startsWith('jrei_news_original_'));
+      const registered=jobs.filter(j=>j.registered===true).length;
+      const enabled=jobs.filter(j=>j.enabled===true).length;
+      cronStatus.textContent=say('ثبت‌شده: ','Registered: ')+registered+
+        ' / '+jobs.length+' · '+say('فعال: ','Enabled: ')+enabled+
+        ' · '+(snapshot.masterEnabled===true?'MASTER ON':'MASTER OFF')+
+        ' · '+(snapshot.serverCronVerified===true?
+          say('Cron میزبانی تأییدشده','Host Cron verified'):
+          say('اجرای Cron میزبانی اثبات نشده','Host Cron unverified'));
+      for(const job of jobs){
+        const li=document.createElement('li');
+        const when=(Number.isSafeInteger(job.lastFinishedAt)&&
+          job.lastFinishedAt>0)?
+          new Date(job.lastFinishedAt*1000).toLocaleString(fa?'fa-IR':'en-GB'):
+          say('بدون اجرای ثبت‌شده','no recorded execution');
+        li.textContent=job.jobId+' · '+(job.registered?'REGISTERED':'MISSING')+
+          ' · '+(job.enabled?'ON':'OFF')+' · '+
+          String(job.lastState??'UNKNOWN').slice(0,44)+' · '+when;
+        cronRows.append(li);
+      }
+    }catch{
+      cronStatus.textContent=say('وضعیت Cron قابل احراز نیست؛ اجرای موتور تأیید نشده است.',
+        'Original Cron unavailable; engine execution remains unverified.');
+    }
+  }
+  cronRefresh.addEventListener('click',refreshOriginalCronStatus);
+  cronRegister.addEventListener('click',async()=>{
+    if(cronActionInFlight)return;
+    cronActionInFlight=true;cronRegister.disabled=true;
+    try{
+      const receipt=await originalCronRequest('POST',{
+        action:'register_news_bundle',
+        confirmation:'REGISTER_NEWS_WORKERS_DISABLED'
+      });
+      if(receipt?.ok!==true||receipt.allNewsWorkersInitiallyDisabled!==true)
+        throw Error('NEWS_CRON_REGISTRATION_NOT_CONFIRMED');
+      cronStatus.textContent=say(
+        'Workerها ثبت شدند، اما غیرفعال باقی ماندند؛ حقوق نشر و مجوز انتشار جداگانه‌اند.',
+        'News workers registered but remain disabled; rights and publishing gates are independent.');
+    }catch{
+      cronStatus.textContent=say(
+        'ثبت Workerها تأیید نشد؛ دیتابیس و نشست MFA را بررسی کنید.',
+        'Worker registration was not confirmed; inspect mother DB and owner MFA.');
+    }finally{
+      cronActionInFlight=false;cronRegister.disabled=false;
+    }
+    await refreshOriginalCronStatus();
+  });
 
   // The current owner directive supersedes per-story manual confirmation
   // for independently verified original official-source announcements.
@@ -623,7 +722,8 @@ export function mountNewsOwnerPanel({root,csrfResolver,
     integration.replaceChildren();
     await Promise.all([
       refreshCustomSources(),refreshStandingPolicy(),
-      refreshEvidenceExceptions(),refreshDelegatedScopes()
+      refreshEvidenceExceptions(),refreshDelegatedScopes(),
+      refreshOriginalCronStatus()
     ]);
     if(readVersion!==loadRevision)return false;
     show(say('در حال بررسی وضعیت یکپارچگی…','Checking existing integrations…'));
