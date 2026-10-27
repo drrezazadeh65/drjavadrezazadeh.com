@@ -141,6 +141,8 @@ def rank_learning_methods(payload: LearningMethodFeedbackRequest) -> MethodFeedb
             reasons.append("INSUFFICIENT_INDEPENDENTLY_REVIEWED_TRIALS")
         if regression:
             reasons.append("OBSERVED_LANGUAGE_OR_LATENCY_REGRESSION")
+        if promising <= unsuccessful:
+            reasons.append("NO_REVIEWED_POSITIVE_MAJORITY")
         if len(approved) != len(trials):
             reasons.append("TRIALS_HELD_FOR_RIGHTS_FIXTURE_OR_SAMPLE_REVIEW")
         summaries.append(MethodEvidence(
@@ -159,7 +161,13 @@ def rank_learning_methods(payload: LearningMethodFeedbackRequest) -> MethodFeedb
     for s in summaries:
         by_domain.setdefault(s.domain + ":" + s.gap_kind.value, []).append(s)
     for key, choices in sorted(by_domain.items()):
-        reviewed = [s for s in choices if s.considered_trials >= 3]
+        reviewed = [
+            s for s in choices
+            if s.considered_trials >= 3
+            and s.promising_trials > 0
+            and s.promising_trials > s.unsuccessful_trials
+            and s.language_or_latency_regressions == 0
+        ]
         if reviewed:
             top = sorted(reviewed, key=lambda s: (
                 -s.review_priority_score, s.learning_method
