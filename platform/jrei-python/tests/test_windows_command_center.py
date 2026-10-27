@@ -141,6 +141,35 @@ class WindowsCommandCenterTests(unittest.TestCase):
             finally:
                 cc._BUSY.release()
 
+    def test_owner_gpu_recover_intent_bypasses_idle_delay_but_not_registry(self):
+        from types import SimpleNamespace
+        import time
+        with patch.object(cc, "os", SimpleNamespace(name="nt")), \
+             patch.object(cc, "get_json", side_effect=OSError("offline")), \
+             patch.object(cc, "_activity_at", time.monotonic()), \
+             patch.object(cc, "_recovery_last_at", time.monotonic()), \
+             patch.object(cc.socket, "create_connection", side_effect=ConnectionRefusedError()), \
+             patch.object(cc.subprocess, "run") as runner, \
+             patch.object(cc, "record"):
+            runner.return_value.returncode = 0
+            result=cc.gpu_task_recovery(owner_requested=True)
+            self.assertEqual(result["state"], "RESTART_REQUESTED")
+            self.assertEqual(runner.call_count, 3)
+
+    def test_gpu_recovery_never_kills_existing_tcp_listener(self):
+        from types import SimpleNamespace
+        with patch.object(cc, "os", SimpleNamespace(name="nt")), \
+             patch.object(cc, "get_json", side_effect=OSError("offline")), \
+             patch.object(cc, "_activity_at", 0.0), \
+             patch.object(cc, "_recovery_last_at", 0.0), \
+             patch.object(cc.socket, "create_connection") as connector, \
+             patch.object(cc.subprocess, "run") as runner:
+            connector.return_value.__enter__.return_value = object()
+            runner.return_value.returncode = 0
+            result=cc.gpu_task_recovery()
+            self.assertEqual(result["state"], "BLOCKED")
+            self.assertEqual(runner.call_count, 1)
+
     def test_client_has_actual_tools_and_private_token_path(self):
         html = cc.render_html()
         self.assertIn("/api/chat", html)
