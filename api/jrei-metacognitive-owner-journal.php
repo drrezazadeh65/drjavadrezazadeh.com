@@ -344,3 +344,98 @@ function jrMetaJournalOwnerDetail(PDO $pdo,string $owner,string $cycleId): array
         'missionExecuted'=>false,
     ];
 }
+
+/**
+ * Bounded descriptive longitudinal record of submitted JREI learning cycles.
+ * Historical proposals are NOT experiments or independent measurements.
+ * Decisions and their reasons remain suggestions; this read never approves
+ * a new learning method, grants source rights or operates a worker.
+ */
+function jrMetaJournalOwnerTrend(PDO $pdo,string $owner): array {
+    if(!jrMetaJournalReady($pdo)) {
+        throw new RuntimeException('JREI_METACOGNITIVE_MOTHER_SCHEMA_MISSING');
+    }
+    $q=$pdo->prepare('SELECT cycle_id,policy_version,input_sha256,outcome_sha256,'.
+        'outcome_json,lifecycle,recorded_at '.
+        'FROM jrei_metacognitive_owner_cycles WHERE owner_account_id=? '.
+        'ORDER BY recorded_at DESC,cycle_id DESC LIMIT 25');
+    $q->execute([$owner]);
+    $domains=[];
+    $count=0;
+    $reasonCounts=[];
+    foreach($q->fetchAll(PDO::FETCH_ASSOC) as $row) {
+        $raw=$row['outcome_json'];
+        if(!is_string($raw) || strlen($raw)>64000 ||
+           ($row['lifecycle']??null)!=='PROPOSAL_ONLY') {
+            throw new RuntimeException('JREI_META_TREND_EVIDENCE_INTEGRITY_UNAVAILABLE');
+        }
+        $outcome=json_decode($raw,true,32,JSON_THROW_ON_ERROR);
+        if(!is_array($outcome) || array_is_list($outcome) ||
+           (!hash_equals((string)$row['outcome_sha256'],
+               jrMetaJournalOutcomeDigest($outcome)) &&
+            !hash_equals((string)$row['outcome_sha256'],hash('sha256',$raw))) ||
+           ($outcome['policy_version']??null)!==$row['policy_version'] ||
+           ($outcome['submitted_payload_sha256']??null)!==$row['input_sha256'] ||
+           ($outcome['schema_version']??null)!=='jr.jrei.metacognitive-cycle-result.v1' ||
+           ($outcome['learning_improvement_proven']??null)!==false ||
+           ($outcome['knowledge_written']??null)!==false ||
+           ($outcome['automatic_skill_promotion']??null)!==false ||
+           ($outcome['public_site_changed']??null)!==false ||
+           !is_array($outcome['decisions']??null) ||
+           !array_is_list($outcome['decisions']) ||
+           count($outcome['decisions'])>200) {
+            throw new RuntimeException('JREI_META_TREND_EVIDENCE_INTEGRITY_UNAVAILABLE');
+        }
+        $count++;
+        foreach($outcome['decisions'] as $decision) {
+            if(!is_array($decision) ||
+               !is_string($decision['domain']??null) ||
+               !is_string($decision['decision']??null) ||
+               !is_array($decision['reason_codes']??null) ||
+               !array_is_list($decision['reason_codes']) ||
+               count($decision['reason_codes'])>50 ||
+               ($decision['mission_executed']??null)!==false ||
+               ($decision['knowledge_promoted']??null)!==false ||
+               ($decision['owner_approval_required']??null)!==true) {
+                throw new RuntimeException('JREI_META_TREND_DECISION_INVALID');
+            }
+            $domain=$decision['domain'];
+            $state=$decision['decision'];
+            if(preg_match('/^[A-Za-z0-9][A-Za-z0-9._:-]{2,79}$/D',$domain)!==1 ||
+               !in_array($state,[
+                   'HOLD_RIGHTS_REVIEW','HOLD_SOURCE_OR_CITATION',
+                   'HOLD_INDEPENDENT_EVIDENCE','HOLD_HELDOUT_REGRESSION',
+                   'HOLD_INSUFFICIENT_BENCHMARK','PROPOSE_ISOLATED_EXPERIMENT',
+                   'REVIEW_CHALLENGER_WITH_OWNER'
+               ],true)) {
+                throw new RuntimeException('JREI_META_TREND_STATE_INVALID');
+            }
+            if(!isset($domains[$domain])) {
+                $domains[$domain]=[
+                    'domain'=>$domain,'proposalCount'=>0,
+                    'ownerReviewCandidates'=>0,'heldCount'=>0,
+                    'proposedIsolatedExperiments'=>0
+                ];
+            }
+            $domains[$domain]['proposalCount']++;
+            if($state==='REVIEW_CHALLENGER_WITH_OWNER')
+                $domains[$domain]['ownerReviewCandidates']++;
+            elseif($state==='PROPOSE_ISOLATED_EXPERIMENT')
+                $domains[$domain]['proposedIsolatedExperiments']++;
+            else $domains[$domain]['heldCount']++;
+        }
+    }
+    ksort($domains,SORT_STRING);
+    return [
+        'ok'=>true,
+        'schema'=>'jr.jrei.metacognitive-owner-trend.v1',
+        'sampleScope'=>'LAST_25_SAVED_OWNER_PROPOSALS_NOT_EXPERIMENTS',
+        'cycleCount'=>$count,
+        'domainSummaries'=>array_values($domains),
+        'scientificImprovementVerified'=>false,
+        'unreviewedProposalsUsedAsTrainingData'=>false,
+        'automaticSkillPromotion'=>false,
+        'sourceRightsOrCitationValidationPerformed'=>false,
+        'workerJobExecuted'=>false,
+    ];
+}
