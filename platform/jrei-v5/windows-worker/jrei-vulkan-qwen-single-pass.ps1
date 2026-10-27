@@ -6,7 +6,10 @@
  downloaded and extracted in %LOCALAPPDATA%\JREI-GPU-Lab.
 #>
 [CmdletBinding()]
-param([ValidateRange(0,16)][int]$GpuLayers=4)
+param(
+  [ValidateRange(0,16)][int]$GpuLayers=4,
+  [switch]$ThroughputProbe
+)
 Set-StrictMode -Version Latest
 $ErrorActionPreference='Stop'
 if($env:OS -cne 'Windows_NT'){throw 'JREI_GPU_WINDOWS_ONLY'}
@@ -35,7 +38,8 @@ $out=Join-Path $root "gpu-single-$stamp-stdout.log"
 $arguments=@(
   '--model', ('"'+$model.Replace('"','')+'"'),
   '--alias','jrei-gpu-lab','--host','127.0.0.1','--port','8082',
-  '--ctx-size','1024','--threads','4','--n-gpu-layers',[string]$GpuLayers
+  '--ctx-size','1024','--threads','4','--parallel','1',
+  '--log-verbosity','4','--n-gpu-layers',[string]$GpuLayers
 )
 function Get-OptionalJsonField($Object,[string]$PropertyName){
   # llama-server response schemas differ: reasoning_content and usage can
@@ -61,13 +65,20 @@ try{
     }catch{}
   }
   if(-not $ready){throw 'JREI_VULKAN_SERVER_NOT_READY'}
+  $userPrompt=if($ThroughputProbe){
+    '/no_think'+[Environment]::NewLine+
+    'In plain English, explain five practical differences between supervised and unsupervised machine learning. Use five numbered sentences, each with at least fifteen words. Answer directly without a hidden analysis.'
+  }else{
+    '/no_think'+[Environment]::NewLine+'Reply with exactly one word: Hello'
+  }
+  Write-Output ('[JREI] THROUGHPUT_PROBE='+[bool]$ThroughputProbe)
   $body=@{
     model='jrei-gpu-lab'
     messages=@(
       @{role='system';content='Answer without reasoning text. Give only the requested final answer.'},
-      @{role='user';content=('/no_think'+[Environment]::NewLine+'Reply with exactly one word: Hello')}
+      @{role='user';content=$userPrompt}
     )
-    max_tokens=192
+    max_tokens=if($ThroughputProbe){256}else{192}
     temperature=0
     stream=$false
     chat_template_kwargs=@{enable_thinking=$false}
@@ -95,10 +106,26 @@ try{
   Write-Output ('[JREI] OUTPUT_STATUS='+$state)
   Write-Output ('[JREI] FINISH_REASON='+$finishReason)
   Write-Output ('[JREI] OUTPUT_TOKENS='+[string]$outputTokens)
+  $inputTokens=Get-OptionalJsonField $usage 'prompt_tokens'
+  if($null -ne $inputTokens){
+    Write-Output ('[JREI] PROMPT_TOKENS='+[string]$inputTokens)
+  }
   Write-Output ('[JREI] REASONING_CHARACTERS='+$reasoning.Length)
   Write-Output ('[JREI] RESPONSE_LATENCY_MS='+$clock.ElapsedMilliseconds)
   if($state -eq 'NONEMPTY'){
-    Write-Output ('[JREI] SYNTHETIC_ANSWER='+$answer.Trim())
+    if($ThroughputProbe){
+      # Full generated text stays in the process; log only token-count and
+      # digest. Identical prompt, not identical model output, is guaranteed.
+      $responseBytes=[Text.Encoding]::UTF8.GetBytes($answer.Trim())
+      $sha=[Security.Cryptography.SHA256]::Create()
+      try{
+        $hex=[BitConverter]::ToString($sha.ComputeHash($responseBytes)).Replace('-','').ToLowerInvariant()
+      }finally{$sha.Dispose()}
+      Write-Output ('[JREI] SYNTHETIC_ANSWER_SHA256='+$hex)
+      Write-Output ('[JREI] SYNTHETIC_ANSWER_CHARS='+$answer.Trim().Length)
+    }else{
+      Write-Output ('[JREI] SYNTHETIC_ANSWER='+$answer.Trim())
+    }
   }else{
     Write-Output '[JREI] EMPTY_OUTPUT_NOT_AUTOMATICALLY_GPU_FAILURE'
   }
@@ -122,7 +149,7 @@ try{
   Write-Output '[JREI] HTTP_SUCCESS_IS_NOT_GPU_OFFLOAD_ATTESTATION'
   $logLines=@()
   if(Test-Path -LiteralPath $err -PathType Leaf){$logLines=@(Get-Content -LiteralPath $err -Tail 150 -ErrorAction SilentlyContinue)}
-  $filtered=@($logLines | Where-Object {$_ -match 'offload|vulkan|gpu|ggml_vk|n_gpu_layers|memory|model loaded|error|invalid queue|eval time'} | ForEach-Object {$_ -replace [regex]::Escape($env:USERPROFILE),'[USER]'})
+  $filtered=@($logLines | Where-Object {$_ -match 'offload|vulkan|gpu|ggml_vk|n_gpu_layers|memory|model loaded|error|invalid queue|eval time|buffer size|tokens per second'} | ForEach-Object {$_ -replace [regex]::Escape($env:USERPROFILE),'[USER]'})
   Write-Output '[JREI] RELEVANT_LOG_BEGIN'
   if($filtered.Count -gt 0){$filtered | Select-Object -Last 28}
   else{Write-Output '[JREI] NO_GPU_OFFLOAD_LOG_LINES_FOUND'}
