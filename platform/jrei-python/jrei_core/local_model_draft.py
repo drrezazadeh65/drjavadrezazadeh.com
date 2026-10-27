@@ -44,6 +44,11 @@ class LocalDraftRequest(StrictContract):
     request_id: Identifier
     language: Literal["fa", "en"]
     question: str = Field(min_length=5, max_length=1000)
+    # Curated teaching/research modes are not authority to change policy,
+    # execute code, retrieve external data or claim scientific verification.
+    academic_task: Literal[
+        "EXPLAIN", "SOCRATIC_TUTOR", "CRITICAL_REVIEW", "ASSESSMENT_DESIGN"
+    ] = "EXPLAIN"
     # Owner explicit instruction to draft; not consent to access sensitive
     # records or an attestation that source content is licensed.
     purpose: Literal["PRIVATE_EDUCATIONAL_DRAFT"] = "PRIVATE_EDUCATIONAL_DRAFT"
@@ -69,6 +74,7 @@ class LocalDraftResult(StrictContract):
     )
     request_id: Identifier
     language: Literal["fa", "en"]
+    academic_task: Literal["EXPLAIN", "SOCRATIC_TUTOR", "CRITICAL_REVIEW", "ASSESSMENT_DESIGN"] = "EXPLAIN"
     result_state: Literal["UNVERIFIED_MODEL_DRAFT"] = "UNVERIFIED_MODEL_DRAFT"
     model_alias: Literal["jrei-qwen3-4b-q4km"] = "jrei-qwen3-4b-q4km"
     model_output: str = Field(min_length=1, max_length=6000)
@@ -134,6 +140,32 @@ def create_local_owner_draft(payload: LocalDraftRequest) -> LocalDraftResult:
             "bibliographic reference, DOI, quotation or citation. Do not request "
             "credentials or tools. Qualify uncertain points. Respond in English."
         )
+        task_instructions = {
+            "EXPLAIN": (
+                "Define key terms, explain the underlying mechanism, give a "
+                "concrete educational example, identify boundary conditions, "
+                "and note what cannot be concluded from the prompt."
+            ),
+            "SOCRATIC_TUTOR": (
+                "Teach progressively: assess the conceptual starting point, "
+                "offer one worked example, ask one diagnostic follow-up "
+                "question, and explain likely misconceptions without "
+                "presuming the learner's background."
+            ),
+            "CRITICAL_REVIEW": (
+                "Separate claims, evidence, assumptions, competing "
+                "interpretations and limitations; identify threats to "
+                "validity and what independent evidence would resolve them. "
+                "Do not invent study statistics or sources."
+            ),
+            "ASSESSMENT_DESIGN": (
+                "Provide an assessment blueprint with construct definition, "
+                "item objectives, example items with justified answer keys, "
+                "accessibility concerns, fairness risks and review criteria. "
+                "Treat any proposed test as unvalidated until expert review."
+            ),
+        }
+        instruction += " " + task_instructions[payload.academic_task]
         body = {
             "model": _MODEL_NAME,
             "messages": [
@@ -195,6 +227,7 @@ def create_local_owner_draft(payload: LocalDraftRequest) -> LocalDraftResult:
         return LocalDraftResult(
             request_id=payload.request_id,
             language=payload.language,
+            academic_task=payload.academic_task,
             model_output=output,
             response_sha256=hashlib.sha256(output.encode("utf-8")).hexdigest(),
             inference_latency_ms=max(0, int((time.monotonic() - started) * 1000)),
