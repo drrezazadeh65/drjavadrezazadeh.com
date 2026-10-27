@@ -422,7 +422,9 @@ function jrOwnerJreiPythonSkillDispatch(array $privateConfig, array $body, ?stri
     }
     if (str_starts_with($action,'memory-')) {
         if (($result['used_for_model_training']??null)!==false ||
-            ($action==='memory-save' && ($result['persist_result']??null)!=='MOTHER_DB_ATOMIC_INSERT') ||
+            ($action==='memory-save' && (!is_bool($result['idempotent_replay']??null) ||
+              ($result['persist_result']??null)!==
+                ($result['idempotent_replay']?'MOTHER_DB_VERIFIED_REPLAY':'MOTHER_DB_ATOMIC_INSERT'))) ||
             ($action==='memory-read' && ($result['available_to_other_tenants']??null)!==false) ||
             ($action==='memory-revoke' && ($result['historical_backups_erased']??null)!==false)) {
             throw new RuntimeException('JREI_PYTHON_MEMORY_CONTRACT_MISMATCH');
