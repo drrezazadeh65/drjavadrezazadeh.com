@@ -12,6 +12,7 @@ on:
       - '.github/workflows/jrei-autonomous-seo-repair.yml'
 permissions:
   contents: write
+  pull-requests: write
 concurrency:
   group: jrei-autonomous-source-repair
   cancel-in-progress: false
@@ -27,7 +28,7 @@ jobs:
       - name: Checkout original canonical JREI source
         uses: actions/checkout@v4
         with:
-          ref: migration/bertina-linux6
+          ref: ${{ github.event_name == 'schedule' && 'migration/bertina-linux6' || github.ref_name }}
           persist-credentials: true
           fetch-depth: 1
       - name: Install Node for deterministic non-model source repair
@@ -81,16 +82,45 @@ jobs:
             'changed='+(modified.length?'true':'false')+'\n');
           console.log('[JREI] BOUNDED_REAL_SOURCE_REPAIR_ACCEPTED='+modified.length);
           NODE
-      - name: Commit verified SEO repairs to the canonical branch
+      - name: Commit verified SEO repairs to an isolated autonomous branch
         if: steps.accept.outputs.changed == 'true'
+        id: candidate
         run: |
           set -euo pipefail
+          test "$(git branch --show-current)" = "migration/bertina-linux6"
+          branch="jrei/auto-seo-${GITHUB_RUN_ID}"
+          case "$branch" in
+            jrei/auto-seo-[0-9]*) ;;
+            *) echo "::error::Invalid auto-repair branch"; exit 1 ;;
+          esac
           git config user.name "JREI Autonomous Repair"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -c "$branch"
           git add -- 'fa/**/*.html' 'en/**/*.html' 'journal/**/*.html'
           test -n "$(git diff --cached --name-only)"
-          git commit -m "fix(seo): JREI automatically classify below-fold verified images"
-          git push origin HEAD:migration/bertina-linux6
+          git commit -m "fix(seo): JREI proposes checked below-fold image hints"
+          # Source changes never land on canonical without checked review.
+          git push origin "HEAD:refs/heads/$branch"
+          echo "branch=$branch" >> "$GITHUB_OUTPUT"
+      - name: Open traceable PR for checked source repair
+        if: steps.candidate.outputs.branch != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          cat > "$RUNNER_TEMP/jrei-auto-seo-pr.md" <<'EOF'
+          JREI owner-delegated deterministic SEO source improvement.
+
+          - Isolated feature branch, not published to Bertina.
+          - Source SHA/digests and changed files verified before branch push.
+          - SEO and robots/sitemap regression passed on candidate checkout.
+          - Independent branch-protection, review and full release QA still apply.
+          - Do not merge if source changed or a competing PR exists.
+          EOF
+          gh pr create --base migration/bertina-linux6 \
+            --head "${{ steps.candidate.outputs.branch }}" \
+            --title "fix(seo): JREI verified below-fold image improvements" \
+            --body-file "$RUNNER_TEMP/jrei-auto-seo-pr.md"
       - name: Retain accountable source-action receipt
         if: always()
         uses: actions/upload-artifact@v4
