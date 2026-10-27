@@ -60,8 +60,11 @@ class LearningMethodFeedbackRequest(StrictContract):
     def unique_trials(self) -> "LearningMethodFeedbackRequest":
         if self.observed_until.utcoffset() is None:
             raise ValueError("METHOD_FEEDBACK_TIMEZONE_REQUIRED")
-        ids = [(t.heldout_experiment_id, t.learning_method) for t in self.trials]
-        if len(ids) != len(set(ids)):
+        trial_ids = [t.trial_id for t in self.trials]
+        if len(trial_ids) != len(set(trial_ids)):
+            raise ValueError("DUPLICATE_METHOD_TRIAL_ID")
+        experiment_ids = [t.heldout_experiment_id for t in self.trials]
+        if len(experiment_ids) != len(set(experiment_ids)):
             raise ValueError("DUPLICATE_METHOD_EXPERIMENT")
         if any(t.observed_at > self.observed_until for t in self.trials):
             raise ValueError("METHOD_EVALUATION_IN_FUTURE")
