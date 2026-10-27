@@ -71,3 +71,23 @@ html[lang="fa"] .ni-article h1{line-height:1.65;letter-spacing:normal}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}
  *,*::before,*::after{transition-duration:.01ms!important;
  animation-duration:.01ms!important}}
+
+/* New verified article experience: compact bilingual newsroom masthead. */
+.site-header{justify-content:space-between;gap:1rem}
+.ni-news-wordmark{font-size:1.12rem;white-space:nowrap;font-weight:900!important;letter-spacing:.08em}
+.ni-news-wordmark span{color:#fff4d9}
+.ni-public-news-nav{display:flex;flex-wrap:wrap;align-items:center;gap:.55rem}
+.ni-public-news-nav a{display:inline-flex;min-height:44px;padding:.6rem .85rem;border:1px solid #62563f;border-radius:.6rem;align-items:center;font-size:.85rem}
+.ni-public-news-nav a:hover{background:#2e302e}
+.ni-story-provenance{display:flex;flex-wrap:wrap;align-items:center;gap:.7rem 1rem;margin-top:1rem;padding:1rem;border:1px solid #695b41;border-radius:.75rem;background:linear-gradient(110deg,#272922,#1e2729)}
+.ni-story-provenance span{color:#ebd1a1;font-size:.84rem;font-weight:700}
+.ni-story-provenance a{font-size:.87rem;font-weight:750}
+.ni-article>section:not([aria-label]){font-size:clamp(1rem,.95rem + .25vw,1.13rem)}
+.ni-article>section:not([aria-label]) p{line-height:2.05}
+.ni-article [data-jrei-news-context]{border-inline-start:4px solid #d8b876}
+@media(max-width:600px){
+ .site-header{padding:.6rem 1rem;flex-wrap:wrap}
+ .ni-public-news-nav{width:100%}
+ .ni-public-news-nav a{flex:1;justify-content:center}
+ .ni-story-provenance{flex-direction:column;align-items:flex-start}
+}
