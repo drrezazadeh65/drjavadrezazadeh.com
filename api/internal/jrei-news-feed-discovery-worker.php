@@ -69,8 +69,7 @@ try{
     // SHA-verified original JREI-KA observations. Independent review of the
     // TARGET authority/rights remains mandatory; no implicit fetch or publish.
     $autonomous=['discoveredInstitutionCandidates'=>0,'reviewedObservationPages'=>0];
-    if(($cfg['jrei_news_autonomous_institution_discovery_enabled']??false)===true&&
-       ($cfg['jrei_news_source_activation_accepted']??false)===true){
+    if(($cfg['jrei_news_source_activation_accepted']??false)===true){
         $privateArchive=jrKaPrivateArchiveRoot($cfg);
         if($privateArchive===null)
             throw new RuntimeException('news_original_institution_archive_unavailable');
@@ -85,8 +84,7 @@ try{
     // explicitly PENDING_REVIEW permission and scheduler policy. No manual
     // institution list, forged approval or independent crawler is needed.
     $newSources=['registeredForIndependentReview'=>0];
-    if(($cfg['jrei_news_autonomous_institution_discovery_enabled']??false)===true&&
-       ($cfg['jrei_news_source_activation_accepted']??false)===true)
+    if(($cfg['jrei_news_source_activation_accepted']??false)===true)
         $newSources=jrNewsEnqueueNewInstitutionalSourceCandidates(
             $pdo,$cfg,[
                 'source'=>'ORIGINAL_JREI_PRIVATE_NEWS_WORKER',
