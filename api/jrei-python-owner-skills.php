@@ -65,7 +65,7 @@ function jrOwnerJreiPythonSkillDispatch(array $privateConfig, array $body, ?stri
         $payload=$body['payload'];
         $expected='jr.jrei.heldout-review-result.v1';
     } elseif (in_array($action,
-        ['evidence-graph','metacognitive-plan','learning-value-plan','capacity-plan','exam-blueprint-review','strategy-propose','mission-bind','method-feedback','grounded-retrieval','source-extract','news-editorial-preflight'],true)) {
+        ['evidence-graph','knowledge-correction','answer-grounding-review','metacognitive-plan','learning-value-plan','capacity-plan','exam-blueprint-review','strategy-propose','mission-bind','method-feedback','grounded-retrieval','source-extract','news-editorial-preflight'],true)) {
         // All three are strictly read-only: no browser-selected endpoint,
         // unreviewed model tool, raw learner records, action execution or
         // assignment authority. The original admin MFA/CSRF gate is retained.
