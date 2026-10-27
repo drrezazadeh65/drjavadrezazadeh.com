@@ -316,6 +316,9 @@ try{
      sourceTree=if($priorState){$priorState.sourceTree}else{''};
      failedTree=$tree; failedAt=[DateTimeOffset]::UtcNow.ToUnixTimeSeconds()}
   Event 'PYTHON_AUTO_UPGRADE_FAILED_OLD_CORE_PRESERVED'
+  # A rolled-back update is SAFE but NOT a successful installation.
+  # Surface a nonzero result to the Git auto-sync supervisor.
+  exit 21
  }
 }catch{
  Event 'PYTHON_AUTO_UPGRADE_PRECHECK_FAILED_NO_SERVICE_CHANGE'
