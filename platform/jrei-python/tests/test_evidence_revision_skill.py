@@ -110,9 +110,28 @@ class EvidenceSkillCases(unittest.TestCase):
     def test_allowlist_has_no_execution_or_upload(self):
         catalog = skill_catalog()
         self.assertFalse(catalog["privileged_execution_enabled"])
-        self.assertEqual(len(catalog["skills"]), 5)
-        self.assertTrue(all(not s["mutates_mother_db"] and not s["network_access"]
+        skill_ids = [s["skill_id"] for s in catalog["skills"]]
+        self.assertEqual(len(skill_ids), len(set(skill_ids)))
+        original_five = {
+            "jrei.evidence.revision_triage.v1",
+            "jrei.learning.gap_prioritization.v1",
+            "jrei.learning.heldout_bilingual_review.v1",
+            "jrei.math.exact_arithmetic.v1",
+            "jrei.orchestration.mission_dag.v1",
+        }
+        self.assertTrue(original_five.issubset(set(skill_ids)))
+        self.assertTrue(all(not s["mutates_mother_db"] and
+                            not s["verified_source_grant"]
                             for s in catalog["skills"]))
+        for skill in catalog["skills"]:
+            if skill["network_access"]:
+                self.assertEqual(skill["skill_id"],
+                                 "jrei.owner.local_qwen_unverified_draft.v1")
+                self.assertEqual(skill["network_scope"], "127.0.0.1:8081_ONLY")
+                self.assertFalse(skill["default_enabled"])
+                self.assertFalse(skill["public_output_allowed"])
+            else:
+                self.assertEqual(skill["execution"], "MODEL_FREE_DETERMINISTIC")
         catalog["skills"][0]["languages"].append("tampered")
         self.assertEqual(len(skill_catalog()["skills"][0]["languages"]), 2)
 
