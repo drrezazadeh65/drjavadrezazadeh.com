@@ -25,6 +25,9 @@ from jrei_learning.evidence_graph import (
 from jrei_learning.metacognitive_cycle import (
     MetacognitiveCycleRequest, MetacognitiveCycleResult, plan_metacognitive_cycle,
 )
+from jrei_learning.strategy_optimizer import (
+    StrategyLearningRequest, StrategyLearningResult, propose_learning_method,
+)
 from jrei_orchestrator.adaptive_capacity import (
     CapacityPlanRequest, CapacityPlan, propose_capacity_placements,
 )
@@ -92,6 +95,7 @@ async def capabilities():
             "bounded_exact_arithmetic_v1",
             "versioned_claim_dependency_and_revocation_review_v1",
             "gap_to_experiment_metacognitive_cycle_v1",
+            "paired_outcome_strategy_learning_v1",
             "adaptive_24_7_capacity_placement_v1",
             "metacognitive_decision_to_scoped_mission_binding_v1",
             "experiment_feedback_on_learning_methods_v1",
@@ -180,6 +184,18 @@ async def metacognitive_method_feedback(payload: LearningMethodFeedbackRequest):
 )
 async def learning_mission_binding(payload: LearningMissionBindingRequest):
     return bind_learning_mission(payload)
+
+
+@app.post(
+    "/internal/v1/learning/strategy/propose",
+    response_model=StrategyLearningResult,
+    dependencies=[Depends(require_internal_gateway)],
+)
+async def strategy_adaptation_proposal(payload: StrategyLearningRequest):
+    # Learn which bounded evidence-acquisition or evaluation METHOD merits
+    # isolated further study, from reviewed digest-referenced outcomes only.
+    # This route never modifies a skill/model/DB, installs code or publishes.
+    return propose_learning_method(payload)
 
 
 @app.post(
