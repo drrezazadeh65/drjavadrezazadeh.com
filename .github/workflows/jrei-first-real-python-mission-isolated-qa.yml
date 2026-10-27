@@ -17,6 +17,7 @@ on:
       - 'en/account/admin/index.html'
       - 'tests/jrei-python-canary-bridge.test.mjs'
       - 'tests/jrei-python-canary-mysql.php'
+      - 'tests/fixtures/jrei-python-canary-registered-node-stub.sql'
       - 'docs/migrations/20261027_jrei_python_canary_roundtrip_mother_mysql.sql'
   workflow_dispatch:
 permissions:
@@ -70,6 +71,7 @@ jobs:
         run: |
           docker exec -i "${{ job.services.mysql.id }}" mysql -uroot -pjrei_fixture_only jrei_fixture < docs/migrations/20261027_jrei_python_node_health_mother_mysql.sql
           docker exec -i "${{ job.services.mysql.id }}" mysql -uroot -pjrei_fixture_only jrei_fixture < docs/migrations/20261027_jrei_python_canary_roundtrip_mother_mysql.sql
+          docker exec -i "${{ job.services.mysql.id }}" mysql -uroot -pjrei_fixture_only jrei_fixture < tests/fixtures/jrei-python-canary-registered-node-stub.sql
       - name: Real signed job lifecycle on disposable MySQL (never Bertina)
         env:
           CI_DB_DSN: mysql:host=127.0.0.1;port=3306;dbname=jrei_fixture;charset=utf8mb4
