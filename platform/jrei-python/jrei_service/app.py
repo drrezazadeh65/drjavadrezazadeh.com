@@ -31,6 +31,9 @@ from jrei_learning.document_extraction import (
 from jrei_learning.grounded_retrieval import (
     RetrievalRequest, GroundedRetrievalResult, select_grounded_excerpts,
 )
+from jrei_learning.answer_grounding_review import (
+    AnswerReviewRequest, AnswerReviewResult, review_answer_grounding,
+)
 from jrei_learning.evidence_graph import (
     EvidenceGraphRequest, EvidenceGraphReview, review_evidence_graph,
 )
@@ -111,6 +114,7 @@ async def capabilities():
             "original_cms_news_bilingual_fact_rights_exception_preflight_v1",
             "bounded_exact_arithmetic_v1",
             "versioned_claim_dependency_and_revocation_review_v1",
+            "sha_bound_bilingual_draft_claim_grounding_audit_v1",
             "gap_to_experiment_metacognitive_cycle_v1",
             "paired_outcome_strategy_learning_v1",
             "adaptive_24_7_capacity_placement_v1",
@@ -170,6 +174,17 @@ async def grounded_retrieval_proposal(payload: RetrievalRequest):
     # Caller metadata and excerpts are untrusted; no public response, model,
     # licence grant, DB query, or independent source attestation occurs.
     return select_grounded_excerpts(payload)
+
+
+@app.post(
+    "/internal/v1/learning/answers/grounding-review",
+    response_model=AnswerReviewResult,
+    dependencies=[Depends(require_internal_gateway)],
+)
+async def review_bilingual_draft_grounding(payload: AnswerReviewRequest):
+    # No raw learner/private conversation or copyrighted source text; never
+    # attests citation truth, deploys a model, or publishes an answer.
+    return review_answer_grounding(payload)
 
 
 @app.post(
