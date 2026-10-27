@@ -69,7 +69,7 @@
    'Press / or Ctrl+K to find any tool.'));
   finder.append(label,input,tally,results,hint);
   sidebar.append(heading,timeline,finder,nav,subtitle,modules);
-  deck.replaceChildren(sidebar,stage,mobileBar,backdrop);
+  deck.replaceChildren(sidebar,mobileBar,stage,backdrop);
   const tabs=[...nav.querySelectorAll('[data-ops-zone]')];
   const tabOf=zone=>tabs.find(button=>button.dataset.opsZone===zone);
   const zoneTitle=zone=>tabOf(zone)?.textContent?.trim()||'';
