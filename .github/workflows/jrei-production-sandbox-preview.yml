@@ -1,0 +1,104 @@
+name: JREI Production Candidate - isolated sandbox preview
+# Always build a nonproduction preview before an owner production release.
+# Manual-only while source development remains underway.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: jrei-sandbox-preview-${{ github.sha }}
+  cancel-in-progress: false
+
+jobs:
+  isolated-preview:
+    if: github.ref == 'refs/heads/migration/bertina-linux6'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout pinned source without push credentials
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Build sanitized public preview in CI, never Bertina
+        run: |
+          set -euo pipefail
+          node scripts/build-public-data.mjs --check
+          node scripts/build-public-site.mjs
+          node scripts/bookstore-release-audit.mjs
+          node scripts/public-retired-commerce-audit.mjs
+          node scripts/stamp-bertina-release.mjs
+          test -f .public-site/index.html
+          test -f .public-site/robots.txt
+          test -f .public-site/sitemap.xml
+          test ! -e .public-site/.git
+          test ! -e .public-site/.github
+          test ! -e .public-site/platform
+          test ! -e .public-site/scripts
+          test ! -e .public-site/docs
+          test ! -e .public-site/tests
+          test ! -e .public-site/.env
+          test ! -e .public-site/.bertina-deploy-trigger
+      - name: Exercise candidate only on sandbox localhost
+        run: |
+          set -euo pipefail
+          python3 -m http.server 4173 --bind 127.0.0.1 --directory .public-site >/tmp/jrei-preview-server.log 2>&1 &
+          for attempt in {1..20}; do
+            if curl --fail --silent http://127.0.0.1:4173/ >/dev/null; then break; fi
+            sleep 1
+          done
+          for route in / /fa/ /en/ /journal/ /robots.txt /sitemap.xml; do
+            curl --fail --silent --show-error --max-time 10 "http://127.0.0.1:4173${route}" >/dev/null
+          done
+      - name: Archive immutable preview and exact file hashes
+        env:
+          RELEASE_SHA: ${{ github.sha }}
+          PREVIEW_RUN_ID: ${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import hashlib, json, os, pathlib, zipfile
+          root=pathlib.Path('.public-site')
+          files={p.relative_to(root).as_posix():hashlib.sha256(p.read_bytes()).hexdigest()
+                 for p in sorted(root.rglob('*')) if p.is_file()}
+          assert files and all(not name.startswith(('.github/','platform/','scripts/','tests/','docs/'))
+                               for name in files)
+          preview=pathlib.Path('jrei-isolated-preview.zip')
+          with zipfile.ZipFile(preview,'w',compression=zipfile.ZIP_DEFLATED) as archive:
+              for path in sorted(root.rglob('*')):
+                  if path.is_file():archive.write(path,path.relative_to(root).as_posix())
+          proof={
+              'schema':'jr.jrei.owner-release-sandbox-preview.v1',
+              'source_sha':os.environ['RELEASE_SHA'],
+              'run_id':os.environ['PREVIEW_RUN_ID'],
+              'file_count':len(files),
+              'bundle_sha256':hashlib.sha256(preview.read_bytes()).hexdigest(),
+              'files':files,
+              'sandbox_host':'127.0.0.1:4173',
+              'production_deployed':False,
+              'mother_db_accessed':False,
+              'public_endpoint_changed':False,
+              'scope':'STATIC_UI_AND_SOURCE_BUILD_NOT_LIVE_PHP_MYSQL_OR_PAYMENTS',
+              'approval_for_production':False
+          }
+          pathlib.Path('jrei-preview-evidence.json').write_text(
+              json.dumps(proof,sort_keys=True,indent=2)+'\n',encoding='utf-8')
+          PY
+      - name: Retain candidate for owner review
+        uses: actions/upload-artifact@v4
+        with:
+          name: jrei-sandbox-preview-${{ github.sha }}
+          path: |
+            jrei-isolated-preview.zip
+            jrei-preview-evidence.json
+          if-no-files-found: error
+          retention-days: 14
+      - name: Explicit nonproduction guarantee
+        run: |
+          echo 'This was a local CI sandbox. No FTP, hosting, production DB, provider token, payment, publishing or model weight update was performed.' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Source SHA: ${{ github.sha }}. Download the archived preview to review the static UI. Production additionally requires existing signed owner gates.' >> "$GITHUB_STEP_SUMMARY"
