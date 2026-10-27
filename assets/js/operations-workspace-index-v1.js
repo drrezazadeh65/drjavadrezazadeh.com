@@ -199,6 +199,7 @@
  });
  observer.observe(workspace,{attributes:true,attributeFilter:['hidden']});
  document.addEventListener('keydown',event=>{
+   if(workspace.classList.contains('ops-command-deck-ready')&&document.getElementById('ops-command-sidebar'))return;
    if(workspace.hidden||event.defaultPrevented||event.altKey||event.ctrlKey||event.metaKey)return;
    const el=event.target;
    if(el?.closest?.('input,textarea,select,[contenteditable="true"],[role="textbox"]'))return;
