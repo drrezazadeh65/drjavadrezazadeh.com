@@ -214,7 +214,19 @@
   function setBreaking(){
     var box=root.querySelector('[data-jrn21-breaking]');
     var urgent=feed.find(function(x){return x.urgent;});
-    if(!box||!urgent)return;
+    if(!box)return;
+    var shell=box.closest('.jrn21-breaking');
+    var pill=shell&&shell.querySelector('.jrn21-breaking-pill');
+    if(!urgent){
+      if(shell)shell.classList.remove('jrn21-breaking-verified');
+      if(pill)pill.textContent=fa?'پایش خبر فوری':'Breaking watch';
+      box.replaceChildren(node('p',null,fa?
+        'خبر فوری تأییدشده‌ای برای نمایش وجود ندارد؛ اطلاعیه‌ها را فقط از منبع معتبر دنبال کنید.':
+        'No verified breaking story is currently available. Check original official sources.'));
+      return;
+    }
+    if(shell)shell.classList.add('jrn21-breaking-verified');
+    if(pill)pill.textContent=fa?'خبر فوری':'BREAKING';
     box.replaceChildren();
     var link=node('a',null,urgent.title);
     link.href=urgent.path;
