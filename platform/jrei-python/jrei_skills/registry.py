@@ -150,6 +150,20 @@ _SKILLS = (
         "languages": ["fa", "en"],
         "review": "INDEPENDENT_FIXTURE_AND_SCIENTIFIC_META_EVALUATION_REQUIRED",
     },
+    {
+        "skill_id": "jrei.knowledge.grounded_candidate_retrieval.v1",
+        "version": "1.0.0",
+        "entry_route": "/internal/v1/knowledge/retrieval/propose",
+        "execution": "MODEL_FREE_DETERMINISTIC",
+        "data_class": "SOURCE_VERSION_SHA_CITATION_ANCHORS_BOUNDED_APPROVED_EXCERPTS",
+        "required_service_authority": "SIGNED_PRIVATE_GATEWAY",
+        "owner_action_authorized": False,
+        "mutates_mother_db": False,
+        "network_access": False,
+        "verified_source_grant": False,
+        "languages": ["fa", "en"],
+        "review": "SOURCE_PERMISSIONS_AND_CITATION_QUALITY_NOT_ATTESTED_BY_SKILL",
+    },
 )
 _IDS = tuple(skill["skill_id"] for skill in _SKILLS)
 if len(set(_IDS)) != len(_IDS):
