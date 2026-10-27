@@ -15,6 +15,24 @@ function jrMetaJournalExactFields(array $body,array $fields): bool {
     return $actual===$fields;
 }
 
+/**
+ * Stable digest of decoded proposal semantics across MariaDB's verbatim JSON
+ * storage and MySQL's potential object-key reordering. Lists retain order.
+ * The original raw-byte checksum remains readable for legacy receipts.
+ */
+function jrMetaJournalCanonicalValue(mixed $value): mixed {
+    if(!is_array($value))return $value;
+    if(!array_is_list($value))ksort($value,SORT_STRING);
+    foreach($value as $key=>$child)$value[$key]=jrMetaJournalCanonicalValue($child);
+    return $value;
+}
+function jrMetaJournalOutcomeDigest(array $outcome): string {
+    $canonical=json_encode(jrMetaJournalCanonicalValue($outcome),
+        JSON_THROW_ON_ERROR|JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|
+        JSON_PRESERVE_ZERO_FRACTION|JSON_UNESCAPED_LINE_TERMINATORS);
+    return hash('sha256',$canonical);
+}
+
 function jrMetaJournalReady(PDO $pdo): bool {
     try {
         $pdo->query('SELECT cycle_id,owner_account_id,request_key,policy_version,'.
@@ -219,7 +237,7 @@ function jrMetaJournalPropose(PDO $pdo,array $cfg,string $owner,array $body): ar
     }
     $now=time();
     $recordId=jrMetaJournalId();
-    $outcomeDigest=hash('sha256',$outcome);
+    $outcomeDigest=jrMetaJournalOutcomeDigest($result);
     $pdo->beginTransaction();
     try {
         // A repeated request key never overwrites the original proposal.
@@ -293,11 +311,16 @@ function jrMetaJournalOwnerDetail(PDO $pdo,string $owner,string $cycleId): array
     }
     $raw=$row['outcome_json'];
     if(!is_string($raw) || strlen($raw)>64000 ||
-        !hash_equals((string)$row['outcome_sha256'],hash('sha256',$raw)) ||
-        ($row['lifecycle']??null)!=='PROPOSAL_ONLY') {
+       ($row['lifecycle']??null)!=='PROPOSAL_ONLY') {
         throw new RuntimeException('JREI_METACOGNITIVE_STORED_EVIDENCE_INTEGRITY_FAILED');
     }
     $result=json_decode($raw,true,32,JSON_THROW_ON_ERROR);
+    if(!is_array($result) || array_is_list($result) ||
+       (!hash_equals((string)$row['outcome_sha256'],
+           jrMetaJournalOutcomeDigest($result)) &&
+        !hash_equals((string)$row['outcome_sha256'],hash('sha256',$raw)))) {
+        throw new RuntimeException('JREI_METACOGNITIVE_STORED_EVIDENCE_INTEGRITY_FAILED');
+    }
     if(!is_array($result) || array_is_list($result) ||
         ($result['schema_version']??null)!=='jr.jrei.metacognitive-cycle-result.v1' ||
         ($result['policy_version']??null)!==$row['policy_version'] ||
