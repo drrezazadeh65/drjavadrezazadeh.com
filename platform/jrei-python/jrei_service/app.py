@@ -44,6 +44,9 @@ from jrei_learning.knowledge_correction import (
 from jrei_learning.metacognitive_cycle import (
     MetacognitiveCycleRequest, MetacognitiveCycleResult, plan_metacognitive_cycle,
 )
+from jrei_learning.self_improvement import (
+    SelfImprovementCycleRequest, SelfImprovementCycleResult, plan_self_improvement,
+)
 from jrei_learning.value_of_information import (
     ValueOfLearningRequest, ValueOfLearningResult, propose_learning_value,
 )
@@ -215,6 +218,19 @@ async def knowledge_correction_preflight(payload: CorrectionReviewRequest):
     # Observes caller-supplied citation SHA and original CMS receipts only.
     # Revoked evidence yields a review recommendation, NOT a live withdrawal.
     return prepare_knowledge_corrections(payload)
+
+
+@app.post(
+    "/internal/v1/learning/self-improvement/plan",
+    response_model=SelfImprovementCycleResult,
+    dependencies=[Depends(require_internal_gateway)],
+)
+async def private_self_improvement_plan(payload: SelfImprovementCycleRequest):
+    # Coding and learning can be planned 24/7; decisions are not code writes.
+    # External owner permission, independently verified held-out evidence,
+    # isolated source changes and the existing deployment pipeline remain
+    # mandatory. Missing or negative evidence always blocks auto-promotion.
+    return await run_in_threadpool(plan_self_improvement, payload)
 
 
 @app.post(
