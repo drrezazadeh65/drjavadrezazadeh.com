@@ -50,7 +50,8 @@ export function mountNewsOwnerPanel({root,csrfResolver,apiBase,locale='fa'}={}){
       'Controlled newsroom activation'));
   const readiness=create('div',null,'jr-news-owner-readiness');
   const standing=create('div',null,'jr-news-owner-standing');
-  activation.append(readiness,standing);
+  const cronStatus=create('div',null,'jr-news-owner-cron-status');
+  activation.append(readiness,standing,cronStatus);
   const list=create('div',null,'jr-news-owner-sources');
   const suggestions=create('div',null,'jr-news-owner-suggested');
   const form=create('form',null,'jr-news-owner-source-form');
@@ -220,6 +221,70 @@ export function mountNewsOwnerPanel({root,csrfResolver,apiBase,locale='fa'}={}){
       await load();
     }catch{error();}
   }
+  async function loadCronReadiness(){
+    cronStatus.replaceChildren(create('h4',tr(
+      'کارکرد واقعی Cron و Workerهای خبری',
+      'Actual Cron and newsroom worker runtime')));
+    const csrf=csrfResolver();
+    if(typeof csrf!=='string'||!/^[a-f0-9]{64}$/i.test(csrf)){
+      cronStatus.append(create('p',tr(
+        'نشست امن مدیریت در دسترس نیست.', 'Owner MFA session is unavailable.')));
+      return;
+    }
+    try{
+      const response=await fetch('/api/admin/operations/cron-master',{
+        method:'GET',credentials:'same-origin',cache:'no-store',redirect:'error',
+        headers:{Accept:'application/json','X-CSRF-Token':csrf}
+      });
+      if(!response.ok)throw Error('NEWS_CRON_OWNER_QUERY_FAILED');
+      const data=await response.json();
+      if(disposed)return;
+      if(data?.schema!=='jr.operations-cron-owner.v1'||!Array.isArray(data.jobs))
+        throw Error('NEWS_CRON_CONTRACT_MISMATCH');
+      const jobs=data.jobs.filter(row=>typeof row?.jobId==='string'&&
+        row.jobId.startsWith('jrei_news_original_'));
+      const registered=jobs.filter(row=>row.registered===true).length;
+      const enabled=jobs.filter(row=>row.enabled===true).length;
+      const completed=jobs.filter(row=>row.lastState==='success'||
+        row.lastState==='SUCCESS').length;
+      const messages=[
+        [data.schemaReady===true,tr('ساختار Cron','Cron mother schema')],
+        [data.masterEnabled===true,tr('مجوز اجرای Cron اصلی','Original Cron master switch')],
+        [data.serverCronVerified===true,tr('اجرای Cron برتینا احراز شده','Bertina Cron execution attested')],
+        [registered===jobs.length&&jobs.length>0,
+          tr('همهٔ Workerهای خبر ثبت شده‌اند','All news workers registered')]
+      ];
+      const list=create('ul',null,'jr-news-owner-preflight-list');
+      for(const [ok,title] of messages)list.append(create('li',
+        (ok?'✓ ':'× ')+title,ok?'jr-news-ready':'jr-news-held'));
+      cronStatus.append(list,create('p',tr(
+        'Workerهای ثبت‌شده/فعال: ','Registered/enabled workers: ')+
+        registered+' / '+enabled+' ('+jobs.length+tr(' کل',' total')+')'));
+      const rows=create('ul');
+      for(const job of jobs){
+        const last=job.lastFinishedAt===null?
+          tr('هرگز ثبت نشده','not recorded'):
+          new Date(Number(job.lastFinishedAt)*1000).toLocaleString(fa?'fa-IR':'en-GB');
+        rows.append(create('li',String(job.jobId)+
+          ' · '+(job.enabled?'ON':'OFF')+
+          ' · '+String(job.lastState||'UNKNOWN')+
+          ' · '+last));
+      }
+      cronStatus.append(rows);
+      cronStatus.append(create('p',tr(
+        'تعداد Workerهای دارای نتیجهٔ موفقِ ثبت‌شده: ',
+        'Workers with a recorded success state: ')+completed));
+      cronStatus.append(create('p',tr(
+        'پایگاه داده ممکن است آخرین اجرای موفق را نشان دهد؛ این به‌تنهایی اثبات انتشار مقاله نیست.',
+        'A recorded Cron success does not prove a real published article or rights clearance.'
+      ),'jr-news-owner-disclosure'));
+    }catch{
+      if(!disposed)cronStatus.append(create('p',tr(
+        'وضعیت Cron قابل استعلام نیست؛ اجرای آن تأیید نمی‌شود.',
+        'Cron state unavailable; runtime activation is not attested.'
+      )));
+    }
+  }
   async function loadActivation(){
     if(disposed||pending)return;
     readiness.replaceChildren(create('p',tr(
@@ -359,6 +424,7 @@ export function mountNewsOwnerPanel({root,csrfResolver,apiBase,locale='fa'}={}){
         throw Error('SOURCE_SCHEMA_INVALID');
       drawEntries(result.entries);drawSuggested(result.suggestedInstitutions);
       await loadActivation();
+      await loadCronReadiness();
       state(tr('نمایش وضعیت واقعی از دیتابیس مادر؛ این فهرست تأیید حقوق انتشار نیست.',
         'Actual mother-DB records; these entries do not constitute publishing licences.'));
     }catch{error();}
