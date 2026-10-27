@@ -85,9 +85,15 @@ export function mountNewsOwnerPanel({root,csrfResolver,
   cronRegister.type='button';
   cronRegister.textContent=say('ثبت تمام Workerهای خبر (غیرفعال)',
     'Register all News workers (disabled)');
+  const cronActivate=document.createElement('button');
+  cronActivate.type='button';
+  cronActivate.textContent=say('فعال‌سازی یکپارچهٔ ۸ Worker خبر',
+    'Activate 8 verified original News workers');
+  cronActivate.title=say('فقط در صورت تکمیل سیاست رسمی، مجوز منابع، دیتابیس و پشتیبان',
+    'Requires live reviewed sources, original CMS, verified backup and standing owner policy');
   let cronActionInFlight=false;
   cronControls.append(cronHeading,cronDisclosure,cronRefresh,cronRegister,
-    cronStatus,cronRows);
+    cronActivate,cronStatus,cronRows);
   async function originalCronRequest(method='GET',body=null){
     const csrf=csrfResolver();
     if(typeof csrf!=='string'||!/^[a-f0-9]{64}$/i.test(csrf))
@@ -112,7 +118,7 @@ export function mountNewsOwnerPanel({root,csrfResolver,
         !Array.isArray(snapshot.jobs))throw Error('JREI_NEWS_CRON_CONTRACT');
       const jobs=snapshot.jobs.filter(job=>
         typeof job?.jobId==='string'&&
-        job.jobId.startsWith('jrei_news_original_'));
+        job.jobId.startsWith('jrei_news_'));
       const registered=jobs.filter(j=>j.registered===true).length;
       const enabled=jobs.filter(j=>j.enabled===true).length;
       cronStatus.textContent=say('ثبت‌شده: ','Registered: ')+registered+
@@ -157,6 +163,35 @@ export function mountNewsOwnerPanel({root,csrfResolver,
         'Worker registration was not confirmed; inspect mother DB and owner MFA.');
     }finally{
       cronActionInFlight=false;cronRegister.disabled=false;
+    }
+    await refreshOriginalCronStatus();
+  });
+
+  cronActivate.addEventListener('click',async()=>{
+    if(cronActionInFlight)return;
+    const authorization=say(
+      'فعال‌سازی ۸ Worker اصلی JREI News در زمان‌بند موجود برتینا، با کنترل کامل مجوز منبع، صحت خبر، ممیزی مستقل، رسید CMS و امکان توقف. این عمل به‌تنهایی خبری منتشر نمی‌کند. ادامه می‌دهید؟',
+      'Activate eight original JREI News workers through the existing Bertina scheduler? Source rights, fact review, independent QA and real CMS receipts remain mandatory; this action alone publishes nothing. Continue?');
+    if(!window.confirm(authorization))return;
+    cronActionInFlight=true;cronActivate.disabled=true;
+    try{
+      const receipt=await originalCronRequest('POST',{
+        action:'activate_news_pipeline',
+        confirmation:'ACTIVATE_ORIGINAL_VERIFIED_NEWS_PIPELINE'
+      });
+      if(receipt?.ok!==true||receipt.newsPipelineScheduledWorkers!==8||
+         receipt.sourcePolicyAndStandingAuthorityChecked!==true||
+         receipt.publicationExecutedByActivation!==false)
+        throw Error('JREI_NEWS_ORIGINAL_PIPELINE_ACTIVATION_NOT_CONFIRMED');
+      cronStatus.textContent=say(
+        'فعال‌سازی صف اجرایی اخبار در دیتابیس ثبت شد؛ انتشار واقعی فقط پس از تکمیل فرایند و دریافت رسید CMS اثبات می‌شود.',
+        'Original News job schedules activated. A genuine bilingual CMS receipt is still required to prove publication.');
+    }catch{
+      cronStatus.textContent=say(
+        'فعال‌سازی انجام نشد: یکی از مجوزهای خصوصی، سیاست ماندگار، جداول مادر، Workerها یا وضعیت بررسی اجرای قبلی ناقص است. فهرست موانع پایین صفحه را مشاهده کنید.',
+        'News activation not accepted: check private release switches, signed standing policy, mother schema, worker sources and prior-job reconciliation below.');
+    }finally{
+      cronActionInFlight=false;cronActivate.disabled=false;
     }
     await refreshOriginalCronStatus();
   });
@@ -806,6 +841,10 @@ export function mountNewsOwnerPanel({root,csrfResolver,
         ['masterCronConfigured','زمان‌بند مادر برتینا','Bertina original master scheduler'],
         ['integratedNewsAccepted','پذیرش انتشار یکپارچه','Integrated newsroom release acceptance'],
         ['sourceActivationAuthorized','مجوز پایش منابع','Original source-monitoring authorization'],
+        ['independentPrimaryEvidenceEnabled','ممیزی مستقل اصل اطلاعیه','Independent primary-source news evidence'],
+        ['kaSourceSchedulingEnabled','برنامه‌ریزی منابع مجاز JREI-KA','JREI-KA approved source scheduler'],
+        ['kaAcquisitionEnabled','گردآوری مجاز اصل منابع','JREI-KA lawful original acquisition'],
+        ['liveAiTransportEnabled','مدل خصوصی آماده‌سازی خبر','Authorised live first-party AI transport'],
         ['automaticOfficialCatalogueSeedEnabled','کشف اولیهٔ وبگاه‌های نهادی','Discover original institutional origins'],
         ['officialFeedProjectionEnabled','دریافت شواهد RSS مجاز','Approved feed receipt projection'],
         ['officialArticleIntakeEnabled','ورود شواهد مقالهٔ اصلی','Original article evidence intake'],
