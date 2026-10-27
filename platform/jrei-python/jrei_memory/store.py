@@ -165,6 +165,7 @@ def save_owner_note(request: OwnerMemorySave) -> OwnerMemoryReceipt:
     return OwnerMemoryReceipt(
         record_id=record_id, purpose=request.purpose, expires_at=expiry,
         idempotent_replay=replayed,
+        persist_result=("MOTHER_DB_VERIFIED_REPLAY" if replayed else "MOTHER_DB_ATOMIC_INSERT"),
     )
 
 
