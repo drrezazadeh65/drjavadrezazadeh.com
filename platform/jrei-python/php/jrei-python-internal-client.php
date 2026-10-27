@@ -18,6 +18,7 @@ function jrJreiPythonInternalPropose(array $privateConfig, string $route, array 
         '/internal/v1/learning/prioritize',
         '/internal/v1/model/owner-draft',
         '/internal/v1/learning/heldout/review',
+        '/internal/v1/exams/blueprint/review',
         '/internal/v1/learning/evidence-graph/review',
         '/internal/v1/knowledge/retrieval/propose',
         '/internal/v1/knowledge/extraction/propose',
