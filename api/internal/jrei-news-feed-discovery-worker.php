@@ -15,6 +15,7 @@ require_once dirname(__DIR__).'/internal/jrei-news/delegated-official-source-enr
 require_once dirname(__DIR__).'/internal/jrei-news/admin-source-management.php';
 require_once dirname(__DIR__).'/internal/jrei-news/original-official-source-bootstrap.php';
 require_once dirname(__DIR__).'/internal/jrei-news/original-approved-university-monitor-sync.php';
+require_once dirname(__DIR__).'/internal/jrei-news/original-autonomous-institution-discovery.php';
 try{
     $cfg=cfg();
     if(($cfg['jrei_news_feed_discovery_enabled']??false)!==true||
@@ -63,6 +64,22 @@ try{
               'originalCronLeaseVerified'=>true
             ],time(),50);
     }
+    // Discover previously unnamed universities, ministries, research
+    // institutions and education/exam authorities using links inside
+    // SHA-verified original JREI-KA observations. Independent review of the
+    // TARGET authority/rights remains mandatory; no implicit fetch or publish.
+    $autonomous=['discoveredInstitutionCandidates'=>0,'reviewedObservationPages'=>0];
+    if(($cfg['jrei_news_autonomous_institution_discovery_enabled']??false)===true&&
+       ($cfg['jrei_news_source_activation_accepted']??false)===true){
+        $privateArchive=jrKaPrivateArchiveRoot($cfg);
+        if($privateArchive===null)
+            throw new RuntimeException('news_original_institution_archive_unavailable');
+        $autonomous=jrNewsStageAutonomousInstitutionCandidates(
+            $pdo,$privateArchive,$cfg,[
+               'source'=>'ORIGINAL_JREI_PRIVATE_NEWS_WORKER',
+               'originalCronLeaseVerified'=>true
+            ],time(),8);
+    }
     $summary=jrNewsBridgeOriginalFeedObservation($pdo,$cfg,time());
     // Once the owner delegates a reviewed official HTTPS path, the original
     // JREI scheduler can register SAME-ORIGIN article URLs without another
@@ -93,6 +110,7 @@ try{
       '; private link suggestions='.(int)$summary['newPrivateLinksSuggested'].
       '; approved manager sources linked='.(int)$admin['linked'].
       '; monitored manager sources enabled='.(int)$admin['activated'].
+      '; previously unnamed institutional origins discovered='.(int)$autonomous['discoveredInstitutionCandidates'].
       '; original delegated URL enrollments='.(int)$delegated['enrolled'].
       '; no independent downloads, no public publishing.'."\n");
 }catch(Throwable $e){
