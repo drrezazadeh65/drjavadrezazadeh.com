@@ -19,6 +19,9 @@ from jrei_core.local_model_draft import (
     LocalDraftRequest, LocalDraftResult, LocalModelUnavailable, create_local_owner_draft,
 )
 from jrei_learning.prioritizer import prioritize
+from jrei_learning.news_claim_review import (
+    NewsEditorialRequest, NewsEditorialPreflight, review_news_editorial,
+)
 from jrei_learning.exam_blueprint_review import (
     ExamReviewRequest, ExamBlueprintReview, review_exam_blueprint,
 )
@@ -102,6 +105,7 @@ async def capabilities():
             "evidence_revision_triage_v1",
             "paired_bilingual_heldout_review_v1",
             "nonpublishing_exam_item_key_accessibility_blueprint_integrity_v1",
+            "original_cms_news_bilingual_fact_rights_exception_preflight_v1",
             "bounded_exact_arithmetic_v1",
             "versioned_claim_dependency_and_revocation_review_v1",
             "gap_to_experiment_metacognitive_cycle_v1",
@@ -257,6 +261,17 @@ async def registered_skills():
 async def evidence_revision_triage(payload: EvidenceTriageRequest):
     # Computation only. Source/rights approval stays with independent mother-DB review.
     return triage_evidence_revision(payload)
+
+
+@app.post(
+    "/internal/v1/news/official/editorial-preflight",
+    response_model=NewsEditorialPreflight,
+    dependencies=[Depends(require_internal_gateway)],
+)
+async def official_news_private_fact_preflight(payload: NewsEditorialRequest):
+    # Claims, rights, original CMS authority and publication state are NOT
+    # attested by caller metadata; this only emits a deterministic proposal.
+    return review_news_editorial(payload)
 
 
 @app.post(
