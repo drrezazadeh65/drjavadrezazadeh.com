@@ -38,10 +38,43 @@ try{
         throw new RuntimeException('news_private_publisher_batch_config_invalid');
     $result=jrNewsOriginalPrivateCmsPublishBatch(
         $pdo,$cfg,$root,time(),$requested);
+    // CLOSE THE ORIGINAL CMS -> mother-DB index -> public newsroom loop
+    // within the same authorized private Cron cycle. Previously, the
+    // bilingual publication could succeed while its public archive/RSS
+    // remained empty until a SEPARATELY enabled index worker ran.
+    //
+    // This is still the EXISTING receipts-only indexer. No new content,
+    // fabricated SQL receipt, browser authority or public source bypass.
+    $indexed=0;
+    $syndication=0;
+    if((int)($result['published']??0)>0){
+        if(($cfg['jrei_news_publisher_receipts_accepted']??false)!==true||
+           ($cfg['jrei_news_search_enabled']??false)!==true)
+            throw new RuntimeException('news_original_public_archive_switches_not_accepted');
+        $index=jrNewsOriginalIndexVerifiedPublishedPages(
+            $pdo,$root,time(),min(50,max(2,$requested*2)));
+        $indexed=(int)($index['indexedLanguages']??0);
+        if($indexed<(int)$result['published']*2)
+            throw new RuntimeException('news_original_public_index_not_caught_up');
+        // The public RSS endpoint queries the verified index live. Static
+        // JREI-owned feed/sitemap assets are optional and never overwrite
+        // the website's historical feed.xml or sitemap-news.xml.
+        if(($cfg['jrei_news_verified_syndication_enabled']??false)===true){
+            $written=jrNewsWriteOriginalSyndication(
+                $pdo,$root,time(),[
+                   'source'=>'ORIGINAL_JREI_PRIVATE_INDEX_WORKER',
+                   'actualPublishedCmsReceiptsRequired'=>true,
+                   'originalSyndicationActivated'=>true
+                ]);
+            $syndication=(int)($written['writtenAssets']??0);
+        }
+    }
     $state=(string)($result['state']??'UNKNOWN');
     $code=preg_match('/^[A-Z_]{3,70}$/D',$state)?$state:'REQUIRES_REVIEW';
     fwrite(STDOUT,'JREI original CMS News='.$code.
       '; actual bilingual publication receipts='.(int)($result['published']??0).
+      '; freshly indexed public languages='.$indexed.
+      '; owned feed assets='.$syndication.
       '; no public browser authority accepted.'."\n");
 }catch(Throwable $e){
     // Intentionally no source text, identifiers, SQL, token or filesystem paths.
