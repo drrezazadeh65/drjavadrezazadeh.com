@@ -231,6 +231,9 @@ def plan_metacognitive_cycle(
                 )):
             method = strategy.proposed_next_method
             reasons.add("HISTORICAL_METHOD_PROPOSAL_FOR_OWNER_REVIEW_ONLY")
+            if any(item.method == method and item.negative_outcome_count > 0
+                   for item in strategy.compared_method_evidence):
+                reasons.add("HISTORICAL_NEGATIVE_OUTCOMES_RETAINED_FOR_REVIEW")
         decisions.append(LearningDecision(
             gap_id=goal.gap_id, domain=goal.domain, score=goal.score,
             recommended_learning_method=method,
