@@ -124,6 +124,9 @@ class MetacognitiveCycleResult(StrictContract):
     )
     policy_version: Identifier
     request_sha256: Digest
+    # SHA256 of the exact private HMAC-authenticated HTTP payload bytes.
+    # Populated only by the FastAPI gateway, not by local planning helpers.
+    submitted_payload_sha256: Digest | None = None
     gap_count: int
     evidence_graph_sha256: Digest
     decisions: list[LearningDecision]
