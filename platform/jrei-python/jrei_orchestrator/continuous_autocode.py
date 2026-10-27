@@ -82,7 +82,7 @@ class SignedCodingEnvelope(StrictContract):
         "jr.jrei.continuous-autocode-envelope.v1"
     )
     issued_at: int = Field(ge=1)
-    expires_at: int = Field(ge=1)
+    expires_at: int | None = Field(default=None, ge=1)
     manifest: dict
     signature_b64: str = Field(min_length=86, max_length=90)
 
@@ -109,8 +109,9 @@ def _signed_manifest(raw: bytes) -> ContinuousCodingManifest:
     envelope = SignedCodingEnvelope.model_validate_json(raw)
     now = int(time.time())
     if (envelope.issued_at > now + 60 or
-        envelope.expires_at <= now or
-        envelope.expires_at - envelope.issued_at > 86400):
+        (envelope.expires_at is not None and envelope.expires_at <= now) or
+        (envelope.expires_at is not None and
+         envelope.expires_at < envelope.issued_at)):
         raise ValueError("AUTOCODE_OWNER_GRANT_EXPIRED_OR_FUTURE")
     encoded_key = os.environ.get("JREI_AUTOCODE_OWNER_PUBLIC_KEY_B64", "")
     try:
@@ -343,7 +344,7 @@ def run_forever(repo: Path, workspace: Path, manifest_path: Path) -> None:
                     raise ValueError("AUTOCODE_MANIFEST_TOO_LARGE")
                 manifest = _signed_manifest(raw)
                 status = stage_one(repo, workspace, conn, manifest)
-                if status == "STAGED_UNVERIFIED":
+                if status in ("STAGED_UNVERIFIED", "RECOVERED_STAGED_UNVERIFIED"):
                     delay = 12.0
                 elif status in ("RESOURCE_BACKPRESSURE", "OWNER_STOP"):
                     delay = 120.0
