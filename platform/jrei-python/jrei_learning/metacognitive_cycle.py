@@ -22,6 +22,9 @@ from jrei_learning.evidence_graph import EvidenceGraphRequest, review_evidence_g
 from jrei_learning.heldout import (
     HeldoutReviewRequest, review_heldout,
 )
+from jrei_learning.strategy_optimizer import (
+    StrategyLearningRequest, propose_learning_method,
+)
 
 
 class GapContext(StrictContract):
@@ -42,6 +45,9 @@ class MetacognitiveCycleRequest(StrictContract):
     knowledge: EvidenceGraphRequest
     contexts: list[GapContext] = Field(min_length=1, max_length=200)
     heldout: list[HeldoutReviewRequest] = Field(default_factory=list, max_length=40)
+    strategy_histories: list[StrategyLearningRequest] = Field(
+        default_factory=list, max_length=16
+    )
 
     @model_validator(mode="after")
     def compatible_evidence(self) -> "MetacognitiveCycleRequest":
@@ -66,6 +72,14 @@ class MetacognitiveCycleRequest(StrictContract):
         for evaluation in self.heldout:
             if evaluation.policy_version != self.gaps.policy_version:
                 raise ValueError("HELDOUT_POLICY_MISMATCH")
+        domain_ids = [history.target_domain for history in self.strategy_histories]
+        if len(domain_ids) != len(set(domain_ids)):
+            raise ValueError("DUPLICATE_METHOD_STRATEGY_DOMAIN")
+        supported_domains = {gap.domain for gap in self.gaps.gaps}
+        for history in self.strategy_histories:
+            if (history.target_domain not in supported_domains or
+                    history.policy_version != self.gaps.policy_version):
+                raise ValueError("METHOD_STRATEGY_POLICY_OR_DOMAIN_MISMATCH")
         return self
 
 
@@ -97,6 +111,7 @@ class LearningDecision(StrictContract):
     heldout_decision: str | None = None
     negative_case_digest: Digest | None = None
     evidence_request_digest: Digest
+    strategy_history_digest: Digest | None = None
     owner_approval_required: Literal[True] = True
     knowledge_promoted: Literal[False] = False
     model_training_started: Literal[False] = False
@@ -136,6 +151,10 @@ def plan_metacognitive_cycle(
     claim_decisions = {c.claim_id: c for c in evidence_review.claims}
     contexts = {c.gap_id: c for c in request.contexts}
     comparisons = {x.experiment_id: review_heldout(x) for x in request.heldout}
+    strategy_proposals = {
+        x.target_domain: propose_learning_method(x)
+        for x in request.strategy_histories
+    }
     decisions: list[LearningDecision] = []
 
     for goal in goals.goals:
@@ -183,15 +202,29 @@ def plan_metacognitive_cycle(
 
         if comparison is not None:
             reasons.update(comparison.reason_codes)
+        method = goal.selected_method
+        strategy = strategy_proposals.get(goal.domain)
+        # A reviewed *historical method proposal* may influence only a
+        # rights-eligible, evidence-eligible, unblocked NEXT experiment. It
+        # cannot override a RIGHTS_REVIEW or independent evidence hold.
+        if (strategy is not None and strategy.proposed_next_method is not None
+                and goal.decision == "PROPOSED"
+                and context.supporting_claim_ids and not blocked
+                and decision in (
+                    "PROPOSE_ISOLATED_EXPERIMENT", "REVIEW_CHALLENGER_WITH_OWNER",
+                )):
+            method = strategy.proposed_next_method
+            reasons.add("HISTORICAL_METHOD_PROPOSAL_FOR_OWNER_REVIEW_ONLY")
         decisions.append(LearningDecision(
             gap_id=goal.gap_id, domain=goal.domain, score=goal.score,
-            recommended_learning_method=goal.selected_method,
+            recommended_learning_method=method,
             decision=decision, next_action=action,
             supporting_claim_ids=sorted(context.supporting_claim_ids),
             reason_codes=sorted(reasons),
             heldout_decision=comparison.decision if comparison else None,
             negative_case_digest=comparison.negative_cases_sha256 if comparison else None,
             evidence_request_digest=evidence_review.request_sha256,
+            strategy_history_digest=strategy.input_sha256 if strategy else None,
         ))
 
     payload = json.dumps(request.model_dump(mode="json"), sort_keys=True,
