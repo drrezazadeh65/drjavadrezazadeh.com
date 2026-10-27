@@ -7,7 +7,7 @@ This is not public user memory or automatic training consent.
 from __future__ import annotations
 
 from typing import Literal
-from pydantic import Field
+from pydantic import Field, model_validator
 from jrei_core.contracts import StrictContract
 
 OwnerId = str
@@ -57,3 +57,39 @@ class OwnerMemoryRevokeReceipt(StrictContract):
     ciphertext_erased_from_current_row: bool
     historical_backups_erased: Literal[False] = False
     used_for_model_training: Literal[False] = False
+
+
+class OwnerMemoryListQuery(StrictContract):
+    schema_version: Literal["jr.jrei.owner-memory-list.v1"] = "jr.jrei.owner-memory-list.v1"
+    owner_account_id: str = Field(pattern=r"^[a-f0-9]{8}-(?:[a-f0-9]{4}-){3}[a-f0-9]{12}$")
+    limit: int = Field(default=25, ge=1, le=50)
+    before_created_at: int | None = Field(default=None, ge=1)
+    before_record_id: str | None = Field(
+        default=None, pattern=r"^[a-f0-9]{8}-(?:[a-f0-9]{4}-){3}[a-f0-9]{12}$"
+    )
+
+    @model_validator(mode="after")
+    def complete_cursor(self) -> "OwnerMemoryListQuery":
+        if (self.before_created_at is None) != (self.before_record_id is None):
+            raise ValueError("OWNER_MEMORY_CURSOR_INCOMPLETE")
+        return self
+
+
+class OwnerMemoryMetadata(StrictContract):
+    record_id: str
+    purpose: Purpose
+    created_at: int
+    expires_at: int
+
+
+class OwnerMemoryListResult(StrictContract):
+    schema_version: Literal["jr.jrei.owner-memory-list-result.v1"] = (
+        "jr.jrei.owner-memory-list-result.v1"
+    )
+    entries: list[OwnerMemoryMetadata] = Field(max_length=50)
+    has_more: bool
+    next_before_created_at: int | None = None
+    next_before_record_id: str | None = None
+    payload_contains_plaintext: Literal[False] = False
+    used_for_model_training: Literal[False] = False
+    available_to_other_tenants: Literal[False] = False
