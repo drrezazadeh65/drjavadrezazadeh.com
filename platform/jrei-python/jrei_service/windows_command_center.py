@@ -325,7 +325,8 @@ button.secondary{background:#292e35;color:#e7d4ae;border:1px solid #564a35}
 .msg{border-bottom:1px solid #2d3134;padding:10px 5px;line-height:1.85}
 .owner{color:#edc875}.bot{color:#d7e5e8}
 textarea{font:inherit;background:#11161c;color:#fff;border:1px solid #76643d;width:100%;padding:12px;border-radius:8px;resize:vertical;margin:10px 0}
-#events{font:12px Segoe UI,Tahoma;direction:ltr;text-align:left;white-space:pre-wrap;max-height:300px;overflow:auto;color:#ced4d5}
+#events{font:12px Segoe UI,Tahoma;direction:ltr;text-align:left;white-space:pre-wrap;max-height:350px;overflow:auto;color:#ced4d5;overflow-wrap:anywhere}
+#mission-result{direction:auto;unicode-bidi:plaintext;font:14px Segoe UI,Tahoma;white-space:pre-wrap;line-height:1.85;overflow:auto;max-height:410px;overflow-wrap:anywhere;background:#101318;border:1px solid #343636;border-radius:9px;padding:14px}
 #state{font:14px monospace;direction:ltr;text-align:left;white-space:pre-wrap}
 footer{margin-top:14px;font-size:12px;color:#bbb} .wide{grid-column:1/-1}
 @media(max-width:800px){main{grid-template-columns:1fr}body{padding:12px}header{flex-wrap:wrap}}
@@ -348,15 +349,23 @@ footer{margin-top:14px;font-size:12px;color:#bbb} .wide{grid-column:1/-1}
 <button data-job="python_health">سلامت Python</button>
 <button data-job="study">مطالعه و پیشنهاد بهبود</button>
 </div><h2>وضعیت واقعی</h2><div id="state">…</div></section>
+<section class="wide"><h2>نتیجهٔ مأموریت</h2><div id="mission-result" role="status" aria-live="polite">هنوز مأموریتی اجرا نشده است.</div><button class="secondary" id="copy-result">کپی نتیجه</button></section>
 <section class="wide"><h2>دفتر مأموریت‌ها و فعالیت مستقل</h2><div id="events">…</div></section>
 </main><footer>JREI روی این رایانه به نشانی 127.0.0.1 متصل است. انتشار خبر، تغییر MySQL و استقرار سایت هنوز به مجوز و اتصال اجرایی جداگانه نیاز دارند. پیشنهاد یادگیری، آموزش وزن مدل نیست.</footer>
 <script>
 'use strict';
-const token=decodeURIComponent((location.hash.match(/(?:^#|&)token=([^&]+)/)||[])[1]||'');
-history.replaceState(null,'',location.pathname);
+// Keep the token only in the current browser tab, never in persistent localStorage.
+const key='jrei-owner-private-token-8092';
+const received=decodeURIComponent((location.hash.match(/(?:^#|&)token=([^&]+)/)||[])[1]||'');
+if(received && /^[A-Za-z0-9_-]{50,128}$/.test(received))sessionStorage.setItem(key,received);
+const token=sessionStorage.getItem(key)||'';
+if(location.hash)history.replaceState(null,'',location.pathname);
 const q=document.querySelector('#question'), chat=document.querySelector('#chat');
 const send=document.querySelector('#send'), statusText=document.querySelector('#chatStatus');
 let historyItems=[];
+const missionResult=document.querySelector('#mission-result');
+function showResult(title,state,detail){missionResult.textContent=title+' — '+state+'\\n\\n'+detail;missionResult.scrollTop=0;}
+document.querySelector('#copy-result').onclick=()=>navigator.clipboard.writeText(missionResult.textContent).catch(()=>{});
 function el(cls,text){const d=document.createElement('div');d.className='msg '+cls;d.textContent=text;chat.append(d);chat.scrollTop=chat.scrollHeight;}
 async function call(url,obj){
   if(!token)throw Error('توکن دسترسی پیدا نشد. پنل را از راه‌انداز ویندوز باز کنید.');
@@ -394,6 +403,7 @@ document.querySelector('#directive').onclick=async()=>{
  const button=document.querySelector('#directive');button.disabled=true;
  try{const result=await call('/api/directive',{command});
    el('owner',command);el('bot','نتیجه اجرا: '+result.state+'\\n'+result.detail);
+   showResult(command,result.state,result.detail);
    q.value='';await refresh();
  }catch(e){el('bot','خطای دستور: '+e.message)}
  finally{button.disabled=false}
@@ -401,8 +411,8 @@ document.querySelector('#directive').onclick=async()=>{
 q.onkeydown=e=>{if(e.key==='Enter'&&e.ctrlKey){e.preventDefault();submit()}};
 document.querySelectorAll('[data-job]').forEach(button=>button.onclick=async()=>{
  const job=button.dataset.job;button.disabled=true;button.textContent='در حال اجرا…';
- try{const x=await call('/api/mission',{job});alert('JREI '+job+'\\n'+x.state+'\\n'+x.detail.slice(0,650))}
- catch(e){alert('خطا: '+e.message)}
+ try{const x=await call('/api/mission',{job});showResult('JREI '+job,x.state,x.detail)}
+ catch(e){showResult('JREI '+job,'ERROR',e.message)}
  finally{button.disabled=false;button.textContent={
  seo_audit:'ممیزی SEO',geo_audit:'ممیزی GEO',robots_audit:'Robots / Sitemap',
  source_audit:'بررسی کد مخزن',news_readiness:'وضعیت مسیرهای خبر',
