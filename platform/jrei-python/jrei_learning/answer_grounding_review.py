@@ -166,8 +166,9 @@ def review_answer_grounding(payload: AnswerReviewRequest) -> AnswerReviewResult:
                 issues.add("ANSWER_CITES_DECLARED_UNRESOLVED_CONTRADICTION")
         # One disputed claim is enough to hold an answer even if the other
         # side of the disagreement was conveniently omitted from the draft.
-        if sentence.is_factual_claim and sentence.supporting_claim_ids:
-            issues.add("SEMANTIC_CLAIM_SUPPORT_NOT_INDEPENDENTLY_VERIFIED")
+        # Semantic entailment has NOT been checked because the full answer
+        # and original licensed sources are deliberately absent. Record that
+        # as an explicit reviewer requirement, not a falsely proven defect.
         if issues:
             held.append(sentence.sentence_id)
         findings.append(SentenceReview(
@@ -175,8 +176,11 @@ def review_answer_grounding(payload: AnswerReviewRequest) -> AnswerReviewResult:
             order=sentence.order,
             sentence_sha256=sentence.sentence_sha256,
             decision="HOLD" if issues else "CANDIDATE_REQUIRES_EDITORIAL_REVIEW",
-            reason_codes=(sorted(issues) if issues else
-                          ["NONFACTUAL_SENTENCE_EDITORIAL_REVIEW_REQUIRED"]),
+            reason_codes=(sorted(issues) if issues else (
+                ["CITED_CLAIMS_REQUIRE_INDEPENDENT_SEMANTIC_REVIEW"]
+                if sentence.is_factual_claim else
+                ["NONFACTUAL_SENTENCE_EDITORIAL_REVIEW_REQUIRED"]
+            )),
             source_claim_ids=sentence.supporting_claim_ids,
         ))
 
