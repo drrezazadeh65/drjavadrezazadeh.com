@@ -192,6 +192,24 @@ _SKILLS = (
         "languages": ["fa", "en"],
         "review": "OWNER_METHOD_AND_INDEPENDENT_REVIEW_REQUIRED_BEFORE_POLICY_CHANGE",
     },
+    {
+        "skill_id": "jrei.owner.local_qwen_unverified_draft.v1",
+        "version": "1.0.0",
+        "entry_route": "/internal/v1/model/owner-draft",
+        "execution": "LOCAL_QWEN_INFERENCE_SEPARATELY_GATED",
+        "data_class": "EXPLICIT_PRIVATE_OWNER_QUESTION_ONLY_NO_SOURCE_EXCERPTS",
+        "required_service_authority": "SIGNED_PRIVATE_GATEWAY_PLUS_OWNER_MFA",
+        "owner_action_authorized": False,
+        "mutates_mother_db": False,
+        "network_access": True,
+        "network_scope": "127.0.0.1:8081_ONLY",
+        "verified_source_grant": False,
+        "languages": ["fa", "en"],
+        "review": "MODEL_RIGHTS_OWNER_SCIENTIFIC_AND_OUTPUT_REVIEW_REQUIRED",
+        "default_enabled": False,
+        "public_output_allowed": False,
+        "weight_updates_enabled": False,
+    },
 )
 _IDS = tuple(skill["skill_id"] for skill in _SKILLS)
 if len(set(_IDS)) != len(_IDS):
