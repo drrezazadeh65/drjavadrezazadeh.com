@@ -209,6 +209,11 @@ function cfg(): array {
         'jrei_python_node_heartbeat_enabled' =>
             getenv('JR_JREI_PYTHON_NODE_HEARTBEAT_ENABLED') === 'true',
         'jrei_python_canary_enabled' => getenv('JR_JREI_PYTHON_CANARY_ENABLED') === 'true',
+        // Private SUPER_ADMIN-only educational draft through owner-reviewed
+        // local Qwen. Additional HMAC+Python OFF switches remain required.
+        // This does not enable public inference, crawling or publication.
+        'jrei_python_owner_model_draft_enabled' =>
+            getenv('JR_JREI_PYTHON_OWNER_MODEL_DRAFT_ENABLED') === 'true',
         // Immutable metadata-only learning-cycle journal. Separate OFF gate.
         'jrei_metacognitive_owner_journal_enabled' =>
             getenv('JR_JREI_METACOGNITIVE_OWNER_JOURNAL_ENABLED') === 'true',
