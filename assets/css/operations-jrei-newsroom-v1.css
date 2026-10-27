@@ -72,3 +72,21 @@
  #ops-jrei-newsroom .ni-admin-custom-source-items{grid-template-columns:minmax(0,1fr);}
  #ops-jrei-newsroom .ni-admin-custom-source-manager button{width:100%;margin-inline:0;}
 }
+
+/* Original owner-source module — consistent with existing black/gold admin. */
+#ops-jrei-newsroom .jr-news-owner-toolbar{display:flex;gap:1rem;flex-wrap:wrap;align-items:center;justify-content:space-between;border-bottom:1px solid #74624b;padding-block:.8rem}
+#ops-jrei-newsroom .jr-news-owner-toolbar h3{font-size:clamp(1.05rem,2vw,1.45rem);margin:0;color:#e9c98e}
+#ops-jrei-newsroom .jr-news-owner-actions{display:flex;flex-wrap:wrap;gap:.5rem}
+#ops-jrei-newsroom .jr-news-owner-source-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.85rem;padding:1rem;background:linear-gradient(135deg,#1d1c1b,#282522);border:1px solid #745e3f;border-radius:1rem;margin-block:1rem}
+#ops-jrei-newsroom .jr-news-owner-source-form label{display:grid;gap:.35rem;min-width:0;font-weight:600;color:#f0dfc2}
+#ops-jrei-newsroom .jr-news-owner-source-form :is(input,select){width:100%;min-width:0;background:#1b1b1b;border:1px solid #837354;border-radius:.6rem;color:#fff4e2}
+#ops-jrei-newsroom .jr-news-owner-source-form button{align-self:end;min-height:46px}
+#ops-jrei-newsroom .jr-news-owner-action,#ops-jrei-newsroom .jr-news-owner-source-form button{border:1px solid #c6a16b;background:#413521;color:#fdf0d9;border-radius:.6rem;padding:.6rem .8rem;font-weight:600;cursor:pointer}
+#ops-jrei-newsroom .jr-news-owner-disclosure{font-size:.95rem;line-height:1.8;opacity:.86}
+#ops-jrei-newsroom .jr-news-owner-state{min-height:2.3rem;line-height:1.75}
+#ops-jrei-newsroom .jr-news-owner-sources,#ops-jrei-newsroom .jr-news-owner-suggested{margin-block:1.25rem}
+#ops-jrei-newsroom .jr-news-owner-sources ul,#ops-jrei-newsroom .jr-news-owner-suggested ul{list-style:none;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,310px),1fr));gap:.8rem}
+#ops-jrei-newsroom .jr-news-owner-sources li,#ops-jrei-newsroom .jr-news-owner-suggested li{min-width:0;padding:1rem;border:1px solid #6e5c42;border-radius:.9rem;background:#21201f;display:flex;flex-direction:column;gap:.6rem;overflow-wrap:anywhere}
+#ops-jrei-newsroom .jr-news-owner-sources li a,#ops-jrei-newsroom .jr-news-owner-suggested li a{color:#ebd09e;text-decoration:underline;text-underline-offset:3px}
+#ops-jrei-newsroom .jr-news-owner-source-actions{display:flex;flex-flow:row wrap;gap:.45rem}
+@media(max-width:700px){#ops-jrei-newsroom .jr-news-owner-source-form{grid-template-columns:minmax(0,1fr)}#ops-jrei-newsroom .jr-news-owner-source-actions button{width:100%}#ops-jrei-newsroom .jr-news-owner-toolbar{align-items:stretch;flex-direction:column}#ops-jrei-newsroom .jr-news-owner-toolbar button{width:100%}}
