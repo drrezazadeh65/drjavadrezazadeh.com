@@ -227,7 +227,45 @@ def stage_one(
             "SELECT 1 FROM source_proposals WHERE proposal_key=?", (key,)
         ).fetchone():
             continue
-        excerpt = _source_slice(repo, task)
+        # Recover an artifact after power loss between atomic rename and
+        # SQLite commit. Never regenerate an already written suggestion.
+        existing = workspace / "proposals" / (key + ".json")
+        if existing.is_symlink():
+            raise RuntimeError("AUTOCODE_STAGED_SYMLINK_DENIED")
+        if existing.exists():
+            if existing.stat().st_size > 12000:
+                raise RuntimeError("AUTOCODE_STAGED_RECEIPT_OVERSIZED")
+            prior = json.loads(existing.read_text(encoding="utf-8"))
+            proposal_text = prior.get("proposal")
+            if (prior.get("schema") != "jr.jrei.autocode-staged-proposal.v1"
+                or prior.get("proposal_key") != key
+                or prior.get("task_id") != task.task_id
+                or prior.get("policy_digest") != manifest.policy_digest
+                or prior.get("source_sha256") != task.source_sha256
+                or prior.get("evidence_sha256") != task.evidence_sha256
+                or prior.get("status") != "STAGED_UNVERIFIED"
+                or prior.get("committed") is not False
+                or prior.get("tests_run") is not False
+                or prior.get("deployed") is not False
+                or not isinstance(proposal_text, str)
+                or hashlib.sha256(proposal_text.encode("utf-8")).hexdigest()
+                   != prior.get("response_sha256")):
+                raise RuntimeError("AUTOCODE_INTERRUPTED_ARTIFACT_UNTRUSTED")
+            with conn:
+                conn.execute(
+                    "INSERT OR IGNORE INTO source_proposals (proposal_key,task_id,"
+                    "policy_digest,source_sha256,evidence_sha256,response_sha256,"
+                    "model_name,proposal_path,recorded_at,status)"
+                    " VALUES (?,?,?,?,?,?,?,?,?,'STAGED_UNVERIFIED')",
+                    (key, task.task_id, manifest.policy_digest, task.source_sha256,
+                     task.evidence_sha256, prior["response_sha256"],
+                     prior["model_alias"], str(existing), prior["created_at"])
+                )
+            return "RECOVERED_STAGED_UNVERIFIED"
+        try:
+            excerpt = _source_slice(repo, task)
+        except (ValueError, UnicodeError, OSError):
+            continue
         query = (
             "Goal: " + task.goal + "\n" +
             "Source path: " + task.path + "\n" +
