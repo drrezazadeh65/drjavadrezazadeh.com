@@ -104,7 +104,7 @@ function jrPythonCanaryOwner(PDO $db,string $account,array $body,int $now): arra
 }
 function jrPythonCanaryOwnerSnapshot(PDO $db,string $owner): array {
     if(!jrPythonCanaryReady($db))throw new RuntimeException('python_canary_schema_missing');
-    $q=$db->prepare('SELECT job_id,state,created_at,expires_at,lease_expires_at,completed_at,numerator,denominator,
+    $q=$db->prepare('SELECT job_id,state,created_at,expires_at,lease_id,lease_expires_at,completed_at,numerator,denominator,
          result_sha256 FROM jrei_python_canary_jobs WHERE owner_account_id=? ORDER BY created_at DESC,job_id DESC LIMIT 10');
     $q->execute([$owner]);$rows=[];$now=time();
     foreach($q->fetchAll(PDO::FETCH_ASSOC) as $r){
@@ -116,7 +116,23 @@ function jrPythonCanaryOwnerSnapshot(PDO $db,string $owner): array {
             ($r['state']==='LEASED' && $r['lease_expires_at']!==null &&
              (int)$r['lease_expires_at']<=$now)
         );
+        // Confirm the stored exact arithmetic digest is bound to this
+        // original lease. This is an integrity consistency check, NOT a
+        // substitute for signed-gateway logs or independent runtime audit.
+        $receiptMatches=false;
+        if($r['state']==='COMPLETED' &&
+           is_string($r['lease_id']) && jrHybridUuid($r['lease_id']) &&
+           is_string($r['result_sha256']) &&
+           (int)$r['numerator']===84 && (int)$r['denominator']===1 &&
+           $r['completed_at']!==null &&
+           (int)$r['completed_at']>=(int)$r['created_at'] &&
+           (int)$r['completed_at']<=(int)$r['expires_at']) {
+            $expected=hash('sha256',JR_PY_CANARY_SCHEMA.'|'.
+              $r['job_id'].'|'.$r['lease_id'].'|84/1');
+            $receiptMatches=hash_equals($expected,$r['result_sha256']);
+        }
         $rows[]=['jobId'=>$r['job_id'],'state'=>$r['state'],
+          'receiptMatchesStoredLease'=>$receiptMatches,
           'effectiveState'=>$expiredByClock?'EXPIRED_BY_CLOCK':$r['state'],
           'createdAt'=>(int)$r['created_at'],'expiresAt'=>(int)$r['expires_at'],
           'completedAt'=>$r['completed_at']===null?null:(int)$r['completed_at'],
