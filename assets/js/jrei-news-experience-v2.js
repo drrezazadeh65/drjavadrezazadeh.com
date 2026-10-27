@@ -153,4 +153,60 @@
       if(curatedEmpty)curatedEmpty.hidden=visible!==0;
     });
   }
+
+  var calendar=document.querySelector('[data-jr-calendar]');
+  if(calendar&&typeof fetch==='function'){
+    var calendarStatus=calendar.querySelector('[data-jr-calendar-status]');
+    var calendarList=calendar.querySelector('[data-jr-calendar-events]');
+    fetch('/api/news/v1/calendar',{method:'GET',credentials:'omit',redirect:'error',
+      cache:'no-store',headers:{'Accept':'application/json'}})
+      .then(function(response){
+        if(!response.ok)throw Error('calendar-not-public');
+        return response.json();
+      }).then(function(data){
+        if(data.schema!=='jr.jrei.news-approved-calendar-snapshot.v1'||
+           !Array.isArray(data.events))throw Error('unexpected-calendar-contract');
+        var accepted=[],now=Date.now();
+        data.events.slice(0,60).forEach(function(event){
+          if(event.schema!=='jr.jrei.exam-event.v1'||
+             event.status!=='OFFICIAL_DATE_REVIEWED'||
+             event.ownerPublicationApproved!==true||
+             event.sourceVerifiedAtReadTime!==true)return;
+          var title=cleanText(event[fa?'titleFa':'titleEn'],220);
+          var date=feedDate(event.startsAt);
+          var url;
+          try{
+            url=new URL(event.sourceUrl);
+            if(url.protocol!=='https:'||url.username||url.password||
+               !url.hostname.includes('.')||url.hash)return;
+          }catch(_){return;}
+          if(!title||!date||date.getTime()<now)return;
+          accepted.push({title:title,date:date,source:url.href});
+        });
+        accepted.sort(function(a,b){return a.date-b.date;});
+        calendarList.replaceChildren();
+        accepted.slice(0,9).forEach(function(event){
+          var card=textEl('article','jr-news-calendar-entry');
+          var time=textEl('time',null,
+            new Intl.DateTimeFormat(fa?'fa-IR':'en-GB',
+              {year:'numeric',month:'short',day:'numeric',timeZone:'UTC'})
+              .format(event.date)+' UTC');
+          time.dateTime=event.date.toISOString();
+          var heading=textEl('h3',null,event.title);
+          var source=textEl('a',null,fa?'اطلاعیه رسمی':'Official source');
+          source.href=event.source;
+          source.rel='noopener noreferrer external';source.target='_blank';
+          card.append(time,heading,source);calendarList.append(card);
+        });
+        calendarStatus.textContent=accepted.length?
+          (fa?'رویدادهای آتی دارای تاریخ و منبع رسمی تأییدشده.':
+             'Upcoming events with current, independently verified official dates.'):
+          (fa?'در حال حاضر رویداد دارای تاریخ رسمی قابل نمایش ثبت نشده است.':
+             'No future event with a verified official date is available.');
+      }).catch(function(){
+        calendarStatus.textContent=fa?
+          'نمایش برخط تقویم هنوز در دسترس نیست؛ تاریخ معتبر را از اطلاعیه رسمی بررسی کنید.':
+          'The public calendar is unavailable; consult the issuing authority for current dates.';
+      });
+  }
 }());
