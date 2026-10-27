@@ -37,6 +37,9 @@ from jrei_learning.evidence_graph import (
 from jrei_learning.metacognitive_cycle import (
     MetacognitiveCycleRequest, MetacognitiveCycleResult, plan_metacognitive_cycle,
 )
+from jrei_learning.value_of_information import (
+    ValueOfLearningRequest, ValueOfLearningResult, propose_learning_value,
+)
 from jrei_learning.strategy_optimizer import (
     StrategyLearningRequest, StrategyLearningResult, propose_learning_method,
 )
@@ -178,6 +181,17 @@ async def evidence_graph_review(payload: EvidenceGraphRequest):
     # SHA-bound evidence pointers, source withdrawal and transitive invalidation
     # are computed without claiming rights verification, retrieval or indexing.
     return review_evidence_graph(payload)
+
+
+@app.post(
+    "/internal/v1/learning/value-of-information/plan",
+    response_model=ValueOfLearningResult,
+    dependencies=[Depends(require_internal_gateway)],
+)
+async def learning_value_portfolio(payload: ValueOfLearningRequest):
+    # Bounded, evidence-driven choice of what to learn next. No external
+    # sources, learner records, leases, tools, costs or publication are touched.
+    return propose_learning_value(payload)
 
 
 @app.post(
