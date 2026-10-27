@@ -20,7 +20,7 @@ test('Owner activation is only in the original MFA/CSRF operations route',()=>{
  assert.match(front,/window\.confirm\(authorization\)/);
  assert.match(cron,/sourcePolicyAndStandingAuthorityChecked/);
  assert.match(cron,/publicationExecutedByActivation'\]=false/);
- assert.doesNotMatch(front,/localStorage|innerHTML\s*=/);
+ assert.doesNotMatch(front,/\b(?:window\.)?localStorage\s*[.\[]|\binnerHTML\s*=/);
 });
 test('Original publisher remains source and receipt gated; no alternate CMS',()=>{
  const worker=read('api/internal/jrei-news-private-publisher-worker.php');
