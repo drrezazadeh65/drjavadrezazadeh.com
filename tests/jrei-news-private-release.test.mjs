@@ -233,7 +233,10 @@ test('public bilingual archive fetch uses no session cookies or unsafe result li
   const js=fs.readFileSync(path.join(out,'assets/js/jrei-news-archive-v1.js'),'utf8');
   assert.ok(js.includes("credentials:'omit',redirect:'error'"));
   assert.ok(js.includes("var searchText=input.value.trim()"));
-  assert.ok(js.includes("if(!searchText)"));
+  // Category-only browsing is permitted through the original PUBLISHED-only
+  // index. An unrestricted empty query remains prohibited.
+  assert.ok(js.includes("if(!searchText && !topic.value)"));
+  assert.ok(js.includes("jr-news-select-category"));
   assert.ok(js.includes("url.search||url.hash"));
   assert.ok(js.includes("'/fa/akhbar/'") && js.includes("'/en/news-insights/'"));
   assert.ok(js.includes("i<20"),'public result rendering remains bounded');
