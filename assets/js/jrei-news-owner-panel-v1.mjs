@@ -14,6 +14,8 @@ export function mountNewsOwnerPanel({root,csrfResolver,apiBase,locale='fa'}={}){
   const sourceRoot='/owner/admin-sources';
   const labels={
     refresh:tr('بازخوانی وضعیت واقعی','Refresh actual status'),
+    workers:tr('ثبت یک‌جای Workerهای خبری در دیتابیس مادر (غیرفعال)',
+      'Register all newsroom workers in mother DB (disabled)'),
     seed:tr('ثبت مراجع رسمی شناخته‌شده به‌عنوان منابع بررسی‌نشده',
        'Discover recognized institutions as unreviewed sources'),
     title:tr('نام نهاد صادرکننده','Issuing institution'),
@@ -121,6 +123,35 @@ export function mountNewsOwnerPanel({root,csrfResolver,apiBase,locale='fa'}={}){
       await load();
     }catch{error();}
   }
+  async function registerWorkersDisabled(){
+    if(disposed||pending)return;
+    const csrf=csrfResolver();
+    if(typeof csrf!=='string'||!/^[a-f0-9]{64}$/i.test(csrf)){
+      error();return;
+    }
+    pending=true;
+    const abort=new AbortController();active=abort;
+    state(tr('در حال ثبت Workerهای اخبار در Cron اصلی، بدون اجرای آن‌ها…',
+       'Registering disabled news workers in the original Cron…'));
+    try{
+      const response=await fetch('/api/admin/operations/cron-master',{
+        method:'POST',credentials:'same-origin',redirect:'error',
+        cache:'no-store',signal:abort.signal,
+        headers:{Accept:'application/json','Content-Type':'application/json',
+          'X-CSRF-Token':csrf},
+        body:JSON.stringify({action:'register_news_bundle',
+          confirmation:'REGISTER_NEWS_WORKERS_DISABLED'})
+      });
+      if(!response.ok)throw Error('CRON_MASTER_UNAVAILABLE');
+      const result=await response.json();
+      if(disposed||result?.ok!==true||
+         result?.allNewsWorkersInitiallyDisabled!==true)
+        throw Error('CRON_WORKERS_NOT_CONFIRMED');
+      state(tr('Workerهای خبری در دیتابیس اصلی ثبت شدند اما غیرفعال‌اند؛ فعال‌سازی نیازمند تأیید منابع و مجوزهای موتور است.',
+         'News workers registered but remain disabled until source rights and engine policy are approved.'));
+    }catch{error();}
+    finally{if(active===abort)active=null;pending=false;}
+  }
   function drawEntries(rows){
     list.replaceChildren(create('h4',tr('منابع ثبت‌شده','Registered source suggestions')));
     if(!rows.length){
@@ -202,7 +233,8 @@ export function mountNewsOwnerPanel({root,csrfResolver,apiBase,locale='fa'}={}){
   const seed=makeButton(labels.seed,()=>{
     mutation(sourceRoot+'/seed-official',{confirmation:'DISCOVER_KNOWN_OFFICIAL_ORIGINS'});
   });
-  actions.append(refresh,seed);head.append(title,actions);
+  const registerWorkers=makeButton(labels.workers,registerWorkersDisabled);
+  actions.append(refresh,seed,registerWorkers);head.append(title,actions);
   form.addEventListener('submit',event=>{
     event.preventDefault();
     const official=safeOrigin(url.input.value.trim());
