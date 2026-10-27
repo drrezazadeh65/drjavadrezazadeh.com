@@ -80,6 +80,18 @@ try{
                'originalCronLeaseVerified'=>true
             ],time(),8);
     }
+    // Follow source-network nominations into the ORIGINAL JREI-KA registry
+    // automatically, but leave every newly found origin DISCOVERED with an
+    // explicitly PENDING_REVIEW permission and scheduler policy. No manual
+    // institution list, forged approval or independent crawler is needed.
+    $newSources=['registeredForIndependentReview'=>0];
+    if(($cfg['jrei_news_autonomous_institution_discovery_enabled']??false)===true&&
+       ($cfg['jrei_news_source_activation_accepted']??false)===true)
+        $newSources=jrNewsEnqueueNewInstitutionalSourceCandidates(
+            $pdo,$cfg,[
+                'source'=>'ORIGINAL_JREI_PRIVATE_NEWS_WORKER',
+                'originalCronLeaseVerified'=>true
+            ],time(),12);
     $summary=jrNewsBridgeOriginalFeedObservation($pdo,$cfg,time());
     // Once the owner delegates a reviewed official HTTPS path, the original
     // JREI scheduler can register SAME-ORIGIN article URLs without another
