@@ -74,6 +74,11 @@
     var key=event.detail&&event.detail.category;
     if(!topics.some(function(value){return value[0]===key&&key!=='';}))return;
     topic.value=key;
+    // Subtopic vocabulary is an explicit user-initiated text search in the
+    // same published archive; no invented subcategory IDs or private index.
+    var requested=event.detail&&event.detail.query;
+    input.value=(typeof requested==='string'&&requested.length<=160)?
+      requested:'';
     if(typeof form.requestSubmit==='function')form.requestSubmit();
     else submit.click();
   });
