@@ -14,7 +14,7 @@
   var list=latest&&latest.querySelector('[data-jr-latest-list]');
   var feedStatus=latest&&latest.querySelector('[data-jr-feed-status]');
   var urgent=root.querySelector('[data-jr-breaking-status]');
-  var topicLinks=Array.prototype.slice.call(root.querySelectorAll('[data-jr-news-topic]'));
+  var topicLinks=Array.prototype.slice.call(document.querySelectorAll('[data-jr-news-topic]'));
   function safeUrl(raw){
     if(typeof raw!=='string'||raw.length>300)return null;
     try{
