@@ -23,7 +23,7 @@ class OwnerCandidatePipelineTests(unittest.TestCase):
         repo.mkdir()
         source = repo / self.PATH
         source.parent.mkdir(parents=True)
-        source.write_text(self.SOURCE, encoding="utf-8")
+        source.write_bytes(self.SOURCE.encode("utf-8"))
         sha = hashlib.sha256(self.SOURCE.encode("utf-8")).hexdigest()
         return repo, root / "owner-sandbox", sha
 
