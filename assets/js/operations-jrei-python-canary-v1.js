@@ -96,14 +96,16 @@ function drawJobs(data){
    // A read-only owner snapshot must not report a clock-expired job as
    // actively pending merely because no worker has updated its DB row.
    const state=expired?'EXPIRED_BY_CLOCK':stored;
-   const completed=state==='COMPLETED'&&item.numerator===84&&
+   const completed=state==='COMPLETED'&&item.receiptMatchesStoredLease===true&&
+     item.numerator===84&&
      item.denominator===1&&hash.test(item.resultSha256||'');
    if(state==='QUEUED'||state==='LEASED')pending=true;
    const readableState=expired
      ?T('مهلت سپری شده (ثبت‌شده: ','Deadline expired (stored: ')+stored+')'
      :state;
    const desc=item.jobId.slice(0,8)+' · '+readableState+
-     (completed?T(' · رسید ثبت‌شده: ۸۴',' · stored receipt: 84'):'');
+     (completed?T(' · رسید سازگار با شناسهٔ اجرا: ۸۴',' · lease-bound receipt verified: 84'):
+       state==='COMPLETED'?T(' · یکپارچگی رسید تأیید نشد',' · receipt integrity not verified'):'');
    ul.append(el('li',desc));
  }
  history.append(ul);return pending;
