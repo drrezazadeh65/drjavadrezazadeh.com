@@ -37,6 +37,14 @@ $arguments=@(
   '--alias','jrei-gpu-lab','--host','127.0.0.1','--port','8082',
   '--ctx-size','1024','--threads','4','--n-gpu-layers',[string]$GpuLayers
 )
+function Get-OptionalJsonField($Object,[string]$PropertyName){
+  # llama-server response schemas differ: reasoning_content and usage can
+  # be entirely absent under Set-StrictMode -Version Latest.
+  if($null -eq $Object){return $null}
+  $property=$Object.PSObject.Properties[$PropertyName]
+  if($null -eq $property){return $null}
+  return $property.Value
+}
 $lab=$null
 try{
   Write-Output ('[JREI] GPU_LAYER_REQUEST='+$GpuLayers)
@@ -67,22 +75,43 @@ try{
   $clock=[Diagnostics.Stopwatch]::StartNew()
   $reply=Invoke-RestMethod -Method Post -Uri 'http://127.0.0.1:8082/v1/chat/completions' -ContentType 'application/json; charset=utf-8' -Body ([Text.Encoding]::UTF8.GetBytes($body)) -TimeoutSec 120
   $clock.Stop()
-  $choice=$reply.choices[0]
-  $answer=[string]$choice.message.content
-  $reasoning=[string]$choice.message.reasoning_content
+  # An HTTP 200 from llama.cpp does not require reasoning_content or usage.
+  # Missing *required* OpenAI-like choices is a fail-closed schema error.
+  $choices=Get-OptionalJsonField $reply 'choices'
+  if($null -eq $choices -or @($choices).Count -lt 1){
+    throw 'JREI_INFERENCE_RESPONSE_MISSING_CHOICES'
+  }
+  $choice=@($choices)[0]
+  $message=Get-OptionalJsonField $choice 'message'
+  if($null -eq $message){throw 'JREI_INFERENCE_RESPONSE_MISSING_MESSAGE'}
+  $answer=[string](Get-OptionalJsonField $message 'content')
+  $reasoning=[string](Get-OptionalJsonField $message 'reasoning_content')
+  $finishReason=[string](Get-OptionalJsonField $choice 'finish_reason')
+  $usage=Get-OptionalJsonField $reply 'usage'
+  $outputTokens=Get-OptionalJsonField $usage 'completion_tokens'
+  if($null -eq $outputTokens){$outputTokens='UNREPORTED'}
   $state=if([string]::IsNullOrWhiteSpace($answer)){'EMPTY'}else{'NONEMPTY'}
   Write-Output '[JREI] INFERENCE_HTTP_COMPLETED'
   Write-Output ('[JREI] OUTPUT_STATUS='+$state)
-  Write-Output ('[JREI] FINISH_REASON='+[string]$choice.finish_reason)
-  Write-Output ('[JREI] OUTPUT_TOKENS='+[string]$reply.usage.completion_tokens)
+  Write-Output ('[JREI] FINISH_REASON='+$finishReason)
+  Write-Output ('[JREI] OUTPUT_TOKENS='+[string]$outputTokens)
   Write-Output ('[JREI] REASONING_CHARACTERS='+$reasoning.Length)
   Write-Output ('[JREI] RESPONSE_LATENCY_MS='+$clock.ElapsedMilliseconds)
-  if($state -eq 'NONEMPTY'){Write-Output ('[JREI] SYNTHETIC_ANSWER='+$answer.Trim())}
-  else{Write-Output '[JREI] EMPTY_OUTPUT_NOT_AUTOMATICALLY_GPU_FAILURE'}
+  if($state -eq 'NONEMPTY'){
+    Write-Output ('[JREI] SYNTHETIC_ANSWER='+$answer.Trim())
+  }else{
+    Write-Output '[JREI] EMPTY_OUTPUT_NOT_AUTOMATICALLY_GPU_FAILURE'
+  }
 }catch{
   $message=[string]$_.Exception.Message
   if($message -cmatch '^JREI_[A-Z0-9_]+$'){Write-Output ('[JREI] LAB_ERROR='+$message)}
-  else{Write-Output ('[JREI] LAB_ERROR_TYPE='+$_.Exception.GetType().Name)}
+  else{
+    Write-Output ('[JREI] LAB_ERROR_TYPE='+$_.Exception.GetType().Name)
+    # Never print full exception text: it can contain private model paths.
+    if($_.Exception -is [System.Management.Automation.PropertyNotFoundException]){
+      Write-Output '[JREI] OPTIONAL_RESPONSE_FIELD_HANDLING_DIAGNOSTIC'
+    }
+  }
 }finally{
   if($null -ne $lab){
     $lab.Refresh()
