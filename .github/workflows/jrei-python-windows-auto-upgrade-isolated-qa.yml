@@ -175,6 +175,10 @@ jobs:
               throw 'CI_FAILED_REVISION_NOT_QUARANTINED'
             }
             Write-Output 'JREI_DISPOSABLE_WINDOWS_FAILED_CUTOVER_ROLLBACK_PASS'
+            # A deliberately failed nested PowerShell process correctly exits 21.
+            # After asserting rollback, prevent its status contaminating the
+            # SUCCESSFUL GitHub outer test shell final exit code.
+            $global:LASTEXITCODE=0
           }finally{
             Stop-ScheduledTask -TaskName $task -ErrorAction SilentlyContinue
             Unregister-ScheduledTask -TaskName $task -Confirm:$false -ErrorAction SilentlyContinue
