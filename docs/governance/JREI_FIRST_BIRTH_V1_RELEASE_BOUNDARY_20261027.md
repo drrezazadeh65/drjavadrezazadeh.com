@@ -62,9 +62,10 @@ only after the following **real and separately verifiable** facts are true:
 3. Obtain real Windows Python/Qwen health, signed worker receipt, mother-DB
    schema/backup/restore and tenant isolation evidence. If unavailable, record
    UNKNOWN and fail closed.
-4. Manually run `jrei-production-sandbox-preview.yml` at that **same** HEAD.
-   Download and inspect the source, bilingual mobile/desktop preview and
-   checksums. This workflow is separately isolated; no FTP or Bertina SQL.
+4. Require a successful `jrei-production-sandbox-preview.yml` workflow
+   for that **same** HEAD, triggered automatically on eligible commits or
+   manually if necessary. Download and inspect the bilingual mobile/desktop
+   preview and checksums. This workflow is isolated; no FTP or Bertina SQL.
 5. Only after the preview and host checks pass, the owner invokes the
    **unchanged, successful-release-frozen** `deploy-bertina.yml` manually.
    Do not alter its SHA-frozen safety contract to add the preview dependency.
