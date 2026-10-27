@@ -14,7 +14,7 @@ function jrOwnerJreiPythonSkillDispatch(array $privateConfig, array $body, ?stri
     $action=$body['action']??null;
     if (!is_string($action) ||
         !in_array($action,['catalog','triage-evidence','heldout-review','calculate',
-          'evidence-graph','metacognitive-plan','capacity-plan','exam-blueprint-review','strategy-propose','mission-bind','method-feedback','grounded-retrieval','source-extract',
+          'evidence-graph','metacognitive-plan','capacity-plan','exam-blueprint-review','news-editorial-preflight','strategy-propose','mission-bind','method-feedback','grounded-retrieval','source-extract',
           'model-draft','memory-save','memory-read','memory-revoke'],true)) {
         throw new InvalidArgumentException('python_skill_action_invalid');
     }
@@ -65,7 +65,7 @@ function jrOwnerJreiPythonSkillDispatch(array $privateConfig, array $body, ?stri
         $payload=$body['payload'];
         $expected='jr.jrei.heldout-review-result.v1';
     } elseif (in_array($action,
-        ['evidence-graph','metacognitive-plan','capacity-plan','exam-blueprint-review','strategy-propose','mission-bind','method-feedback','grounded-retrieval','source-extract'],true)) {
+        ['evidence-graph','metacognitive-plan','capacity-plan','exam-blueprint-review','strategy-propose','mission-bind','method-feedback','grounded-retrieval','source-extract','news-editorial-preflight'],true)) {
         // All three are strictly read-only: no browser-selected endpoint,
         // unreviewed model tool, raw learner records, action execution or
         // assignment authority. The original admin MFA/CSRF gate is retained.
@@ -89,7 +89,8 @@ function jrOwnerJreiPythonSkillDispatch(array $privateConfig, array $body, ?stri
             'mission-bind'=>'/internal/v1/learning/metacognitive/mission-bind',
             'method-feedback'=>'/internal/v1/learning/metacognitive/method-feedback',
             'grounded-retrieval'=>'/internal/v1/knowledge/retrieval/propose',
-            'source-extract'=>'/internal/v1/knowledge/extraction/propose'
+            'source-extract'=>'/internal/v1/knowledge/extraction/propose',
+            'news-editorial-preflight'=>'/internal/v1/news/official/editorial-preflight'
         };
         $expected=match($action) {
             'evidence-graph'=>'jr.jrei.evidence-graph-review.v1',
@@ -100,7 +101,8 @@ function jrOwnerJreiPythonSkillDispatch(array $privateConfig, array $body, ?stri
             'mission-bind'=>'jr.jrei.metacognitive-mission-binding-result.v1',
             'method-feedback'=>'jr.jrei.method-feedback-result.v1',
             'grounded-retrieval'=>'jr.jrei.grounded-retrieval-result.v1',
-            'source-extract'=>'jr.jrei.knowledge-extract-result.v1'
+            'source-extract'=>'jr.jrei.knowledge-extract-result.v1',
+            'news-editorial-preflight'=>'jr.jrei.news-editorial-preflight-result.v1'
         };
     } elseif ($action==='model-draft') {
         // Source-only private owner tool, wholly separate from public Qwen
@@ -246,6 +248,21 @@ function jrOwnerJreiPythonSkillDispatch(array $privateConfig, array $body, ?stri
          ($result['inputs_independently_attested_by_service']??null)!==false ||
          !is_array($result['compared_method_evidence']??null))) {
         throw new RuntimeException('JREI_PYTHON_STRATEGY_PRIVILEGE_ESCALATION');
+    }
+    if ($action==='news-editorial-preflight' &&
+        (($result['original_cms_writes_performed']??null)!==false ||
+         ($result['bilingual_pages_published']??null)!==false ||
+         ($result['original_cms_receipts_created']??null)!==false ||
+         ($result['rights_independently_attested_by_service']??null)!==false ||
+         ($result['facts_added_to_permanent_model_training']??null)!==false ||
+         ($result['owner_per_article_approval_added']??null)!==false ||
+         ($result['live_news_pipeline_proven']??null)!==false ||
+         !is_array($result['claims']??null) ||
+         !in_array($result['decision']??null,[
+            'TECHNICAL_OR_RIGHTS_HOLD','OWNER_MFA_EXCEPTION_CANDIDATE',
+            'OFFICIAL_NEWS_CMS_HANDOFF_CANDIDATE'
+         ],true))) {
+        throw new RuntimeException('JREI_PYTHON_ORIGINAL_NEWS_PRIVILEGE_ESCALATION');
     }
     if ($action==='exam-blueprint-review' &&
         (($result['exam_published']??null)!==false ||
