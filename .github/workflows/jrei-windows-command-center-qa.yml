@@ -6,6 +6,8 @@ on:
       - 'platform/jrei-python/jrei_service/windows_command_center.py'
       - 'platform/jrei-python/jrei_service/owner_candidate_pipeline.py'
       - 'platform/jrei-python/tests/test_windows_command_center.py'
+      - 'platform/jrei-python/tests/test_ci_observer.py'
+      - 'platform/jrei-python/jrei_service/ci_observer.py'
       - 'platform/jrei-python/tests/test_owner_candidate_pipeline.py'
       - 'platform/jrei-v5/windows-worker/jrei-command-center-startup.ps1'
       - '.github/workflows/jrei-windows-command-center-qa.yml'
@@ -46,6 +48,7 @@ jobs:
         run: |
           python -m py_compile platform/jrei-python/jrei_service/windows_command_center.py platform/jrei-python/jrei_service/owner_candidate_pipeline.py
           python -m unittest discover -s platform/jrei-python/tests -p 'test_windows_command_center.py' -v
+          python -m unittest discover -s platform/jrei-python/tests -p 'test_ci_observer.py' -v
           python -m unittest discover -s platform/jrei-python/tests -p 'test_owner_candidate_pipeline.py' -v
       - name: Validate generated browser UI JavaScript
         shell: pwsh
