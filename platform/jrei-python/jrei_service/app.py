@@ -7,11 +7,15 @@ proposal into an approved, saved, executed or published action.
 from __future__ import annotations
 
 from fastapi import Depends, FastAPI, HTTPException, Request
+from fastapi.concurrency import run_in_threadpool
 from jrei_core.auth import require_internal_gateway
 from jrei_core.contracts import (
     LearningBatch, MissionProposal, MissionRequest, PrioritizedGoals,
 )
 from jrei_core.mission import MissionDependencyError, propose_mission
+from jrei_core.local_model_draft import (
+    LocalDraftRequest, LocalDraftResult, LocalModelUnavailable, create_local_owner_draft,
+)
 from jrei_learning.prioritizer import prioritize
 from jrei_learning.document_extraction import (
     DocumentExtractionRequest, DocumentExtractionResult, propose_private_extraction,
@@ -249,6 +253,21 @@ async def heldout_evidence_review(payload: HeldoutReviewRequest):
     # Caller data only. No test fixture rights or independence is attested;
     # no knowledge or model promotion is applied, and no DB is changed.
     return review_heldout(payload)
+
+
+@app.post(
+    "/internal/v1/model/owner-draft",
+    response_model=LocalDraftResult,
+    dependencies=[Depends(require_internal_gateway)],
+)
+async def local_owner_model_draft(payload: LocalDraftRequest):
+    # Independently opt-in, local Qwen only. The original MFA PHP owner
+    # route, Python HMAC, separate model-rights approval and process-local
+    # contention controls are additive. Never treat output as sourced fact.
+    try:
+        return await run_in_threadpool(create_local_owner_draft, payload)
+    except LocalModelUnavailable as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
 
 
 @app.post(
