@@ -54,6 +54,7 @@ require_once __DIR__.'/jrei-owner-private-pilot.php';
 require_once __DIR__.'/jrei-python-node-health.php';
 require_once __DIR__.'/jrei-python-canary-bridge.php';
 require_once __DIR__.'/jrei-python-owner-skills.php';
+require_once __DIR__.'/jrei-metacognitive-owner-journal.php';
 require_once __DIR__.'/jrei-apex-owner-missions.php';
 require_once __DIR__.'/jrei-apex-python-plan.php';
 require_once __DIR__.'/jrei-apex-worker-observations.php';
@@ -550,6 +551,38 @@ function operationsRoute(string $path, string $verb): never {
                 fail('jrei_python_request_invalid',422);
             } catch (RuntimeException $e) {
                 fail('jrei_python_private_service_unavailable',503);
+            }
+        }
+
+        // Persist an immutable learning-to-learn proposal in drjavad1_store
+        // only under original SUPER_ADMIN, MFA, CSRF and a separate OFF flag.
+        // Proposals never confer rights, promotion, crawler or worker leases.
+        if ($path==='/admin/operations/jrei-metacognitive-journal' &&
+            in_array($verb,['GET','POST'],true)) {
+            if (($configuration['operations_admins'][$accountId]['role']??'')!=='SUPER_ADMIN')
+                fail('super_admin_required',403);
+            if (!rateAllowed($pdo,
+                $verb==='GET'?'jrei_meta_journal_read':'jrei_meta_journal_write',
+                $accountId,$verb==='GET'?30:5,300))
+                fail('rate_limited',429);
+            if ($verb==='GET') {
+                try { respond(jrMetaJournalOwnerList($pdo,$accountId)); }
+                catch(Throwable $e){ fail('jrei_metacognitive_journal_unavailable',503); }
+            }
+            if (!operationsMutationAllowed($_SERVER,
+                (string)($_SERVER['HTTP_X_CSRF_TOKEN']??''),$csrf))
+                fail('csrf_forbidden',403);
+            try {
+                $body=jsonBody();
+                if (!is_array($body)||array_is_list($body))
+                    fail('jrei_metacognitive_journal_invalid',422);
+                respond(jrMetaJournalPropose($pdo,$configuration,$accountId,$body));
+            } catch(InvalidArgumentException $e) {
+                fail('jrei_metacognitive_journal_invalid',422);
+            } catch(DomainException $e) {
+                fail('jrei_metacognitive_journal_conflict',409);
+            } catch(Throwable $e) {
+                fail('jrei_metacognitive_journal_unavailable',503);
             }
         }
 
