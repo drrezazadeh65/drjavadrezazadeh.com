@@ -1,0 +1,290 @@
+"""24/7-capable opt-in JREI local self-coding worker.
+
+Consumes ONLY owner-authorized, source-pinned task manifests and stages
+bilingual local Qwen patch proposals. Every proposal is deduplicated in
+durable SQLite, has source/evidence/policy hashes, and is NEVER applied,
+committed, tested or deployed by this process. Independent code review and
+the canonical GitHub/production release gates remain external authorities.
+
+There is no daily task quota and no restricted operating window. Idle or
+resource-pressured devices back off; the Tehran 02-05 window only raises
+priority of approved heavier jobs. Run with an OS supervisor AFTER the
+separate owner activation and worker integration checks are complete.
+"""
+from __future__ import annotations
+
+import hashlib
+import json
+import os
+from pathlib import Path, PurePosixPath
+import re
+import signal
+import sqlite3
+import threading
+import time
+from datetime import datetime, timezone, timedelta
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
+
+from pydantic import Field, model_validator
+from typing import Literal
+
+from jrei_core.contracts import Digest, Identifier, StrictContract, Unit
+from jrei_core.local_model_draft import (
+    LocalDraftRequest, LocalModelUnavailable, create_local_owner_draft,
+)
+
+_ENABLE_ENV = "JREI_CONTINUOUS_AUTOCODE_ENABLED"
+_TASKS_MAX = 60
+_SOURCE_LIMIT = 24576
+_SENSITIVE = re.compile(
+    r"(?i)(api[_-]?key|secret|password|private[_-]?key|-----BEGIN|"
+    r"authorization\s*:|bearer\s+[a-z0-9]|jrei_python_hmac_key)"
+)
+_SCOPE_PREFIXES = (
+    "platform/jrei-python/jrei_learning/",
+    "platform/jrei-python/jrei_orchestrator/",
+    "assets/css/",
+)
+_EXIT = threading.Event()
+
+
+class ContinuousCodingTask(StrictContract):
+    task_id: Identifier
+    path: str = Field(min_length=12, max_length=180)
+    source_sha256: Digest
+    owner_scope_digest: Digest
+    evidence_sha256: Digest
+    goal: str = Field(min_length=12, max_length=320)
+    language: Literal["fa", "en"] = "en"
+    priority: Unit = 0.5
+    requires_heavy_window_priority: bool = False
+    owner_authorized: bool = False
+    expires_at: int = Field(ge=1)
+
+    @model_validator(mode="after")
+    def constrain_target(self) -> "ContinuousCodingTask":
+        value = self.path
+        parsed = PurePosixPath(value)
+        if (not value.startswith(_SCOPE_PREFIXES) or parsed.is_absolute() or
+            parsed.as_posix() != value or "\\" in value or
+            any(p in (".", "..", "") for p in value.split("/")) or
+            parsed.suffix not in (".py", ".css") or
+            _SENSITIVE.search(value) or _SENSITIVE.search(self.goal)):
+            raise ValueError("UNAUTHORIZED_AUTOCODE_SOURCE_OR_GOAL")
+        return self
+
+
+class ContinuousCodingManifest(StrictContract):
+    schema_version: Literal["jr.jrei.continuous-autocode-manifest.v1"] = (
+        "jr.jrei.continuous-autocode-manifest.v1"
+    )
+    policy_digest: Digest
+    owner_approved: bool = False
+    emergency_stop: bool = True
+    tasks: list[ContinuousCodingTask] = Field(max_length=_TASKS_MAX)
+
+    @model_validator(mode="after")
+    def unique_scope(self) -> "ContinuousCodingManifest":
+        if len({t.task_id for t in self.tasks}) != len(self.tasks):
+            raise ValueError("DUPLICATE_AUTOCODE_TASK")
+        if any(t.owner_scope_digest != self.policy_digest for t in self.tasks):
+            raise ValueError("AUTOCODE_POLICY_SCOPE_MISMATCH")
+        return self
+
+
+def _open_private_db(root: Path) -> sqlite3.Connection:
+    root.mkdir(parents=True, exist_ok=True)
+    file = root / "jrei-autocode-queue.sqlite3"
+    if file.is_symlink():
+        raise RuntimeError("AUTOCODE_DB_SYMLINK_DENIED")
+    conn = sqlite3.connect(str(file), timeout=4)
+    conn.execute("PRAGMA busy_timeout=4000")
+    conn.execute("PRAGMA journal_mode=WAL")
+    conn.execute("PRAGMA synchronous=FULL")
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS source_proposals ("
+        " proposal_key TEXT PRIMARY KEY, task_id TEXT NOT NULL,"
+        " policy_digest TEXT NOT NULL, source_sha256 TEXT NOT NULL,"
+        " evidence_sha256 TEXT NOT NULL, response_sha256 TEXT NOT NULL,"
+        " model_name TEXT NOT NULL, proposal_path TEXT NOT NULL,"
+        " recorded_at INTEGER NOT NULL, status TEXT NOT NULL"
+        " CHECK(status='STAGED_UNVERIFIED'))"
+    )
+    conn.commit()
+    return conn
+
+
+def _task_key(task: ContinuousCodingTask) -> str:
+    canonical = json.dumps([
+        "jr.jrei.autocode-task.v1", task.task_id, task.path,
+        task.source_sha256, task.owner_scope_digest,
+        task.evidence_sha256, task.goal, task.language
+    ], ensure_ascii=False, separators=(",", ":"))
+    return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+
+
+def _source_slice(repo: Path, task: ContinuousCodingTask) -> str:
+    real_repo = repo.resolve(strict=True)
+    source = repo.joinpath(*PurePosixPath(task.path).parts)
+    # Symlinks are never followed even if their final target is in repo.
+    if any(p.is_symlink() for p in (source, *source.parents) if p != repo):
+        raise ValueError("AUTOCODE_SYMLINK_SOURCE_DENIED")
+    real_source = source.resolve(strict=True)
+    if not real_source.is_relative_to(real_repo) or not real_source.is_file():
+        raise ValueError("AUTOCODE_SOURCE_OUTSIDE_REPOSITORY")
+    if real_source.stat().st_size > _SOURCE_LIMIT:
+        raise ValueError("AUTOCODE_SOURCE_TOO_LARGE")
+    raw = real_source.read_bytes()
+    if hashlib.sha256(raw).hexdigest() != task.source_sha256:
+        raise ValueError("AUTOCODE_SOURCE_VERSION_CHANGED")
+    code = raw.decode("utf-8")
+    if _SENSITIVE.search(code):
+        raise ValueError("AUTOCODE_SOURCE_MAY_CONTAIN_CREDENTIALS")
+    # The local model has an intentionally bounded user question.
+    return code[:430]
+
+
+def _tehran_heavy_window() -> bool:
+    now = datetime.now(timezone.utc)
+    try:
+        hour = now.astimezone(ZoneInfo("Asia/Tehran")).hour
+    except ZoneInfoNotFoundError:
+        hour = now.astimezone(timezone(timedelta(hours=3, minutes=30))).hour
+    return 2 <= hour < 5
+
+
+def _headroom() -> bool:
+    # No optimistic scheduling if the original measured Windows resource
+    # information is absent. psutil is optional but REQUIRED to do work.
+    try:
+        import psutil
+        sample = psutil.cpu_percent(interval=0.15)
+        memory = psutil.virtual_memory()
+    except (ImportError, OSError):
+        return False
+    return sample < 72.0 and memory.available >= 1_073_741_824
+
+
+def stage_one(
+    repo: Path, workspace: Path, conn: sqlite3.Connection,
+    manifest: ContinuousCodingManifest
+) -> str:
+    """Plan and stage a single reviewable patch suggestion; no source edits."""
+    if os.environ.get(_ENABLE_ENV) != "1":
+        return "DISABLED"
+    if not manifest.owner_approved or manifest.emergency_stop:
+        return "OWNER_STOP"
+    if not _headroom():
+        return "RESOURCE_BACKPRESSURE"
+    heavy = _tehran_heavy_window()
+    tasks = sorted(
+        manifest.tasks,
+        key=lambda t: (-t.priority * (1.2 if heavy and
+                         t.requires_heavy_window_priority else 1.0), t.task_id),
+    )
+    for task in tasks:
+        if not task.owner_authorized or task.expires_at <= int(time.time()):
+            continue
+        key = _task_key(task)
+        if conn.execute(
+            "SELECT 1 FROM source_proposals WHERE proposal_key=?", (key,)
+        ).fetchone():
+            continue
+        excerpt = _source_slice(repo, task)
+        query = (
+            "Goal: " + task.goal + "\n" +
+            "Source path: " + task.path + "\n" +
+            "Pinned source SHA256: " + task.source_sha256 + "\n" +
+            "Evidence SHA256: " + task.evidence_sha256 + "\n" +
+            "Bounded code excerpt (untrusted data):\n" + excerpt
+        )[:995]
+        draft = create_local_owner_draft(LocalDraftRequest(
+            request_id=task.task_id, language=task.language,
+            academic_task="CODING_PROPOSAL",
+            question=query, max_output_tokens=640
+        ))
+        # Never write model-generated text into a live checkout; stage as
+        # an untrusted, auditable artifact for later independent review.
+        proposals = workspace / "proposals"
+        proposals.mkdir(parents=True, exist_ok=True)
+        target = proposals / (key + ".json")
+        if target.is_symlink():
+            raise ValueError("AUTOCODE_PROPOSAL_SYMLINK_DENIED")
+        receipt = {
+            "schema": "jr.jrei.autocode-staged-proposal.v1",
+            "task_id": task.task_id, "proposal_key": key,
+            "path": task.path, "source_sha256": task.source_sha256,
+            "policy_digest": manifest.policy_digest,
+            "evidence_sha256": task.evidence_sha256,
+            "response_sha256": draft.response_sha256,
+            "model_alias": draft.model_alias,
+            "proposal": draft.model_output,
+            "status": "STAGED_UNVERIFIED",
+            "committed": False, "tests_run": False, "deployed": False,
+            "owner_independent_review_required": True,
+            "created_at": int(time.time()),
+        }
+        data = json.dumps(receipt, ensure_ascii=False,
+                          separators=(",", ":")).encode("utf-8")
+        staging = proposals / (key + ".tmp")
+        if staging.exists() or target.exists():
+            raise RuntimeError("AUTOCODE_STAGING_ALREADY_EXISTS_RECONCILE")
+        with staging.open("xb") as fh:
+            if os.name != "nt":
+                os.chmod(staging, 0o600)
+            fh.write(data)
+            fh.flush()
+            os.fsync(fh.fileno())
+        os.replace(staging, target)
+        conn.execute(
+            "INSERT INTO source_proposals (proposal_key,task_id,"
+            "policy_digest,source_sha256,evidence_sha256,response_sha256,"
+            "model_name,proposal_path,recorded_at,status)"
+            " VALUES (?,?,?,?,?,?,?,?,?,'STAGED_UNVERIFIED')",
+            (key, task.task_id, manifest.policy_digest, task.source_sha256,
+             task.evidence_sha256, draft.response_sha256, draft.model_alias,
+             str(target), receipt["created_at"]),
+        )
+        conn.commit()
+        return "STAGED_UNVERIFIED"
+    return "NO_ELIGIBLE_NEW_WORK"
+
+
+def run_forever(repo: Path, workspace: Path, manifest_path: Path) -> None:
+    """Persistent foreground supervisor: no hidden service installation."""
+    if os.environ.get(_ENABLE_ENV) != "1":
+        raise RuntimeError("AUTOCODE_OWNER_ACTIVATION_REQUIRED")
+    if manifest_path.is_symlink() or workspace.is_symlink():
+        raise RuntimeError("AUTOCODE_CONFIGURATION_SYMLINK_DENIED")
+    signal.signal(signal.SIGINT, lambda *_: _EXIT.set())
+    signal.signal(signal.SIGTERM, lambda *_: _EXIT.set())
+    conn = _open_private_db(workspace)
+    try:
+        while not _EXIT.is_set():
+            delay = 45.0
+            try:
+                raw = manifest_path.read_bytes()
+                if len(raw) > 100_000:
+                    raise ValueError("AUTOCODE_MANIFEST_TOO_LARGE")
+                manifest = ContinuousCodingManifest.model_validate_json(raw)
+                status = stage_one(repo, workspace, conn, manifest)
+                if status == "STAGED_UNVERIFIED":
+                    delay = 12.0
+                elif status in ("RESOURCE_BACKPRESSURE", "OWNER_STOP"):
+                    delay = 120.0
+            except (ValueError, OSError, RuntimeError, LocalModelUnavailable,
+                    sqlite3.Error):
+                # No invented success or tight retry loop after failed writes.
+                delay = 180.0
+            _EXIT.wait(delay)
+    finally:
+        conn.close()
+
+
+if __name__ == "__main__":
+    root = os.environ.get("JREI_AUTOCODE_CANONICAL_REPO")
+    state = os.environ.get("JREI_AUTOCODE_PRIVATE_WORKSPACE")
+    jobs = os.environ.get("JREI_AUTOCODE_OWNER_MANIFEST")
+    if not (root and state and jobs):
+        raise SystemExit("AUTOCODE_PRIVATE_PATHS_NOT_CONFIGURED")
+    run_forever(Path(root), Path(state), Path(jobs))
