@@ -7,6 +7,7 @@ proposal into an approved, saved, executed or published action.
 from __future__ import annotations
 
 import os
+import hashlib
 
 from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.concurrency import run_in_threadpool
@@ -232,10 +233,16 @@ async def learning_value_portfolio(payload: ValueOfLearningRequest):
     response_model=MetacognitiveCycleResult,
     dependencies=[Depends(require_internal_gateway)],
 )
-async def metacognitive_plan(payload: MetacognitiveCycleRequest):
+async def metacognitive_plan(payload: MetacognitiveCycleRequest, request: Request):
     # Select next learning method using aggregate gaps + supported claims +
     # paired bilingual comparison. Proposals only: no jobs or model training.
-    return plan_metacognitive_cycle(payload)
+    # Echo the exact HMAC-gateway request hash so the existing mother-DB
+    # journaling gateway can reject a stale/substituted Python response.
+    result = plan_metacognitive_cycle(payload)
+    payload_digest = hashlib.sha256(await request.body()).hexdigest()
+    return result.model_copy(
+        update={"submitted_payload_sha256": payload_digest}
+    )
 
 
 @app.post(
