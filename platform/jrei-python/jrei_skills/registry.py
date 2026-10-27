@@ -136,6 +136,20 @@ _SKILLS = (
         "languages": ["fa", "en"],
         "review": "EXISTING_MFA_OWNER_JOURNAL_AND_WORKER_LEASE_REQUIRED",
     },
+    {
+        "skill_id": "jrei.learning.method_outcome_feedback.v1",
+        "version": "1.0.0",
+        "entry_route": "/internal/v1/learning/metacognitive/method-feedback",
+        "execution": "MODEL_FREE_DETERMINISTIC",
+        "data_class": "HASHED_EXPERIMENT_TRIAL_METADATA_NO_STUDENT_RECORDS",
+        "required_service_authority": "SIGNED_PRIVATE_GATEWAY",
+        "owner_action_authorized": False,
+        "mutates_mother_db": False,
+        "network_access": False,
+        "verified_source_grant": False,
+        "languages": ["fa", "en"],
+        "review": "INDEPENDENT_FIXTURE_AND_SCIENTIFIC_META_EVALUATION_REQUIRED",
+    },
 )
 _IDS = tuple(skill["skill_id"] for skill in _SKILLS)
 if len(set(_IDS)) != len(_IDS):
