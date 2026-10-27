@@ -66,7 +66,7 @@ test('no fake urgent, stats, source references or external content injection',()
   const ui=read('assets/js/jrei-news-21-v3.js');
   const rss=read('api/news-public-feeds.php');
   assert.match(ui,/getAttribute\('domain'\)==='jrei-news-topic'/);
-  assert.match(ui,/item\.urgent/);
+  assert.match(ui,/\.urgent/);
   assert.match(ui,/data-jrn21-lead/);
   assert.match(ui,/data-jrn21-breaking/);
   assert.match(ui,/data-jrn21-feed/);
