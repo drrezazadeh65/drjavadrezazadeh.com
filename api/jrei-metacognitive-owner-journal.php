@@ -261,3 +261,59 @@ function jrMetaJournalOwnerList(PDO $pdo,string $owner): array {
         'independentScientificAttestation'=>false
     ];
 }
+
+/**
+ * Read one previously recorded learning-to-learn proposal through the
+ * ORIGINAL owner-only MFA operations route. This is a persistent historical
+ * decision record, never a promoted skill, approved citation or worker job.
+ *
+ * Verify the exact stored payload hash before returning any outcome. If an
+ * external MySQL JSON representation has altered bytes, fail closed rather
+ * than presenting non-verifiable evidence as an immutable prior decision.
+ */
+function jrMetaJournalOwnerDetail(PDO $pdo,string $owner,string $cycleId): array {
+    if(!jrMetaJournalReady($pdo)) {
+        throw new RuntimeException('JREI_METACOGNITIVE_MOTHER_SCHEMA_MISSING');
+    }
+    if(preg_match('/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/Di',$cycleId)!==1) {
+        throw new InvalidArgumentException('metacognitive_cycle_id_invalid');
+    }
+    $stmt=$pdo->prepare('SELECT cycle_id,owner_account_id,request_key,policy_version,'.
+        'input_sha256,outcome_sha256,outcome_json,lifecycle,recorded_at '.
+        'FROM jrei_metacognitive_owner_cycles '.
+        'WHERE cycle_id=? AND owner_account_id=? LIMIT 1');
+    $stmt->execute([$cycleId,$owner]);
+    $row=$stmt->fetch(PDO::FETCH_ASSOC);
+    if(!is_array($row)) {
+        throw new DomainException('metacognitive_cycle_not_found');
+    }
+    $raw=$row['outcome_json'];
+    if(!is_string($raw) || strlen($raw)>64000 ||
+        !hash_equals((string)$row['outcome_sha256'],hash('sha256',$raw)) ||
+        ($row['lifecycle']??null)!=='PROPOSAL_ONLY') {
+        throw new RuntimeException('JREI_METACOGNITIVE_STORED_EVIDENCE_INTEGRITY_FAILED');
+    }
+    $result=json_decode($raw,true,32,JSON_THROW_ON_ERROR);
+    if(!is_array($result) || array_is_list($result) ||
+        ($result['schema_version']??null)!=='jr.jrei.metacognitive-cycle-result.v1' ||
+        ($result['policy_version']??null)!==$row['policy_version'] ||
+        ($result['submitted_payload_sha256']??null)!==$row['input_sha256'] ||
+        ($result['learning_improvement_proven']??null)!==false ||
+        ($result['automatic_skill_promotion']??null)!==false ||
+        ($result['knowledge_written']??null)!==false ||
+        ($result['autonomous_model_training_started']??null)!==false ||
+        ($result['public_site_changed']??null)!==false ||
+        !is_array($result['decisions']??null)) {
+        throw new RuntimeException('JREI_METACOGNITIVE_STORED_PROPOSAL_INVALID');
+    }
+    return [
+        'ok'=>true,
+        'schema'=>'jr.jrei.metacognitive-owner-journal-detail.v1',
+        'receipt'=>jrMetaJournalReceipt($row),
+        'proposal'=>$result,
+        'storedOutcomeDigestVerified'=>true,
+        'ownerIndependentScienceApprovalVerified'=>false,
+        'knowledgePromoted'=>false,
+        'missionExecuted'=>false,
+    ];
+}
