@@ -13,6 +13,9 @@ from jrei_core.contracts import (
 )
 from jrei_core.mission import MissionDependencyError, propose_mission
 from jrei_learning.prioritizer import prioritize
+from jrei_learning.document_extraction import (
+    DocumentExtractionRequest, DocumentExtractionResult, propose_private_extraction,
+)
 from jrei_learning.grounded_retrieval import (
     RetrievalRequest, GroundedRetrievalResult, select_grounded_excerpts,
 )
@@ -93,6 +96,7 @@ async def capabilities():
             "metacognitive_decision_to_scoped_mission_binding_v1",
             "experiment_feedback_on_learning_methods_v1",
             "bilingual_versioned_grounded_retrieval_proposal_v1",
+            "offline_source_sha_anchored_document_extraction_v1",
         ],
         "live_model_inference": False,
         "durable_missions": False,
@@ -111,6 +115,20 @@ async def capabilities():
 )
 async def prioritize_gaps(payload: LearningBatch):
     return prioritize(payload)
+
+
+@app.post(
+    "/internal/v1/knowledge/extraction/propose",
+    response_model=DocumentExtractionResult,
+    dependencies=[Depends(require_internal_gateway)],
+)
+async def private_source_extraction_proposal(payload: DocumentExtractionRequest):
+    # Only signed private gateway input. Source flags still require independent
+    # canonical DB review; returns SHA anchors, not article text or licences.
+    try:
+        return propose_private_extraction(payload)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
 
 
 @app.post(
