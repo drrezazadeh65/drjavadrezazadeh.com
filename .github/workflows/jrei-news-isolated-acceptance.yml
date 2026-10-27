@@ -15,6 +15,9 @@ on:
       - "platform/news-intelligence/**"
       - "api/news-public-*.php"
       - "api/jrei-news-*.php"
+      - "api/operations-cron-dispatcher.php"
+      - "api/operations-jrei-news.php"
+      - "api/internal/jrei-news-*.php"
       - "assets/js/jrei-news-*.js"
       - "assets/js/jrei-news-owner-panel-v1.mjs"
       - "assets/js/operations-jrei-newsroom-v1.js"
@@ -68,7 +71,7 @@ jobs:
       - name: Verify original PHP 8.3 source adapters and private CLI intake syntax
         run: |
           set -euo pipefail
-          for file in api/jrei-news-*.php api/operations-jrei-news.php api/internal/jrei-news-*.php; do
+          for file in api/jrei-news-*.php api/operations-cron-dispatcher.php api/operations-jrei-news.php api/internal/jrei-news-*.php; do
             php -l "$file"
           done
       - name: Shipping News UI and read-only public API syntax
@@ -80,6 +83,8 @@ jobs:
           node --check assets/js/operations-jrei-newsroom-v1.js
       - name: Offline Node contract and newsroom UI source regressions, no network/provider
         run: node --test platform/news-intelligence/tests/*.test.mjs
+      - name: Validate owner-only activation, real private worker and receipt-backed backlog recovery
+        run: node --test platform/news-intelligence/tests/news-activation-bundle.test.mjs
       - name: Build exact sanitized Bertina release candidate without deployment
         run: |
           set -euo pipefail
