@@ -19,6 +19,7 @@ from typing import Literal
 from pydantic import Field, model_validator
 
 from jrei_core.contracts import Digest, Identifier, StrictContract
+from jrei_learning.untrusted_source_guard import source_text_hold_reasons
 
 _TOKEN = re.compile(r"[^\W_]+", flags=re.UNICODE)
 _STOP_FA = frozenset({"در", "به", "از", "که", "این", "آن", "با", "برای", "و", "یا", "است"})
@@ -171,6 +172,10 @@ def select_grounded_excerpts(request: RetrievalRequest) -> GroundedRetrievalResu
             problems.add("SOURCE_TOO_OLD_FOR_CURRENT_POLICY")
         if item.evidence_quality < request.minimum_quality:
             problems.add("QUALITY_BELOW_POLICY_THRESHOLD")
+        if source_text_hold_reasons(item.excerpt_text):
+            # Not proof of a malicious source: preserve SHA and require an
+            # independent review before allowing the text into an AI context.
+            problems.add("SOURCE_INSTRUCTION_OR_FORMAT_QUARANTINE")
         if problems:
             holds.append(RetrievalHold(
                 excerpt_id=item.excerpt_id, reason_codes=sorted(problems),
