@@ -245,7 +245,8 @@ function jrOwnerJreiPythonSkillDispatch(array $privateConfig, array $body, ?stri
             if (!is_array($anchor) ||
                 ($anchor['public_citation_rights_verified']??null)!==false ||
                 ($anchor['source_text_untrusted']??null)!==true ||
-                ($anchor['short_review_excerpt']??false)!==null) {
+                (!array_key_exists('short_review_excerpt',$anchor) ||
+                 $anchor['short_review_excerpt']!==null)) {
                 throw new RuntimeException('JREI_UNREVIEWED_SOURCE_EXCERPT_EXPOSED');
             }
         }
