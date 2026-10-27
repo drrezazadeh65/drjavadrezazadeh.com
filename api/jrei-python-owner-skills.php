@@ -15,7 +15,7 @@ function jrOwnerJreiPythonSkillDispatch(array $privateConfig, array $body, ?stri
     if (!is_string($action) ||
         !in_array($action,['catalog','triage-evidence','heldout-review','calculate',
           'evidence-graph','knowledge-correction','answer-grounding-review','metacognitive-plan','learning-value-plan','capacity-plan','exam-blueprint-review','news-editorial-preflight','strategy-propose','mission-bind','method-feedback','grounded-retrieval','source-extract',
-          'model-draft','memory-save','memory-read','memory-list','memory-revoke'],true)) {
+          'self-improvement','model-draft','memory-save','memory-read','memory-list','memory-revoke'],true)) {
         throw new InvalidArgumentException('python_skill_action_invalid');
     }
 
@@ -65,7 +65,7 @@ function jrOwnerJreiPythonSkillDispatch(array $privateConfig, array $body, ?stri
         $payload=$body['payload'];
         $expected='jr.jrei.heldout-review-result.v1';
     } elseif (in_array($action,
-        ['evidence-graph','knowledge-correction','answer-grounding-review','metacognitive-plan','learning-value-plan','capacity-plan','exam-blueprint-review','strategy-propose','mission-bind','method-feedback','grounded-retrieval','source-extract','news-editorial-preflight'],true)) {
+        ['evidence-graph','knowledge-correction','answer-grounding-review','metacognitive-plan','learning-value-plan','capacity-plan','exam-blueprint-review','strategy-propose','mission-bind','method-feedback','grounded-retrieval','source-extract','news-editorial-preflight','self-improvement'],true)) {
         // All three are strictly read-only: no browser-selected endpoint,
         // unreviewed model tool, raw learner records, action execution or
         // assignment authority. The original admin MFA/CSRF gate is retained.
@@ -79,6 +79,9 @@ function jrOwnerJreiPythonSkillDispatch(array $privateConfig, array $body, ?stri
             count($body['payload'])>18) {
             throw new InvalidArgumentException('python_learning_proposal_size_invalid');
         }
+        if($action==='self-improvement' &&
+           ($privateConfig['jrei_python_self_improvement_enabled']??false)!==true)
+            throw new RuntimeException('JREI_SELF_IMPROVEMENT_DISABLED');
         $payload=$body['payload'];
         $route=match($action) {
             'evidence-graph'=>'/internal/v1/learning/evidence-graph/review',
@@ -91,6 +94,7 @@ function jrOwnerJreiPythonSkillDispatch(array $privateConfig, array $body, ?stri
             'strategy-propose'=>'/internal/v1/learning/strategy/propose',
             'mission-bind'=>'/internal/v1/learning/metacognitive/mission-bind',
             'method-feedback'=>'/internal/v1/learning/metacognitive/method-feedback',
+            'self-improvement'=>'/internal/v1/learning/self-improvement/plan',
             'grounded-retrieval'=>'/internal/v1/knowledge/retrieval/propose',
             'source-extract'=>'/internal/v1/knowledge/extraction/propose',
             'news-editorial-preflight'=>'/internal/v1/news/official/editorial-preflight'
@@ -106,6 +110,7 @@ function jrOwnerJreiPythonSkillDispatch(array $privateConfig, array $body, ?stri
             'strategy-propose'=>'jr.jrei.learning-strategy-proposal.v1',
             'mission-bind'=>'jr.jrei.metacognitive-mission-binding-result.v1',
             'method-feedback'=>'jr.jrei.method-feedback-result.v1',
+            'self-improvement'=>'jr.jrei.self-improvement-cycle-result.v1',
             'grounded-retrieval'=>'jr.jrei.grounded-retrieval-result.v1',
             'source-extract'=>'jr.jrei.knowledge-extract-result.v1',
             'news-editorial-preflight'=>'jr.jrei.news-editorial-preflight-result.v1'
@@ -209,6 +214,41 @@ function jrOwnerJreiPythonSkillDispatch(array $privateConfig, array $body, ?stri
     $result=jrJreiPythonInternalPropose($privateConfig,$route,$payload);
     if (($result['schema_version']??null)!==$expected) {
         throw new RuntimeException('JREI_PYTHON_SKILL_CONTRACT_MISMATCH');
+    }
+    if ($action==='self-improvement') {
+        if (($result['cycle_id']??null)!==($payload['cycle_id']??null) ||
+            ($result['self_code_written']??null)!==false ||
+            ($result['self_learning_model_weights_updated']??null)!==false ||
+            ($result['production_deployed']??null)!==false ||
+            ($result['tests_run']??null)!==false ||
+            ($result['autonomous_background_loop_running']??null)!==false ||
+            ($result['independent_review_attested_by_this_service']??null)!==false ||
+            !is_array($result['decisions']??null) ||
+            !array_is_list($result['decisions']) ||
+            count($result['decisions'])!==count($payload['candidates']??[])) {
+            throw new RuntimeException('JREI_SELF_IMPROVEMENT_RESULT_UNTRUSTED');
+        }
+        $expected=[];
+        foreach($payload['candidates'] as $candidate) {
+            if(!is_array($candidate)||!is_string($candidate['candidate_id']??null)||
+               isset($expected[$candidate['candidate_id']]))
+                throw new RuntimeException('JREI_SELF_IMPROVEMENT_CANDIDATE_INVALID');
+            $expected[$candidate['candidate_id']]=$candidate;
+        }
+        foreach($result['decisions'] as $decision) {
+            $id=$decision['candidate_id']??null;
+            if(!is_string($id)||!isset($expected[$id])||
+               ($decision['target_path']??null)!==($expected[$id]['target_path']??null)||
+               ($decision['base_source_sha256']??null)!==($expected[$id]['base_source_sha256']??null)||
+               ($decision['proposed_diff_sha256']??null)!==($expected[$id]['proposed_diff_sha256']??null)||
+               ($decision['patch_applied']??null)!==false ||
+               ($decision['deployment_started']??null)!==false ||
+               ($decision['owner_approval_required']??null)!==true) {
+                throw new RuntimeException('JREI_SELF_IMPROVEMENT_DECISION_UNTRUSTED');
+            }
+            unset($expected[$id]);
+        }
+        if($expected)throw new RuntimeException('JREI_SELF_IMPROVEMENT_UNBOUND_CANDIDATES');
     }
     if ($action==='catalog' &&
         (($result['privileged_execution_enabled']??null)!==false ||
