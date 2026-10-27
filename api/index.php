@@ -198,6 +198,10 @@ function cfg(): array {
         // Immutable metadata-only learning-cycle journal. Separate OFF gate.
         'jrei_metacognitive_owner_journal_enabled' =>
             getenv('JR_JREI_METACOGNITIVE_OWNER_JOURNAL_ENABLED') === 'true',
+        // Read-only current source/claim provenance reconciliation.
+        // OFF unless reviewed ledger migration, MFA owner and live DB agree.
+        'jrei_knowledge_evidence_enabled' =>
+            getenv('JR_JREI_KNOWLEDGE_EVIDENCE_ENABLED') === 'true',
         // Source-only Python intelligence seam (private worker/VPS only).
         // OFF until independent owner, host, replay-ledger and TLS acceptance;
         // never assume a Python process is available on Bertina hosting.
