@@ -35,6 +35,7 @@ class OwnerMemoryReceipt(StrictContract):
     purpose: Purpose
     expires_at: int
     persist_result: Literal["MOTHER_DB_ATOMIC_INSERT"] = "MOTHER_DB_ATOMIC_INSERT"
+    idempotent_replay: bool = False
     used_for_model_training: Literal[False] = False
     available_to_other_tenants: Literal[False] = False
 
