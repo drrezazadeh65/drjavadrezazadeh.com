@@ -18,6 +18,7 @@ import uuid
 from .contracts import (
     OwnerMemorySave, OwnerMemoryRef, OwnerMemoryReceipt,
     OwnerMemoryReadResult, OwnerMemoryRevokeReceipt,
+    OwnerMemoryListQuery, OwnerMemoryMetadata, OwnerMemoryListResult,
 )
 
 
@@ -203,6 +204,66 @@ def read_owner_note(request: OwnerMemoryRef) -> OwnerMemoryReadResult:
     return OwnerMemoryReadResult(
         found=True, record_id=request.record_id, purpose=purpose,
         note=plaintext, expires_at=int(expiry),
+    )
+
+
+
+def list_owner_memory_metadata(request: OwnerMemoryListQuery) -> OwnerMemoryListResult:
+    """Page an owner's live encrypted-note metadata without retrieving bytes.
+
+    Only original-session-injected owner identity may reach this route.
+    Cursor pairs make ties deterministic; neither ciphertext nor private
+    note content is selected, logged, returned, or used for model training.
+    """
+    now = int(time.time())
+    limit = request.limit + 1
+    conn = _connect()
+    try:
+        with conn.cursor() as cur:
+            if request.before_created_at is None:
+                cur.execute(
+                    "SELECT record_id,purpose,created_at,expires_at "
+                    "FROM jrei_python_owner_memory_records "
+                    "WHERE owner_account_id=%s AND revoked_at IS NULL "
+                    "AND expires_at>%s "
+                    "ORDER BY created_at DESC,record_id DESC LIMIT %s",
+                    (request.owner_account_id, now, limit),
+                )
+            else:
+                cur.execute(
+                    "SELECT record_id,purpose,created_at,expires_at "
+                    "FROM jrei_python_owner_memory_records "
+                    "WHERE owner_account_id=%s AND revoked_at IS NULL "
+                    "AND expires_at>%s AND "
+                    "(created_at<%s OR (created_at=%s AND record_id<%s)) "
+                    "ORDER BY created_at DESC,record_id DESC LIMIT %s",
+                    (
+                        request.owner_account_id, now,
+                        request.before_created_at, request.before_created_at,
+                        request.before_record_id, limit,
+                    ),
+                )
+            rows = cur.fetchall()
+    except Exception as exc:
+        raise OwnerMemoryUnavailable("OWNER_MEMORY_LIST_UNAVAILABLE") from exc
+    finally:
+        conn.close()
+
+    more = len(rows) > request.limit
+    current = rows[:request.limit]
+    entries = [
+        OwnerMemoryMetadata(
+            record_id=row[0], purpose=row[1],
+            created_at=int(row[2]), expires_at=int(row[3]),
+        )
+        for row in current
+    ]
+    # Expose a continuation cursor only when a next page truly exists.
+    last = entries[-1] if more and entries else None
+    return OwnerMemoryListResult(
+        entries=entries, has_more=more,
+        next_before_created_at=last.created_at if last else None,
+        next_before_record_id=last.record_id if last else None,
     )
 
 
