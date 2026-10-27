@@ -181,7 +181,7 @@ async def private_source_extraction_proposal(payload: DocumentExtractionRequest)
 async def grounded_retrieval_proposal(payload: RetrievalRequest):
     # Caller metadata and excerpts are untrusted; no public response, model,
     # licence grant, DB query, or independent source attestation occurs.
-    return select_grounded_excerpts(payload)
+    return await run_in_threadpool(select_grounded_excerpts, payload)
 
 
 @app.post(
@@ -225,7 +225,7 @@ async def knowledge_correction_preflight(payload: CorrectionReviewRequest):
 async def learning_value_portfolio(payload: ValueOfLearningRequest):
     # Bounded, evidence-driven choice of what to learn next. No external
     # sources, learner records, leases, tools, costs or publication are touched.
-    return propose_learning_value(payload)
+    return await run_in_threadpool(propose_learning_value, payload)
 
 
 @app.post(
@@ -238,7 +238,7 @@ async def metacognitive_plan(payload: MetacognitiveCycleRequest, request: Reques
     # paired bilingual comparison. Proposals only: no jobs or model training.
     # Echo the exact HMAC-gateway request hash so the existing mother-DB
     # journaling gateway can reject a stale/substituted Python response.
-    result = plan_metacognitive_cycle(payload)
+    result = await run_in_threadpool(plan_metacognitive_cycle, payload)
     payload_digest = hashlib.sha256(await request.body()).hexdigest()
     return result.model_copy(
         update={"submitted_payload_sha256": payload_digest}
@@ -251,7 +251,7 @@ async def metacognitive_plan(payload: MetacognitiveCycleRequest, request: Reques
     dependencies=[Depends(require_internal_gateway)],
 )
 async def metacognitive_method_feedback(payload: LearningMethodFeedbackRequest):
-    return rank_learning_methods(payload)
+    return await run_in_threadpool(rank_learning_methods, payload)
 
 
 @app.post(
@@ -272,7 +272,7 @@ async def strategy_adaptation_proposal(payload: StrategyLearningRequest):
     # Learn which bounded evidence-acquisition or evaluation METHOD merits
     # isolated further study, from reviewed digest-referenced outcomes only.
     # This route never modifies a skill/model/DB, installs code or publishes.
-    return propose_learning_method(payload)
+    return await run_in_threadpool(propose_learning_method, payload)
 
 
 @app.post(
@@ -283,7 +283,7 @@ async def strategy_adaptation_proposal(payload: StrategyLearningRequest):
 async def adaptive_work_placement(payload: CapacityPlanRequest):
     # 24/7, no artificial daily cap; Tehran 02-05 boosts heavy-job PRIORITY
     # only. Measured headroom, approved resources/rights remain mandatory.
-    return propose_capacity_placements(payload)
+    return await run_in_threadpool(propose_capacity_placements, payload)
 
 
 @app.post(
