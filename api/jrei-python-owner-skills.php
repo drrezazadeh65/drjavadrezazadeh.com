@@ -15,7 +15,7 @@ function jrOwnerJreiPythonSkillDispatch(array $privateConfig, array $body, ?stri
     if (!is_string($action) ||
         !in_array($action,['catalog','triage-evidence','heldout-review','calculate',
           'evidence-graph','metacognitive-plan','capacity-plan','strategy-propose','mission-bind','method-feedback','grounded-retrieval','source-extract',
-          'memory-save','memory-read','memory-revoke'],true)) {
+          'model-draft','memory-save','memory-read','memory-revoke'],true)) {
         throw new InvalidArgumentException('python_skill_action_invalid');
     }
 
@@ -100,6 +100,43 @@ function jrOwnerJreiPythonSkillDispatch(array $privateConfig, array $body, ?stri
             'grounded-retrieval'=>'jr.jrei.grounded-retrieval-result.v1',
             'source-extract'=>'jr.jrei.knowledge-extract-result.v1'
         };
+    } elseif ($action==='model-draft') {
+        // Source-only private owner tool, wholly separate from public Qwen
+        // chat and from all original payments, rights or memory privileges.
+        if (($privateConfig['jrei_python_owner_model_draft_enabled']??false)!==true) {
+            throw new RuntimeException('JREI_PRIVATE_MODEL_DRAFT_DISABLED');
+        }
+        if (count($body)!==2 || !isset($body['payload']) ||
+            !is_array($body['payload']) || array_is_list($body['payload'])) {
+            throw new InvalidArgumentException('jrei_model_draft_body_invalid');
+        }
+        $input=$body['payload'];
+        if (count($input)<3 || count($input)>4 ||
+            count(array_diff(array_keys($input),
+                ['request_id','language','question','max_output_tokens']))!==0 ||
+            !is_string($input['request_id']??null) ||
+            !preg_match('/^[A-Za-z0-9][A-Za-z0-9._:-]{2,79}$/D',$input['request_id']) ||
+            !in_array($input['language']??null,['fa','en'],true) ||
+            !is_string($input['question']??null) ||
+            strlen($input['question'])>4000 ||
+            mb_strlen($input['question'],'UTF-8')<5 ||
+            mb_strlen($input['question'],'UTF-8')>1000 ||
+            (array_key_exists('max_output_tokens',$input) &&
+              (!is_int($input['max_output_tokens']) ||
+               $input['max_output_tokens']<32 ||
+               $input['max_output_tokens']>640))) {
+            throw new InvalidArgumentException('jrei_model_draft_parameters_invalid');
+        }
+        $route='/internal/v1/model/owner-draft';
+        $payload=[
+            'schema_version'=>'jr.jrei.owner-local-model-draft.v1',
+            'request_id'=>$input['request_id'],
+            'language'=>$input['language'],
+            'question'=>$input['question'],
+            'purpose'=>'PRIVATE_EDUCATIONAL_DRAFT',
+            'max_output_tokens'=>$input['max_output_tokens']??384
+        ];
+        $expected='jr.jrei.owner-local-model-draft-result.v1';
     } elseif ($action==='calculate') {
         if (count($body)!==2 || !array_key_exists('payload',$body) ||
             !is_array($body['payload']) || array_is_list($body['payload']) ||
@@ -280,6 +317,26 @@ function jrOwnerJreiPythonSkillDispatch(array $privateConfig, array $body, ?stri
                 throw new RuntimeException('JREI_UNATTESTED_RETRIEVAL_CITATION');
             }
         }
+    }
+    if ($action==='model-draft' &&
+        (($result['result_state']??null)!=='UNVERIFIED_MODEL_DRAFT' ||
+         ($result['model_alias']??null)!=='jrei-qwen3-4b-q4km' ||
+         ($result['model_weights_modified']??null)!==false ||
+         ($result['training_started']??null)!==false ||
+         ($result['output_has_source_citations']??null)!==false ||
+         ($result['factual_accuracy_independently_verified']??null)!==false ||
+         ($result['source_rights_verified']??null)!==false ||
+         ($result['owner_scientific_review_required']??null)!==true ||
+         ($result['public_publish_authorized']??null)!==false ||
+         ($result['persisted_to_mother_db']??null)!==false ||
+         ($result['request_id']??null)!==$payload['request_id'] ||
+         ($result['language']??null)!==$payload['language'] ||
+         !is_string($result['model_output']??null) ||
+         strlen($result['model_output'])>24000 ||
+         !preg_match('/^[a-f0-9]{64}$/D',(string)($result['response_sha256']??'')) ||
+         !hash_equals(hash('sha256',$result['model_output']),
+              (string)$result['response_sha256']))) {
+        throw new RuntimeException('JREI_PRIVATE_MODEL_DRAFT_CONTRACT_UNTRUSTED');
     }
     if ($action==='calculate' &&
         (($result['performed_without_model']??null)!==true ||
