@@ -54,6 +54,7 @@ require_once __DIR__.'/jrei-owner-private-pilot.php';
 require_once __DIR__.'/jrei-python-node-health.php';
 require_once __DIR__.'/jrei-python-canary-bridge.php';
 require_once __DIR__.'/jrei-python-owner-skills.php';
+require_once __DIR__.'/jrei-knowledge-evidence-projection.php';
 require_once __DIR__.'/jrei-metacognitive-owner-journal.php';
 require_once __DIR__.'/jrei-apex-owner-missions.php';
 require_once __DIR__.'/jrei-apex-python-plan.php';
@@ -473,6 +474,22 @@ function operationsRoute(string $path, string $verb): never {
             }catch(Throwable $e){
                 fail('jrei_apex_worker_observation_unavailable',503);
             }
+        }
+
+        // Read-only reconciliation of versioned knowledge citations against
+        // CURRENT original mother-DB source rights/review/withdrawal state.
+        // Neither GET nor the results can approve a licence, queue a crawl,
+        // publish news, expose source text or promote knowledge.
+        if ($path==='/admin/operations/jrei-knowledge-evidence' && $verb==='GET') {
+            if (($configuration['operations_admins'][$accountId]['role']??'')!=='SUPER_ADMIN')
+                fail('super_admin_required',403);
+            if (($configuration['jrei_knowledge_evidence_enabled']??false)!==true)
+                fail('jrei_knowledge_reconciliation_disabled',403);
+            if (!rateAllowed($pdo,'jrei_knowledge_evidence_review',$accountId,12,300))
+                fail('rate_limited',429);
+            try {
+                respond(jrKnowledgeEvidenceReconciliation($pdo,time()));
+            } catch(Throwable $e) { fail('jrei_knowledge_evidence_unavailable',503); }
         }
 
         // Informational SUPER_ADMIN preflight: derives all readiness
