@@ -147,6 +147,15 @@ function cfg(): array {
         // A separate SUPER_ADMIN decision. Creating news monitors or
         // approving original sources does not enable scheduled crawling.
         'jrei_news_source_activation_accepted' => getenv('JR_JREI_NEWS_SOURCE_ACTIVATION_ACCEPTED') === 'true',
+        // These three FIRST-PARTY News workers previously consumed missing
+        // config keys and silently remained OFF even when the owner set
+        // server-private activation flags. Never default these permissions ON.
+        'jrei_news_independent_evidence_enabled' =>
+            getenv('JR_JREI_NEWS_INDEPENDENT_EVIDENCE_ENABLED') === 'true',
+        'jrei_news_official_catalogue_auto_seed_enabled' =>
+            getenv('JR_JREI_NEWS_OFFICIAL_CATALOGUE_AUTO_SEED_ENABLED') === 'true',
+        'jrei_news_automatic_official_monitor_enabled' =>
+            getenv('JR_JREI_NEWS_AUTOMATIC_OFFICIAL_MONITOR_ENABLED') === 'true',
         // A prior dashboard MFA source approval may be reconciled by the
         // original private News Cron once independently verified JREI-KA
         // provenance and rights become valid. Never forge source approval.
