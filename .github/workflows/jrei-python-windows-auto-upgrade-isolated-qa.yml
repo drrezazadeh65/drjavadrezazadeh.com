@@ -76,6 +76,139 @@ jobs:
           git clone --quiet $env:GITHUB_WORKSPACE $repo
           if($LASTEXITCODE -ne 0){throw 'CI_LOCAL_REPO_CLONE_FAILED'}
           git -C $repo remote set-url origin 'https://github.com/drrezazadeh65/drjavadrezazadeh.com'
+          # Review-bound release approval is intentionally pinned to an older,
+          # independently accepted SOURCE TREE. A newly developed tree MUST
+          # remain blocked on user Windows. In this DISPOSABLE CI fixture ONLY,
+          # authorize the current checkout to exercise candidate installation;
+          # never publish this fixture-generated authorization to the branch.
+          $currentTree=(git -C $repo rev-parse 'HEAD:platform/jrei-python' | Out-String).Trim()
+          if($LASTEXITCODE -ne 0 -or $currentTree -notmatch '^[a-f0-9]{40} 'platform\jrei-v5\windows-worker\jrei-python-safe-upgrade.ps1'
+          $task='JREI-Python-Core'
+          $base=Join-Path $root 'venv\Scripts\python.exe'
+          $args='-m uvicorn jrei_service.app:app --host 127.0.0.1 --port 8091 --workers 1'
+          $owner="$env:USERDOMAIN\$env:USERNAME"
+          try{
+            $act=New-ScheduledTaskAction -Execute $base -Argument $args -WorkingDirectory $root
+            $trigger=New-ScheduledTaskTrigger -AtLogOn -User $owner
+            $principal=New-ScheduledTaskPrincipal -UserId $owner -LogonType Interactive -RunLevel Limited
+            $settings=New-ScheduledTaskSettingsSet -MultipleInstances IgnoreNew -ExecutionTimeLimit (New-TimeSpan -Seconds 0)
+            Register-ScheduledTask -TaskName $task -Action $act -Trigger $trigger -Principal $principal -Settings $settings | Out-Null
+            Start-ScheduledTask -TaskName $task
+            $healthy=$false
+            for($i=0;$i -lt 15;$i++){
+              Start-Sleep -Seconds 2
+              try{
+                $response=Invoke-RestMethod 'http://127.0.0.1:8091/internal/v1/health' -TimeoutSec 3
+                if($response.service_process -eq 'RESPONDING'){$healthy=$true;break}
+              }catch{}
+            }
+            if(-not $healthy){throw 'CI_BASE_RUNTIME_FAILED_TO_START'}
+            $check=& powershell.exe -NoProfile -NonInteractive -File $script -Mode Check
+            if($LASTEXITCODE -ne 0 -or ($check -join ';') -notmatch 'PYTHON_AUTO_UPGRADE_NOT_APPROVED'){
+              throw 'CI_DEFAULT_OFF_CONTRACT_FAILED'
+            }
+            $enable=& powershell.exe -NoProfile -NonInteractive -File $script -Mode Enable -OwnerApproved
+            if($LASTEXITCODE -ne 0){throw 'CI_OWNER_ENABLE_FAILED'}
+            $out=& powershell.exe -NoProfile -NonInteractive -File $script -Mode Auto
+            if($LASTEXITCODE -ne 0){throw 'CI_OFFLINE_UPGRADE_COMMAND_FAILED'}
+            if(($out -join ';') -notmatch 'PYTHON_AUTO_UPGRADE_ACTIVATED_AND_VERIFIED'){
+              Write-Output ($out -join ';')
+              foreach($filename in @('python-upgrade-command.out.log','python-upgrade-command.err.log')){
+                $file=Join-Path $root $filename
+                if(Test-Path $file){
+                  Write-Output ('CI_STAGE_LOG='+$filename)
+                  Get-Content -LiteralPath $file -Tail 35
+                }
+              }
+              throw 'CI_OFFLINE_UPGRADE_NOT_VERIFIED'
+            }
+            $current=(Get-ScheduledTask -TaskName $task).Actions[0].Execute
+            if($current -notmatch '\\runtimes\\py-'){throw 'CI_RUNTIME_NOT_PROMOTED'}
+            $state=Get-Content (Join-Path $root 'python-auto-upgrade-state.json') -Raw|ConvertFrom-Json
+            if($state.rollbackAvailable -ne $true){throw 'CI_ROLLBACK_POINTER_MISSING'}
+            $again=& powershell.exe -NoProfile -NonInteractive -File $script -Mode Auto
+            if($LASTEXITCODE -ne 0 -or ($again -join ';') -notmatch 'PYTHON_AUTO_UPGRADE_ALREADY_INSTALLED'){
+              throw 'CI_REPEATED_REBUILD_OCCURRED'
+            }
+            Write-Output 'JREI_ISOLATED_WINDOWS_OFFLINE_INSTALL_AND_PYTHON_SWITCH_PASS'
+            # Create an entirely local fixture-only Python source revision
+            # to test real failing cutover and automatic restoration.
+            git -C $repo config user.name 'JREI CI fixture'
+            git -C $repo config user.email 'fixture@example.invalid'
+            'CI fault-only source tree' | Set-Content (Join-Path $repo 'platform/jrei-python/CI_ROLLBACK_FIXTURE.txt')
+            git -C $repo add platform/jrei-python/CI_ROLLBACK_FIXTURE.txt
+            git -C $repo commit -q -m 'CI isolated second Python source tree'
+            if($LASTEXITCODE -ne 0){throw 'CI_FAULT_REVISION_CREATION_FAILED'}
+            # A NEW Python source tree MUST be blocked until its own
+            # reviewed allowlist is present, irrespective of local consent.
+            $blocked=& powershell.exe -NoProfile -NonInteractive -File $script -Mode Auto
+            if($LASTEXITCODE -ne 0 -or ($blocked -join ';') -notmatch 'PYTHON_SOURCE_TREE_AWAITING_QA_APPROVAL'){
+              throw 'CI_UNREVIEWED_SOURCE_TREE_WAS_NOT_BLOCKED'
+            }
+            # The following artificial approval exists ONLY inside the
+            # disposable GitHub fixture to exercise real rollback on a
+            # second source revision. Never publish this synthetic approval.
+            $tree=(git -C $repo rev-parse 'HEAD:platform/jrei-python' | Out-String).Trim()
+            $approval=Join-Path $repo 'docs\governance\JREI_WINDOWS_PYTHON_RUNTIME_APPROVAL_V1.json'
+            $manifest=Get-Content $approval -Raw | ConvertFrom-Json
+            $manifest.sourceTree=$tree
+            $manifest | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath $approval -Encoding UTF8
+            git -C $repo add docs/governance/JREI_WINDOWS_PYTHON_RUNTIME_APPROVAL_V1.json
+            git -C $repo commit -q -m 'CI-only temporary second source-tree authorization'
+            if($LASTEXITCODE -ne 0){throw 'CI_FIXTURE_ALLOWLIST_COMMIT_FAILED'}
+            $beforeFail=(Get-ScheduledTask -TaskName $task).Actions[0].Execute
+            $env:JREI_UPGRADE_FIXTURE_FAIL_AFTER_SWITCH='CI_ONLY'
+            try {
+              $rollback=& powershell.exe -NoProfile -NonInteractive -File $script -Mode Auto
+              if($LASTEXITCODE -ne 21){throw 'CI_ROLLBACK_EXIT_CODE_NOT_FAILURE'}
+              $message=$rollback -join ';'
+              if($message -notmatch 'PYTHON_AUTO_UPGRADE_ROLLBACK_STARTED' -or
+                 $message -notmatch 'PYTHON_AUTO_UPGRADE_OLD_CORE_RESTORED'){
+                Write-Output $message
+                throw 'CI_PYTHON_AUTOMATIC_ROLLBACK_NOT_VERIFIED'
+              }
+            } finally {
+              Remove-Item Env:JREI_UPGRADE_FIXTURE_FAIL_AFTER_SWITCH -ErrorAction SilentlyContinue
+            }
+            $afterFail=(Get-ScheduledTask -TaskName $task).Actions[0].Execute
+            if($afterFail -ine $beforeFail){throw 'CI_ROLLBACK_TASK_EXECUTABLE_CHANGED'}
+            $restored=Invoke-RestMethod 'http://127.0.0.1:8091/internal/v1/health' -TimeoutSec 5
+            if($restored.service_process -ne 'RESPONDING'){
+              throw 'CI_ROLLBACK_RESTORED_PYTHON_NOT_HEALTHY'
+            }
+            $stateAfterFail=Get-Content (Join-Path $root 'python-auto-upgrade-state.json') -Raw|ConvertFrom-Json
+            if([string]::IsNullOrWhiteSpace($stateAfterFail.failedTree)){
+              throw 'CI_FAILED_REVISION_NOT_QUARANTINED'
+            }
+            Write-Output 'JREI_DISPOSABLE_WINDOWS_FAILED_CUTOVER_ROLLBACK_PASS'
+            # A deliberately failed nested PowerShell process correctly exits 21.
+            # After asserting rollback, prevent its status contaminating the
+            # SUCCESSFUL GitHub outer test shell final exit code.
+            $global:LASTEXITCODE=0
+          }finally{
+            Stop-ScheduledTask -TaskName $task -ErrorAction SilentlyContinue
+            Unregister-ScheduledTask -TaskName $task -Confirm:$false -ErrorAction SilentlyContinue
+          }
+      - name: No user or production installation
+        if: always()
+        shell: powershell
+        run: |
+          'Disposable Windows GitHub runner only. No owner PC, no Bertina DB, no Qwen tasks or models, no crawlers, no live site release. Runtime rollback code is supplied but must still be demonstrated with fault injection.' | Out-File -Append -Encoding utf8 $env:GITHUB_STEP_SUMMARY
+){
+            throw 'CI_SOURCE_TREE_UNAVAILABLE'
+          }
+          $fixtureApproval=Join-Path $repo 'docs\governance\JREI_WINDOWS_PYTHON_RUNTIME_APPROVAL_V1.json'
+          $fixtureManifest=Get-Content -LiteralPath $fixtureApproval -Raw -Encoding UTF8 | ConvertFrom-Json
+          if($fixtureManifest.sourceTree -cne $currentTree){
+            $fixtureManifest.sourceTree=$currentTree
+            $fixtureManifest | ConvertTo-Json -Depth 7 |
+              Set-Content -LiteralPath $fixtureApproval -Encoding UTF8
+            git -C $repo config user.name 'JREI isolated Windows QA'
+            git -C $repo config user.email 'fixture@example.invalid'
+            git -C $repo add docs/governance/JREI_WINDOWS_PYTHON_RUNTIME_APPROVAL_V1.json
+            git -C $repo commit -q -m 'DISPOSABLE_FIXTURE_ONLY_current_candidate_approval'
+            if($LASTEXITCODE -ne 0){throw 'CI_FIXTURE_APPROVAL_COMMIT_FAILED'}
+          }
           $script=Join-Path $repo 'platform\jrei-v5\windows-worker\jrei-python-safe-upgrade.ps1'
           $task='JREI-Python-Core'
           $base=Join-Path $root 'venv\Scripts\python.exe'
