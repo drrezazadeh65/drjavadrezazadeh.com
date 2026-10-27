@@ -50,6 +50,11 @@ _STOP = threading.Event()
 _BUSY = threading.Lock()
 _activity_at = 0.0
 _cycle = 0
+_GPU_TASK = "JREI-GPU-Qwen-Private"
+_RECOVERY_INTERVAL_SECONDS = 300
+_recovery_last_at = 0.0
+_recovery_failures = 0
+_recovery_last_state = "NOT_ATTEMPTED"
 
 
 def utc() -> int:
@@ -102,6 +107,63 @@ def local_model():
             pass
     return None, None
 
+
+
+def gpu_task_recovery():
+    """Reuse only the previously owner-installed and approved Windows task.
+
+    Do not alter rights gates, install software, run model-supplied commands,
+    or restart healthy inference. Windows Task Scheduler owns the model
+    launcher and its immutable snapshot; this process cannot override it.
+    """
+    global _recovery_last_at, _recovery_failures, _recovery_last_state
+    if os.name != "nt":
+        return {"state": "UNSUPPORTED", "detail": "Owner-only Windows recovery"}
+    if _BUSY.locked():
+        return {"state": "DEFERRED", "detail": "Existing owner mission active"}
+    if time.monotonic() - _activity_at < 180 and _activity_at > 0:
+        return {"state": "DEFERRED", "detail": "Owner active; preserve inference"}
+    now = time.monotonic()
+    interval = min(1800, _RECOVERY_INTERVAL_SECONDS * (2 ** min(_recovery_failures, 3)))
+    if _recovery_last_at and now - _recovery_last_at < interval:
+        return {"state": "BACKOFF", "detail": "Waiting before any restart"}
+    try:
+        if get_json(GPU + "/v1/models", 3).get("data"):
+            _recovery_failures = 0
+            _recovery_last_state = "GPU_ALREADY_RESPONDING"
+            return {"state": "HEALTHY", "detail": "GPU model endpoint responding"}
+    except (OSError, ValueError, KeyError):
+        pass
+    query = subprocess.run(
+        ["schtasks.exe", "/Query", "/TN", _GPU_TASK],
+        shell=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+        timeout=8, creationflags=0x08000000,
+    )
+    if query.returncode != 0:
+        _recovery_last_state = "PREAPPROVED_GPU_TASK_NOT_FOUND"
+        return {"state": "NOT_INSTALLED", "detail": "Approved GPU task not registered"}
+    _recovery_last_at = now
+    record("gpu_recovery", "STARTED", "Owner-approved task recovery after repeated offline observations")
+    # An installed supervisor can remain Running after its model child exits.
+    # End only the exact named GPU supervisor, not the Python/CPU/site tasks.
+    subprocess.run(
+        ["schtasks.exe", "/End", "/TN", _GPU_TASK],
+        shell=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+        timeout=10, creationflags=0x08000000,
+    )
+    started = subprocess.run(
+        ["schtasks.exe", "/Run", "/TN", _GPU_TASK],
+        shell=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+        timeout=10, creationflags=0x08000000,
+    )
+    if started.returncode:
+        _recovery_failures += 1
+        _recovery_last_state = "TASK_RESTART_FAILED"
+        record("gpu_recovery", _recovery_last_state, "Scheduler rejected previously approved task")
+        return {"state": "FAILED", "detail": "Windows Task Scheduler could not start GPU task"}
+    _recovery_last_state = "TASK_RESTART_REQUESTED"
+    record("gpu_recovery", _recovery_last_state, "Reused exact owner-approved GPU task; model health unverified")
+    return {"state": "RESTART_REQUESTED", "detail": "Waiting for approved GPU model to load"}
 
 def reply(messages, max_tokens=320):
     base, model = local_model()
@@ -264,14 +326,31 @@ def run_job(job: str, background: bool = False):
 
 
 def scheduler():
-    # No arbitrary 02:00-05:00-only restriction or hard daily quota.
-    # At most one expensive inference at a time; yield during user interaction.
+    # Autonomous studying does not suppress background GPU recovery.
+    # Yield to any user chat before intervening with the preapproved task.
     if _STOP.wait(120):
         return
+    next_study = time.monotonic() + 30
+    misses = 0
     while not _STOP.is_set():
-        if time.monotonic() - _activity_at >= 180 and not _BUSY.locked():
-            run_job("study", background=True)
-        if _STOP.wait(720):
+        gpu_alive = False
+        try:
+            gpu_alive = bool(get_json(GPU + "/v1/models", 3).get("data"))
+        except (OSError, ValueError, KeyError):
+            pass
+        misses = 0 if gpu_alive else misses + 1
+        if misses >= 3 and not _BUSY.locked():
+            try:
+                outcome = gpu_task_recovery()
+                if outcome["state"] == "RESTART_REQUESTED":
+                    misses = 0
+            except (OSError, subprocess.TimeoutExpired, RuntimeError) as exc:
+                record("gpu_recovery", "FAILED", exc.__class__.__name__)
+        if time.monotonic() >= next_study and not _BUSY.locked():
+            if time.monotonic() - _activity_at >= 180:
+                run_job("study", background=True)
+            next_study = time.monotonic() + 720
+        if _STOP.wait(60):
             break
 
 
@@ -292,6 +371,7 @@ def status():
         "schema": "jr.jrei.windows-command-center.v1",
         "owner_private": True,
         "model_connected": bool(base),
+        "gpu_recovery": _recovery_last_state,
         "inference_backend": "GPU" if base == GPU else "CPU" if base else "OFFLINE",
         "model_alias": model,
         "busy": _BUSY.locked(),
