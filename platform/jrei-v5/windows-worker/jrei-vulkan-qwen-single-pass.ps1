@@ -7,7 +7,7 @@
 #>
 [CmdletBinding()]
 param(
-  [ValidateRange(0,16)][int]$GpuLayers=4,
+  [ValidateRange(0,32)][int]$GpuLayers=4,
   [switch]$ThroughputProbe
 )
 Set-StrictMode -Version Latest
@@ -32,6 +32,25 @@ if($executables.Count -ne 1){throw 'JREI_VULKAN_LAB_BACKEND_AMBIGUOUS'}
 $exe=$executables[0]
 $listeners=@(Get-NetTCPConnection -State Listen -LocalPort 8082 -ErrorAction SilentlyContinue)
 if($listeners.Count -ne 0){throw 'JREI_LAB_PORT_8082_OCCUPIED'}
+if($GpuLayers -gt 16){
+  # The user observed 8192 MiB dedicated and 7402 MiB free on an AMD
+  # Radeon RX 580. Require fresh independently reported device headroom
+  # before attempting a higher experimental layer count. This never reads
+  # or modifies the active 8081 Qwen process and does not claim that free
+  # VRAM alone proves sustainable training performance.
+  $deviceLines=@(& $exe.FullName --list-devices 2>&1 | ForEach-Object {[string]$_})
+  $rx580Line=@($deviceLines | Where-Object {$_ -match '^ *Vulkan\d+: Radeon RX 580 Series \(\d+ MiB, \d+ MiB free\)'})
+  if($rx580Line.Count -ne 1){throw 'JREI_RX580_VULKAN_DEVICE_NOT_CONFIRMED'}
+  $matchResult=[regex]::Match($rx580Line[0],'\((\d+) MiB, (\d+) MiB free\)')
+  if(-not $matchResult.Success){throw 'JREI_RX580_GPU_MEMORY_REPORT_MISSING'}
+  $gpuTotalMiB=[int]$matchResult.Groups[1].Value
+  $gpuFreeMiB=[int]$matchResult.Groups[2].Value
+  if($gpuTotalMiB -lt 7168 -or $gpuFreeMiB -lt 4096){
+    throw 'JREI_RX580_VRAM_HEADROOM_UNSAFE'
+  }
+  Write-Output ('[JREI] GPU_DEVICE_VERIFIED_RX580')
+  Write-Output ('[JREI] GPU_FREE_VRAM_MIB='+$gpuFreeMiB)
+}
 $stamp=Get-Date -Format 'yyyyMMdd-HHmmss'
 $err=Join-Path $root "gpu-single-$stamp-stderr.log"
 $out=Join-Path $root "gpu-single-$stamp-stdout.log"
