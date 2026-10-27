@@ -1452,8 +1452,10 @@ ensure($noPublicOwnerSeed,
 $utId=(string)$utOriginal['source_id'];
 $pdo->prepare('UPDATE jrei_exam_sources SET is_revoked=1 WHERE source_id=?')
     ->execute([$utId]);
+// Include the entire currently supported twenty-origin directory so an
+// alphabetically later revoked entry cannot evade the revocation assertion.
 $revokedSeed=jrNewsOriginalSeedOfficialInstitutionSources(
-    $pdo,$seedContext,1792823505,12);
+    $pdo,$seedContext,1792823505,20);
 ensure($revokedSeed['newDiscovered']===0 &&
        $revokedSeed['previouslyRevokedOrSuperseded']>=1,
     'automated catalogue never creates a fresh approved bypass around source revocation');
