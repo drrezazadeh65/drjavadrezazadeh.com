@@ -133,7 +133,8 @@ function jrOwnerJreiPythonSkillDispatch(array $privateConfig, array $body, ?stri
             !preg_match('/^[A-Za-z0-9][A-Za-z0-9._:-]{2,79}$/D',$input['request_id']) ||
             !in_array($input['language']??null,['fa','en'],true) ||
             !in_array($input['academic_task']??'EXPLAIN',
-              ['EXPLAIN','SOCRATIC_TUTOR','CRITICAL_REVIEW','ASSESSMENT_DESIGN'],true) ||
+              ['EXPLAIN','SOCRATIC_TUTOR','CRITICAL_REVIEW','ASSESSMENT_DESIGN',
+               'CODING_PROPOSAL','SITE_ARCHITECTURE'],true) ||
             !is_string($input['question']??null) ||
             strlen($input['question'])>4000 ||
             preg_match('/\A[\s\S]{5,1000}\z/uD',$input['question'])!==1 ||
