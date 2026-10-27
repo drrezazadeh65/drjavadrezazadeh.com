@@ -25,7 +25,7 @@ concurrency:
 jobs:
   source:
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 25
     services:
       mariadb:
         image: mariadb:10.11
@@ -72,6 +72,36 @@ jobs:
           for file in assets/js/jrei-news-*.js; do node --check "$file"; done
       - name: Offline Node contract and newsroom UI source regressions, no network/provider
         run: node --test platform/news-intelligence/tests/*.test.mjs
+      - name: Build exact sanitized Bertina release candidate without deployment
+        run: |
+          set -euo pipefail
+          node scripts/build-public-data.mjs --check
+          node scripts/build-public-site.mjs
+          node --test tests/jrei-news-private-release.test.mjs
+      - name: Install isolated Chromium visual acceptance tooling
+        run: |
+          npm install --no-save @playwright/test@1.56.0
+          npx playwright install --with-deps chromium
+      - name: Visual QA — 21-section Persian and English newsrooms, mobile and desktop
+        run: |
+          set -euo pipefail
+          python3 -m http.server 4173 --bind 127.0.0.1 --directory .public-site > /tmp/jrei-news-web.log 2>&1 &
+          for attempt in {1..20}; do
+            if curl -fsS http://127.0.0.1:4173/fa/akhbar/ > /dev/null; then break; fi
+            sleep 1
+          done
+          npx playwright test tests/newsroom-21-browser.spec.js --workers=1
+      - name: Preserve real RTL/LTR screenshot evidence from final QA
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jrei-news-21-visual-evidence-${{ github.sha }}
+          path: |
+            test-results/
+            playwright-report/
+            /tmp/jrei-news-web.log
+          if-no-files-found: ignore
+          retention-days: 14
       - name: Offline PHP source boundaries
         run: php platform/news-intelligence/tests/news-source-contracts.php
       - name: Disposable MariaDB mother-schema compatibility and workflows
