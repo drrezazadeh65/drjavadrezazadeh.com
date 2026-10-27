@@ -209,6 +209,37 @@ def study():
     return "PROPOSED_NOT_VERIFIED", detail[:1300] + "; PROPOSAL_SHA=" + proposal_sha
 
 
+def route_directive(command: str):
+    """Translate owner language to exact allowlisted actions, not arbitrary commands."""
+    if not isinstance(command, str) or len(command) > 500:
+        raise ValueError("JREI_OWNER_DIRECTIVE_INVALID")
+    text = command.casefold().strip()
+    if not text:
+        raise ValueError("JREI_OWNER_DIRECTIVE_EMPTY")
+    if re.search(r"(publish|انتشار|منتشر|post news|ارسال خبر)", text):
+        return {"state": "NOT_CONNECTED", "detail":
+            "Bertina verified CMS publication is not accessible from this local console."}
+    if re.search(r"(mysql|sql|دیتابیس|پایگاه.?داده|database)", text):
+        return {"state": "NOT_CONNECTED", "detail":
+            "Production mother-database mutation connector has not been activated."}
+    if re.search(r"(deploy|دیپلوی|استقرار|commit|push)", text):
+        return {"state": "NOT_CONNECTED", "detail":
+            "Deployment and Git push are not performed by this local agent."}
+    for pattern, job in [
+        (r"(مطالعه|یادگیر|یادگیری|رشد|learn|study|improv)", "study"),
+        (r"(robots|sitemap|ربات|سایت.?مپ)", "robots_audit"),
+        (r"(geo|aeo|هوش.?مصنوعی.?جستجو)", "geo_audit"),
+        (r"(seo|سئو|جستجو|ایندکس)", "seo_audit"),
+        (r"(news|خبر|اخبار)", "news_readiness"),
+        (r"(python|پایتون|سلامت)", "python_health"),
+        (r"(code|کدنویسی|کد|source|مخزن)", "source_audit"),
+    ]:
+        if re.search(pattern, text, flags=re.IGNORECASE):
+            return run_job(job)
+    return {"state": "UNRECOGNIZED", "detail":
+        "No fixed executable skill matches. Use Chat or select a mission."}
+
+
 def run_job(job: str, background: bool = False):
     global _activity_at
     if not _BUSY.acquire(blocking=False):
@@ -234,10 +265,13 @@ def run_job(job: str, background: bool = False):
 def scheduler():
     # No arbitrary 02:00-05:00-only restriction or hard daily quota.
     # At most one expensive inference at a time; yield during user interaction.
-    while not _STOP.wait(720):
-        if time.monotonic() - _activity_at < 360 or _BUSY.locked():
-            continue
-        run_job("study", background=True)
+    if _STOP.wait(120):
+        return
+    while not _STOP.is_set():
+        if time.monotonic() - _activity_at >= 180 and not _BUSY.locked():
+            run_job("study", background=True)
+        if _STOP.wait(720):
+            break
 
 
 def recent(limit: int = 25):
@@ -300,7 +334,8 @@ footer{margin-top:14px;font-size:12px;color:#bbb} .wide{grid-column:1/-1}
 <main>
 <section><h2>گفت‌وگوی مستقیم</h2><div id="chat" aria-live="polite"></div>
 <textarea rows="3" id="question" placeholder="با JREI به فارسی یا انگلیسی صحبت کنید…"></textarea>
-<button id="send">ارسال پیام</button><p id="chatStatus"></p></section>
+<button id="send">ارسال پیام</button>
+<button id="directive" class="secondary">اجرای دستور با ابزارهای واقعی</button><p id="chatStatus"></p></section>
 <section><h2>فرمان‌های اجرایی</h2>
 <p>دکمه‌ها مأموریت واقعی مشخص را اجرا می‌کنند. خروجی هر مأموریت در دفتر ثبت محلی ذخیره می‌شود.</p>
 <div id="actions">
@@ -353,6 +388,15 @@ async function submit(){
  finally{send.disabled=false}
 }
 send.onclick=submit;
+document.querySelector('#directive').onclick=async()=>{
+ const command=q.value.trim();if(!command)return;
+ const button=document.querySelector('#directive');button.disabled=true;
+ try{const result=await call('/api/directive',{command});
+   el('owner',command);el('bot','نتیجه اجرا: '+result.state+'\n'+result.detail);
+   q.value='';await refresh();
+ }catch(e){el('bot','خطای دستور: '+e.message)}
+ finally{button.disabled=false}
+};
 q.onkeydown=e=>{if(e.key==='Enter'&&e.ctrlKey){e.preventDefault();submit()}};
 document.querySelectorAll('[data-job]').forEach(button=>button.onclick=async()=>{
  const job=button.dataset.job;button.disabled=true;button.textContent='در حال اجرا…';
@@ -436,6 +480,8 @@ class OwnerHTTP(BaseHTTPRequestHandler):
                 finally:
                     _BUSY.release()
                 return self._send(200, result)
+            if self.path == "/api/directive":
+                return self._send(200, route_directive(data.get("command")))
             if self.path == "/api/mission":
                 job = data.get("job")
                 if not isinstance(job, str) or len(job) > 40 or \
