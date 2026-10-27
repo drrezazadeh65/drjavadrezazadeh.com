@@ -46,11 +46,11 @@ jobs:
           for label in ('knowledge-correction','metacognitive-plan','capacity-plan'):
               assert "'"+label+"'" in php, label
           assert 'dependencies=[Depends(require_internal_gateway)]' in service
-          for key in ('publication_executed', 'correction_executed',
+          for key in ('live_urls_redirected_or_deleted', 'correction_executed',
                       'autonomous_model_training_started', 'network_requests_issued'):
               assert key in Path(
                   'platform/jrei-python/jrei_learning/knowledge_correction.py'
-                  if key in ('publication_executed','correction_executed')
+                  if key in ('live_urls_redirected_or_deleted','correction_executed')
                   else 'platform/jrei-python/jrei_learning/metacognitive_cycle.py'
                   if key == 'autonomous_model_training_started'
                   else 'platform/jrei-python/jrei_orchestrator/adaptive_capacity.py'
