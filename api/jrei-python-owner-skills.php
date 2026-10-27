@@ -14,7 +14,7 @@ function jrOwnerJreiPythonSkillDispatch(array $privateConfig, array $body, ?stri
     $action=$body['action']??null;
     if (!is_string($action) ||
         !in_array($action,['catalog','triage-evidence','heldout-review','calculate',
-          'evidence-graph','metacognitive-plan','capacity-plan','mission-bind','method-feedback','grounded-retrieval',
+          'evidence-graph','metacognitive-plan','capacity-plan','mission-bind','method-feedback','grounded-retrieval','source-extract',
           'memory-save','memory-read','memory-revoke'],true)) {
         throw new InvalidArgumentException('python_skill_action_invalid');
     }
@@ -65,7 +65,7 @@ function jrOwnerJreiPythonSkillDispatch(array $privateConfig, array $body, ?stri
         $payload=$body['payload'];
         $expected='jr.jrei.heldout-review-result.v1';
     } elseif (in_array($action,
-        ['evidence-graph','metacognitive-plan','capacity-plan','mission-bind','method-feedback','grounded-retrieval'],true)) {
+        ['evidence-graph','metacognitive-plan','capacity-plan','mission-bind','method-feedback','grounded-retrieval','source-extract'],true)) {
         // All three are strictly read-only: no browser-selected endpoint,
         // unreviewed model tool, raw learner records, action execution or
         // assignment authority. The original admin MFA/CSRF gate is retained.
@@ -86,7 +86,8 @@ function jrOwnerJreiPythonSkillDispatch(array $privateConfig, array $body, ?stri
             'capacity-plan'=>'/internal/v1/orchestration/capacity/plan',
             'mission-bind'=>'/internal/v1/learning/metacognitive/mission-bind',
             'method-feedback'=>'/internal/v1/learning/metacognitive/method-feedback',
-            'grounded-retrieval'=>'/internal/v1/knowledge/retrieval/propose'
+            'grounded-retrieval'=>'/internal/v1/knowledge/retrieval/propose',
+            'source-extract'=>'/internal/v1/knowledge/extraction/propose'
         };
         $expected=match($action) {
             'evidence-graph'=>'jr.jrei.evidence-graph-review.v1',
@@ -94,7 +95,8 @@ function jrOwnerJreiPythonSkillDispatch(array $privateConfig, array $body, ?stri
             'capacity-plan'=>'jr.jrei.adaptive-placement-result.v1',
             'mission-bind'=>'jr.jrei.metacognitive-mission-binding-result.v1',
             'method-feedback'=>'jr.jrei.method-feedback-result.v1',
-            'grounded-retrieval'=>'jr.jrei.grounded-retrieval-result.v1'
+            'grounded-retrieval'=>'jr.jrei.grounded-retrieval-result.v1',
+            'source-extract'=>'jr.jrei.knowledge-extract-result.v1'
         };
     } elseif ($action==='calculate') {
         if (count($body)!==2 || !array_key_exists('payload',$body) ||
@@ -226,6 +228,27 @@ function jrOwnerJreiPythonSkillDispatch(array $privateConfig, array $body, ?stri
          ($result['knowledge_or_worker_jobs_modified']??null)!==false ||
          !is_array($result['methods']??null))) {
         throw new RuntimeException('JREI_PYTHON_METHOD_FEEDBACK_PRIVILEGE_ESCALATION');
+    }
+    if ($action==='source-extract' &&
+        (($result['rights_approved_by_extractor']??null)!==false ||
+         ($result['original_document_licensed_by_extractor']??null)!==false ||
+         ($result['data_sent_to_model']??null)!==false ||
+         ($result['public_text_reproduced']??null)!==false ||
+         ($result['source_truth_independently_verified']??null)!==false ||
+         ($result['citations_indexed']??null)!==false ||
+         ($result['database_modified']??null)!==false ||
+         !is_array($result['anchors']??null))) {
+        throw new RuntimeException('JREI_SOURCE_EXTRACTION_PRIVILEGE_ESCALATION');
+    }
+    if ($action==='source-extract') {
+        foreach ($result['anchors'] as $anchor) {
+            if (!is_array($anchor) ||
+                ($anchor['public_citation_rights_verified']??null)!==false ||
+                ($anchor['source_text_untrusted']??null)!==true ||
+                ($anchor['short_review_excerpt']??false)!==null) {
+                throw new RuntimeException('JREI_UNREVIEWED_SOURCE_EXCERPT_EXPOSED');
+            }
+        }
     }
     if ($action==='grounded-retrieval' &&
         (($result['answer_generated']??null)!==false ||
