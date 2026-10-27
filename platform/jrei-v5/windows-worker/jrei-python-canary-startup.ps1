@@ -28,8 +28,24 @@ function LocalPythonReady {
       $r.production_ready -eq $false
   } catch { return $false }
 }
+function LocalPythonCanaryReady {
+  try {
+    $body='{"schema_version":"jr.jrei.arithmetic-request.v1","expression":"12*7"}'
+    $response=Invoke-RestMethod -Uri 'http://127.0.0.1:8091/internal/v1/worker/arithmetic' `
+      -Method Post -Body $body -ContentType 'application/json' -TimeoutSec 5
+    return $response.schema_version -ceq 'jr.jrei.arithmetic-result.v1' -and
+      $response.expression_normalized -ceq '12*7' -and
+      $response.numerator -eq 84 -and $response.denominator -eq 1 -and
+      $response.exact_fraction -ceq '84' -and
+      $response.skill_id -ceq 'jrei.math.exact_arithmetic.v1' -and
+      $response.performed_without_model -eq $true -and
+      $response.any_model_weights_changed -eq $false
+  }catch{return $false}
+}
 $healthy=LocalPythonReady
+$canaryReady=$healthy -and (LocalPythonCanaryReady)
 Write-Output ('[JREI] PYTHON_LOOPBACK_8091=' + $(if($healthy){'RESPONDING'}else{'UNAVAILABLE'}))
+Write-Output ('[JREI] CANARY_EXACT_TOOL=' + $(if($canaryReady){'READY'}else{'NOT_READY'}))
 $existing=Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue
 Write-Output ('[JREI] OUTBOUND_BRIDGE_TASK=' +
   $(if($null -eq $existing){'NOT_REGISTERED'}else{$existing.State.ToString()}))
@@ -46,6 +62,7 @@ if($Mode -eq 'Uninstall') {
 }
 if($null -ne $existing) { throw 'OUTBOUND_TASK_ALREADY_REGISTERED_NOT_OVERWRITTEN' }
 if(-not $healthy) { throw 'LOCAL_PYTHON_NOT_RESPONDING' }
+if(-not $canaryReady) { throw 'LOCAL_PYTHON_CANARY_SKILL_NOT_VERIFIED' }
 if(-not [IO.Path]::IsPathRooted($ConfigPath) -or
    -not (Test-Path -LiteralPath $ConfigPath -PathType Leaf) -or
    $ConfigPath.Contains('"') -or $ConfigPath.Length -gt 500) {
