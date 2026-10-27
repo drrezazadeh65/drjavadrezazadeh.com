@@ -90,11 +90,19 @@ function drawJobs(data){
  const ul=el('ul');let pending=false;
  for(const item of entries){
    if(!uuid.test(item.jobId||''))continue;
-   const state=String(item.state||'UNKNOWN');
+   const stored=String(item.state||'UNKNOWN');
+   const expired=item.effectiveState==='EXPIRED_BY_CLOCK'&&
+     (stored==='QUEUED'||stored==='LEASED');
+   // A read-only owner snapshot must not report a clock-expired job as
+   // actively pending merely because no worker has updated its DB row.
+   const state=expired?'EXPIRED_BY_CLOCK':stored;
    const completed=state==='COMPLETED'&&item.numerator===84&&
      item.denominator===1&&hash.test(item.resultSha256||'');
    if(state==='QUEUED'||state==='LEASED')pending=true;
-   const desc=item.jobId.slice(0,8)+' · '+state+
+   const readableState=expired
+     ?T('مهلت سپری شده (ثبت‌شده: ','Deadline expired (stored: ')+stored+')'
+     :state;
+   const desc=item.jobId.slice(0,8)+' · '+readableState+
      (completed?T(' · رسید ثبت‌شده: ۸۴',' · stored receipt: 84'):'');
    ul.append(el('li',desc));
  }
