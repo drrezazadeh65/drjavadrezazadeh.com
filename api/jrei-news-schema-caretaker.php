@@ -74,7 +74,7 @@ function jrNewsApprovedAdditiveStatements():array {
         if(strlen($sql)>12000||
            !preg_match('/^CREATE TABLE IF NOT EXISTS '.preg_quote($name,'/').'\s*\(/',$sql)||
            !preg_match('/\) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci$/D',$sql)||
-           preg_match('/[;]|\b(?:DROP|TRUNCATE|ALTER|GRANT|REVOKE|UPDATE|DELETE|INSERT|CREATE\s+DATABASE|FOREIGN_KEY_CHECKS)\b/i',$sql))
+           preg_match('/[;]|\b(?:DROP|TRUNCATE|ALTER|GRANT|REVOKE|UPDATE\s+|DELETE\s+FROM|INSERT\s+INTO|CREATE\s+DATABASE|FOREIGN_KEY_CHECKS)\b/i',$sql))
             throw new DomainException('news_additive_ddl_not_allowlisted');
         $statements[$name]=$sql;
     }
