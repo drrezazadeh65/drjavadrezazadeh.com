@@ -791,6 +791,23 @@ function jrOperationsNewsReadiness(PDO $pdo,array $config): array {
         // The owner can inspect the newly coded automation switches without
         // viewing host env values, tokens or mistaking a configured feature
         // for a successfully executed production crawl or CMS write.
+        // One protected, read-only snapshot of exact activation switches.
+        // These booleans report ONLY configured authority, never completed
+        // real ingestion or a successfully published CMS article.
+        'operationalActivationSwitches'=>[
+            'masterCronConfigured'=>($config['operations_cron_master_enabled']??false)===true,
+            'integratedNewsAccepted'=>($config['jrei_news_integrated_release_accepted']??false)===true,
+            'officialFeedProjectionEnabled'=>($config['jrei_news_feed_discovery_enabled']??false)===true,
+            'officialArticleIntakeEnabled'=>($config['jrei_news_article_intake_enabled']??false)===true,
+            'sourceActivationAuthorized'=>($config['jrei_news_source_activation_accepted']??false)===true,
+            'automaticOfficialCatalogueSeedEnabled'=>($config['jrei_news_official_catalogue_auto_seed_enabled']??false)===true,
+            'modelDraftEnabled'=>($config['jrei_news_model_drafting_enabled']??false)===true,
+            'originalCmsWriterEnabled'=>($config['jrei_news_original_cms_writer_enabled']??false)===true,
+            'standingOfficialPublisherEnabled'=>($config['jrei_news_standing_official_publishing_enabled']??false)===true,
+            'restoreAcceptanceRecorded'=>($config['jrei_news_verified_restore_accepted']??false)===true,
+            'publisherReceiptsAccepted'=>($config['jrei_news_publisher_receipts_accepted']??false)===true,
+            'verifiedPublicSearchEnabled'=>($config['jrei_news_search_enabled']??false)===true,
+        ],
         'sourceAdministrationAutomation'=>[
             'approvedSourceAutolinkConfigured'=>
                 ($config['jrei_news_admin_source_autolink_enabled']??false)===true,
