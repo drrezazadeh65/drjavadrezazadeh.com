@@ -128,6 +128,8 @@ function cfg(): array {
         // Both remain OFF until the live schema and publication receipts
         // have been independently accepted by the owner.
         'jrei_news_search_enabled' => getenv('JR_JREI_NEWS_SEARCH_ENABLED') === 'true',
+        // Original source-review-bound public News calendar; NO fabricated dates.
+        'jrei_news_calendar_enabled' => getenv('JR_JREI_NEWS_CALENDAR_ENABLED') === 'true',
         'jrei_news_publisher_receipts_accepted' => getenv('JR_JREI_NEWS_PUBLISHER_RECEIPTS_ACCEPTED') === 'true',
         'jrei_news_integrated_release_accepted' => getenv('JR_JREI_NEWS_INTEGRATED_RELEASE_ACCEPTED') === 'true',
         // A separate SUPER_ADMIN decision. Creating news monitors or
@@ -980,6 +982,10 @@ if ($path==='/rates/usdt-irt') { require_once __DIR__.'/ramzinex-public-usdt-rat
 if ($path==='/news/v1/search') {
     require_once __DIR__.'/news-public-search.php';
     jrNewsPublicSearchRoute($verb);
+}
+if ($path==='/news/v1/calendar') {
+    require_once __DIR__.'/news-public-calendar.php';
+    jrNewsOriginalPublicCalendarRoute($verb);
 }
 if ($path==='/news/v1/rss' || $path==='/news/v1/google-news') {
     require_once __DIR__.'/news-public-feeds.php';
