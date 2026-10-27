@@ -13,6 +13,7 @@
   var latest=document.querySelector('[data-jr-latest]');
   var list=latest&&latest.querySelector('[data-jr-latest-list]');
   var feedStatus=latest&&latest.querySelector('[data-jr-feed-status]');
+  var urgent=root.querySelector('[data-jr-breaking-status]');
   var topicLinks=Array.prototype.slice.call(root.querySelectorAll('[data-jr-news-topic]'));
   function safeUrl(raw){
     if(typeof raw!=='string'||raw.length>300)return null;
@@ -66,11 +67,22 @@
           var headline=cleanText(item.querySelector('title')?.textContent,180);
           var summary=cleanText(item.querySelector('description')?.textContent,450);
           var date=feedDate(item.querySelector('pubDate')?.textContent||'');
+          var breaking=cleanText(item.querySelector('category')?.textContent,24)==='BREAKING';
           if(!link||!headline||!date||used.has(link))return;
           used.add(link);valid.push({link:link,title:headline,
-            summary:summary,date:date});
+            summary:summary,date:date,breaking:breaking});
         });
         valid.sort(function(a,b){return b.date-a.date;});
+        var urgentItem=valid.find(function(item){
+          return item.breaking && Date.now()-item.date.getTime()>=0 &&
+            Date.now()-item.date.getTime()<=48*60*60*1000;
+        });
+        if(urgent&&urgentItem){
+          urgent.replaceChildren();
+          var urgentLink=textEl('a',null,urgentItem.title);
+          urgentLink.href=urgentItem.link;
+          urgent.append(urgentLink);
+        }
         list.replaceChildren();
         valid.slice(0,6).forEach(function(item){
           var li=textEl('li'),time=textEl('time',null,
