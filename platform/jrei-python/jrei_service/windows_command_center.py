@@ -12,6 +12,7 @@ from contextlib import closing
 import hashlib
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
+import socket
 import os
 from pathlib import Path
 import re
@@ -109,7 +110,7 @@ def local_model():
 
 
 
-def gpu_task_recovery():
+def gpu_task_recovery(*, owner_requested: bool = False):
     """Reuse only the previously owner-installed and approved Windows task.
 
     Do not alter rights gates, install software, run model-supplied commands,
@@ -121,11 +122,11 @@ def gpu_task_recovery():
         return {"state": "UNSUPPORTED", "detail": "Owner-only Windows recovery"}
     if _BUSY.locked():
         return {"state": "DEFERRED", "detail": "Existing owner mission active"}
-    if time.monotonic() - _activity_at < 180 and _activity_at > 0:
+    if not owner_requested and time.monotonic() - _activity_at < 180 and _activity_at > 0:
         return {"state": "DEFERRED", "detail": "Owner active; preserve inference"}
     now = time.monotonic()
     interval = min(1800, _RECOVERY_INTERVAL_SECONDS * (2 ** min(_recovery_failures, 3)))
-    if _recovery_last_at and now - _recovery_last_at < interval:
+    if not owner_requested and _recovery_last_at and now - _recovery_last_at < interval:
         return {"state": "BACKOFF", "detail": "Waiting before any restart"}
     try:
         if get_json(GPU + "/v1/models", 3).get("data"):
@@ -142,8 +143,19 @@ def gpu_task_recovery():
     if query.returncode != 0:
         _recovery_last_state = "PREAPPROVED_GPU_TASK_NOT_FOUND"
         return {"state": "NOT_INSTALLED", "detail": "Approved GPU task not registered"}
+    # Never kill an actual listening inference backend just because its
+    # /v1/models endpoint was slow. An operator can review its process logs.
+    try:
+        with socket.create_connection(("127.0.0.1", 8082), timeout=1):
+            _recovery_last_state = "GPU_LISTENER_PRESENT_MODEL_API_UNRESPONSIVE"
+            return {"state": "BLOCKED", "detail":
+                    "8082 is listening, but model API is not responding; review GPU process logs"}
+    except OSError:
+        pass
     _recovery_last_at = now
-    record("gpu_recovery", "STARTED", "Owner-approved task recovery after repeated offline observations")
+    record("gpu_recovery", "STARTED",
+           "Preapproved GPU task; operator requested" if owner_requested else
+           "Preapproved GPU task offline for multiple health intervals")
     # An installed supervisor can remain Running after its model child exits.
     # End only the exact named GPU supervisor, not the Python/CPU/site tasks.
     subprocess.run(
@@ -428,6 +440,7 @@ footer{margin-top:14px;font-size:12px;color:#bbb} .wide{grid-column:1/-1}
 <button data-job="news_readiness">وضعیت مسیرهای خبر</button>
 <button data-job="python_health">سلامت Python</button>
 <button data-job="study">مطالعه و پیشنهاد بهبود</button>
+<button id="gpu-recover" class="secondary">بازیابی موتور GPU</button>
 </div><h2>وضعیت واقعی</h2><div id="state">…</div></section>
 <section class="wide"><h2>نتیجهٔ مأموریت</h2><div id="mission-result" role="status" aria-live="polite">هنوز مأموریتی اجرا نشده است.</div><button class="secondary" id="copy-result">کپی نتیجه</button></section>
 <section class="wide"><h2>دفتر مأموریت‌ها و فعالیت مستقل</h2><div id="events">…</div></section>
@@ -459,7 +472,7 @@ async function refresh(){
     const s=await call('/api/status');
     document.querySelector('#state').textContent=
       'MODEL: '+s.inference_backend+' / '+(s.model_alias||'Unavailable')+
-      '\\nSTUDY SCHEDULER: '+s.autonomous_study_scheduler+
+      '\\nGPU RECOVERY: '+s.gpu_recovery+\n      '\\nSTUDY SCHEDULER: '+s.autonomous_study_scheduler+
       '\\nDRAFT SKILLS: '+s.study_proposals_not_verified+
       '\\nNEWS PUBLISH: '+s.site_publishing_control+
       '\\nMOTHER DB WRITES: '+s.database_write_control;
@@ -498,6 +511,14 @@ document.querySelectorAll('[data-job]').forEach(button=>button.onclick=async()=>
  source_audit:'بررسی کد مخزن',news_readiness:'وضعیت مسیرهای خبر',
  python_health:'سلامت Python',study:'مطالعه و پیشنهاد بهبود'}[job];refresh()}
 });
+document.querySelector('#gpu-recover').onclick=async()=>{
+ const button=document.querySelector('#gpu-recover');button.disabled=true;
+ try{
+   const result=await call('/api/gpu/recover',{confirm:true});
+   showResult('GPU recovery',result.state,result.detail);
+ }catch(e){showResult('GPU recovery','ERROR',e.message)}
+ finally{button.disabled=false;await refresh()}
+};
 document.querySelector('#refresh').onclick=refresh;refresh();setInterval(refresh,30000);
 </script></html>"""
 
@@ -571,6 +592,10 @@ class OwnerHTTP(BaseHTTPRequestHandler):
                 finally:
                     _BUSY.release()
                 return self._send(200, result)
+            if self.path == "/api/gpu/recover":
+                if data.get("confirm") is not True:
+                    raise ValueError("JREI_OWNER_GPU_RESTART_CONFIRMATION_REQUIRED")
+                return self._send(200, gpu_task_recovery(owner_requested=True))
             if self.path == "/api/directive":
                 return self._send(200, route_directive(data.get("command")))
             if self.path == "/api/mission":
