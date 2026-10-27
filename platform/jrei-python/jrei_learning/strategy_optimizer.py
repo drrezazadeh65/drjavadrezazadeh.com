@@ -88,6 +88,17 @@ class StrategyLearningRequest(StrictContract):
         evaluations = [episode.heldout.experiment_id for episode in self.episodes]
         if len(set(ids)) != len(ids) or len(set(evaluations)) != len(evaluations):
             raise ValueError("DUPLICATE_EXPERIMENT_EVIDENCE")
+        if any(
+            episode.domain != self.target_domain
+            or episode.evaluation_purpose != self.target_purpose
+            for episode in self.episodes
+        ):
+            raise ValueError("UNRELATED_STRATEGY_EPISODE")
+        if any(
+            episode.source_policy_snapshot_sha256 != self.policy_snapshot_sha256
+            for episode in self.episodes
+        ):
+            raise ValueError("STRATEGY_SOURCE_POLICY_SNAPSHOT_MISMATCH")
         if any(episode.policy_version != self.policy_version for episode in self.episodes):
             raise ValueError("HISTORICAL_POLICY_VERSION_MISMATCH")
         return self
