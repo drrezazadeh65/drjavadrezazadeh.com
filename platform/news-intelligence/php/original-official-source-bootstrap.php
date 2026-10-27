@@ -49,12 +49,31 @@ function jrNewsOriginalSeedOfficialInstitutionSources(
         return [...$summary,'leaseUnavailable'=>true];
 
     try{
-        foreach(array_slice(jrNewsOfficialInstitutionDirectory(),0,$limit) as $entry){
+        // The original nine-root first-page slice starved every newly added
+        // ministry/university forever. Prioritize missing origins from the
+        // entire first-party catalogue before spending a Cron tick on existing
+        // roots. This is bounded, owner-policy gated and never approves rights.
+        $entries=jrNewsOfficialInstitutionDirectory();
+        $registered=[];
+        $lookup=$pdo->prepare(
+            'SELECT source_locator_uri FROM jrei_exam_sources
+             WHERE source_locator_uri LIKE ? ORDER BY source_id LIMIT 4000'
+        );
+        $lookup->execute(['https://%']);
+        foreach($lookup->fetchAll(PDO::FETCH_COLUMN) as $registeredUrl)
+            $registered[(string)$registeredUrl]=true;
+        usort($entries,static function(array $a,array $b)use($registered):int{
+            $oldA=isset($registered[$a['origin']])?1:0;
+            $oldB=isset($registered[$b['origin']])?1:0;
+            return ($oldA<=>$oldB)?:strcmp($a['id'],$b['id']);
+        });
+        foreach(array_slice($entries,0,$limit) as $entry){
             $summary['examined']++;
             $url=(string)$entry['origin'];
             $matches=jrNewsOfficialDirectoryMatch($url);
             if(($matches['institutionId']??null)!==$entry['id']||
-               !in_array($entry['category'],['universities','examinations'],true)||
+               !in_array($entry['category'],
+                   ['universities','examinations','research','school'],true)||
                !in_array($entry['priority'],['P0','P1','P2'],true)){
                 $summary['technicalHolds']++;
                 continue;
@@ -81,8 +100,11 @@ function jrNewsOriginalSeedOfficialInstitutionSources(
 
                 $id=jrNewsPrivateUuid();
                 $sha=hash('sha256',$url);
-                $type=$entry['category']==='examinations'?
-                    'OFFICIAL_EXAM_NOTICE':'OFFICIAL_UNIVERSITY_NEWS';
+                $type=match($entry['category']){
+                    'examinations'=>'OFFICIAL_EXAM_NOTICE',
+                    'universities'=>'OFFICIAL_UNIVERSITY_NEWS',
+                    'research','school'=>'OFFICIAL_EDUCATION_NEWS'
+                };
                 // No invented issuer/rights/reviewer or approved policy.
                 $insert=$pdo->prepare(
                     "INSERT INTO jrei_exam_sources (
