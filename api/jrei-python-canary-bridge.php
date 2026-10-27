@@ -20,6 +20,59 @@ function jrPythonCanaryUuid(): string {
     $h=bin2hex($b);
     return substr($h,0,8).'-'.substr($h,8,4).'-'.substr($h,12,4).'-'.substr($h,16,4).'-'.substr($h,20);
 }
+/**
+ * Operational owner preflight: no writes, secrets, inferred learning or
+ * fabricated site↔Windows completion. Only facts read from the mother DB.
+ * A fresh signed Python report alone does not establish actual canary execution.
+ */
+function jrPythonCanaryPreflight(PDO $db,array $cfg,int $now): array {
+    $table=jrPythonCanaryReady($db);
+    $health=jrPythonNodeSchemaReady($db);
+    $enabled=($cfg['jrei_python_canary_enabled']??false)===true;
+    $reporting=($cfg['jrei_python_node_heartbeat_enabled']??false)===true;
+    $available=false;$nodeCount=0;$lastSeen=null;
+    if($health){
+        $q=$db->prepare("SELECT COUNT(*) AS fresh_nodes,
+            MAX(h.server_received_at) AS last_seen
+            FROM jrei_python_node_health h
+            JOIN jrei_hybrid_nodes n ON n.node_id=h.node_id
+            WHERE h.python_process='RESPONDING'
+              AND h.server_received_at BETWEEN ? AND ?
+              AND n.status='ENABLED' AND n.revoked_at IS NULL");
+        $q->execute([max(0,$now-90),$now+5]);
+        $r=$q->fetch(PDO::FETCH_ASSOC);
+        if(is_array($r)){
+            $nodeCount=(int)($r['fresh_nodes']??0);
+            $lastSeen=$r['last_seen']===null?null:(int)$r['last_seen'];
+            $available=$nodeCount>0;
+        }
+    }
+    $counts=['queued'=>null,'leased'=>null,'completed'=>null,'expired'=>null];
+    if($table){
+        $q=$db->query("SELECT state,COUNT(*) AS n
+            FROM jrei_python_canary_jobs GROUP BY state");
+        foreach($q->fetchAll(PDO::FETCH_ASSOC) as $r){
+            $state=strtolower((string)($r['state']??''));
+            if(array_key_exists($state,$counts))$counts[$state]=(int)$r['n'];
+        }
+        foreach($counts as $key=>$value)if($value===null)$counts[$key]=0;
+    }
+    return [
+       'ok'=>true,'schema'=>'jr.jrei.python-canary-preflight.v1',
+       'ownerScope'=>'ORIGINAL_MFA_SUPER_ADMIN',
+       'motherTableReady'=>$table,'signedPythonHealthTableReady'=>$health,
+       'canaryFeatureEnabled'=>$enabled,'signedPythonReportingEnabled'=>$reporting,
+       'freshEnabledNodeReports'=>$nodeCount,'lastSignedNodeReceivedAt'=>$lastSeen,
+       'operationallyPollable'=>$table&&$health&&$enabled&&$reporting&&$available,
+       'jobsByState'=>$counts,'checkedAt'=>$now,
+       'pythonWorkerProcessIndependentlyAttested'=>false,
+       'pythonCoreDirectMotherDbConnected'=>false,
+       'modelInferenceProven'=>false,'autonomousLearningProven'=>false,
+       'newsCrawlingOrPublicationActive'=>false,
+       'note'=>'SIGNED_EXISTING_NODE_REPORT_NOT_ACTUAL_CANARY_COMPLETION'
+    ];
+}
+
 function jrPythonCanaryOwner(PDO $db,string $account,array $body,int $now): array {
     if(array_keys($body)!==['action','requestKey'] ||
        $body['action']!=='run-fixed-arithmetic' ||
