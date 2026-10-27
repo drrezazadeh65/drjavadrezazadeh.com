@@ -1,11 +1,11 @@
 {
   "schema": "jr.jrei.windows-python-runtime-approval.v1",
-  "sourceTree": "54e968b6b1fa25e57472f5c1bcceff37704782a7",
-  "verifiedCISha": "7bc45156ba7cb73c7e281847d56cb3efb753d32f",
-  "verifiedCIUrl": "https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/40419536593",
+  "sourceTree": "e2e891c05e1852779974dfc3b65602fd1cf5520b",
+  "verifiedCISha": "d3cc43ba77492189db44d3d3baa83a222963817c",
+  "verifiedCIUrl": "https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/runs/40514012770",
   "pythonVersion": "3.13",
   "architecture": "win_amd64",
   "approvedForAutomaticOfflineInstall": true,
   "approvalScope": "EXACT_SOURCE_TREE_ONLY_NO_MODEL_NO_NEWS_NO_SITE_DEPLOY",
-  "notes": "Additive repository-reviewed allowlist for source tree verified in disposable Windows CI, including failed-cutover rollback. Future source tree changes MUST pass equivalent QA and receive a separate reviewed manifest update before Windows will auto-install."
+  "notes": "Owner-requested activation on 2026-10-27. The exact platform/jrei-python source-tree SHA e2e891c05e1852779974dfc3b65602fd1cf5520b is identical at vetted CI commit d3cc43ba77492189db44d3d3baa83a222963817c and deployed website source 39fe974466d24c6da69ce9428aa7035d3e2661b2. Isolated Windows test run 40514012770 has passed staged installation/automatic Python switch and injected rollback. QA is on a disposable runner ONLY; actual Windows activation additionally requires preexisting local owner opt-in, canonical auto-sync, offline wheels, live healthy Python service, and no missing environment/privacy gates. Neither this manifest nor the auto-installer changes Qwen or live Bertina."
 }
