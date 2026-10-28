@@ -148,6 +148,30 @@ def _valid_conversation(db, ident: str) -> None:
         raise ValueError("JREI_CONVERSATION_NOT_FOUND")
 
 
+def list_pending(db_path: Path, ident: str) -> list:
+    """Restore only still-live owner approvals for this private conversation."""
+    with closing(_db(db_path)) as db:
+        _valid_conversation(db, ident)
+        rows = db.execute("""SELECT id,created,tool,arguments FROM owner_pending
+            WHERE conversation_id=? ORDER BY created,id LIMIT 12""", (ident,)).fetchall()
+    now = int(time.time())
+    result = []
+    for action_id, created, tool, raw in rows:
+        if now - created > 600:
+            continue
+        try:
+            arguments = json.loads(raw)
+            if not isinstance(arguments, dict):
+                continue
+            target = str(arguments.get("target") or arguments.get("receipt_id")
+                         or arguments.get("objective") or "LOCAL")[:110]
+            result.append({"id": action_id, "tool": tool,
+                           "target": target, "created": created})
+        except (ValueError, TypeError):
+            continue
+    return result
+
+
 def list_conversations(db_path: Path) -> list:
     with closing(_db(db_path)) as db:
         return [{"id": a, "title": b, "created": c, "updated": d} for a, b, c, d in
