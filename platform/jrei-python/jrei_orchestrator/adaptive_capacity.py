@@ -125,7 +125,9 @@ class CapacityPlanRequest(StrictContract):
     # Exactly the current, externally measured remaining allowance. No
     # hardcoded daily transfer limit; 0 only blocks jobs with network costs.
     remaining_authorized_network_bytes: int = Field(ge=0, le=1_099_511_627_776)
-    nodes: list[ResourceNode] = Field(max_length=25)
+    # 64 observed nodes covers an owner fleet of 50 machines with headroom;
+    # no pooling of RAM/VRAM or automatic permission to run tasks.
+    nodes: list[ResourceNode] = Field(max_length=128)
     pending: list[ProposedWork] = Field(max_length=400)
 
     @model_validator(mode="after")
