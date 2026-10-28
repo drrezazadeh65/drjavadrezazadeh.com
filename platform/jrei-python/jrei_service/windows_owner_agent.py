@@ -533,6 +533,81 @@ def _native_evidence_answer(query: str, evidence: list) -> tuple[str, str]:
     return "\n\n".join(parts)[:4300], "NATIVE_EXTRACTIVE_EVIDENCE_NO_TRAINED_MODEL"
 
 
+def _native_smalltalk(message: str) -> tuple[str, str] | None:
+    """Source-independent, limited owner dialogue; NEVER impersonate an LLM.
+
+    Fast exact-match responses avoid a model-unavailable error for greetings
+    and basic readiness questions. No tools, networking, source extraction
+    or neural inference occurs, and this is not language-model training.
+    """
+    normalized = re.sub(r"\s+", " ", message.casefold()).strip(" \t\r\n.!?؟،")
+    english = normalized in ("hi", "hey", "hello", "good morning",
+                             "good evening", "how are you")
+    persian = normalized in ("سلام", "درود", "سلام خوبی", "سلام چطوری",
+                             "خوبی", "صبح بخیر", "شب بخیر")
+    if english or persian:
+        if english:
+            return (
+                "Hello! I'm JREI, your private Windows research and learning "
+                "assistant. Your conversation is saved locally. My approved "
+                "source-retrieval and controlled project tools may help; "
+                "my independently trained general-purpose language model is "
+                "not yet ready. What would you like to explore?",
+                "NATIVE_LOCAL_GREETING_NOT_NEURAL_INFERENCE")
+        return (
+            "سلام! من JREI، دستیار پژوهشی و یادگیری خصوصی شما هستم. "
+            "گفتگوی ما در همین محیط ویندوز ذخیره می‌شود. می‌توانم در "
+            "محدودهٔ منابع مجاز، جستجوی مستند و ابزارهای کنترل‌شده کمک کنم؛ "
+            "اما مدل زبانی عمومیِ اختصاصی هنوز آموزش و تأیید نشده است. "
+            "مایلید چه موضوعی را بررسی کنیم؟",
+            "NATIVE_LOCAL_GREETING_NOT_NEURAL_INFERENCE")
+    if normalized in ("what can you do", "help", "راهنما", "چه کارهایی بلدی",
+                      "چه کارهایی میتوانی انجام بدهی",
+                      "چه کارهایی می‌توانی انجام بدهی", "چیکار میتونی بکنی"):
+        if normalized in ("what can you do", "help"):
+            return (
+                "JREI currently supports private conversation history, "
+                "owner-approved evidence retrieval, reading selected local "
+                "documents, and reviewable local code drafts. GitHub research "
+                "and source edits require their own permissions. "
+                "I cannot claim ChatGPT-level reasoning, independent live "
+                "site publication, or successful neural training yet.",
+                "NATIVE_CAPABILITIES_EXPLICIT_NOT_VERIFIED_LLM")
+        return (
+            "امکانات موجود در کد JREI شامل تاریخچهٔ خصوصی گفتگو، "
+            "بازیابی شواهد از منابع مجاز، خواندن اسناد انتخاب‌شده "
+            "و تهیهٔ پیش‌نویس کد با تأیید مالک است. پژوهش GitHub "
+            "و تغییر کد مجوزهای مستقل می‌خواهند. فعلاً ادعای توانایی "
+            "ChatGPT، انتشار خودکار سایت یا آموزش موفق مدل عصبی ندارم.",
+            "NATIVE_CAPABILITIES_EXPLICIT_NOT_VERIFIED_LLM")
+    return None
+
+
+def _document_evidence_fallback(evidence: str, receipts: list) -> str:
+    """Cite limited owner-selected document excerpts without synthesis."""
+    valid = []
+    for item in receipts[:3]:
+        if not isinstance(item, dict):
+            continue
+        anchor = str(item.get("anchor", ""))[:100]
+        ident = str(item.get("document_id", ""))[:32]
+        digest = str(item.get("source_sha256", ""))[:16]
+        if anchor and ident and digest:
+            valid.append(f"سند {ident}، بخش {anchor}، SHA256: {digest}")
+    # Only a short first retrieved passage; no page/review claims.
+    excerpt = evidence.split("UNTRUSTED EXCERPT:\n", 1)[-1]
+    excerpt = excerpt.split("\n\n[", 1)[0].strip()[:300]
+    if not excerpt:
+        excerpt = "متن قابل نقل در این نمونه وجود ندارد."
+    return (
+        "در سند انتخاب‌شده، این بخش مرتبط بازیابی شد (نقل محدود، "
+        "نه تحلیل مدل زبانی یا مطالعهٔ کامل فایل):\n\n"
+        + excerpt + "\n\nارجاع‌های واقعی:\n"
+        + "\n".join(valid) + "\n"
+        "مدل زبانیِ آموزش‌دیده هنوز برای تحلیل ترکیبی فعال نیست."
+    )[:1600]
+
+
 def interact(*, db_path: Path, repo: Path, private: Path, ident: str, message: str,
              model_reply, run_directive, attachment_ids=None, on_progress=None) -> dict:
     def report_progress(phase: str) -> None:
@@ -607,9 +682,8 @@ def interact(*, db_path: Path, repo: Path, private: Path, ident: str, message: s
                     raise ValueError("JREI_DOCUMENT_RESPONSE_QUALITY_REJECTED")
                 state = "PRIVATE_RETRIEVAL_SYNTHESIS_UNVERIFIED"
             except (ValueError, OSError, RuntimeError, KeyError):
-                answer = ("شواهد محدودِ فایل‌های محلی بازیابی شدند، اما مدل "
-                          "نتوانست تحلیل قابل ارائه تولید کند.")
-                state = "DOCUMENT_MODEL_UNAVAILABLE"
+                answer = _document_evidence_fallback(evidence, cited)
+                state = "DOCUMENT_EVIDENCE_EXTRACTED_NO_TRAINED_LLM"
         receipt = json.dumps({
             "schema": "jr.jrei.private-document-retrieval.v1",
             "scope": "PRIVATE_WINDOWS", "files": inspected,
@@ -674,6 +748,15 @@ def interact(*, db_path: Path, repo: Path, private: Path, ident: str, message: s
         _add(db_path, ident, "assistant", answer, tool, state, result)
         return {"conversation_id": ident, "answer": answer, "state": state,
                 "tool": {"name": tool, "state": state, "receipt": result[:MAX_TOOL_OUTPUT]}}
+    # A limited, honest native protocol can greet and explain capabilities
+    # without a pretrained model. It cannot answer arbitrary academic
+    # questions, invoke tools, or claim neural learning.
+    protocol = _native_smalltalk(message)
+    if protocol is not None:
+        answer, state = protocol
+        _add(db_path, ident, "assistant", answer, "", state)
+        return {"conversation_id": ident, "answer": answer,
+                "state": state, "model_claim": "NO_TRAINED_LANGUAGE_MODEL"}
     report_progress("GENERATING_RESPONSE")
     # JREI-native model-neutral conversation with evidence from previously
     # owner-approved Windows learning sources. Retrieval NEVER gives the
