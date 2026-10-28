@@ -23,35 +23,32 @@ check(standard.services.length===21,'standard: expected 21 services');
 check(vip.services.length===6,'VIP: expected 6 services');
 ids(standard.services,'standard');
 ids(vip.services,'VIP');
-// Preserve the three legacy poetry titles exactly; a new one-off collectible
-// is an additional SKU with its own price, stock contract and honest image.
-const expected=new Map([['roshanaei','سپیدی'],['tariki','تاریکی'],['bonbast','بن‌بست']]);
-const collectibleId='websters-third-1981';
-check(books.books.length===4,'books: expected three original poetry books plus the collectible');
-check(new Set(books.books.map(x=>x.id)).size===books.books.length,'books: duplicate ID');
+check(books.books.length===3,'books: expected three published books');
+check(new Set(books.books.map(x=>x.id)).size===3,'books: duplicate ID');
+const expected = new Map([['roshanaei','سپیدی'],['tariki','تاریکی'],['bonbast','بن‌بست']]);
 for(const b of books.books){
-  const collectible=b.id===collectibleId;
-  if(!collectible)check(expected.get(b.id)===b.title_fa,'book: unexpected title or ID '+b.id);
+  check(expected.get(b.id)===b.title_fa,'book: unexpected title or ID '+b.id);
   check(b.publication_status==='PUBLISHED','book: unexpected publication status '+b.id);
-  if(collectible){
-    check(b.commerce?.currency==='IRT' && b.commerce?.price===50000000,'collectible: agreed owner price/currency mismatch');
-    check(b.commerce?.single_copy===true && b.commerce?.max_quantity_per_order===1,'collectible: one-set inventory contract mismatch');
-    check(b.bibliography?.cover_is_illustration===true,'collectible: artwork must be labelled an illustration');
-    verifyLater();
-  }else{
-    check(b.commerce?.currency==='IRT' && b.commerce?.price===2000000,'book: price or currency mismatch '+b.id);
-  }
+  check(b.commerce?.currency==='IRT' && b.commerce?.price===2000000,'book: price or currency mismatch '+b.id);
   const cover=b.bibliography?.cover_image;
   check(typeof cover==='string' && cover.startsWith('/assets/images/books/') && existsSync(join(root,(cover||'').replace(/^\//,''))),'book: missing approved cover asset '+b.id);
 }
-function verifyLater(){
-  for(const language of ['fa','en']){
-    const file=join(root,language,'shop','collectibles',collectibleId,'index.html');
-    check(existsSync(file),'collectible: missing '+language+' product page');
-    if(existsSync(file)){
-      const page=readFileSync(file,'utf8');
-      check(page.includes('data-collectible-buy')&&page.includes('collectible-websters-checkout.js'),'collectible: secure stock-checked CTA not linked on '+language);
-    }
+// Separate inventory and commercial identity for one authentic two-volume set.
+const collectibles=load('assets/data/collectible-catalog.json');
+check(collectibles.books?.length===1,'collectible: owner offers one set, not two units');
+const only=collectibles.books?.[0];
+check(only?.id==='websters-third-1981','collectible: exact approved SKU required');
+check(only?.commerce?.price===50000000&&only.commerce?.currency==='IRT','collectible: approved 50M toman amount');
+check(only?.commerce?.single_copy===true&&only.commerce?.max_quantity_per_order===1,'collectible: one-copy max quantity');
+check(only?.bibliography?.cover_is_illustration===true,'collectible: illustrative cover must not be passed off as photographic evidence');
+const cover=only?.bibliography?.cover_image;
+check(typeof cover==='string'&&existsSync(join(root,(cover||'').replace(/^\//,''))),'collectible: missing labelled promotional artwork');
+for(const language of ['fa','en']){
+  const rel=language+'/shop/collectibles/websters-third-1981/index.html';
+  check(existsSync(join(root,rel)),'collectible: missing '+language+' landing page');
+  if(existsSync(join(root,rel))){
+    const html=readFileSync(join(root,rel),'utf8');
+    check(html.includes('data-collectible-buy')&&html.includes('/assets/js/collectible-websters-checkout.js'),'collectible: missing secure purchase control '+language);
   }
 }
 for(const s of vip.services){
@@ -81,4 +78,4 @@ for(const s of vip.services){
   verifyPage(s.detail_url,'VIP');
 }
 if(errors.length){ console.error('Catalog integrity FAILED:\n'+errors.map(e=>' - '+e).join('\n')); process.exitCode=1; }
-else console.log('Catalog integrity passed: 21 services, 6 VIP, 4 books (including one collectible); IDs, prices, detail pages and approved cover paths checked.');
+else console.log('Catalog integrity passed: 21 services, 6 VIP, 3 original books + 1 separate collectible; IDs, prices, detail pages and approved cover paths checked.');
