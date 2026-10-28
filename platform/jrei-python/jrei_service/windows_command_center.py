@@ -527,7 +527,7 @@ def scheduler():
                                "INDEX_ONLY_NO_MODEL_TRAINING")
                 except (OSError,ValueError,sqlite3.Error) as exc:
                     record("windows_search_index","HELD",exc.__class__.__name__)
-            next_fts_index = time.monotonic() + 2700
+            next_fts_index = time.monotonic() + resource_policy.study_interval_seconds("FTS_INDEX")
         if time.monotonic() >= next_native and not _BUSY.locked():
             if _activity_at == 0 or time.monotonic() - _activity_at >= 180:
                 try:
@@ -570,7 +570,7 @@ def scheduler():
                                    captured.get("source_sha256",""))
                 except (OSError,ValueError,sqlite3.Error) as exc:
                     record("windows_evidence_memory","HELD",exc.__class__.__name__)
-            next_memory = time.monotonic() + 720
+            next_memory = time.monotonic() + resource_policy.study_interval_seconds("SOURCE_MEMORY")
         if time.monotonic() >= next_auto_topics and not _BUSY.locked():
             if _activity_at == 0 or time.monotonic() - _activity_at >= 180:
                 try:
@@ -585,7 +585,7 @@ def scheduler():
                                    discovered.get("source_sha256",""))
                 except (OSError,ValueError,sqlite3.Error) as exc:
                     record("windows_auto_topics","HELD",exc.__class__.__name__)
-            next_auto_topics = time.monotonic() + 900
+            next_auto_topics = time.monotonic() + resource_policy.study_interval_seconds("AUTO_TOPICS")
         if time.monotonic() >= next_agenda and not _BUSY.locked():
             if _activity_at == 0 or time.monotonic() - _activity_at >= 180:
                 try:
@@ -602,7 +602,7 @@ def scheduler():
                                result.get("cycle_id",""))
                 except (OSError,ValueError,sqlite3.Error) as exc:
                     record("windows_agenda","HELD",exc.__class__.__name__)
-            next_agenda = time.monotonic() + 500
+            next_agenda = time.monotonic() + resource_policy.study_interval_seconds("LEARNING_AGENDA")
         if time.monotonic() >= next_curriculum and not _BUSY.locked():
             if (_activity_at == 0 or time.monotonic()-_activity_at >= 180):
                 try:
@@ -682,6 +682,7 @@ def status():
         "native_language_baseline": native_brain.snapshot(DB_PATH, PRIVATE),
         "native_neural_training": native_neural.snapshot(DB_PATH),
         "adaptive_hardware_budget": resource_policy.snapshot(),
+        "tehran_study_priority": resource_policy.tehran_study_window(),
         "learning_agenda": agenda.snapshot(DB_PATH),
         "native_metacognition": agenda.metacognition_snapshot(DB_PATH),
         "autonomous_topic_discovery": auto_topics.snapshot(DB_PATH),
