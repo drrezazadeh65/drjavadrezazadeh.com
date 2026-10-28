@@ -27,6 +27,12 @@ MAX_PENDING = 6
 MAX_PER_CONVERSATION = 3
 MAX_MESSAGE = 9000
 MAX_FINISHED_AGE = 30 * 24 * 3600
+PROGRESS_PHASES = frozenset((
+    "STARTING", "READING_DOCUMENT", "RETRIEVING_EVIDENCE", "SYNTHESIZING",
+    "RESEARCHING_REPOSITORY", "ROUTING_TOOL", "GENERATING_RESPONSE",
+    "PERSISTING_RESULT",
+))
+MAX_PROGRESS_STEPS = 16
 
 
 def _open(path):
@@ -54,6 +60,14 @@ def initialize(db_path):
                 ON owner_tasks(status,sequence);
             CREATE INDEX IF NOT EXISTS owner_tasks_conversation
                 ON owner_tasks(conversation_id,sequence DESC);
+            CREATE TABLE IF NOT EXISTS owner_task_steps(
+                sequence INTEGER PRIMARY KEY AUTOINCREMENT,
+                task_id TEXT NOT NULL REFERENCES owner_tasks(id) ON DELETE CASCADE,
+                created INTEGER NOT NULL,
+                phase TEXT NOT NULL,
+                detail TEXT NOT NULL DEFAULT '');
+            CREATE INDEX IF NOT EXISTS owner_task_steps_lookup
+                ON owner_task_steps(task_id,sequence DESC);
         """)
         # Source/user-visible state is preserved after unexpected process exit,
         # but auto-replaying a once-started tool would risk duplicating effects.
@@ -115,6 +129,68 @@ def submit(db_path, *, conversation_id, prompt, attachments=None):
             "status": "QUEUED", "created": now}
 
 
+
+def update_progress(db_path, task_id, phase):
+    """Record real worker checkpoints in the same private SQLite database.
+
+    This API only accepts a fixed phase vocabulary, never model-provided
+    text or instructions. History is bounded and never marks work complete.
+    """
+    _check_id(task_id)
+    if phase not in PROGRESS_PHASES:
+        raise ValueError("JREI_OWNER_TASK_PROGRESS_PHASE_INVALID")
+    with closing(_open(db_path)) as db:
+        db.execute("BEGIN IMMEDIATE")
+        row = db.execute(
+            "SELECT status FROM owner_tasks WHERE id=?", (task_id,)
+        ).fetchone()
+        if not row or row[0] not in ("RUNNING", "CANCEL_REQUESTED"):
+            db.commit()
+            return False
+        count, current = db.execute(
+            """SELECT COUNT(*), MAX(sequence) FROM owner_task_steps
+               WHERE task_id=?""", (task_id,)
+        ).fetchone()
+        if count >= MAX_PROGRESS_STEPS:
+            db.commit()
+            return False
+        if current is not None:
+            last = db.execute(
+                "SELECT phase FROM owner_task_steps WHERE sequence=?", (current,)
+            ).fetchone()
+            if last and last[0] == phase:
+                db.commit()
+                return True
+        now = int(time.time())
+        db.execute(
+            "INSERT INTO owner_task_steps(task_id,created,phase) VALUES(?,?,?)",
+            (task_id, now, phase))
+        db.execute("UPDATE owner_tasks SET updated=? WHERE id=?", (now, task_id))
+        db.commit()
+    return True
+
+
+def _add_progress(db, items):
+    if not items:
+        return items
+    ids = [item["id"] for item in items]
+    marks = ",".join("?" for _ in ids)
+    rows = db.execute(
+        """SELECT steps.task_id,steps.phase,steps.created
+           FROM owner_task_steps steps
+           INNER JOIN (
+             SELECT task_id,MAX(sequence) AS last_sequence
+             FROM owner_task_steps
+             WHERE task_id IN (""" + marks + """)
+             GROUP BY task_id
+           ) latest ON latest.last_sequence=steps.sequence""", ids
+    ).fetchall()
+    mapped = {task_id: {"phase": phase, "updated": when}
+              for task_id, phase, when in rows}
+    for item in items:
+        item["progress"] = mapped.get(item["id"])
+    return items
+
 def _public(row, *, include_result=False):
     out = {"id": row[0], "conversation_id": row[1], "created": row[2],
            "updated": row[3], "status": row[4],
@@ -137,9 +213,9 @@ def get(db_path, task_id):
     _check_id(task_id)
     with closing(_open(db_path)) as db:
         row = db.execute(_SELECT + " WHERE id=?", (task_id,)).fetchone()
-    if not row:
-        raise ValueError("JREI_OWNER_TASK_NOT_FOUND")
-    return _public(row, include_result=True)
+        if not row:
+            raise ValueError("JREI_OWNER_TASK_NOT_FOUND")
+        return _add_progress(db, [_public(row, include_result=True)])[0]
 
 
 def list_recent(db_path, *, conversation_id=None, limit=30):
@@ -156,7 +232,7 @@ def list_recent(db_path, *, conversation_id=None, limit=30):
                 _SELECT + " ORDER BY sequence DESC LIMIT ?",
                 (min(50, max(1, int(limit))),),
             ).fetchall()
-    return [_public(row) for row in rows]
+        return _add_progress(db, [_public(row) for row in rows])
 
 
 def cancel(db_path, task_id):
