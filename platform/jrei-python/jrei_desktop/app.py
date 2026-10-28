@@ -118,6 +118,7 @@ class JREIDesktop(tk.Tk):
         self.conversations: list[dict] = []
         self.pending: dict[str, dict] = {}
         self.last_message_version = ""
+        self._last_messages: list[dict] = []
         self._job_inflight = False
         self._status_inflight = False
         self._threads_inflight = False
@@ -179,7 +180,7 @@ class JREIDesktop(tk.Tk):
             bg=COLORS["sidebar"], fg=COLORS["text"], selectbackground="#414044",
             selectforeground=COLORS["gold"],
             font=(PERSIAN_FONT, 10), height=25,
-            exportselection=False, justify="right",
+            exportselection=False,
         )
         self.threads.pack(fill="both", expand=True, padx=10)
         self.threads.bind("<<ListboxSelect>>", self._select_thread)
@@ -319,6 +320,8 @@ class JREIDesktop(tk.Tk):
             self._draw_threads()
             if not self.selected and self.conversations:
                 self._open_chat(self.conversations[0]["id"])
+            elif not self.selected and not self.conversations:
+                self._new_chat()
         elif kind == "created":
             if error:
                 self._status.set(error)
@@ -337,6 +340,7 @@ class JREIDesktop(tk.Tk):
             if generation != self._refresh_generation or ident != self.selected:
                 return
             messages = result.get("items", [])
+            self._last_messages = messages
             signature = repr([
                 (m.get("id"), m.get("role"), m.get("content")) for m in messages])
             if signature != self.last_message_version or self.pending:
@@ -348,10 +352,14 @@ class JREIDesktop(tk.Tk):
                 self._status.set(error)
                 self._refresh_messages()
                 return
-            if not TASK_PATTERN.fullmatch(str(data.get("id") or "")):
+            job = data.get("job") or {}
+            if not TASK_PATTERN.fullmatch(str(job.get("id") or "")):
                 self._status.set("شناسهٔ وظیفهٔ دریافتی نامعتبر است.")
                 return
-            self.pending[data["id"]] = data
+            if data.get("conversation_id") == self.selected:
+                self.pending[job["id"]] = {
+                    **job, "prompt": data.get("prompt", "")}
+                self._render_messages(self._last_messages)
             self._status.set("پیام دریافت شد؛ JREI در حال پردازش است…")
             self._refresh_messages()
         elif kind == "polled":
@@ -361,7 +369,9 @@ class JREIDesktop(tk.Tk):
                 return
             pending = data.get("items", [])
             active = {
-                item["id"]: item for item in pending if
+                item["id"]: {
+                    **item, "prompt": self.pending.get(item["id"], {}).get("prompt", "")}
+                for item in pending if
                 item.get("status") not in END_STATES and
                 TASK_PATTERN.fullmatch(str(item.get("id", "")))
             }
@@ -421,6 +431,7 @@ class JREIDesktop(tk.Tk):
         self.selected = ident
         self.pending = {}
         self.last_message_version = ""
+        self._last_messages = []
         self._refresh_generation += 1
         self._draw_threads()
         self._render_messages([])
@@ -480,6 +491,12 @@ class JREIDesktop(tk.Tk):
             if entry.get("state") and name == "JREI":
                 widget.insert(tk.END, str(entry["state"])[:90] + "\n", "meta")
         if self.pending:
+            for task in self.pending.values():
+                prompt = str(task.get("prompt") or "")
+                if prompt and not any(m.get("role") == "user" and
+                                      m.get("content") == prompt for m in messages[-4:]):
+                    widget.insert(tk.END, "\nشما\n", "name_user")
+                    widget.insert(tk.END, prompt + "\n", "user")
             widget.insert(tk.END, "\nJREI\n", "name_ai")
             widget.insert(tk.END, "در حال پردازش درخواست شما…\n", "waiting")
         widget.config(state="disabled")
@@ -512,9 +529,13 @@ class JREIDesktop(tk.Tk):
         self.transcript.insert(tk.END, "\nJREI\nدر صف پردازش…\n", "waiting")
         self.transcript.config(state="disabled")
         self.transcript.see(tk.END)
-        self._work("submitted", self.api.call, "/api/task/submit",
-                   {"conversation_id": ident, "message": text,
-                    "attachments": []})
+        def submit():
+            result = self.api.call("/api/task/submit", {
+                "conversation_id": ident, "message": text,
+                "attachments": []})
+            return {"job": result, "prompt": text,
+                    "conversation_id": ident}
+        self._work("submitted", submit)
 
     def _poll(self):
         if self.closed:
