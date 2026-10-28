@@ -17,6 +17,7 @@ import argparse
 from contextlib import closing
 import hashlib
 import json
+import math
 import os
 from pathlib import Path
 import secrets
@@ -148,14 +149,30 @@ def train(*, db_path: Path, private: Path, config_file: Path,
         yy = torch.tensor([sequence[i+1:i+context+1] for i in starts],
                           dtype=torch.long, device=device)
         return xx, yy
+    # Keep the development-validation offsets fixed across BEFORE/AFTER.
+    # Previously both passes consumed different random heldout windows from
+    # the training RNG, making apparent improvements noisy and unrepeatable.
+    # The sealed final test remains completely outside this trainer.
+    validation_rng = torch.Generator(device="cpu").manual_seed(seed ^ 0x5A17)
+    validation_upper = len(heldout_ids) - context - 1
+    validation_starts = torch.randint(
+        0, validation_upper + 1, (8,), generator=validation_rng).tolist()
+
     @torch.no_grad()
     def validation_loss():
         model.eval()
         losses = []
-        for _ in range(4):
-            x, y = batch(heldout_ids, 2)
+        for offset in range(0, len(validation_starts), 2):
+            starts = validation_starts[offset:offset + 2]
+            x = torch.tensor([heldout_ids[i:i + context] for i in starts],
+                             dtype=torch.long, device=device)
+            y = torch.tensor([heldout_ids[i + 1:i + context + 1] for i in starts],
+                             dtype=torch.long, device=device)
             _, loss = model(x, y)
-            losses.append(float(loss.item()))
+            measured = float(loss.item())
+            if not math.isfinite(measured):
+                raise ValueError("JREI_SCRATCH_NONFINITE_HELDOUT_LOSS")
+            losses.append(measured)
         model.train()
         return sum(losses) / len(losses)
     baseline = validation_loss()
@@ -221,6 +238,9 @@ def train(*, db_path: Path, private: Path, config_file: Path,
         "heldout_cross_entropy_before": baseline,
         "heldout_cross_entropy_after": post,
         "heldout_improved_on_this_split": post < baseline,
+        "development_validation_fixed_windows": True,
+        "development_validation_window_count": len(validation_starts),
+        "development_validation_only_not_sealed_test": True,
         "heldout_independently_evaluated": False,
         "persian_english_quality_validated": False,
         "trained_from_random_initialization": True,
