@@ -1,0 +1,195 @@
+"""Owner-approved JREI scratch-checkpoint inference in the EXISTING panel.
+
+The default path is always OFF. Nothing is downloaded or installed. No third-
+party pretrained weights, external chat APIs, model-manager app, extra server,
+second SQLite database or independent model port. This module becomes eligible
+only if a from-scratch candidate, sealed-source evaluation, separate offline
+bilingual review and explicit owner activation exist in the private store.
+
+The output is a DRAFT. Reusing MIT source code does NOT imply ChatGPT-level
+general understanding; a small scratch checkpoint may produce poor text.
+"""
+from __future__ import annotations
+
+import hashlib
+import json
+from pathlib import Path
+import re
+import threading
+
+from jrei_service.windows_native_corpus import load_verified_candidate
+
+_LOCK = threading.RLock()
+_CACHE: dict = {}
+IDENT = re.compile(r"^[a-f0-9]{32}$")
+SHA = re.compile(r"^[a-f0-9]{64}$")
+
+
+def _sha(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as stream:
+        for block in iter(lambda: stream.read(1024 * 1024), b""):
+            digest.update(block)
+    return digest.hexdigest()
+
+
+def _approved(private: Path, db_path: Path) -> dict:
+    selection = private / "native-checkpoint-activation.json"
+    if (not selection.is_file() or selection.is_symlink()
+            or selection.stat().st_size > 8000):
+        raise RuntimeError("JREI_NO_OWNER_APPROVED_NATIVE_CHECKPOINT")
+    cfg = json.loads(selection.read_text(encoding="utf-8"))
+    if (not isinstance(cfg, dict)
+            or cfg.get("schema") != "jr.jrei.native-owner-activation.v1"
+            or cfg.get("owner_approved") is not True
+            or cfg.get("independent_review_recorded") is not True
+            or cfg.get("external_pretrained_weights_used") is not False
+            or cfg.get("mode") != "JREI_NATIVE_SOURCE_ONLY"):
+        raise ValueError("JREI_NATIVE_ACTIVATION_POLICY_INVALID")
+    rid = cfg.get("run_id")
+    if not isinstance(rid, str) or not IDENT.fullmatch(rid):
+        raise ValueError("JREI_NATIVE_ACTIVATION_RUN_INVALID")
+    root = private / "native-foundation-runs"
+    folder = root / rid
+    if (root.is_symlink() or folder.is_symlink()
+            or not folder.is_dir() or folder.resolve().parent != root.resolve()):
+        raise ValueError("JREI_NATIVE_ACTIVATION_FOLDER_INVALID")
+    manifest = folder / "training-manifest.json"
+    checkpoint = folder / "jrei-native-unapproved.pt"
+    evaluation = folder / "sealed-evaluation.json"
+    review = folder / "independent-bilingual-review.json"
+    for path, limit in ((manifest, 16_000), (checkpoint, 500_000_000),
+                        (evaluation, 16_000), (review, 32_000)):
+        if (not path.is_file() or path.is_symlink()
+                or path.stat().st_size > limit):
+            raise ValueError("JREI_NATIVE_ACTIVATION_ARTIFACT_MISSING")
+    rec = json.loads(manifest.read_text(encoding="utf-8"))
+    eva = json.loads(evaluation.read_text(encoding="utf-8"))
+    review_data = json.loads(review.read_text(encoding="utf-8"))
+    for label, actual in (("checkpoint_sha256", checkpoint),
+                          ("sealed_evaluation_sha256", evaluation),
+                          ("review_record_sha256", review)):
+        if (not SHA.fullmatch(str(cfg.get(label, "")))
+                or _sha(actual) != cfg[label]):
+            raise ValueError("JREI_NATIVE_ACTIVATION_DIGEST_CHANGED")
+    if (not isinstance(rec, dict)
+            or rec.get("schema") != "jr.jrei.native-from-scratch-run.v1"
+            or rec.get("run_id") != rid
+            or rec.get("trained_from_random_initialization") is not True
+            or rec.get("external_pretrained_weights_used") is not False
+            or rec.get("weights_sha256") != cfg["checkpoint_sha256"]
+            or not isinstance(eva, dict)
+            or eva.get("schema") != "jr.jrei.native-sealed-evaluation.v1"
+            or eva.get("run_id") != rid
+            or eva.get("model_sha256") != cfg["checkpoint_sha256"]
+            or eva.get("state") != "SEALED_NEXT_TOKEN_SCORE_UNVERIFIED"):
+        raise ValueError("JREI_NATIVE_ACTIVATION_PROVENANCE_INVALID")
+    if (not isinstance(review_data, dict)
+            or review_data.get("schema") != "jr.jrei.native-bilingual-review.v1"
+            or review_data.get("run_id") != rid
+            or review_data.get("model_sha256") != cfg["checkpoint_sha256"]
+            or review_data.get("evaluation_sha256") != cfg["sealed_evaluation_sha256"]
+            or review_data.get("persian_reviewed") is not True
+            or review_data.get("english_reviewed") is not True
+            or review_data.get("owner_authorized_private_inference") is not True
+            or review_data.get("reviewer_is_model_itself") is not False):
+        raise ValueError("JREI_NATIVE_ACTIVATION_BILINGUAL_REVIEW_MISSING")
+    candidate = load_verified_candidate(db_path, private, rec["source_candidate_id"])
+    if _sha(candidate["path"] / "manifest.json") != rec["source_manifest_sha256"]:
+        raise ValueError("JREI_NATIVE_ACTIVATION_CORPUS_REVOKED")
+    if (eva.get("corpus_sha256") != candidate["manifest"]["sealed_test_sha256"]
+            or candidate["manifest"]["train_sha256"] != rec["train_sha256"]):
+        raise ValueError("JREI_NATIVE_ACTIVATION_TEST_CORPUS_CHANGED")
+    return {"config": cfg, "run": rec, "path": checkpoint,
+            "tokenizer_path": candidate["path"] / "tokenizer.json"}
+
+
+def _load_tokenizer(path: Path):
+    if path.is_symlink() or path.stat().st_size > 100_000:
+        raise ValueError("JREI_NATIVE_TOKENIZER_INVALID")
+    content = json.loads(path.read_text(encoding="utf-8"))
+    if (content.get("schema") != "jr.jrei.native-byte-bpe.v1"
+            or content.get("external_tokenizer_weights") is not False
+            or not isinstance(content.get("merges"), list)):
+        raise ValueError("JREI_NATIVE_TOKENIZER_PROVENANCE_INVALID")
+    from jrei_service._vendor.minbpe import BasicTokenizer
+    bpe = BasicTokenizer()
+    bpe.merges = {}
+    bpe.vocab = {i: bytes([i]) for i in range(256)}
+    for rule in content["merges"]:
+        if (not isinstance(rule, list) or len(rule) != 3
+                or not all(type(v) is int for v in rule)):
+            raise ValueError("JREI_NATIVE_TOKENIZER_RULE_INVALID")
+        left, right, token_id = rule
+        if (left not in bpe.vocab or right not in bpe.vocab
+                or token_id != len(bpe.vocab) or token_id > 767):
+            raise ValueError("JREI_NATIVE_TOKENIZER_MERGE_ORDER_INVALID")
+        bpe.merges[(left, right)] = token_id
+        bpe.vocab[token_id] = bpe.vocab[left] + bpe.vocab[right]
+    if len(bpe.vocab) != content["vocab_size"]:
+        raise ValueError("JREI_NATIVE_TOKENIZER_VOCAB_CHANGED")
+    return bpe
+
+
+def complete(*, db_path: Path, private: Path,
+             messages: list[dict], max_tokens: int = 160) -> dict:
+    if (not isinstance(messages, list) or not 1 <= len(messages) <= 15
+            or type(max_tokens) is not int or not 1 <= max_tokens <= 256):
+        raise ValueError("JREI_NATIVE_CHAT_REQUEST_INVALID")
+    approved = _approved(private, db_path)
+    cfg = approved["config"]
+    signature = (approved["run"]["weights_sha256"],
+                 cfg["sealed_evaluation_sha256"], cfg["review_record_sha256"])
+    import torch
+    from jrei_service._vendor.nanogpt.model import GPT, GPTConfig
+    with _LOCK:
+        global _CACHE
+        if _CACHE.get("signature") != signature:
+            dims = approved["run"]["model_architecture"]
+            if (not isinstance(dims, dict)
+                    or dims.get("family") != "JREI_FROM_SCRATCH_NANOGPT_MIT_CODE"):
+                raise ValueError("JREI_NATIVE_MODEL_FAMILY_INVALID")
+            for key, lo, hi in (("layers",1,6),("heads",1,8),
+                                 ("embedding",32,384),("block_size",32,256),
+                                 ("vocab_size",256,768)):
+                if type(dims.get(key)) is not int or not lo <= dims[key] <= hi:
+                    raise ValueError("JREI_NATIVE_MODEL_DIMENSIONS_INVALID")
+            if dims["embedding"] % dims["heads"]:
+                raise ValueError("JREI_NATIVE_MODEL_ATTENTION_MISMATCH")
+            model = GPT(GPTConfig(
+                block_size=dims["block_size"], vocab_size=dims["vocab_size"],
+                n_layer=dims["layers"], n_head=dims["heads"],
+                n_embd=dims["embedding"], dropout=0.0, bias=True))
+            # weights_only prevents unpickling arbitrary Python objects.
+            weights = torch.load(approved["path"], map_location="cpu",
+                                 weights_only=True)
+            model.load_state_dict(weights, strict=True)
+            model.eval()
+            tokenizer = _load_tokenizer(approved["tokenizer_path"])
+            _CACHE = {"signature": signature, "model": model,
+                      "tokenizer": tokenizer, "context": dims["block_size"]}
+        model, bpe, ctx = (_CACHE["model"], _CACHE["tokenizer"],
+                           _CACHE["context"])
+        history = "\n".join(str(m.get("content",""))[:1200]
+                            for m in messages[-7:]
+                            if m.get("role") in ("user","assistant"))
+        prompt = ("JREI\n" + history)[-2400:]
+        ids = bpe.encode(prompt)
+        if not ids:
+            raise ValueError("JREI_NATIVE_TOKENIZATION_EMPTY")
+        tokens = torch.tensor([ids[-ctx:]], dtype=torch.long)
+        with torch.no_grad():
+            generated = model.generate(tokens, max_new_tokens=min(128,max_tokens),
+                                       temperature=0.8, top_k=min(32,len(bpe.vocab)))
+        answer = bpe.decode(generated[0, len(tokens[0]):].tolist()).strip()
+        if not answer:
+            raise RuntimeError("JREI_NATIVE_DRAFT_EMPTY")
+        return {
+            "answer": answer[:3500], "model": approved["run"]["model_id"],
+            "backend": "JREI_OWN_TRAINED_SOURCE_CODE",
+            "quality": "NATIVE_SMALL_MODEL_DRAFT_NOT_FACT_VERIFIED",
+            "output_tokens": generated.shape[1] - len(tokens[0]),
+            "trained_from_scratch": True,
+            "no_external_model_weights": True,
+            "website_changed": False,
+        }
