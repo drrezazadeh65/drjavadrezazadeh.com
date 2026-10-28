@@ -219,7 +219,12 @@ def propose_capacity_placements(request: CapacityPlanRequest) -> CapacityPlan:
                 continue
             if work.task_kind not in node.eligible_work_classes:
                 continue
-            if node.owner_interactive_busy and work.execution_class != "BACKGROUND":
+            # Even BACKGROUND training can freeze the owner's game or
+            # browser. When interactive, hold GPU jobs and memory-intensive
+            # tasks; permit only bounded light background work.
+            if (node.owner_interactive_busy and
+                    (work.execution_class != "BACKGROUND" or work.requires_gpu
+                     or work.estimated_memory_mb > 512)):
                 continue
             if node.cpu_utilization > request.maximum_cpu_utilization:
                 continue
@@ -236,11 +241,26 @@ def propose_capacity_placements(request: CapacityPlanRequest) -> CapacityPlan:
                 remaining_gpu = (
                     node.gpu_available_memory_mb - allotted["gpu"]
                 )
-                if remaining_gpu < work.requested_gpu_memory_mb:
+                # GPUs on two PCs are *not* one shared VRAM allocation.
+                # Reserve physical headroom for the display driver and owner.
+                gpu_reserve = max(512, int(node.gpu_total_memory_mb * 0.12))
+                if (allotted["gpu"] > 0 or
+                        remaining_gpu - work.requested_gpu_memory_mb < gpu_reserve):
                     continue
             # Lowest active load, most unused memory. Never mix RAM of nodes.
             load = allotted["jobs"] / node.capacity_threads
-            ranked_nodes.append((load - available / max(node.memory_total_mb, 1), node_id))
+            # Heavy jobs favor physically larger *available* RAM (the 32GB
+            # PC when truly idle); small jobs prioritize load balancing.
+            # Resource observations, never the owner's assumed GPU sizes,
+            # decide real eligibility. No VRAM/RAM pooling across machines.
+            spare_after_job = max(0, available - work.estimated_memory_mb)
+            relative_spare = spare_after_job / max(node.memory_total_mb, 1)
+            absolute_spare = min(1.0, spare_after_job / 32768.0)
+            if work.execution_class == "HEAVY":
+                placement_cost = load - 0.5 * relative_spare - 0.5 * absolute_spare
+            else:
+                placement_cost = load - relative_spare
+            ranked_nodes.append((placement_cost, node_id))
         if not ranked_nodes:
             reasons.append("NO_FRESH_ELIGIBLE_NODE_WITH_SAFE_RESOURCE_HEADROOM")
 
