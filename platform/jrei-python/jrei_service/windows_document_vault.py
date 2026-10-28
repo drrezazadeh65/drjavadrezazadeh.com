@@ -22,7 +22,7 @@ from xml.etree import ElementTree as ET
 MAX_BYTES = 4_000_000
 MAX_EXTRACTED = 80_000
 ALLOWED = frozenset((".txt", ".md", ".csv", ".json", ".py", ".js", ".mjs",
-                     ".html", ".css", ".docx", ".pdf"))
+                     ".html", ".css", ".docx", ".pdf", ".pptx", ".xlsx"))
 IDENT = re.compile(r"^[a-f0-9]{32}$")
 
 
@@ -93,6 +93,9 @@ def _extract(name: str, data: bytes) -> tuple[str, str]:
     if suffix == ".docx":
         value = _docx_text(data)
         return value, "DOCX_TEXT_EXTRACTED" if value.strip() else "DOCX_NO_TEXT"
+    if suffix in (".pptx", ".xlsx"):
+        from jrei_service.windows_office_structures import extract_office
+        return extract_office(name, data)
     if suffix == ".pdf":
         return _pdf_text(data)
     try:
@@ -122,8 +125,8 @@ def import_document(*, private: Path, name: str, data_base64: str) -> dict:
     extension = Path(name).suffix.lower()
     if extension == ".pdf" and not raw.startswith(b"%PDF-"):
         raise ValueError("JREI_DOCUMENT_PDF_HEADER_INVALID")
-    if extension == ".docx" and not raw.startswith(b"PK"):
-        raise ValueError("JREI_DOCUMENT_DOCX_HEADER_INVALID")
+    if extension in (".docx", ".pptx", ".xlsx") and not raw.startswith(b"PK"):
+        raise ValueError("JREI_DOCUMENT_OOXML_HEADER_INVALID")
     try:
         text, extraction = _extract(name, raw)
     except Exception:
