@@ -33,6 +33,7 @@ from jrei_service import windows_model_curriculum as curriculum
 from jrei_service import windows_native_brain as native_brain
 from jrei_service import windows_native_neural as native_neural
 from jrei_service import windows_native_corpus as native_corpus
+from jrei_service import windows_native_scratch_training as scratch_training
 from jrei_service import windows_resource_policy as resource_policy
 from jrei_service import windows_learning_agenda as agenda
 from jrei_service import windows_autonomous_topics as auto_topics
@@ -683,6 +684,7 @@ def status():
         "native_language_baseline": native_brain.snapshot(DB_PATH, PRIVATE),
         "native_neural_training": native_neural.snapshot(DB_PATH),
         "native_foundation_source_readiness": native_corpus.readiness(DB_PATH),
+        "native_scratch_training_registry": scratch_training.snapshot(PRIVATE),
         "adaptive_hardware_budget": resource_policy.snapshot(),
         "tehran_study_priority": resource_policy.tehran_study_window(),
         "learning_agenda": agenda.snapshot(DB_PATH),
