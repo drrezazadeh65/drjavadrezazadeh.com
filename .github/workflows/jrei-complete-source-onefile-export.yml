@@ -1,0 +1,71 @@
+name: JREI Complete AI Code - Single ZIP Export
+on:
+  push:
+    branches:
+      - migration/bertina-linux6
+    paths:
+      - 'scripts/jrei-export-complete-ai-source.py'
+      - '.github/workflows/jrei-complete-source-onefile-export.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: jrei-complete-ai-source-export
+  cancel-in-progress: false
+
+jobs:
+  archive:
+    name: Export all AI code and required site integrations as ONE downloadable ZIP
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      GITHUB_REPOSITORY: ${{ github.repository }}
+      GITHUB_REF_NAME: ${{ github.ref_name }}
+    steps:
+      - name: Checkout exact canonical source snapshot
+        uses: actions/checkout@v4
+        with:
+          ref: migration/bertina-linux6
+          persist-credentials: false
+          fetch-depth: 1
+      - name: Run offline deterministic and credential-excluding exporter
+        run: |
+          set -euo pipefail
+          python3 -m py_compile scripts/jrei-export-complete-ai-source.py
+          python3 scripts/jrei-export-complete-ai-source.py
+      - name: Verify manifest and complete source package before upload
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import hashlib,json,os
+          from pathlib import Path
+          root=Path(os.environ['RUNNER_TEMP'])/'JREI_AI_ONE_FILE'
+          m=json.loads((root/'JREI_SOURCE_MANIFEST.json').read_text())
+          assert m['schema']=='jr.jrei.full-source-onefile.v1'
+          assert m['immutable_commit_sha']==os.environ['GITHUB_SHA']
+          assert m['files_total']>1000
+          for f in m['files']:
+              p=root/'JREI_AI_SOURCE'/f['path']
+              assert p.is_file()
+              assert len(p.read_bytes())==f['size_bytes']
+              assert hashlib.sha256(p.read_bytes()).hexdigest()==f['sha256']
+          print('JREI_AI_SINGLE_ZIP_COMPLETE_SOURCE_VERIFIED')
+          print('SOURCE_FILES='+str(m['files_total']))
+          print('COMMIT='+m['immutable_commit_sha'])
+          PY
+      - name: Upload one downloadable ZIP containing original folder structure
+        uses: actions/upload-artifact@v4
+        with:
+          name: JREI-AI-COMPLETE-SOURCE-${{ github.sha }}
+          path: ${{ runner.temp }}/JREI_AI_ONE_FILE/
+          compression-level: 6
+          retention-days: 90
+          if-no-files-found: error
+      - name: Link deliverable from workflow summary
+        run: |
+          echo '## JREI complete AI source — one ZIP' >> "$GITHUB_STEP_SUMMARY"
+          echo "Immutable Git SHA: \`${GITHUB_SHA}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo 'The artifact above is the ONE ZIP archive containing source, shared integrations, master prompts, tests, workflows and checksum manifest.' >> "$GITHUB_STEP_SUMMARY"
+          echo 'No server deployment, model change, database modification, or private token export occurred.' >> "$GITHUB_STEP_SUMMARY"
