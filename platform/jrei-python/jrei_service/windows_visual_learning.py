@@ -175,7 +175,7 @@ def _day_report(db, day: int) -> dict:
         SUM(CASE WHEN state='APPROVED_FOR_MANUAL_HANDOFF' THEN 1 ELSE 0 END),
         SUM(CASE WHEN state='REJECTED' THEN 1 ELSE 0 END)
         FROM jrei_site_image_jobs
-        WHERE renderer=? AND created>=? AND created<?""",
+        WHERE renderer=? AND reviewed_at>=? AND reviewed_at<?""",
         (ENGINE,lo,hi)).fetchone()
     rows=db.execute("""SELECT score_sum FROM jrei_native_visual_feedback
         WHERE created>=? AND created<?""",(lo,hi)).fetchall()
@@ -195,18 +195,21 @@ def daily_checkpoint(db_path: Path, *, observed_at: int | None = None) -> dict:
     now = int(time.time()) if observed_at is None else observed_at
     if type(now) is not int or now < 0:
         raise ValueError("JREI_VISUAL_DAY_CLOCK_INVALID")
-    today = now // 86400
+    completed_day = now // 86400 - 1
+    if completed_day < 0:
+        raise ValueError("JREI_VISUAL_NO_COMPLETED_DAY")
     with closing(_db(db_path)) as db:
         db.execute("BEGIN IMMEDIATE")
-        present = _day_report(db,today)
-        yesterday = _day_report(db,today-1)
-        # An incomplete current day cannot establish a completed-day trend.
+        present = _day_report(db,completed_day)
+        yesterday = _day_report(db,completed_day-1)
+        # Only completed UTC days are compared. Distinct prompts and
+        # reviewers still prevent a causal inference of improving quality.
         enough = present["owner_rated_assets"] >= 4 and yesterday["owner_rated_assets"] >= 4
         delta = (round(present["owner_rated_mean"] - yesterday["owner_rated_mean"],4)
                  if enough else None)
         payload = {
             "present":present,"prior":yesterday,
-            "measured_mean_difference_including_partial_current_day":delta,
+            "mean_difference_between_completed_days":delta,
             "same_image_prompt_and_seed_controlled_comparison":False,
             "daily_image_quality_improvement_proven":False,
             "new_native_visual_weights_trained":False,
@@ -219,7 +222,7 @@ def daily_checkpoint(db_path: Path, *, observed_at: int | None = None) -> dict:
                "OWNER_SCORES_NOT_HIGHER")
         db.execute("""INSERT OR IGNORE INTO jrei_native_visual_daily_receipts
             (utc_day,observed,data_json,digest,state) VALUES(?,?,?,?,?)""",
-            (today,now,raw,digest,state))
+            (completed_day,now,raw,digest,state))
         db.commit()
     return snapshot(db_path)
 
