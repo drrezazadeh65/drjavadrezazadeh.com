@@ -116,6 +116,17 @@ def setup() -> str:
     return token
 
 
+def get_json(url: str, timeout: float = 3.0):
+    """Read only the existing private Python health endpoint.
+
+    Preserve the old health job after retiring the legacy Qwen discovery
+    function. No proxy, redirects, remote host or arbitrary URL permitted.
+    """
+    if url != "http://127.0.0.1:8091/internal/v1/health":
+        raise ValueError("JREI_HEALTH_ENDPOINT_NOT_ALLOWED")
+    return language_backend._exchange(url, timeout=timeout)
+
+
 def local_model():
     """Only the explicitly configured non-Qwen JREI engine is eligible."""
     try:
