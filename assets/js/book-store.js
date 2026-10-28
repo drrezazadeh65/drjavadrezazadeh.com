@@ -69,7 +69,20 @@
  async function load(){
   const res=await fetch(root('assets/data/book-catalog.json'),{cache:'no-store'});
   if(!res.ok) throw new Error('catalog');
-  return res.json();
+  const original=await res.json();
+  // The generated 3-title poetry catalogue is immutable. A separately
+  // versioned collectible catalogue extends the UI without changing it.
+  let extras=[];
+  try{
+    const r=await fetch(root('assets/data/collectible-catalog.json'),{cache:'no-store'});
+    if(r.ok){
+      const d=await r.json();
+      if(Array.isArray(d.books)) extras=d.books.filter(b=>b?.commerce?.single_copy===true);
+    }
+  }catch(_){/* The original shop must remain functional if optional data fail. */}
+  const legacy=Array.isArray(original.books)?original.books:[];
+  const known=new Set(legacy.map(b=>b.id));
+  return {...original,books:[...legacy,...extras.filter(b=>!known.has(b.id))]};
  }
  function ready(book){
   return book?.commerce?.sellable===true&&Number.isInteger(book.commerce.price)&&Boolean(book.commerce.currency);
