@@ -208,7 +208,7 @@ def claim(db_path: Path) -> str | None:
     with closing(_connect(db_path)) as db:
         db.execute("BEGIN IMMEDIATE")
         row = db.execute("""SELECT id FROM jrei_site_image_jobs
-            WHERE state IN ('QUEUED','HELD_DEPENDENCY','HELD_MISSING_MODEL')
+            WHERE state='QUEUED'
             ORDER BY created LIMIT 1""").fetchone()
         if row:
             db.execute("""UPDATE jrei_site_image_jobs SET state='RUNNING',
@@ -353,6 +353,27 @@ def mark_failure(db_path: Path, ident: str, state: str, code: str):
         db.commit()
 
 
+def retry(db_path: Path, request: dict) -> dict:
+    if not isinstance(request, dict) or request.get("confirm") is not True:
+        raise ValueError("JREI_IMAGE_RETRY_CONFIRMATION_REQUIRED")
+    ident = request.get("id")
+    if not isinstance(ident, str) or not ID.fullmatch(ident):
+        raise ValueError("JREI_IMAGE_JOB_ID_INVALID")
+    with closing(_connect(db_path)) as db:
+        db.execute("BEGIN IMMEDIATE")
+        changed = db.execute("""UPDATE jrei_site_image_jobs
+            SET state='QUEUED',updated=?,error_code='' WHERE id=? AND
+            state IN ('HELD_MISSING_MODEL','HELD_DEPENDENCY',
+                      'HELD_RESOURCES','GENERATION_FAILED','INTERRUPTED')""",
+            (int(time.time()), ident)).rowcount
+        if changed != 1:
+            db.rollback()
+            raise ValueError("JREI_IMAGE_JOB_NOT_RETRYABLE")
+        db.commit()
+    return {"schema": SCHEMA, "id": ident, "state": "QUEUED",
+            "published": False}
+
+
 def list_recent(db_path: Path, limit: int=20) -> dict:
     with closing(_connect(db_path)) as db:
         db.row_factory = sqlite3.Row
@@ -438,8 +459,28 @@ def main():
     private = args.private.resolve(strict=True)
     if private.name != "command-center" or private.parent.name != "JREI":
         parser.error("JREI_IMAGE_PRIVATE_ROOT_INVALID")
-    answer = render_one(private / "missions.sqlite3", private, args.render)
-    print(json.dumps(answer, ensure_ascii=False))
+    db_path = private / "missions.sqlite3"
+    try:
+        answer = render_one(db_path, private, args.render)
+        print(json.dumps(answer, ensure_ascii=False))
+    except (ImportError, OSError, ValueError, RuntimeError) as exc:
+        message = str(exc)
+        if "MODEL_" in message or "PIPELINE_" in message:
+            state = "HELD_MISSING_MODEL"
+        elif isinstance(exc, ImportError):
+            state = "HELD_DEPENDENCY"
+        elif "GPU_" in message or "CUDA" in message or "RESOURCES" in message:
+            state = "HELD_RESOURCES"
+        else:
+            state = "GENERATION_FAILED"
+        try:
+            mark_failure(db_path, args.render, state,
+                         "RENDER_" + exc.__class__.__name__.upper())
+        except (OSError, ValueError, sqlite3.Error):
+            pass
+        print(json.dumps({"state": state, "error_class": exc.__class__.__name__,
+                          "published": False}))
+        raise SystemExit(2) from None
 
 
 if __name__ == "__main__":
