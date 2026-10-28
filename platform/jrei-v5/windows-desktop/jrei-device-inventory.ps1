@@ -1,0 +1,99 @@
+#Requires -Version 5.1
+<#
+ JREI owner-device inventory; works before node enrollment on any Windows x64 PC.
+ This is a bounded READ-ONLY UI prerequisite report. No model, Git,
+ Node.js, Python, network requests, key creation, registration, tests, elevated
+ permissions, scheduled task changes or installation steps are executed.
+ Hardware values are observations, NOT signed worker/GPU proof.
+#>
+[CmdletBinding()]
+param()
+Set-StrictMode -Version Latest
+$ErrorActionPreference='Stop'
+if($env:OS -cne 'Windows_NT'){throw 'JREI_DEVICE_WINDOWS_REQUIRED'}
+if(-not [Environment]::Is64BitOperatingSystem){
+ throw 'JREI_DEVICE_WINDOWS_X64_REQUIRED'
+}
+$homePath=$env:LOCALAPPDATA
+if([string]::IsNullOrWhiteSpace($homePath)){throw 'JREI_DEVICE_USER_PROFILE_MISSING'}
+$cfgPath=Join-Path $homePath 'JREI\jrei-worker-config.json'
+$keyPath=Join-Path $homePath 'JREI\jrei-worker-key.dpapi'
+$tokenPath=Join-Path $homePath 'JREI\command-center\owner-token'
+$repoPath=Join-Path $homePath 'JREI-Python\repo'
+$pythonPath=Join-Path $homePath 'JREI-Python\venv\Scripts\python.exe'
+$taskName='JREI-Owner-Windows-Command-Center'
+$state='NEW_NODE_OWNER_ENROLLMENT_REQUIRED'
+$node='NOT_REGISTERED_LOCALLY'
+$configPresent=$false
+$keyPresent=$false
+if(Test-Path -LiteralPath $cfgPath -PathType Leaf){
+ $cfgFile=Get-Item -LiteralPath $cfgPath -ErrorAction Stop
+ if($cfgFile.Attributes -band [IO.FileAttributes]::ReparsePoint){
+  $state='PRIVATE_CONFIG_REPARSE_POINT_REJECTED'
+ }elseif($cfgFile.Length -gt 65536 -or $cfgFile.Length -le 0){
+  $state='PRIVATE_CONFIG_SIZE_INVALID'
+ }else{
+  try {
+   $c=Get-Content -LiteralPath $cfgPath -Raw -Encoding UTF8 | ConvertFrom-Json
+   $configPresent=$true
+   $id=[string]$c.nodeId
+   if($c.protocol -cne 'jr.jrei.windows-worker.v1' -or
+      $c.origin -cne 'https://drjavadrezazadeh.com' -or
+      $id -cnotmatch '^[a-f0-9]{8}-(?:[a-f0-9]{4}-){3}[a-f0-9]{12}$'){
+    $state='EXISTING_PRIVATE_CONFIG_REVIEW_REQUIRED'
+   }else{
+    $node='EXISTING_NODE_ID_PRESENT'
+    $state='EXISTING_NODE_CONFIG_PRESENT_REMOTE_STATUS_UNVERIFIED'
+   }
+  }catch{
+   $state='EXISTING_PRIVATE_CONFIG_UNREADABLE'
+  }
+ }
+}
+if(Test-Path -LiteralPath $keyPath -PathType Leaf){
+ $keyFile=Get-Item -LiteralPath $keyPath -ErrorAction Stop
+ $keyPresent=((-not ($keyFile.Attributes -band [IO.FileAttributes]::ReparsePoint)) -and
+               $keyFile.Length -gt 0 -and $keyFile.Length -le 16384)
+}
+if($state -eq 'EXISTING_NODE_CONFIG_PRESENT_REMOTE_STATUS_UNVERIFIED' -and
+   -not $keyPresent){
+ $state='EXISTING_NODE_SIGNING_KEY_NEEDS_OWNER_REVIEW'
+}
+$ramGB=$null
+$cpuThreads=$null
+try{
+ $computer=Get-CimInstance Win32_ComputerSystem -ErrorAction Stop
+ $ramGB=[math]::Round([double]$computer.TotalPhysicalMemory/1GB,1)
+ $cpuThreads=[int]$computer.NumberOfLogicalProcessors
+}catch{
+ # Do not fake hardware measurements when Windows blocks this API.
+}
+$taskPresent=$false
+try{
+ $t=Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue
+ $taskPresent=($null -ne $t)
+}catch{}
+$report=[ordered]@{
+ schema='jr.jrei.windows-dynamic-node-inventory.v1'
+ state=$state
+ machine_id=$node
+ node_slots_fixed=$false
+ max_nodes_enforced=$false
+ ram_gb_observed=$ramGB
+ cpu_threads_observed=$cpuThreads
+ ram_is_not_node_identity=$true
+ gpu_compute_verified=$false
+ existing_private_config_present=$configPresent
+ signing_key_file_present=$keyPresent
+ owner_token_file_present=(Test-Path -LiteralPath $tokenPath -PathType Leaf)
+ original_repo_present=(Test-Path -LiteralPath $repoPath -PathType Container)
+ original_python_present=(Test-Path -LiteralPath $pythonPath -PathType Leaf)
+ original_command_center_task_present=$taskPresent
+ real_signed_server_registration_verified=$false
+ real_signed_worker_heartbeat_verified=$false
+ new_node_requires_server_side_owner_registration=($node -eq 'NOT_REGISTERED_LOCALLY')
+ user_data_modified=$false
+ code_executed=$false
+ installation_performed=$false
+}
+$report | ConvertTo-Json -Depth 4 -Compress
