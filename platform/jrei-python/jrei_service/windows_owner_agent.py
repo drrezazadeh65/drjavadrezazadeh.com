@@ -23,6 +23,7 @@ from jrei_service.windows_project_generator import generate as generate_project
 from jrei_service.windows_document_retrieval import retrieve as retrieve_document_evidence
 from jrei_service import windows_continuous_learning as knowledge
 from jrei_service import windows_evidence_memory as memory_graph
+from jrei_service import windows_code_experience as code_experience
 from jrei_service.windows_codebase_map import build as build_repository_map
 
 MAX_MESSAGE = 9000
@@ -424,6 +425,13 @@ def _tool_output(tool: str, args: dict, *, repo: Path, private: Path, db_path: P
     if tool == "edit_local":
         receipt = develop(repo=repo, private=private, target=args["target"],
                           objective=args["objective"], model_reply=model_reply)
+        # Draft experiences are metadata, never automatically trusted labels.
+        # Do not hide a successful local edit if learning ledger is offline.
+        try:
+            code_experience.record_draft(db_path, receipt)
+            receipt["code_experience_state"] = "DRAFT_UNREVIEWED"
+        except (OSError, ValueError, sqlite3.Error):
+            receipt["code_experience_state"] = "LEDGER_UNAVAILABLE"
         return receipt["state"], json.dumps(receipt, ensure_ascii=False)
     if tool == "rollback_local":
         receipt = rollback(private=private, receipt_id=args["receipt_id"])
