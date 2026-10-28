@@ -169,7 +169,7 @@ def feedback_hints(db_path: Path, target: str) -> str:
         else:
             interpretation = "Owner accepted draft for review; NO successful test is proven."
         notes.append(f"{verdict} (sha256:{digest[:16]}): {interpretation}")
-    return "\\n".join(notes)[:900]
+    return "\n".join(notes)[:900]
 
 
 def snapshot(db_path: Path) -> dict:
