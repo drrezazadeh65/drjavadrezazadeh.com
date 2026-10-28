@@ -275,6 +275,59 @@ def preview_diff(*, private: Path, receipt_id: str) -> dict:
 
 
 
+
+def preview_bundle(*, private: Path, receipt_ids: list[str]) -> dict:
+    """Compose a review-only, hash-pinned multi-file proposal.
+
+    Each file must already have its own explicit local owner-approved edit
+    receipt. This is NOT atomic application of code, and does not elevate
+    a local edit to Github/production authorization. The bundled proposal
+    can be reviewed, copied or abandoned without filesystem mutation.
+    """
+    if (not isinstance(receipt_ids, list)
+            or not 2 <= len(receipt_ids) <= 5
+            or any(not isinstance(value, str) or not re.fullmatch(
+                r"\d{8}T\d{6}Z-[a-f0-9]{12}", value)
+                for value in receipt_ids)
+            or len(set(receipt_ids)) != len(receipt_ids)):
+        raise ValueError("JREI_WORKSPACE_BUNDLE_RECEIPTS_INVALID")
+    reviewed = [preview_diff(private=private, receipt_id=ident)
+                for ident in receipt_ids]
+    targets = [item["target"] for item in reviewed]
+    if len(set(targets)) != len(targets):
+        raise ValueError("JREI_WORKSPACE_BUNDLE_DUPLICATE_TARGET")
+    ordered = sorted(reviewed, key=lambda item: (item["target"],
+                                                 item["receipt_id"]))
+    combined = "\n\n".join(item["diff"] for item in ordered)
+    if len(combined.encode("utf-8")) > 36000:
+        raise ValueError("JREI_WORKSPACE_BUNDLE_DIFF_BUDGET_EXCEEDED")
+    # Hash a deterministic manifest of the individually verified receipts.
+    # Manifest hash is a review identifier, NOT a signature or quality test.
+    files = [{
+        "target": item["target"],
+        "receipt_id": item["receipt_id"],
+        "source_sha256": item["source_sha256"],
+        "before_sha256": item["before_sha256"],
+        "after_sha256": item["after_sha256"],
+        "diff_sha256": item["diff_sha256"],
+        "state": item["state"],
+    } for item in ordered]
+    manifest = json.dumps(files, sort_keys=True, ensure_ascii=False,
+                          separators=(",", ":")).encode("utf-8")
+    return {
+        "schema": "jr.jrei.workspace-multi-file-review.v1",
+        "state": "LOCAL_MULTI_FILE_REVIEW_ONLY",
+        "file_count": len(files), "files": files,
+        "bundle_manifest_sha256": _digest(manifest),
+        "bundle_diff_sha256": _digest(combined.encode("utf-8")),
+        "diff": combined,
+        "all_receipts_hash_revalidated": True,
+        "multi_file_atomic_write_performed": False,
+        "tests_run": False, "github_pushed": False,
+        "production_changed": False,
+    }
+
+
 def rollback(*, private: Path, receipt_id: str) -> dict:
     """Atomically restore one exact, owner-approved local draft snapshot.
 
