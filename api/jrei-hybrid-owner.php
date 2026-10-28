@@ -198,6 +198,17 @@ function jrHybridOwnerChange(PDO $pdo,array $cfg,string $actor,
             throw new InvalidArgumentException('revocation_confirmation_required');
         $pdo->beginTransaction();
         try{
+            $fleetActive=null;
+            if($enabled){
+                // Lock all eligible nodes IN IDENTICAL ID ORDER before the
+                // target row. This prevents two simultaneous owner enables
+                // from deadlocking on opposing target-row lock orders.
+                $fleet=$pdo->query("SELECT node_id,status FROM jrei_hybrid_nodes
+                  WHERE revoked_at IS NULL ORDER BY node_id FOR UPDATE");
+                $fleetActive=0;
+                foreach($fleet as $member)
+                    if($member['status']==='ENABLED')$fleetActive++;
+            }
             $q=$pdo->prepare('SELECT status,revoked_at,revision
               FROM jrei_hybrid_nodes WHERE node_id=? FOR UPDATE');
             $q->execute([$id]);$row=$q->fetch(PDO::FETCH_ASSOC);
@@ -206,16 +217,8 @@ function jrHybridOwnerChange(PDO $pdo,array $cfg,string $actor,
             if($row['revoked_at']!==null)
                 throw new DomainException('node_already_revoked');
             if($enabled&&$row['status']!=='ENABLED'){
-                // Lock the existing fleet before activation so concurrent
-                // owner actions cannot silently exceed the configured cap.
-                // The original signed-node registry and revocation controls
-                // remain authoritative; no parallel node system is added.
-                $fleet=$pdo->query("SELECT node_id,status FROM jrei_hybrid_nodes
-                  WHERE revoked_at IS NULL ORDER BY node_id FOR UPDATE");
-                $active=0;
-                foreach($fleet as $member)
-                    if($member['status']==='ENABLED')$active++;
-                if($active>=jrHybridFleetLimits($cfg)['activeNodes'])
+                if($fleetActive===null||
+                   $fleetActive>=jrHybridFleetLimits($cfg)['activeNodes'])
                     throw new DomainException('hybrid_owner_fleet_capacity_reached');
             }
             $state=$action==='revoke_node'?'REVOKED':($enabled?'ENABLED':'DISABLED');
