@@ -1025,12 +1025,19 @@ class OwnerHTTP(BaseHTTPRequestHandler):
             if self.path == "/api/assistant/confirm":
                 if data.get("confirm") is not True:
                     raise ValueError("JREI_CONFIRMATION_REQUIRED")
-                if _BUSY.locked():
+                # Actual lock acquisition, not a racy locked() peek:
+                # confirmation must not execute alongside another local
+                # mission, and no background job can start midway through.
+                if not _BUSY.acquire(blocking=False):
                     return self._send(409, {"error": "JREI_OWNER_AGENT_BUSY"})
-                result = owner_agent.confirm(db_path=DB_PATH, repo=REPO, private=PRIVATE,
-                                             ident=data.get("conversation_id"),
-                                             action_id=data.get("action_id"),
-                                             model_reply=reply, run_directive=route_directive)
+                try:
+                    result = owner_agent.confirm(
+                        db_path=DB_PATH, repo=REPO, private=PRIVATE,
+                        ident=data.get("conversation_id"),
+                        action_id=data.get("action_id"),
+                        model_reply=reply, run_directive=route_directive)
+                finally:
+                    _BUSY.release()
                 return self._send(200, result)
             if self.path == "/api/chat":
                 _activity_at = time.monotonic()
