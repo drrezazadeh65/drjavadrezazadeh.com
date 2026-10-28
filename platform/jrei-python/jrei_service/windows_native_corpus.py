@@ -30,6 +30,13 @@ MAX_CHARS = 850_000
 MAX_PASSAGE = 6000
 MIN_TRAIN_IDS = 512
 MIN_HELDOUT_IDS = 128
+# Restrict from-scratch model training to genuinely reusable, attribution-
+# compatible data sources. "Publicly viewable" is not training permission.
+TRAINABLE_LICENSES = frozenset((
+    "cc0-1.0", "cc-by-4.0", "mit", "apache-2.0",
+    "bsd-2-clause", "bsd-3-clause", "0bsd", "unlicense",
+    "public-domain", "public_domain",
+))
 
 
 def _sha_bytes(value: bytes) -> str:
@@ -56,7 +63,7 @@ def _approved_corpus(db_path: Path) -> list[dict]:
     with closing(_db(db_path)) as db:
         db.execute("BEGIN")
         rows = db.execute("""SELECT s.id, s.last_sha, s.licence,
-          p.text, p.sha256
+          s.issuer, p.text, p.sha256
           FROM learning_passages p
           JOIN learning_sources s ON s.id=p.source_id
           JOIN learning_versions v ON v.id=p.version_id
@@ -66,15 +73,18 @@ def _approved_corpus(db_path: Path) -> list[dict]:
           ORDER BY s.id,p.id LIMIT 4500""").fetchall()
         db.commit()
     sources: dict[str, dict] = {}
-    for sid, revision, license_id, passage, digest in rows:
+    for sid, revision, license_id, issuer, passage, digest in rows:
         if (not isinstance(sid, str) or not IDENT.fullmatch(sid)
                 or not isinstance(revision, str) or not SHA.fullmatch(revision)
-                or not isinstance(license_id, str) or not license_id.strip()
+                or not isinstance(license_id, str)
+                or license_id.casefold() not in TRAINABLE_LICENSES
+                or not isinstance(issuer, str) or not 3 <= len(issuer) <= 120
                 or not isinstance(passage, str) or not 40 <= len(passage) <= MAX_PASSAGE
                 or not isinstance(digest, str) or _sha_bytes(passage.encode("utf-8")) != digest):
             continue
         source = sources.setdefault(sid, {
-            "id": sid, "revision": revision, "license": license_id, "passages": []})
+            "id": sid, "revision": revision, "license": license_id,
+            "issuer": issuer, "passages": []})
         if source["revision"] != revision or source["license"] != license_id:
             raise ValueError("JREI_SOURCE_REVISION_CHANGED_DURING_COLLECTION")
         source["passages"].append(passage)
@@ -127,8 +137,17 @@ def prepare(*, db_path: Path, private: Path, owner_approved: bool,
                 text.append(passage)
                 count += size
             refs.append({"id": group["id"], "revision": group["revision"],
-                         "license": group["license"]})
+                         "license": group["license"], "issuer": group["issuer"]})
         return "\n\n".join(text), refs
+    # Refuse identical passages repeated across nominally independent
+    # sources. Distinct source IDs alone would not prevent benchmark leakage.
+    group_digests = [
+        {_sha_bytes(text.encode("utf-8")) for text in g["passages"]}
+        for g in (train_groups + heldout_groups + sealed_test_groups)]
+    for i, values in enumerate(group_digests):
+        for other in group_digests[i + 1:]:
+            if values & other:
+                raise ValueError("JREI_NATIVE_CORPUS_CROSS_SOURCE_DUPLICATE_PASSAGES")
     train_text, train_refs = materialize(train_groups)
     heldout_text, heldout_refs = materialize(heldout_groups)
     sealed_test_text, test_refs = materialize(sealed_test_groups)
@@ -236,10 +255,11 @@ def load_verified_candidate(db_path: Path, private: Path, ident: str) -> dict:
     refs = train_refs + heldout_refs + test_refs
     with closing(_db(db_path)) as db:
         for item in refs:
-            row = db.execute("""SELECT last_sha,licence,reviewed,active,rights
+            row = db.execute("""SELECT last_sha,licence,issuer,reviewed,active,rights
                 FROM learning_sources WHERE id=?""", (item["id"],)).fetchone()
-            if row != (item["revision"], item["license"], 1, 1,
-                       "PUBLIC_REUSE_APPROVED"):
+            if (item["license"].casefold() not in TRAINABLE_LICENSES or
+                    row != (item["revision"], item["license"], item["issuer"],
+                            1, 1, "PUBLIC_REUSE_APPROVED")):
                 raise ValueError("JREI_NATIVE_SOURCE_REVOKED_OR_REVISED")
     return {"path": dest, "manifest": data}
 
