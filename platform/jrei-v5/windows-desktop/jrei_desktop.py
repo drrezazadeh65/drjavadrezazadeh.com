@@ -667,6 +667,13 @@ class Desktop:
                  data.get("model_connected") else "خیر"),
             "مدل عصبیِ ساخته‌شده توسط JREI: " +
                 str(native.get("state") or "تأیید نشده"),
+            "مرحلهٔ ثبت‌شدهٔ مدل آزمایشی: " +
+                str(native.get("lifecycle") or "UNKNOWN_UNVERIFIED"),
+            "SHA256 ثبت‌شدهٔ checkpoint: " +
+                str(native.get("registered_checkpoint_sha256") or "موجود نیست"),
+            "صحت فعلی فایل checkpoint: " +
+                ("بررسی نشده" if native.get("checkpoint_integrity_verified_now") is False
+                 else "بدون دادهٔ معتبر"),
             "آموزش مدل زبانی اختصاصی: " +
                 str(data.get("native_language_model_training", "تأیید نشده")),
             "موتور شواهد: " +
