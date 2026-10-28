@@ -44,6 +44,7 @@ def observe(*, gpu_probe: bool = False) -> dict:
     idle = owner_idle_seconds()
     base = {
         "schema": "jr.jrei.windows-resource-envelope.v1",
+        "observation_epoch_seconds": int(time.time()),
         "node_identity": "LOCAL_OWNER_ONLY_NO_HARDWARE_INFERENCE",
         "resources": resources,
         "owner_idle_seconds": None if idle is None else round(idle, 1),
@@ -82,6 +83,10 @@ def observe(*, gpu_probe: bool = False) -> dict:
             "status": "CUDA_RUNTIME_MEASURED",
             "device_count": count,
             "device_index": 0,
+            "device_name": str(torch.cuda.get_device_name(0))[:120],
+            "backend": "PYTORCH_CUDA",
+            "torch_cuda_runtime_version": str(torch.version.cuda or "UNKNOWN")[:30],
+            "driver_version": "NOT_MEASURED",
             "total_memory_mb": measured_total,
             "free_memory_mb": measured_free,
             "owner_display_reserve_mb": margin,
