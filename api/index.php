@@ -331,7 +331,7 @@ function cfg(): array {
         $payload=is_array($signed)?($signed['payload']??null):null;
         if(is_array($payload) &&
            ($payload['schema']??null)==='jr.owner.news-master-release.v1' &&
-           ($payload['masterOnly']??null)===true &&
+           ($payload['discoveryOnly']??null)===true &&
            ($payload['ownerRelease']??null)===true &&
            preg_match('/^[a-f0-9]{40}$/D',(string)($payload['sha']??'')) &&
            is_string($signed['hmac']??null) &&
@@ -340,8 +340,15 @@ function cfg(): array {
             $expected=hash_hmac('sha256',(string)$encoded,
                 hash_hmac('sha256','jr.owner.news-master-release.v1',$pepper));
             if(hash_equals($expected,$signed['hmac']) &&
-               ($cfg['jrei_news_emergency_stop']??false)!==true)
+               ($cfg['jrei_news_emergency_stop']??false)!==true){
                 $cfg['operations_cron_master_enabled']=true;
+                // Discovery-only owner grant: preserve all independently
+                // guarded official rights, acquisition, drafting, review,
+                // backup, publisher and public search controls unchanged.
+                $cfg['jrei_news_integrated_release_accepted']=true;
+                $cfg['jrei_news_feed_discovery_enabled']=true;
+                $cfg['jrei_news_official_catalogue_auto_seed_enabled']=true;
+            }
         }
     }
     return $cfg;

@@ -109,13 +109,20 @@ test('one-click owner release safely provisions only existing master with privat
   assert.match(schema,/\$job\['last_state'\].*'running'/);
   assert.match(schema,/tempnam\(\$privateRoot/);
   assert.match(schema,/hash_hmac\('sha256'/);
-  assert.match(schema,/news_owner_release_master_enabled/);
+  assert.match(schema,/news_owner_release_discovery_only/);
+  assert.match(schema,/jrei_news_original_feed_projection/);
+  assert.match(schema,/requiredMotherSchemaAvailable/);
+  assert.match(schema,/packagedPrivateNewsLibraryAvailable/);
+  assert.match(cfg,/jrei_news_feed_discovery_enabled'\]=true/);
+  assert.match(cfg,/jrei_news_official_catalogue_auto_seed_enabled'\]=true/);
   assert.match(cfg,/\.jr-owner-news-master\.v1\.json/);
   assert.match(cfg,/hash_equals\(\$expected,\$signed\['hmac'\]\)/);
   assert.match(cfg,/\$cfg\['operations_cron_master_enabled'\]=true/);
   const provisioning=schema.split('function operationsProvisionNewsMasterOwnerRelease(')[1].split('function operationsImportRelease(')[0];
   assert.doesNotMatch(provisioning,/jrei_news_original_cms_writer_enabled|jrei_news_verified_restore_accepted|jrei_news_standing_official_publishing_enabled/);
-  assert.doesNotMatch(provisioning,/UPDATE operations_cron_jobs|CREATE TABLE|DROP TABLE/);
+  assert.match(provisioning,/UPDATE operations_cron_jobs/);
+  assert.match(provisioning,/WHERE job_id=\? AND row_revision=\?/);
+  assert.doesNotMatch(provisioning,/CREATE TABLE|DROP TABLE/);
 });
 
 test('owner release seeds the official directory as unverified candidates, never as rights approval',()=>{
