@@ -101,7 +101,9 @@ class MissionRequest(StrictContract):
     schema_version: Literal["jr.jrei.scoped-mission.v1"] = "jr.jrei.scoped-mission.v1"
     mission_id: Identifier
     policy_digest: Digest
-    nodes: list[MissionNode] = Field(min_length=1, max_length=32)
+    # Mission graph size is independent of the physical fleet size.
+    # Permit wide plans without implying that any worker is activated.
+    nodes: list[MissionNode] = Field(min_length=1, max_length=128)
 
     @model_validator(mode="after")
     def unique_nodes(self) -> "MissionRequest":
