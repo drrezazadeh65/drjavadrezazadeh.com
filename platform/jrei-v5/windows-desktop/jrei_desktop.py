@@ -1,0 +1,498 @@
+"""JREI native Windows desktop client, bundled as one EXE using PyInstaller.
+
+A dedicated Tk/ttk window: NOT a browser, WebView, Electron, cloud chatbot,
+another model, new database, privileged agent, or external web client. Uses
+the pre-existing owner-private 127.0.0.1:8092 JREI service and its database.
+All conversations, jobs and authorizations stay in the original JREI backend.
+No credentials are bundled; owner token is read from the current profile.
+"""
+from __future__ import annotations
+
+import base64
+import json
+import os
+from pathlib import Path
+import queue
+import re
+import threading
+import tkinter as tk
+from tkinter import filedialog, messagebox, ttk
+import urllib.error
+import urllib.parse
+import urllib.request
+
+BASE = "http://127.0.0.1:8092"
+TOKEN_FILE = Path(os.environ.get("LOCALAPPDATA", Path.home())) / "JREI" / "command-center" / "owner-token"
+FINAL = {"SUCCEEDED", "FAILED", "CANCELLED", "INTERRUPTED",
+         "SUCCEEDED_AFTER_CANCEL_REQUEST", "FAILED_AFTER_CANCEL_REQUEST"}
+PHASE = {
+    "QUEUED": "در صف JREI",
+    "RUNNING": "در حال پردازش",
+    "STARTING": "آغاز بررسی",
+    "READING_DOCUMENT": "در حال خواندن سند",
+    "RETRIEVING_EVIDENCE": "در حال بازیابی شواهد",
+    "SYNTHESIZING": "در حال ترکیب اطلاعات",
+    "RESEARCHING_REPOSITORY": "در حال بررسی مخزن",
+    "ROUTING_TOOL": "در حال انتخاب ابزار",
+    "GENERATING_RESPONSE": "در حال آماده‌سازی پاسخ",
+    "PERSISTING_RESULT": "در حال ذخیرهٔ پاسخ",
+    "SUCCEEDED": "پاسخ آماده است",
+    "FAILED": "وظیفه انجام نشد",
+    "CANCELLED": "لغو شد",
+    "INTERRUPTED": "پردازش قطع شد",
+}
+BG = "#111319"
+SIDE = "#191c23"
+SURFACE = "#20242c"
+USER = "#2d3440"
+GOLD = "#d7b577"
+FG = "#f4f0e8"
+MUTED = "#a7abb4"
+LINE = "#353945"
+ERROR = "#e2a7a5"
+IDENT = re.compile(r"^[a-f0-9]{32}$")
+FILES = {".txt", ".md", ".csv", ".json", ".py", ".js", ".mjs",
+         ".css", ".html", ".docx", ".pdf", ".pptx", ".xlsx"}
+
+
+class JREIClient:
+    def __init__(self):
+        # Explicitly bypass system/browser proxy configuration; the owner
+        # bearer token must NEVER leave the loopback interface.
+        self.http = urllib.request.build_opener(urllib.request.ProxyHandler({}))
+
+    def request(self, route: str, data: dict | None = None) -> dict:
+        if not route.startswith("/api/") or "://" in route or "#" in route:
+            raise ValueError("JREI_LOCAL_ROUTE_REQUIRED")
+        if not TOKEN_FILE.is_file() or TOKEN_FILE.is_symlink():
+            raise RuntimeError("توکن مالک JREI روی این ویندوز یافت نشد. موتور خصوصی باید قبلاً راه‌اندازی شده باشد.")
+        token = TOKEN_FILE.read_text(encoding="ascii").strip()
+        if not re.fullmatch(r"[A-Za-z0-9_-]{50,128}", token):
+            raise ValueError("JREI_OWNER_TOKEN_FORMAT_INVALID")
+        payload = json.dumps(data, ensure_ascii=False).encode("utf-8") if data is not None else None
+        req = urllib.request.Request(BASE + route, data=payload,
+            headers={"Authorization": "Bearer " + token,
+                     "Accept": "application/json",
+                     **({"Content-Type": "application/json; charset=utf-8"}
+                        if data is not None else {})},
+            method="POST" if data is not None else "GET")
+        try:
+            with self.http.open(req, timeout=12) as response:
+                if response.status not in (200, 202):
+                    raise RuntimeError("JREI_HTTP_RESPONSE_INVALID")
+                raw = response.read(8_000_001)
+                if len(raw) > 8_000_000:
+                    raise ValueError("JREI_API_RESPONSE_TOO_LARGE")
+                if response.headers.get("Content-Type", "").split(";")[0] != "application/json":
+                    raise ValueError("JREI_API_NOT_JSON")
+                output = json.loads(raw.decode("utf-8"))
+                if not isinstance(output, dict):
+                    raise ValueError("JREI_API_SHAPE_INVALID")
+                return output
+        except urllib.error.HTTPError as exc:
+            raw = exc.read(1500)
+            try:
+                message = json.loads(raw.decode("utf-8")).get("error", "HTTP_ERROR")
+            except (ValueError, UnicodeError, AttributeError):
+                message = "HTTP_ERROR"
+            raise RuntimeError(f"JREI HTTP {exc.code}: {str(message)[:160]}") from exc
+        except urllib.error.URLError as exc:
+            raise ConnectionError("موتور خصوصی JREI روی 127.0.0.1:8092 پاسخ نمی‌دهد.") from exc
+
+
+class Desktop:
+    def __init__(self):
+        self.api = JREIClient()
+        self.root = tk.Tk()
+        self.root.title("JREI | هوش مصنوعی شخصی")
+        self.root.geometry("1130x755")
+        self.root.minsize(720, 480)
+        self.root.configure(bg=BG)
+        self.root.option_add("*Font", "Segoe UI 10")
+        self.ui_queue: queue.Queue = queue.Queue()
+        self.busy_send = False
+        self.conversation = None
+        self.threads = []
+        self.messages = []
+        self.active_job = None
+        self.attachments = []
+        self.online = False
+        self._build()
+        self.root.after(90, self._drain)
+        self.root.after(1100, self._start_poll)
+        self.fetch("connect", self._bootstrap)
+
+    def _label(self, parent, text, *, fg=FG, bg=None, size=10, bold=False, **kwargs):
+        return tk.Label(parent, text=text, fg=fg, bg=bg or parent.cget("bg"),
+                        font=("Segoe UI", size, "bold" if bold else "normal"), **kwargs)
+
+    def _button(self, parent, title, action, *, color=SURFACE, foreground=FG, **kwargs):
+        return tk.Button(parent, text=title, command=action, bg=color, fg=foreground,
+                         activebackground="#41444d", activeforeground=FG,
+                         relief="flat", borderwidth=0, cursor="hand2",
+                         font=("Segoe UI", 10), padx=12, pady=8, **kwargs)
+
+    def _build(self):
+        root = self.root
+        body = tk.Frame(root, bg=BG)
+        body.pack(fill="both", expand=True)
+        self.side = tk.Frame(body, bg=SIDE, width=267)
+        self.side.pack(side="left", fill="y")
+        self.side.pack_propagate(False)
+        header = tk.Frame(self.side, bg=SIDE)
+        header.pack(fill="x", padx=15, pady=(19, 13))
+        self._label(header, "JR", fg=GOLD, bg=SIDE, size=22, bold=True).pack(side="left")
+        self._label(header, "JREI", bg=SIDE, size=16, bold=True).pack(side="left", padx=10)
+        self._button(self.side, "＋  گفتگوی جدید", self.new_chat, color="#383127",
+                     foreground=GOLD).pack(fill="x", padx=13, pady=(0, 12))
+        self.search = tk.StringVar()
+        self.search.trace_add("write", lambda *_: self._render_threads())
+        self.search_input = tk.Entry(self.side, textvariable=self.search, bg="#242730",
+                                     fg=FG, insertbackground=GOLD, relief="flat",
+                                     font=("Segoe UI", 10))
+        self.search_input.pack(fill="x", padx=13, ipady=9)
+        self._label(self.side, "گفتگوهای من", bg=SIDE, fg=MUTED).pack(anchor="e", padx=17, pady=(15, 5))
+        self.thread_list = tk.Listbox(self.side, bg=SIDE, fg=FG, selectbackground="#433a2b",
+                                     selectforeground=FG, relief="flat", borderwidth=0,
+                                     highlightthickness=0, activestyle="none",
+                                     font=("Segoe UI", 10))
+        self.thread_list.pack(fill="both", expand=True, padx=10, pady=(0, 8))
+        self.thread_list.bind("<<ListboxSelect>>", self._choose_thread)
+        self._label(self.side, "خصوصی · فقط روی رایانهٔ شما", fg=MUTED, bg=SIDE, size=9).pack(pady=12)
+
+        self.main = tk.Frame(body, bg=BG)
+        self.main.pack(side="left", fill="both", expand=True)
+        top = tk.Frame(self.main, bg=BG, height=62)
+        top.pack(fill="x", padx=24, pady=(13, 6))
+        self._label(top, "JREI  ·  Personal AI", fg=GOLD, bold=True, size=15).pack(side="left")
+        self.status_text = tk.StringVar(value="در حال اتصال به موتور خصوصی…")
+        self._label(top, "", fg=MUTED).pack(side="left", padx=5)
+        self._button(top, "بازخوانی", self.refresh).pack(side="right")
+        self._label(top, "", fg=MUTED).pack(side="right")
+        self._button(top, "قطع / لغو", self.cancel_job, foreground=ERROR).pack(side="right", padx=5)
+        status = tk.Frame(self.main, bg=BG)
+        status.pack(fill="x", padx=25)
+        self._label(status, "●", fg=GOLD).pack(side="left")
+        self._label(status, "", fg=MUTED).pack(side="left", padx=2)
+        self._label(status, "JREI", fg=MUTED).pack(side="left")
+        tk.Label(status, textvariable=self.status_text, bg=BG, fg=MUTED,
+                 font=("Segoe UI", 9), anchor="e").pack(side="right")
+
+        center = tk.Frame(self.main, bg=BG)
+        center.pack(fill="both", expand=True, padx=(18, 20), pady=(8, 0))
+        self.canvas = tk.Canvas(center, bg=BG, borderwidth=0, highlightthickness=0)
+        scroll = ttk.Scrollbar(center, orient="vertical", command=self.canvas.yview)
+        self.canvas.configure(yscrollcommand=scroll.set)
+        scroll.pack(side="right", fill="y")
+        self.canvas.pack(side="left", fill="both", expand=True)
+        self.stream = tk.Frame(self.canvas, bg=BG)
+        self.canvas_window = self.canvas.create_window((0, 0), window=self.stream, anchor="nw")
+        self.stream.bind("<Configure>", self._resize_scroll)
+        self.canvas.bind("<Configure>", self._resize_width)
+        self.canvas.bind_all("<MouseWheel>", self._wheel)
+
+        foot = tk.Frame(self.main, bg=BG)
+        foot.pack(fill="x", padx=29, pady=(3, 18))
+        self.attach_view = tk.StringVar(value="")
+        self._label(foot, "", fg=MUTED).pack(side="left")
+        tk.Label(foot, textvariable=self.attach_view, fg=MUTED, bg=BG,
+                 font=("Segoe UI", 9), anchor="e").pack(fill="x")
+        frame = tk.Frame(foot, bg=SURFACE, highlightbackground=LINE,
+                         highlightthickness=1, padx=9, pady=8)
+        frame.pack(fill="x")
+        self.editor = tk.Text(frame, height=3, wrap="word", bg=SURFACE, fg=FG,
+                              insertbackground=GOLD, relief="flat", borderwidth=0,
+                              font=("Segoe UI", 11), undo=True, padx=9, pady=8)
+        self.editor.pack(side="top", fill="x")
+        self.editor.bind("<Return>", self._on_return)
+        actions = tk.Frame(frame, bg=SURFACE)
+        actions.pack(fill="x")
+        self._button(actions, "📎  افزودن فایل", self.select_file, color=SURFACE).pack(side="left")
+        self._label(actions, "Shift+Enter: سطر تازه", fg=MUTED, bg=SURFACE, size=9).pack(side="left")
+        self.send_button = self._button(actions, "ارسال ←", self.send,
+                                        color=GOLD, foreground="#15161b")
+        self.send_button.pack(side="right")
+        self._label(foot, "پاسخ‌ها و توانایی‌های JREI به مدل و شواهد واقعاً فعال بستگی دارند.",
+                    fg=MUTED, bg=BG, size=9).pack(pady=(5, 0))
+        self._empty()
+
+    def _resize_scroll(self, _event):
+        self.canvas.configure(scrollregion=self.canvas.bbox("all"))
+
+    def _resize_width(self, event):
+        self.canvas.itemconfigure(self.canvas_window, width=event.width)
+
+    def _wheel(self, event):
+        self.canvas.yview_scroll(-1 if event.delta > 0 else 1, "units")
+
+    def _scroll_bottom(self):
+        self.root.after(50, lambda: self.canvas.yview_moveto(1.0))
+
+    def _empty(self):
+        for child in self.stream.winfo_children():
+            child.destroy()
+        card = tk.Frame(self.stream, bg=BG)
+        card.pack(fill="both", padx=40, pady=90)
+        self._label(card, "JREI", fg=GOLD, bg=BG, size=32, bold=True).pack()
+        self._label(card, "امروز چه کمکی از من برمی‌آید؟", bg=BG, size=16).pack(pady=10)
+        self._label(card, "گفتگو، پژوهش، حافظه، تحلیل منابع و ابزارهای کدنویسی",
+                    bg=BG, fg=MUTED, size=10).pack()
+
+    def _turn(self, role, content, *, temporary=False):
+        user = role == "user"
+        container = tk.Frame(self.stream, bg=BG)
+        container.pack(fill="x", padx=14, pady=(5, 12))
+        bubble = tk.Frame(container, bg=USER if user else BG, padx=17, pady=12)
+        bubble.pack(anchor="e" if user else "w", padx=8,
+                    fill="none" if user else "x")
+        self._label(bubble, "شما" if user else "JREI", bg=USER if user else BG,
+                    fg=GOLD if not user else FG, bold=True, size=10).pack(anchor="e" if user else "w")
+        # Read-only Tk text supports native selection/copy, RTL justification,
+        # wrapped Persian/English code excerpts and keyboard navigation.
+        txt = tk.Text(bubble, bg=USER if user else BG, fg=MUTED if temporary else FG,
+                      font=("Segoe UI", 11), wrap="word", borderwidth=0,
+                      highlightthickness=0, relief="flat", cursor="xterm",
+                      padx=0, pady=5)
+        text = str(content)[:12000]
+        rows = text.count("\n") + sum(max(1, len(line) // 86 + 1)
+                                      for line in text.split("\n"))
+        txt.configure(height=min(35, max(2, rows)), width=46 if user else 74)
+        txt.tag_configure("rtl", justify="right")
+        txt.tag_configure("ltr", justify="left")
+        txt.insert("1.0", text)
+        txt.tag_add("rtl" if re.search(r"[\u0600-\u06ff]", text) else "ltr",
+                    "1.0", "end")
+        txt.configure(state="disabled")
+        txt.pack(fill="x")
+        if not temporary:
+            self._button(bubble, "کپی", lambda t=text: self._copy(t),
+                         color=USER if user else BG, foreground=MUTED).pack(anchor="w")
+        self._scroll_bottom()
+
+    def _copy(self, text):
+        self.root.clipboard_clear()
+        self.root.clipboard_append(text)
+        self.status_text.set("متن کپی شد")
+
+    def _render_messages(self):
+        for child in self.stream.winfo_children():
+            child.destroy()
+        if not self.messages:
+            self._empty()
+        for entry in self.messages[-120:]:
+            if entry.get("role") in ("user", "assistant"):
+                self._turn(entry["role"], entry.get("content", ""))
+        if self.active_job:
+            self._turn("assistant", "●  " + self.active_job.get("phase", "در حال پردازش…"),
+                       temporary=True)
+
+    def _render_threads(self):
+        filter_text = self.search.get().strip().casefold()
+        self.thread_list.delete(0, "end")
+        self.shown_threads = []
+        for item in self.threads:
+            title = str(item.get("title", "گفتگوی جدید"))[:68]
+            if filter_text and filter_text not in title.casefold():
+                continue
+            self.shown_threads.append(item)
+            self.thread_list.insert("end", "  " + title)
+            if item.get("id") == self.conversation:
+                self.thread_list.selection_set(len(self.shown_threads) - 1)
+
+    def _choose_thread(self, _event):
+        indices = self.thread_list.curselection()
+        if indices and indices[0] < len(self.shown_threads):
+            value = self.shown_threads[indices[0]].get("id")
+            if isinstance(value, str) and IDENT.fullmatch(value):
+                self.conversation = value
+                self.messages = []
+                self.active_job = None
+                self.fetch("thread", lambda: self.api.request(
+                    "/api/conversation?id=" + urllib.parse.quote(value)))
+
+    def _done(self, key, data):
+        if key == "connect":
+            self.online = True
+            model = bool(data.get("model_connected"))
+            native = data.get("native_evidence_answering") == "AVAILABLE_NO_EXTERNAL_WEIGHTS"
+            self.status_text.set("مدل زبانی فعال" if model
+                else ("هستهٔ شواهد فعال · مدل زبانی غیرفعال" if native
+                      else "موتور محلی · مدل زبانی غیرفعال"))
+            self.fetch("threads", lambda: self.api.request("/api/conversations"))
+        elif key == "threads":
+            self.threads = data.get("items", [])[:100]
+            self._render_threads()
+            if self.conversation is None and self.threads:
+                self.conversation = self.threads[0].get("id")
+                self.fetch("thread", lambda: self.api.request(
+                    "/api/conversation?id=" + self.conversation))
+        elif key == "new":
+            self.conversation = data.get("id")
+            self.messages = []
+            self._empty()
+            self.fetch("threads", lambda: self.api.request("/api/conversations"))
+            self.editor.focus_set()
+        elif key == "thread":
+            if data.get("id") == self.conversation:
+                self.messages = data.get("items", [])[:300]
+                self._render_messages()
+        elif key == "sent":
+            self.busy_send = False
+            self.send_button.configure(state="normal")
+            self.active_job = {"id": data["id"], "phase": PHASE["QUEUED"]}
+            self._render_messages()
+            self.fetch("threads", lambda: self.api.request("/api/conversations"))
+        elif key == "job":
+            if not self.active_job or self.active_job["id"] != data.get("id"):
+                return
+            status = str(data.get("status", "QUEUED"))
+            if status in FINAL:
+                self.active_job = None
+                if status not in ("SUCCEEDED", "SUCCEEDED_AFTER_CANCEL_REQUEST"):
+                    self.status_text.set(PHASE.get(status, status) +
+                                         ": " + str(data.get("error_code") or "")[:80])
+                current = self.conversation
+                self.fetch("thread", lambda: self.api.request(
+                    "/api/conversation?id=" + current))
+                self.fetch("threads", lambda: self.api.request("/api/conversations"))
+            else:
+                steps = data.get("progress", [])
+                phase = (steps[-1].get("phase", "") if isinstance(steps, list) and steps
+                         else str(data.get("status", "RUNNING")))
+                self.active_job["phase"] = PHASE.get(phase, PHASE.get(status, phase))
+                self._render_messages()
+        elif key == "attachment":
+            if "id" in data:
+                self.attachments.append(data["id"])
+                self.attach_view.set(f"پیوست‌های انتخاب‌شده: {len(self.attachments)} از ۲")
+        elif key == "cancel":
+            self.status_text.set("درخواست لغو ثبت شد؛ عملیات جاری ممکن است به پایان برسد.")
+
+    def _error(self, key, error):
+        self.status_text.set(str(error)[:170])
+        if key == "connect":
+            self.online = False
+        if key == "sent":
+            self.busy_send = False
+            self.send_button.configure(state="normal")
+            messagebox.showerror("JREI", str(error)[:500], parent=self.root)
+        if key == "attachment":
+            messagebox.showerror("JREI · فایل", str(error)[:500], parent=self.root)
+
+    def _bootstrap(self):
+        return self.api.request("/api/status")
+
+    def fetch(self, name, fn):
+        def worker():
+            try:
+                answer = fn()
+                self.ui_queue.put((name, answer, None))
+            except (OSError, RuntimeError, ValueError, TypeError) as exc:
+                self.ui_queue.put((name, None, exc))
+        threading.Thread(target=worker, name="jrei-private-request", daemon=True).start()
+
+    def _drain(self):
+        for _ in range(30):
+            try:
+                name, data, error = self.ui_queue.get_nowait()
+            except queue.Empty:
+                break
+            if error:
+                self._error(name, error)
+            else:
+                self._done(name, data)
+        self.root.after(110, self._drain)
+
+    def _start_poll(self):
+        if self.active_job and not self.busy_send:
+            ident = self.active_job["id"]
+            self.fetch("job", lambda: self.api.request("/api/task?id=" + ident))
+        self.root.after(1800, self._start_poll)
+
+    def refresh(self):
+        self.fetch("connect", self._bootstrap)
+        if self.conversation:
+            current = self.conversation
+            self.fetch("thread", lambda: self.api.request(
+                "/api/conversation?id=" + current))
+
+    def new_chat(self):
+        if self.active_job:
+            if not messagebox.askyesno("JREI", "وظیفهٔ قبلی هنوز در حال اجراست. گفتگوی تازه باز شود؟",
+                                       parent=self.root):
+                return
+        self.active_job = None
+        self.conversation = None
+        self.attachments.clear()
+        self.attach_view.set("")
+        self.fetch("new", lambda: self.api.request("/api/conversation/new", {}))
+
+    def _on_return(self, event):
+        if event.state & 0x0001:  # Shift+Enter: newline.
+            return None
+        self.send()
+        return "break"
+
+    def send(self):
+        text = self.editor.get("1.0", "end-1c").strip()
+        if not text or self.busy_send or self.active_job:
+            return
+        if len(text) > 9000:
+            messagebox.showwarning("JREI", "پیام باید حداکثر ۹۰۰۰ نویسه باشد.", parent=self.root)
+            return
+        self.busy_send = True
+        self.send_button.configure(state="disabled")
+        snapshot = list(self.attachments)
+        self.attachments.clear()
+        self.attach_view.set("")
+        self.editor.delete("1.0", "end")
+        self.messages.append({"role": "user", "content": text})
+        self._render_messages()
+        def submit():
+            conversation = self.conversation
+            if not conversation:
+                response = self.api.request("/api/conversation/new", {})
+                conversation = response["id"]
+                self.conversation = conversation
+            result = self.api.request("/api/task/submit", {
+                "conversation_id": conversation, "message": text,
+                "attachments": snapshot})
+            return result
+        self.fetch("sent", submit)
+
+    def cancel_job(self):
+        if not self.active_job:
+            self.status_text.set("وظیفهٔ در حال اجرا وجود ندارد.")
+            return
+        if messagebox.askyesno("JREI", "لغو وظیفهٔ در حال اجرا درخواست شود؟", parent=self.root):
+            ident = self.active_job["id"]
+            self.fetch("cancel", lambda: self.api.request("/api/task/cancel", {"id": ident}))
+
+    def select_file(self):
+        if len(self.attachments) >= 2:
+            messagebox.showinfo("JREI", "حداکثر دو پیوست برای هر پیام.", parent=self.root)
+            return
+        path = filedialog.askopenfilename(parent=self.root,
+            filetypes=[("JREI documents", "*.txt *.md *.csv *.json *.py *.js *.mjs *.css *.html *.docx *.pdf *.pptx *.xlsx"),
+                       ("All files", "*.*")])
+        if not path:
+            return
+        doc = Path(path)
+        if (doc.suffix.lower() not in FILES or not doc.is_file()
+                or doc.stat().st_size > 4_000_000):
+            messagebox.showwarning("JREI", "نوع فایل مجاز نیست یا اندازه از ۴ مگابایت بیشتر است.",
+                                   parent=self.root)
+            return
+        self.status_text.set("در حال افزودن سند به مخزن خصوصی…")
+        def upload():
+            raw = doc.read_bytes()
+            return self.api.request("/api/documents/import", {
+                "name": doc.name, "data": base64.b64encode(raw).decode("ascii")})
+        self.fetch("attachment", upload)
+
+    def run(self):
+        self.root.mainloop()
+
+
+if __name__ == "__main__":
+    Desktop().run()
