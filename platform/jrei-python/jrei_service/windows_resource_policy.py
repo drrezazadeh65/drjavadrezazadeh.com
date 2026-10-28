@@ -134,6 +134,40 @@ def tehran_study_window() -> dict:
     }
 
 
+def continuous_probe_delay(kind: str, state: str,
+                           *, resource_available: bool = True) -> float:
+    """Adaptive *backpressure*, never a time window or daily work quota.
+
+    The original Windows service keeps learning continuously after startup.
+    A short sleep avoids CPU/database/network busy-spinning when no eligible
+    owner-approved work exists. Every lane is reconsidered indefinitely.
+    Resource pressure and rate/robots/refresh deadlines may defer one action;
+    they do not stop the service or disable the other learning lanes.
+    """
+    if kind not in ("APPROVED_SOURCE", "FTS_INDEX", "SOURCE_MEMORY",
+                    "AUTO_TOPICS", "LEARNING_AGENDA", "CURRICULUM",
+                    "CODE_STUDY"):
+        raise ValueError("JREI_CONTINUOUS_LEARNING_LANE_INVALID")
+    state = str(state or "")[:90]
+    if not resource_available or (
+            state.startswith(("DEFER_", "HELD_RESOURCES",
+                              "CAPACITY_", "OWNER_FOREGROUND"))):
+        return 30.0
+    if any(code in state for code in (
+            "INDEXED", "REBUILT", "CANDIDATE_UNVERIFIED",
+            "DRAFT_UNVERIFIED", "PROPOSED_NOT_VERIFIED",
+            "STUDY_DRAFT_UNVERIFIED")):
+        return 2.5
+    if state.startswith(("OFF_NETWORK", "OWNER_DISABLED",
+                         "NO_APPROVED", "NO_GROUNDED",
+                         "NO_ACTIVE", "MODEL_UNAVAILABLE",
+                         "NO_STUDY", "NO_DUE", "NO_PENDING")):
+        return 30.0
+    if state.startswith(("HELD", "LOOP_ERROR", "FAILED")):
+        return 60.0
+    return 12.0
+
+
 def study_interval_seconds(kind: str) -> int:
     """Adaptive scheduling cadence, not a daily cap or execution entitlement."""
     normal = {
