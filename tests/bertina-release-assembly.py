@@ -10,7 +10,8 @@ workflow = (root / '.github/workflows/deploy-bertina.yml').read_text()
 gate = (root / 'scripts/bertina-private-recovery-gate.php').read_text()
 controlled = (root / 'scripts/bertina-controlled-cpanel-gate.php').read_text()
 hosting = (root / 'scripts/bertina-hosting-managed-release.php').read_text()
-assert gate.startswith('<?php\n') and controlled.startswith('<?php\n') and hosting.startswith('<?php\n')
+webster = (root / 'scripts/bertina-owner-webster-stock-on-deploy.php').read_text()
+assert gate.startswith('<?php\n') and controlled.startswith('<?php\n') and hosting.startswith('<?php\n') and webster.startswith('<?php\n')
 marker = '          cat > "/tmp/$SCRIPT_NAME" <<PHP\n'
 assert workflow.count(marker) == 1
 body = workflow.split(marker, 1)[1].split('\n          PHP\n', 1)[0]
@@ -19,9 +20,11 @@ assert body.startswith('<?php\n')
 assert body.count('$HOSTING_GATE_SOURCE') == 1
 assert body.count('$RECOVERY_GATE_SOURCE') == 1
 assert body.count('$CONTROLLED_GATE_SOURCE') == 1
+assert body.count('$WEBSTER_INSTALL_SOURCE') == 1
 body = body.replace('$HOSTING_GATE_SOURCE', hosting.split('\n', 1)[1])
 body = body.replace('$RECOVERY_GATE_SOURCE', gate.split('\n', 1)[1])
 body = body.replace('$CONTROLLED_GATE_SOURCE', controlled.split('\n', 1)[1])
+body = body.replace('$WEBSTER_INSTALL_SOURCE', webster.split('\n', 1)[1])
 # Simulate a Bash expanding its named release/request variables; literal \$ in
 # the source here-document is intentionally retained as PHP variable syntax.
 body = re.sub(r'(?<!\\)\$[A-Z][A-Z0-9_]*', 'fixture', body)
@@ -29,6 +32,8 @@ body = body.replace('\\$', '$')
 assert body.count('function drjrHostingManagedReleaseCheck(') == 1
 assert body.count('function drjrRecoveryCheck(') == 1
 assert body.count('function drjrCpanelBackupCheck(') == 1
+assert body.count('function drjrInstallOwnerWebsterSingleSet(') == 1
+assert body.count('drjrInstallOwnerWebsterSingleSet($pdo)') == 1
 assert body.count('drjrHostingManagedReleaseCheck(__DIR__') == 1
 assert body.count('drjrRecoveryCheck(__DIR__') == 1
 assert body.count('drjrCpanelBackupCheck(__DIR__') == 1
@@ -44,10 +49,16 @@ assert "elseif ('fixture'==='owner_cpanel_custody')" in body
 assert "release_policy_preflight_failed" in body
 assert "backupVerifiedByRelease'=>false" in body
 assert "stage09_schema_preflight_required" in body
+assert "websterSingleSet" in body
+assert "webster_migration_locked" in body
+assert "historical_transaction_blocks_seed" in body
 assert body.count("stage09_schema_preflight_required") == 1
 assert body.index('drjrHostingManagedReleaseCheck(__DIR__') < body.index("SHOW COLUMNS FROM commerce_orders")
 assert body.index('drjrRecoveryCheck(__DIR__') < body.index("SHOW COLUMNS FROM commerce_orders")
 assert body.index('drjrCpanelBackupCheck(__DIR__') < body.index("SHOW COLUMNS FROM commerce_orders")
+assert body.index('drjrHostingManagedReleaseCheck(__DIR__') < body.index('drjrInstallOwnerWebsterSingleSet($pdo)')
+assert body.index('drjrInstallOwnerWebsterSingleSet($pdo)') < body.index("SHOW COLUMNS FROM commerce_orders")
+assert body.index('drjrInstallOwnerWebsterSingleSet($pdo)') < body.index("->extractTo(__DIR__)")
 assert body.index("SHOW COLUMNS FROM commerce_orders") < body.index("->extractTo(__DIR__)")
 assert body.index("SHOW INDEX FROM commerce_payment_claims") < body.index("->extractTo(__DIR__)")
 for table in [
