@@ -47,6 +47,7 @@ from jrei_service import windows_resource_envelope as resource_envelope
 from jrei_service.windows_response_quality import has_repetition_loop
 from jrei_service.windows_project_generator import read_generated
 from jrei_service.windows_workspace import preview_diff as preview_workspace_diff
+from jrei_service.windows_workspace import preview_bundle as preview_workspace_bundle
 from jrei_service.windows_document_vault import import_document, list_documents, delete_document
 from urllib.parse import parse_qs, urlsplit
 
@@ -836,6 +837,19 @@ class OwnerHTTP(BaseHTTPRequestHandler):
                 # The API never discloses the private workspace path or
                 # raw error text for missing, stale or tampered receipts.
                 return self._send(404, {"error": "JREI_DRAFT_PREVIEW_UNAVAILABLE"})
+
+        if urlsplit(self.path).path == "/api/workspace/bundle":
+            params = parse_qs(urlsplit(self.path).query)
+            raw = params.get("ids", [""])[0]
+            try:
+                if len(raw) > 220:
+                    raise ValueError("JREI_BUNDLE_QUERY_TOO_LONG")
+                ids = [part.strip() for part in raw.split(",")]
+                return self._send(200, preview_workspace_bundle(
+                    private=PRIVATE, receipt_ids=ids))
+            except (OSError, ValueError, UnicodeError, KeyError,
+                    json.JSONDecodeError):
+                return self._send(404, {"error": "JREI_BUNDLE_REVIEW_UNAVAILABLE"})
         if self.path == "/api/learning/topics":
             return self._send(200, {"items": agenda.list_topics(DB_PATH)})
         if urlsplit(self.path).path == "/api/learning/topic/cycles":
