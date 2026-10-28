@@ -129,7 +129,7 @@ for(const locale of ['fa','en']){
   await page.setViewportSize({width:390,height:844});
   await page.goto('http://127.0.0.1:4173/'+locale+'/shop/',{waitUntil:'domcontentloaded'});
   const cards=page.locator('[data-book-catalog] .book-product-card');
-  await expect(cards).toHaveCount(4,{timeout:12000});
+  await expect(cards).toHaveCount(5,{timeout:12000}); // 3 poetry, 1 collectible set, 1 digital
   const years=locale==='fa'?['۱۴۰۴','۱۴۰۱','۱۳۹۹']:['1404','1401','1399'];
   const isbns=['9786229465141','9786229636275','9786229636237'];
   for(let i=0;i<3;i++){
