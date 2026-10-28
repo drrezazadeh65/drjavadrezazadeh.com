@@ -77,6 +77,7 @@ def _approved_corpus(db_path: Path) -> list[dict]:
             WHERE s.reviewed=1 AND s.active=1
               AND s.rights='PUBLIC_REUSE_APPROVED'
               AND s.last_sha=v.sha256
+              AND v.source_id=s.id
           ) WHERE rank_in_source<=64
           ORDER BY id,rank_in_source LIMIT 4500""").fetchall()
         db.commit()
@@ -183,14 +184,25 @@ def prepare(*, db_path: Path, private: Path, owner_approved: bool,
     def materialize(groups):
         text, refs, count = [], [], 0
         for group in groups:
+            selected = []
             for passage in group["passages"]:
                 size = len(passage) + 2
                 if count + size > MAX_CHARS:
                     break
+                selected.append(passage)
                 text.append(passage)
                 count += size
-            refs.append({"id": group["id"], "revision": group["revision"],
-                         "license": group["license"], "issuer": group["issuer"]})
+            if not selected:
+                continue  # Do not claim an unused source was part of training.
+            refs.append({
+                "id": group["id"], "revision": group["revision"],
+                "license": group["license"], "issuer": group["issuer"],
+                "selected_passage_count": len(selected),
+                "selected_passage_sha256": _sha_bytes(json.dumps(
+                    selected, ensure_ascii=False, separators=(",", ":")
+                ).encode("utf-8")),
+                "passage_selection": "CURRENT_VERSION_BY_PASSAGE_ID_FIRST_64",
+            })
         return "\n\n".join(text), refs
     # Refuse identical passages repeated across nominally independent
     # sources. Distinct source IDs alone would not prevent benchmark leakage.
@@ -205,6 +217,9 @@ def prepare(*, db_path: Path, private: Path, owner_approved: bool,
     train_text, train_refs = materialize(train_groups)
     heldout_text, heldout_refs = materialize(heldout_groups)
     sealed_test_text, test_refs = materialize(sealed_test_groups)
+    if not all((train_refs, heldout_refs, test_refs)):
+        return {"state": "TRAIN_DEV_SEALED_SOURCE_BUDGET_MISSING",
+                "training_started": False}
     if (len(train_text.encode("utf-8")) < 4000
             or len(heldout_text.encode("utf-8")) < 1000
             or len(sealed_test_text.encode("utf-8")) < 1000):
