@@ -40,6 +40,7 @@ from jrei_service import windows_evidence_memory as memory_graph
 from jrei_service import windows_code_experience as code_experience
 from jrei_service import windows_site_image_studio as image_studio
 from jrei_service import windows_github_operator as github_operator
+from jrei_service import windows_open_source_discovery as source_discovery
 from jrei_service import windows_language_backend as language_backend
 from jrei_service import windows_native_inference as native_inference
 from jrei_service import windows_resource_envelope as resource_envelope
@@ -687,6 +688,7 @@ def status():
         "code_learning": code_experience.snapshot(DB_PATH),
         "site_image_studio": image_studio.local_model_status(PRIVATE),
         "independent_github_operator": "OWNER_SCOPED_API_AVAILABLE_IF_CONFIGURED",
+        "open_source_code_research": "OWNER_REQUEST_ONLY_NO_CODE_DOWNLOAD",
         "independent_site_governor": "EXISTING_GITHUB_WORKFLOW_NOT_DUPLICATED",
         "autonomous_study_scheduler": "RUNNING",
         "python_port": 8091, "gpu_port": None,
@@ -786,6 +788,17 @@ class OwnerHTTP(BaseHTTPRequestHandler):
             return self._send(200, knowledge.snapshot(DB_PATH))
         if self.path == "/api/learning/memory":
             return self._send(200, memory_graph.snapshot(DB_PATH))
+        if self.path == "/api/open-source/catalog":
+            return self._send(200, source_discovery.catalog())
+        if urlsplit(self.path).path == "/api/open-source/search":
+            params = parse_qs(urlsplit(self.path).query)
+            try:
+                return self._send(200, source_discovery.find_repositories(
+                    params.get("q", [""])[0]))
+            except ValueError as exc:
+                return self._send(400, {"error": str(exc)[:90]})
+            except (OSError, TimeoutError, urllib.error.URLError):
+                return self._send(503, {"error": "JREI_SOURCE_DISCOVERY_UPSTREAM_UNAVAILABLE"})
         if self.path == "/api/github/status":
             return self._send(200, github_operator.snapshot())
         if self.path == "/api/github/site-governor":
