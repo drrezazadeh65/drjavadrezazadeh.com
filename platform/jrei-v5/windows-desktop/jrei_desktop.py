@@ -476,13 +476,22 @@ class Desktop:
                     "هیچ برنامه یا مدل تازه‌ای نصب نمی‌شود.", parent=self.root):
             return
         def invoke():
-            # Fixed task name; never evaluate shell or user/model-proposed commands.
+            # Delegate validation to the existing JREI owner-only task
+            # controller, never run an arbitrary or replaced scheduled task.
+            script = (Path(os.environ.get("LOCALAPPDATA", str(Path.home())))
+                / "JREI-Python" / "repo" / "platform" / "jrei-v5"
+                / "windows-worker" / "jrei-command-center-startup.ps1")
+            if not script.is_file() or script.is_symlink():
+                raise RuntimeError("کنترل‌کنندهٔ امن موتور JREI در این رایانه یافت نشد.")
+            controller = os.path.join(
+                os.environ.get("SystemRoot", r"C:\Windows"), "System32",
+                "WindowsPowerShell", "v1.0", "powershell.exe")
             completed = subprocess.run(
-                [os.path.join(os.environ.get("SystemRoot", r"C:\Windows"),
-                              "System32", "schtasks.exe"),
-                 "/Run", "/TN", "JREI-Owner-Windows-Command-Center"],
+                [controller, "-NoProfile", "-NonInteractive", "-ExecutionPolicy",
+                 "Bypass", "-File", str(script), "-Mode", "Start"],
                 shell=False, stdin=subprocess.DEVNULL,
-                capture_output=True, timeout=14, check=False)
+                capture_output=True, timeout=35, check=False,
+                creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
             if completed.returncode != 0:
                 raise RuntimeError(
                     "سرویس ثبت‌شدهٔ JREI قابل اجرا نیست. نصب و پذیرش موتور "
