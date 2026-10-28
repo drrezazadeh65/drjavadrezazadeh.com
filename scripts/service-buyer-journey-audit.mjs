@@ -242,6 +242,29 @@ const css=read('assets/css/jr-service-decision-guides-20261028.css');
 requireCondition(css.includes('@media(max-width:700px)'),'mobile-friendly guide layout missing');
 requireCondition(css.includes('focus-visible'),'visible keyboard focus required');
 
+// Educational product descriptions must explain the actual study workflow,
+// not merely offer a checkout button. Payment readiness remains server-owned.
+for(const locale of ['fa','en']){
+ const product=''+locale+'/shop/authors/mehrab-mirkarimi/index.html';
+ const html=read(product);
+ requireCondition(html.includes('id="study-guide"'),
+   product+': practical guide for using both digital PDFs missing');
+ requireCondition(html.includes('href="#study-guide"'),
+   product+': buyer cannot discover the study guide from the first screen');
+ requireCondition(html.includes('id="jp-purchase-readiness"')&&
+   html.includes('id="jp-checkout-state"'),
+   product+': secure server-verified availability gate must remain');
+ requireCondition(html.includes('jr-publishing-checkout-v1.js'),
+   product+': existing protected digital fulfilment flow must remain');
+ requireCondition(!/\bguaranteed (?:admission|rank|exam score)\b/i.test(html),
+   product+': product cannot imply guaranteed academic success');
+ const sitemap=read('sitemap-'+locale+'.xml');
+ const key='<loc>https://drjavadrezazadeh.com/'+locale+
+   '/shop/authors/mehrab-mirkarimi/</loc><lastmod>2026-10-28</lastmod>';
+ requireCondition(sitemap.includes(key),
+   product+': the revised product guide must carry an honest sitemap lastmod');
+}
+
 console.log('Audited '+checked+' bilingual standard/VIP pages, two intake routes and the public catalogue bridge.');
 if(errors.length){
   for(const message of errors)console.error('✗ '+message);
