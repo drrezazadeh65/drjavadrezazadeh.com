@@ -138,6 +138,7 @@ class Desktop:
         self.approval_items = []
         self.approval_context = None
         self.approval_busy = False
+        self.github_submit_busy = False
         self.poll_in_flight = False
         self.last_draft = None
         self._build()
@@ -481,6 +482,22 @@ class Desktop:
             self._show_approvals()
         elif key == "draft_diff":
             self._display_local_diff(data)
+        elif key == "github_preflight":
+            self._display_github_preflight(data)
+        elif key == "github_submit":
+            self.github_submit_busy = False
+            if (isinstance(data, dict)
+                    and data.get("state") == "GITHUB_COMMIT_OBSERVED_UNDEPLOYED"
+                    and data.get("production_deployed") is False):
+                messagebox.showinfo(
+                    "JREI · نتیجهٔ ثبت در GitHub",
+                    "فقط commit بازبینی‌شده روی شاخهٔ توسعه ثبت شد.\n"
+                    "SHA: " + str(data.get("commit_sha", ""))[:40] +
+                    "\nهیچ تست، اجرای کد یا انتشار سایت انجام نشده است.",
+                    parent=self.root)
+            else:
+                self.status_text.set(
+                    "وضعیت ثبت GitHub قطعی نیست؛ تاریخچهٔ مخزن را بخوانید.")
         elif key == "draft_bundle":
             self._display_local_bundle(data)
         elif key == "hardware_inventory":
@@ -540,6 +557,20 @@ class Desktop:
                 str(error)[:300], parent=self.root)
         if key == "attachment":
             messagebox.showerror("JREI · فایل", str(error)[:500], parent=self.root)
+        if key == "github_preflight":
+            messagebox.showerror(
+                "JREI · بازبینی GitHub",
+                "GitHub در دسترس نیست یا شاخه/فایل از زمان تهیهٔ پیش‌نویس "
+                "تغییر کرده است. مجوز Push صادر نشد.\n" +
+                str(error)[:130], parent=self.root)
+        if key == "github_submit":
+            self.github_submit_busy = False
+            messagebox.showerror(
+                "JREI · وضعیت ثبت نامشخص",
+                "ممکن است GitHub درخواست را پذیرفته اما پاسخ به برنامه "
+                "نرسیده باشد. قبل از تکرار، تاریخچهٔ مخزن و رسید را بخوانید؛ "
+                "Push خودکار تکرار نمی‌شود.\n" + str(error)[:150],
+                parent=self.root)
         if key == "draft_diff":
             messagebox.showerror(
                 "JREI · بازبینی کد",
@@ -889,6 +920,8 @@ class Desktop:
                      foreground=GOLD).pack(side="left", padx=8)
         self._button(controls, "بازبینی بستهٔ چندفایلی", self.show_local_bundle,
                      foreground=GOLD).pack(side="left", padx=8)
+        self._button(controls, "مقایسه با GitHub", self.show_github_preflight,
+                     foreground=GOLD).pack(side="left", padx=8)
         self._button(controls, "بستن", dlg.destroy).pack(side="right")
         self._button(controls, "تأیید عملیات انتخاب‌شده",
                      self._confirm_selected, color=GOLD,
@@ -1027,6 +1060,126 @@ class Desktop:
         self._button(window, "بستن", window.destroy).pack(
             side="right", padx=18, pady=(0, 14))
         self.status_text.set("مشاهدات همین رایانه دریافت شد؛ GPU دوم نامشخص است.")
+
+    def show_github_preflight(self):
+        """Read-only remote comparison; this click does NOT authorize a push."""
+        value = simpledialog.askstring(
+            "JREI · مقایسه با GitHub",
+            "شناسهٔ رسیدِ پیش‌نویس محلی را برای مقایسه وارد کنید:",
+            parent=self.root)
+        if value is None:
+            return
+        ident = value.strip()
+        if not re.fullmatch(r"\d{8}T\d{6}Z-[a-f0-9]{12}", ident):
+            messagebox.showwarning(
+                "JREI", "شناسهٔ رسید معتبر نیست.", parent=self.root)
+            return
+        self.fetch("github_preflight", lambda: self.api.request(
+            "/api/github/owner-patch-preflight?id=" + ident))
+
+    def _display_github_preflight(self, data):
+        """Explicit TWO-STAGE authority: review remote base, then consent."""
+        if (not isinstance(data, dict)
+                or data.get("schema") != "jr.jrei.github-owner-write-preflight.v1"
+                or data.get("state") != "REMOTE_BASE_MATCHED_REVIEW_ONLY"
+                or data.get("remote_write_approved") is not False
+                or data.get("remote_write_performed") is not False
+                or data.get("production_deployment_performed") is not False
+                or data.get("repository") !=
+                   "drrezazadeh65/drjavadrezazadeh.com"
+                or data.get("branch") != "migration/bertina-linux6"):
+            self.status_text.set("مدارک مقایسهٔ GitHub معتبر نیست.")
+            return
+        ident = data.get("receipt_id")
+        head = data.get("expected_head_sha")
+        target = data.get("target")
+        patch = data.get("diff")
+        if (not isinstance(ident, str) or not re.fullmatch(
+                    r"\d{8}T\d{6}Z-[a-f0-9]{12}", ident)
+                or not isinstance(head, str)
+                or not re.fullmatch(r"[a-f0-9]{40}", head)
+                or not isinstance(target, str) or len(target) > 200
+                or not isinstance(patch, str) or not 0 < len(patch) <= 18000
+                or any(not re.fullmatch(r"[a-f0-9]{64}",
+                            str(data.get(key, ""))) for key in (
+                                "before_sha256", "after_sha256",
+                                "diff_sha256"))):
+            self.status_text.set("رسید، SHA یا Diff مقایسه با GitHub ناقص است.")
+            return
+        dlg = tk.Toplevel(self.root)
+        dlg.title("JREI | GitHub — بازبینی بدون Push")
+        dlg.geometry("960x700")
+        dlg.minsize(640, 440)
+        dlg.configure(bg=BG)
+        dlg.transient(self.root)
+        self._label(dlg, "مقایسهٔ پیش‌نویس با شاخهٔ GitHub",
+                    bg=BG, fg=GOLD, bold=True, size=13).pack(
+                        fill="x", padx=16, pady=(12, 5))
+        meta = (
+            "فایل: " + target +
+            "\nرسید: " + ident +
+            "\nHEAD مشاهده‌شده: " + head +
+            "\nSHA256 پیشین: " + data["before_sha256"] +
+            "\nSHA256 جدید: " + data["after_sha256"] +
+            "\nSHA256 Diff: " + data["diff_sha256"] +
+            "\nمقایسه فقط خواندنی است؛ تأیید و Push جداگانه‌اند."
+        )
+        self._label(dlg, meta, fg=MUTED, bg=BG, size=9,
+                    justify="left", anchor="w").pack(
+                        fill="x", padx=16, pady=(0, 6))
+        wrapper = tk.Frame(dlg, bg=BG)
+        wrapper.pack(fill="both", expand=True, padx=16, pady=6)
+        scrollbar = ttk.Scrollbar(wrapper, orient="vertical")
+        editor = tk.Text(wrapper, bg=SURFACE, fg=FG, font=self._font(10),
+                         wrap="none", padx=12, pady=10,
+                         yscrollcommand=scrollbar.set, relief="flat")
+        scrollbar.configure(command=editor.yview)
+        scrollbar.pack(side="right", fill="y")
+        editor.pack(side="left", fill="both", expand=True)
+        editor.insert("1.0", patch)
+        editor.configure(state="disabled")
+        controls = tk.Frame(dlg, bg=BG)
+        controls.pack(fill="x", padx=16, pady=(4, 14))
+        self._button(controls, "کپی Diff", lambda: self._copy(patch),
+                     foreground=GOLD).pack(side="left")
+        self._button(controls, "بستن بدون انتشار", dlg.destroy).pack(side="right")
+        self._button(controls, "درخواست جداگانهٔ ثبت در GitHub",
+                     lambda: self._confirm_github_write(
+                         dlg, ident, head, target),
+                     color="#423624", foreground=GOLD).pack(
+                         side="right", padx=8)
+
+    def _confirm_github_write(self, parent, ident, head, target):
+        """No implicit reuse of a local-edit consent for a remote commit."""
+        if self.github_submit_busy:
+            return
+        if not messagebox.askyesno(
+                "JREI · اجازهٔ مستقل GitHub",
+                "آیا پس از خواندن Diff، فقط همین فایل در شاخهٔ "
+                "migration/bertina-linux6 ثبت شود؟\n\n"
+                "فایل: " + target + "\nHEAD مورد انتظار: " + head +
+                "\n\nاین عمل یک commit واقعی است؛ تست و انتشار سایت نیست. "
+                "در صورت تغییر HEAD عملیات متوقف خواهد شد.",
+                icon="warning", parent=parent):
+            return
+        expected = simpledialog.askstring(
+            "JREI · تأیید مجدد",
+            "برای تأیید ثبت، ۱۲ کاراکتر نخست HEAD را وارد کنید:\n"
+            + head[:12], parent=parent)
+        if expected != head[:12]:
+            messagebox.showwarning(
+                "JREI", "تأیید مستقل مطابقت نداشت؛ GitHub تغییر نکرد.",
+                parent=parent)
+            return
+        self.github_submit_busy = True
+        parent.destroy()
+        self.status_text.set("درخواست ثبت محدود در GitHub ارسال شد…")
+        self.fetch("github_submit", lambda: self.api.request(
+            "/api/github/owner-reviewed-patch", {
+                "receipt_id": ident,
+                "expected_head_sha": head,
+                "confirm": True,
+            }))
 
     def show_local_bundle(self):
         """Review existing owner-approved isolated drafts as ONE read-only list."""
