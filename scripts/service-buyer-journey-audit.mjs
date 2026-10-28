@@ -376,7 +376,7 @@ const enPath=read('en/my-path/index.html');
 const guideHub=read('fa/rahnamaha/index.html');
 const faHome=read('fa/index.html');
 const faServices=read('fa/khadamat/index.html');
-const enServices=read('en/services/index.html');
+const enServiceHubHtml=read('en/services/index.html');
 const questionCss='assets/css/jr-question-journeys-v1.css';
 requireCondition(fs.existsSync(path.join(root,questionCss)),
  'the shared RTL/LTR mobile question pathway CSS is missing');
@@ -407,7 +407,7 @@ requireCondition(faHome.includes('id="jr-home-family-questions-v1"'),
  'Persian home must link organically to the public answers, without a purchase gate');
 requireCondition(faServices.includes('/fa/masir-man/#free-guides'),
  'Persian service hub must allow free educational reading before pricing');
-requireCondition(enServices.includes('/en/my-path/#free-guides'),
+requireCondition(enServiceHubHtml.includes('/en/my-path/#free-guides'),
  'English services must disclose non-commercial educational entry points');
 const faMap=read('sitemap-fa.xml');
 const enMap=read('sitemap-en.xml');
