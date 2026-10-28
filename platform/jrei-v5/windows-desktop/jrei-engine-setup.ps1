@@ -16,7 +16,11 @@ $ErrorActionPreference='Stop'
 if($env:OS -cne 'Windows_NT' -or -not [Environment]::Is64BitOperatingSystem){
  throw 'JREI_PRIVATE_ENGINE_WINDOWS_X64_ONLY'
 }
-$engine=Join-Path $PSScriptRoot 'engine\JREI-Engine.exe'
+# Versioned runtime files prevent Windows DLL locks from clobbering a
+# running original engine during future upgrades. Previous versions remain
+# available for task-action rollback, while this version's files are replaced
+# idempotently by the same Inno app identity.
+$engine=Join-Path $PSScriptRoot 'engine-v0.1.4\JREI-Engine.exe'
 $manifest=Join-Path $PSScriptRoot 'jrei-engine-manifest.json'
 $taskName='JREI-Owner-Windows-Command-Center'
 $private=Join-Path $env:LOCALAPPDATA 'JREI\command-center'
@@ -37,7 +41,7 @@ function TaskOwned([object]$candidate) {
  try{
   $who=[string]$candidate.Principal.UserId
   if($who -match '^S-1-[0-9]+(-[0-9]+)+$'){
-   $sid=(New-Object Security.Principal.SecurityIdentifier($who)).Value
+   $sid=(New-Object -TypeName System.Security.Principal.SecurityIdentifier -ArgumentList $who).Value
   }else{
    $sid=(New-Object Security.Principal.NTAccount($who)).
       Translate([Security.Principal.SecurityIdentifier]).Value
@@ -48,8 +52,10 @@ function TaskOwned([object]$candidate) {
 function LocalReady {
  try {
   $response=Invoke-WebRequest -UseBasicParsing -Uri 'http://127.0.0.1:8092/' -TimeoutSec 3
+  $html=[string]$response.Content
   return ($response.StatusCode -eq 200 -and
-          ([string]$response.Content).Contains('<title>JREI'))
+          ($html.Contains('<title>JREI AI') -or
+           $html.Contains('<title>JREI |')))
  }catch{return $false}
 }
 function Receipt([string]$state) {
@@ -139,8 +145,51 @@ if($null -eq $task){
  # Never rewire an unknown named task or another user's process.
  $expectedPy=[IO.Path]::GetFullPath((Join-Path $env:LOCALAPPDATA 'JREI-Python\venv\Scripts\python.exe'))
  $priorExe=[IO.Path]::GetFullPath([Environment]::ExpandEnvironmentVariables($oldExecute))
- $knownFrozen=($priorExe -ieq [IO.Path]::GetFullPath($engine) -and
-               $oldArgs -ceq '--serve')
+ $programDir=[IO.Path]::GetFullPath($PSScriptRoot)+[IO.Path]::DirectorySeparatorChar
+ $knownFrozen=(
+    $priorExe.StartsWith($programDir,[StringComparison]::OrdinalIgnoreCase) -and
+    $priorExe -imatch '[\\/]engine-v[0-9]+\.[0-9]+\.[0-9]+[\\/]JREI-Engine\.exe
+ $knownPython=($priorExe -ieq $expectedPy -and
+               $oldArgs -ceq '-B -m jrei_service.windows_command_center --serve')
+ if(-not ($knownFrozen -or $knownPython)){
+  throw 'JREI_EXISTING_TASK_ACTION_UNKNOWN_PRESERVED'
+ }
+ # If a task is already RUNNING but not answering, avoid interrupting it.
+ $liveTask=Get-ScheduledTask -TaskName $taskName -ErrorAction Stop
+ if($liveTask.State -eq 'Running'){
+  Receipt 'EXISTING_TASK_RUNNING_UNRESPONSIVE_NO_REPLACEMENT'
+  Emit 'EXISTING_TASK_RUNNING_HELD_FOR_MANUAL_REVIEW'
+  return
+ }
+ # A nonresponsive, idle, verified owner task can be repointed to the
+ # bundled owner core, with its previous action restored on failure.
+ Set-ScheduledTask -TaskName $taskName -Action $newAction -ErrorAction Stop | Out-Null
+ Emit 'ORIGINAL_OWNER_TASK_UPDATED_WITH_ROLLBACK'
+}
+$ready=$false
+try{
+ Start-ScheduledTask -TaskName $taskName -ErrorAction Stop
+ for($i=0;$i -lt 12;$i++){
+  if(LocalReady){$ready=$true;break}
+  Start-Sleep -Seconds 2
+ }
+ if(-not $ready){throw 'JREI_PRIVATE_OFFLINE_ENGINE_NOT_RESPONDING'}
+ Receipt 'ORIGINAL_PRIVATE_ENGINE_RUNNING_ON_8092'
+ Emit 'ORIGINAL_PRIVATE_ENGINE_RUNNING_ON_8092'
+}catch{
+ # Roll back only *this* task registration/action. Preserve data, models,
+ # private files and other tasks regardless of startup outcome.
+ if($created){
+  Unregister-ScheduledTask -TaskName $taskName -Confirm:$false -ErrorAction SilentlyContinue
+ }elseif($null -ne $oldAction){
+  Set-ScheduledTask -TaskName $taskName -Action $oldAction -ErrorAction SilentlyContinue | Out-Null
+ }
+ try{Receipt 'STARTUP_FAILED_PREVIOUS_ACTION_RETAINED'}catch{}
+ throw
+}
+ -and
+    $oldArgs -ceq '--serve'
+ )
  $knownPython=($priorExe -ieq $expectedPy -and
                $oldArgs -ceq '-B -m jrei_service.windows_command_center --serve')
  if(-not ($knownFrozen -or $knownPython)){
