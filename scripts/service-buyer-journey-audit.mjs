@@ -45,6 +45,9 @@ function validate(locale,kind,id){
   requireCondition((html.match(/<h1\b/gi)||[]).length===1,prefix+'must contain one visible H1');
   requireCondition((html.match(/id=["\x27]jr-decision-guide-v1["\x27]/gi)||[]).length===1,prefix+'guide ID missing/duplicated');
   requireCondition(html.includes('href="#jr-decision-guide-v1"'),prefix+'hero jump link missing');
+  const bridge=(html.match(/src=["\\x27]\\/assets\\/js\\/jr-service-intent-bridge\\.js(?:\\?[^"\\x27]*)?["\\x27]/gi)||[]).length;
+  const globalSite=(html.match(/src=["\\x27](?:\\/assets\\/js\\/|[^"\\x27]*\\/)site\\.js(?:\\?[^"\\x27]*)?["\\x27]/gi)||[]).length;
+  requireCondition(bridge+globalSite===1,prefix+'expected one consent-aware intent dispatcher, found '+(bridge+globalSite));
   requireCondition(html.includes('/assets/css/jr-service-decision-guides-20261028.css'),prefix+'guide stylesheet missing');
   const guideStart=html.indexOf('<section id="jr-decision-guide-v1"');
   const guideEnd=html.indexOf('</section>',guideStart)+10;
@@ -103,6 +106,14 @@ requireCondition(composer.includes("fetch('/assets/data/vip-catalog.json'"),
   'VIP metadata must originate in the canonical public catalogue');
 requireCondition(composer.includes('revision!==startedAt'),'service selection must reject stale asynchronous responses');
 requireCondition(!composer.includes('localStorage'),'email composer must not retain sensitive enquiry fields');
+const bridgeSource=read('assets/js/jr-service-intent-bridge.js');
+requireCondition(bridgeSource.includes('JR_CONVERSION_INTENT')&&bridgeSource.includes('analytics-adapter.js'),
+  'standalone pages must reuse the approved event bus and consent-gated analytics adapter');
+requireCondition(!bridgeSource.includes('localStorage')&&!bridgeSource.includes('sendBeacon('),
+  'standalone event bridge must never retain personal data or transmit directly');
+const adapter=read('assets/js/analytics-adapter.js');
+requireCondition(adapter.includes('0-9_-'),
+  'private-safe public route allowlist must accommodate canonical underscore service IDs');
 const css=read('assets/css/jr-service-decision-guides-20261028.css');
 requireCondition(css.includes('@media(max-width:700px)'),'mobile-friendly guide layout missing');
 requireCondition(css.includes('focus-visible'),'visible keyboard focus required');
