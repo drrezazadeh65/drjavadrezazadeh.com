@@ -78,12 +78,14 @@ for(const [needle,why] of [
  ['checkout.disabled=!deliveryCaptureReady','book cart must wait for server order-capture readiness'],
  ['btn.disabled=!canCapture','book order submission must wait for server capture readiness'],
  ['const capability=await verifyBookPaymentCapability()','book controls must wait for a fresh readiness check'],
+ ['let singleCopyPaymentReady=false','collectible payment state must initialise fail-closed'],
+ ['checkoutReadyForSelection=bookPaymentReady||','collectible checkout must preserve server verified legacy payment gate'],
  ['let bookPaymentReady=false','book payment must initialise fail-closed'],
  ['let deliveryCaptureReady=false','book capture must initialise fail-closed'],
  ['bookPaymentReady=capability.payment','payment must use the explicit category capability'],
  ['deliveryCaptureReady=capability.capture','capture must use its separate server capability'],
  ["health.orderCapture===true",'capture readiness must be explicitly true'],
- ["bookPaymentReady?'/api/commerce/create':'/api/commerce/prepare'",'non-monetary capture must not use the payment creation endpoint'],
+ ["checkoutReadyForSelection?'/api/commerce/create':'/api/commerce/prepare'",'non-monetary capture must not use the payment creation endpoint'],
  ['bookCoverUrl(book)','book cover source must be constrained to owned media paths'],
  ['escapeHtml(book.title_fa)','dynamic book title must be HTML-escaped']
 ]){
