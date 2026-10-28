@@ -32,6 +32,7 @@ from jrei_service import windows_owner_tasks as owner_tasks
 from jrei_service import windows_continuous_learning as knowledge
 from jrei_service import windows_model_curriculum as curriculum
 from jrei_service import windows_learning_agenda as agenda
+from jrei_service import windows_autonomous_topics as auto_topics
 from jrei_service.windows_response_quality import has_repetition_loop
 from jrei_service.windows_project_generator import read_generated
 from jrei_service.windows_document_vault import import_document, list_documents, delete_document
@@ -108,6 +109,7 @@ def setup() -> str:
     knowledge.initialize(DB_PATH)
     curriculum.initialize(DB_PATH)
     agenda.initialize(DB_PATH)
+    auto_topics.initialize(DB_PATH)
     token = TOKEN_PATH.read_text(encoding="ascii").strip()
     if len(token) < 48:
         raise RuntimeError("JREI_OWNER_TOKEN_INVALID")
@@ -555,6 +557,7 @@ def scheduler():
     next_learning = time.monotonic() + 25
     next_curriculum = time.monotonic() + 90
     next_agenda = time.monotonic() + 110
+    next_auto_topics = time.monotonic() + 140
     next_ci_check = time.monotonic() + 120
     misses = 0
     while not _STOP.is_set():
@@ -591,6 +594,21 @@ def scheduler():
             except (OSError,ValueError,sqlite3.Error) as exc:
                 record("windows_learning","LOOP_ERROR",exc.__class__.__name__)
             next_learning = time.monotonic() + 65
+        if time.monotonic() >= next_auto_topics and not _BUSY.locked():
+            if _activity_at == 0 or time.monotonic() - _activity_at >= 180:
+                try:
+                    resources=knowledge._windows_resources()
+                    if resources.get("eligible",False):
+                        discovered=auto_topics.propose_once(
+                            DB_PATH,model_reply=reply,
+                            owner_active=False,resources_available=True)
+                        if discovered.get("state")=="AUTO_TOPIC_UNVERIFIED":
+                            record("windows_auto_topics","AUTO_TOPIC_UNVERIFIED",
+                                   "ONLY_LICENSED_SOURCE_STUDY_QUESTION",
+                                   discovered.get("source_sha256",""))
+                except (OSError,ValueError,sqlite3.Error) as exc:
+                    record("windows_auto_topics","HELD",exc.__class__.__name__)
+            next_auto_topics = time.monotonic() + 900
         if time.monotonic() >= next_agenda and not _BUSY.locked():
             if _activity_at == 0 or time.monotonic() - _activity_at >= 180:
                 try:
@@ -662,6 +680,7 @@ def status():
         "continuous_learning": knowledge.snapshot(DB_PATH),
         "model_curriculum": curriculum.statistics(DB_PATH),
         "learning_agenda": agenda.snapshot(DB_PATH),
+        "autonomous_topic_discovery": auto_topics.snapshot(DB_PATH),
         "autonomous_study_scheduler": "RUNNING",
         "python_port": 8091, "gpu_port": 8082,
         "site_publishing_control": "NOT_CONNECTED",
@@ -837,8 +856,9 @@ class OwnerHTTP(BaseHTTPRequestHandler):
                 if not isinstance(data.get("id"),str) or not re.fullmatch(r"[a-f0-9]{32}",data["id"]):
                     raise ValueError("LEARNING_SOURCE_ID_INVALID")
                 knowledge.invalidate_staged_training_exports(DB_PATH,PRIVATE)
-                return self._send(200, knowledge.deactivate_source(
-                    DB_PATH,data.get("id")))
+                result=knowledge.deactivate_source(DB_PATH,data.get("id"))
+                auto_topics.reconcile_versions(DB_PATH)
+                return self._send(200,result)
             if self.path == "/api/learning/topic/add":
                 return self._send(200,agenda.add_topic(
                     DB_PATH,domain=data.get("domain"),
