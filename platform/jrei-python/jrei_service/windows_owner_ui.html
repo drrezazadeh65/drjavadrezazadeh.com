@@ -100,6 +100,7 @@ a.skip-link{position:fixed;top:-120px;right:14px;z-index:1000;padding:10px 16px;
  <div class="learningPanel">
   <p>پایش منابع مجاز فقط روی ویندوز؛ منابع تازه پیش از خزش نیازمند تأیید مجوز و رعایت robots.txt هستند. مدل زبانی بدون بازبینی مستقل آموزش وزنی نمی‌بیند.</p>
   <pre id="learningState" class="learnState" aria-live="polite">در حال دریافت وضعیت…</pre>
+  <div id="memoryGraphState" class="learnNote" aria-live="polite">حافظهٔ مفهومی: هنوز ارزیابی نشده است.</div>
   <button class="confirm" id="learningSwitch">تغییر وضعیت خزش</button>
   <label for="sourceUrl">نشانی دقیق منبع دارای مجوز HTTPS</label><input id="sourceUrl" type="url" maxlength="600" autocomplete="off">
   <label for="sourceIssuer">نام ناشر</label><input id="sourceIssuer" maxlength="120" autocomplete="off">
@@ -362,6 +363,16 @@ async function refreshLearning(){
   $('learningDiscoveries').textContent=links.items.length?
    'پیوندهای نیازمند تأیید مستقل: '+links.items.length:
    'پیوند نیازمند بازبینی وجود ندارد.';
+  const memoryInfo=globalState.native_evidence_memory||{};
+  $('memoryGraphState').textContent=
+   'حافظهٔ رابطه‌ای JREI | ادعاهای پیشنهادی: '+
+   (memoryInfo.unverified_claim_candidates||0)+
+   ' · مستند به نسخه‌های فعلی: '+
+   (memoryInfo.candidates_linked_to_current_sources||0)+
+   ' · تعارض‌های احتمالی: '+
+   (memoryInfo.potential_unreviewed_conflict_groups||0)+
+   ' · ادعاهای تأیید علمی: '+
+   (memoryInfo.independently_verified_claims||0);
   const agendaInfo=globalState.learning_agenda||{};
   const proposed=globalState.autonomous_topic_discovery||{};
   $('agendaStats').textContent='موضوع‌های ثبت‌شده: '+(agendaInfo.topics||0)+
