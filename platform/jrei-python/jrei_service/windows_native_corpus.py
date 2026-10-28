@@ -381,6 +381,66 @@ def load_verified_candidate(db_path: Path, private: Path, ident: str) -> dict:
     return {"path": dest, "manifest": data}
 
 
+
+
+def readiness(db_path: Path) -> dict:
+    """Owner-private, *read-only* source eligibility inventory.
+
+    This is not a language proficiency estimate, rights certification,
+    source-text scan, dataset export, tokenizer fit or readiness to train.
+    It deliberately does not open owner documents or staged token files.
+    """
+    try:
+        with closing(_db(db_path)) as db:
+            records = db.execute("""SELECT s.id,s.issuer,s.licence
+                FROM learning_sources s
+                WHERE s.active=1 AND s.reviewed=1
+                  AND s.rights='PUBLIC_REUSE_APPROVED'
+                  AND EXISTS(
+                    SELECT 1 FROM learning_passages p
+                    JOIN learning_versions v ON v.id=p.version_id
+                    WHERE p.source_id=s.id AND v.sha256=s.last_sha
+                  )
+                ORDER BY s.id LIMIT 1001""").fetchall()
+        truncated = len(records) > 1000
+        eligible = [(sid, issuer) for sid, issuer, license_id in records[:1000]
+                    if isinstance(sid, str) and IDENT.fullmatch(sid)
+                    and isinstance(issuer, str) and 3 <= len(issuer) <= 120
+                    and isinstance(license_id, str)
+                    and license_id.casefold() in TRAINABLE_LICENSES]
+        publishers = {_publisher_key(issuer) for _, issuer in eligible}
+        if truncated:
+            state = "ELIGIBLE_SOURCE_INVENTORY_TRUNCATED_NOT_CERTIFIED"
+        elif not eligible:
+            state = "NO_ELIGIBLE_REVIEWED_REUSABLE_SOURCES"
+        elif len(publishers) < 3:
+            state = "NEEDS_THREE_REVIEWED_PUBLISHER_GROUPS"
+        else:
+            state = "PUBLISHER_DIVERSITY_PRECHECK_ONLY"
+        return {
+            "schema": "jr.jrei.native-foundation-readiness.v1",
+            "state": state,
+            "source_count_sample": len(eligible),
+            "distinct_reviewed_issuer_labels": len(publishers),
+            "sample_truncated": truncated,
+            "publisher_identity_independently_audited": False,
+            "persian_english_partition_coverage_checked": False,
+            "no_pretrained_model_required": True,
+            "candidate_prepared": False,
+            "training_started": False,
+            "quality_evaluated": False,
+            "owner_preparation_approval_required": True,
+        }
+    except (sqlite3.Error, OSError):
+        return {
+            "schema": "jr.jrei.native-foundation-readiness.v1",
+            "state": "SOURCE_INVENTORY_UNAVAILABLE",
+            "training_started": False,
+            "quality_evaluated": False,
+            "owner_preparation_approval_required": True,
+        }
+
+
 def main():
     import argparse
     parser = argparse.ArgumentParser(description="JREI licensed source corpus builder")
