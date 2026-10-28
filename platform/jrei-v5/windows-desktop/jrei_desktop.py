@@ -331,9 +331,18 @@ class Desktop:
             self.online = True
             model = bool(data.get("model_connected"))
             native = data.get("native_evidence_answering") == "AVAILABLE_NO_EXTERNAL_WEIGHTS"
-            self.status_text.set("مدل زبانی فعال" if model
-                else ("هستهٔ شواهد فعال · مدل زبانی غیرفعال" if native
-                      else "موتور محلی · مدل زبانی غیرفعال"))
+            # An answering private HTTP service does NOT prove new JREI
+            # source is installed or that neural language weights exist.
+            # Show the engine's own pinned build receipt, not the EXE version.
+            active_sha = data.get("windows_app_source_commit")
+            valid_sha = isinstance(active_sha, str) and bool(
+                re.fullmatch(r"[a-f0-9]{40}", active_sha))
+            version_label = (f" · موتور {active_sha[:8]}"
+                             if valid_sha else " · نسخهٔ موتور تأییدنشده")
+            label = ("مدل زبانیِ پیکربندی‌شده متصل است" if model else
+                     "هستهٔ شواهد موجود است؛ مدل عصبی آماده نیست" if native else
+                     "موتور قدیمی/نامشخص؛ مدل زبانی آماده نیست")
+            self.status_text.set(label + version_label)
             self.fetch("threads", lambda: self.api.request("/api/conversations"))
         elif key == "threads":
             self.threads = data.get("items", [])[:100]
