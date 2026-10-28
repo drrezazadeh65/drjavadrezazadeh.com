@@ -57,11 +57,20 @@ FILES = {".txt", ".md", ".csv", ".json", ".py", ".js", ".mjs",
          ".css", ".html", ".docx", ".pdf", ".pptx", ".xlsx"}
 
 
+class _RejectLoopbackRedirect(urllib.request.HTTPRedirectHandler):
+    """Never forward the owner's 8092 bearer token to a redirected host."""
+
+    def redirect_request(self, request, fp, code, msg, headers, newurl):
+        raise RuntimeError("JREI_PRIVATE_LOOPBACK_REDIRECT_REFUSED")
+
+
 class JREIClient:
     def __init__(self):
-        # Explicitly bypass system/browser proxy configuration; the owner
-        # bearer token must NEVER leave the loopback interface.
-        self.http = urllib.request.build_opener(urllib.request.ProxyHandler({}))
+        # Disable inherited proxies AND any HTTP redirect. A responding
+        # loopback service must never redirect bearer credentials to an
+        # outside URL, even if that URL appeared locally trustworthy.
+        self.http = urllib.request.build_opener(
+            urllib.request.ProxyHandler({}), _RejectLoopbackRedirect())
 
     def request(self, route: str, data: dict | None = None) -> dict:
         if not route.startswith("/api/") or "://" in route or "#" in route:
