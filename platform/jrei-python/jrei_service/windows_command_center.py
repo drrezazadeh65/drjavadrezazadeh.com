@@ -618,6 +618,8 @@ class OwnerHTTP(BaseHTTPRequestHandler):
             return self._send(200, {"instructions": owner_agent.get_instructions(PRIVATE)})
         if self.path == "/api/conversations":
             return self._send(200, {"items": owner_agent.list_conversations(DB_PATH)})
+        if self.path == "/api/workflows":
+            return self._send(200, {"items": owner_agent.list_workflows(DB_PATH)})
         if urlsplit(self.path).path == "/api/conversation":
             query = parse_qs(urlsplit(self.path).query)
             ident = query.get("id", [""])[0]
