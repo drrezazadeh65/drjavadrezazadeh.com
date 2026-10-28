@@ -45,6 +45,7 @@ from jrei_service import windows_site_image_studio as image_studio
 from jrei_service import windows_visual_learning as visual_learning
 from jrei_service import windows_github_operator as github_operator
 from jrei_service import windows_open_source_discovery as source_discovery
+from jrei_service import windows_open_source_mission as open_source_mission
 from jrei_service import windows_language_backend as language_backend
 from jrei_service import windows_native_inference as native_inference
 from jrei_service import windows_resource_envelope as resource_envelope
@@ -130,6 +131,7 @@ def setup() -> str:
     memory_graph.initialize(DB_PATH)
     code_experience.initialize(DB_PATH)
     image_studio.initialize(DB_PATH)
+    open_source_mission.initialize(DB_PATH)
     github_operator.initialize(DB_PATH)
     token = TOKEN_PATH.read_text(encoding="ascii").strip()
     if len(token) < 48:
@@ -490,6 +492,7 @@ def scheduler():
     next_ci_check = now + 120
     next_image = now + 10
     next_visual_day = now + 15
+    next_open_source_mission = now + 45
     next_observation = now
     while not _STOP.is_set():
         _CONTINUUM_LAST_HEARTBEAT = time.monotonic()
@@ -503,6 +506,25 @@ def scheduler():
                 record("learning_continuum", "OBSERVATION_UNAVAILABLE",
                        exc.__class__.__name__)
             next_observation = time.monotonic() + 45
+        if time.monotonic() >= next_open_source_mission and not _BUSY.locked():
+            # Standing owner instruction: metadata-only public GitHub study
+            # in the original scheduler; one request per admitted iteration.
+            # Repository results are candidates, NOT executable upgrades.
+            try:
+                discovered = open_source_mission.tick(
+                    DB_PATH,
+                    resources_available=resource_policy.permits(
+                        "APPROVED_NETWORK_STUDY"),
+                    owner_active=(_activity_at > 0 and
+                                  time.monotonic()-_activity_at < 180))
+                if discovered.get("live_search") is True:
+                    record("open_source_study", "PUBLIC_METADATA_OBSERVED",
+                           str(discovered.get("domain", ""))[:90])
+            except (OSError,ValueError,TypeError,RuntimeError,
+                    sqlite3.Error,urllib.error.URLError) as exc:
+                record("open_source_study", "RESEARCH_HELD",
+                       exc.__class__.__name__)
+            next_open_source_mission=time.monotonic() + 240
         if time.monotonic() >= next_visual_day and not _BUSY.locked():
             # One read/write receipt per UTC day. The loop never invents
             # images, user ratings, model training or constant quality gains.
@@ -758,6 +780,8 @@ def status():
         "code_learning": code_experience.snapshot(DB_PATH),
         "site_image_studio": image_studio.local_model_status(PRIVATE),
         "native_visual_learning": visual_learning.snapshot(DB_PATH),
+        "permanent_open_source_research":
+            open_source_mission.snapshot(DB_PATH),
         "independent_github_operator": "OWNER_SCOPED_API_AVAILABLE_IF_CONFIGURED",
         "open_source_code_research": "OWNER_REQUEST_ONLY_NO_CODE_DOWNLOAD",
         "independent_site_governor": "EXISTING_GITHUB_WORKFLOW_NOT_DUPLICATED",
@@ -887,6 +911,8 @@ class OwnerHTTP(BaseHTTPRequestHandler):
             return self._send(200, memory_graph.snapshot(DB_PATH))
         if self.path == "/api/open-source/catalog":
             return self._send(200, source_discovery.catalog())
+        if self.path == "/api/open-source/mission":
+            return self._send(200, open_source_mission.snapshot(DB_PATH))
         if urlsplit(self.path).path == "/api/open-source/search":
             params = parse_qs(urlsplit(self.path).query)
             try:
@@ -1019,6 +1045,10 @@ class OwnerHTTP(BaseHTTPRequestHandler):
                 result = delete_document(private=PRIVATE, identifier=identifier)
                 record("document_delete", "LOCAL_ONLY", result["id"][:12])
                 return self._send(200, result)
+            if self.path == "/api/open-source/mission/control":
+                return self._send(200, open_source_mission.set_enabled(
+                    DB_PATH, enabled=data.get("enabled"),
+                    owner_authenticated=data.get("confirm")))
             if self.path == "/api/learning/control":
                 return self._send(200, knowledge.set_network_enabled(
                     DB_PATH,enabled=data.get("enabled"),confirmed=data.get("confirm")))
