@@ -72,6 +72,7 @@ h1{font-size:29px;line-height:1.3;margin:16px 0 6px;font-weight:650}p{margin:.5e
 @media(max-width:780px){.shell{display:block;height:100dvh}.sidebar{position:absolute;top:0;bottom:0;right:0;width:min(290px,85vw);z-index:12;box-shadow:var(--shadow);transform:translateX(102%);transition:transform .18s}.sidebar.open{transform:translateX(0)}.workspace{height:100dvh}.menu{display:inline-block}.topbar{height:55px;padding:0 12px}.topbar .sub{display:none}.conversationInner{padding:15px 12px 28px}.composerArea{padding:8px 10px max(12px,env(safe-area-inset-bottom))}.welcome{margin-top:9vh}.welcome h1{font-size:22px}.prompts{grid-template-columns:1fr;margin-top:18px;gap:8px}.toolReceipt{font-size:10px}.turn.user .content{max-width:85%}.toolsPanel{top:55px}}
 @media(prefers-reduced-motion:reduce){.conversation{scroll-behavior:auto}.sidebar{transition:none}}
 a.skip-link{position:fixed;top:-120px;right:14px;z-index:1000;padding:10px 16px;border:2px solid var(--accent);border-radius:10px;background:var(--panel);color:var(--text)}a.skip-link:focus{top:12px}
+.imagePanel{border:1px solid #574932;border-radius:12px;padding:13px;background:#24221e;display:grid;gap:7px}.imagePanel label{font-size:11px;color:#e0c795}.imagePanel input,.imagePanel select,.imagePanel textarea{width:100%;border:1px solid #504735;border-radius:8px;background:#15181c;color:#eee;padding:8px;font:inherit;min-height:36px}.imagePanel input{direction:auto}.imagePanel .imageJob{border-top:1px solid #534a3b;padding:10px 0;font-size:11px}.imagePanel .imageJob img{display:block;max-width:100%;height:auto;border-radius:8px;margin:6px 0;border:1px solid #464039}.imagePanel button{border:1px solid #66543a;border-radius:8px;padding:7px 10px;background:#2d2921;color:#edcf9d}.imagePanel .imageActions{display:flex;gap:8px;flex-wrap:wrap}.imagePanel .imageActions button{flex:1 0 auto}.imagePanel .imageDisclaimer{font-size:11px;color:#bab09c}
 </style>
 </head>
 <body>
@@ -132,6 +133,33 @@ a.skip-link{position:fixed;top:-120px;right:14px;z-index:1000;padding:10px 16px;
   <div id="agendaCycles" class="learnNote"></div>
   <div id="learningLessons" class="learnNote"></div>
  </div>
+ <h2>استودیو تصویر اختصاصی JREI</h2>
+ <section class="imagePanel" aria-label="تولید تصویر برای سایت">
+  <p class="imageDisclaimer">تصاویر مفهومی و اصیل برای خدمات، مقالات، اخبار تحلیلی و شبکه‌های اجتماعی. بدون چهرهٔ انسان؛ صرفاً پیش‌نویس ویندوز تا بازبینی مالک. از تصاویر ساختگی به‌عنوان عکس رویداد واقعی استفاده نکنید.</p>
+  <div id="imageEngineState" class="learnNote">وضعیت مدل تصویر هنوز بررسی نشده است.</div>
+  <label for="imagePurpose">نوع استفاده</label><select id="imagePurpose">
+   <option value="BLOG">مقاله و وبلاگ</option><option value="SERVICE">خدمات</option>
+   <option value="HOMEPAGE">صفحهٔ نخست</option><option value="NEWS_CONCEPT">تصویر مفهومی خبر</option>
+   <option value="SOCIAL">شبکه‌های اجتماعی</option>
+  </select>
+  <label for="imageAspect">ابعاد تصویر</label><select id="imageAspect">
+   <option value="WIDE_16_9">افقی ۱۶:۹</option><option value="SQUARE_1_1">مربع ۱:۱</option>
+   <option value="PORTRAIT_4_5">عمودی ۴:۵</option>
+  </select>
+  <label for="imagePage">مسیر موجود صفحهٔ مقصد؛ نه لینک انتشار</label>
+  <input id="imagePage" maxlength="165" value="/fa/" dir="ltr">
+  <label for="imageSubject">موضوع</label>
+  <input id="imageSubject" maxlength="180" placeholder="یادگیری زبان با هوش مصنوعی">
+  <label for="imageBrief">شرح بصری دقیق (ترجیحاً انگلیسی)</label>
+  <textarea id="imageBrief" rows="3" maxlength="650" placeholder="An original conceptual illustration of an open book, warm golden light, modern education, no people, no text."></textarea>
+  <label for="imageAltFa">متن جایگزین فارسی</label>
+  <input id="imageAltFa" maxlength="260">
+  <label for="imageAltEn">English alt text</label>
+  <input id="imageAltEn" maxlength="260" dir="ltr">
+  <button id="imageGenerate" type="button">ثبت دستور تولید تصویر در JREI</button>
+  <button id="imageRefresh" type="button">نمایش وضعیت و تصاویر</button>
+  <div id="imageJobs" aria-live="polite">هنوز خروجی قابل نمایش ثبت نشده است.</div>
+ </section>
  <h2>اسناد خصوصی ویندوز</h2><div id="documents"></div>
  <h2>رویدادهای ثبت‌شده</h2><div class="trace" id="events"></div></section>
  <div class="toast" id="toast" role="alert" hidden></div>
@@ -424,6 +452,89 @@ async function refreshLearning(){
    list.append(el('p','',item.question.slice(0,120)+' · '+item.state));
  }catch(e){$('learningState').textContent='اطلاعات یادگیری در دسترس نیست: '+e.message}
 }
+
+async function imageAssetBlob(ident,filename){
+ const url='/api/site-images/asset?id='+encodeURIComponent(ident)+'&name='+encodeURIComponent(filename);
+ const response=await fetch(url,{cache:'no-store',headers:{Authorization:'Bearer '+token}});
+ if(!response.ok)throw new Error('تصویر هنوز در دسترس نیست یا اثرانگشت فایل معتبر نیست.');
+ const blob=await response.blob();
+ if(blob.type!=='image/webp' || blob.size>8000000)throw new Error('فرمت خروجی تصویر نامعتبر است.');
+ return blob;
+}
+async function refreshImages(){
+ const root=$('imageJobs');root.replaceChildren();
+ try{
+  const state=await api('/api/status');
+  const engine=state.site_image_studio||{};
+  $('imageEngineState').textContent='موتور تصویری محلی: '+(engine.state||'UNKNOWN')+
+   ' · نصب و مجوز وزن‌های مدل باید جداگانه تأیید شوند. انتشار خودکار: غیرفعال';
+  const jobs=await api('/api/site-images/jobs');
+  if(!jobs.items.length)root.append(el('p','imageDisclaimer','هنوز سفارشی ثبت نشده است.'));
+  for(const item of jobs.items.slice(0,12)){
+   const row=el('div','imageJob');
+   row.append(el('strong','',item.subject+' · '+item.state),
+    el('p','imageDisclaimer',item.page_path+' · '+item.aspect+
+      (item.error_code?' · '+item.error_code:'')));
+   const actions=el('div','imageActions');
+   if(item.variants.length){
+    const preview=el('button','','پیش‌نمایش خصوصی');
+    preview.onclick=async()=>{
+     try{
+      const blob=await imageAssetBlob(item.id,item.variants[0]);
+      const url=URL.createObjectURL(blob);
+      const img=document.createElement('img');img.alt=item.alt_fa||'تصویر مفهومی';
+      img.src=url;img.onload=()=>setTimeout(()=>URL.revokeObjectURL(url),10000);
+      row.querySelectorAll('img').forEach(x=>x.remove());row.append(img);
+     }catch(e){toast(e.message)}
+    };
+    const download=el('button','','دریافت WebP');
+    download.onclick=async()=>{
+     try{
+      const blob=await imageAssetBlob(item.id,item.variants[0]);
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement('a');a.href=url;a.download=item.variants[0];
+      document.body.append(a);a.click();a.remove();
+      setTimeout(()=>URL.revokeObjectURL(url),12000);
+     }catch(e){toast(e.message)}
+    };
+    actions.append(preview,download);
+   }
+   if(['HELD_MISSING_MODEL','HELD_DEPENDENCY','HELD_RESOURCES',
+       'GENERATION_FAILED','INTERRUPTED'].includes(item.state)){
+    const retry=el('button','','درخواست تلاش دوباره');
+    retry.onclick=async()=>{
+     if(!confirm('این دستور تولید تصویر مجدداً به صف خصوصی اضافه شود؟'))return;
+     try{await api('/api/site-images/retry',{confirm:true,id:item.id});
+         await refreshImages()}catch(e){toast(e.message)}
+    };actions.append(retry);
+   }
+   if(item.state==='GENERATED_UNREVIEWED'){
+    const approve=el('button','','تأیید برای تحویل دستی');
+    approve.onclick=async()=>{
+     if(!confirm('پس از مشاهدهٔ تصویر، آیا مجوز مدل، محتوای تصویر و alt فارسی/انگلیسی را بررسی و تأیید کرده‌اید؟'))return;
+     try{await api('/api/site-images/review',{id:item.id,verdict:'APPROVE',
+       reviewer:'WINDOWS_OWNER',rights_reviewed:true,visual_reviewed:true,
+       alt_reviewed:true,confirm:true});toast('برای تحویل دستی تأیید شد؛ روی سایت منتشر نشده است.');
+       await refreshImages()}catch(e){toast(e.message)}
+    };
+    actions.append(approve);
+   }
+   row.append(actions);root.append(row);
+  }
+ }catch(e){root.textContent='امکان خواندن وضعیت استودیو نیست: '+e.message}
+}
+$('imageGenerate').onclick=async()=>{
+ const req={confirm:true,purpose:$('imagePurpose').value,aspect:$('imageAspect').value,
+  page_path:$('imagePage').value.trim(),subject:$('imageSubject').value.trim(),
+  visual_brief:$('imageBrief').value.trim(),alt_fa:$('imageAltFa').value.trim(),
+  alt_en:$('imageAltEn').value.trim(),documentary:false,human_faces:false};
+ if(!confirm('دستور تولید تصویر مفهومی در ویندوز ثبت شود؟ انتشار سایت انجام نمی‌شود.'))return;
+ try{const result=await api('/api/site-images/enqueue',req);
+     toast('در صف خصوصی JREI ثبت شد: '+result.id.slice(0,8));
+     await refreshImages()}catch(e){toast(e.message)}
+};
+$('imageRefresh').onclick=()=>refreshImages();
+
 $('agendaAdd').onclick=async()=>{
  const question=$('agendaQuestion').value.trim();
  if(question.length<10){toast('پرسش باید دقیق‌تر باشد.');return}
@@ -642,7 +753,7 @@ $('fileInput').onchange=async()=>{
  finally{$('attach').disabled=false;$('fileInput').value='';setBusy(false)}
 };
 $('menu').onclick=()=>$('sidebar').classList.toggle('open');
-$('openTools').onclick=()=>{$('toolsPanel').hidden=!$('toolsPanel').hidden;if(!$('toolsPanel').hidden){loadHealth();refreshDocuments();refreshLearning()}};
+$('openTools').onclick=()=>{$('toolsPanel').hidden=!$('toolsPanel').hidden;if(!$('toolsPanel').hidden){loadHealth();refreshDocuments();refreshLearning();refreshImages()}};
 $('closeTools').onclick=()=>$('toolsPanel').hidden=true;
 $('saveProfile').onclick=async()=>{try{const r=await api('/api/profile',{instructions:$('profile').value});toast('ترجیحات شخصی در ویندوز ذخیره شد.')}catch(e){toast(e.message)}};
 api('/api/profile').then(x=>$('profile').value=x.instructions||'').catch(()=>{});
