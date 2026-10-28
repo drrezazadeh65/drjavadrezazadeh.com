@@ -79,9 +79,9 @@ function OwnerTask{
  $principal=[string]$task.Principal.UserId
  try{
   if($principal -match '^S-1-[0-9]+(-[0-9]+)+$'){
-   $sid=(New-Object System.Security.Principal.SecurityIdentifier($principal)).Value
+   $sid=(New-Object -TypeName System.Security.Principal.SecurityIdentifier -ArgumentList $principal).Value
   }else{
-   $sid=(New-Object System.Security.Principal.NTAccount($principal)).Translate(
+   $sid=(New-Object -TypeName System.Security.Principal.NTAccount -ArgumentList $principal).Translate(
     [Security.Principal.SecurityIdentifier]).Value
   }
  }catch{throw 'JREI_APP_TASK_OWNER_UNRESOLVED'}
@@ -117,10 +117,13 @@ function IsIdle{
   return $true
  }catch{return $false}
 }
-function IsReady{
+function IsReady([string]$expectedSha=''){
  try{
   $status=LocalApi '/api/status'
-  return ($status.schema -ceq 'jr.jrei.windows-command-center.v2' -and $status.owner_private -eq $true)
+  if($status.schema -cne 'jr.jrei.windows-command-center.v2' -or
+     $status.owner_private -ne $true){return $false}
+  if($expectedSha -and $status.windows_app_source_commit -cne $expectedSha){return $false}
+  return $true
  }catch{return $false}
 }
 function Stage([string]$sha){
@@ -151,6 +154,9 @@ function Stage([string]$sha){
    throw 'JREI_APP_SNAPSHOT_INCOMPLETE'
   }
  }
+ WriteJson (Join-Path $snapshot 'jrei-app-release.json') @{
+  schema='jr.jrei.owner-windows-app-release.v1';sourceCommit=$sha
+ }
  WriteJson $receipt @{
   schema='jr.jrei.owner-app-snapshot.v1';sourceCommit=$sha
   testsRun=$false;websiteDeployed=$false
@@ -179,7 +185,7 @@ function Promote([string]$sha){
   Start-ScheduledTask -TaskName $taskName -ErrorAction Stop
   $healthy=$false
   for($i=0;$i -lt 18;$i++){
-   if(IsReady){$healthy=$true;break}
+   if(IsReady $sha){$healthy=$true;break}
    Start-Sleep -Seconds 2
   }
   if(-not $healthy){throw 'JREI_APP_NEW_VERSION_NOT_READY'}
