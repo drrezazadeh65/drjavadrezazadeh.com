@@ -468,6 +468,35 @@ function setBusy(value){
  active=value;$('send').disabled=value;$('input').disabled=value;
  $('busy').textContent=value?'در حال پردازش و اجرای دستور…':'Enter ارسال · Shift+Enter خط جدید';
 }
+function queuePreview(task,conversationId,display){
+ if(selected!==conversationId)return;
+ const user=addMessage('user',display);
+ user.dataset.optimisticTask=task.id;
+ const response=el('article','turn assistant queuePending');
+ response.dataset.pendingTask=task.id;
+ const box=el('div','turnBody');
+ const content=el('div','content');
+ content.setAttribute('role','status');
+ const dots=el('span','pendingDots');
+ dots.setAttribute('aria-hidden','true');
+ for(let i=0;i<3;i++)dots.append(el('i',''));
+ const label=el('span','pendingLabel','در صف پردازش JREI…');
+ content.append(dots,label);
+ box.append(content);
+ response.append(el('span','avatar','JR'),box);
+ $('conversationInner').append(response);scrollBottom();
+}
+function updateQueuePreview(task){
+ if(selected!==task.conversation_id)return;
+ const rows=$('conversationInner').querySelectorAll('[data-pending-task]');
+ for(const row of rows){
+  if(row.dataset.pendingTask!==task.id)continue;
+  const label=row.querySelector('.pendingLabel');
+  if(!label)continue;
+  const phase=task.progress&&taskProgressText(task.progress.phase);
+  label.textContent=phase||taskStateText(task.status);
+ }
+}
 function renderAttachments(){
  const root=$('attachedFiles');root.replaceChildren();
  for(const item of attachments){
@@ -880,6 +909,7 @@ async function refreshTasks(){
   for(const task of items){
    const previous=taskStates.get(task.id);
    taskStates.set(task.id,task.status);
+    updateQueuePreview(task);
    if(previous&&TASK_ACTIVE.has(previous)&&TASK_FINAL.has(task.status)&&selected===task.conversation_id){
     // Real messages/results are persisted by the agent, not the browser.
     await openThread(selected);
@@ -926,10 +956,11 @@ async function send(){
    attachments:chosen.map(x=>x.id)
   });
   taskStates.set(job.id,'QUEUED');
-  $('input').value='';
+  queuePreview(job,conversationId,display);
+  $('input').value='';fitComposer();
   attachments=attachments.filter(x=>!chosen.some(v=>v.id===x.id));
   renderAttachments();
-  toast('درخواست در صف خصوصی JREI ثبت شد: '+job.id.slice(0,8));
+  // Job accepted, with real worker progress displayed inline.
   await refreshTasks();
   await refreshThreads();
  }catch(e){
