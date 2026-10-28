@@ -16,6 +16,58 @@
     // Labels and prices come from the already-published public catalogues.
     // The map is display-only: it never confers capacity, acceptance or payment.
     var publicServiceFacts=new Map();
+    // Practical, context-specific intake guidance without additional fields,
+    // automatic uploads, saved text or collection of child/manuscript records.
+    var scopeHint=document.createElement('p');
+    scopeHint.className='form-note jr-intake-scope-hint';
+    scopeHint.id='jr-intake-scope-hint';
+    scopeHint.setAttribute('aria-live','polite');
+    var serviceSelector=form.elements.namedItem('service');
+    serviceSelector?.closest('label')?.insertAdjacentElement('afterend',scopeHint);
+    var questionField=form.elements.namedItem('question');
+    if(questionField){
+      var oldDescription=questionField.getAttribute('aria-describedby')||'';
+      questionField.setAttribute('aria-describedby',
+        [oldDescription,scopeHint.id].filter(Boolean).join(' '));
+    }
+    function setScopeHint(serviceId){
+      var key=String(serviceId||'');
+      var group='general';
+      if(/^(?:konkur_|field_selection_|transcript_|academic_consult_|student_parent_|vip:(?:academic-direction|university-selection))/.test(key))group='student';
+      else if(/^(?:talent_|golden_talent_|vip:golden-talent-signature)/.test(key))group='talent';
+      else if(/^(?:teacher_|vip:educator-development)/.test(key))group='teacher';
+      else if(/^(?:organization_|specialist_workshop_|vip:institutional-advisory)/.test(key))group='organization';
+      else if(/^(?:manuscript_|academic_editing|research_|journal_strategy|reviewer_response|academic_cv|academic_interview_|vip:research-publication)/.test(key))group='research';
+      var hints={
+        general:[
+          'در دو یا سه جمله مسئله و هدف خود را بنویسید. در درخواست اولیه فایل، رمز، شماره کارت یا اطلاعات محرمانه ارسال نکنید.',
+          'Briefly describe one question and desired decision. Do not include private documents, passwords or card details.'
+        ],
+        student:[
+          'پایه یا گروه آزمون، تصمیم مشخص و محدودیت زمانی را کوتاه بیان کنید. کارنامه دارای مشخصات فردی را فعلاً ارسال نکنید.',
+          'State the learning stage, the specific decision and its timeline. Do not submit identifiable examination records yet.'
+        ],
+        talent:[
+          'پرسش رشد، علاقه‌های بیان‌شده توسط خود دانش‌آموز و زمینه تجربه را بدون نام، مشخصات کودک یا نتیجه آزمون حساس توضیح دهید.',
+          'Explain the developmental question, the learner’s own interests and opportunities without identifying child records or sensitive test data.'
+        ],
+        teacher:[
+          'سطح آموزشی، یک هدف تدریس و یک مسئله قابل‌مشاهده را توضیح دهید؛ نام و نمونه کار قابل‌شناسایی فراگیران را وارد نکنید.',
+          'Describe the teaching context, a learning objective and one observed issue without identifiable learner material.'
+        ],
+        organization:[
+          'نوع مؤسسه، تصمیم پیش رو، نقش شما و محدودیت اجرا را به‌صورت کلی بیان کنید؛ اسناد محرمانه کارکنان یا فراگیران را نفرستید.',
+          'Outline the institution, decision, your role and implementation constraints without sharing confidential personnel or student records.'
+        ],
+        research:[
+          'مرحله مقاله یا پژوهش، مسئله اصلی و نوع کمک مدنظر را بگویید؛ نسخه محرمانه مقاله یا داده خام را در فرم اولیه قرار ندهید.',
+          'State the manuscript stage, the substantive question and the assistance sought; do not paste unpublished confidential work or raw data.'
+        ]
+      };
+      scopeHint.textContent=hints[group][fa?0:1];
+    }
+    setScopeHint('');
+
     function renderRequestedService(service,english){
       if(!requestedServiceDetails)return;
       requestedServiceDetails.replaceChildren();
@@ -82,6 +134,7 @@
         option.dataset.serviceId='vip:'+vipId;
         select.value=option.value;
         requestedServiceValue=option.value;
+        setScopeHint('vip:'+vipId);
         // The public VIP catalogue gives only a name, price and booking
         // requirement. Do not invent session counts, outcomes or acceptance.
         var display={
@@ -143,6 +196,7 @@
         option.dataset.serviceId=service.id;
         select.value=option.value;
         requestedServiceValue=option.value;
+        setScopeHint(service.id);
         renderRequestedService(service,english);
         status.textContent=fa
           ?'خدمت انتخاب‌شده از صفحه تعرفه در فرم قرار گرفت؛ دامنه، خروجی و تعرفه را بررسی کنید و سپس زمینه و سؤال اصلی را تکمیل کنید.'
@@ -156,10 +210,12 @@
       var facts=publicServiceFacts.get(key);
       if(!facts){
         requestedServiceValue=null;
+        setScopeHint('');
         renderRequestedService(null,null);
         return;
       }
       requestedServiceValue=option.value;
+      setScopeHint(key);
       renderRequestedService(facts.service,facts.english);
       status.textContent=fa
         ?'شرح و تعرفه خدمت از کاتالوگ رسمی بارگذاری شد؛ این انتخاب نه رزرو است و نه پرداخت.'
@@ -270,6 +326,7 @@
     form.addEventListener('reset', invalidate);
     form.addEventListener('reset',function(){
       requestedServiceValue=null;
+      setScopeHint('');
       renderRequestedService(null,null);
     });
     form.addEventListener('submit', function (event) {
