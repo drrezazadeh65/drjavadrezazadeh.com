@@ -852,7 +852,7 @@ function jrOperationsNewsCmsReceiptInventory(PDO $pdo,string $siteRoot,int $limi
     try{
         $q=$pdo->prepare("SELECT p.publication_id,p.fa_route,p.en_route,
                 p.fa_content_sha256,p.en_content_sha256,p.publisher_receipt_reference,
-                p.published_at,v.approval_digest
+                p.published_at,v.approval_digest,v.bilingual_editorial_json
             FROM jrei_news_publications p
             JOIN jrei_news_editorial_versions v ON v.revision_id=p.revision_id
             WHERE p.publisher_state='PUBLISHED'
@@ -871,6 +871,8 @@ function jrOperationsNewsCmsReceiptInventory(PDO $pdo,string $siteRoot,int $limi
             implode('|',[$id,$approval,$fa,$en]));
         $pass=preg_match('/^[a-f0-9-]{36}$/iD',$id)===1&&
             preg_match('/^[a-f0-9]{64}$/D',$approval)===1&&
+            hash_equals($approval,
+                hash('sha256',(string)$row['bilingual_editorial_json']))&&
             preg_match('/^[a-f0-9]{64}$/D',$fa)===1&&
             preg_match('/^[a-f0-9]{64}$/D',$en)===1&&
             is_string($row['publisher_receipt_reference'])&&
@@ -885,7 +887,12 @@ function jrOperationsNewsCmsReceiptInventory(PDO $pdo,string $siteRoot,int $limi
             }
             $directory=$root.rtrim($route,'/');
             $path=$directory.'/index.html';
-            if(is_link($directory)||is_link($path)||realpath($path)!==$path||
+            $ancestor=$root;
+            foreach(explode('/',trim($route,'/')) as $part){
+                $ancestor.='/'.$part;
+                if(is_link($ancestor)){$pass=false;break;}
+            }
+            if(!$pass||is_link($directory)||is_link($path)||realpath($path)!==$path||
                !is_file($path)||!is_readable($path)||
                !hash_equals($language==='fa'?$fa:$en,
                    (string)@hash_file('sha256',$path)))$pass=false;
