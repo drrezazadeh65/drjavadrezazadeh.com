@@ -104,6 +104,7 @@ a.skip-link{position:fixed;top:-120px;right:14px;z-index:1000;padding:10px 16px;
   <pre id="learningState" class="learnState" aria-live="polite">در حال دریافت وضعیت…</pre>
   <div id="memoryGraphState" class="learnNote" aria-live="polite">حافظهٔ مفهومی: هنوز ارزیابی نشده است.</div>
   <div id="codeLearningState" class="learnNote" aria-live="polite">تجربهٔ کدنویسی: هنوز گزارشی ثبت نشده است.</div>
+  <div id="hardwareBudgetState" class="learnNote" aria-live="polite">ظرفیت پردازشی رایانه: در حال اندازه‌گیری</div>
   <button class="confirm" id="learningSwitch">تغییر وضعیت خزش</button>
   <label for="sourceUrl">نشانی دقیق منبع دارای مجوز HTTPS</label><input id="sourceUrl" type="url" maxlength="600" autocomplete="off">
   <label for="sourceIssuer">نام ناشر</label><input id="sourceIssuer" maxlength="120" autocomplete="off">
@@ -424,6 +425,17 @@ async function refreshLearning(){
   const reviewedCode=codeCounts.filter(x=>x.state==='OWNER_FEEDBACK_RECORDED').reduce((n,x)=>n+(x.count||0),0);
   $('codeLearningState').textContent='تجربهٔ کدنویسی JREI | پیش‌نویس‌های بازبینی‌نشده: '+pendingCode+
     ' · نظرهای مالک ثبت‌شده: '+reviewedCode+' · آموزش واقعی وزن‌ها: آغاز نشده';
+  const hardware=globalState.adaptive_hardware_budget||{};
+  const hardwareClass=(hardware.profile||'UNMEASURED');
+  const budgetReason=hardware.reason||'UNAVAILABLE';
+  $('hardwareBudgetState').textContent='منابع واقعی همین رایانه | پروفایل: '+hardwareClass+
+    ' · RAM آزاد: '+(hardware.available_ram_mb??'نامشخص')+' MB'+
+    ' · RAM محفوظ برای ویندوز: '+(hardware.memory_reserved_for_windows_mb??'نامشخص')+' MB'+
+    ' · CPU مشغول: '+(typeof hardware.cpu_load_fraction==='number'?
+    Math.round(hardware.cpu_load_fraction*100)+'%':'نامشخص')+
+    ' · زمان بدون فعالیت کاربر: '+(hardware.owner_idle_seconds??'نامشخص')+' ثانیه'+
+    ' · کارهای سنگین: '+budgetReason+
+    ' · GPU: ظرفیت رایگان قابل استفاده هنوز مستقل اندازه‌گیری نشده؛ حافظهٔ دو رایانه ادغام نمی‌شود.';
   const memoryInfo=globalState.native_evidence_memory||{};
   $('memoryGraphState').textContent=
    'حافظهٔ رابطه‌ای JREI | ادعاهای پیشنهادی: '+
