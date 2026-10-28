@@ -866,7 +866,7 @@ async function send(){
 async function loadHealth(){
  try{const state=await api('/api/status');$('engine').replaceChildren();const native=state.native_evidence_answering==='AVAILABLE_NO_EXTERNAL_WEIGHTS';const dot=el('span','dot '+(state.model_connected||native?'on':'err'));$('engine').append(dot,document.createTextNode(state.model_connected?state.inference_backend+' · '+state.model_alias:native?'JREI · پاسخ مستند بومی آماده؛ مدل زبانی آموزش‌دیده هنوز غیرفعال است':'مدل محلی غیرفعال'));
   $('trace').textContent=JSON.stringify({model:state.model_alias||'OFFLINE',backend:state.inference_backend,
-    GPU_recovery:state.gpu_recovery,native_evidence:state.native_evidence_answering,language_weights:state.native_language_model_training,workspace:'LOCAL_ONLY',publication:state.site_publishing_control,
+    GPU_recovery:state.gpu_recovery,local_pc_measured:state.local_pc_real_resources,native_evidence:state.native_evidence_answering,language_weights:state.native_language_model_training,workspace:'LOCAL_ONLY',publication:state.site_publishing_control,
     production_database_write:state.database_write_control},null,2);
   const events=await api('/api/events');$('events').textContent=events.items.slice(0,18).map(x=>`${new Date(x.time*1000).toLocaleString()} ${x.job}: ${x.state}`).join('\n')||'فعلاً رویدادی نیست.';
  }catch(e){$('engine').textContent='پنل در دسترس نیست';$('trace').textContent=e.message}
