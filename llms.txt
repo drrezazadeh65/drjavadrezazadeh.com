@@ -34,6 +34,21 @@ Use only public URLs listed here or discoverable through the canonical sitemap. 
 - [Teacher professional development](https://drjavadrezazadeh.com/fa/rahnamaha/tosee-herfei-moalleman/): Practice, feedback, action planning and review.
 - [School talent identification system](https://drjavadrezazadeh.com/fa/rahnamaha/madarese-system-estedaadyabi/): Multi-source identification connected to opportunity and review.
 
+## Question-first student and family entry points (public, free-to-read)
+
+These are routes for readers and third-party tools that choose to consult this file. Google Search does **not** use llms.txt as a ranking or AI inclusion signal; standard HTML indexing, helpful content and genuine internal links remain authoritative. The six questions are explained in visible HTML with relevant original educational material. A link to a service is optional, not proof of a booking, payment or assessment validity.
+
+- [شش سؤال دانش‌آموز و خانواده / My Path — Persian](https://drjavadrezazadeh.com/fa/masir-man/): Six questions, free guides, genuine educational resources and proportionate optional services.
+- [Six student questions — English](https://drjavadrezazadeh.com/en/my-path/): Evidence-based explanatory summaries, free learning tools and contextual service descriptions; not six new English research papers.
+- [How can a parent recognise a child's talents?](https://drjavadrezazadeh.com/fa/rahnamaha/chegoone-estedaad-vaghei-farzand-ra-beshenasim/): Multi-source, developmentally respectful observations; no fixed aptitude labels.
+- [How can I study better? BAHAR FA](https://drjavadrezazadeh.com/fa/bahar/#study-methods-evidence): Research-informed retrieval, spaced review and practical study planning, with two free introductory modules.
+- [How can I study better? BAHAR EN](https://drjavadrezazadeh.com/en/bahar/#study-methods-evidence): English learning guidance with research citations and a free revisable plan.
+- [How should I read an academic scorecard?](https://drjavadrezazadeh.com/fa/rahnamaha/tahlil-karname-tahsili/): Trend, assessment context and limits, without fabricated admission odds.
+- [Which degree or university path fits?](https://drjavadrezazadeh.com/fa/rahnamaha/che-reshteyi-baraye-man-monaseb-ast/): Separate official eligibility, preferences, evidence and constraints.
+- [What should a developmental evidence report contain?](https://drjavadrezazadeh.com/fa/rahnamaha/gozaresh-estedaad-va-masir-roshd/): Uncertainty, learner participation and actionable revisable steps.
+- [How can I compare university choices?](https://drjavadrezazadeh.com/fa/rahnamaha/moghayese-reshteha-ba-matris-tasmim/): Multi-criteria comparisons without a fictional final score.
+- [English student guidance](https://drjavadrezazadeh.com/en/student-guidance/): University decisions, educational autonomy and evidence-limited advice.
+
 ## Persian services and methodology
 
 - [Persian home](https://drjavadrezazadeh.com/fa/)
