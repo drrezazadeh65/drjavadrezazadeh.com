@@ -31,6 +31,7 @@ from jrei_service import windows_owner_tasks as owner_tasks
 from jrei_service import windows_continuous_learning as knowledge
 from jrei_service import windows_model_curriculum as curriculum
 from jrei_service import windows_native_brain as native_brain
+from jrei_service import windows_native_neural as native_neural
 from jrei_service import windows_learning_agenda as agenda
 from jrei_service import windows_autonomous_topics as auto_topics
 from jrei_service import windows_learning_fts as learning_fts
@@ -110,6 +111,7 @@ def setup() -> str:
     learning_fts.initialize(DB_PATH)
     curriculum.initialize(DB_PATH)
     native_brain.initialize(DB_PATH)
+    native_neural.initialize(DB_PATH)
     agenda.initialize(DB_PATH)
     auto_topics.initialize(DB_PATH)
     memory_graph.initialize(DB_PATH)
@@ -651,6 +653,7 @@ def status():
         "continuous_learning": knowledge.snapshot(DB_PATH),
         "model_curriculum": curriculum.statistics(DB_PATH),
         "native_language_baseline": native_brain.snapshot(DB_PATH, PRIVATE),
+        "native_neural_training": native_neural.snapshot(DB_PATH),
         "learning_agenda": agenda.snapshot(DB_PATH),
         "native_metacognition": agenda.metacognition_snapshot(DB_PATH),
         "autonomous_topic_discovery": auto_topics.snapshot(DB_PATH),
@@ -902,6 +905,25 @@ class OwnerHTTP(BaseHTTPRequestHandler):
                     reviewer=data.get("reviewer"),
                     attestation_sha256=data.get("attestation_sha256"),
                     owner_confirmed=data.get("confirm")))
+            if self.path == "/api/learning/native-neural/train":
+                if _BUSY.locked():
+                    return self._send(409, {"error":"JREI_OWNER_WORK_ACTIVE"})
+                if data.get("confirm") is not True:
+                    raise ValueError("JREI_NATIVE_NEURAL_OWNER_APPROVAL_REQUIRED")
+                if not _BUSY.acquire(blocking=False):
+                    return self._send(409, {"error":"JREI_NATIVE_NEURAL_ALREADY_BUSY"})
+                try:
+                    result=native_neural.train(
+                        db_path=DB_PATH,private=PRIVATE,
+                        owner_approved=True,
+                        training_rights_reviewed=data.get("training_rights_reviewed"),
+                        steps=data.get("steps",48),
+                        resources_available=knowledge._windows_resources().get(
+                            "eligible",False),
+                        allow_gpu=False)
+                finally:
+                    _BUSY.release()
+                return self._send(200,result)
             if self.path == "/api/learning/native-brain/control":
                 return self._send(200, native_brain.set_continuous_training(
                     DB_PATH,enabled=data.get("enabled"),
