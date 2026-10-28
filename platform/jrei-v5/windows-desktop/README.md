@@ -2,7 +2,7 @@
 
 **One installed Windows application, no browser window, no external AI app.**
 
-The source code of the desktop client is `jrei_desktop.py`, written with Python's standard Tk/Tkinter UI toolkit. It runs natively, not in WebView2, Electron, Chromium, Chrome, Edge or an embedded browser. The Windows build (PyInstaller) bundles its interpreter into `JREI.exe`. An Inno Setup per-user installer produces **`JREI-Setup-Windows-x64.exe`**, creates Start-menu/Desktop shortcuts, and adds standard Windows uninstall support.
+The source code of the desktop client is `jrei_desktop.py`, written with Python's standard Tk/Tkinter UI toolkit. It runs natively, not in WebView2, Electron, Chromium, Chrome, Edge or an embedded browser. The Windows build (PyInstaller) bundles its interpreter into `JREI.exe`. An Inno Setup per-user installer produces **`JREI-Setup-Windows-x64-v0.1.2.exe`**, creates Start-menu/Desktop shortcuts, and adds standard Windows uninstall support.
 
 **What it connects to:** the *existing* authenticated owner-private JREI service on `http://127.0.0.1:8092` using the already-created owner token at `%LOCALAPPDATA%\JREI\command-center\owner-token`. The desktop client does not contain this token, use an external proxy, install a pretrained model, create an independent database, change any signed two-PC worker, or deploy the website. Chat history, consent rules, task progress and generated drafts remain on the pre-existing JREI service. The GUI has a user-confirmed button to start the original `JREI-Owner-Windows-Command-Center` Scheduled Task if it is already registered locally.
 
@@ -30,7 +30,7 @@ The workflow is **manual** and has **no tests, no production changes, and no web
 
 1. In Actions, open `JREI Native Windows Desktop EXE Installer (NO DEPLOY)`, choose **Run workflow**, and keep the canonical `migration/bertina-linux6` branch.
 2. Once the Windows packaging job finishes successfully, open its run's **Artifacts** and obtain `JREI-WINDOWS-DESKTOP-INSTALLER` ZIP.
-3. Extract the ZIP, review the `BUILD-MANIFEST.txt` and checksum in `SHA256SUMS.txt`, and double-click **`JREI-Setup-Windows-x64.exe`**.
+3. Extract the ZIP, review the `BUILD-MANIFEST.txt` and checksum in `SHA256SUMS.txt`, and double-click **`JREI-Setup-Windows-x64-v0.1.2.exe`**.
 4. Install separately on the owner 16GB and 32GB Windows PCs. The desktop shortcut **JREI Personal AI** opens the native app, not the browser.
 5. Complete the owner-approved final integrated Windows acceptance of the application and its original backend separately. A successful **build** alone is neither an integration test nor proof of model quality.
 
