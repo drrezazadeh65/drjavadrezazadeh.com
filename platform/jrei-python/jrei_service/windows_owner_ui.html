@@ -109,6 +109,25 @@ a.skip-link{position:fixed;top:-120px;right:14px;z-index:1000;padding:10px 16px;
   <label class="learnCheck"><input type="checkbox" id="sourceRights"> مجوز بازاستفاده، حقوق ناشر و اجازهٔ خزش همین نشانی را بررسی کرده‌ام.</label>
   <button class="confirm" id="registerSource">ثبت منبع در حافظه خصوصی</button>
   <div id="learningDiscoveries" class="learnNote"></div>
+  <h3>برنامهٔ مطالعهٔ مستقل</h3>
+  <p class="learnNote">JREI از منابع دارای مجوز، پرسش‌های پژوهشی پیشنهادی استخراج می‌کند. می‌توانید موضوع‌های مورد نظر خود را هم اضافه کنید.</p>
+  <label for="agendaDomain">حوزهٔ دانش</label>
+  <select id="agendaDomain">
+   <option value="applied_linguistics">زبان‌شناسی کاربردی</option>
+   <option value="education">آموزش و یادگیری</option>
+   <option value="language_assessment">سنجش زبان</option>
+   <option value="computer_science">علوم رایانه و هوش مصنوعی</option>
+   <option value="mathematics">ریاضیات</option>
+   <option value="natural_sciences">علوم طبیعی</option>
+   <option value="humanities">علوم انسانی</option>
+   <option value="general_knowledge">دانش عمومی</option>
+  </select>
+  <label for="agendaQuestion">پرسش اصلی برای یادگیری</label>
+  <textarea id="agendaQuestion" rows="3" maxlength="480" placeholder="چه چیزی را باید یاد بگیرم و چه شواهدی برای آن لازم است؟"></textarea>
+  <button class="confirm" id="agendaAdd">افزودن به برنامهٔ یادگیری</button>
+  <div id="agendaStats" class="learnNote"></div>
+  <div id="agendaTopics" class="learnNote"></div>
+  <div id="agendaCycles" class="learnNote"></div>
   <div id="learningLessons" class="learnNote"></div>
  </div>
  <h2>اسناد خصوصی ویندوز</h2><div id="documents"></div>
@@ -327,8 +346,9 @@ function renderAttachments(){
 }
 async function refreshLearning(){
  try{
-  const [stats,links,lessons]=await Promise.all([
-   api('/api/learning'),api('/api/learning/discoveries'),api('/api/learning/lessons')
+  const [stats,links,lessons,topics,globalState]=await Promise.all([
+   api('/api/learning'),api('/api/learning/discoveries'),
+   api('/api/learning/lessons'),api('/api/learning/topics'),api('/api/status')
   ]);
   $('learningState').textContent=
    (stats.network_authorized?'شبکه: فعال برای منابع مجاز':'شبکه: غیرفعال')+
@@ -342,12 +362,62 @@ async function refreshLearning(){
   $('learningDiscoveries').textContent=links.items.length?
    'پیوندهای نیازمند تأیید مستقل: '+links.items.length:
    'پیوند نیازمند بازبینی وجود ندارد.';
+  const agendaInfo=globalState.learning_agenda||{};
+  const proposed=globalState.autonomous_topic_discovery||{};
+  $('agendaStats').textContent='موضوع‌های ثبت‌شده: '+(agendaInfo.topics||0)+
+   ' | فعال: '+(agendaInfo.active_topics||0)+
+   ' | پیشنهاد مستقل: '+(proposed.attempts?.AUTO_TOPIC_UNVERIFIED||0)+
+   ' | بهبود علمی تأییدشده: خیر';
+  const topicList=$('agendaTopics');topicList.replaceChildren();
+  for(const topic of topics.items.slice(0,10)){
+   const row=el('div','learnRow');
+   row.append(el('strong','',topic.domain+' · '+topic.state),
+    el('p','',topic.question));
+   if(topic.active){
+    const deactivate=el('button','receiptBtn','توقف مطالعهٔ این موضوع');
+    deactivate.onclick=async()=>{
+     if(!confirm('مطالعهٔ بعدی این موضوع متوقف شود؟'))return;
+     try{await api('/api/learning/topic/deactivate',{id:topic.id,confirm:true});
+      await refreshLearning()}catch(e){toast(e.message)}
+    };row.append(deactivate);
+   }
+   const details=el('button','receiptBtn','سوابق مطالعه');
+   details.onclick=async()=>{
+    try{
+     const res=await api('/api/learning/topic/cycles?id='+encodeURIComponent(topic.id));
+     const container=$('agendaCycles');container.replaceChildren();
+     container.append(el('strong','',topic.question));
+     for(const cycle of res.items.slice(0,8)){
+      const entry=el('div','learnRow');
+      entry.append(el('small','',
+        new Date(cycle.finished*1000).toLocaleString()+' · '+cycle.state+
+        ' · پوشش واژگانی: '+cycle.coverage+
+        ' · منبع مستقل: '+cycle.distinct_sources),
+       el('p','',cycle.note));
+      container.append(entry);
+     }
+     if(!res.items.length)container.append(el('p','','هنوز چرخه‌ای ثبت نشده است.'));
+    }catch(e){toast(e.message)}
+   };row.append(details);topicList.append(row);
+  }
   const list=$('learningLessons');list.replaceChildren();
   list.append(el('strong','','تمرین‌های پیشنهادی مدل، هنوز تأییدنشده:'));
   for(const item of lessons.items.slice(0,5))
    list.append(el('p','',item.question.slice(0,120)+' · '+item.state));
  }catch(e){$('learningState').textContent='اطلاعات یادگیری در دسترس نیست: '+e.message}
 }
+$('agendaAdd').onclick=async()=>{
+ const question=$('agendaQuestion').value.trim();
+ if(question.length<10){toast('پرسش باید دقیق‌تر باشد.');return}
+ try{
+  const result=await api('/api/learning/topic/add',{
+   domain:$('agendaDomain').value,language:'mixed',
+   question,priority:0.75,confirm:true});
+  $('agendaQuestion').value='';
+  toast('موضوع در برنامهٔ خصوصی JREI ثبت شد: '+result.id.slice(0,8));
+  await refreshLearning();
+ }catch(e){toast(e.message)}
+};
 $('learningSwitch').onclick=async()=>{
  const enabled=$('learningSwitch').dataset.enabled!=='true';
  if(!confirm(enabled?'فقط خزش نشانی‌های دارای مجوز و مطابق robots.txt فعال شود؟':'خزش شبکه متوقف شود؟'))return;
