@@ -1,0 +1,78 @@
+
+/* Approved one-of-one Webster collectible: editorial presentation only.
+   Never changes stock, cart, BitPay, routes, or existing product styles. */
+.book-store-grid > .jr-one-copy{
+ grid-column:1/-1;display:grid;grid-template-columns:minmax(0,1.12fr) minmax(0,1fr);
+ gap:clamp(15px,3vw,32px);align-items:center;overflow:hidden;
+ border:1px solid #b68f50;border-radius:22px;padding:clamp(14px,2.5vw,28px);
+ background:linear-gradient(125deg,#182333,#12151c 60%,#211a14);
+ box-shadow:0 14px 42px rgba(0,0,0,.18)
+}
+.book-store-grid > .jr-one-copy .jr-collector-preview{
+ margin:0;width:100%;max-width:none;display:block;min-width:0;
+ background:#10131a;border-radius:14px;overflow:hidden
+}
+.book-store-grid > .jr-one-copy .jr-collector-preview img{
+ width:100%;height:auto;max-width:100%;display:block;aspect-ratio:3/2;object-fit:contain
+}
+.book-store-grid > .jr-one-copy .jr-collector-preview figcaption{
+ font-size:12px;color:#e4d4ba;text-align:center;padding:8px 12px
+}
+.book-store-grid > .jr-one-copy .book-product-copy{min-width:0}
+.book-store-grid > .jr-one-copy .book-product-copy h2{font-size:clamp(1.35rem,2.2vw,2.1rem);line-height:1.5}
+.book-store-grid > .jr-one-copy .book-price{font-size:clamp(1.4rem,2.6vw,2.25rem);font-weight:800;color:#f1d59b}
+.book-store-grid > .jr-one-copy .actions a{min-height:46px;display:inline-flex;align-items:center;justify-content:center}
+.jr-collectible .jr-col-hero{
+ padding:0;overflow:hidden;margin:0 auto 18px;
+ border-radius:20px;border:1px solid #8f7853;background:#141922;
+ box-shadow:0 18px 46px rgba(0,0,0,.24);max-width:1100px
+}
+.jr-collectible .jr-col-hero img{
+ display:block;width:100%;max-width:100%;height:auto;aspect-ratio:3/2;
+ object-fit:contain;background:#10161f
+}
+.jr-collectible .jr-col-hero figcaption{
+ padding:11px 18px;color:#e5d4b5;font-size:12px;line-height:1.8
+}
+.jr-collectible .jr-col-grid{
+ display:block;margin:18px auto 24px;max-width:980px
+}
+.jr-collectible .jr-col-grid .jr-col-card{
+ background:linear-gradient(135deg,#16202c,#12171f);padding:clamp(18px,3vw,30px)
+}
+.jr-collectible .jr-col-gallery{
+ margin:25px 0 0;padding:20px;border:1px solid #605136;
+ background:#111922;border-radius:20px
+}
+.jr-collectible .jr-col-gallery h2{margin:0 0 5px;font-size:clamp(18px,2.4vw,25px)}
+.jr-collectible .jr-col-gallery>p{font-size:13px;color:#cabca7;margin:0 0 16px}
+.jr-collectible .jr-col-gallery-grid{
+ display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:11px;
+}
+.jr-collectible .jr-col-gallery-grid figure{
+ margin:0;min-width:0;overflow:hidden;border-radius:12px;
+ background:#202a36;border:1px solid #665640
+}
+.jr-collectible .jr-poster-crop{
+ background-image:url('/assets/images/books/webster-collectible-owner-poster-20261028.jpg');background-repeat:no-repeat;
+ background-color:#19212d;aspect-ratio:4/5;width:100%;
+}
+.jr-collectible .jr-crop-cover{background-size:650% auto;background-position:0% 100%}
+.jr-collectible .jr-crop-spine{background-size:1090% auto;background-position:18% 100%}
+.jr-collectible .jr-crop-title{background-size:560% auto;background-position:31% 100%}
+.jr-collectible .jr-crop-copyright{background-size:590% auto;background-position:52% 100%}
+.jr-collectible .jr-crop-inside{background-size:250% auto;background-position:100% 100%}
+.jr-collectible .jr-col-gallery-grid figcaption{
+ font-size:12px;line-height:1.6;padding:9px 7px;color:#f1dcba;text-align:center
+}
+.jr-collectible .jr-col-cta:disabled{opacity:.62;cursor:not-allowed}
+@media(max-width:760px){
+ .book-store-grid > .jr-one-copy{grid-template-columns:1fr;padding:12px}
+ .book-store-grid > .jr-one-copy .book-product-copy{padding:5px 6px 10px}
+ .jr-collectible .jr-col-hero{border-radius:12px}
+ .jr-collectible .jr-col-gallery{padding:13px}
+ .jr-collectible .jr-col-gallery-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .jr-collectible .jr-col-gallery-grid figure:last-child{grid-column:1/-1}
+ .jr-collectible .jr-poster-crop{aspect-ratio:4/5}
+ .jr-collectible .jr-crop-inside{aspect-ratio:2/1}
+}

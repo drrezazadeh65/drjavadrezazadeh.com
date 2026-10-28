@@ -769,7 +769,7 @@ for(const route of approvedPrivateExamPages){
 // 2026-10-28: two explicitly reviewed charitable collectible detail URLs.
 // Preserve the strict fixed-count guard: adding an arbitrary HTML file must
 // still fail a production build. Verify both canonical URLs, reciprocal
-// language alternates, publication visibility and shared approved illustration.
+// language alternates, publication visibility and owner-approved composite promotional poster.
 const approvedBilingualCollectibleRoutes=[
   'fa/shop/collectibles/websters-third-1981/index.html',
   'en/shop/collectibles/websters-third-1981/index.html'
@@ -789,7 +789,7 @@ for(const route of approvedBilingualCollectibleRoutes){
     '<link rel="alternate" hreflang="fa" href="'+collectibleFa+'">',
     '<link rel="alternate" hreflang="en" href="'+collectibleEn+'">',
     '<meta name="robots" content="index,follow',
-    'assets/images/books/websters-third-1981-collectible-illustration.svg',
+    'assets/images/books/webster-collectible-owner-poster-20261028.jpg',
     'application/ld+json'
   ]){
     if(!source.includes(marker))

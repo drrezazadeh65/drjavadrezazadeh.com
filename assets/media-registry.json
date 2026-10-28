@@ -4012,6 +4012,20 @@
       "mime_type": "image/svg+xml",
       "caption_en": "Canonical vector favicon for the JR website.",
       "caption_fa": "فاوآیکون برداری اصلی وب‌سایت JR."
+    },
+    {
+      "path": "assets/images/books/webster-collectible-owner-poster-20261028.jpg",
+      "kind": "illustration",
+      "role": "webster-third-1981-owner-approved-sales-poster",
+      "provenance": "Exact owner-provided composite promotional poster uploaded in chat and copied without generative modifications to the site's repository; no claim of unedited documentary authenticity",
+      "rights": "website-owner-approved site-use, supplied by owner",
+      "alt_en": "Owner-approved composite poster for one two-volume Webster's Third dictionary set",
+      "alt_fa": "پوستر معرفی تأییدشده مالک برای مجموعه دو جلدی فرهنگ وبستر",
+      "caption_en": "Owner-supplied composite promotional poster. This edited design is not an unaltered condition photograph or proof of the exact printing date.",
+      "caption_fa": "پوستر معرفی تهیه‌شده از تصاویر ارائه‌شده توسط مالک؛ این تصویر ترکیبی و ویرایش‌شده است و نباید به‌جای عکس خام یا سند نوبت چاپ تلقی شود.",
+      "source_status": "owner-supplied-composite",
+      "mime_type": "image/jpeg",
+      "composition_locked": true
     }
   ]
 }

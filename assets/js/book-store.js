@@ -121,7 +121,7 @@
   if(book.commerce?.single_copy===true){
     const art=document.createElement('article');
     art.className='book-product-card jr-one-copy';
-    art.innerHTML='<figure class="book-cover" style="width:200px;max-width:100%"><img src="'+root('assets/images/books/websters-third-1981-collectible-illustration.svg')+'" loading="lazy" width="600" height="450" alt="'+(isFa?'تصویر تبلیغاتی؛ عکس واقعی کتاب نیست':'Promotional illustration; not a photo of this copy')+'"><figcaption>'+(isFa?'تصویر تبلیغاتی':'Promotional illustration')+'</figcaption></figure>'+
+    art.innerHTML='<figure class="jr-collector-preview"><img src="'+root('assets/images/books/webster-collectible-owner-poster-20261028.jpg')+'" loading="lazy" decoding="async" width="1536" height="1024" alt="'+(isFa?'پوستر معرفی مالک؛ تصاویر ترکیبی و ویرایش‌شده':'Owner-approved composite promotional poster')+'"><figcaption>'+(isFa?'پوستر معرفی تأییدشده':'Approved promotional poster')+'</figcaption></figure>'+
       '<div class="book-product-copy"><span class="status-chip">'+(isFa?'کلکسیونی · تنها یک مجموعه دو جلدی':'Collectible · one two-volume set only')+'</span>'+
       '<h2>'+escapeHtml(isFa?book.title_fa:book.english_reference_title)+'</h2>'+
       '<p>'+escapeHtml(isFa?book.description_fa:book.description_en)+'</p>'+
