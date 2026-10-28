@@ -7,8 +7,10 @@ This is an opt-in, loopback-only *client* of a separately installed local
 Letta App Server, not a fork, silent installer or alternate owner dashboard.
 The existing JREI Qwen, owner SQLite, approval gates and website remain primary.
 Do NOT enable until the chosen Letta agent has been inspected for capabilities:
-the Letta server may execute its own tools during a completion. This adapter
-does not claim to sandbox those tools or to train a language model.
+the Letta server may execute its own tools during a completion. This adapter does not claim to sandbox those tools, prove the selected
+agent's underlying model is local, or train a language model. The owner
+must attest separately that the Letta server's model backend is local;
+a loopback server alone might still forward requests to a cloud provider.
 
 Private prompts remain on the same PC; Letta Cloud agents MUST NOT be selected.
 """
@@ -45,13 +47,15 @@ def state(private: Path) -> dict:
     try:
         data = json.loads(file.read_text(encoding="utf-8"))
         if (not isinstance(data, dict) or
-                set(data) != {"enabled", "agent_id", "local_tools_reviewed"} or
+                set(data) != {"enabled", "agent_id", "local_tools_reviewed", "local_model_reviewed"} or
                 not isinstance(data["enabled"], bool) or
                 not isinstance(data["local_tools_reviewed"], bool) or
+                not isinstance(data["local_model_reviewed"], bool) or
                 not isinstance(data["agent_id"], str) or
                 not _AGENT.fullmatch(data["agent_id"])):
             raise ValueError("INVALID_LOCAL_CONFIG")
-        if data["enabled"] and not data["local_tools_reviewed"]:
+        if data["enabled"] and not (
+                data["local_tools_reviewed"] and data["local_model_reviewed"]):
             raise ValueError("LOCAL_TOOLS_NOT_REVIEWED")
         return {**data, "state": ("ENABLED_OWNER_ATTESTED"
                                   if data["enabled"] else "DISABLED")}
@@ -61,7 +65,8 @@ def state(private: Path) -> dict:
 
 
 def configure(private: Path, *, enabled: bool, agent_id: str,
-              local_tools_reviewed: bool, confirmed: bool) -> dict:
+              local_tools_reviewed: bool, local_model_reviewed: bool,
+              confirmed: bool) -> dict:
     """Invoked exclusively from existing token-authenticated local owner API.
 
     Confirmation is an owner attestation, *not* independent verification of
@@ -69,9 +74,10 @@ def configure(private: Path, *, enabled: bool, agent_id: str,
     """
     if (confirmed is not True or not isinstance(enabled, bool)
             or not isinstance(local_tools_reviewed, bool)
+            or not isinstance(local_model_reviewed, bool)
             or not isinstance(agent_id, str)
             or not _AGENT.fullmatch(agent_id)
-            or (enabled and not local_tools_reviewed)):
+            or (enabled and not (local_tools_reviewed and local_model_reviewed))):
         raise ValueError("JREI_LETTA_OWNER_CONFIGURATION_INVALID")
     dest = _path(private)
     private.mkdir(parents=True, exist_ok=True)
@@ -81,7 +87,8 @@ def configure(private: Path, *, enabled: bool, agent_id: str,
     if temporary.is_symlink():
         raise ValueError("JREI_LETTA_CONFIGURATION_TEMP_LINK")
     payload = {"enabled": enabled, "agent_id": agent_id,
-               "local_tools_reviewed": local_tools_reviewed}
+               "local_tools_reviewed": local_tools_reviewed,
+               "local_model_reviewed": local_model_reviewed}
     with temporary.open("w", encoding="utf-8") as handle:
         json.dump(payload, handle, ensure_ascii=False)
         handle.flush()
