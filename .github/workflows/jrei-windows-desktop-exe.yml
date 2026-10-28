@@ -76,69 +76,37 @@ jobs:
           $compiler = 'C:\Program Files (x86)\Inno Setup 6\ISCC.exe'
           & $compiler "$desktop/JREI.iss"
           if ($LASTEXITCODE -ne 0) { throw 'JREI_NATIVE_INNO_INSTALLER_FAILED' }
-          $installer = "$desktop/output/JREI-Setup-Windows-x64-v0.1.2.exe"
+          $installer = "$desktop/output/JREI-Setup-Windows-x64-v0.1.3.exe"
           if (-not (Test-Path -LiteralPath $installer -PathType Leaf)) {
             throw 'JREI_NATIVE_INSTALLER_NOT_CREATED'
           }
           New-Item -ItemType Directory -Force 'JREI-OWNER-DOWNLOAD' | Out-Null
-          Copy-Item -LiteralPath $installer -Destination 'JREI-OWNER-DOWNLOAD/JREI-Setup-Windows-x64-v0.1.2.exe'
-          # The SAME unsigned UI installer is used on both PCs. Role-specific
-          # wrappers are strictly opt-in, verify existing signed node identity,
-          # exact source commit, SHA256 and the independent acceptance ledger.
-          $worker = 'platform/jrei-v5/windows-worker'
-          foreach ($name in @(
-            'jrei-two-pc-owner-install.ps1',
-            'JREI-SETUP-THIS-PC.cmd',
-            'JREI-SETUP-NODE-A.cmd',
-            'JREI-SETUP-NODE-B.cmd'
-          )) {
-            $sourceFile = Join-Path $worker $name
-            if (-not (Test-Path -LiteralPath $sourceFile -PathType Leaf)) {
-              throw 'JREI_TWO_PC_INSTALL_SCRIPT_NOT_IN_CANONICAL_SOURCE'
-            }
-            Copy-Item -LiteralPath $sourceFile -Destination (Join-Path 'JREI-OWNER-DOWNLOAD' $name)
-          }
-          Copy-Item -LiteralPath "$desktop/README-JREI-WINDOWS-EXE.md" -Destination 'JREI-OWNER-DOWNLOAD/README-TWO-PC-RELEASE.md'
+          Copy-Item -LiteralPath $installer -Destination 'JREI-OWNER-DOWNLOAD/JREI-Setup-Windows-x64-v0.1.3.exe'
+          # Exactly ONE user-facing setup EXE in the downloadable artifact.
+          # No A/B/RAM role scripts, confidential config or auxiliary apps
+          # are shipped alongside it; the included inventory is read-only.
           $hash = (Get-FileHash -LiteralPath $installer -Algorithm SHA256).Hash.ToLowerInvariant()
-          "$hash  JREI-Setup-Windows-x64-v0.1.2.exe" | Set-Content -Encoding ascii 'JREI-OWNER-DOWNLOAD/SHA256SUMS.txt'
           @(
-            "JREI Owner Native Desktop Installer"
-            "GITHUB_SOURCE_COMMIT=$commit"
-            "CLIENT_EMBEDDED_SOURCE_COMMIT=$commit"
-            "CLIENT_PACKAGING_RUN_ID=$runId"
-            "INSTALLER_SHA256=$hash"
-            "INSTALLER_VERSION=0.1.2"
-            "WINDOWS_TARGET=x64"
-            "SIGNATURE=UNSIGNED"
-            "SOURCE_IDENTITY_NOT_CODE_SIGNATURE=TRUE"
-            "BACKEND_REQUIRED=127.0.0.1:8092"
-            "NODE_A_ROLE=EXISTING_VERIFIED_SIGNED_32GB_WINDOWS_OWNER_PC"
-            "NODE_B_ROLE=EXISTING_VERIFIED_SIGNED_16GB_WINDOWS_OWNER_PC"
-            "ONE_INSTALLER_FOR_BOTH_NODES=TRUE"
-            "PER_NODE_SHA256_AND_ACCEPTANCE_GATES_REQUIRED=TRUE"
-            "SIGNED_WORKER_IDENTITY_NOT_REPLACED=TRUE"
-            "INTEGRATED_WINDOWS_ACCEPTANCE=NOT_RUN"
-            "MODEL_WEIGHTS_NOT_TRAINED_BY_THIS_JOB=TRUE"
-            "NO_LIVE_INSTALL=TRUE"
-            "NO_WEBSITE_DEPLOYMENT=TRUE"
-          ) | Set-Content -Encoding utf8 'JREI-OWNER-DOWNLOAD/BUILD-MANIFEST.txt'
-          @{
-            schema = 'jr.jrei.native-installer-artifact.v1'
-            source_commit = $commit
-            github_workflow_run_id = $runId
-            installer_name = 'JREI-Setup-Windows-x64-v0.1.2.exe'
-            installer_sha256 = $hash
-            os = 'windows-x64'
-            signed = $false
-            integrated_acceptance_performed = $false
-          } | ConvertTo-Json -Compress | Set-Content -LiteralPath 'JREI-OWNER-DOWNLOAD/installer-manifest.json' -Encoding utf8NoBOM
-          "Package built but NOT installed, signed or integration-tested. Source: $commit" >> $env:GITHUB_STEP_SUMMARY
+            "## JREI universal Windows x64 setup (source-only package)"
+            ""
+            "- One installer, for any existing or newly enrolled computer."
+            "- Installer file: `JREI-Setup-Windows-x64-v0.1.3.exe`"
+            "- Installer SHA-256: `$hash`"
+            "- Canonical source commit: `$commit`"
+            "- Workflow run ID: `$runId`"
+            "- Signing: UNSIGNED (hash != code-signature)."
+            "- Independent Windows acceptance: NOT RUN by this job."
+            "- Signed worker enrollment on new machines: NOT PERFORMED."
+            "- Installed native neural weights: NOT INCLUDED."
+            "- Site deployment / live Windows install: NOT PERFORMED."
+          ) -join "`n" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+
 
       - name: Upload owner-only installer artifact (not an accepted release)
         uses: actions/upload-artifact@v4
         with:
           name: JREI-WINDOWS-DESKTOP-INSTALLER
-          path: JREI-OWNER-DOWNLOAD/
+          path: JREI-OWNER-DOWNLOAD/JREI-Setup-Windows-x64-v0.1.3.exe
           retention-days: 30
           if-no-files-found: error
           compression-level: 0
