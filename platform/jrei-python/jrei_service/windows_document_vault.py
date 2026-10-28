@@ -126,7 +126,9 @@ def import_document(*, private: Path, name: str, data_base64: str) -> dict:
         raise ValueError("JREI_DOCUMENT_DOCX_HEADER_INVALID")
     try:
         text, extraction = _extract(name, raw)
-    except (ValueError, KeyError, zipfile.BadZipFile, ET.ParseError):
+    except Exception:
+        # Fail closed for untrusted malformed document/parser inputs.
+        # An extraction failure does not imply a successful document read.
         text, extraction = "", "EXTRACTION_REJECTED"
     vault = _directory(private, create=True)
     ident = secrets.token_hex(16)
@@ -191,7 +193,7 @@ def delete_document(*, private: Path, identifier: str) -> dict:
     if not manifest_path.is_file() or manifest_path.is_symlink():
         raise ValueError("JREI_DOCUMENT_MANIFEST_INVALID")
     record = json.loads(manifest_path.read_text(encoding="utf-8"))
-    if record.get("id") != identifier or \
+    if not isinstance(record, dict) or record.get("id") != identifier or \
        record.get("source_name") not in {"original" + ext for ext in ALLOWED}:
         raise ValueError("JREI_DOCUMENT_MANIFEST_INVALID")
     for name in (record["source_name"], "text.txt", "manifest.json"):
@@ -208,7 +210,7 @@ def list_documents(*, private: Path) -> list:
     """List private metadata without returning the original document bytes."""
     try:
         vault = _directory(private)
-    except ValueError:
+    except (ValueError, OSError):
         return []
     entries = []
     for folder in sorted(vault.iterdir(), reverse=True):
