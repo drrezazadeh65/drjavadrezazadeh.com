@@ -163,7 +163,14 @@ def study_once(db_path: Path, *, model_reply: Callable,
         db.execute("BEGIN IMMEDIATE")
         row=db.execute("""SELECT id,question,priority,cycle_count
           FROM learning_agenda WHERE active=1 AND next_due<=?
-          ORDER BY (priority * (1.0 + MIN(cycle_count,20)*0.01)) DESC,
+          ORDER BY (priority *
+              CASE
+                WHEN latest_coverage IS NULL THEN 1.0
+                WHEN latest_state='NO_GROUNDED_EVIDENCE' THEN 1.5
+                WHEN latest_state='MODEL_DRAFT_UNAVAILABLE' THEN 1.25
+                WHEN latest_coverage<0.25 THEN 1.3
+                WHEN latest_coverage<0.50 THEN 1.15
+                ELSE 0.85 END) DESC,
                    next_due,id LIMIT 1""",(now,)).fetchone()
         if row is None:
             db.commit()
@@ -279,6 +286,57 @@ def cycles(db_path: Path, topic_id: str, limit: int=20) -> list[dict]:
              "note_sha256":digest,
              "independently_verified":bool(verified)}
             for i,t,s,cover,e,d,refs,note,digest,verified in rows]
+
+def record_review(db_path: Path, *, cycle_id: str, verdict: str,
+                  reviewer: str, evidence_sha256: str,
+                  owner_confirmed: bool) -> dict:
+    """Record an owner-reported independent review without asserting its validity.
+
+    Only a negative, reviewed signal can increase future evidence-study
+    priority. A positive self-evaluation cannot certify scientific quality.
+    The external attestation itself is NOT verified by this process.
+    """
+    if (owner_confirmed is not True or not isinstance(cycle_id,str)
+            or not _TOPIC_ID.fullmatch(cycle_id)
+            or verdict not in ("SUPPORTED","INCOMPLETE","INCORRECT",
+                               "CITATION_MISSING","SOURCE_STALE")
+            or not isinstance(reviewer,str)
+            or not re.fullmatch(r"[A-Za-z0-9._:-]{3,90}",reviewer)
+            or not isinstance(evidence_sha256,str)
+            or not re.fullmatch(r"[a-f0-9]{64}",evidence_sha256)):
+        raise ValueError("JREI_AGENDA_REVIEW_INPUT_INVALID")
+    with closing(_db(db_path)) as db:
+        db.execute("BEGIN IMMEDIATE")
+        item=db.execute("""SELECT topic_id,state FROM learning_agenda_cycles
+            WHERE id=?""",(cycle_id,)).fetchone()
+        if item is None:
+            db.rollback()
+            raise ValueError("JREI_AGENDA_CYCLE_NOT_FOUND")
+        topic_id,state=item
+        exists=db.execute("""SELECT 1 FROM learning_agenda_reviews
+            WHERE cycle_id=?""",(cycle_id,)).fetchone()
+        if exists:
+            db.rollback()
+            raise ValueError("JREI_AGENDA_REVIEW_ALREADY_RECORDED")
+        db.execute("""INSERT INTO learning_agenda_reviews
+            (id,cycle_id,reviewed_at,verdict,reviewer,independent_evidence_sha256)
+            VALUES(?,?,?,?,?,?)""",
+            (secrets.token_hex(16),cycle_id,int(time.time()),
+             verdict,reviewer,evidence_sha256))
+        if verdict!="SUPPORTED":
+            # Reserve priority for deficiencies, while never treating this
+            # one unverifiable attestation as proof of actual correctness.
+            db.execute("""UPDATE learning_agenda
+                SET next_due=MIN(next_due,?),latest_state=?
+                WHERE id=? AND active=1""",
+                (int(time.time())+20*60,
+                 "REVIEWED_GAP_"+verdict,topic_id))
+        db.commit()
+    return {"state":"REVIEW_ATTESTATION_RECORDED",
+            "verdict":verdict,"topic_id":topic_id,
+            "independent_review_verified_by_program":False,
+            "model_learning_proven":False}
+
 
 def snapshot(db_path: Path) -> dict:
     with closing(_db(db_path)) as db:
