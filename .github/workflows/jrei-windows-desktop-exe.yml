@@ -46,14 +46,8 @@ jobs:
           # The Windows owner device never connects to PyPI for installation.
           python -m pip install --disable-pip-version-check --no-input './platform/jrei-python'
           if ($LASTEXITCODE -ne 0) { throw 'JREI_PACKAGING_PRIVATE_PYTHON_DEPS_UNAVAILABLE' }
-          $compiler = 'C:\Program Files (x86)\Inno Setup 6\ISCC.exe'
-          if (-not (Test-Path -LiteralPath $compiler -PathType Leaf)) {
-            choco install innosetup --version=6.7.1 --yes --no-progress --limit-output
-            if ($LASTEXITCODE -ne 0) { throw 'JREI_PACKAGING_INNO_SETUP_UNAVAILABLE' }
-          }
-          if (-not (Test-Path -LiteralPath $compiler -PathType Leaf)) {
-            throw 'JREI_INNO_COMPILER_NOT_FOUND'
-          }
+          # The native Go bootstrap replaces Inno Setup entirely.
+          # Do NOT install Inno or any unnecessary tool on the runner.
 
       - name: Package original GUI and original 8092 Python engine without runtime downloads
         shell: pwsh
