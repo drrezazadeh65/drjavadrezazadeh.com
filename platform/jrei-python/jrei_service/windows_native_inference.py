@@ -15,6 +15,7 @@ import hashlib
 import json
 from pathlib import Path
 import re
+import sqlite3
 import threading
 
 from jrei_service.windows_native_corpus import load_verified_candidate
@@ -102,6 +103,141 @@ def _approved(private: Path, db_path: Path) -> dict:
         raise ValueError("JREI_NATIVE_ACTIVATION_TEST_CORPUS_CHANGED")
     return {"config": cfg, "run": rec, "path": checkpoint,
             "tokenizer_path": candidate["path"] / "tokenizer.json"}
+
+
+
+
+def acceptance_preflight(*, db_path: Path, private: Path,
+                         run_id: str) -> dict:
+    """Owner-requested, read-only stage inventory for a scratch candidate.
+
+    This NEVER opens the trained model with torch, hashes the large weight
+    file, generates text, records independent acceptance, or turns a model on.
+    Recorded human attestation fields are assertions, NOT authentication
+    of reviewers or evidence of real-world Persian/English proficiency.
+    """
+    if not isinstance(run_id, str) or not IDENT.fullmatch(run_id):
+        raise ValueError("JREI_NATIVE_PREFLIGHT_RUN_ID_INVALID")
+    root = private / "native-foundation-runs"
+    folder = root / run_id
+    if (root.is_symlink() or folder.is_symlink()
+            or not folder.is_dir()
+            or folder.resolve().parent != root.resolve()):
+        raise ValueError("JREI_NATIVE_PREFLIGHT_RUN_NOT_FOUND")
+
+    def read_small(name: str, limit: int):
+        item = folder / name
+        if item.is_symlink() or not item.is_file():
+            return None, None
+        if item.stat().st_size > limit:
+            raise ValueError("JREI_NATIVE_PREFLIGHT_RECEIPT_OVERSIZE")
+        data = json.loads(item.read_text(encoding="utf-8"))
+        if not isinstance(data, dict):
+            raise ValueError("JREI_NATIVE_PREFLIGHT_RECEIPT_INVALID")
+        return data, _sha(item)
+
+    status = {
+        "schema": "jr.jrei.native-acceptance-preflight.v1",
+        "run_id": run_id,
+        "state": "UNACCEPTED_AWAITING_EXTERNAL_REVIEW_AND_FINAL_INTEGRITY",
+        "stages": {},
+        "source_reuse_verified_against_current_registry": False,
+        "checkpoint_integrity_verified_now": False,
+        "human_review_authenticity_verified_by_program": False,
+        "persian_english_model_ability_proven": False,
+        "owner_activation_performed": False,
+        "weights_loaded": False,
+        "tests_run_by_preflight": False,
+        "network_accessed": False,
+        "production_changed": False,
+    }
+    rec, manifest_sha = read_small("training-manifest.json", 16_000)
+    if (rec is None or rec.get("schema") !=
+            "jr.jrei.native-from-scratch-run.v1"
+            or rec.get("run_id") != run_id
+            or rec.get("state") != "LOCAL_NATIVE_WEIGHTS_TRAINED_UNVERIFIED"
+            or rec.get("trained_from_random_initialization") is not True
+            or rec.get("external_pretrained_weights_used") is not False
+            or not SHA.fullmatch(str(rec.get("weights_sha256", "")))):
+        raise ValueError("JREI_NATIVE_PREFLIGHT_MANIFEST_UNVERIFIED")
+    status["stages"]["training_manifest"] = "RECORDED_UNVERIFIED"
+
+    checkpoint = folder / "jrei-native-unapproved.pt"
+    status["stages"]["checkpoint"] = (
+        "FILE_PRESENT_SHA256_NOT_RECHECKED" if
+        checkpoint.is_file() and not checkpoint.is_symlink()
+        and 0 < checkpoint.stat().st_size <= 500_000_000 else
+        "MISSING_OR_INVALID")
+    candidate = None
+    try:
+        candidate = load_verified_candidate(
+            db_path, private, rec.get("source_candidate_id", ""))
+        if (_sha(candidate["path"] / "manifest.json") !=
+                rec.get("source_manifest_sha256")
+                or rec.get("train_sha256") !=
+                candidate["manifest"]["train_sha256"]
+                or rec.get("heldout_sha256") !=
+                candidate["manifest"]["heldout_sha256"]
+                or rec.get("tokenizer_sha256") !=
+                candidate["manifest"]["tokenizer_sha256"]):
+            raise ValueError("JREI_PREFLIGHT_CORPUS_DERIVATION_CHANGED")
+        status["stages"]["approved_source_corpus"] = (
+            "RECHECKED_HASHED_CURRENT_REGISTRY")
+        status["source_reuse_verified_against_current_registry"] = True
+    except (ValueError, OSError, sqlite3.Error, KeyError, TypeError):
+        status["stages"]["approved_source_corpus"] = (
+            "MISSING_REVOKED_OR_CHANGED")
+
+    eva, eval_sha = read_small("sealed-evaluation.json", 16_000)
+    evaluation_recorded = (
+        candidate is not None
+        and status["source_reuse_verified_against_current_registry"]
+        and eva is not None
+        and eva.get("schema") == "jr.jrei.native-sealed-evaluation.v1"
+        and eva.get("state") == "SEALED_NEXT_TOKEN_SCORE_UNVERIFIED"
+        and eva.get("run_id") == run_id
+        and eva.get("model_sha256") == rec["weights_sha256"]
+        and eva.get("corpus_sha256") ==
+            candidate["manifest"]["sealed_test_sha256"]
+        and eva.get("dataset_was_used_for_training") is False)
+    status["stages"]["sealed_next_token_measurement"] = (
+        "RECORD_LINKED_NOT_HUMAN_QUALITY_PROOF" if evaluation_recorded
+        else "MISSING_OR_INCONSISTENT")
+
+    review, review_sha = read_small("independent-bilingual-review.json", 32_000)
+    attested = (
+        evaluation_recorded and review is not None
+        and review.get("schema") == "jr.jrei.native-bilingual-review.v1"
+        and review.get("run_id") == run_id
+        and review.get("model_sha256") == rec["weights_sha256"]
+        and review.get("evaluation_sha256") == eval_sha
+        and review.get("persian_reviewed") is True
+        and review.get("english_reviewed") is True
+        and review.get("reviewer_is_model_itself") is False)
+    status["stages"]["external_bilingual_review"] = (
+        "REVIEW_ATTESTATION_RECORDED_AUTHENTICITY_UNVERIFIED"
+        if attested else "MISSING_OR_INCOMPLETE")
+
+    activation = private / "native-checkpoint-activation.json"
+    if activation.is_symlink() or not activation.is_file():
+        status["stages"]["owner_activation_record"] = "NOT_PRESENT"
+    elif activation.stat().st_size > 8_000:
+        status["stages"]["owner_activation_record"] = "INVALID"
+    else:
+        selected = json.loads(activation.read_text(encoding="utf-8"))
+        requested = (
+            isinstance(selected, dict)
+            and selected.get("schema") == "jr.jrei.native-owner-activation.v1"
+            and selected.get("run_id") == run_id
+            and selected.get("owner_approved") is True
+            and selected.get("external_pretrained_weights_used") is False
+            and selected.get("checkpoint_sha256") == rec["weights_sha256"]
+            and selected.get("sealed_evaluation_sha256") == eval_sha
+            and selected.get("review_record_sha256") == review_sha)
+        status["stages"]["owner_activation_record"] = (
+            "RECORD_PRESENT_RUNTIME_NOT_VERIFIED" if requested
+            else "NOT_SELECTED_OR_MISMATCH")
+    return status
 
 
 def _load_tokenizer(path: Path):
