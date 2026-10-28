@@ -93,9 +93,9 @@ if($null -ne $task){
  try{
   $id=[string]$task.Principal.UserId
   $sid= if($id -match '^S-1-[0-9]+(-[0-9]+)+$'){
-   (New-Object System.Security.Principal.SecurityIdentifier($id)).Value
+   (New-Object -TypeName System.Security.Principal.SecurityIdentifier -ArgumentList $id).Value
   }else{
-   (New-Object System.Security.Principal.NTAccount($id)).Translate(
+   (New-Object -TypeName System.Security.Principal.NTAccount -ArgumentList $id).Translate(
     [Security.Principal.SecurityIdentifier]).Value
   }
   $ownerTask=($sid -ceq $owner.User.Value)
