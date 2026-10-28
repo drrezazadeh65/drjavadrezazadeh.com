@@ -832,6 +832,18 @@ class OwnerHTTP(BaseHTTPRequestHandler):
                 return self._send(400, {"error": str(exc)[:90]})
             except (OSError, TimeoutError, urllib.error.URLError):
                 return self._send(503, {"error": "JREI_SOURCE_DISCOVERY_UPSTREAM_UNAVAILABLE"})
+        if urlsplit(self.path).path == "/api/github/owner-patch-preflight":
+            # This is a local authenticated READ; it makes remote GET calls
+            # only. The separate owner-reviewed POST remains mandatory.
+            params = parse_qs(urlsplit(self.path).query)
+            try:
+                return self._send(200, github_operator.owner_patch_preflight(
+                    private=PRIVATE,
+                    receipt_id=params.get("id", [""])[0]))
+            except (OSError, ValueError, TypeError, KeyError,
+                    json.JSONDecodeError, RuntimeError, urllib.error.URLError):
+                return self._send(409, {
+                    "error": "JREI_GITHUB_DRAFT_PREFLIGHT_UNAVAILABLE_OR_STALE"})
         if self.path == "/api/github/status":
             return self._send(200, github_operator.snapshot())
         if self.path == "/api/github/site-governor":
