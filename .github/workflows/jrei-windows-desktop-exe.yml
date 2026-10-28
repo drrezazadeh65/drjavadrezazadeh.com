@@ -122,12 +122,12 @@ jobs:
           $compiler = 'C:\Program Files (x86)\Inno Setup 6\ISCC.exe'
           & $compiler "$desktop/JREI.iss"
           if ($LASTEXITCODE -ne 0) { throw 'JREI_NATIVE_INNO_INSTALLER_FAILED' }
-          $installer = "$desktop/output/JREI-Setup-Windows-x64-v0.1.4.exe"
+          $installer = "$desktop/output/JREI-Setup-Windows-x64-v0.1.5.exe"
           if (-not (Test-Path -LiteralPath $installer -PathType Leaf)) {
             throw 'JREI_NATIVE_INSTALLER_NOT_CREATED'
           }
           New-Item -ItemType Directory -Force 'JREI-OWNER-DOWNLOAD' | Out-Null
-          Copy-Item -LiteralPath $installer -Destination 'JREI-OWNER-DOWNLOAD/JREI-Setup-Windows-x64-v0.1.4.exe'
+          Copy-Item -LiteralPath $installer -Destination 'JREI-OWNER-DOWNLOAD/JREI-Setup-Windows-x64-v0.1.5.exe'
           # Exactly ONE user-facing setup EXE in the downloadable artifact.
           # No A/B/RAM role scripts, confidential config or auxiliary apps
           # are shipped alongside it; the included inventory is read-only.
@@ -140,7 +140,10 @@ jobs:
             "- Existing owner SQLite, tokens, signed node IDs, Git edits and model weights are NEVER overwritten."
             "- New signed workers still require independent owner/server enrollment."
             "- Existing live original engine is preserved until safe reconciliation."
-            "- Installer file: JREI-Setup-Windows-x64-v0.1.4.exe"
+            "- The installer asks Windows Restart Manager to close the active JREI GUI before file replacement."
+            "- If the private engine setup fails, the installer shows a visible warning and records a sanitized receipt."
+            "- NEVER choose Skip for a failed binary/DLL copy; abort that installer and diagnose."
+            "- Installer file: JREI-Setup-Windows-x64-v0.1.5.exe"
             "- Installer SHA-256: $hash"
             "- Canonical source commit: $commit"
             "- Workflow run ID: $runId"
@@ -156,7 +159,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: JREI-WINDOWS-DESKTOP-INSTALLER
-          path: JREI-OWNER-DOWNLOAD/JREI-Setup-Windows-x64-v0.1.4.exe
+          path: JREI-OWNER-DOWNLOAD/JREI-Setup-Windows-x64-v0.1.5.exe
           retention-days: 30
           if-no-files-found: error
           compression-level: 0
