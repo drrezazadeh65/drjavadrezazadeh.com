@@ -158,18 +158,19 @@ def demand(raw: dict) -> Demand:
     if raw.get("network_writes") is not False:
         raise ValueError("JREI_FLEET_NO_NETWORK_WRITE_DELEGATION")
     gpu_backend=raw.get("gpu_compute_backend", "CPU")
+    requested_vram=_nonneg(raw.get("min_vram_mb"),1048576,"TASK_VRAM")
     if gpu_backend not in ("CPU","CUDA","DIRECTML"):
         raise ValueError("JREI_FLEET_JOB_GPU_BACKEND_INVALID")
     # Raw VRAM claims do not prove the presence of a usable GPU compute
     # library or driver. Any GPU job must name the required runtime.
-    if (raw.get("min_vram_mb",0)>0 and gpu_backend=="CPU"
-            or raw.get("min_vram_mb",0)==0 and gpu_backend!="CPU"):
+    if (requested_vram>0 and gpu_backend=="CPU"
+            or requested_vram==0 and gpu_backend!="CPU"):
         raise ValueError("JREI_FLEET_JOB_GPU_BACKEND_NOT_SPECIFIED")
     return Demand(
         job_id=job, task_type=task,
         cpu_threads=_nonneg(raw.get("cpu_threads"),2048,"TASK_CPU"),
         min_ram_mb=_nonneg(raw.get("min_ram_mb"),1048576,"TASK_RAM"),
-        min_vram_mb=_nonneg(raw.get("min_vram_mb"),1048576,"TASK_VRAM"),
+        min_vram_mb=requested_vram,
         evidence_sha256=doc,
         deadline_seconds=_nonneg(raw.get("deadline_seconds"),MAX_TASK_SECONDS,"TASK_TIME"),
         priority=_nonneg(raw.get("priority"),100,"TASK_PRIORITY"),
