@@ -18,3 +18,8 @@ dependencies = [
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["jrei_core*", "jrei_learning*", "jrei_service*", "jrei_skills*", "jrei_orchestrator*", "jrei_memory*"]
+
+# The Windows Command Center reads its UI from the installed Python package.
+# The source tree alone is not sufficient: an offline wheel must carry it.
+[tool.setuptools.package-data]
+jrei_service = ["windows_owner_ui.html"]
