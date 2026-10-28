@@ -92,6 +92,69 @@ for(const v of vip){
   validate('fa','vip',v.id);validate('en','vip',v.id);
 }
 requireCondition(checked===54,'expected 54 bilingual detail pages; found '+checked);
+
+// Existing indexed educational guides retain their informational intent.
+// The optional service bridge must appear only in editorially relevant articles.
+const editorialBridges=new Map([
+ ['tahlil-karname-tahsili','transcript_analysis'],
+ ['ghabl-az-submit-maghale','manuscript_diagnostic'],
+ ['pasokh-be-davaran','reviewer_response'],
+ ['entekhab-majale-monaseb','journal_strategy'],
+ ['academic-cv-professional','academic_cv'],
+ ['mosahabe-heyat-elmi','academic_interview_90'],
+ ['tosee-herfei-moalleman','teacher_dev_90'],
+ ['kargah-amoozeshi-asarbakhsh','specialist_workshop_120'],
+ ['barname-yek-mahe-konkur','konkur_month'],
+ ['madarese-system-estedaadyabi','organization_consult_90'],
+ ['estedaad-alaghe-bazaar-kar','field_selection_comprehensive'],
+ ['behtarin-sen-estedaadyabi','talent_initial'],
+ ['desk-rejection-chist','manuscript_diagnostic'],
+ ['azmoon-khoob-vijegiha','teacher_consult_60'],
+ ['moshavere-konkur-herfei','konkur_consult_60']
+]);
+const faSitemap=read('sitemap-fa.xml');
+for(const [slug,serviceId] of editorialBridges){
+ const path='fa/rahnamaha/'+slug+'/index.html';
+ let html;
+ try{html=read(path);}catch(_){errors.push(path+': missing editorial page');continue;}
+ const prefix=path+': ';
+ requireCondition(html.includes('https://drjavadrezazadeh.com/fa/rahnamaha/'+slug+'/'),
+   prefix+'existing canonical must be preserved');
+ requireCondition(!/<meta\b[^>]*name=["']robots["'][^>]*noindex/i.test(html),
+   prefix+'helpful educational guide must remain publicly indexable');
+ requireCondition((html.match(/id=["']jr-knowledge-decision-20261028["']/g)||[]).length===1,
+   prefix+'missing/duplicate editorial-to-service guide');
+ const start=html.indexOf('<section id="jr-knowledge-decision-20261028"');
+ const end=html.indexOf('</section>',start)+10;
+ const articleEnd=html.lastIndexOf('</article>');
+ requireCondition(start>=0&&end>start&&end<articleEnd,
+   prefix+'optional service information must remain inside the article');
+ const module=start>=0&&end>start?html.slice(start,end):'';
+ requireCondition(module.includes('href="/fa/services/'+serviceId+'/"'),
+   prefix+'editorial link must reach relevant original service scope');
+ requireCondition(module.includes('href="/fa/darkhast-moshavere/?service='+serviceId+'"'),
+   prefix+'optional consultation path must preserve public catalogue ID');
+ requireCondition(module.includes('data-conversion-event="organic_article_service_intent"'),
+   prefix+'reading a service explanation is not a received lead or order');
+ requireCondition(module.includes('نیازی به خرید ندارد')&&module.includes('به معنی رزرو'),
+   prefix+'free reading, booking and purchase must be clearly distinguished');
+ requireCondition(html.includes('jr-knowledge-service-bridge-20261028.css'),
+   prefix+'editorial bridge visual stylesheet absent');
+ requireCondition(faSitemap.includes(
+   '<loc>https://drjavadrezazadeh.com/fa/rahnamaha/'+slug+'/</loc><lastmod>2026-10-28</lastmod>'),
+   prefix+'newly revised public article has stale sitemap lastmod');
+}
+const freeTools=read('assets/js/free-growth-tools.js');
+for(const id of ['transcript_analysis','field_selection_standard','talent_initial',
+                  'manuscript_diagnostic','teacher_dev_90']){
+ // transcript_analysis is reachable through the new article bridges.
+ const source=id==='transcript_analysis'?read('fa/rahnamaha/tahlil-karname-tahsili/index.html'):freeTools;
+ requireCondition(source.includes('/fa/services/'+id+'/'),
+   'no useful free-content route to paid service explanation '+id);
+}
+requireCondition(!freeTools.includes('localStorage')&&!freeTools.includes('sendBeacon('),
+ 'free worksheets must not persist or transmit reflection answers');
+
 const faIntake=read('fa/darkhast-moshavere/index.html');
 const enIntake=read('en/request-consultation/index.html');
 for(const [file,html] of [['fa/darkhast-moshavere/',faIntake],['en/request-consultation/',enIntake]]){
