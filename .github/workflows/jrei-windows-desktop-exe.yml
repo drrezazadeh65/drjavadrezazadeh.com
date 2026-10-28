@@ -2,6 +2,12 @@ name: JREI Native Windows Desktop EXE Installer (NO DEPLOY)
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - migration/bertina-linux6
+    paths:
+      - '.github/workflows/jrei-windows-desktop-exe.yml'
+      - 'platform/jrei-v5/windows-desktop/**'
 
 permissions:
   contents: read
