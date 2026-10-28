@@ -80,8 +80,8 @@ def _pdf_text(data: bytes) -> tuple[str, str]:
     if reader.is_encrypted:
         return "", "ENCRYPTED_PDF_NOT_EXTRACTED"
     pages = []
-    for page in list(reader.pages)[:18]:
-        pages.append(page.extract_text() or "")
+    for index in range(min(18, len(reader.pages))):
+        pages.append(reader.pages[index].extract_text() or "")
         if sum(len(p) for p in pages) > MAX_EXTRACTED:
             break
     text = "\n\n".join(pages)[:MAX_EXTRACTED]
@@ -202,3 +202,30 @@ def delete_document(*, private: Path, identifier: str) -> dict:
             target.unlink()
     folder.rmdir()
     return {"id": identifier, "state": "PRIVATE_DOCUMENT_DELETED"}
+
+
+def list_documents(*, private: Path) -> list:
+    """List private metadata without returning the original document bytes."""
+    try:
+        vault = _directory(private)
+    except ValueError:
+        return []
+    entries = []
+    for folder in sorted(vault.iterdir(), reverse=True):
+        if len(entries) >= 40:
+            break
+        if not folder.is_dir() or folder.is_symlink() or not IDENT.fullmatch(folder.name):
+            continue
+        manifest = folder / "manifest.json"
+        if not manifest.is_file() or manifest.is_symlink() or manifest.stat().st_size > 5000:
+            continue
+        try:
+            entry = json.loads(manifest.read_text(encoding="utf-8"))
+            if not isinstance(entry, dict) or entry.get("id") != folder.name:
+                continue
+            entries.append({key: entry.get(key) for key in
+                            ("id", "name", "size", "sha256", "extraction",
+                             "extracted_chars", "created")})
+        except (ValueError, OSError, TypeError):
+            continue
+    return entries
