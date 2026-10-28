@@ -31,6 +31,11 @@ jobs:
           python-version: "3.13"
           architecture: "x64"
 
+      - name: Go native Windows no-TEMP installer build environment
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.6'
+
       - name: Install packaging utilities on isolated GitHub runner only
         shell: pwsh
         run: |
@@ -50,116 +55,126 @@ jobs:
             throw 'JREI_INNO_COMPILER_NOT_FOUND'
           }
 
-      - name: Build native Tk EXE and explicitly unaccepted installer
+      - name: Package original GUI and original 8092 Python engine without runtime downloads
         shell: pwsh
         run: |
-          $ErrorActionPreference = 'Stop'
-          $desktop = 'platform/jrei-v5/windows-desktop'
-          $source = "$desktop/jrei_desktop.py"
-          if (-not (Test-Path -LiteralPath $source -PathType Leaf)) {
-            throw 'JREI_NATIVE_DESKTOP_SOURCE_MISSING'
-          }
-          $commit = (git rev-parse HEAD).Trim()
-          if ($commit -notmatch '^[a-f0-9]{40}$') {
-            throw 'JREI_BUILD_SOURCE_COMMIT_INVALID'
-          }
-          $runId = [long]$env:GITHUB_RUN_ID
-          if ($runId -le 0) { throw 'JREI_WINDOWS_BUILD_RUN_ID_INVALID' }
-          $stamp = Join-Path $env:RUNNER_TEMP 'jrei-desktop-build.json'
+          $ErrorActionPreference='Stop'
+          $version='0.1.6'
+          $desktop='platform/jrei-v5/windows-desktop'
+          $build="$desktop/build"
+          $source="$desktop/jrei_desktop.py"
+          if(-not (Test-Path -LiteralPath $source -PathType Leaf)){throw 'JREI_NATIVE_GUI_MISSING'}
+          $sha=(git rev-parse HEAD).Trim()
+          if($sha -notmatch '^[a-f0-9]{40}$'){throw 'JREI_SOURCE_COMMIT_INVALID'}
+          $runId=[long]$env:GITHUB_RUN_ID
+          if($runId -le 0){throw 'JREI_BUILD_RUN_ID_MISSING'}
+          $stamp=Join-Path $env:RUNNER_TEMP 'jrei-desktop-build.json'
           @{
-            schema = 'jr.jrei.desktop-source-stamp.v1'
-            source_commit = $commit
-            branch = 'migration/bertina-linux6'
-            github_workflow_run_id = $runId
-          } | ConvertTo-Json -Compress | Set-Content -LiteralPath $stamp -Encoding utf8NoBOM
-          python -m PyInstaller --noconfirm --clean --onefile --windowed --noupx --name JREI --add-data "$stamp;." --distpath "$desktop/build" --workpath "$env:RUNNER_TEMP/jrei-ui-build" --specpath "$env:RUNNER_TEMP/jrei-ui-spec" "$source"
-          if ($LASTEXITCODE -ne 0) { throw 'JREI_NATIVE_DESKTOP_EXE_BUILD_FAILED' }
-          if (-not (Test-Path -LiteralPath "$desktop/build/JREI.exe" -PathType Leaf)) {
-            throw 'JREI_NATIVE_DESKTOP_EXE_MISSING'
+            schema='jr.jrei.desktop-source-stamp.v1'
+            source_commit=$sha
+            branch='migration/bertina-linux6'
+            github_workflow_run_id=$runId
+          }|ConvertTo-Json -Compress|Set-Content -LiteralPath $stamp -Encoding utf8NoBOM
+
+          # Onedir GUI: no PyInstaller onefile _MEI* extraction in Windows TEMP
+          # on EITHER owner device, including the machine affected by Error 5.
+          python -m PyInstaller --noconfirm --clean --onedir --windowed --noupx --name JREI --add-data "$stamp;." --distpath "$build/ui" --workpath "$env:RUNNER_TEMP/jrei-ui-work" --specpath "$env:RUNNER_TEMP/jrei-ui-spec" "$source"
+          if($LASTEXITCODE -ne 0){throw 'JREI_GUI_BUNDLE_FAILED'}
+          $uiDir="$build/ui/JREI"
+          if(-not (Test-Path -LiteralPath "$uiDir/JREI.exe" -PathType Leaf)){throw 'JREI_GUI_EXE_MISSING'}
+
+          # The actual original Python command-center service, not an external
+          # pretrained chatbot. All dependencies resolved on CI runner ONLY.
+          $pythonProject='platform/jrei-python'
+          python -m PyInstaller --noconfirm --clean --onedir --console --noupx --name JREI-Engine --paths "$pythonProject" --collect-data jrei_service --collect-submodules jrei_service --collect-submodules jrei_core --collect-submodules jrei_learning --collect-submodules jrei_memory --collect-submodules jrei_orchestrator --collect-submodules jrei_skills --collect-submodules PIL --distpath "$build/engines" --workpath "$env:RUNNER_TEMP/jrei-engine-work" --specpath "$env:RUNNER_TEMP/jrei-engine-spec" "$desktop/jrei_embedded_engine.py"
+          if($LASTEXITCODE -ne 0){throw 'JREI_PRIVATE_ENGINE_BUNDLE_FAILED'}
+          $engineDir="$build/engines/JREI-Engine"
+          $engineFile="$engineDir/JREI-Engine.exe"
+          if(-not (Test-Path -LiteralPath $engineFile -PathType Leaf)){throw 'JREI_PRIVATE_ENGINE_EXE_MISSING'}
+
+          # Private/user data, credentials, keys, models, clone and Git metadata
+          # are intentionally excluded. The READ-ONLY source is built from
+          # immutable HEAD in the canonical checkout.
+          $snapshot=Join-Path $env:RUNNER_TEMP 'jrei-tracked-source.zip'
+          git archive --format=zip --output="$snapshot" HEAD platform/jrei-python platform/jrei-v5 platform/news-intelligence scripts assets/css api
+          if($LASTEXITCODE -ne 0){throw 'JREI_GIT_ARCHIVE_FAILED'}
+          $sourceDir="$build/source"
+          New-Item -ItemType Directory -Path $sourceDir -Force|Out-Null
+          Expand-Archive -LiteralPath $snapshot -DestinationPath $sourceDir -Force
+          if(-not (Test-Path -LiteralPath "$sourceDir/platform/jrei-python/jrei_service/windows_command_center.py" -PathType Leaf)){
+            throw 'JREI_READ_ONLY_SOURCE_NOT_PACKAGED'
           }
 
-          # Freeze THE EXISTING original 8092 service, not another AI agent.
-          # PyInstaller includes Python and required libraries in engine/_internal.
-          $pythonProject = 'platform/jrei-python'
-          python -m PyInstaller --noconfirm --clean --onedir --console --noupx --name JREI-Engine --paths "$pythonProject" --collect-data jrei_service --collect-submodules jrei_service --collect-submodules jrei_core --collect-submodules jrei_learning --collect-submodules jrei_memory --collect-submodules jrei_orchestrator --collect-submodules jrei_skills --collect-submodules PIL --distpath "$desktop/build/engine" --workpath "$env:RUNNER_TEMP/jrei-engine-build" --specpath "$env:RUNNER_TEMP/jrei-engine-spec" "$desktop/jrei_embedded_engine.py"
-          if ($LASTEXITCODE -ne 0) { throw 'JREI_PRIVATE_FROZEN_ENGINE_BUILD_FAILED' }
-          $frozenEngine = "$desktop/build/engine/JREI-Engine/JREI-Engine.exe"
-          if (-not (Test-Path -LiteralPath $frozenEngine -PathType Leaf)) {
-            throw 'JREI_PRIVATE_FROZEN_ENGINE_MISSING'
+          # Staging directory maps 1:1 to the final per-user release folder.
+          # The single Go installer writes these paths directly into the
+          # version-specific program folder, NEVER into the user's TEMP.
+          $bundle="$build/universal-payload"
+          New-Item -ItemType Directory -Path $bundle -Force|Out-Null
+          Get-ChildItem -LiteralPath $uiDir -Force|Copy-Item -Destination $bundle -Recurse -Force
+          foreach($name in @('jrei-device-inventory.ps1','jrei-engine-setup.ps1','jrei-shortcuts.ps1')){
+            Copy-Item -LiteralPath (Join-Path $desktop $name) -Destination (Join-Path $bundle $name) -ErrorAction Stop
           }
-          # Copy the engine's entire PyInstaller onedir tree to the fixed
-          # installer location. Avoid downloading Python/pip on owner PCs.
-          $engineStage = "$desktop/build/engine-staged"
-          New-Item -ItemType Directory -Force $engineStage | Out-Null
-          Copy-Item -Path "$desktop/build/engine/JREI-Engine/*" -Destination $engineStage -Recurse -Force
-          # Build a clean READ-ONLY source inspection snapshot from TRACKED
-          # canonical files only. Never include .git credentials or local edits.
-          $sourceArchive = Join-Path $env:RUNNER_TEMP 'jrei-source-snapshot.zip'
-          git archive --format=zip --output="$sourceArchive" HEAD platform/jrei-python platform/jrei-v5 platform/news-intelligence scripts assets/css api
-          if ($LASTEXITCODE -ne 0) { throw 'JREI_SOURCE_SNAPSHOT_ARCHIVE_FAILED' }
-          $sourceStage = "$desktop/build/source"
-          New-Item -ItemType Directory -Force $sourceStage | Out-Null
-          Expand-Archive -LiteralPath $sourceArchive -DestinationPath $sourceStage -Force
-          if (-not (Test-Path -LiteralPath "$sourceStage/platform/jrei-python/jrei_service/windows_command_center.py" -PathType Leaf)) {
-            throw 'JREI_CANONICAL_SOURCE_SNAPSHOT_MISSING'
-          }
-          # Inno Setup recursively packages only these source-controlled
-          # application components, not documents/private user profile data.
-          $engineHash = (Get-FileHash -LiteralPath $frozenEngine -Algorithm SHA256).Hash.ToLowerInvariant()
+          $packagedEngine=Join-Path $bundle ("engine-v"+$version)
+          New-Item -ItemType Directory -Path $packagedEngine -Force|Out-Null
+          Get-ChildItem -LiteralPath $engineDir -Force|Copy-Item -Destination $packagedEngine -Recurse -Force
+          $packagedSource=Join-Path $bundle ("source-v"+$version)
+          New-Item -ItemType Directory -Path $packagedSource -Force|Out-Null
+          Get-ChildItem -LiteralPath $sourceDir -Force|Copy-Item -Destination $packagedSource -Recurse -Force
+          $engineSha=(Get-FileHash -LiteralPath $engineFile -Algorithm SHA256).Hash.ToLowerInvariant()
           @{
-            schema = 'jr.jrei.offline-engine-package.v1'
-            source_branch = 'migration/bertina-linux6'
-            source_commit = $commit
-            engine_sha256 = $engineHash
-            model_weights_embedded = $false
-            private_node_keys_embedded = $false
-            tests_performed = $false
-          } | ConvertTo-Json -Compress | Set-Content -LiteralPath "$desktop/build/jrei-engine-manifest.json" -Encoding utf8NoBOM
-          # Inno expects the staged onedir contents at build/engine/.
-          # Keep the staging layout flat and do NOT copy an EXE alone.
-          Remove-Item -LiteralPath "$desktop/build/engine" -Recurse -Force
-          Move-Item -LiteralPath $engineStage -Destination "$desktop/build/engine"
-          $compiler = 'C:\Program Files (x86)\Inno Setup 6\ISCC.exe'
-          & $compiler "$desktop/JREI.iss"
-          if ($LASTEXITCODE -ne 0) { throw 'JREI_NATIVE_INNO_INSTALLER_FAILED' }
-          $installer = "$desktop/output/JREI-Setup-Windows-x64-v0.1.5.exe"
-          if (-not (Test-Path -LiteralPath $installer -PathType Leaf)) {
-            throw 'JREI_NATIVE_INSTALLER_NOT_CREATED'
+            schema='jr.jrei.offline-engine-package.v1'
+            source_branch='migration/bertina-linux6'
+            source_commit=$sha
+            engine_sha256=$engineSha
+            model_weights_embedded=$false
+            private_node_keys_embedded=$false
+            tests_performed=$false
+          }|ConvertTo-Json -Compress|Set-Content -LiteralPath "$bundle/jrei-engine-manifest.json" -Encoding utf8NoBOM
+          # This archive is a build-time input embedded inside ONE Go EXE.
+          # It is not a separate owner download or a Windows temp archive.
+          $goPayload="$desktop/payload.zip"
+          Add-Type -AssemblyName System.IO.Compression.FileSystem
+          [System.IO.Compression.ZipFile]::CreateFromDirectory(
+            (Resolve-Path -LiteralPath $bundle).Path,
+            (Join-Path (Get-Location).Path $goPayload),
+            [System.IO.Compression.CompressionLevel]::Optimal, $false)
+          if(-not (Test-Path -LiteralPath $goPayload -PathType Leaf)){
+            throw 'JREI_EMBEDDED_ARCHIVE_NOT_CREATED'
           }
-          New-Item -ItemType Directory -Force 'JREI-OWNER-DOWNLOAD' | Out-Null
-          Copy-Item -LiteralPath $installer -Destination 'JREI-OWNER-DOWNLOAD/JREI-Setup-Windows-x64-v0.1.5.exe'
-          # Exactly ONE user-facing setup EXE in the downloadable artifact.
-          # No A/B/RAM role scripts, confidential config or auxiliary apps
-          # are shipped alongside it; the included inventory is read-only.
-          $hash = (Get-FileHash -LiteralPath $installer -Algorithm SHA256).Hash.ToLowerInvariant()
+
+          $out="$desktop/output"
+          New-Item -ItemType Directory -Path $out -Force|Out-Null
+          $installer="$out/JREI-Setup-Windows-x64-v0.1.6.exe"
+          go build -trimpath '-ldflags=-H windowsgui -s -w' -o $installer "$desktop/jrei_universal_setup_windows.go"
+          if($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath $installer -PathType Leaf)){
+            throw 'JREI_GO_NO_TEMP_INSTALLER_BUILD_FAILED'
+          }
+          $hash=(Get-FileHash -LiteralPath $installer -Algorithm SHA256).Hash.ToLowerInvariant()
+          New-Item -ItemType Directory -Path 'JREI-OWNER-DOWNLOAD' -Force|Out-Null
+          Copy-Item -LiteralPath $installer -Destination 'JREI-OWNER-DOWNLOAD/JREI-Setup-Windows-x64-v0.1.6.exe'
           @(
-            "## JREI universal Windows x64 setup (source-only package)"
-            ""
-            "- One installer containing native GUI, frozen private 8092 engine and tracked source."
-            "- No Python, pip, wheelhouse or GitHub access required on the destination to start the bundled engine."
-            "- Existing owner SQLite, tokens, signed node IDs, Git edits and model weights are NEVER overwritten."
-            "- New signed workers still require independent owner/server enrollment."
-            "- Existing live original engine is preserved until safe reconciliation."
-            "- The installer asks Windows Restart Manager to close the active JREI GUI before file replacement."
-            "- If the private engine setup fails, the installer shows a visible warning and records a sanitized receipt."
-            "- NEVER choose Skip for a failed binary/DLL copy; abort that installer and diagnose."
-            "- Installer file: JREI-Setup-Windows-x64-v0.1.5.exe"
+            '## JREI 0.1.6 - universal offline NO-TEMP Windows setup'
+            ''
+            '- Exactly ONE user-facing EXE (within the GitHub artifact ZIP).'
+            '- Native Windows Go bootstrap extracts directly into per-user versioned program folder.'
+            '- No Inno is-*.tmp; no PyInstaller onefile temp unpack; no destination pip/PyPI.'
+            '- Contains native GUI, original frozen 8092 Python command center, and tracked source.'
+            '- Existing private DB, user conversations, worker node IDs, keys and models are preserved.'
+            '- Does not assert independent model quality, GPU compute or signed remote-node enrollment.'
+            '- Does NOT deploy the website, run training or perform integrated Windows acceptance.'
+            "- Source commit: $sha"
+            "- GitHub run ID: $runId"
             "- Installer SHA-256: $hash"
-            "- Canonical source commit: $commit"
-            "- Workflow run ID: $runId"
-            "- Signing: UNSIGNED (hash != code-signature)."
-            "- Independent Windows acceptance: NOT RUN by this job."
-            "- Signed worker enrollment on new machines: NOT PERFORMED."
-            "- Native neural weights and private model data: NOT INCLUDED."
-            "- Site deployment / live Windows install: NOT PERFORMED."
-          ) -join "`n" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+            '- UNSIGNED publisher; hash is NOT a code-signing certificate.'
+            '- After installation examine actual 8092 health on each Windows owner PC.'
+          ) -join [Environment]::NewLine |
+          Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Append
 
-
-      - name: Upload owner-only installer artifact (not an accepted release)
+      - name: Upload ONE unaccepted owner installer artifact
         uses: actions/upload-artifact@v4
         with:
           name: JREI-WINDOWS-DESKTOP-INSTALLER
-          path: JREI-OWNER-DOWNLOAD/JREI-Setup-Windows-x64-v0.1.5.exe
+          path: JREI-OWNER-DOWNLOAD/JREI-Setup-Windows-x64-v0.1.6.exe
           retention-days: 30
-          if-no-files-found: error
           compression-level: 0
+          if-no-files-found: error
