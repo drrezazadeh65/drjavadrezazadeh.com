@@ -41,3 +41,71 @@
 .service-offer .service-scope-links a:hover{background:rgba(197,163,91,.14)}
 .service-offer .service-scope-links a:focus-visible{outline:3px solid #ffe1a1;outline-offset:3px}
 @media(max-width:580px){.service-offer .service-scope-links{flex-direction:column}.service-offer .service-scope-links a{width:100%;justify-content:center;text-align:center}}
+
+/* Consultation composer: catalogue-backed offer details inside the existing
+ * verified-account/email intake, not a replacement form or checkout. */
+[data-consultation-composer] .requested-service-summary:not([hidden]){
+  display:block;
+  margin:12px 0 20px;
+  padding:clamp(14px,3vw,22px);
+  background:linear-gradient(145deg,#201b14,#151311);
+  color:#f5ecdc;
+  border:1px solid #82663d;
+  border-inline-start:4px solid #e6c184;
+  border-radius:14px;
+  line-height:1.95;
+  overflow-wrap:anywhere;
+}
+[data-consultation-composer] .requested-service-summary strong{
+  display:block;
+  color:#f7d99c;
+  font-size:1.08rem;
+  line-height:1.6;
+  margin-bottom:12px;
+}
+[data-consultation-composer] .requested-service-summary p{
+  margin:0 0 11px;
+  font-size:clamp(.9rem,1.5vw,1rem);
+  color:#f1e6d4;
+}
+[data-consultation-composer] .requested-service-summary p:last-child{margin-bottom:0}
+[data-consultation-composer] .requested-service-summary b{
+  color:#f2d095;font-weight:700;
+}
+[data-consultation-composer] select[name="service"]{
+  width:100%;
+  min-height:48px;
+  max-width:100%;
+}
+[data-consultation-composer] select[name="service"] optgroup{
+  font-weight:700;
+}
+[data-consultation-composer] [data-composer-preview]:not([hidden]){
+  border:1px solid #82663d;
+  background:#191612;
+  color:#f5ecdc;
+  border-radius:15px;
+  padding:clamp(14px,3vw,22px);
+  overflow-wrap:anywhere;
+}
+[data-consultation-composer] [data-composer-draft]{
+  display:block;width:100%;min-height:180px;max-width:100%;
+  color:#f5ecdc;background:#111013;
+  border:1px solid #766044;border-radius:10px;
+  line-height:1.8;padding:14px;
+}
+[data-consultation-composer] [data-composer-email],
+[data-consultation-composer] [data-composer-copy]{
+  min-height:48px;
+  white-space:normal;
+  text-align:center;
+}
+[data-consultation-composer] [data-composer-status]:not(:empty){
+  color:#f6dbab;
+  font-weight:600;
+  line-height:1.9;
+}
+@media(max-width:600px){
+  [data-consultation-composer] [data-composer-preview] .actions{display:grid;grid-template-columns:minmax(0,1fr);gap:10px}
+  [data-consultation-composer] [data-composer-preview] .actions>*{max-width:100%;min-width:0}
+}
