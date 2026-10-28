@@ -124,6 +124,7 @@ class Desktop:
         self.active_job = None
         self.attachments = []
         self.online = False
+        self.real_engine_status = None
         self.approval_dialog = None
         self.approval_items = []
         self.approval_context = None
@@ -179,6 +180,9 @@ class Desktop:
                                      font=self._font(10))
         self.thread_list.pack(fill="both", expand=True, padx=10, pady=(0, 8))
         self.thread_list.bind("<<ListboxSelect>>", self._choose_thread)
+        self._button(self.side, "وضعیت واقعی مغز و یادگیری",
+                     self.show_engine_status, color=SIDE,
+                     foreground=GOLD).pack(fill="x", padx=13, pady=(4, 7))
         self._label(self.side, "خصوصی · فقط روی رایانهٔ شما", fg=MUTED, bg=SIDE, size=9).pack(pady=12)
 
         self.main = tk.Frame(body, bg=BG)
@@ -261,6 +265,18 @@ class Desktop:
         self._label(card, "امروز چه کمکی از من برمی‌آید؟", bg=BG, size=16).pack(pady=10)
         self._label(card, "گفتگو، پژوهش، حافظه، تحلیل منابع و ابزارهای کدنویسی",
                     bg=BG, fg=MUTED, size=10).pack()
+        choices = tk.Frame(card, bg=BG)
+        choices.pack(pady=(20, 0))
+        starters = [
+            ("توانایی‌های واقعی JREI", "چه کارهایی بلدی"),
+            ("بررسی ساختار پروژه", "فهرست فایل‌های کد در مخزن را نشان بده"),
+            ("یافتن فایل مربوط", "در مخزن کد فایل مربوط به مدیریت گفتگو را پیدا کن"),
+        ]
+        for title, prompt in starters:
+            self._button(
+                choices, title, lambda p=prompt: self._prefill(p),
+                color=SURFACE, foreground=GOLD).pack(
+                    fill="x", padx=6, pady=4)
 
     def _turn(self, role, content, *, temporary=False):
         user = role == "user"
@@ -337,6 +353,7 @@ class Desktop:
     def _done(self, key, data):
         if key == "connect":
             self.online = True
+            self.real_engine_status = dict(data)
             model = bool(data.get("model_connected"))
             native = data.get("native_evidence_answering") == "AVAILABLE_NO_EXTERNAL_WEIGHTS"
             # An answering private HTTP service does NOT prove new JREI
@@ -581,6 +598,86 @@ class Desktop:
                     "status": result.get("status", "QUEUED")}
         self.fetch("sent", submit)
 
+
+    def _prefill(self, prompt: str):
+        """Explicit user click populates a draft; no silent task execution."""
+        if self.busy_send:
+            return
+        if self.editor.get("1.0", "end-1c").strip():
+            if not messagebox.askyesno(
+                    "JREI", "متن فعلی را با پیشنهاد جدید جایگزین کنید؟",
+                    parent=self.root):
+                return
+        self.editor.delete("1.0", "end")
+        self.editor.insert("1.0", prompt)
+        self.editor.focus_set()
+
+    def show_engine_status(self):
+        """Only report source-backed, locally observed capabilities."""
+        data = self.real_engine_status
+        if not isinstance(data, dict):
+            messagebox.showinfo(
+                "JREI · وضعیت موتور",
+                "هنوز پاسخ معتبری از موتور محلی ثبت نشده است. "
+                "روی «بازخوانی» بزنید.", parent=self.root)
+            return
+        digest = data.get("windows_app_source_commit")
+        version = (digest[:12] if isinstance(digest, str) and
+                   re.fullmatch(r"[a-f0-9]{40}", digest)
+                   else "بدون شناسهٔ نسخهٔ تأییدشده")
+        native = data.get("native_neural_training") or {}
+        if not isinstance(native, dict):
+            native = {}
+        learning = data.get("continuous_learning") or {}
+        if not isinstance(learning, dict):
+            learning = {}
+        res = data.get("local_pc_real_resources") or {}
+        if not isinstance(res, dict):
+            res = {}
+        resource_state = res.get("resources") or {}
+        if not isinstance(resource_state, dict):
+            resource_state = {}
+        information = [
+            "بررسی واقعی و بدون نصب / آموزش / انتشار",
+            "",
+            "نسخهٔ موتور خصوصی: " + version,
+            "مدل زبانی خارجی/پیکربندی‌شده متصل: " +
+                ("بله، اما نه الزاماً مدل اختصاصی" if
+                 data.get("model_connected") else "خیر"),
+            "مدل عصبیِ ساخته‌شده توسط JREI: " +
+                str(native.get("state") or "تأیید نشده"),
+            "آموزش مدل زبانی اختصاصی: " +
+                str(data.get("native_language_model_training", "تأیید نشده")),
+            "موتور شواهد: " +
+                str(data.get("native_evidence_answering", "نامشخص")),
+            "یادگیری پیوسته (وضعیت ثبت‌شده): " +
+                str(learning.get("state") or learning.get("enabled") or "نامشخص"),
+            "RAM آزاد اندازه‌گیری‌شده: " +
+                str(resource_state.get("free_ram_mb", "نامشخص")) + " MB",
+            "پردازش GPU آموزش‌دیده: تأیید نشده",
+            "",
+            "این‌ها فقط وضعیت‌های اعلام‌شده توسط همان موتور محلی‌اند؛ "
+            "نه گواه توانایی معادل ChatGPT.",
+        ]
+        dialog = tk.Toplevel(self.root)
+        dialog.title("JREI | وضعیت مغز و یادگیری")
+        dialog.geometry("610x450")
+        dialog.configure(bg=BG)
+        dialog.transient(self.root)
+        self._label(dialog, "مغز و یادگیری JREI", bg=BG,
+                    fg=GOLD, bold=True, size=15).pack(
+                        fill="x", padx=16, pady=(18, 6))
+        reading = tk.Text(dialog, bg=SURFACE, fg=FG,
+                          insertbackground=GOLD, font=self._font(11),
+                          wrap="word", relief="flat",
+                          padx=16, pady=14)
+        reading.pack(fill="both", expand=True, padx=16, pady=8)
+        reading.tag_configure("rtl", justify="right")
+        reading.insert("1.0", "\n".join(information))
+        reading.tag_add("rtl", "1.0", "end")
+        reading.configure(state="disabled")
+        self._button(dialog, "بستن", dialog.destroy).pack(
+            side="right", padx=16, pady=(0, 14))
 
     def show_approvals(self):
         """Owner-only confirmation UX for ORIGINAL one-time 10-min actions."""
