@@ -23,6 +23,7 @@ from jrei_service.windows_project_generator import generate as generate_project
 from jrei_service.windows_document_retrieval import retrieve as retrieve_document_evidence
 from jrei_service import windows_continuous_learning as knowledge
 from jrei_service import windows_evidence_memory as memory_graph
+from jrei_service.windows_codebase_map import build as build_repository_map
 
 MAX_MESSAGE = 9000
 MAX_HISTORY = 10
@@ -546,7 +547,8 @@ def interact(*, db_path: Path, repo: Path, private: Path, ident: str, message: s
         report_progress("RESEARCHING_REPOSITORY")
         result = investigate_project(
             message=message, search=lambda q: find_source(repo, q),
-            read=lambda p: read_source(repo, p), model_reply=model_reply)
+            read=lambda p: read_source(repo, p), model_reply=model_reply,
+            repository_map=lambda q: build_repository_map(repo=repo, request=q))
         receipt = result["receipt"]
         store_workflow(db_path, ident, receipt)
         raw = json.dumps(receipt, ensure_ascii=False)
@@ -591,7 +593,7 @@ def interact(*, db_path: Path, repo: Path, private: Path, ident: str, message: s
         return {"conversation_id": ident, "answer": answer, "state": state,
                 "tool": {"name": tool, "state": state, "receipt": result[:MAX_TOOL_OUTPUT]}}
     report_progress("GENERATING_RESPONSE")
-    # Local Qwen conversation with optional evidence from previously
+    # JREI-native model-neutral conversation with evidence from previously
     # owner-approved Windows learning sources. Retrieval NEVER gives the
     # model browsing rights, scientific certification or tool execution.
     history = messages(db_path, ident)
