@@ -18,7 +18,7 @@ import subprocess
 import sys
 import threading
 import tkinter as tk
-from tkinter import filedialog, messagebox, ttk
+from tkinter import filedialog, messagebox, ttk, font as tkfont
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -110,7 +110,12 @@ class Desktop:
         self.root.geometry("1130x755")
         self.root.minsize(720, 480)
         self.root.configure(bg=BG)
-        self.root.option_add("*Font", "Segoe UI 10")
+        # Segoe UI contains a space. String/tuple font specifications can
+        # be misparsed by Tcl into [Segoe, UI, size] and fail with
+        # "expected integer but got UI" (actual owner Windows crash).
+        # Real Tk named font objects preserve the family as one field.
+        self._fonts = {}
+        self.root.option_add("*Font", "TkDefaultFont")
         self.ui_queue: queue.Queue = queue.Queue()
         self.busy_send = False
         self.conversation = None
@@ -124,15 +129,23 @@ class Desktop:
         self.root.after(1100, self._start_poll)
         self.fetch("connect", self._bootstrap)
 
+    def _font(self, size=10, bold=False):
+        key = (int(size), bool(bold))
+        if key not in self._fonts:
+            self._fonts[key] = tkfont.Font(
+                root=self.root, family="Segoe UI", size=key[0],
+                weight="bold" if key[1] else "normal")
+        return self._fonts[key]
+
     def _label(self, parent, text, *, fg=FG, bg=None, size=10, bold=False, **kwargs):
         return tk.Label(parent, text=text, fg=fg, bg=bg or parent.cget("bg"),
-                        font=("Segoe UI", size, "bold" if bold else "normal"), **kwargs)
+                        font=self._font(size, bold), **kwargs)
 
     def _button(self, parent, title, action, *, color=SURFACE, foreground=FG, **kwargs):
         return tk.Button(parent, text=title, command=action, bg=color, fg=foreground,
                          activebackground="#41444d", activeforeground=FG,
                          relief="flat", borderwidth=0, cursor="hand2",
-                         font=("Segoe UI", 10), padx=12, pady=8, **kwargs)
+                         font=self._font(10), padx=12, pady=8, **kwargs)
 
     def _build(self):
         root = self.root
@@ -151,13 +164,13 @@ class Desktop:
         self.search.trace_add("write", lambda *_: self._render_threads())
         self.search_input = tk.Entry(self.side, textvariable=self.search, bg="#242730",
                                      fg=FG, insertbackground=GOLD, relief="flat",
-                                     font=("Segoe UI", 10))
+                                     font=self._font(10))
         self.search_input.pack(fill="x", padx=13, ipady=9)
         self._label(self.side, "گفتگوهای من", bg=SIDE, fg=MUTED).pack(anchor="e", padx=17, pady=(15, 5))
         self.thread_list = tk.Listbox(self.side, bg=SIDE, fg=FG, selectbackground="#433a2b",
                                      selectforeground=FG, relief="flat", borderwidth=0,
                                      highlightthickness=0, activestyle="none",
-                                     font=("Segoe UI", 10))
+                                     font=self._font(10))
         self.thread_list.pack(fill="both", expand=True, padx=10, pady=(0, 8))
         self.thread_list.bind("<<ListboxSelect>>", self._choose_thread)
         self._label(self.side, "خصوصی · فقط روی رایانهٔ شما", fg=MUTED, bg=SIDE, size=9).pack(pady=12)
@@ -179,7 +192,7 @@ class Desktop:
         self._label(status, "", fg=MUTED).pack(side="left", padx=2)
         self._label(status, "JREI", fg=MUTED).pack(side="left")
         tk.Label(status, textvariable=self.status_text, bg=BG, fg=MUTED,
-                 font=("Segoe UI", 9), anchor="e").pack(side="right")
+                 font=self._font(9), anchor="e").pack(side="right")
 
         center = tk.Frame(self.main, bg=BG)
         center.pack(fill="both", expand=True, padx=(18, 20), pady=(8, 0))
@@ -199,13 +212,13 @@ class Desktop:
         self.attach_view = tk.StringVar(value="")
         self._label(foot, "", fg=MUTED).pack(side="left")
         tk.Label(foot, textvariable=self.attach_view, fg=MUTED, bg=BG,
-                 font=("Segoe UI", 9), anchor="e").pack(fill="x")
+                 font=self._font(9), anchor="e").pack(fill="x")
         frame = tk.Frame(foot, bg=SURFACE, highlightbackground=LINE,
                          highlightthickness=1, padx=9, pady=8)
         frame.pack(fill="x")
         self.editor = tk.Text(frame, height=3, wrap="word", bg=SURFACE, fg=FG,
                               insertbackground=GOLD, relief="flat", borderwidth=0,
-                              font=("Segoe UI", 11), undo=True, padx=9, pady=8)
+                              font=self._font(11), undo=True, padx=9, pady=8)
         self.editor.pack(side="top", fill="x")
         self.editor.bind("<Return>", self._on_return)
         actions = tk.Frame(frame, bg=SURFACE)
@@ -253,7 +266,7 @@ class Desktop:
         # Read-only Tk text supports native selection/copy, RTL justification,
         # wrapped Persian/English code excerpts and keyboard navigation.
         txt = tk.Text(bubble, bg=USER if user else BG, fg=MUTED if temporary else FG,
-                      font=("Segoe UI", 11), wrap="word", borderwidth=0,
+                      font=self._font(11), wrap="word", borderwidth=0,
                       highlightthickness=0, relief="flat", cursor="xterm",
                       padx=0, pady=5)
         text = str(content)[:12000]
