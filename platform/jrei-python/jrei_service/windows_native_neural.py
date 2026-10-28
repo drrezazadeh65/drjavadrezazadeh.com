@@ -281,19 +281,29 @@ def snapshot(db_path: Path) -> dict:
     try:
         with closing(native._db(db_path)) as db:
             row=db.execute("""SELECT id,created,start_heldout_bpb,
-                final_heldout_bpb,steps,state
+                final_heldout_bpb,steps,state,checkpoint_sha256,
+                independently_accepted
                 FROM jrei_native_neural_runs
                 ORDER BY created DESC,id DESC LIMIT 1""").fetchone()
         if not row:
             return {"state":"NEURAL_NOT_TRAINED",
+                    "lifecycle":"NO_TRAINED_MODEL",
                     "external_pretrained_weights_used":False,
+                    "checkpoint_integrity_verified_now":False,
                     "model_active":False}
-        ident,t,start,final,steps,state=row
+        ident,t,start,final,steps,state,digest,accepted=row
+        # SQLite is a registry of training claims, NOT proof that the
+        # checkpoint exists, has a valid digest or passed independent QA.
+        # Never infer an active conversational model from training loss.
         return {"state":state,"run_id":ident,"trained_at":t,
+                "lifecycle":"CANDIDATE_TRAINED_UNREVIEWED"
+                    if not accepted else "EVALUATED_NOT_APPROVED",
+                "registered_checkpoint_sha256":digest,
+                "checkpoint_integrity_verified_now":False,
                 "initial_heldout_bits_per_byte":start,
                 "final_heldout_bits_per_byte":final,"steps":steps,
                 "pretrained_weights_used":False,
-                "independent_quality_accepted":False,
+                "independent_quality_accepted":bool(accepted),
                 "model_active":False}
     except sqlite3.Error:
         return {"state":"NEURAL_STATUS_UNAVAILABLE",
