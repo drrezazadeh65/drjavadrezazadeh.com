@@ -804,6 +804,8 @@ class OwnerHTTP(BaseHTTPRequestHandler):
             if self.path == "/api/learning/source/deactivate":
                 if data.get("confirm") is not True:
                     raise ValueError("LEARNING_SOURCE_CONFIRMATION_REQUIRED")
+                if not isinstance(data.get("id"),str) or not re.fullmatch(r"[a-f0-9]{32}",data["id"]):
+                    raise ValueError("LEARNING_SOURCE_ID_INVALID")
                 knowledge.invalidate_staged_training_exports(DB_PATH,PRIVATE)
                 return self._send(200, knowledge.deactivate_source(
                     DB_PATH,data.get("id")))
