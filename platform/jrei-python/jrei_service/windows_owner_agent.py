@@ -24,6 +24,7 @@ from jrei_service.windows_document_retrieval import retrieve as retrieve_documen
 from jrei_service import windows_continuous_learning as knowledge
 from jrei_service import windows_evidence_memory as memory_graph
 from jrei_service import windows_code_experience as code_experience
+from jrei_service import windows_open_source_discovery as source_discovery
 from jrei_service.windows_codebase_map import build as build_repository_map
 
 MAX_MESSAGE = 9000
@@ -345,6 +346,24 @@ def pick_tool(command: str) -> tuple[str, dict] | None:
         quoted = re.search(r"[\"«']([^\"»']{3,110})[\"»']", s)
         query = quoted.group(1) if quoted else re.sub(MEMORY_VERBS, "", s).strip(" :،.؟!")
         return "memory_search", {"query": query[:130]}
+    if (SEARCH_VERBS.search(s)
+            and re.search(r"(?:github|گیت.?هاب)", s, re.I)
+            and re.search(r"(?:open.?source|متن.?باز|کدهای آزاد|کتابخانه.?های آزاد)", s, re.I)):
+        # Only the owner's present request may authorize metadata discovery.
+        # Unlike model content, chat/source documents cannot grant network
+        # permissions and no model-suggested URL is opened.
+        quoted = re.search(r'["«]([^"»]{3,75})["»]', s)
+        if quoted:
+            query = quoted.group(1)
+        else:
+            query = re.sub(
+                r"(?i)(?:github|گیت.?هاب|open.?source|متن.?باز|کدهای آزاد|"
+                r"کتابخانه.?های آزاد|برای|از|در|بگرد|پیدا کن|جستجو کن|"
+                r"کد|code|find|search|repository|repo|را|کن|مناسب|من|"
+                r"متن باز)", " ", s)
+            query = " ".join(query.split()).strip(" .،؟!")
+        if len(query) >= 3:
+            return "open_source_research", {"query": query[:75]}
     if LIST_VERBS.search(s):
         return "list_files", {"folder": path.rsplit("/", 1)[0] if path else "platform/jrei-python"}
     if SEARCH_VERBS.search(s) and re.search(r"(مخزن|کد|فایل|پرامپت|repo|source|repository|file)", s, re.I):
@@ -407,6 +426,9 @@ def _tool_output(tool: str, args: dict, *, repo: Path, private: Path, db_path: P
         return "READ_ONLY", read_source(repo, args["path"])
     if tool == "search_source":
         return "READ_ONLY", find_source(repo, args["query"])
+    if tool == "open_source_research":
+        result = source_discovery.find_repositories(args["query"])
+        return result["state"], json.dumps(result, ensure_ascii=False)[:MAX_TOOL_OUTPUT]
     if tool == "list_files":
         return "READ_ONLY", list_files(repo, args["folder"])
     if tool == "save_note":
