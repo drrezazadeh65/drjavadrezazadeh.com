@@ -359,6 +359,14 @@ async function newChat(){const response=await api('/api/conversation/new',{});se
 const TASK_ACTIVE=new Set(['QUEUED','RUNNING','CANCEL_REQUESTED']);
 const TASK_FINAL=new Set(['SUCCEEDED','FAILED','CANCELLED','INTERRUPTED',
  'SUCCEEDED_AFTER_CANCEL_REQUEST','FAILED_AFTER_CANCEL_REQUEST']);
+function taskProgressText(phase){
+ return ({
+  STARTING:'شروع اجرای مأموریت',READING_DOCUMENT:'خواندن سند انتخاب‌شده',
+  RETRIEVING_EVIDENCE:'بازیابی شواهد و ارجاعات',SYNTHESIZING:'تدوین پاسخ مستند',
+  RESEARCHING_REPOSITORY:'بررسی کد و منابع مخزن',ROUTING_TOOL:'تشخیص ابزار مجاز',
+  GENERATING_RESPONSE:'تولید پاسخ محلی',PERSISTING_RESULT:'ثبت نتیجه و رسید'
+ })[phase]||null;
+}
 function taskStateText(status){
  return ({
   QUEUED:'در صف',RUNNING:'در حال انجام',
@@ -386,7 +394,9 @@ async function refreshTasks(){
   for(const task of items.filter(t=>TASK_ACTIVE.has(t.status)).slice(0,6)){
    const row=el('div','taskRow');
    const label=el('span','taskStatus',taskStateText(task.status));
-   const description=el('span','taskSummary',String(task.preview||'مأموریت '+task.id.slice(0,8)));
+   const phase=task.progress&&taskProgressText(task.progress.phase);
+   const description=el('span','taskSummary',
+    (phase?'مرحله: '+phase+' · ':'')+String(task.preview||'مأموریت '+task.id.slice(0,8)));
    const cancel=el('button','taskCancel',task.status==='CANCEL_REQUESTED'?'در انتظار پایان':'لغو');
    cancel.disabled=task.status==='CANCEL_REQUESTED';
    cancel.onclick=async()=>{
