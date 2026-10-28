@@ -371,3 +371,52 @@ html[lang="fa"] .book-store-shell :where(.store-discovery-library,.book-product-
 html[lang="fa"] .book-store-shell :where(bdi,[lang="en"],[dir="ltr"]){
  direction:ltr;unicode-bidi:isolate;
 }
+
+/* JR one-of-one Webster collector card: one presentation, one canonical detail page. */
+.book-store-shell .book-store-grid > .jr-one-copy {
+  border-color:rgba(208,170,104,.66);
+  background:linear-gradient(165deg,#201911 0%,#131920 56%,#0f1317 100%);
+  box-shadow:0 16px 44px rgba(0,0,0,.28),inset 0 1px rgba(255,230,182,.12);
+}
+.book-store-shell .jr-one-copy .jr-collector-preview {
+  margin:0;position:relative;width:100%;overflow:hidden;
+  background:#0d1116;aspect-ratio:3 / 2;
+  border-bottom:1px solid rgba(219,185,122,.34);
+}
+.book-store-shell .jr-one-copy .jr-collector-preview img {
+  display:block;width:100%;height:100%;
+  object-fit:contain;object-position:center;
+}
+.book-store-shell .jr-one-copy .jr-collector-preview figcaption {
+  position:absolute;left:10px;bottom:10px;z-index:1;
+  padding:5px 10px;border-radius:99px;
+  color:#f8ecd8;background:rgba(17,19,23,.82);
+  font-size:11px;line-height:1.5;
+}
+.book-store-shell .jr-one-copy .book-product-copy {
+  display:flex;flex:1;flex-direction:column;
+  gap:12px;padding:clamp(18px,2.2vw,26px);
+}
+.book-store-shell .jr-one-copy .book-product-copy h2 {
+  margin:0;font-size:clamp(20px,2vw,25px);line-height:1.65;
+  color:#f0ddb3;overflow-wrap:anywhere;
+}
+.book-store-shell .jr-one-copy .book-product-copy > p {
+  font-size:14px;line-height:1.95;color:#d9d3c7;margin:0;
+}
+.book-store-shell .jr-one-copy .book-price {
+  margin-top:auto;color:#f4d396;font-weight:800;
+}
+.book-store-shell .jr-one-copy .actions .button.primary {
+  color:#1b1711!important;background:linear-gradient(125deg,#f5dca3,#c69d51);
+  min-height:48px;border-radius:12px;font-weight:800;
+}
+.book-store-shell .jr-one-copy .book-product-copy .status-chip {
+  align-self:flex-start;color:#f0d39f;
+  background:rgba(121,89,43,.2);border:1px solid rgba(215,178,103,.4);
+}
+@media(max-width:690px) {
+  .book-store-shell .jr-one-copy .jr-collector-preview {aspect-ratio:3/2}
+  .book-store-shell .jr-one-copy .book-product-copy {padding:18px}
+  .book-store-shell .jr-one-copy .book-product-copy h2 {font-size:21px}
+}
