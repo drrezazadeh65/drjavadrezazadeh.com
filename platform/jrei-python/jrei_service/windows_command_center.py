@@ -31,6 +31,7 @@ from jrei_service import windows_owner_agent as owner_agent
 from jrei_service import windows_owner_tasks as owner_tasks
 from jrei_service import windows_continuous_learning as knowledge
 from jrei_service import windows_model_curriculum as curriculum
+from jrei_service import windows_learning_agenda as agenda
 from jrei_service.windows_response_quality import has_repetition_loop
 from jrei_service.windows_project_generator import read_generated
 from jrei_service.windows_document_vault import import_document, list_documents, delete_document
@@ -106,6 +107,7 @@ def setup() -> str:
     owner_tasks.initialize(DB_PATH)
     knowledge.initialize(DB_PATH)
     curriculum.initialize(DB_PATH)
+    agenda.initialize(DB_PATH)
     token = TOKEN_PATH.read_text(encoding="ascii").strip()
     if len(token) < 48:
         raise RuntimeError("JREI_OWNER_TOKEN_INVALID")
@@ -552,6 +554,7 @@ def scheduler():
     next_study = time.monotonic() + 30
     next_learning = time.monotonic() + 25
     next_curriculum = time.monotonic() + 90
+    next_agenda = time.monotonic() + 110
     next_ci_check = time.monotonic() + 120
     misses = 0
     while not _STOP.is_set():
@@ -588,6 +591,23 @@ def scheduler():
             except (OSError,ValueError,sqlite3.Error) as exc:
                 record("windows_learning","LOOP_ERROR",exc.__class__.__name__)
             next_learning = time.monotonic() + 65
+        if time.monotonic() >= next_agenda and not _BUSY.locked():
+            if _activity_at == 0 or time.monotonic() - _activity_at >= 180:
+                try:
+                    resources=knowledge._windows_resources()
+                    result=agenda.study_once(
+                        DB_PATH,model_reply=reply,
+                        resource_available=resources.get("eligible",False),
+                        owner_active=False)
+                    if result.get("state") in (
+                        "STUDY_DRAFT_UNVERIFIED","NO_GROUNDED_EVIDENCE",
+                        "MODEL_DRAFT_UNAVAILABLE"):
+                        record("windows_agenda",result["state"],
+                               "EVIDENCE_COVERAGE_NOT_MODEL_QUALITY",
+                               result.get("cycle_id",""))
+                except (OSError,ValueError,sqlite3.Error) as exc:
+                    record("windows_agenda","HELD",exc.__class__.__name__)
+            next_agenda = time.monotonic() + 500
         if time.monotonic() >= next_curriculum and not _BUSY.locked():
             if (_activity_at == 0 or time.monotonic()-_activity_at >= 180):
                 try:
@@ -641,6 +661,7 @@ def status():
         "study_proposals_not_verified": total,
         "continuous_learning": knowledge.snapshot(DB_PATH),
         "model_curriculum": curriculum.statistics(DB_PATH),
+        "learning_agenda": agenda.snapshot(DB_PATH),
         "autonomous_study_scheduler": "RUNNING",
         "python_port": 8091, "gpu_port": 8082,
         "site_publishing_control": "NOT_CONNECTED",
@@ -737,6 +758,15 @@ class OwnerHTTP(BaseHTTPRequestHandler):
             return self._send(200, {"items": owner_agent.list_workflows(DB_PATH)})
         if self.path == "/api/learning":
             return self._send(200, knowledge.snapshot(DB_PATH))
+        if self.path == "/api/learning/topics":
+            return self._send(200, {"items": agenda.list_topics(DB_PATH)})
+        if urlsplit(self.path).path == "/api/learning/topic/cycles":
+            params=parse_qs(urlsplit(self.path).query)
+            try:
+                return self._send(200, {"items": agenda.cycles(
+                    DB_PATH,params.get("id",[""])[0])})
+            except ValueError:
+                return self._send(400, {"error":"JREI_AGENDA_TOPIC_ID_INVALID"})
         if self.path == "/api/learning/lessons":
             return self._send(200, {"items": curriculum.list_lessons(DB_PATH)})
         if self.path == "/api/learning/discoveries":
@@ -809,6 +839,17 @@ class OwnerHTTP(BaseHTTPRequestHandler):
                 knowledge.invalidate_staged_training_exports(DB_PATH,PRIVATE)
                 return self._send(200, knowledge.deactivate_source(
                     DB_PATH,data.get("id")))
+            if self.path == "/api/learning/topic/add":
+                return self._send(200,agenda.add_topic(
+                    DB_PATH,domain=data.get("domain"),
+                    language=data.get("language","mixed"),
+                    question=data.get("question"),
+                    priority=data.get("priority",0.65),
+                    owner_confirmed=data.get("confirm")))
+            if self.path == "/api/learning/topic/deactivate":
+                return self._send(200,agenda.deactivate_topic(
+                    DB_PATH,topic_id=data.get("id"),
+                    owner_confirmed=data.get("confirm")))
             if self.path == "/api/learning/lesson/review":
                 return self._send(200,curriculum.review_lesson(
                     DB_PATH,lesson_id=data.get("id"),role=data.get("role"),
