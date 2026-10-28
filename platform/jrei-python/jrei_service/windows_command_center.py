@@ -30,6 +30,7 @@ from jrei_service.ci_observer import observe_ci
 from jrei_service import windows_owner_agent as owner_agent
 from jrei_service.windows_response_quality import has_repetition_loop
 from jrei_service.windows_project_generator import read_generated
+from jrei_service.windows_document_vault import import_document, list_documents, delete_document
 from urllib.parse import parse_qs, urlsplit
 
 HOST = "127.0.0.1"
@@ -597,9 +598,9 @@ class OwnerHTTP(BaseHTTPRequestHandler):
             secrets.compare_digest(self.headers.get("Authorization", ""),
                                    "Bearer " + self.server.owner_token)
 
-    def _read_json(self):
+    def _read_json(self, max_length=55000):
         length = int(self.headers.get("Content-Length", "0"))
-        if length <= 0 or length > 55000:
+        if length <= 0 or length > max_length:
             raise ValueError("JREI_PAYLOAD_SIZE_INVALID")
         return json.loads(self.rfile.read(length))
 
@@ -621,6 +622,8 @@ class OwnerHTTP(BaseHTTPRequestHandler):
             return self._send(200, {"items": owner_agent.list_conversations(DB_PATH)})
         if self.path == "/api/workflows":
             return self._send(200, {"items": owner_agent.list_workflows(DB_PATH)})
+        if self.path == "/api/documents":
+            return self._send(200, {"items": list_documents(private=PRIVATE)})
         if urlsplit(self.path).path == "/api/generated/file":
             params = parse_qs(urlsplit(self.path).query)
             project_id = params.get("id", [""])[0]
@@ -645,9 +648,20 @@ class OwnerHTTP(BaseHTTPRequestHandler):
         if not self._authorized():
             return self._send(401, {"error": "JREI_OWNER_AUTH_REQUIRED"})
         try:
-            data = self._read_json()
+            data = self._read_json(8000000 if self.path == "/api/documents/import" else 55000)
             if not isinstance(data, dict):
                 raise ValueError("JREI_REQUEST_OBJECT_REQUIRED")
+            if self.path == "/api/documents/import":
+                result = import_document(private=PRIVATE, name=data.get("name"),
+                                         data_base64=data.get("data"))
+                record("document_import", "LOCAL_ONLY", result["sha256"][:16])
+                return self._send(200, result)
+            if self.path == "/api/documents/delete":
+                if data.get("confirm") is not True:
+                    raise ValueError("JREI_DOCUMENT_DELETE_CONFIRM_REQUIRED")
+                result = delete_document(private=PRIVATE, identifier=data.get("id"))
+                record("document_delete", "LOCAL_ONLY", result["id"][:12])
+                return self._send(200, result)
             if self.path == "/api/profile":
                 value = data.get("instructions")
                 return self._send(200, {"state": owner_agent.save_instructions(PRIVATE, value)})
@@ -671,6 +685,7 @@ class OwnerHTTP(BaseHTTPRequestHandler):
                     return self._send(409, {"error": "JREI_OWNER_AGENT_BUSY"})
                 result = owner_agent.interact(db_path=DB_PATH, repo=REPO, private=PRIVATE,
                                                ident=ident, message=message,
+                                               attachment_ids=data.get("attachments", []),
                                                model_reply=reply, run_directive=route_directive)
                 return self._send(200, result)
             if self.path == "/api/assistant/confirm":
