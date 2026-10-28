@@ -38,14 +38,33 @@ function Report([string]$code){
     }catch{Write-Output '[JREI] SYNC_LOCAL_LOG_UNAVAILABLE'}
   }
 }
+# Windows PowerShell 5.1 translates native Git's stderr (including normal
+# "From https://..." fetch progress) into NativeCommandError. With the global
+# Stop preference, that error aborts a successful fetch before $LASTEXITCODE
+# can be inspected. Keep the exception preference scoped to native calls and
+# rely on the actual Git exit code; never ignore a nonzero exit status.
 function GitCommand([string[]]$arguments){
-  $result=& $script:gitExe -C $script:repo @arguments 2>$null
-  if($LASTEXITCODE -ne 0){throw 'JREI_GIT_COMMAND_FAILED'}
+  $savedPreference=$ErrorActionPreference
+  try{
+    $ErrorActionPreference='Continue'
+    $result=& $script:gitExe -C $script:repo @arguments 2>$null
+    $gitExitCode=$LASTEXITCODE
+  }finally{
+    $ErrorActionPreference=$savedPreference
+  }
+  if($gitExitCode -ne 0){throw 'JREI_GIT_COMMAND_FAILED'}
   return @($result)
 }
 function GitStatus([string[]]$arguments){
-  & $script:gitExe -C $script:repo @arguments 1>$null 2>$null
-  return $LASTEXITCODE
+  $savedPreference=$ErrorActionPreference
+  try{
+    $ErrorActionPreference='Continue'
+    & $script:gitExe -C $script:repo @arguments 1>$null 2>$null
+    $gitExitCode=$LASTEXITCODE
+  }finally{
+    $ErrorActionPreference=$savedPreference
+  }
+  return $gitExitCode
 }
 function Preconditions{
   if(-not (Test-Path -LiteralPath $repo -PathType Container)){throw 'JREI_REPO_MISSING'}
