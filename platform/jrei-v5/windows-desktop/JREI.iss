@@ -5,7 +5,7 @@
 ; The UI may start offline; it must never claim to install native LLM weights.
 
 #define MyAppName "JREI Personal AI"
-#define MyAppVersion "0.1.0"
+#define MyAppVersion "0.1.1"
 #define MyPublisher "Javad Rezazadeh"
 #define MyAppExeName "JREI.exe"
 
@@ -30,9 +30,12 @@ Compression=lzma2
 SolidCompression=yes
 WizardStyle=modern
 SetupLogging=yes
-CloseApplications=yes
+CloseApplications=no
 RestartApplications=no
+RestartIfNeededByRun=no
+AlwaysRestart=no
 UsePreviousAppDir=yes
+UsePreviousTasks=no
 DisableWelcomePage=no
 ; Do not touch the user's existing private %LOCALAPPDATA%\JREI folder or
 ; Windows scheduled service. Never remove chat, local models or worker keys.
@@ -40,18 +43,15 @@ DisableWelcomePage=no
 [Languages]
 Name: "en"; MessagesFile: "compiler:Default.isl"
 
-[Tasks]
-Name: "desktopicon"; Description: "Create JREI desktop shortcut"; GroupDescription: "Desktop icon:"; Flags: checkedonce
-
 [Files]
 Source: "build\JREI.exe"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
 Name: "{autoprograms}\JREI Personal AI"; Filename: "{app}\{#MyAppExeName}"; WorkingDir: "{app}"
-Name: "{autodesktop}\JREI Personal AI"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon; WorkingDir: "{app}"
+Name: "{userdesktop}\JREI Personal AI"; Filename: "{app}\{#MyAppExeName}"; WorkingDir: "{app}"
 
-[Run]
-Filename: "{app}\{#MyAppExeName}"; Description: "Launch JREI Personal AI"; Flags: nowait postinstall skipifsilent
+; No [Run] step: setup does not automatically open applications/files.
+; Start JREI deliberately from the newly created shortcut.
 
 [UninstallDelete]
 ; None: the private JREI data and signed worker configuration are never removed.
