@@ -14,6 +14,8 @@ import os
 from pathlib import Path
 import queue
 import re
+import subprocess
+import sys
 import threading
 import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
@@ -168,6 +170,7 @@ class Desktop:
         self.status_text = tk.StringVar(value="در حال اتصال به موتور خصوصی…")
         self._label(top, "", fg=MUTED).pack(side="left", padx=5)
         self._button(top, "بازخوانی", self.refresh).pack(side="right")
+        self._button(top, "روشن‌کردن موتور JREI", self.start_existing_engine, foreground=GOLD).pack(side="right", padx=6)
         self._label(top, "", fg=MUTED).pack(side="right")
         self._button(top, "قطع / لغو", self.cancel_job, foreground=ERROR).pack(side="right", padx=5)
         status = tk.Frame(self.main, bg=BG)
@@ -367,6 +370,9 @@ class Desktop:
                 self.attach_view.set(f"پیوست‌های انتخاب‌شده: {len(self.attachments)} از ۲")
         elif key == "cancel":
             self.status_text.set("درخواست لغو ثبت شد؛ عملیات جاری ممکن است به پایان برسد.")
+        elif key == "service":
+            self.status_text.set("درخواست اجرای سرویس موجود JREI ثبت شد.")
+            self.root.after(1400, self.refresh)
 
     def _error(self, key, error):
         self.status_text.set(str(error)[:170])
@@ -459,6 +465,30 @@ class Desktop:
                 "attachments": snapshot})
             return result
         self.fetch("sent", submit)
+
+    def start_existing_engine(self):
+        """Only request the ORIGINAL owner Scheduled Task, never install/replace it."""
+        if sys.platform != "win32":
+            self.status_text.set("راه‌اندازی موتور فقط در ویندوز پشتیبانی می‌شود.")
+            return
+        if not messagebox.askyesno(
+            "JREI", "سرویس خصوصی JREI که قبلاً روی همین ویندوز ثبت شده، اجرا شود؟ "
+                    "هیچ برنامه یا مدل تازه‌ای نصب نمی‌شود.", parent=self.root):
+            return
+        def invoke():
+            # Fixed task name; never evaluate shell or user/model-proposed commands.
+            completed = subprocess.run(
+                [os.path.join(os.environ.get("SystemRoot", r"C:\Windows"),
+                              "System32", "schtasks.exe"),
+                 "/Run", "/TN", "JREI-Owner-Windows-Command-Center"],
+                shell=False, stdin=subprocess.DEVNULL,
+                capture_output=True, timeout=14, check=False)
+            if completed.returncode != 0:
+                raise RuntimeError(
+                    "سرویس ثبت‌شدهٔ JREI قابل اجرا نیست. نصب و پذیرش موتور "
+                    "اصلی ویندوز باید جداگانه تکمیل شود.")
+            return {"state": "EXISTING_JREI_TASK_START_REQUESTED"}
+        self.fetch("service", invoke)
 
     def cancel_job(self):
         if not self.active_job:
