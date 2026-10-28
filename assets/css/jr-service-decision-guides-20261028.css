@@ -109,3 +109,46 @@
   [data-consultation-composer] [data-composer-preview] .actions{display:grid;grid-template-columns:minmax(0,1fr);gap:10px}
   [data-consultation-composer] [data-composer-preview] .actions>*{max-width:100%;min-width:0}
 }
+
+/* Evidence-based example details: readable by default, visually distinguish
+ * hypothetical professional reasoning from contractual deliverables. */
+.jr-decision-guide .jr-case-study{
+ margin:25px 0;padding:clamp(16px,2.8vw,25px);
+ border:1px solid #8f7448;
+ border-inline-start:4px solid #e6c78b;
+ border-radius:15px;
+ background:linear-gradient(145deg,#2c251b,#211e1a);
+ color:#f7eddc;
+ overflow-wrap:anywhere;
+}
+.jr-decision-guide .jr-case-study h3{
+ color:#f6deac;margin:0 0 10px;
+ font-size:clamp(18px,2vw,23px);line-height:1.55;
+}
+.jr-decision-guide .jr-case-study p{
+ margin:8px 0 12px;color:#f1e8d8;
+}
+.jr-decision-guide .jr-case-study ol{
+ margin:14px 0;padding-inline-start:26px;
+ list-style:decimal;list-style-position:outside;
+}
+.jr-decision-guide .jr-case-study li{
+ margin:9px 0;padding-inline-start:2px;
+ line-height:1.95;color:#f5ead8;
+}
+.jr-decision-guide .jr-case-study li::marker{
+ color:#f5d69b;font-weight:700;
+}
+.jr-decision-guide .jr-case-study .jr-case-boundary{
+ margin:18px 0 0;padding:12px 15px;
+ background:#181612;border:1px solid #6b5634;
+ border-radius:10px;color:#f0dcba;
+ font-size:clamp(14px,1.5vw,16px);
+}
+@media(max-width:600px){
+ .jr-decision-guide .jr-case-study{
+  margin:18px 0;padding:15px 13px;border-radius:12px;
+ }
+ .jr-decision-guide .jr-case-study ol{padding-inline-start:22px}
+ .jr-decision-guide .jr-case-study .jr-case-boundary{padding:12px}
+}
