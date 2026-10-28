@@ -36,7 +36,7 @@ const safeRoute=()=>{
  if(decoded.length>180||decoded.includes('//'))return null;
  // Only ordinary public /fa/ or /en/ slugs; private account and form routes
  // are excluded, including when the path is percent-encoded.
- if(decoded!=='/'&&!/^\/(?:fa|en)\/(?:[\p{L}0-9-]+\/){0,6}$/u.test(decoded))return null;
+ if(decoded!=='/'&&!/^\/(?:fa|en)\/(?:[\p{L}0-9_-]+\/){0,6}$/u.test(decoded))return null;
  const parts=decoded.toLowerCase().split('/').filter(Boolean);
  if(parts.some(part=>BLOCKED_SEGMENTS.has(part)||/[0-9]{5,}/.test(part)))return null;
  return decoded.split('/').map(encodeURIComponent).join('/');
