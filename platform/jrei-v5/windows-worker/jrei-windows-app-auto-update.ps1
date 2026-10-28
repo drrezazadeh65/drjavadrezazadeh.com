@@ -1,0 +1,252 @@
+#Requires -Version 5.1
+<#
+ JREI Windows installed app and updater. Reuses existing startup and repo-sync tasks.
+ Install is OWNER EXPLICIT, Auto is opt-in, snapshots immutable, rollback restores
+ previous task action. Does not modify web hosting, language model or Python 8091.
+ Code-only until installed by its Windows owner; no tests performed here.
+#>
+[CmdletBinding()]
+param(
+ [ValidateSet('Check','Install','Auto','Disable')][string]$Mode='Check',
+ [switch]$OwnerApproved
+)
+Set-StrictMode -Version Latest
+$ErrorActionPreference='Stop'
+if($env:OS -cne 'Windows_NT'){throw 'JREI_APP_WINDOWS_REQUIRED'}
+$root=Join-Path $env:LOCALAPPDATA 'JREI-Python'
+$repo=Join-Path $root 'repo'
+$versions=Join-Path $root 'windows-owner-app-versions'
+$marker=Join-Path $root 'windows-owner-app-auto-update.json'
+$installed=Join-Path $root 'windows-owner-app-current.json'
+$py=Join-Path $root 'venv\Scripts\python.exe'
+$tokenFile=Join-Path $env:LOCALAPPDATA 'JREI\command-center\owner-token'
+$taskName='JREI-Owner-Windows-Command-Center'
+$branch='migration/bertina-linux6'
+$remote='https://github.com/drrezazadeh65/drjavadrezazadeh.com'
+$owner=[Security.Principal.WindowsIdentity]::GetCurrent()
+function Report([string]$code){
+ if($code -cnotmatch '^[A-Z0-9_]{4,90}$'){throw 'JREI_APP_EVENT_INVALID'}
+ Write-Output ('[JREI] '+$code)
+}
+function ReadJson([string]$path){
+ if(-not (Test-Path -LiteralPath $path -PathType Leaf)){return $null}
+ if((Get-Item -LiteralPath $path).Length -gt 5000){return $null}
+ try{return (Get-Content -LiteralPath $path -Encoding UTF8 -Raw | ConvertFrom-Json)}
+ catch{return $null}
+}
+function WriteJson([string]$path,[object]$value){
+ $tmp=$path+'.'+[guid]::NewGuid().ToString('N')+'.tmp'
+ try{
+  [IO.File]::WriteAllText($tmp,($value|ConvertTo-Json -Depth 5),[Text.UTF8Encoding]::new($false))
+  Move-Item -LiteralPath $tmp -Destination $path -Force
+ }finally{if(Test-Path -LiteralPath $tmp){Remove-Item -LiteralPath $tmp -Force}}
+}
+function Git([string[]]$argsList){
+ $old=$ErrorActionPreference
+ try{
+  $ErrorActionPreference='Continue'
+  $output=& $script:git -C $repo @argsList 2>$null
+  $code=$LASTEXITCODE
+ }finally{$ErrorActionPreference=$old}
+ if($code -ne 0){throw 'JREI_APP_GIT_FAILURE'}
+ return ($output|Out-String).Trim()
+}
+function GitExit([string[]]$argsList){
+ $old=$ErrorActionPreference
+ try{
+  $ErrorActionPreference='Continue'
+  & $script:git -C $repo @argsList 1>$null 2>$null
+  $code=$LASTEXITCODE
+ }finally{$ErrorActionPreference=$old}
+ return $code
+}
+function CurrentHead{
+ if(-not (Test-Path -LiteralPath $repo -PathType Container)){throw 'JREI_APP_REPO_NOT_FOUND'}
+ $script:git=(Get-Command git.exe -ErrorAction Stop).Source
+ $url=Git @('remote','get-url','origin')
+ if($url -cne $remote -and $url -cne ($remote+'.git')){throw 'JREI_APP_WRONG_ORIGIN'}
+ if((Git @('branch','--show-current')) -cne $branch){throw 'JREI_APP_WRONG_BRANCH'}
+ if((GitExit @('diff','--quiet','--exit-code')) -ne 0 -or
+    (GitExit @('diff','--cached','--quiet','--exit-code')) -ne 0){
+   throw 'JREI_APP_LOCAL_TRACKED_CHANGES_PRESERVED'
+ }
+ $sha=Git @('rev-parse','HEAD')
+ if($sha -cnotmatch '^[0-9a-f]{40}$'){throw 'JREI_APP_HEAD_INVALID'}
+ return $sha
+}
+function OwnerTask{
+ $task=Get-ScheduledTask -TaskName $taskName -ErrorAction Stop
+ $principal=[string]$task.Principal.UserId
+ try{
+  if($principal -match '^S-1-[0-9]+(-[0-9]+)+$'){
+   $sid=(New-Object System.Security.Principal.SecurityIdentifier($principal)).Value
+  }else{
+   $sid=(New-Object System.Security.Principal.NTAccount($principal)).Translate(
+    [Security.Principal.SecurityIdentifier]).Value
+  }
+ }catch{throw 'JREI_APP_TASK_OWNER_UNRESOLVED'}
+ if($sid -cne $owner.User.Value){throw 'JREI_APP_WRONG_TASK_OWNER'}
+ if($task.Actions.Count -ne 1){throw 'JREI_APP_UNEXPECTED_TASK_ACTIONS'}
+ $a=$task.Actions[0]
+ if($a.Arguments -cne '-B -m jrei_service.windows_command_center --serve' -or
+    [IO.Path]::GetFullPath([string]$a.Execute) -ine [IO.Path]::GetFullPath($py)){
+  throw 'JREI_APP_ORIGINAL_TASK_CHANGED'
+ }
+ return $task
+}
+function LocalApi([string]$endpoint){
+ if(-not (Test-Path -LiteralPath $tokenFile -PathType Leaf)){
+  throw 'JREI_APP_LOCAL_TOKEN_MISSING'
+ }
+ $token=(Get-Content -LiteralPath $tokenFile -Raw -Encoding Ascii).Trim()
+ if($token -cnotmatch '^[A-Za-z0-9_-]{50,128}$'){
+  throw 'JREI_APP_LOCAL_TOKEN_INVALID'
+ }
+ return Invoke-RestMethod -Method Get -Uri ('http://127.0.0.1:8092'+$endpoint) -TimeoutSec 6 -Headers @{
+  Authorization=('Bearer '+$token)
+ }
+}
+function IsIdle{
+ try{
+  $status=LocalApi '/api/status'
+  if($status.schema -cne 'jr.jrei.windows-command-center.v2' -or $status.busy -ne $false){return $false}
+  $tasks=LocalApi '/api/tasks'
+  foreach($item in @($tasks.items)){
+   if($item.status -in @('QUEUED','RUNNING','CANCEL_REQUESTED')){return $false}
+  }
+  return $true
+ }catch{return $false}
+}
+function IsReady{
+ try{
+  $status=LocalApi '/api/status'
+  return ($status.schema -ceq 'jr.jrei.windows-command-center.v2' -and $status.owner_private -eq $true)
+ }catch{return $false}
+}
+function Stage([string]$sha){
+ if($sha -cnotmatch '^[a-f0-9]{40}$'){throw 'JREI_APP_SHA_INVALID'}
+ $target=Join-Path $versions $sha
+ $snapshot=Join-Path $target 'source\platform\jrei-python'
+ $receipt=Join-Path $target 'receipt.json'
+ $prior=ReadJson $receipt
+ if($prior -and $prior.sourceCommit -ceq $sha -and $prior.schema -ceq 'jr.jrei.owner-app-snapshot.v1' -and
+    (Test-Path -LiteralPath (Join-Path $snapshot 'jrei_service\windows_command_center.py') -PathType Leaf)){
+  return $snapshot
+ }
+ if(Test-Path -LiteralPath $target){throw 'JREI_APP_INCOMPLETE_SNAPSHOT_PRESERVED'}
+ New-Item -ItemType Directory -Path $target -Force|Out-Null
+ $archive=Join-Path $target 'canonical-source.zip'
+ $extract=Join-Path $target 'source'
+ New-Item -ItemType Directory -Path $extract -Force|Out-Null
+ $old=$ErrorActionPreference
+ try{
+  $ErrorActionPreference='Continue'
+  & $script:git -C $repo archive --format=zip "--output=$archive" $sha platform/jrei-python 1>$null 2>$null
+  $code=$LASTEXITCODE
+ }finally{$ErrorActionPreference=$old}
+ if($code -ne 0){throw 'JREI_APP_ARCHIVE_FAILED'}
+ Expand-Archive -LiteralPath $archive -DestinationPath $extract -ErrorAction Stop
+ foreach($relative in @('jrei_service\windows_command_center.py','jrei_service\windows_owner_ui.html')){
+  if(-not (Test-Path -LiteralPath (Join-Path $snapshot $relative) -PathType Leaf)){
+   throw 'JREI_APP_SNAPSHOT_INCOMPLETE'
+  }
+ }
+ WriteJson $receipt @{
+  schema='jr.jrei.owner-app-snapshot.v1';sourceCommit=$sha
+  testsRun=$false;websiteDeployed=$false
+  createdUtc=[DateTimeOffset]::UtcNow.ToUnixTimeSeconds()
+ }
+ return $snapshot
+}
+function Promote([string]$sha){
+ if(-not (Test-Path -LiteralPath $py -PathType Leaf)){throw 'JREI_APP_PYTHON_MISSING'}
+ $task=OwnerTask
+ if($task.State -ne 'Running'){throw 'JREI_APP_COMMAND_CENTER_TASK_NOT_RUNNING'}
+ if(-not (IsIdle)){Report 'WINDOWS_APP_UPDATE_DEFERRED_BUSY';return}
+ $work=Stage $sha
+ $oldAction=$task.Actions[0]
+ if([string]$oldAction.WorkingDirectory -ieq $work){
+  WriteJson $installed @{schema='jr.jrei.owner-app-installed.v1';sourceCommit=$sha;sourcePath=$work}
+  Report 'WINDOWS_APP_ALREADY_UPDATED'
+  return
+ }
+ $newAction=New-ScheduledTaskAction -Execute $py -Argument '-B -m jrei_service.windows_command_center --serve' -WorkingDirectory $work
+ $swapped=$false
+ try{
+  Stop-ScheduledTask -TaskName $taskName -ErrorAction Stop
+  Set-ScheduledTask -TaskName $taskName -Action $newAction -ErrorAction Stop|Out-Null
+  $swapped=$true
+  Start-ScheduledTask -TaskName $taskName -ErrorAction Stop
+  $healthy=$false
+  for($i=0;$i -lt 18;$i++){
+   if(IsReady){$healthy=$true;break}
+   Start-Sleep -Seconds 2
+  }
+  if(-not $healthy){throw 'JREI_APP_NEW_VERSION_NOT_READY'}
+  WriteJson $installed @{
+   schema='jr.jrei.owner-app-installed.v1';sourceCommit=$sha
+   sourcePath=$work;previousPath=[string]$oldAction.WorkingDirectory
+   testsRun=$false;websiteDeployed=$false
+  }
+  Report 'WINDOWS_APP_NEW_VERSION_STARTED'
+ }catch{
+  if($swapped){
+   try{
+    Stop-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue
+    Set-ScheduledTask -TaskName $taskName -Action $oldAction -ErrorAction Stop|Out-Null
+    Start-ScheduledTask -TaskName $taskName -ErrorAction Stop
+    Report 'WINDOWS_APP_OLD_VERSION_RESTORED'
+   }catch{Report 'WINDOWS_APP_ROLLBACK_NEEDS_OWNER_REVIEW'}
+  }else{
+   Start-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue
+  }
+  throw 'JREI_APP_UPDATE_REJECTED'
+ }
+}
+if($Mode -eq 'Check'){
+ $head=CurrentHead
+ $consent=ReadJson $marker
+ $state=ReadJson $installed
+ Report $(if($consent -and $consent.enabled -eq $true){'WINDOWS_APP_AUTO_UPDATE_ENABLED'}else{'WINDOWS_APP_AUTO_UPDATE_OFF'})
+ Report $(if($state -and $state.sourceCommit -ceq $head){'WINDOWS_APP_CURRENT'}else{'WINDOWS_APP_UPDATE_PENDING'})
+ return
+}
+if($Mode -eq 'Disable'){
+ if(-not $OwnerApproved){throw 'JREI_APP_OWNER_APPROVAL_REQUIRED'}
+ if(Test-Path -LiteralPath $marker){Remove-Item -LiteralPath $marker -Force}
+ Report 'WINDOWS_APP_AUTO_UPDATE_DISABLED'
+ return
+}
+if($Mode -eq 'Install'){
+ if(-not $OwnerApproved){throw 'JREI_APP_OWNER_APPROVAL_REQUIRED'}
+ $head=CurrentHead
+ $launcher=Join-Path $repo 'platform\jrei-v5\windows-worker\jrei-command-center-startup.ps1'
+ if(-not (Test-Path -LiteralPath $launcher -PathType Leaf)){throw 'JREI_APP_LAUNCHER_MISSING'}
+ if(-not (Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue)){
+  & $launcher -Mode Install -OwnerApproved
+ }
+ $null=OwnerTask
+ if(-not (IsReady)){throw 'JREI_APP_ORIGINAL_COMMAND_CENTER_NOT_RESPONDING'}
+ if(-not (Get-ScheduledTask -TaskName 'JREI-Repo-Auto-Sync' -ErrorAction SilentlyContinue)){
+  $sync=Join-Path $repo 'platform\jrei-v5\windows-worker\jrei-repo-auto-sync.ps1'
+  & $sync -Mode Install -OwnerApproved
+ }
+ Promote $head
+ WriteJson $marker @{
+  schema='jr.jrei.windows-app-auto-update.v1';enabled=$true
+  ownerSid=$owner.User.Value;approvedUtc=[DateTimeOffset]::UtcNow.ToUnixTimeSeconds()
+ }
+ Report 'WINDOWS_APP_INSTALLED_AND_AUTO_UPDATE_OPTED_IN'
+ return
+}
+$approved=ReadJson $marker
+if(-not $approved -or $approved.schema -cne 'jr.jrei.windows-app-auto-update.v1' -or
+   $approved.enabled -ne $true -or $approved.ownerSid -cne $owner.User.Value){
+ Report 'WINDOWS_APP_UPDATE_NOT_OPTED_IN'
+ return
+}
+$head=CurrentHead
+$state=ReadJson $installed
+if($state -and $state.sourceCommit -ceq $head){Report 'WINDOWS_APP_ALREADY_CURRENT';return}
+try{Promote $head}
+catch{Report 'WINDOWS_APP_UPDATE_HELD_PREVIOUS_RUNTIME_PRESERVED'}
