@@ -1,3 +1,9 @@
+# SUPERSEDED — OWNER NATIVE-ONLY JREI DECISION (2026-10-28)
+
+The prior discussion below is historical research only. **Do not install or activate Qwen, Granite, PEFT-on-external-base, LM Studio, or any external pretrained model** through the current JREI owner workflow. The owner explicitly selected code/algorithm reuse without third-party pretrained language weights. Refer to `docs/governance/JREI_INDEPENDENT_WINDOWS_ACTIVATION_HANDOFF_20261028.md`. The canonical JREI CMD installer no longer downloads external weights. The real native JREI neural checkpoint has NOT yet been trained, and the private evidence-only fallback is explicitly not presented as a trained LLM.
+
+---
+
 > **SUPERSEDED BY OWNER DIRECTIVE (28 October 2026):** Qwen is no longer an eligible JREI language backend. The replacement route is `platform/jrei-python/jrei_service/windows_language_backend.py` with an independently selected non-Qwen model, plus the native optional `windows_peft_training.py` LoRA implementation. This historical model review is preserved for provenance only. Neither a replacement model nor training has been installed or run; Windows deployment and site publication remain paused.
 
 # JREI · Existing open-weight language-model adoption decision (2026-10-28)
