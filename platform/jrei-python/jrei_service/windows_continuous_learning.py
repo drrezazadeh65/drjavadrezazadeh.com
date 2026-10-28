@@ -29,6 +29,7 @@ from urllib.parse import urlsplit, urlunsplit, urljoin
 from urllib.robotparser import RobotFileParser
 
 from jrei_service.windows_document_retrieval import _manifest_and_text
+from jrei_service import windows_learning_fts as fts
 
 USER_AGENT = "JREI-Owner-Research/1.0"
 MAX_RESPONSE = 786_432
@@ -619,17 +620,21 @@ def retrieve(db_path: Path, question: str, max_passages: int=4) -> dict:
     words=[x for x in dict.fromkeys(normalized.split()) if len(x)>=3 and x not in stop][:12]
     if not words:
         return {"evidence":[],"state":"NO_SEARCH_TERMS"}
-    with _db(db_path) as db:
-        # Exclude withdrawn sources and older versions. Limit candidate
-        # scans to bound latency/CPU, not a permanent corpus size ceiling.
-        rows=db.execute("""SELECT s.url,s.issuer,s.rights,s.licence,v.sha256,
-          p.anchor,p.text,p.sha256
-          FROM learning_passages p
-          JOIN learning_sources s ON s.id=p.source_id
-          JOIN learning_versions v ON v.id=p.version_id
-          WHERE s.reviewed=1 AND (s.active=1 OR s.rights='PRIVATE_OWNER_GRANTED')
-            AND s.last_sha=v.sha256
-          ORDER BY p.created DESC,p.id DESC LIMIT 2500""").fetchall()
+    rows=fts.lookup_rows(db_path,words,limit=500)
+    if rows is None:
+        # Optional FTS5 may be absent from older Windows Python builds,
+        # or not yet rebuilt from the existing private knowledge archive.
+        # Preserve original read-only retrieval in that case.
+        with _db(db_path) as db:
+            rows=db.execute("""SELECT s.url,s.issuer,s.rights,s.licence,
+              v.sha256,p.anchor,p.text,p.sha256
+              FROM learning_passages p
+              JOIN learning_sources s ON s.id=p.source_id
+              JOIN learning_versions v ON v.id=p.version_id
+              WHERE s.reviewed=1
+                AND (s.active=1 OR s.rights='PRIVATE_OWNER_GRANTED')
+                AND s.last_sha=v.sha256
+              ORDER BY p.created DESC,p.id DESC LIMIT 2500""").fetchall()
     scored=[]
     for url,issuer,rights,licence,source_hash,anchor,text,p_hash in rows:
         lowered=text.casefold().replace("ي","ی").replace("ك","ک")
