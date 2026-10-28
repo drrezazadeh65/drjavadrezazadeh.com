@@ -392,9 +392,9 @@ for(const [file,html] of [
  requireCondition(html.includes('max-image-preview:large')&&
    html.includes('application/ld+json'),
   file+': indexable content requires meaningful metadata and valid structured data');
- const json=html.match(/<script type="application\\/ld\\+json">([\\s\\S]*?)<\\/script>/);
+ const json=html.split('<script type="application/ld+json">')[1]?.split('</script>')[0];
  try{
-  const entities=JSON.parse(json?.[1]||'{}')['@graph']||[];
+  const entities=JSON.parse(json||'{}')['@graph']||[];
   const list=entities.find(entity=>entity['@type']==='ItemList'&&
    /#(?:free-guides|family-questions)$/.test(entity['@id']||''));
   requireCondition(list?.itemListElement?.length===6,
@@ -437,9 +437,9 @@ for(const [slug,service] of sixFamilyQuestions){
  requireCondition(html.includes('property="og:image"')&&
   html.includes('name="twitter:image"'),
   article+': social and chat preview images must be declared');
- const rawJson=html.match(/<script type="application\\/ld\\+json">([\\s\\S]*?)<\\/script>/);
+ const rawJson=html.split('<script type="application/ld+json">')[1]?.split('</script>')[0];
  try{
-  const nodes=JSON.parse(rawJson?.[1]||'{}')['@graph']||[];
+  const nodes=JSON.parse(rawJson||'{}')['@graph']||[];
   const story=nodes.find(x=>x['@type']==='Article');
   requireCondition(story?.dateModified==='2026-10-28'&&
    (story.mentions||[]).some(x=>x['@id']===BASE+'/fa/services/'+service+'/#service'),
