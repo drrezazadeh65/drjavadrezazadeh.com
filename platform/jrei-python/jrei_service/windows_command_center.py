@@ -34,6 +34,7 @@ from jrei_service import windows_model_curriculum as curriculum
 from jrei_service import windows_learning_agenda as agenda
 from jrei_service import windows_autonomous_topics as auto_topics
 from jrei_service import windows_learning_fts as learning_fts
+from jrei_service import windows_evidence_memory as memory_graph
 from jrei_service.windows_response_quality import has_repetition_loop
 from jrei_service.windows_project_generator import read_generated
 from jrei_service.windows_document_vault import import_document, list_documents, delete_document
@@ -112,6 +113,7 @@ def setup() -> str:
     curriculum.initialize(DB_PATH)
     agenda.initialize(DB_PATH)
     auto_topics.initialize(DB_PATH)
+    memory_graph.initialize(DB_PATH)
     token = TOKEN_PATH.read_text(encoding="ascii").strip()
     if len(token) < 48:
         raise RuntimeError("JREI_OWNER_TOKEN_INVALID")
@@ -561,6 +563,7 @@ def scheduler():
     next_agenda = time.monotonic() + 110
     next_auto_topics = time.monotonic() + 140
     next_fts_index = time.monotonic() + 180
+    next_memory = time.monotonic() + 160
     next_ci_check = time.monotonic() + 120
     misses = 0
     while not _STOP.is_set():
@@ -610,6 +613,20 @@ def scheduler():
             except (OSError,ValueError,sqlite3.Error) as exc:
                 record("windows_learning","LOOP_ERROR",exc.__class__.__name__)
             next_learning = time.monotonic() + 65
+        if time.monotonic() >= next_memory and not _BUSY.locked():
+            if _activity_at == 0 or time.monotonic() - _activity_at >= 180:
+                try:
+                    resources=knowledge._windows_resources()
+                    if resources.get("eligible",False):
+                        captured=memory_graph.capture_once(
+                            DB_PATH,model_reply=reply,resources_available=True)
+                        if captured.get("state")=="CANDIDATE_UNVERIFIED":
+                            record("windows_evidence_memory","CANDIDATE_UNVERIFIED",
+                                   "SOURCE_ANCHORED_FACT_DRAFTS_NOT_VERIFIED",
+                                   captured.get("source_sha256",""))
+                except (OSError,ValueError,sqlite3.Error) as exc:
+                    record("windows_evidence_memory","HELD",exc.__class__.__name__)
+            next_memory = time.monotonic() + 720
         if time.monotonic() >= next_auto_topics and not _BUSY.locked():
             if _activity_at == 0 or time.monotonic() - _activity_at >= 180:
                 try:
@@ -698,6 +715,7 @@ def status():
         "learning_agenda": agenda.snapshot(DB_PATH),
         "autonomous_topic_discovery": auto_topics.snapshot(DB_PATH),
         "private_knowledge_search": learning_fts.snapshot(DB_PATH),
+        "native_evidence_memory": memory_graph.snapshot(DB_PATH),
         "autonomous_study_scheduler": "RUNNING",
         "python_port": 8091, "gpu_port": 8082,
         "site_publishing_control": "NOT_CONNECTED",
@@ -794,6 +812,8 @@ class OwnerHTTP(BaseHTTPRequestHandler):
             return self._send(200, {"items": owner_agent.list_workflows(DB_PATH)})
         if self.path == "/api/learning":
             return self._send(200, knowledge.snapshot(DB_PATH))
+        if self.path == "/api/learning/memory":
+            return self._send(200, memory_graph.snapshot(DB_PATH))
         if self.path == "/api/learning/topics":
             return self._send(200, {"items": agenda.list_topics(DB_PATH)})
         if urlsplit(self.path).path == "/api/learning/topic/cycles":
