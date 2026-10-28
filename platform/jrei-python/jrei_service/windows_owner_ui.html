@@ -855,6 +855,7 @@ async function refreshThreads(){
     if(!confirm('این گفتگو و پیام‌های محلی آن حذف شود؟'))return;
     await api('/api/conversation/delete',{id:t.id});if(selected===t.id){selected=null;welcome()}await refreshThreads();
   };node.append(del);root.append(node)}
+ return items;
 }
 async function openThread(id){
  selected=id;
@@ -1029,7 +1030,11 @@ if(!token){
  $('busy').textContent='برای گفت‌وگو، پنل را با راه‌انداز JREI باز کنید.';
  toast('این نشانی بدون توکن خصوصی باز شده است. برای فعال‌کردن ارسال، پنل را از میانبر JREI Command Center باز کنید.');
 }else{
- refreshThreads().catch(e=>toast(e.message));
+ refreshThreads().then(items=>{
+  // Resume the latest authenticated private conversation on this machine.
+  if(Array.isArray(items)&&items.length&&!selected)
+   return openThread(items[0].id);
+ }).catch(e=>toast(e.message));
  refreshTasks();
  setInterval(refreshTasks,2600);
  loadHealth();
