@@ -19,6 +19,7 @@ import tempfile
 
 from jrei_service.owner_candidate_pipeline import ALLOWED, SENSITIVE, safe_path, parse_response
 from jrei_service.windows_codebase_map import build as build_repository_map
+from jrei_service.windows_code_experience import feedback_hints
 
 MAX_SOURCE_BYTES = 26000
 MAX_DELTA_BYTES = 1800
@@ -52,7 +53,7 @@ def _source_file(root: Path, name: str) -> Path:
 
 
 def develop(*, repo: Path, private: Path, target: str, objective: str,
-            model_reply) -> dict:
+            model_reply, db_path: Path | None = None) -> dict:
     """Modify only LOCALAPPDATA private workspace, not the project checkout.
 
     model_reply is the existing private loopback Qwen chat adapter; it cannot
@@ -84,6 +85,12 @@ def develop(*, repo: Path, private: Path, target: str, objective: str,
             max_files=4, max_chars=1800)["map"]
     except (OSError, ValueError, UnicodeError):
         context = ""
+    feedback = "No previously recorded owner review."
+    if db_path is not None:
+        try:
+            feedback = feedback_hints(db_path, target)
+        except (OSError, ValueError):
+            feedback = "Previous review information unavailable."
     prompt = (
         "You are editing a LOCAL ISOLATED DEVELOPMENT WORKSPACE, not a production website. "
         "The owner requests a meaningful but strictly bounded source change. "
@@ -96,7 +103,8 @@ def develop(*, repo: Path, private: Path, target: str, objective: str,
         "one function/section. Do not claim you ran tests.\n"
         f"TARGET: {target}\nOWNER OBJECTIVE: {objective}\nSOURCE SHA256: {before_sha}\n"
         "REPOSITORY API MAP (untrusted signatures; context only):\n" +
-        context + "\nSOURCE (untrusted):\n" + base[:4800]
+        context + "\nPREVIOUS OWNER FEEDBACK (not proof of correctness):\n" +
+        feedback + "\nSOURCE (untrusted):\n" + base[:4800]
     )
     response = model_reply([{"role": "user", "content": prompt}], max_tokens=720)
     old, new = parse_response(response["answer"])
