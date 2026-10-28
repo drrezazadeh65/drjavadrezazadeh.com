@@ -25,7 +25,7 @@ import (
  "unsafe"
 )
 
-const version = "0.1.6"
+const version = "0.1.7"
 const maxEntries = 24000
 const maxSingleFile = int64(450 << 20)
 const maxTotalBytes = int64(1200 << 20)
@@ -55,15 +55,64 @@ func fatal(err error) {
  os.Exit(1)
 }
 
-func safeBase() (string, error) {
+// Installer candidate roots are per-user and no-elevation. Never modify
+// security descriptors, disable Windows protection, or reuse another
+// account's node token/DB. The alternative roots allow environments where
+// the normal AppData\Local\Programs tree is denied by local policy.
+type installCandidate struct {
+ root string
+ relative string
+}
+
+func candidates() ([]installCandidate,error) {
  if runtime.GOOS != "windows" || runtime.GOARCH != "amd64" {
-  return "", errors.New("JREI_WINDOWS_X64_REQUIRED")
+  return nil,errors.New("JREI_WINDOWS_X64_REQUIRED")
  }
- local := os.Getenv("LOCALAPPDATA")
- if local == "" || !filepath.IsAbs(local) {
-  return "", errors.New("JREI_LOCAL_PROFILE_NOT_AVAILABLE")
+ local:=os.Getenv("LOCALAPPDATA")
+ profile:=os.Getenv("USERPROFILE")
+ if local=="" || !filepath.IsAbs(local) {
+  return nil,errors.New("JREI_LOCAL_PROFILE_NOT_AVAILABLE")
  }
- return filepath.Join(local, "Programs", "JREI", "releases", "v"+version), nil
+ if profile=="" || !filepath.IsAbs(profile) {
+  return nil,errors.New("JREI_USER_PROFILE_NOT_AVAILABLE")
+ }
+ return []installCandidate{
+  {local,filepath.Join("Programs","JREI","releases","v"+version)},
+  {local,filepath.Join("JREI-Applications","releases","v"+version)},
+  {profile,filepath.Join("JREI-Applications","releases","v"+version)},
+ },nil
+}
+
+func writableInstallLocation() (string,error) {
+ options,err:=candidates()
+ if err!=nil { return "",err }
+ for _,option:=range options {
+  target:=filepath.Join(option.root,option.relative)
+  if err=checkDirectoryChain(target);err!=nil {
+   // A forbidden junction/symlink in the program area must not
+   // be silently worked around via an alternate destination.
+   return "",err
+  }
+  if err=safeDirectory(option.root,option.relative);err!=nil {
+   if err.Error()!="JREI_PROGRAM_DIRECTORY_NOT_WRITABLE" {
+    return "",err
+   }
+   continue
+  }
+  // Check actual write permission under the target, not merely successful
+  // creation of intermediate directories. Delete only our unique probe.
+  probe,e:=os.CreateTemp(target,".jrei-install-probe-*")
+  if e!=nil {continue}
+  name:=probe.Name()
+  closeErr:=probe.Close()
+  removeErr:=os.Remove(name)
+  if closeErr!=nil || removeErr!=nil {
+   return "",errors.New("JREI_PROGRAM_WRITE_PROBE_UNSAFE")
+  }
+  return target,nil
+ }
+ // Exhaustion is a permission condition, not a request for elevation.
+ return "",errors.New("JREI_ALL_THREE_OWNER_INSTALL_LOCATIONS_DENIED")
 }
 
 func safeDirectory(root, part string) error {
@@ -264,12 +313,10 @@ func runScript(ps, script string, args ...string) error {
 }
 
 func main() {
- target, err := safeBase()
+ target, err := writableInstallLocation()
  if err != nil { fatal(err) }
- if err := checkDirectoryChain(target); err != nil { fatal(err) }
- // Program-release folder is isolated from the user's private JREI data.
- if err := safeDirectory(filepath.Join(os.Getenv("LOCALAPPDATA")), filepath.Join(
-     "Programs", "JREI", "releases", "v"+version)); err != nil { fatal(err) }
+ // Only a validated, writable, version-specific per-user program directory
+ // is selected. Source and owner-private state remain separate.
  if err := extractPayload(target); err != nil { fatal(err) }
  ps, err := powershellPath()
  if err != nil { fatal(err) }
