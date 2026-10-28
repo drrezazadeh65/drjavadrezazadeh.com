@@ -148,6 +148,30 @@ def record_owner_feedback(db_path: Path, *, private: Path, receipt_id: str,
             "model_weights_trained": False}
 
 
+
+def feedback_hints(db_path: Path, target: str) -> str:
+    """Review metadata only: no private prompts, generated code, or fake tests."""
+    if not isinstance(target, str) or not TARGET.fullmatch(target):
+        raise ValueError("CODE_EXPERIENCE_TARGET_INVALID")
+    with closing(_open(db_path)) as db:
+        rows = db.execute("""SELECT verdict,after_sha
+            FROM jrei_code_experience WHERE target=?
+            AND state='OWNER_FEEDBACK_RECORDED'
+            ORDER BY reviewed_at DESC LIMIT 5""",(target,)).fetchall()
+    if not rows:
+        return "No human-reviewed local patch outcome exists for this file."
+    notes = []
+    for verdict, digest in rows:
+        if verdict == "REJECTED":
+            interpretation = "Earlier candidate rejected; avoid blindly repeating it."
+        elif verdict == "NEEDS_REVISION":
+            interpretation = "Earlier candidate requires revision; assess against owner request."
+        else:
+            interpretation = "Owner accepted draft for review; NO successful test is proven."
+        notes.append(f"{verdict} (sha256:{digest[:16]}): {interpretation}")
+    return "\\n".join(notes)[:900]
+
+
 def snapshot(db_path: Path) -> dict:
     with closing(_open(db_path)) as db:
         rows = db.execute("""SELECT state,verdict,COUNT(*)
