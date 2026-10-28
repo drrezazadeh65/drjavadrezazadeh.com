@@ -25,3 +25,19 @@
 GitHub source changes **do not automatically update a running Python process**. The existing optional Windows fast-forward task downloads reviewed commits only when actually installed and able to sync; loading the new `windows_command_center.py` modules requires an approved restart of **that process only**. Neither installation, private Windows state, model inference, outbound crawling nor source licence on either actual PC was checked in this development step.
 
 **No tests, installs, live crawls, model downloads, weight training, website modifications, Bertina migrations, production releases, cron changes or new key rotations were performed.** Final integrated source and operational acceptance remains required before any claim that the Windows learner has started, has improved, can train an adapter, or coordinates two PCs.
+
+
+## Source withdrawal and candidate dataset cleanup
+
+The initial adapter candidate exporter has a conservative invalidation rule:
+before a private document is deleted or a reviewed network source is
+deactivated through the authenticated Windows command centre,
+`invalidate_staged_training_exports` invalidates and removes **all**
+recorded staged candidate JSONL and manifests from the existing private
+`adapter-candidates` directory. This v1 global invalidation is intentional
+because a complete per-example derivative dependency graph is not yet
+accepted. The original downloaded/supplied documents are not removed by
+that dataset-cleanup operation. No trained adapters exist as a result of
+this source change, and the cleanup is not evidence of unlearning already
+trained weights. Source-level provenance and genuine independent-review
+verification remain mandatory for a later adapter-training implementation.
