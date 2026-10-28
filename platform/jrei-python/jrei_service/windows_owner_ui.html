@@ -74,6 +74,40 @@ h1{font-size:29px;line-height:1.3;margin:16px 0 6px;font-weight:650}p{margin:.5e
 a.skip-link{position:fixed;top:-120px;right:14px;z-index:1000;padding:10px 16px;border:2px solid var(--accent);border-radius:10px;background:var(--panel);color:var(--text)}a.skip-link:focus{top:12px}
 .imagePanel{border:1px solid #574932;border-radius:12px;padding:13px;background:#24221e;display:grid;gap:7px}.imagePanel label{font-size:11px;color:#e0c795}.imagePanel input,.imagePanel select,.imagePanel textarea{width:100%;border:1px solid #504735;border-radius:8px;background:#15181c;color:#eee;padding:8px;font:inherit;min-height:36px}.imagePanel input{direction:auto}.imagePanel .imageJob{border-top:1px solid #534a3b;padding:10px 0;font-size:11px}.imagePanel .imageJob img{display:block;max-width:100%;height:auto;border-radius:8px;margin:6px 0;border:1px solid #464039}.imagePanel button{border:1px solid #66543a;border-radius:8px;padding:7px 10px;background:#2d2921;color:#edcf9d}.imagePanel .imageActions{display:flex;gap:8px;flex-wrap:wrap}.imagePanel .imageActions button{flex:1 0 auto}.imagePanel .imageDisclaimer{font-size:11px;color:#bab09c}
 .gitPanel{padding:12px;border:1px solid #394958;background:#1c2429;border-radius:12px;display:grid;gap:8px}.gitPanel input{width:100%;background:#12171d;color:#e9e9eb;border:1px solid #4d5a6a;border-radius:9px;padding:8px;direction:ltr}.gitPanel button{border:1px solid #50657d;border-radius:9px;background:#263242;padding:7px 10px;color:#e9ebed}.gitPanel .readout{white-space:pre-wrap;word-break:break-word;max-height:280px;overflow:auto;font:11px/1.7 Consolas,Tahoma,sans-serif;color:#e3dfd7}.gitPanel label{font-size:11px;color:#c9d7e8}
+
+/* JREI conversation-first desktop/mobile layout; preserves the JR identity. */
+.threadSearch{width:calc(100% - 12px);margin:1px 6px 9px;padding:9px 12px;background:#22252a;border:1px solid var(--line);border-radius:12px;color:var(--text);outline:none;font-size:12px}
+.threadSearch:focus{border-color:var(--accent)}
+.conversationInner{padding-bottom:58px}
+.turn.assistant{padding:7px 3px 12px;border-bottom:1px solid #ffffff0b}
+.turn.user{margin-bottom:17px}
+.turnActions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:8px;opacity:.77}
+.turnActions:focus-within,.turn:hover .turnActions{opacity:1}
+.turnAction{font-size:11px;color:#c6c8ce;padding:5px 10px;border:1px solid transparent;border-radius:8px}
+.turnAction:hover{border-color:#4b4e56;background:#26292e}
+.turn.assistant .content pre{position:relative;padding-top:37px}
+.codeCopy{position:absolute;top:5px;left:7px;padding:3px 9px;background:#30343b;border:1px solid #494e5b;border-radius:7px;color:#d7d5d0;font:11px/1.6 "Segoe UI",Tahoma,sans-serif}
+.queuePending .content{white-space:normal;font-size:12px;color:#d4cdbf}
+.pendingDots{display:inline-flex;gap:5px;align-items:center;vertical-align:middle;margin-inline-end:9px}
+.pendingDots i{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--accent);animation:jrei-pulse 1.35s infinite ease-in-out}
+.pendingDots i:nth-child(2){animation-delay:.2s}
+.pendingDots i:nth-child(3){animation-delay:.4s}
+@keyframes jrei-pulse{0%,65%,100%{opacity:.35;transform:scale(.8)}30%{opacity:1;transform:scale(1)}}
+.composer{transition:border-color .16s ease,box-shadow .16s ease}
+.composer:focus-within{box-shadow:0 0 0 3px #d0b17d12,0 5px 30px #0005}
+.send{min-width:74px;min-height:34px}
+.sidebarBackdrop{display:none}
+@media(max-width:780px){
+ .sidebarBackdrop{display:block;position:fixed;inset:0;z-index:11;background:#050609bb;border:0;width:100%;height:100%;padding:0}
+ .sidebarBackdrop[hidden]{display:none}
+ .turnActions{opacity:1}
+ .turn.assistant .content{font-size:14px}
+ .composer{border-radius:18px}
+ .turn.user .content{max-width:95%}
+ .sidebar{z-index:12}
+}
+@media(prefers-reduced-motion:reduce){.pendingDots i{animation:none}}
+
 </style>
 </head>
 <body>
@@ -82,15 +116,16 @@ a.skip-link{position:fixed;top:-120px;right:14px;z-index:1000;padding:10px 16px;
 <aside class="sidebar" id="sidebar" aria-label="تاریخچه گفتگوها">
  <div class="brand"><b>JREI AI</b><span>PRIVATE WINDOWS INTELLIGENCE</span></div>
  <button class="new" id="newChat">＋ گفتگوی جدید</button>
- <div class="sideLabel">گفتگوهای من</div><nav class="threads" id="threads"></nav>
+ <div class="sideLabel">گفتگوهای من</div><input class="threadSearch" id="threadSearch" type="search" placeholder="جستجو در گفتگوها…" aria-label="جستجو در تاریخچه گفتگوها" autocomplete="off" maxlength="120"><nav class="threads" id="threads"></nav>
  <div class="sidebarFooter">فقط در همین رایانه · حافظه خصوصی محلی<br>بدون انتشار خودکار یا تغییر سایت زنده</div>
 </aside>
+<button class="sidebarBackdrop" id="sidebarBackdrop" hidden aria-label="بستن فهرست گفتگوها"></button>
 <main class="workspace" id="main-content" tabindex="-1">
  <header class="topbar"><button class="iconButton menu" id="menu" aria-label="بازکردن فهرست">☰</button>
  <div><h1 class="title">JREI <span style="color:var(--accent)">Personal AI</span></h1><div class="sub">دستیار پژوهش، توسعه، آموزش و مدیریت پروژه</div></div>
  <div class="grow"></div><div class="sub" id="engine"><span class="dot"></span>در حال بررسی مدل</div><button class="iconButton" id="openTools">ابزارها ◫</button></header>
  <div id="conversation" class="conversation" role="log" aria-label="گفتگوی دستیار"><div class="conversationInner" id="conversationInner"></div></div>
- <div class="composerArea"><div id="taskStrip" class="taskStrip" aria-live="polite"></div><div class="composerBox"><div class="attachedFiles" id="attachedFiles" aria-live="polite"></div><div class="composer"><textarea id="input" rows="2" aria-label="پیام شما" placeholder="از JREI بخواهید بررسی، تحلیل، طراحی یا اجرا کند…"></textarea><div class="composeBottom"><button class="iconButton" id="attach" title="پیوست سند خصوصی روی همین رایانه" aria-label="افزودن فایل خصوصی">📎</button><input type="file" id="fileInput" aria-label="انتخاب فایل خصوصی برای پیوست" accept=".txt,.md,.csv,.json,.py,.js,.mjs,.css,.html,.docx,.pdf" hidden><button class="send" id="send">ارسال <span aria-hidden="true">↑</span></button><span class="hint" id="busy">Enter برای ارسال · Shift+Enter خط جدید</span><div class="grow"></div><span class="hint">محلی · قابل ممیزی</span></div></div><div class="footnote">فایل‌های انتخابی فقط در حافظه خصوصی ویندوز نگهداری می‌شوند. PDF بدون استخراج معتبر، خوانده‌شده محسوب نمی‌شود.</div></div></div>
+ <div class="composerArea"><div id="taskStrip" class="taskStrip" aria-live="polite"></div><div class="composerBox"><div class="attachedFiles" id="attachedFiles" aria-live="polite"></div><div class="composer"><textarea id="input" rows="2" aria-label="پیام شما" placeholder="پیامی برای JREI بنویسید…"></textarea><div class="composeBottom"><button class="iconButton" id="attach" title="پیوست سند خصوصی روی همین رایانه" aria-label="افزودن فایل خصوصی">📎</button><input type="file" id="fileInput" aria-label="انتخاب فایل خصوصی برای پیوست" accept=".txt,.md,.csv,.json,.py,.js,.mjs,.css,.html,.docx,.pdf" hidden><button class="send" id="send">ارسال <span aria-hidden="true">↑</span></button><span class="hint" id="busy">Enter برای ارسال · Shift+Enter خط جدید</span><div class="grow"></div><span class="hint">محلی · قابل ممیزی</span></div></div><div class="footnote">فایل‌های انتخابی فقط در حافظه خصوصی ویندوز نگهداری می‌شوند. PDF بدون استخراج معتبر، خوانده‌شده محسوب نمی‌شود.</div></div></div>
  <section class="toolsPanel" id="toolsPanel" hidden><div class="panelHeading"><h2>ابزارهای JREI</h2><button class="iconButton" id="closeTools" aria-label="بستن ابزارها">✕</button></div>
  <p>می‌توانید این دستورات را در همان گفتگوی اصلی بنویسید. برای تغییر کد در محیط مستقل ویندوز، تأیید جداگانه لازم است.</p>
  <div id="tools"></div><h2>وضعیت سیستم</h2><div class="trace" id="trace">در حال بارگذاری…</div>
@@ -225,7 +260,29 @@ async function api(url,body){
   body:body===undefined?undefined:JSON.stringify(body)});
  const data=await response.json();if(!response.ok)throw new Error(data.error||'REQUEST_FAILED');return data;
 }
-function scrollBottom(){$('conversation').scrollTop=$('conversation').scrollHeight}
+function scrollBottom(){
+ const target=$('conversation');target.scrollTop=target.scrollHeight;
+}
+async function copyText(value){
+ try{
+  if(!navigator.clipboard||typeof navigator.clipboard.writeText!=='function')
+   throw new Error('CLIPBOARD_UNAVAILABLE');
+  await navigator.clipboard.writeText(String(value||''));
+  toast('متن کپی شد');
+ }catch(e){toast('کپی خودکار در این مرورگر مجاز نیست؛ متن را دستی انتخاب کنید.')}
+}
+function fitComposer(){
+ const field=$('input');field.style.height='auto';
+ field.style.height=Math.min(180,Math.max(38,field.scrollHeight))+'px';
+}
+function closeSidebar(){
+ $('sidebar').classList.remove('open');
+ $('sidebarBackdrop').hidden=true;
+}
+function openSidebar(){
+ $('sidebar').classList.add('open');
+ $('sidebarBackdrop').hidden=false;
+}
 async function downloadPrivateDraft(id,name){
  if(!token)throw new Error('برای دریافت فایل باید پنل با مجوز خصوصی باز شده باشد.');
  if(!/^[0-9]{8}T[0-9]{6}Z-[a-f0-9]{12}$/.test(String(id))||
@@ -290,7 +347,12 @@ function renderMarkdown(parent,value){
  };
  const flushList=()=>{list=null};
  const closeCode=()=>{
-  const pre=el('pre','');const codeEl=el('code','',code.join('\n'));pre.append(codeEl);parent.append(pre);
+  const pre=el('pre','');
+   const source=code.join('\n');const codeEl=el('code','',source);
+   const copy=el('button','codeCopy','کپی کد');
+   copy.type='button';copy.title='کپی کد بدون اجرای آن';
+   copy.onclick=()=>copyText(source);
+   pre.append(copy,codeEl);parent.append(pre);
   code=[];fence=null;
  };
  for(const line of lines){
