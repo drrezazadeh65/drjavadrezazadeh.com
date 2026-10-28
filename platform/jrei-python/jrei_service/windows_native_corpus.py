@@ -109,10 +109,14 @@ def prepare(*, db_path: Path, private: Path, owner_approved: bool,
         return {"state": "NEEDS_THREE_INDEPENDENT_LICENSED_SOURCES",
                 "available_source_groups": len(source_groups),
                 "training_started": False}
-    # Deterministic source-level split; a source never appears in both sets.
+    # Deterministic THREE-WAY split, grouping by independent publisher
+    # source: train -> development validation -> sealed final test. No test
+    # tokens are included in model training, loss monitoring or BPE fitting.
+    test_count = max(1, len(source_groups) // 6)
     heldout_count = max(1, len(source_groups) // 5)
-    heldout_groups = source_groups[:heldout_count]
-    train_groups = source_groups[heldout_count:]
+    sealed_test_groups = source_groups[:test_count]
+    heldout_groups = source_groups[test_count:test_count + heldout_count]
+    train_groups = source_groups[test_count + heldout_count:]
     def materialize(groups):
         text, refs, count = [], [], 0
         for group in groups:
@@ -127,8 +131,10 @@ def prepare(*, db_path: Path, private: Path, owner_approved: bool,
         return "\n\n".join(text), refs
     train_text, train_refs = materialize(train_groups)
     heldout_text, heldout_refs = materialize(heldout_groups)
+    sealed_test_text, test_refs = materialize(sealed_test_groups)
     if (len(train_text.encode("utf-8")) < 4000
-            or len(heldout_text.encode("utf-8")) < 1000):
+            or len(heldout_text.encode("utf-8")) < 1000
+            or len(sealed_test_text.encode("utf-8")) < 1000):
         return {"state": "INSUFFICIENT_REVIEWED_BILINGUAL_CORPUS",
                 "training_started": False}
     # Fit the tokenizer on TRAIN TEXT ONLY. minBPE is MIT licensed and
@@ -138,7 +144,9 @@ def prepare(*, db_path: Path, private: Path, owner_approved: bool,
     tokenizer.train(train_text, vocab_size=vocab_size, verbose=False)
     train_ids = tokenizer.encode(train_text)
     heldout_ids = tokenizer.encode(heldout_text)
-    if len(train_ids) < MIN_TRAIN_IDS or len(heldout_ids) < MIN_HELDOUT_IDS:
+    sealed_test_ids = tokenizer.encode(sealed_test_text)
+    if (len(train_ids) < MIN_TRAIN_IDS or len(heldout_ids) < MIN_HELDOUT_IDS
+            or len(sealed_test_ids) < MIN_HELDOUT_IDS):
         return {"state": "INSUFFICIENT_TOKENS_FOR_HELDOUT_EVALUATION",
                 "training_started": False}
     folder = private / "native-foundation-candidates"
@@ -161,14 +169,18 @@ def prepare(*, db_path: Path, private: Path, owner_approved: bool,
         output.write(tok_bytes)
     digest_train = _write_ids(dest / "train.u32", train_ids)
     digest_heldout = _write_ids(dest / "heldout.u32", heldout_ids)
+    digest_sealed = _write_ids(dest / "sealed-test.u32", sealed_test_ids)
     receipt = {
         "schema": SCHEMA, "id": ident, "state": "REVIEWED_SOURCE_CANDIDATE_ONLY",
         "created": int(time.time()), "owner_approved_preparation": True,
         "train_sources": train_refs, "heldout_sources": heldout_refs,
+        "sealed_test_sources": test_refs,
         "train_tokens": len(train_ids), "heldout_tokens": len(heldout_ids),
+        "sealed_test_tokens": len(sealed_test_ids),
         "vocab_size": tokenizer_meta["vocab_size"],
         "tokenizer_sha256": _sha_bytes(tok_bytes),
         "train_sha256": digest_train, "heldout_sha256": digest_heldout,
+        "sealed_test_sha256": digest_sealed,
         "tokenization": "MIT_MINBPE_BYTE_LEVEL_FROM_SCRATCH",
         "source_training_rights": "PUBLIC_REUSE_APPROVED_OWNER_REVIEWED",
         "source_groups_disjoint": True, "training_performed": False,
@@ -180,6 +192,7 @@ def prepare(*, db_path: Path, private: Path, owner_approved: bool,
         json.dump(receipt, output, ensure_ascii=False, indent=2)
     return {"state": receipt["state"], "candidate_id": ident,
             "train_tokens": len(train_ids), "heldout_tokens": len(heldout_ids),
+            "sealed_test_tokens": len(sealed_test_ids),
             "source_groups": len(source_groups), "trained_model": False}
 
 
@@ -203,18 +216,24 @@ def load_verified_candidate(db_path: Path, private: Path, ident: str) -> dict:
             or data.get("external_pretrained_weights_used") is not False):
         raise ValueError("JREI_NATIVE_CORPUS_CANDIDATE_INVALID")
     train_refs, heldout_refs = data["train_sources"], data["heldout_sources"]
-    if ({entry["id"] for entry in train_refs} &
-            {entry["id"] for entry in heldout_refs}):
+    test_refs = data.get("sealed_test_sources")
+    if not isinstance(test_refs, list) or not test_refs:
+        raise ValueError("JREI_NATIVE_SEALED_TEST_MISSING")
+    train_ids = {entry["id"] for entry in train_refs}
+    dev_ids = {entry["id"] for entry in heldout_refs}
+    test_ids = {entry["id"] for entry in test_refs}
+    if (train_ids & dev_ids or train_ids & test_ids or dev_ids & test_ids):
         raise ValueError("JREI_NATIVE_CORPUS_SOURCE_LEAKAGE")
     for name, field in (("tokenizer.json", "tokenizer_sha256"),
                         ("train.u32", "train_sha256"),
-                        ("heldout.u32", "heldout_sha256")):
+                        ("heldout.u32", "heldout_sha256"),
+                        ("sealed-test.u32", "sealed_test_sha256")):
         item = dest / name
         if (item.is_symlink() or not item.is_file()
                 or not SHA.fullmatch(data[field]) or _sha_file(item) != data[field]):
             raise ValueError("JREI_NATIVE_CORPUS_ARTIFACT_HASH_MISMATCH")
     # Any source revocation or revision change blocks future weight training.
-    refs = train_refs + heldout_refs
+    refs = train_refs + heldout_refs + test_refs
     with closing(_db(db_path)) as db:
         for item in refs:
             row = db.execute("""SELECT last_sha,licence,reviewed,active,rights
