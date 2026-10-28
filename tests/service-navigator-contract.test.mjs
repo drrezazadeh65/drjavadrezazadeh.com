@@ -18,8 +18,8 @@ test('navigator augments rather than replaces bilingual commercial service hubs'
  ]){
   assert.ok(html.includes('rel="canonical" href="'+canonical+'"'),label+' existing canonical preserved');
   assert.ok(html.includes('data-jr-service-navigator data-locale="'+locale+'"'),label+' interactive mount');
-  assert.ok(html.includes('/assets/css/jr-service-navigator-v1.css?v=20261019-v1'));
-  assert.ok(html.includes('/assets/js/jr-service-navigator-v1.js?v=20261019-v1'));
+  assert.ok(html.includes('/assets/css/jr-service-navigator-v1.css?v=20261028-journey-v2'));
+  assert.ok(html.includes('/assets/js/jr-service-navigator-v1.js?v=20261028-journey-v2'));
   assert.match(html,/<noscript>/);
  }
  assert.match(fa,/data-service-pricing/,'preserve original Persian catalogue pricing');
@@ -90,6 +90,10 @@ test('navigator reads source catalogue, validates IRT, and fails closed on incom
  assert.match(script,/Number\.isSafeInteger\(s\.price\)/);
  assert.match(script,/new Intl\.NumberFormat/);
  assert.match(script,/link\.href=\(isFa\?'\/fa\/services\/':'\/en\/services\/'\)\+item\.id\+'\/'/);
+ assert.match(script,/encodeURIComponent\(item\.id\)/,'selected catalogue service must be safely carried into enquiry');
+ assert.match(script,/dataSet|dataset\.conversionEvent|dataset\['conversionEvent'\]/i,
+  'secondary service enquiry must use the established conversion intent contract');
+ assert.match(css,/\.jr-service-navigator \.jr-sn-inquire/,'secondary action must have accessible styling');
  assert.doesNotMatch(script,/localStorage|sessionStorage|indexedDB|sendBeacon|XMLHttpRequest/);
  assert.doesNotMatch(script,/method:'POST'|paymentVerified\s*=\s*true|order\.state\s*=/);
  assert.match(script,/not a professional assessment/);
