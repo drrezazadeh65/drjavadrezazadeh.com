@@ -39,7 +39,8 @@ class ResourceNode(StrictContract):
     eligible_work_classes: list[Literal[
         "PUBLIC_DISCOVERY", "LICENSED_ACQUISITION", "EVIDENCE_EXTRACTION",
         "LOCAL_EVALUATION", "RETRIEVAL_INDEXING", "MODEL_BENCHMARK",
-    ]] = Field(min_length=1, max_length=6)
+        "MODEL_DATA_PREPARATION", "MODEL_ADAPTER_TRAINING",
+    ]] = Field(min_length=1, max_length=8)
 
     @model_validator(mode="after")
     def physical_bounds(self) -> "ResourceNode":
@@ -60,6 +61,7 @@ class ProposedWork(StrictContract):
     task_kind: Literal[
         "PUBLIC_DISCOVERY", "LICENSED_ACQUISITION", "EVIDENCE_EXTRACTION",
         "LOCAL_EVALUATION", "RETRIEVAL_INDEXING", "MODEL_BENCHMARK",
+        "MODEL_DATA_PREPARATION", "MODEL_ADAPTER_TRAINING",
     ]
     priority: Unit
     scientific_utility: Unit
@@ -75,6 +77,14 @@ class ProposedWork(StrictContract):
     execution_class: Literal["BACKGROUND", "INTERACTIVE_SENSITIVE", "HEAVY"]
     requires_gpu: bool = False
     requested_gpu_memory_mb: int = Field(default=0, ge=0, le=1_048_576)
+    # Training receipts are per task: neither node's GPU/VRAM is pooled.
+    # A separate owner-approved accelerator-capability observation is needed.
+    training_model_sha256: Digest | None = None
+    training_dataset_sha256: Digest | None = None
+    training_heldout_sha256: Digest | None = None
+    training_rights_reviewed: bool = False
+    training_dataset_reviewed: bool = False
+    training_owner_approved: bool = False
 
     @model_validator(mode="after")
     def license_source_link(self) -> "ProposedWork":
@@ -84,6 +94,17 @@ class ProposedWork(StrictContract):
             raise ValueError("GPU_MEMORY_REQUEST_WITHOUT_ACCELERATOR")
         if self.task_kind in ("PUBLIC_DISCOVERY", "LICENSED_ACQUISITION", "EVIDENCE_EXTRACTION") and not self.source_id:
             raise ValueError("SOURCE_WORK_REQUIRES_REVIEWABLE_SOURCE_ID")
+        if self.task_kind == "MODEL_ADAPTER_TRAINING":
+            if not (self.training_model_sha256 and
+                    self.training_dataset_sha256 and self.training_heldout_sha256
+                    and self.training_rights_reviewed
+                    and self.training_dataset_reviewed
+                    and self.training_owner_approved):
+                raise ValueError("TRAINING_NEEDS_PINNED_OWNER_REVIEWED_ARTIFACTS")
+            if self.training_dataset_sha256 == self.training_heldout_sha256:
+                raise ValueError("TRAINING_HELDOUT_ARTIFACT_MUST_BE_SEPARATE")
+            if self.estimated_network_bytes != 0:
+                raise ValueError("TRAINING_JOBS_MUST_BE_PRIVATE_OFFLINE")
         if self.task_kind in ("PUBLIC_DISCOVERY", "LICENSED_ACQUISITION") and self.estimated_network_bytes == 0:
             # Outbound collection cannot bypass an owner-approved transfer
             # allowance by advertising that a network request costs zero.
