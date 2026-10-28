@@ -45,3 +45,21 @@ Start-ScheduledTask -TaskName 'JREI-Owner-Windows-Command-Center'
 The original command-center startup script remains the owner-authorized entry point, and its desktop shortcut can open the authenticated panel at `http://127.0.0.1:8092/`. Private history and token stay under the Windows user's `%LOCALAPPDATA%\JREI\command-center`.
 
 **Status**: source committed for synchronization; Windows download, activation and functional acceptance remain unverified until confirmed on that computer. No tests or deployment were requested.
+
+
+## Windows desktop installation and ongoing updates (source added 2026-10-28)
+
+The JREI Windows app is the **existing owner-private command center**, not a newly downloaded chatbot: its Python task runs locally on 127.0.0.1:8092, with the existing desktop shortcut opening its browser-based native-feeling RTL app. There is **no installer EXE and no claim of Microsoft Store/PWA installation**.
+
+One-time owner installation on the PC where JREI-Python / Git and its validated runtime already exist:
+
+1. Allow the existing Windows repository sync to finish on the canonical branch.
+2. In the existing repository's platform/jrei-v5/windows-worker directory, double-click **JREI-INSTALL-WINDOWS-APP.cmd**, or run its PowerShell script with Mode Install and OwnerApproved.
+3. This reuses the previously installed 8092 scheduled task (or calls the original command-center startup installer if missing); enables the existing 30-minute repo sync if needed, and stores owner-only opt-in state outside Git history.
+4. New clean fast-forwarded source commits are exported from the exact Git HEAD as immutable, version-pinned snapshots under %LOCALAPPDATA%/JREI-Python/windows-owner-app-versions. The updater checks that owner activities and private image jobs are not in progress before switching **only** the original command-center task. It requires the new 8092 process to report the exact pinned commit SHA; otherwise it restores the previous task configuration.
+5. Every subsequent eligible source update is checked by the **same existing** JREI-Repo-Auto-Sync (30-minute) task. Deferred updates retry later. Updates do not overwrite local owner history, passwords, documents, source edits, model weights or either outbound signed Windows worker. No second updater task or additional control server is registered.
+6. Owners can check status with jrei-windows-app-auto-update.ps1 -Mode Check, or stop automatic app upgrades using -Mode Disable -OwnerApproved. Disabling leaves the last working Windows app, its history and source snapshots untouched.
+
+**Important limitations:** App updates are permitted after a one-time owner opt-in on that PC; each source revision still must pass the final independent acceptance/release process before being considered fit for production. The updater implements a loopback readiness gate and preserves a reversible task-action snapshot; this is NOT a functional regression test or proof of model quality. Git pull alone does not prove an active process has updated. There is no direct remote-installation channel from this GitHub chat to the owner's two Windows PCs; installation and live synchronization are NOT CONFIRMED until Windows reports real task and revision evidence. A functioning local JREI language model (the separately approved non-Qwen Granite candidate, for example) is also required for independent chat; a code update cannot create trained model weights.
+
+The source-only install/updater was committed with [skip ci] and no tests, Windows service restarts or Bertina publication were performed as part of development.
