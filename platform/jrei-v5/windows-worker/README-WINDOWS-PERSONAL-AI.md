@@ -8,6 +8,23 @@ This update changes **only the Windows-local JREI command-center Python modules 
 - `platform/jrei-python/jrei_service/windows_owner_ui.html` — RTL dark conversational UI for the existing loopback port 8092.
 - `platform/jrei-python/jrei_service/windows_workspace.py` — owner-confirmed isolated reversible code-drafting, never writing to the tracked Git checkout.
 
+## Private document evidence and mission progress (source only)
+
+The existing private document vault is extended by
+`platform/jrei-python/jrei_service/windows_document_retrieval.py`: bounded
+evidence passages are selected only from explicitly imported documents, and
+the local chat cites verified PDF page anchors when extraction is available,
+or accurately labelled extracted paragraphs/lines. Source checksums and
+anchor-level evidence hashes are preserved in private operation receipts.
+No document content is uploaded to GitHub or the website.
+
+The existing `owner_tasks` SQLite queue now also records bounded,
+non-model-authored progress phases in `owner_task_steps`. The local Windows
+panel displays these genuine worker checkpoints while the existing
+cancel-request and crash-interruption behavior remains unchanged.
+The status of this source work is **UNTESTED and NOT RESTARTED ON WINDOWS**.
+Neither remote CI nor the public Bertina deployment is part of this step.
+
 ## Windows sync
 The existing `platform/jrei-v5/windows-worker/jrei-repo-auto-sync.ps1` pulls the canonical branch `migration/bertina-linux6` via fast-forward **only if its Windows scheduled task has already been installed and the tracked checkout is clean**. A GitHub commit cannot independently verify the scheduled task or restart processes on the owner's PC.
 
