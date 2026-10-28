@@ -110,9 +110,11 @@ def _rows(db_path: Path):
     PRIVATE_OWNER_GRANTED is excluded completely; it cannot silently become
     model-training data because the owner indexed a personal document.
     """
+    from jrei_service.windows_native_corpus import (
+        TRAINABLE_LICENSES, _publisher_key, _canonical_passage)
     with closing(_db(db_path)) as db:
         rows = db.execute("""SELECT l.question,l.answer,l.data_role,
-              l.source_id,v.sha256,l.draft_sha256
+              l.source_id,v.sha256,l.draft_sha256,s.licence,s.issuer
               FROM learning_lessons l
               JOIN learning_sources s ON s.id=l.source_id
               JOIN learning_versions v ON v.id=l.version_id
@@ -123,8 +125,21 @@ def _rows(db_path: Path):
                 AND s.last_sha=v.sha256
                 AND l.independent_evidence_sha256 IS NOT NULL
               ORDER BY l.id LIMIT 2000""").fetchall()
-    train = [r for r in rows if r[2] == "LEARNING"][:MAX_TRAIN]
-    heldout = [r for r in rows if r[2] == "HELDOUT"][:MAX_HELDOUT]
+    eligible = [row for row in rows if
+                isinstance(row[6], str)
+                and row[6].casefold() in TRAINABLE_LICENSES
+                and isinstance(row[7], str) and len(row[7].strip()) >= 3]
+    train_full = [r for r in eligible if r[2] == "LEARNING"][:MAX_TRAIN]
+    heldout_full = [r for r in eligible if r[2] == "HELDOUT"][:MAX_HELDOUT]
+    if ({_publisher_key(r[7]) for r in train_full}
+            & {_publisher_key(r[7]) for r in heldout_full}):
+        raise ValueError("JREI_NATIVE_TRAIN_HELDOUT_PUBLISHER_LEAKAGE")
+    # The same Q&A text under different nominal source IDs is still leakage.
+    if ({_canonical_passage(r[0] + "\n" + r[1]) for r in train_full}
+            & {_canonical_passage(r[0] + "\n" + r[1]) for r in heldout_full}):
+        raise ValueError("JREI_NATIVE_TRAIN_HELDOUT_QA_LEAKAGE")
+    train = [r[:6] for r in train_full]
+    heldout = [r[:6] for r in heldout_full]
     if ({r[3] for r in train} & {r[3] for r in heldout}):
         raise ValueError("JREI_NATIVE_TRAIN_HELDOUT_SOURCE_LEAKAGE")
     if ({(r[3], r[4]) for r in train} &
