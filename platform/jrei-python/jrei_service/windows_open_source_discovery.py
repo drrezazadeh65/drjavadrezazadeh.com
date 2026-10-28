@@ -72,7 +72,7 @@ def catalog() -> dict:
 
 
 def _get_json(path: str) -> dict:
-    if not path.startswith("/search/repositories?") or len(path) > 450:
+    if not path.startswith("/search/repositories?") or len(path) > 1200:
         raise ValueError("JREI_SOURCE_DISCOVERY_ROUTE_INVALID")
     opener = urllib.request.build_opener(
         urllib.request.ProxyHandler({}), _NoRedirect())
