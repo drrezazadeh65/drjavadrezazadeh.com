@@ -46,6 +46,13 @@ h1{font-size:29px;line-height:1.3;margin:16px 0 6px;font-weight:650}p{margin:.5e
 .attachmentChip button{color:#dec18a;margin-inline-start:8px}
 .documentRow{border-bottom:1px solid #323740;padding:9px 0;font-size:11px;overflow-wrap:anywhere}
 .documentRow button{color:#dec18a;padding:5px;margin-inline-start:9px}
+.taskStrip{max-width:880px;margin:0 auto 7px;display:flex;flex-direction:column;gap:6px}
+.taskStrip:empty{display:none}.taskRow{background:#23262b;border:1px solid #504735;
+ border-radius:10px;padding:6px 10px;display:flex;align-items:center;gap:10px;font-size:11px}
+.taskSummary{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.taskStatus{color:#dfc38d;white-space:nowrap}.taskCancel{border:1px solid #776341;
+ border-radius:8px;padding:3px 8px;color:#ead3ad;font-size:11px}
+.taskCancel:disabled{opacity:.55}
 .pending{border:1px solid #827147;border-radius:13px;background:#24221e;padding:13px;margin-top:12px;max-width:600px}.pending p{font-size:12px;color:#dfd4bf}.confirm{background:#d4b171;color:#201a12;border-radius:10px;padding:8px 16px;font-weight:bold;margin:6px 0}.cancel{border:1px solid var(--line);padding:8px 13px;border-radius:10px;margin-inline-start:8px}
 .composerArea{padding:8px 24px max(17px,env(safe-area-inset-bottom));background:linear-gradient(transparent,#101114 25%);flex-shrink:0}.composerBox{max-width:880px;margin:auto}.composer{border:1px solid #4b4f57;background:#26292f;box-shadow:0 3px 26px #0003;border-radius:21px;padding:10px 10px 8px}.composer:focus-within{border-color:#8c7653}textarea{border:0;background:transparent;resize:none;width:100%;color:var(--text);outline:none;min-height:36px;max-height:180px;line-height:1.9;padding:1px 8px;font-size:14px}textarea::placeholder{color:#aeb0b6}.composeBottom{display:flex;align-items:center;gap:9px}.send{background:#d0b17d;color:#171717;border-radius:11px;padding:6px 16px;font-size:13px;font-weight:750}.hint{color:var(--muted);font-size:11px}.footnote{text-align:center;color:#868a92;font-size:10px;margin:8px 0 0}
 .toolsPanel{position:absolute;top:66px;bottom:0;left:0;width:min(390px,100vw);background:#1b1e23;border-right:1px solid #484b52;z-index:5;box-shadow:0 8px 35px #0008;padding:20px;overflow:auto}.toolsPanel[hidden]{display:none}.panelHeading{display:flex;align-items:center;justify-content:space-between}.toolsPanel h2{font-size:17px}.toolsPanel p{color:var(--muted);font-size:12px;line-height:1.9}.tool{width:100%;padding:12px 8px;border-bottom:1px solid #33363e;text-align:right;border-radius:8px}.tool strong{display:block;font-size:12px}.tool small{display:block;color:var(--muted);font-size:11px}.trace{color:var(--muted);direction:ltr;text-align:left;white-space:pre-wrap;font:11px Consolas,monospace;overflow-wrap:anywhere;margin-top:15px}
@@ -69,7 +76,7 @@ a.skip-link{position:fixed;top:-120px;right:14px;z-index:1000;padding:10px 16px;
  <div><h1 class="title">JREI <span style="color:var(--accent)">Personal AI</span></h1><div class="sub">دستیار پژوهش، توسعه، آموزش و مدیریت پروژه</div></div>
  <div class="grow"></div><div class="sub" id="engine"><span class="dot"></span>در حال بررسی مدل</div><button class="iconButton" id="openTools">ابزارها ◫</button></header>
  <div id="conversation" class="conversation" role="log" aria-label="گفتگوی دستیار"><div class="conversationInner" id="conversationInner"></div></div>
- <div class="composerArea"><div class="composerBox"><div class="attachedFiles" id="attachedFiles" aria-live="polite"></div><div class="composer"><textarea id="input" rows="2" aria-label="پیام شما" placeholder="از JREI بخواهید بررسی، تحلیل، طراحی یا اجرا کند…"></textarea><div class="composeBottom"><button class="iconButton" id="attach" title="پیوست سند خصوصی روی همین رایانه" aria-label="افزودن فایل خصوصی">📎</button><input type="file" id="fileInput" aria-label="انتخاب فایل خصوصی برای پیوست" accept=".txt,.md,.csv,.json,.py,.js,.mjs,.css,.html,.docx,.pdf" hidden><button class="send" id="send">ارسال <span aria-hidden="true">↑</span></button><span class="hint" id="busy">Enter برای ارسال · Shift+Enter خط جدید</span><div class="grow"></div><span class="hint">محلی · قابل ممیزی</span></div></div><div class="footnote">فایل‌های انتخابی فقط در حافظه خصوصی ویندوز نگهداری می‌شوند. PDF بدون استخراج معتبر، خوانده‌شده محسوب نمی‌شود.</div></div></div>
+ <div class="composerArea"><div id="taskStrip" class="taskStrip" aria-live="polite"></div><div class="composerBox"><div class="attachedFiles" id="attachedFiles" aria-live="polite"></div><div class="composer"><textarea id="input" rows="2" aria-label="پیام شما" placeholder="از JREI بخواهید بررسی، تحلیل، طراحی یا اجرا کند…"></textarea><div class="composeBottom"><button class="iconButton" id="attach" title="پیوست سند خصوصی روی همین رایانه" aria-label="افزودن فایل خصوصی">📎</button><input type="file" id="fileInput" aria-label="انتخاب فایل خصوصی برای پیوست" accept=".txt,.md,.csv,.json,.py,.js,.mjs,.css,.html,.docx,.pdf" hidden><button class="send" id="send">ارسال <span aria-hidden="true">↑</span></button><span class="hint" id="busy">Enter برای ارسال · Shift+Enter خط جدید</span><div class="grow"></div><span class="hint">محلی · قابل ممیزی</span></div></div><div class="footnote">فایل‌های انتخابی فقط در حافظه خصوصی ویندوز نگهداری می‌شوند. PDF بدون استخراج معتبر، خوانده‌شده محسوب نمی‌شود.</div></div></div>
  <section class="toolsPanel" id="toolsPanel" hidden><div class="panelHeading"><h2>ابزارهای JREI</h2><button class="iconButton" id="closeTools" aria-label="بستن ابزارها">✕</button></div>
  <p>می‌توانید این دستورات را در همان گفتگوی اصلی بنویسید. برای تغییر کد در محیط مستقل ویندوز، تأیید جداگانه لازم است.</p>
  <div id="tools"></div><h2>وضعیت سیستم</h2><div class="trace" id="trace">در حال بارگذاری…</div>
@@ -92,6 +99,8 @@ const token=sessionStorage.getItem(accessKey)||'';
 if(location.hash)history.replaceState(null,'',location.pathname);
 const $=id=>document.getElementById(id);
 let selected=null,active=false,attachments=[];
+const taskStates=new Map();
+let taskPolling=false;
 const toolCommands=[
  ['جستجو در مخزن','در مخزن فایل پرامپت خبر را پیدا کن'],
  ['بررسی محتوای مخزن','بررسی کد مخزن را اجرا کن'],
@@ -305,13 +314,58 @@ async function openThread(id){selected=id;try{
  if(!record.items.length)welcome();await refreshThreads();$('sidebar').classList.remove('open');
  }catch(e){toast(e.message)}}
 async function newChat(){const response=await api('/api/conversation/new',{});selected=response.id;welcome();refreshThreads();$('sidebar').classList.remove('open');$('input').focus()}
+const TASK_ACTIVE=new Set(['QUEUED','RUNNING','CANCEL_REQUESTED']);
+const TASK_FINAL=new Set(['SUCCEEDED','FAILED','CANCELLED','INTERRUPTED',
+ 'SUCCEEDED_AFTER_CANCEL_REQUEST','FAILED_AFTER_CANCEL_REQUEST']);
+function taskStateText(status){
+ return ({
+  QUEUED:'در صف',RUNNING:'در حال انجام',
+  CANCEL_REQUESTED:'درخواست لغو ثبت شد؛ عملیات ممکن است تکمیل شود',
+  SUCCEEDED:'پایان موفق',FAILED:'ناموفق',CANCELLED:'قبل از اجرا لغو شد',
+  INTERRUPTED:'با توقف فرایند قطع شد؛ خودکار تکرار نمی‌شود',
+  SUCCEEDED_AFTER_CANCEL_REQUEST:'پس از درخواست لغو به پایان رسید',
+  FAILED_AFTER_CANCEL_REQUEST:'پس از درخواست لغو با خطا پایان یافت'
+ })[status]||'نامشخص';
+}
+async function refreshTasks(){
+ if(taskPolling||!token)return;
+ taskPolling=true;
+ try{
+  const {items}=await api('/api/tasks');
+  const root=$('taskStrip');root.replaceChildren();
+  for(const task of items){
+   const previous=taskStates.get(task.id);
+   taskStates.set(task.id,task.status);
+   if(previous&&TASK_ACTIVE.has(previous)&&TASK_FINAL.has(task.status)&&selected===task.conversation_id){
+    // Real messages/results are persisted by the agent, not the browser.
+    await openThread(selected);
+   }
+  }
+  for(const task of items.filter(t=>TASK_ACTIVE.has(t.status)).slice(0,6)){
+   const row=el('div','taskRow');
+   const label=el('span','taskStatus',taskStateText(task.status));
+   const description=el('span','taskSummary','مأموریت '+task.id.slice(0,8));
+   const cancel=el('button','taskCancel',task.status==='CANCEL_REQUESTED'?'در انتظار پایان':'لغو');
+   cancel.disabled=task.status==='CANCEL_REQUESTED';
+   cancel.onclick=async()=>{
+    try{
+     const result=await api('/api/task/cancel',{id:task.id});
+     toast(taskStateText(result.status));
+     await refreshTasks();
+    }catch(e){toast(e.message)}
+   };
+   row.append(label,description,cancel);root.append(row);
+  }
+ }catch(e){$('taskStrip').replaceChildren(el('div','taskRow','وضعیت صف در دسترس نیست: '+e.message))}
+ finally{taskPolling=false}
+}
+
 async function send(){
  const userText=$('input').value.trim();
  if((!userText&&!attachments.length)||active)return;
  const message=userText||'فایل پیوست‌شده را بررسی کن';
  const chosen=attachments.slice(0,2);
  const display=message+(chosen.length?'\n\n📎 '+chosen.map(x=>x.name).join('، '):'');
- let submitted=false;
  setBusy(true);
  try{
   if(!token)throw new Error('مجوز ورود به پنل موجود نیست. پنل را از راه‌انداز ویندوز باز کنید.');
@@ -320,25 +374,19 @@ async function send(){
    selected=created.id;
    welcome();
   }
-  $('input').value='';
-  addMessage('user',display);
-  submitted=true;
-  const answer=await api('/api/assistant',{
-   conversation_id:selected,message:display,attachments:chosen.map(x=>x.id)
+  const conversationId=selected;
+  const job=await api('/api/task/submit',{
+   conversation_id:conversationId,message:display,
+   attachments:chosen.map(x=>x.id)
   });
-  addMessage('assistant',answer.answer,answer.tool,answer.pending);
+  $('input').value='';
   attachments=attachments.filter(x=>!chosen.some(v=>v.id===x.id));
   renderAttachments();
+  toast('درخواست در صف خصوصی JREI ثبت شد: '+job.id.slice(0,8));
+  await refreshTasks();
   await refreshThreads();
  }catch(e){
-  const detail=e&&e.message?e.message:'خطای ناشناخته';
-  toast(detail);
-  if(!submitted){
-   $('input').value=userText;
-  }else{
-   addMessage('assistant','درخواست کامل نشد: '+detail);
-   $('input').value=userText;
-  }
+  toast(e&&e.message?e.message:'ثبت مأموریت ناموفق بود');
  }finally{
   setBusy(false);
   $('input').focus();
@@ -392,6 +440,8 @@ if(!token){
  toast('این نشانی بدون توکن خصوصی باز شده است. برای فعال‌کردن ارسال، پنل را از میانبر JREI Command Center باز کنید.');
 }else{
  refreshThreads().catch(e=>toast(e.message));
+ refreshTasks();
+ setInterval(refreshTasks,2600);
  loadHealth();
  setInterval(loadHealth,45000);
 }
