@@ -79,6 +79,22 @@ jobs:
           }
           New-Item -ItemType Directory -Force 'JREI-OWNER-DOWNLOAD' | Out-Null
           Copy-Item -LiteralPath $installer -Destination 'JREI-OWNER-DOWNLOAD/JREI-Setup-Windows-x64-v0.1.2.exe'
+          # The SAME unsigned UI installer is used on both PCs. Role-specific
+          # wrappers are strictly opt-in, verify existing signed node identity,
+          # exact source commit, SHA256 and the independent acceptance ledger.
+          $worker = 'platform/jrei-v5/windows-worker'
+          foreach ($name in @(
+            'jrei-two-pc-owner-install.ps1',
+            'JREI-SETUP-NODE-A.cmd',
+            'JREI-SETUP-NODE-B.cmd'
+          )) {
+            $sourceFile = Join-Path $worker $name
+            if (-not (Test-Path -LiteralPath $sourceFile -PathType Leaf)) {
+              throw 'JREI_TWO_PC_INSTALL_SCRIPT_NOT_IN_CANONICAL_SOURCE'
+            }
+            Copy-Item -LiteralPath $sourceFile -Destination (Join-Path 'JREI-OWNER-DOWNLOAD' $name)
+          }
+          Copy-Item -LiteralPath "$desktop/README-JREI-WINDOWS-EXE.md" -Destination 'JREI-OWNER-DOWNLOAD/README-TWO-PC-RELEASE.md'
           $hash = (Get-FileHash -LiteralPath $installer -Algorithm SHA256).Hash.ToLowerInvariant()
           "$hash  JREI-Setup-Windows-x64-v0.1.2.exe" | Set-Content -Encoding ascii 'JREI-OWNER-DOWNLOAD/SHA256SUMS.txt'
           @(
@@ -91,6 +107,11 @@ jobs:
             "SIGNATURE=UNSIGNED"
             "SOURCE_IDENTITY_NOT_CODE_SIGNATURE=TRUE"
             "BACKEND_REQUIRED=127.0.0.1:8092"
+            "NODE_A_ROLE=EXISTING_VERIFIED_SIGNED_32GB_WINDOWS_OWNER_PC"
+            "NODE_B_ROLE=EXISTING_VERIFIED_SIGNED_16GB_WINDOWS_OWNER_PC"
+            "ONE_INSTALLER_FOR_BOTH_NODES=TRUE"
+            "PER_NODE_SHA256_AND_ACCEPTANCE_GATES_REQUIRED=TRUE"
+            "SIGNED_WORKER_IDENTITY_NOT_REPLACED=TRUE"
             "INTEGRATED_WINDOWS_ACCEPTANCE=NOT_RUN"
             "MODEL_WEIGHTS_NOT_TRAINED_BY_THIS_JOB=TRUE"
             "NO_LIVE_INSTALL=TRUE"
