@@ -590,12 +590,30 @@ def recent(limit: int = 25):
              "detail": row[3], "sha": row[4]} for row in rows]
 
 
+def windows_app_source_commit():
+    # Stamped only in the immutable Windows-source snapshot by the existing
+    # scheduled-task updater. An unstamped Git checkout is NOT a deployed app.
+    file = Path(__file__).resolve().parent.parent / "jrei-app-release.json"
+    try:
+        if not file.is_file() or file.is_symlink() or file.stat().st_size > 700:
+            return None
+        meta = json.loads(file.read_text(encoding="utf-8"))
+        sha = meta.get("sourceCommit")
+        if (meta.get("schema") == "jr.jrei.owner-windows-app-release.v1"
+                and isinstance(sha, str) and re.fullmatch(r"[0-9a-f]{40}", sha)):
+            return sha
+    except (OSError, ValueError, TypeError):
+        pass
+    return None
+
+
 def status():
     base, model = local_model()
     with closing(sqlite3.connect(DB_PATH, timeout=8)) as db:
         total = db.execute("SELECT COUNT(*) FROM events WHERE state='PROPOSED_NOT_VERIFIED'").fetchone()[0]
     return {
         "schema": "jr.jrei.windows-command-center.v2",
+        "windows_app_source_commit": windows_app_source_commit(),
         "personal_assistant": "WINDOWS_LOCAL_CHAT_AND_EXECUTION",
         "conversation_history": "PRIVATE_SQLITE",
         "document_drafts": "LOCAL_PRIVATE_ONLY",
