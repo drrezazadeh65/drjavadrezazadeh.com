@@ -87,8 +87,8 @@ export function mountNewsOwnerPanel({root,csrfResolver,
   cronRefresh.textContent=say('بازخوانی Cron','Refresh Cron');
   const cronRegister=document.createElement('button');
   cronRegister.type='button';
-  cronRegister.textContent=say('ثبت تمام Workerهای خبر (غیرفعال)',
-    'Register all News workers (disabled)');
+  cronRegister.textContent=say('آماده‌سازی خودکار زنجیره خبر (ثبت ۸ Worker اصلی؛ بدون اجرا)',
+    'Prepare complete eight-worker News pipeline (register only; no execution)');
   const cronActivate=document.createElement('button');
   cronActivate.type='button';
   cronActivate.textContent=say('فعال‌سازی یکپارچهٔ ۸ Worker خبر',
@@ -218,11 +218,16 @@ export function mountNewsOwnerPanel({root,csrfResolver,
         action:'register_news_bundle',
         confirmation:'REGISTER_NEWS_WORKERS_DISABLED'
       });
-      if(receipt?.ok!==true||receipt.allNewsWorkersInitiallyDisabled!==true)
+      if(receipt?.ok!==true||receipt.newRowsInitiallyDisabled!==true||
+         receipt.newsPipelineRequiredRegisteredCount!==8||
+         receipt.automaticCronOrNewsPublicationActivated!==false)
         throw Error('NEWS_CRON_REGISTRATION_NOT_CONFIRMED');
       cronActionResult.textContent=say(
-        'Workerها ثبت شدند، اما غیرفعال باقی ماندند؛ حقوق نشر و مجوز انتشار جداگانه‌اند.',
-        'News workers registered but remain disabled; rights and publishing gates are independent.');
+        'هر ۸ Worker اصلی در دیتابیس ثبت شدند؛ ردیف تازه ساخته‌شده: ',
+        'All eight required workers are registered; new rows: ')+
+        String(receipt.newRowsCreated??0)+say(
+        '؛ اجرای جدیدی آغاز نشد. فعال‌سازی نیازمند مجوزهای خصوصی و سیاست معتبر است.',
+        '; no job started. Activation still requires private gates and signed policy.');
     }catch{
       cronActionResult.textContent=say(
         'ثبت Workerها تأیید نشد؛ دیتابیس و نشست MFA را بررسی کنید.',
