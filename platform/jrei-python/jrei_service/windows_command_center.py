@@ -433,7 +433,8 @@ def owner_task_worker():
 
 def scheduler():
     global _autonomy_tick
-    # Learning, inference and index updates are model-neutral.\n    if _STOP.wait(120):
+    # Learning, inference and index updates are model-neutral.
+    if _STOP.wait(120):
         return
     next_study = time.monotonic() + 30
     next_learning = time.monotonic() + 25
@@ -443,7 +444,6 @@ def scheduler():
     next_fts_index = time.monotonic() + 180
     next_memory = time.monotonic() + 160
     next_ci_check = time.monotonic() + 120
-    misses = 0
     while not _STOP.is_set():
         if time.monotonic() >= next_ci_check and not _BUSY.locked():
             run_job("ci_health", background=True)
