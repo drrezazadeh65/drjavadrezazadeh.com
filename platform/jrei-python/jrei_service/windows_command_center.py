@@ -922,8 +922,8 @@ class OwnerHTTP(BaseHTTPRequestHandler):
                         training_rights_reviewed=data.get("training_rights_reviewed"),
                         steps=data.get("steps",48),
                         resources_available=resource_policy.permits(
-                            "NATIVE_STATISTICAL_TRAIN"),
-                        allow_gpu=False)
+                            "NATIVE_NEURAL_TRAIN_CPU"),
+                        allow_gpu=data.get("allow_gpu") is True)
                 finally:
                     _BUSY.release()
                 return self._send(200,result)
@@ -939,8 +939,8 @@ class OwnerHTTP(BaseHTTPRequestHandler):
                     db_path=DB_PATH,private=PRIVATE,
                     owner_approved=data.get("confirm"),
                     training_rights_reviewed=data.get("training_rights_reviewed"),
-                    resources_available=knowledge._windows_resources().get(
-                        "eligible",False)))
+                    resources_available=resource_policy.permits(
+                        "NATIVE_STATISTICAL_TRAIN")))
             if self.path == "/api/learning/adapter/stage":
                 return self._send(200,curriculum.export_training_candidate(
                     DB_PATH,private=PRIVATE,
