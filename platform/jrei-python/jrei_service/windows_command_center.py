@@ -873,6 +873,7 @@ class OwnerHTTP(BaseHTTPRequestHandler):
                     PRIVATE,enabled=data.get("enabled"),
                     agent_id=data.get("agent_id"),
                     local_tools_reviewed=data.get("local_tools_reviewed"),
+                    local_model_reviewed=data.get("local_model_reviewed"),
                     confirmed=data.get("confirm")))
             if self.path == "/api/learning/control":
                 return self._send(200, knowledge.set_network_enabled(
