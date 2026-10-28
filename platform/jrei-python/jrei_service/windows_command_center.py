@@ -34,6 +34,7 @@ from jrei_service import windows_learning_agenda as agenda
 from jrei_service import windows_autonomous_topics as auto_topics
 from jrei_service import windows_learning_fts as learning_fts
 from jrei_service import windows_evidence_memory as memory_graph
+from jrei_service import windows_code_experience as code_experience
 from jrei_service import windows_language_backend as language_backend
 from jrei_service.windows_response_quality import has_repetition_loop
 from jrei_service.windows_project_generator import read_generated
@@ -108,6 +109,7 @@ def setup() -> str:
     agenda.initialize(DB_PATH)
     auto_topics.initialize(DB_PATH)
     memory_graph.initialize(DB_PATH)
+    code_experience.initialize(DB_PATH)
     token = TOKEN_PATH.read_text(encoding="ascii").strip()
     if len(token) < 48:
         raise RuntimeError("JREI_OWNER_TOKEN_INVALID")
@@ -569,6 +571,7 @@ def status():
         "autonomous_topic_discovery": auto_topics.snapshot(DB_PATH),
         "private_knowledge_search": learning_fts.snapshot(DB_PATH),
         "native_evidence_memory": memory_graph.snapshot(DB_PATH),
+        "code_learning": code_experience.snapshot(DB_PATH),
         "autonomous_study_scheduler": "RUNNING",
         "python_port": 8091, "gpu_port": None,
         "site_publishing_control": "NOT_CONNECTED",
@@ -667,6 +670,8 @@ class OwnerHTTP(BaseHTTPRequestHandler):
             return self._send(200, knowledge.snapshot(DB_PATH))
         if self.path == "/api/learning/memory":
             return self._send(200, memory_graph.snapshot(DB_PATH))
+        if self.path == "/api/code-experience":
+            return self._send(200, code_experience.snapshot(DB_PATH))
         if self.path == "/api/learning/topics":
             return self._send(200, {"items": agenda.list_topics(DB_PATH)})
         if urlsplit(self.path).path == "/api/learning/topic/cycles":
@@ -765,6 +770,12 @@ class OwnerHTTP(BaseHTTPRequestHandler):
             if self.path == "/api/learning/topic/deactivate":
                 return self._send(200,agenda.deactivate_topic(
                     DB_PATH,topic_id=data.get("id"),
+                    owner_confirmed=data.get("confirm")))
+            if self.path == "/api/code-experience/review":
+                return self._send(200, code_experience.record_owner_feedback(
+                    DB_PATH, private=PRIVATE, receipt_id=data.get("receipt_id"),
+                    outcome=data.get("outcome"), reviewer=data.get("reviewer"),
+                    evidence_sha256=data.get("evidence_sha256"),
                     owner_confirmed=data.get("confirm")))
             if self.path == "/api/learning/lesson/review":
                 return self._send(200,curriculum.review_lesson(
