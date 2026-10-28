@@ -65,8 +65,21 @@ DB_PATH = PRIVATE / "missions.sqlite3"
 # source snapshot for read-only source study. The owner's older Git checkout
 # and its uncommitted worker edits remain untouched. Non-frozen Python keeps
 # using the original canonical per-user repository path.
+def _installed_source_root() -> Path:
+    """The installed JREI source version must match the frozen engine.
+
+    Never read or overwrite an owner's modified desktop checkout. The
+    offline Inno package stages immutable-version app source separately.
+    """
+    app_engine = Path(sys.executable).resolve().parent
+    match = re.fullmatch(r"engine-v(\d+\.\d+\.\d+)", app_engine.name)
+    if match is None:
+        raise RuntimeError("JREI_FROZEN_ENGINE_PATH_NOT_VERSIONED")
+    return app_engine.parent / ("source-v" + match.group(1))
+
+
 REPO = (
-    Path(sys.executable).resolve().parent.parent / "source"
+    _installed_source_root()
     if getattr(sys, "frozen", False) else
     Path(os.environ.get("LOCALAPPDATA", Path.home())) / "JREI-Python" / "repo"
 )
