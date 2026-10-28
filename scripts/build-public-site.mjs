@@ -796,11 +796,11 @@ for(const route of approvedBilingualCollectibleRoutes){
       failures.push('Approved collectible canonical, locale, media or schema contract missing: '+route);
   }
 }
-// These two already-present JHELA roadmap pages are explicitly checked
-// below but were omitted from the fixed-count arithmetic. Preserve the strict
-// route-count release guard while accounting for the verified page pair.
+// The existingBaseHtmlRoutes=322 baseline already includes both JHELA
+// roadmap pages (320 legacy pages plus 2 approved journal roadmap routes).
+// Verify each route separately below; never double-count them here.
 const approvedJhelaRoadmapRoutes=['journal/roadmap/index.html','journal/fa/roadmap/index.html'];
-const approvedPublicHtmlRoutes=existingBaseHtmlRoutes+approvedEnglishServices.length+protectedNewRoutes.length+2+approvedEnglishVipRoutes.length+1+1+1+approvedBilingualEducationalRoutes.length*2+approvedPublicExamPages.length+approvedPrivateExamPages.length+approvedBilingualCollectibleRoutes.length+approvedJhelaRoadmapRoutes.length;
+const approvedPublicHtmlRoutes=existingBaseHtmlRoutes+approvedEnglishServices.length+protectedNewRoutes.length+2+approvedEnglishVipRoutes.length+1+1+1+approvedBilingualEducationalRoutes.length*2+approvedPublicExamPages.length+approvedPrivateExamPages.length+approvedBilingualCollectibleRoutes.length;
 
 const aiLabRoute='fa/konkur-ai-lab/index.html';
 const aiLabPath=path.join(out,aiLabRoute);
