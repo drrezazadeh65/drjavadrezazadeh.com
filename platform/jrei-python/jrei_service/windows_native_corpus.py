@@ -341,7 +341,12 @@ def load_verified_candidate(db_path: Path, private: Path, ident: str) -> dict:
                     or not isinstance(entry.get("license"), str)
                     or entry["license"].casefold() not in TRAINABLE_LICENSES
                     or not isinstance(entry.get("issuer"), str)
-                    or not 3 <= len(entry["issuer"]) <= 120):
+                    or not 3 <= len(entry["issuer"]) <= 120
+                    or type(entry.get("selected_passage_count")) is not int
+                    or not 1 <= entry["selected_passage_count"] <= 64
+                    or not SHA.fullmatch(str(entry.get("selected_passage_sha256", "")))
+                    or entry.get("passage_selection") !=
+                       "CURRENT_VERSION_BY_PASSAGE_ID_FIRST_64"):
                 raise ValueError("JREI_NATIVE_CORPUS_SOURCE_REF_INVALID")
     train_ids, dev_ids, test_ids = [
         {entry["id"] for entry in refs} for refs in roles
@@ -393,6 +398,32 @@ def load_verified_candidate(db_path: Path, private: Path, ident: str) -> dict:
                     row != (item["revision"], item["license"], item["issuer"],
                             1, 1, "PUBLIC_REUSE_APPROVED")):
                 raise ValueError("JREI_NATIVE_SOURCE_REVOKED_OR_REVISED")
+            # Hash the *live source passages* rather than merely checking the
+            # registry metadata. A mutated/removed passage with unchanged
+            # source revision must never keep its old training eligibility.
+            passages = db.execute("""SELECT p.text,p.sha256
+                FROM learning_passages p
+                JOIN learning_versions v ON v.id=p.version_id
+                WHERE p.source_id=? AND v.source_id=p.source_id
+                  AND v.sha256=?
+                ORDER BY p.id LIMIT ?""",
+                (item["id"], item["revision"],
+                 item["selected_passage_count"])).fetchall()
+            if len(passages) != item["selected_passage_count"]:
+                raise ValueError("JREI_NATIVE_SOURCE_PASSAGES_MISSING")
+            selected = []
+            for text, digest in passages:
+                if (not isinstance(text, str)
+                        or not 40 <= len(text) <= MAX_PASSAGE
+                        or not isinstance(digest, str)
+                        or _sha_bytes(text.encode("utf-8")) != digest):
+                    raise ValueError("JREI_NATIVE_SOURCE_PASSAGE_HASH_CHANGED")
+                selected.append(text)
+            actual = _sha_bytes(json.dumps(
+                selected, ensure_ascii=False,
+                separators=(",", ":")).encode("utf-8"))
+            if actual != item["selected_passage_sha256"]:
+                raise ValueError("JREI_NATIVE_SELECTED_PASSAGES_CHANGED")
     return {"path": dest, "manifest": data}
 
 
