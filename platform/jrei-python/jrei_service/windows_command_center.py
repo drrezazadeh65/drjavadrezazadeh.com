@@ -36,6 +36,7 @@ from jrei_service import windows_learning_fts as learning_fts
 from jrei_service import windows_evidence_memory as memory_graph
 from jrei_service import windows_code_experience as code_experience
 from jrei_service import windows_site_image_studio as image_studio
+from jrei_service import windows_github_operator as github_operator
 from jrei_service import windows_language_backend as language_backend
 from jrei_service.windows_response_quality import has_repetition_loop
 from jrei_service.windows_project_generator import read_generated
@@ -112,6 +113,7 @@ def setup() -> str:
     memory_graph.initialize(DB_PATH)
     code_experience.initialize(DB_PATH)
     image_studio.initialize(DB_PATH)
+    github_operator.initialize(DB_PATH)
     token = TOKEN_PATH.read_text(encoding="ascii").strip()
     if len(token) < 48:
         raise RuntimeError("JREI_OWNER_TOKEN_INVALID")
@@ -615,6 +617,8 @@ def status():
         "native_evidence_memory": memory_graph.snapshot(DB_PATH),
         "code_learning": code_experience.snapshot(DB_PATH),
         "site_image_studio": image_studio.local_model_status(PRIVATE),
+        "independent_github_operator": "OWNER_SCOPED_API_AVAILABLE_IF_CONFIGURED",
+        "independent_site_governor": "EXISTING_GITHUB_WORKFLOW_NOT_DUPLICATED",
         "autonomous_study_scheduler": "RUNNING",
         "python_port": 8091, "gpu_port": None,
         "site_publishing_control": "NOT_CONNECTED",
@@ -713,6 +717,14 @@ class OwnerHTTP(BaseHTTPRequestHandler):
             return self._send(200, knowledge.snapshot(DB_PATH))
         if self.path == "/api/learning/memory":
             return self._send(200, memory_graph.snapshot(DB_PATH))
+        if self.path == "/api/github/status":
+            return self._send(200, github_operator.snapshot())
+        if self.path == "/api/github/site-governor":
+            return self._send(200, github_operator.workflow_observation())
+        if urlsplit(self.path).path == "/api/github/source":
+            params = parse_qs(urlsplit(self.path).query)
+            return self._send(200, github_operator.read_remote_source(
+                params.get("path", [""])[0]))
         if self.path == "/api/site-images/jobs":
             return self._send(200, image_studio.list_recent(DB_PATH))
         if self.path == "/api/code-experience":
@@ -825,6 +837,12 @@ class OwnerHTTP(BaseHTTPRequestHandler):
                 return self._send(200,agenda.deactivate_topic(
                     DB_PATH,topic_id=data.get("id"),
                     owner_confirmed=data.get("confirm")))
+            if self.path == "/api/github/owner-reviewed-patch":
+                return self._send(200, github_operator.submit_owner_reviewed_patch(
+                    db_path=DB_PATH, private=PRIVATE,
+                    receipt_id=data.get("receipt_id"),
+                    expected_head_sha=data.get("expected_head_sha"),
+                    confirmation=data.get("confirm")))
             if self.path == "/api/site-images/enqueue":
                 return self._send(200, image_studio.enqueue(DB_PATH, data))
             if self.path == "/api/site-images/retry":
