@@ -67,14 +67,58 @@ function jrPythonNodeOwnerSnapshot(PDO $pdo, array $cfg): array
        'autonomousLearningActive'=>false,
        'newsPublishingActive'=>false,
        'publicReleaseApproved'=>false,
-       'nodes'=>[],'checkedAt'=>time()
+       'nodes'=>[],'checkedAt'=>time(),
+       // A capacity target is NOT a claim that 50 PCs are installed.
+       'fleetCapacity'=>[
+         'targetRegisteredNodes'=>50,
+         'nodeRegistryType'=>'EXISTING_ED25519_HYBRID_NODES',
+         'dispatcher'=>'EXISTING_LEASED_QUEUE_ONE_INFLIGHT_PER_NODE',
+         'parallelJobsPossibleIf50Registered'=>50,
+         'actualRegisteredNodes'=>0,
+         'actualEnabledNodes'=>0,
+         'actualFreshPythonReports'=>0,
+         'actualLeasedJobs'=>0,
+         'modelGpuSharingActive'=>false,
+         'productionHardwareUpgraded'=>false,
+         'targetIsExpandable'=>true
+       ]
     ];
     if (!$ready) return $result;
+    // Aggregate directly from the EXISTING signed node/lease registry.
+    // Unlike a node listing, COUNT remains correct beyond the display cap.
+    // A signature is necessary for a report; it does not certify hardware.
+    try {
+        $counts=$pdo->query("SELECT
+            COUNT(*) AS registered,
+            COALESCE(SUM(CASE WHEN status='ENABLED'
+                AND revoked_at IS NULL THEN 1 ELSE 0 END),0) AS enabled
+            FROM jrei_hybrid_nodes")->fetch(PDO::FETCH_ASSOC);
+        $result['fleetCapacity']['actualRegisteredNodes']=(int)$counts['registered'];
+        $result['fleetCapacity']['actualEnabledNodes']=(int)$counts['enabled'];
+        $live=$pdo->query("SELECT COUNT(*) FROM jrei_python_node_health h
+            JOIN jrei_hybrid_nodes n ON n.node_id=h.node_id
+            WHERE n.status='ENABLED' AND n.revoked_at IS NULL
+              AND h.python_process='RESPONDING'
+              AND h.server_received_at>=".((int)time()-90))->fetchColumn();
+        $result['fleetCapacity']['actualFreshPythonReports']=$enabled?(int)$live:0;
+        $leased=$pdo->query("SELECT COUNT(*) FROM jrei_hybrid_jobs
+            WHERE status='LEASED' AND lease_expires_at>=".(int)time())->fetchColumn();
+        $result['fleetCapacity']['actualLeasedJobs']=(int)$leased;
+        $result['fleetCapacity']['dispatchCapacityNowUpperBound']=
+            min($result['fleetCapacity']['actualEnabledNodes'],
+                $result['fleetCapacity']['actualRegisteredNodes']);
+        $result['fleetCapacity']['targetNodeShortfall']=
+            max(0,50-$result['fleetCapacity']['actualEnabledNodes']);
+    } catch(Throwable $e) {
+        // Keep liveness and infrastructure observations separate.
+        $result['fleetCapacity']['capacityMetricsAvailable']=false;
+    }
+
     $q=$pdo->query('SELECT h.node_id,h.python_process,h.health_schema,
         h.node_observed_at,h.server_received_at,n.status,n.revoked_at
       FROM jrei_python_node_health h
       JOIN jrei_hybrid_nodes n ON n.node_id=h.node_id
-      ORDER BY h.server_received_at DESC LIMIT 20');
+      ORDER BY h.server_received_at DESC LIMIT 200');
     $now=time();
     foreach($q as $row) {
         $enabledNode=$row['status']==='ENABLED' && $row['revoked_at']===null;
@@ -91,5 +135,8 @@ function jrPythonNodeOwnerSnapshot(PDO $pdo, array $cfg): array
             'observationScope'=>'SIGNED_EXISTING_NODE_REPORT_NOT_INDEPENDENT_PYTHON_AUDIT'
         ];
     }
+    $result['fleetCapacity']['observationsDisplayed']=count($result['nodes']);
+    $result['fleetCapacity']['observationListTruncated']=
+        count($result['nodes'])>=200;
     return $result;
 }
