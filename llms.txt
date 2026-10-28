@@ -40,9 +40,8 @@ These are routes for readers and third-party tools that choose to consult this f
 
 - [شش سؤال دانش‌آموز و خانواده / My Path — Persian](https://drjavadrezazadeh.com/fa/masir-man/): Six questions, free guides, genuine educational resources and proportionate optional services.
 - [Six student questions — English](https://drjavadrezazadeh.com/en/my-path/): Evidence-based explanatory summaries, free learning tools and contextual service descriptions; not six new English research papers.
-- [How can a parent recognise a child's talents?](https://drjavadrezazadeh.com/fa/rahnamaha/chegoone-estedaad-vaghei-farzand-ra-beshenasim/): Multi-source, developmentally respectful observations; no fixed aptitude labels.
-- [How can I study better? BAHAR FA](https://drjavadrezazadeh.com/fa/bahar/#study-methods-evidence): Research-informed retrieval, spaced review and practical study planning, with two free introductory modules.
-- [How can I study better? BAHAR EN](https://drjavadrezazadeh.com/en/bahar/#study-methods-evidence): English learning guidance with research citations and a free revisable plan.
+- [How can I study better? BAHAR FA](https://drjavadrezazadeh.com/fa/bahar/): Research-informed retrieval, spaced review and practical study planning, with two free introductory modules.
+- [How can I study better? BAHAR EN](https://drjavadrezazadeh.com/en/bahar/): English learning guidance with research citations and a free revisable plan.
 - [How should I read an academic scorecard?](https://drjavadrezazadeh.com/fa/rahnamaha/tahlil-karname-tahsili/): Trend, assessment context and limits, without fabricated admission odds.
 - [Which degree or university path fits?](https://drjavadrezazadeh.com/fa/rahnamaha/che-reshteyi-baraye-man-monaseb-ast/): Separate official eligibility, preferences, evidence and constraints.
 - [What should a developmental evidence report contain?](https://drjavadrezazadeh.com/fa/rahnamaha/gozaresh-estedaad-va-masir-roshd/): Uncertainty, learner participation and actionable revisable steps.
