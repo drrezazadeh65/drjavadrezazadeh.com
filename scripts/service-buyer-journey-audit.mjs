@@ -57,7 +57,8 @@ function validate(locale,kind,id){
     prefix+'guide must be inside the main landmark');
   if(kind==='services'&&locale==='fa'){
     const footer=html.indexOf('<footer');
-    requireCondition(footer>guideEnd,prefix+'Persian article footer must follow guide');
+    // Adjacent closing section and opening footer have equal offsets at this boundary.
+    requireCondition(footer>=guideEnd,prefix+'Persian article footer must follow guide');
   }
   if(guideStart<0||guideEnd<=guideStart)return;
   const guide=html.slice(guideStart,guideEnd);
@@ -177,7 +178,7 @@ for(const [file,ids] of englishContext){
 const academicHub=read('en/academic-services/index.html');
 for(const id of ['academic_editing','manuscript_diagnostic','research_consult_60',
                  'journal_strategy','reviewer_response','academic_cv','academic_interview_90']){
- requireCondition(academicHub.includes('href="/en/services/'+id+'"'),
+ requireCondition(academicHub.includes('href="/en/services/'+id+'/"'),
    'international academic services hub lacks direct scope link '+id);
 }
 requireCondition(academicHub.includes('Published standard tariffs'),
