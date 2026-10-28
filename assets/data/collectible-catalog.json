@@ -1,0 +1,43 @@
+{
+  "schema_version": "1.0",
+  "inventory_type": "ONE_OF_ONE_PHYSICAL_SET",
+  "books": [
+    {
+      "id": "websters-third-1981",
+      "slug": "websters-third-1981",
+      "title_fa": "فرهنگ جامع وبستر ـ مجموعه کلکسیونی دو جلدی",
+      "english_reference_title": "Webster's Third New International Dictionary — Two-Volume Collectible Set",
+      "author": "Merriam-Webster editorial team",
+      "publication_status": "PUBLISHED",
+      "description_fa": "یک مجموعه فیزیکی دو جلدی و بدون تلخیص از فرهنگ تاریخی Webster’s Third؛ نخستین انتشار این فرهنگ در ۱۹۶۱ بوده و صفحه حق نشر نمونه عرضه‌شده حاوی سال ۱۹۸۱ است. نوبت دقیق چاپ نیازمند تأیید است. دو جلد با هم و فقط یک مجموعه عرضه می‌شود. بنا بر اعلام مالک، عواید فروش به حمایت آموزشی خیریه اختصاص می‌یابد.",
+      "description_en": "One pre-owned two-volume physical set of Webster’s Third, unabridged. First issued in 1961; the photographed copyright page includes 1981, which does not establish the exact printing year. One complete set only. The owner designates sale proceeds for educational charity.",
+      "bibliography": {
+        "publisher": "Merriam-Webster",
+        "editor": "Philip Babcock Gove",
+        "copyright_notices": [
+          1961,
+          1981
+        ],
+        "edition": "Exact printing unverified",
+        "cover_image": "/assets/images/books/websters-third-1981-collectible-illustration.svg",
+        "cover_is_illustration": true,
+        "original_printing_unverified": true
+      },
+      "commerce": {
+        "sellable": true,
+        "price": 50000000,
+        "currency": "IRT",
+        "inventory_state": "IN_STOCK",
+        "formats_confirmed": [
+          "PRINT"
+        ],
+        "shipping_required": true,
+        "single_copy": true,
+        "max_quantity_per_order": 1,
+        "charitable_proceeds_intended": true,
+        "condition": "used; visible cover wear; full collation not verified",
+        "inventory_note": "Owner confirmed exactly one two-volume set. Database must reconcile actual set before paid checkout."
+      }
+    }
+  ]
+}
