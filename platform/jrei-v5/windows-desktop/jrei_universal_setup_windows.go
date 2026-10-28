@@ -14,9 +14,7 @@ import (
  "bytes"
  _ "embed"
  "crypto/sha256"
- "encoding/hex"
  "errors"
- "fmt"
  "io"
  "os"
  "os/exec"
@@ -24,7 +22,6 @@ import (
  "runtime"
  "strings"
  "syscall"
- "unicode/utf16"
  "unsafe"
 )
 
@@ -213,7 +210,7 @@ func extractPayload(target string) error {
    os.Remove(tmp)
    return errors.New("JREI_PAYLOAD_EXTRACTION_INTEGRITY_FAILURE")
   }
-  sum := sha256.Sum256(nil)
+  var sum [32]byte
   copy(sum[:], h.Sum(nil))
   same, err := existingDigest(path, sum)
   if err != nil { os.Remove(tmp); return err }
@@ -276,23 +273,31 @@ func main() {
  if err := extractPayload(target); err != nil { fatal(err) }
  ps, err := powershellPath()
  if err != nil { fatal(err) }
- if err := runScript(ps, filepath.Join(target, "jrei-shortcuts.ps1"),
-    "-AppExe", filepath.Join(target, "JREI.exe")); err != nil { fatal(err) }
- if err := runScript(ps, filepath.Join(target, "jrei-engine-setup.ps1"),
-    "-Mode", "Install", "-OwnerApproved"); err != nil {
+ engineResult := runScript(ps, filepath.Join(target, "jrei-engine-setup.ps1"),
+    "-Mode", "Install", "-OwnerApproved")
+ // Shortcut generation never gates engine activation; if the desktop is
+ // redirected or blocked, the installed program can still be opened through
+ // its fixed per-user release path.
+ shortcutResult := runScript(ps, filepath.Join(target, "jrei-shortcuts.ps1"),
+    "-AppExe", filepath.Join(target, "JREI.exe"))
+ if engineResult != nil {
+  note := ""
+  if shortcutResult != nil { note = "\nساخت میان‌بر نیز با مشکل روبه‌رو شد." }
   dialog("JREI | Installation incomplete",
-   "فایل‌های برنامه نصب شدند، اما راه‌اندازی موتور خصوصی تأیید نشد.\n"+
-   "کد خطا: "+err.Error()+"\n"+
-   "فایل‌های خصوصی و سرویس‌های قبلی حفظ شده‌اند. پیام را برای بررسی ارسال کنید.", true)
+   "فایل‌های برنامه نصب شدند، اما موتور خصوصی هنوز تأیید نشده است.\n"+
+   "کد خطا: "+engineResult.Error()+note+"\n"+
+   "داده‌ها و سرویس‌های قبلی حفظ شده‌اند.", true)
   os.Exit(2)
  }
- dialog("JREI | Installed",
-  "فایل‌های برنامهٔ JREI نصب شدند.\n"+
-  "موتور خصوصی درخواست راه‌اندازی دریافت کرد و اسکریپت آن بدون خطا پایان یافت.\n"+
-  "توانایی مدل، ارتباط با سایت و گره‌های دیگر هنوز نیازمند بررسی مستقل است.", false)
+ if shortcutResult != nil {
+  dialog("JREI | Shortcut not created",
+   "فایل‌های برنامه و موتور خصوصی آماده شدند، اما میان‌بر دسکتاپ ساخته نشد.\n"+
+   "کد خطا: "+shortcutResult.Error()+"\n"+
+   "هیچ اطلاعات خصوصی حذف نشده است.", true)
+  os.Exit(3)
+ }
+ dialog("JREI | Installation completed",
+  "فایل‌های برنامه نصب و میان‌بر ساخته شد.\n"+
+  "اسکریپت راه‌اندازی موتور خصوصی بدون خطا پایان یافت.\n"+
+  "کارکرد مدل و اتصال دو گره هنوز نیازمند پذیرش واقعی است.", false)
 }
-
-// Keep the compiler/linker from pulling in external dependencies.
-var _ = hex.EncodeToString
-var _ = fmt.Sprintf
-var _ = utf16.Encode
