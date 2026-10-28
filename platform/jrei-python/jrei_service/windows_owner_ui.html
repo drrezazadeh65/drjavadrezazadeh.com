@@ -846,7 +846,10 @@ async function refreshDocuments(){
 }
 async function refreshThreads(){
  const {items}=await api('/api/conversations');const root=$('threads');root.replaceChildren();
- for(const t of items){const node=el('div','thread'+(t.id===selected?' active':''));
+ const term=$('threadSearch').value.trim().toLocaleLowerCase();
+ for(const t of items){
+  if(term&&!String(t.title||'').toLocaleLowerCase().includes(term))continue;
+  const node=el('div','thread'+(t.id===selected?' active':''));
   const btn=el('button','name',t.title);btn.title=t.title;btn.onclick=()=>openThread(t.id);node.append(btn);
   const del=el('button','trash','×');del.title='حذف گفتگوی محلی';del.onclick=async()=>{
     if(!confirm('این گفتگو و پیام‌های محلی آن حذف شود؟'))return;
@@ -875,10 +878,10 @@ async function openThread(id){
   }
   if(!record.items.length)welcome();
   await refreshThreads();
-  $('sidebar').classList.remove('open');
+  closeSidebar();
  }catch(e){toast(e.message)}
 }
-async function newChat(){const response=await api('/api/conversation/new',{});selected=response.id;welcome();refreshThreads();$('sidebar').classList.remove('open');$('input').focus()}
+async function newChat(){const response=await api('/api/conversation/new',{});selected=response.id;welcome();await refreshThreads();closeSidebar();$('input').focus()}
 const TASK_ACTIVE=new Set(['QUEUED','RUNNING','CANCEL_REQUESTED']);
 const TASK_FINAL=new Set(['SUCCEEDED','FAILED','CANCELLED','INTERRUPTED',
  'SUCCEEDED_AFTER_CANCEL_REQUEST','FAILED_AFTER_CANCEL_REQUEST']);
@@ -1005,7 +1008,16 @@ $('fileInput').onchange=async()=>{
  }catch(e){toast(e.message)}
  finally{$('attach').disabled=false;$('fileInput').value='';setBusy(false)}
 };
-$('menu').onclick=()=>$('sidebar').classList.toggle('open');
+$('menu').onclick=()=>$('sidebar').classList.contains('open')?closeSidebar():openSidebar();
+$('sidebarBackdrop').onclick=closeSidebar;
+$('threadSearch').addEventListener('input',()=>refreshThreads().catch(e=>toast(e.message)));
+$('input').addEventListener('input',fitComposer);
+document.addEventListener('keydown',e=>{
+ if(e.key==='Escape'){
+  closeSidebar();
+  $('toolsPanel').hidden=true;
+ }
+});
 $('openTools').onclick=()=>{$('toolsPanel').hidden=!$('toolsPanel').hidden;if(!$('toolsPanel').hidden){loadHealth();refreshDocuments();refreshLearning();refreshImages()}};
 $('closeTools').onclick=()=>$('toolsPanel').hidden=true;
 $('saveProfile').onclick=async()=>{try{const r=await api('/api/profile',{instructions:$('profile').value});toast('ترجیحات شخصی در ویندوز ذخیره شد.')}catch(e){toast(e.message)}};
