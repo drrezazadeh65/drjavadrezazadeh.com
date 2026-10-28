@@ -248,6 +248,9 @@ class Desktop:
         self._button(self.side, "مشاهده منابع و GPU این رایانه",
                      self.show_local_hardware, color=SIDE,
                      foreground=GOLD).pack(fill="x", padx=13, pady=(0, 7))
+        self._button(self.side, "تشخیص و افزودن رایانه",
+                     self.show_device_inventory, color=SIDE,
+                     foreground=GOLD).pack(fill="x", padx=13, pady=(0, 7))
         self._label(self.side, "خصوصی · فقط روی رایانهٔ شما", fg=MUTED, bg=SIDE, size=9).pack(pady=12)
 
         self.main = tk.Frame(body, bg=BG)
@@ -575,6 +578,8 @@ class Desktop:
             self._display_local_bundle(data)
         elif key == "hardware_inventory":
             self._display_local_hardware(data)
+        elif key == "device_inventory":
+            self._display_device_inventory(data)
         elif key == "native_acceptance":
             self._display_native_acceptance(data)
         elif key == "approval_result":
@@ -634,6 +639,10 @@ class Desktop:
                 str(error)[:300], parent=self.root)
         if key == "attachment":
             messagebox.showerror("JREI · فایل", str(error)[:500], parent=self.root)
+        if key == "device_inventory":
+            messagebox.showerror("JREI · دستگاه",
+                "گزارش محلی این رایانه دردسترس نیست؛ هیچ نصب یا ثبت‌نامی انجام نشده.\n"
+                + str(error)[:210], parent=self.root)
         if key == "github_preflight":
             messagebox.showerror(
                 "JREI · بازبینی GitHub",
@@ -687,7 +696,7 @@ class Desktop:
             "connect", "threads", "thread", "task_list", "approvals", "job",
             "draft_diff", "draft_bundle", "github_preflight",
             "native_acceptance", "hardware_inventory",
-            "windows_installer",
+            "device_inventory", "windows_installer",
         }
         if name in read_views:
             serial = self._request_versions.get(name, 0) + 1
@@ -1508,6 +1517,89 @@ class Desktop:
         self._button(buttons, "کپی Diff", lambda: self._copy(content),
                      foreground=GOLD).pack(side="left")
         self._button(buttons, "بستن", window.destroy).pack(side="right")
+
+    def show_device_inventory(self):
+        """Works offline and before any node/server registration."""
+        self.status_text.set("در حال بررسی اطلاعات همین رایانه؛ فقط خواندنی…")
+        def read_inventory():
+            if sys.platform != "win32":
+                raise RuntimeError("فقط روی ویندوز پشتیبانی می‌شود.")
+            # The ONE installer includes the reviewed read-only inventory.
+            root = (Path(sys.executable).resolve().parent
+                    if getattr(sys, "frozen", False)
+                    else Path(__file__).resolve().parent)
+            script = root / "jrei-device-inventory.ps1"
+            if (script.is_symlink() or not script.is_file()
+                    or script.stat().st_size > 8192):
+                raise RuntimeError("فایل گزارش وضعیت دستگاه در بسته موجود نیست.")
+            ps = (Path(os.environ.get("SystemRoot", r"C:\Windows")) /
+                  "System32" / "WindowsPowerShell" / "v1.0" /
+                  "powershell.exe")
+            if not ps.is_file():
+                raise RuntimeError("Windows PowerShell در دسترس نیست.")
+            proc = subprocess.run(
+                [str(ps), "-NoProfile", "-NonInteractive", "-ExecutionPolicy",
+                 "Bypass", "-File", str(script)],
+                stdin=subprocess.DEVNULL, capture_output=True, timeout=18,
+                shell=False, creationflags=getattr(
+                    subprocess, "CREATE_NO_WINDOW", 0))
+            if proc.returncode != 0 or len(proc.stdout) > 16000:
+                raise RuntimeError("JREI_DEVICE_READONLY_STATUS_NOT_AVAILABLE")
+            result = json.loads(proc.stdout.decode("utf-8-sig"))
+            if (not isinstance(result, dict)
+                    or result.get("schema") !=
+                    "jr.jrei.windows-dynamic-node-inventory.v1"
+                    or result.get("installation_performed") is not False
+                    or result.get("user_data_modified") is not False):
+                raise RuntimeError("JREI_DEVICE_STATUS_SCHEMA_INVALID")
+            return result
+        self.fetch("device_inventory", read_inventory)
+
+    def _display_device_inventory(self, report):
+        """Never assume A/B from RAM or claim an unknown third PC is signed."""
+        if not isinstance(report, dict):
+            return
+        labels = {
+            "NEW_NODE_OWNER_ENROLLMENT_REQUIRED":
+                "این رایانه جدید است و هنوز پیکربندی امضاشدهٔ JREI ندارد.",
+            "EXISTING_NODE_CONFIG_PRESENT_REMOTE_STATUS_UNVERIFIED":
+                "پیکربندی گرهٔ موجود پیدا شد؛ اتصال امضاشده به سرور هنوز تأیید نشده.",
+            "EXISTING_NODE_SIGNING_KEY_NEEDS_OWNER_REVIEW":
+                "پیکربندی وجود دارد، اما کلید امضای معتبر قابل مشاهده نیست.",
+            "EXISTING_PRIVATE_CONFIG_REVIEW_REQUIRED":
+                "پیکربندی فعلی با قرارداد JREI تطابق ندارد؛ حفظ و بازبینی شود.",
+            "EXISTING_PRIVATE_CONFIG_UNREADABLE":
+                "پیکربندی موجود خوانده نشد؛ هیچ داده‌ای تغییر نکرد.",
+        }
+        ram = report.get("ram_gb_observed")
+        cpu = report.get("cpu_threads_observed")
+        ram_text = (str(ram) + " GB" if isinstance(ram, (int, float))
+                    else "اندازه‌گیری نشده")
+        cpu_text = (str(cpu) if type(cpu) is int else "اندازه‌گیری نشده")
+        existing = report.get("machine_id") == "EXISTING_NODE_ID_PRESENT"
+        parts = [
+            labels.get(report.get("state"), "وضعیت دستگاه نیازمند بازبینی است."),
+            "حافظهٔ فیزیکی فعلی: " + ram_text,
+            "رشته‌های منطقی پردازنده: " + cpu_text,
+            "هویت ثبت‌شدهٔ محلی: " +
+                ("دارای شناسه؛ اعتبار سرور نامشخص" if existing
+                 else "ثبت نشده یا نیازمند بازبینی"),
+            "کلید امضای محلی: " +
+                ("فایل وجود دارد؛ صحت آن تأیید نشده" if report.get(
+                    "signing_key_file_present") is True else "موجود نیست"),
+            "موتور اصلی این دستگاه: " +
+                ("وظیفهٔ قبلی مشاهده شد" if report.get(
+                    "original_command_center_task_present") is True
+                 else "هنوز روی این دستگاه ثبت نشده"),
+            "GPU و کیفیت مدل: هنوز احراز نشده",
+            "",
+            "برای دستگاه سوم، چهارم یا پس از ارتقای RAM/GPU:"
+            " ابتدا گره را در سامانهٔ اصلی با هویت مستقل ثبت و تأیید کنید."
+            " این پنجره بدون تغییر کلیدها و بدون ساخت سرویس جدید است.",
+        ]
+        messagebox.showinfo(
+            "JREI · دستگاه‌ها بدون سقف ثابت",
+            "\n".join(parts), parent=self.root)
 
     def start_existing_engine(self):
         """Only request the ORIGINAL owner Scheduled Task, never install/replace it."""
