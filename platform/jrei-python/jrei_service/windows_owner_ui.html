@@ -139,6 +139,7 @@ a.skip-link{position:fixed;top:-120px;right:14px;z-index:1000;padding:10px 16px;
   <div id="metacognitionState" class="learnNote" aria-live="polite">یادگیریِ یادگیری: وضعیت در حال بررسی</div>
   <label class="learnCheck"><input type="checkbox" id="nativeTrainRights"> حقوق آموزش ماشینی با منابع عمومیِ داوری‌شده را بررسی و اجازهٔ استفاده از آنها برای آموزش آزمایشی JREI را تأیید می‌کنم.</label>
   <button class="confirm" id="trainNativeBrain">آموزش آزمایشی مدل بومی — بدون نصب برنامهٔ دیگر</button>
+  <button class="confirm" id="nativeAutoLearn">فعال‌سازی یک‌بارهٔ یادگیری خودکار بومی</button>
  </div>
  <h2>استودیو تصویر اختصاصی JREI</h2>
  <section class="imagePanel" aria-label="تولید تصویر برای سایت">
@@ -434,6 +435,9 @@ async function refreshLearning(){
     ' · دادهٔ آموزشی بازبینی‌شده: '+(native.training_examples||0)+
     ' · ارزیابی مستقل: '+(native.heldout_examples||0)+
     ' · مدل زبانی بزرگ آموزش‌دیده: خیر';
+  $('nativeAutoLearn').dataset.enabled=native.continuous_training_authorized?'true':'false';
+  $('nativeAutoLearn').textContent=native.continuous_training_authorized?
+    'توقف یادگیری خودکار بومی':'فعال‌سازی یک‌بارهٔ یادگیری خودکار بومی';
   const metacog=globalState.native_metacognition||{};
   $('metacognitionState').textContent='یادگیریِ یادگیری | موضوع‌های دارای دو چرخه: '+
     (metacog.topics_with_two_recent_cycles||0)+
@@ -611,6 +615,22 @@ $('gitCommit').onclick=async()=>{
  }catch(e){githubObservedHead=null;toast(e.message)}
 };
 
+$('nativeAutoLearn').onclick=async()=>{
+ const enabled=$('nativeAutoLearn').dataset.enabled!=='true';
+ if(enabled&&!$('nativeTrainRights').checked){
+  toast('پیش از شروع، حقوق آموزش با داده‌های عمومیِ بازبینی‌شده را تأیید کنید.');return;
+ }
+ if(!confirm(enabled?
+  'فقط بر اساس نمونه‌های عمومیِ بازبینی‌شده، یادگیری بومی در اوقات آزاد فعال شود؟ هیچ سند خصوصی یا مدل آماده‌ای استفاده نخواهد شد.':
+  'یادگیری آماری خودکار متوقف شود؟ مدل‌های محلی و گزارش‌های قبلی حفظ می‌شوند.'))return;
+ try{
+  const result=await api('/api/learning/native-brain/control',{
+   enabled,confirm:true,training_rights_reviewed:enabled
+  });
+  toast(result.state);$('nativeTrainRights').checked=false;
+  await refreshLearning();
+ }catch(e){toast('تغییر وضعیت یادگیری ممکن نشد: '+e.message)}
+};
 $('trainNativeBrain').onclick=async()=>{
  if(!$('nativeTrainRights').checked){
   toast('بررسی صریح حقوق آموزش ماشینی ضروری است.');return;
