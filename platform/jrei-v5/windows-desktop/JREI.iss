@@ -5,7 +5,7 @@
 ; The UI may start offline; it must never claim to install native LLM weights.
 
 #define MyAppName "JREI Personal AI"
-#define MyAppVersion "0.1.1"
+#define MyAppVersion "0.1.2"
 #define MyPublisher "Javad Rezazadeh"
 #define MyAppExeName "JREI.exe"
 
