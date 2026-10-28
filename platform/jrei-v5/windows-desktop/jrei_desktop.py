@@ -472,6 +472,8 @@ class Desktop:
             self._show_approvals()
         elif key == "draft_diff":
             self._display_local_diff(data)
+        elif key == "draft_bundle":
+            self._display_local_bundle(data)
         elif key == "hardware_inventory":
             self._display_local_hardware(data)
         elif key == "approval_result":
@@ -532,6 +534,11 @@ class Desktop:
                 "JREI · بازبینی کد",
                 "رسید یا فایل پیش‌نویس معتبر نیست، یا محتوا پس از ایجاد تغییر کرده است.\n"
                 + str(error)[:220], parent=self.root)
+        if key == "draft_bundle":
+            messagebox.showerror(
+                "JREI · بستهٔ بازبینی",
+                "رسیدهای این بسته معتبر نیستند، تغییر کرده‌اند یا حجم Diff مجاز نیست.\n"
+                + str(error)[:160], parent=self.root)
         if key == "job":
             self.poll_in_flight = False
         if key == "approval_result":
@@ -747,6 +754,8 @@ class Desktop:
         self._button(controls, "بازخوانی", self._load_approvals).pack(side="left")
         self._button(controls, "نمایش Diff پیش‌نویس", self.show_local_diff,
                      foreground=GOLD).pack(side="left", padx=8)
+        self._button(controls, "بازبینی بستهٔ چندفایلی", self.show_local_bundle,
+                     foreground=GOLD).pack(side="left", padx=8)
         self._button(controls, "بستن", dlg.destroy).pack(side="right")
         self._button(controls, "تأیید عملیات انتخاب‌شده",
                      self._confirm_selected, color=GOLD,
@@ -885,6 +894,87 @@ class Desktop:
         self._button(window, "بستن", window.destroy).pack(
             side="right", padx=18, pady=(0, 14))
         self.status_text.set("مشاهدات همین رایانه دریافت شد؛ GPU دوم نامشخص است.")
+
+    def show_local_bundle(self):
+        """Review existing owner-approved isolated drafts as ONE read-only list."""
+        value = simpledialog.askstring(
+            "JREI · بازبینی چندفایلی",
+            "شناسه‌های ۲ تا ۵ رسید ویرایش محلی را با کاما جدا کنید:",
+            parent=self.root)
+        if value is None:
+            return
+        ids = [part.strip() for part in value.split(",")]
+        if (len(value) > 220 or not 2 <= len(ids) <= 5
+                or len(set(ids)) != len(ids)
+                or any(not re.fullmatch(
+                    r"\d{8}T\d{6}Z-[a-f0-9]{12}", item) for item in ids)):
+            messagebox.showwarning(
+                "JREI", "فقط ۲ تا ۵ شناسهٔ یکتا و معتبر مجاز است.",
+                parent=self.root)
+            return
+        query = urllib.parse.quote(",".join(ids), safe=",")
+        self.fetch("draft_bundle", lambda: self.api.request(
+            "/api/workspace/bundle?ids=" + query))
+
+    def _display_local_bundle(self, data):
+        """No local edit, merge, build, test or GitHub write from this view."""
+        if (not isinstance(data, dict)
+                or data.get("schema") != "jr.jrei.workspace-multi-file-review.v1"
+                or data.get("state") != "LOCAL_MULTI_FILE_REVIEW_ONLY"
+                or data.get("github_pushed") is not False
+                or data.get("production_changed") is not False
+                or data.get("multi_file_atomic_write_performed") is not False):
+            self.status_text.set("بستهٔ بازبینی معتبر نیست.")
+            return
+        files = data.get("files")
+        count = data.get("file_count")
+        if (not isinstance(files, list) or not isinstance(count, int)
+                or not 2 <= count <= 5 or len(files) != count
+                or not re.fullmatch(
+                    r"[a-f0-9]{64}", str(data.get("bundle_manifest_sha256", "")))):
+            self.status_text.set("بستهٔ بازبینی ناقص است.")
+            return
+        patch = data.get("diff")
+        if not isinstance(patch, str) or not patch or len(patch) > 36000:
+            self.status_text.set("Diff بسته فراتر از ظرفیت بازبینی است.")
+            return
+        window = tk.Toplevel(self.root)
+        window.title("JREI | بررسی گروهی پیش‌نویس‌ها؛ فقط خواندنی")
+        window.geometry("930x690")
+        window.minsize(610, 390)
+        window.configure(bg=BG)
+        window.transient(self.root)
+        self._label(window, "بستهٔ بازبینی چند فایل", fg=GOLD, bg=BG,
+                    bold=True, size=14).pack(fill="x", padx=16, pady=(14, 5))
+        entries = [
+            str(item.get("target", ""))[:105] +
+            " | " + str(item.get("receipt_id", ""))[:40]
+            for item in files if isinstance(item, dict)]
+        summary = (
+            "تعداد فایل‌ها: " + str(count) +
+            "\nاثر انگشت بسته: " + str(data["bundle_manifest_sha256"]) +
+            "\n" + "\n".join(entries) +
+            "\nاین صفحه تنها گردآوریِ رسیدهای پیش‌نویس قبلاً تأییدشده است."
+            "\nهیچ اعمال اتمیک چندفایلی، تست، Push یا انتشار انجام نشده است.")
+        self._label(window, summary, bg=BG, fg=MUTED, size=9,
+                    justify="left", anchor="w").pack(
+                        fill="x", padx=16, pady=(0, 8))
+        body = tk.Frame(window, bg=BG)
+        body.pack(fill="both", expand=True, padx=16, pady=4)
+        scroll = ttk.Scrollbar(body, orient="vertical")
+        reading = tk.Text(body, bg=SURFACE, fg=FG, font=self._font(10),
+                          wrap="none", relief="flat",
+                          padx=12, pady=10, yscrollcommand=scroll.set)
+        scroll.configure(command=reading.yview)
+        scroll.pack(side="right", fill="y")
+        reading.pack(side="left", fill="both", expand=True)
+        reading.insert("1.0", patch)
+        reading.configure(state="disabled")
+        controls = tk.Frame(window, bg=BG)
+        controls.pack(fill="x", padx=16, pady=(4, 14))
+        self._button(controls, "کپی Diffها", lambda: self._copy(patch),
+                     foreground=GOLD).pack(side="left")
+        self._button(controls, "بستن", window.destroy).pack(side="right")
 
     def show_local_diff(self):
         """Read-only review of an owner-private receipt; no patch execution."""
