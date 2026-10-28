@@ -207,7 +207,10 @@ def suggest(nodes: Iterable[Capability], jobs: Iterable[Demand], *,
             {x.job_id for x in tasks})!=len(tasks):
         raise ValueError("JREI_FLEET_DUPLICATE_OR_INVALID_JOBS")
     live={node.node_id:node for node in computers}
-    slots={x.node_id:max(0,x.max_parallel-x.busy) for x in computers}
+    # The CURRENT Bertina leasing contract permits at most ONE active job
+    # per signed node, even if future hardware has many CPU cores or GPUs.
+    # Do not promise 50 concurrent GPU jobs on only two attached PCs.
+    slots={x.node_id:min(1,max(0,x.max_parallel-x.busy)) for x in computers}
     ram={x.node_id:x.free_ram_mb for x in computers}
     vram={x.node_id:x.gpu_free_mb for x in computers}
     assignments=[]
@@ -250,6 +253,7 @@ def suggest(nodes: Iterable[Capability], jobs: Iterable[Demand], *,
         "enabled_fresh_node_reports":fresh,
         "target_50_shortfall":max(0,TARGET-fresh),
         "target_50_is_not_hard_limit":True,
+        "existing_lease_concurrency_per_signed_node":1,
         "suggested_job_placements":assignments,
         "jobs_unplaced":held,
         "live_dispatch_authority":"EXISTING_SIGNED_ED25519_SERVER_QUEUE_ONLY",
