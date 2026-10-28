@@ -209,10 +209,17 @@ requireCondition(composer.includes('reconcileManualService()')&&
 requireCondition(composer.includes('fullMailto.length>1800')&&
   composer.includes('requiresPaste?subjectUrl:fullMailto'),
   'mobile email preparation must preserve long draft text rather than truncate it');
+requireCondition(composer.includes('function setScopeHint(serviceId)')&&
+  composer.includes('scopeHint.setAttribute(\'aria-live\',\'polite\')'),
+  'service-qualified intake needs contextual accessible instructions without extra fields');
+requireCondition(composer.includes('setScopeHint(key)')&&
+  composer.includes('setScopeHint(service.id)'),
+  'manual and deep-linked service selection must show the matching non-sensitive question hint');
+
 for(const [file,html] of [
  ['fa/darkhast-moshavere/',faIntake],['en/request-consultation/',enIntake]
 ]){
- requireCondition(html.includes('consultation-composer.js?v=20261028-canonical-intake-v2'),
+ requireCondition(html.includes('consultation-composer.js?v=20261028-canonical-intake-v3'),
    file+' must load the current canonical offer selector rather than a cached script');
 }
 const navigator=read('assets/js/jr-service-navigator-v1.js');
