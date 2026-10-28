@@ -189,6 +189,7 @@ def develop(*, repo: Path, private: Path, target: str, objective: str,
         "before_sha256": before_sha, "after_sha256": _digest(output),
         "model": str(response.get("model", "LOCAL"))[:90],
         "objective": objective[:500], "diff_lines": len(diff.splitlines()),
+        "diff_sha256": _digest(diff.encode("utf-8")),
         "workspace_path": str(working), "rollback_snapshot": str(backup),
         **patch_review,
         "tests_run": False, "canonical_checkout_modified": False,
@@ -197,6 +198,80 @@ def develop(*, repo: Path, private: Path, target: str, objective: str,
     (receipt_dir / (nonce + ".json")).write_text(
         json.dumps(receipt, ensure_ascii=False, indent=2), encoding="utf-8")
     return receipt
+
+
+
+def preview_diff(*, private: Path, receipt_id: str) -> dict:
+    """Read and verify an already-written isolated draft without executing it.
+
+    The owner is shown the exact unified diff and both file digests *before*
+    deciding whether to request any separate GitHub approval. Source text and
+    local workspace contents are untrusted; this routine grants no write.
+    Older receipts without diff_sha256 remain usable only after reconstructing
+    the diff from both hash-verified local snapshots.
+    """
+    if not isinstance(receipt_id, str) or not re.fullmatch(
+            r"\d{8}T\d{6}Z-[a-f0-9]{12}", receipt_id):
+        raise ValueError("JREI_WORKSPACE_RECEIPT_ID_INVALID")
+    workspace = private / WORKSPACE_DIR
+    receipts = workspace / ".receipts"
+    if workspace.is_symlink() or receipts.is_symlink():
+        raise ValueError("JREI_WORKSPACE_RECEIPT_LINK_NOT_ALLOWED")
+    receipt_file = receipts / (receipt_id + ".json")
+    snapshot = receipts / (receipt_id + ".before")
+    diff_file = receipts / (receipt_id + ".diff")
+    for path, limit in ((receipt_file, 15000), (snapshot, MAX_SOURCE_BYTES),
+                        (diff_file, 20000)):
+        if (path.is_symlink() or not path.is_file()
+                or path.stat().st_size > limit):
+            raise ValueError("JREI_WORKSPACE_REVIEW_ARTIFACT_INVALID")
+    record = json.loads(receipt_file.read_text(encoding="utf-8"))
+    if (not isinstance(record, dict)
+            or record.get("schema") != "jr.jrei.windows-workspace-edit.v1"
+            or record.get("id") != receipt_id
+            or record.get("state") != "LOCAL_CODE_WRITTEN_UNTESTED"
+            or record.get("canonical_checkout_modified") is not False
+            or record.get("production_changed") is not False):
+        raise ValueError("JREI_WORKSPACE_RECEIPT_NOT_REVIEWABLE")
+    relative = safe_path(record.get("target"))
+    draft = workspace.joinpath(*relative.parts)
+    if (draft.is_symlink() or not draft.is_file()
+            or not draft.resolve().is_relative_to(workspace.resolve())
+            or draft.stat().st_size > MAX_SOURCE_BYTES):
+        raise ValueError("JREI_WORKSPACE_REVIEW_TARGET_INVALID")
+    previous = snapshot.read_bytes()
+    current = draft.read_bytes()
+    if (_digest(previous) != record.get("before_sha256")
+            or _digest(current) != record.get("after_sha256")):
+        raise ValueError("JREI_WORKSPACE_REVIEW_HASH_CHANGED")
+    before = previous.decode("utf-8")
+    after = current.decode("utf-8")
+    expected = "".join(unified_diff(
+        before.splitlines(keepends=True), after.splitlines(keepends=True),
+        fromfile="previous/" + relative.as_posix(),
+        tofile="workspace/" + relative.as_posix()))
+    recorded = diff_file.read_text(encoding="utf-8")
+    if not expected or expected != recorded:
+        raise ValueError("JREI_WORKSPACE_REVIEW_DIFF_MISMATCH")
+    if (record.get("diff_sha256") is not None
+            and _digest(recorded.encode("utf-8")) != record["diff_sha256"]):
+        raise ValueError("JREI_WORKSPACE_REVIEW_DIFF_HASH_CHANGED")
+    if len(recorded) > 18000:
+        raise ValueError("JREI_WORKSPACE_REVIEW_DIFF_TOO_LARGE")
+    return {
+        "schema": "jr.jrei.workspace-diff-review.v1",
+        "state": "LOCAL_DRAFT_UNTESTED_REVIEW_ONLY",
+        "receipt_id": receipt_id,
+        "target": relative.as_posix(),
+        "before_sha256": record["before_sha256"],
+        "after_sha256": record["after_sha256"],
+        "source_sha256": record.get("source_sha256"),
+        "diff_sha256": _digest(recorded.encode("utf-8")),
+        "diff": recorded,
+        "tests_run": False,
+        "github_pushed": False,
+        "production_changed": False,
+    }
 
 
 def rollback(*, private: Path, receipt_id: str) -> dict:
