@@ -98,8 +98,8 @@ test('both public knowledge hubs include the same reviewed-only news archive sea
 });
 
 test('one-click owner release safely provisions only existing master with private HMAC, not news rights',()=>{
-  const cfg=read('api/index.php');
-  const schema=read('api/operations-schema.php');
+  const cfg=fs.readFileSync(path.join(root,'api/index.php'),'utf8');
+  const schema=fs.readFileSync(path.join(root,'api/operations-schema.php'),'utf8');
   assert.match(schema,/function operationsProvisionNewsMasterOwnerRelease/);
   assert.match(schema,/operationsCronSchemaReady\(\$pdo\)/);
   assert.match(schema,/operationsCronNewsPipelineIds\(\)/);
