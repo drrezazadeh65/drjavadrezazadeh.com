@@ -6,10 +6,10 @@
 
 | Owner Windows PC | Existing signed identity | Local role | Entrypoint after acceptance |
 |---|---|---|---|
-| Node A | Its **existing signed** Node A identity (RAM-independent) | RAM not yet confirmed in this release discussion | `JREI-SETUP-NODE-A.cmd` |
+| Node A | Its **existing signed** Node A identity (RAM-independent) | **15.9 GB**, observed in the owner's second-machine terminal screenshot | `JREI-SETUP-NODE-A.cmd` |
 | Node B | Its **existing signed** Node B identity (RAM-independent) | **31.8 GB** measured on the owner's screenshot; this PC is **B**, despite the previous A=32 GB assumption | `JREI-SETUP-NODE-B.cmd` |
 
-The identities are checked **on the machine itself**, not inferred from RAM, filenames or model capacity. Signed local Node B was directly observed with 31.8 GB RAM. **Do not rename Node B to A** or edit private keys to match previous guesses. Node A hardware must be inspected separately; neither node gains the other PC's memory or GPU. No new model, replica database, public port, website dashboard or third-party AI application is installed.
+The identities are checked **on the machine itself**, not inferred from RAM, filenames or model capacity. Signed local Node A was directly observed with 15.9 GB RAM and Node B with 31.8 GB RAM. **Do not rename Node B to A** or edit private keys to match previous guesses. Actual GPU capability and signed outbound connectivity still require separate verification; neither node gains the other PC's memory or GPU. No new model, replica database, public port, website dashboard or third-party AI application is installed.
 
 ## Exact release route (AFTER the single final acceptance)
 
@@ -40,3 +40,7 @@ The wrapper uses a different SHA-checked copy of the **same UI installer** on ea
 ## Discovered identity correction — 2026-10-29
 
 The first two-node ZIP was successfully packaged, but the owner's real 31.8-GB Windows machine reported `NodeRole=NODE_B`, `ProtocolOK=True` and `SiteOK=True`. A role-specific A launcher therefore correctly rejected this machine. The source code now uses the **signed node identity, not a RAM-based A/B assumption**, and adds `JREI-SETUP-THIS-PC.cmd` to future manually built ZIPs. **Already downloaded artifacts are immutable and do not contain these changes; a new manually dispatched build is needed after final acceptance.** No automatic rebuild, node reassignment, keys edit, test, install or live publication was performed.
+
+## Second computer observed — signed identity versus physical memory
+
+The owner's later second-machine screenshot independently displays the existing `nodeId=28b1c0d2-b833-41cb-97e2-df92c9373de0` and **15.9 GB RAM**, i.e. **Node A**. The first computer already showed **Node B with 31.8 GB RAM**. Thus **A=15.9 GB, B=31.8 GB** on these actual machines. These observations establish the *local file values and RAM measurement*, not proof of live signed-worker connectivity or functional AI. The originally downloaded ZIP hard-coded the opposite RAM-to-node assumption and must not be used for per-node installation. Future source fixes are absent from already built immutable ZIP artifacts. Wait for the corrected release package and independent final acceptance; do not alter a signed node ID or disable install verification.
