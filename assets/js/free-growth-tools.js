@@ -18,7 +18,9 @@
       ],
       advice: 'پیش از اولویت‌بندی، منابع رسمی پذیرش و ماتریس مقایسه رشته‌ها را مرور کنید.',
       href: '/fa/rahnamaha/moghayese-reshteha-ba-matris-tasmim/',
-      link: 'کاربرگ کامل مقایسه رشته‌ها'
+      link: 'کاربرگ کامل مقایسه رشته‌ها',
+      nextHref: '/fa/services/field_selection_standard/',
+      nextLabel: 'اگر به بررسی فردی نیاز دارید: تفاوت خدمت انتخاب رشته استاندارد'
     },
     {
       id: 'talent', name: 'شناخت اولیه ظرفیت‌های رشد',
@@ -30,7 +32,9 @@
       ],
       advice: 'یک مشاهده کوتاه، تنها آغاز گفت‌وگوست؛ مسیر رشد باید به مرور و با رضایت معتبر بازبینی شود.',
       href: '/fa/golden-talent/ravesh-shenasi/',
-      link: 'روش‌شناسی چندمنبعی Golden Talent'
+      link: 'روش‌شناسی چندمنبعی Golden Talent',
+      nextHref: '/fa/services/talent_initial/',
+      nextLabel: 'پیش از سفارش، دامنه استعدادیابی اولیه را بشناسید'
     },
     {
       id: 'manuscript', name: 'آمادگی اولیه مقاله',
@@ -42,7 +46,9 @@
       ],
       advice: 'موارد نامشخص را به فهرست اصلاحات تبدیل کنید؛ بازبینی علمی جایگزین داوری مجله نیست.',
       href: '/fa/khadamat-pajouheshi/',
-      link: 'بررسی خدمات پژوهشی و بازبینی مقاله'
+      link: 'بررسی خدمات پژوهشی و بازبینی مقاله',
+      nextHref: '/fa/services/manuscript_diagnostic/',
+      nextLabel: 'نمونه فرضی و حدود خدمت بازبینی تشخیصی مقاله'
     },
     {
       id: 'teacher', name: 'خودارزیابی تأملی معلم',
@@ -54,7 +60,9 @@
       ],
       advice: 'یک پرسش حرفه‌ای مشخص را برای چرخه مشاهده، اقدام و بازاندیشی انتخاب کنید.',
       href: '/fa/services/teacher_consult_60/',
-      link: 'مشاهده دامنه خدمت مشاوره معلم'
+      link: 'مشاهده دامنه خدمت مشاوره معلم',
+      nextHref: '/fa/services/teacher_dev_90/',
+      nextLabel: 'مقایسه با جلسه توسعه حرفه‌ای ۹۰ دقیقه‌ای'
     }
   ];
   function el(tag, className, text) {
@@ -110,6 +118,13 @@
       const link = el('a', null, tool.link);
       link.href = tool.href;
       output.append(link);
+      // Optional contextual next step. The tool never collects data, pushes
+      // users to checkout or claims their answers prove a need to purchase.
+      if(tool.nextHref&&tool.nextLabel){
+        const next=el('a', 'free-growth-next-step', tool.nextLabel);
+        next.href=tool.nextHref;
+        output.append(next);
+      }
       output.hidden = false;
     });
     form.addEventListener('reset', () => {
