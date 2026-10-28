@@ -51,8 +51,10 @@ Source: "build\JREI.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "jrei-device-inventory.ps1"; DestDir: "{app}"; Flags: ignoreversion
 Source: "jrei-engine-setup.ps1"; DestDir: "{app}"; Flags: ignoreversion
 Source: "build\jrei-engine-manifest.json"; DestDir: "{app}"; Flags: ignoreversion
-Source: "build\engine\*"; DestDir: "{app}\engine"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "build\source\*"; DestDir: "{app}\source"; Flags: ignoreversion recursesubdirs createallsubdirs
+; Versioned frozen core: never replace a running executable or DLL
+; during upgrade; prior versions remain available for owner rollback.
+Source: "build\engine\*"; DestDir: "{app}\engine-v{#MyAppVersion}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "build\source\*"; DestDir: "{app}\source-v{#MyAppVersion}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Tasks]
 ; Checked once by default: per-user offline engine registration/reconciliation.
