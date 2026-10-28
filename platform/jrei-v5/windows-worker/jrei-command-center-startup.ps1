@@ -6,7 +6,7 @@
 #>
 [CmdletBinding()]
 param(
- [ValidateSet('Install','Status','Open','Remove')][string]$Mode='Status',
+ [ValidateSet('Install','Status','Open','Start','Remove')][string]$Mode='Status',
  [switch]$OwnerApproved
 )
 Set-StrictMode -Version Latest
@@ -70,6 +70,45 @@ if($Mode -eq 'Status'){
 if($Mode -eq 'Open'){
  OpenOwnerConsole
  return
+}
+if($Mode -eq 'Start'){
+ # Desktop EXE launches ONLY the already-installed, signed-to-owner task.
+ # Never repairs or registers a task, never opens a browser, never bypasses
+ # source approval, and never changes a running mission.
+ $installed=Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue
+ if($null -eq $installed){throw 'JREI_DESKTOP_EXISTING_OWNER_TASK_MISSING'}
+ if(-not (IsCurrentOwner ([string]$installed.Principal.UserId))){
+   throw 'JREI_DESKTOP_TASK_DIFFERENT_OWNER'
+ }
+ if($installed.Actions.Count -ne 1){
+   throw 'JREI_DESKTOP_TASK_ACTION_INVALID'
+ }
+ $cmd=$installed.Actions[0]
+ $expectedPython=[IO.Path]::GetFullPath($python)
+ $actualPython=[IO.Path]::GetFullPath([string]$cmd.Execute)
+ $work=[IO.Path]::GetFullPath([string]$cmd.WorkingDirectory)
+ $sourcePrefix=[IO.Path]::GetFullPath((Join-Path $repo 'platform\jrei-python')) 
+ $immutablePrefix=[IO.Path]::GetFullPath((Join-Path $env:LOCALAPPDATA 'JREI-Python\windows-owner-app-versions'))
+ $sourceAllowed=($work -ieq $sourcePrefix -or
+   $work.StartsWith($immutablePrefix+[IO.Path]::DirectorySeparatorChar,[StringComparison]::OrdinalIgnoreCase))
+ if(-not $sourceAllowed -or $cmd.Arguments -cne '-B -m jrei_service.windows_command_center --serve' -or
+    $actualPython -ine $expectedPython -or
+    -not (Test-Path -LiteralPath $cmd.Execute -PathType Leaf)){
+   throw 'JREI_DESKTOP_TASK_ACTION_NOT_OWNER_APPROVED'
+ }
+ if(Ready){
+   Write-Output '[JREI] DESKTOP_EXISTING_OWNER_TASK_RESPONDING'
+   return
+ }
+ Start-ScheduledTask -TaskName $taskName -ErrorAction Stop
+ for($i=0;$i -lt 12;$i++){
+  if(Ready){
+   Write-Output '[JREI] DESKTOP_PRIVATE_ENGINE_STARTED_WITHOUT_BROWSER'
+   return
+  }
+  Start-Sleep -Seconds 2
+ }
+ throw 'JREI_DESKTOP_PRIVATE_ENGINE_STILL_OFFLINE'
 }
 if(-not $OwnerApproved){throw 'JREI_EXPLICIT_OWNER_APPROVAL_REQUIRED'}
 if($Mode -eq 'Remove'){
