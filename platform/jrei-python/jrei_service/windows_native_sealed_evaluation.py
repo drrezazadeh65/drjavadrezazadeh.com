@@ -138,12 +138,25 @@ def evaluate(*, db_path: Path, private: Path, run_id: str,
     network.load_state_dict(state, strict=True)
     network.eval()
     context = architecture["block_size"]
-    # Fixed, non-adaptive starts; do not let this test guide further model
-    # selection unless a new sealed source-version split is created.
-    max_windows = 64
-    start_positions = list(range(0, len(sealed) - context - 1, context))[:max_windows]
-    if not start_positions:
+    # Fixed, content-blind, broadly distributed windows. Selecting the
+    # FIRST 64 windows silently over-represented early sources in a long
+    # sealed corpus. No sealed-test score is used to tune this sampler.
+    all_positions = range(0, len(sealed) - context, context)
+    maximum = 64  # Bounded CPU-only private evaluation, not a daily quota.
+    count = len(all_positions)
+    if not count:
         raise ValueError("JREI_SEALED_TEST_NO_WINDOWS")
+    if count <= maximum:
+        start_positions = list(all_positions)
+    else:
+        picks = [(index * (count - 1)) // (maximum - 1)
+                 for index in range(maximum)]
+        start_positions = [all_positions[index] for index in picks]
+    positions_sha256 = hashlib.sha256(json.dumps(
+        start_positions, separators=(",", ":")).encode("ascii")).hexdigest()
+    # This is only an excerpted next-token benchmark. Not every source is
+    # necessarily covered by the 64 sampled windows, and script counts do
+    # not establish per-language accuracy or reasoning competence.
     total = 0.0
     tokens = 0
     with torch.no_grad():
@@ -165,6 +178,15 @@ def evaluate(*, db_path: Path, private: Path, run_id: str,
         "model_sha256": receipt["weights_sha256"],
         "corpus_sha256": proof["sealed_test_sha256"],
         "source_groups": [entry["id"] for entry in proof["sealed_test_sources"]],
+        "sealed_partition_script_counts_at_preparation":
+            proof.get("bilingual_script_coverage", {}).get("SEALED_TEST"),
+        "fixed_sampler": "CONTENT_BLIND_UNIFORM_STRIDED_WINDOWS_V1",
+        "available_nonoverlapping_windows": count,
+        "windows_sampled": len(start_positions),
+        "sample_positions_sha256": positions_sha256,
+        "window_coverage_fraction": round(len(start_positions) / count, 6),
+        "all_sealed_tokens_evaluated": False,
+        "per_language_proficiency_evaluated": False,
         "cross_entropy_nats": round(total / tokens, 8),
         "cross_entropy_bits_per_token": round(bits, 8),
         "uniform_bits_per_token": round(math.log2(architecture["vocab_size"]), 8),
