@@ -670,6 +670,9 @@ class Desktop:
         native = data.get("native_neural_training") or {}
         if not isinstance(native, dict):
             native = {}
+        foundation = data.get("native_foundation_source_readiness") or {}
+        if not isinstance(foundation, dict):
+            foundation = {}
         learning = data.get("continuous_learning") or {}
         if not isinstance(learning, dict):
             learning = {}
@@ -703,6 +706,13 @@ class Desktop:
                  else "بدون دادهٔ معتبر"),
             "آموزش مدل زبانی اختصاصی: " +
                 str(data.get("native_language_model_training", "تأیید نشده")),
+            "منابع مجاز برای آماده‌سازی مدل از صفر (نمونه): " +
+                str(foundation.get("source_count_sample", "نامشخص")),
+            "برچسب ناشران متمایز (تأیید استقلال نشده): " +
+                str(foundation.get("distinct_reviewed_issuer_labels", "نامشخص")),
+            "وضعیت مقدماتی مجموعهٔ آموزش: " +
+                str(foundation.get("state") or "نامشخص"),
+            "پوشش فارسی و انگلیسیِ مجموعه‌ها: بررسی نشده تا آماده‌سازی با تأیید مالک",
             "موتور شواهد: " +
                 str(data.get("native_evidence_answering", "نامشخص")),
             "یادگیری پیوسته (وضعیت ثبت‌شده): " +
