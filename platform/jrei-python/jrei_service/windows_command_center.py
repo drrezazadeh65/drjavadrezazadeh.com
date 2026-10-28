@@ -740,6 +740,21 @@ def recent(limit: int = 25):
 
 
 def windows_app_source_commit():
+    # A real frozen distribution has a pinned BUILD source manifest, which is
+    # distinct from independent functional acceptance or signed publication.
+    if getattr(sys, "frozen", False):
+        manifest = Path(sys.executable).resolve().parent.parent / "jrei-engine-manifest.json"
+        try:
+            if not manifest.is_symlink() and manifest.is_file() and manifest.stat().st_size <= 10000:
+                info = json.loads(manifest.read_text(encoding="utf-8-sig"))
+                sha = info.get("source_commit")
+                if (info.get("schema") == "jr.jrei.offline-engine-package.v1"
+                    and info.get("source_branch") == "migration/bertina-linux6"
+                    and isinstance(sha, str) and re.fullmatch(r"[0-9a-f]{40}", sha)):
+                    return sha
+        except (OSError, UnicodeError, ValueError, TypeError):
+            pass
+        return None
     # Stamped only in the immutable Windows-source snapshot by the existing
     # scheduled-task updater. An unstamped Git checkout is NOT a deployed app.
     file = Path(__file__).resolve().parent.parent / "jrei-app-release.json"
