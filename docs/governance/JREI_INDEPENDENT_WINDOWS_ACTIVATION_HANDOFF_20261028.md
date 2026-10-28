@@ -1,43 +1,30 @@
-# Independent JREI Windows activation — 28 October 2026
+# JREI native-only, no-third-party-model handoff — 28 October 2026
 
-STATUS: SOURCE ONLY. No model installed or launched on the owner PCs, no tests run, no site deployment.
+**Canonical branch:** migration/bertina-linux6  
+**Status:** Code committed to GitHub. Windows installation, source activation and any actual model training are NOT remotely verified. No tests or website deployment have been run.
 
-## One-click owner setup (at final acceptance)
+## Owner model policy (supersedes earlier Granite recommendation)
 
-The canonical, already-synced Windows repository contains:
+JREI is its own owner-private Windows app and learning system. The operating path MUST NOT download, install or start Granite, Qwen, LM Studio, a commercial API, or any other external pretrained language model. The earlier Granite installer and associated model acquisition module have been removed from the canonical source. An already existing outside model process is not touched or secretly deleted. No existing live task is altered merely by committing this source.
+
+Reusing reusable open-source *code and algorithms* is permitted with licenses respected. Reusing pretrained weights or relabeling an external model as JREI is not permitted by this operating policy.
+
+## What works in code without pretrained weights
+
+The existing private JREI Python command center uses its existing SQLite knowledge and memory store and scheduler. The code includes approved-source acquisition (owner-authorized sources only), local ingestion, rights-aware versioned passages, FTS5 or bounded lexical retrieval, provenance and citations, knowledge gap logging and autonomous research agenda. Existing models are not necessary for this evidence-retrieval functionality.
+
+The local conversational path now has a **native extractive fallback** when no trained language model is present: authorized passages can be quoted with source anchors, and missing knowledge yields a clear evidence gap rather than fabricated ChatGPT-like text. This is not a generative LLM, not new neural weights, and cannot yet do unrestricted coding or open-ended academic synthesis.
+
+The owner UI and status distinguish the two: native evidence handling is available **in the new source**; independently trained general-purpose JREI language-model weights have **not** been created. Previously installed JREI app snapshots may remain on earlier code until acceptance and source promotion.
+
+## Windows owner command
 
 platform/jrei-v5/windows-worker/JREI-START-INDEPENDENT-AI.cmd
 
-Double-click on each already-prepared Windows computer, read the notice, confirm Y, and retain the nonsecret output screenshot. This wrapper invokes jrei-independent-windows-setup.ps1 which uses existing services rather than installing a second chatbot:
+The launcher's checked-in code now syncs and starts only the original JREI private Windows app. It does not require installing an additional app, download external weights or deploy the website. The existing owner-SID and active-mission checks remain. The current automatic repository transfer can fetch new GitHub commits, but transfer is **not the same as activation**: immutable app snapshots are protected by separate final acceptance and approval.
 
-1. Existing 30-minute GitHub canonical fast-forward-only repository sync.
-2. Existing private 127.0.0.1:8092 JREI command-center Windows app installation and opt-in pinned source snapshot auto-updates.
-3. Explicit official Apache-2.0 IBM Granite 4.1-3B Q4_K_M GGUF acquisition from the actual Hugging Face commit, verifying the published LFS SHA256, and starting the previously approved llama-server.exe under a new owner-only 127.0.0.1:8093 task. This is an existing open-source model backend, not a ChatGPT API subscription. GPU execution and Persian capability are not yet validated. CPU fallback is intentional until GPU compatibility is observed.
+## Training a useful proprietary JREI language model
 
-The former Qwen 8081/8082 tasks and files are not automatically deleted: no destructive cutover should precede verified replacement. Qwen is retired from the new JREI answer-routing path. Signed website workers, public URLs, private history and one-click Bertina deployment are unchanged.
+A new neural language model cannot acquire credible general intelligence simply by running a learning loop. The next engineering stages need (1) rights-verified, sufficient bilingual training datasets, (2) a reusable open-source neural architecture and training code, (3) compute resources and training/validation cycles, (4) a checkpoint signed as trained by JREI and verified independently for Persian and English, and (5) owner-approved activation within the already existing app. No such checkpoint is claimed today.
 
-## Automatic update governance
-
-Windows source sync still runs every 30 minutes if previously installed. Source transfer is not automatic executable promotion.
-
-Before an autonomous app upgrade can replace the working runtime, an independent integrated acceptance must actually pass; the source tree must be pinned by a separately issued governance document:
-
-docs/governance/JREI_WINDOWS_OWNER_APP_APPROVED_SOURCE_V1.json
-
-That ledger must contain:
-- schema = jr.jrei.windows-owner-app-approval.v1
-- approvedSourceTree = real git rev-parse HEAD:platform/jrei-python
-- integratedAcceptancePassed = true
-- ownerApprovedAutomaticPromotion = true
-
-No fake approval ledger has been issued. The explicitly owner-invoked initial Install is separate and cannot certify quality on its own. The updater preserves the old version and attempts an original-task rollback if the new expected commit does not appear on the authenticated 8092 status.
-
-## Source-present, not live-activated
-
-- Native GitHub status/source/site-governor reader with restricted token and SHA-pinned owner-reviewed commits.
-- Native Diffusers/PyTorch/Pillow image-studio drafts with WebP, 16:9, 1:1 and 4:5 variants, Persian/English alt, SHA256, and human editorial review. Installing an appropriate independently licensed image-model and Python libraries is still outstanding.
-- Native optional PEFT LoRA training code; no weight updates performed.
-- Native knowledge retrieval and code learning agendas; no independently proven learning gains.
-- PC B GPU verification and dual-PC dispatch still outstanding. Merely installing the app on PC B does not merge GPU resources.
-
-**Do not press the website deployment button for these changes.** No direct remote desktop or Windows execution is available in this chat; only the user can verify installation outcomes on the Windows PCs. No credentials should be pasted into ChatGPT.
+All coding remains on the canonical branch with [skip ci]. Keep production website URLs and the owner one-click Bertina deployment unchanged. No new independent database, admin dashboard, external subscription or desktop application.
