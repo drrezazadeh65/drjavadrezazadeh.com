@@ -40,7 +40,7 @@ Copy:
 اگر زبان‌آموزان تکلیف‌ها را کامل می‌کنند اما در گفت‌وگوی کلاسی مشارکت اندکی دارند، آیا نخستین راه‌حل باید افزایش تکلیف باشد؟
 شاید لازم باشد ابتدا فرصت واقعی گفت‌وگو، تناسب فعالیت با هدف درس و نوع بازخورد را بررسی کنیم. قضاوت حرفه‌ای معلم از شناخت همین بافت و شواهد آغاز می‌شود، نه از اجرای یک نسخه ثابت برای همه کلاس‌ها.
 در صفحه مشاوره تخصصی معلم توضیح داده‌ام که چنین مسئله‌ای چگونه می‌تواند موضوع یک گفت‌وگوی حرفه‌ای محدود و قابل‌اجرا باشد.
-CTA: https://drjavadrezazadeh.com/fa/services/teacher_consult_60/
+CTA: https://drjavadrezazadeh.com/fa/tadris/
 Hashtags: #آموزش_زبان #توسعه_حرفه_ای_معلم #ارزشیابی #معلم
 
 ## Campaign EN-01 | The problem with "This study proves..."
@@ -62,7 +62,7 @@ When a classroom intervention appears ineffective, the explanation is rarely fou
 Professional guidance should therefore begin with a defined problem and the evidence already available in the teacher's context. Its purpose is not to replace teachers' judgment, but to support more explicit and revisable decisions.
 
 A practical hypothetical example and the scope of an educator consultation are available on my website.
-CTA: https://drjavadrezazadeh.com/en/services/teacher_consult_60/
+CTA: https://drjavadrezazadeh.com/en/teaching/
 Hashtags: #TeacherEducation #ProfessionalLearning #ELT #Assessment
 
 ## Campaign EN-03 | Research editing without erasing authorial voice
@@ -96,3 +96,11 @@ For each post, record platform, locale, actual publish date, content ID, canonic
 
 ## Copy style
 Persian copy should be lucid, explanatory, practice-oriented and respectful. English copy should preserve the user's academic voice: context-sensitive argument, measured interpretation and evidence-based qualification rather than hype or generic AI marketing language.
+
+
+## Evidence update — teacher professional development, 28 October 2026
+- The EN-02 and FA-04 campaign destinations above intentionally prioritise a **free, substantive teaching resource** over immediate paid checkout. These pages link readers to scoped teacher consultation or development only when relevant.
+- Public source evidence for the editorial resource: EEF Effective Professional Development guidance (2021), Timperley et al. Teacher Professional Learning and Development best-evidence synthesis (2007), and OECD TALIS 2024 teacher expertise findings published in 2025. TALIS teacher-reported impact is **not** a causal effect estimate.
+- Ubersuggest keyword snapshot (United States, English, observed 2026-10-28; vendor estimates, not Google Search Console): "teacher professional development" ~6,600 estimated monthly searches, SEO difficulty 21/100, CPC USD 7.21; "respond to reviewer comments" ~30, difficulty 5; "academic manuscript editing" ~10, difficulty 13. Treat search-volume estimates as indicative, not certain or transferable to Iran. These comparisons support building depth on the EXISTING /en/teaching/ page and linking to /en/services/teacher_dev_90/, not creating a duplicate doorway URL.
+- The Persian "انتخاب رشته" idea output contained very small/repeated volume estimates, zero-volume noisy variants and irrelevant terms; do **not** treat that output as a trustworthy measurement of demand in Iran. Prioritise verified Search Console impressions and official seasonal exam needs instead.
+- Do not publish factual numeric claims in social media from vendor keyword estimates as if they were site traffic, and do not infer sales intent from informational search volume.
