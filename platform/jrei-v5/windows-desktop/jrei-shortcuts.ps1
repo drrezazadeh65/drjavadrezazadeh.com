@@ -11,8 +11,18 @@ $ErrorActionPreference='Stop'
 if($env:OS -cne 'Windows_NT'){
  throw 'JREI_SHORTCUT_WINDOWS_REQUIRED'
 }
-$version='0.1.6'
-$base=Join-Path $env:LOCALAPPDATA ('Programs\JREI\releases\v'+$version)
+$version='0.1.7'
+$base=[IO.Path]::GetFullPath($PSScriptRoot)
+$allowed=@(
+ (Join-Path $env:LOCALAPPDATA ('Programs\JREI\releases\v'+$version)),
+ (Join-Path $env:LOCALAPPDATA ('JREI-Applications\releases\v'+$version)),
+ (Join-Path $env:USERPROFILE ('JREI-Applications\releases\v'+$version))
+)
+$match=$false
+foreach($path in $allowed){
+ if([IO.Path]::GetFullPath($path) -ieq $base){$match=$true}
+}
+if(-not $match){throw 'JREI_SHORTCUT_INSTALL_ROOT_UNEXPECTED'}
 $expected=Join-Path $base 'JREI.exe'
 if([IO.Path]::GetFullPath($AppExe) -ine [IO.Path]::GetFullPath($expected)){
  throw 'JREI_SHORTCUT_UNEXPECTED_PROGRAM_PATH'
