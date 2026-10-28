@@ -78,6 +78,7 @@ The following specific source changes were committed on the sole canonical branc
 | Package | Source changes and acceptance boundary | Observed commit |
 |---|---|---|
 | P3 / scoped coding | `windows_workspace.py` records exact `diff_sha256` and exposes a hash-revalidated, read-only `preview_diff` using existing private receipts and snapshot files. | `f64e0c8149c190bb9464ad5928dd60e6af21b702` |
+| P3 / local rollback | The same existing workspace now restores exact owner-private snapshots via atomic same-folder replacement, with hash/conflict checking and no source-tree or production write. | `0cf0e460b33ca11882abaf182454325a0b33bd3d` |
 | P3 / API | Existing owner-authenticated 8092 API now serves `GET /api/workspace/diff?id=...`. No new port, database or execution interface. | `5062cb0bd795136d5c8ed10c17c543e3b35e9215` |
 | P1 + P3 / Tk UI | Native GUI can display the actual local draft unified diff and before/after hashes after an approved local edit, or from a named receipt; it cannot authorize GitHub publishing. | `e9e7d255833325702fcecea5a6d9e17cc15315ea` |
 | P5 / model truth | `windows_native_neural.snapshot` returns registry checkpoint SHA and `CANDIDATE_TRAINED_UNREVIEWED` if a run is recorded; never treats SQLite flags as independent quality evidence. | `82f4b79b841b46ac8b9d4e701704caf185d7db3e` |
