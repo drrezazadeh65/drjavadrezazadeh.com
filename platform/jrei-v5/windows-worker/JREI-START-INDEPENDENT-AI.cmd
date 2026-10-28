@@ -20,11 +20,12 @@ echo JREI - Original Windows Independent AI
 echo ----------------------------------------------------
 echo Original private command-center, existing site workers
 echo and one-click GitHub/Bertina deployment are preserved.
-echo This action syncs original JREI Windows code and starts its
-echo existing private command center. No other application,
-echo cloud language model or pretrained weights are installed.
-echo The native evidence and learning engine runs locally.
-echo A trained general-purpose language model is NOT yet ready.
+echo This action syncs original JREI Windows source code.
+echo Only a release candidate that has passed final integrated
+echo acceptance can replace the currently installed private app.
+echo No other desktop app, cloud language model, or external
+echo pretrained model weights will be installed or downloaded.
+echo JREI's general-purpose native LLM is NOT yet trained.
 echo ----------------------------------------------------
 choice /c YN /m "Do you authorize reviewed JREI Windows installation"
 if errorlevel 2 exit /b 0
