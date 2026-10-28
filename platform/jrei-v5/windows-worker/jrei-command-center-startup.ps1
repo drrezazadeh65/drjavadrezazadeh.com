@@ -13,7 +13,8 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference='Stop'
 if($env:OS -cne 'Windows_NT'){throw 'JREI_WINDOWS_ONLY'}
 $repo=Join-Path $env:LOCALAPPDATA 'JREI-Python\repo'
-$script=Join-Path $repo 'platform\jrei-python\jrei_service\windows_command_center.py'
+$sourceRoot=Join-Path $repo 'platform\jrei-python'
+$script=Join-Path $sourceRoot 'jrei_service\windows_command_center.py'
 $python=Join-Path $env:LOCALAPPDATA 'JREI-Python\venv\Scripts\python.exe'
 $root=Join-Path $env:LOCALAPPDATA 'JREI\command-center'
 $token=Join-Path $root 'owner-token'
@@ -22,7 +23,11 @@ $owner=[Security.Principal.WindowsIdentity]::GetCurrent().Name
 function Ready {
  try {
    $r=Invoke-WebRequest -UseBasicParsing -Uri 'http://127.0.0.1:8092/' -TimeoutSec 3
-   return $r.StatusCode -eq 200 -and $r.Content.Contains('JREI |')
+   # Legacy panel uses "JREI |"; the private conversational UI uses
+   # "JREI AI". Both are valid loopback app pages, never a 404/redirect.
+   $html=[string]$r.Content
+   return ($r.StatusCode -eq 200 -and
+      ($html.Contains('<title>JREI AI') -or $html.Contains('<title>JREI |')))
  }catch{return $false}
 }
 function OpenOwnerConsole {
@@ -59,17 +64,40 @@ if($Mode -eq 'Remove'){
 }
 if(-not (Test-Path -LiteralPath $script -PathType Leaf) -or
    -not (Test-Path -LiteralPath $python -PathType Leaf) -or
+   -not (Test-Path -LiteralPath $sourceRoot -PathType Container) -or
    -not (Test-Path -LiteralPath $repo -PathType Container)){
  throw 'JREI_COMMAND_CENTER_SOURCE_OR_PYTHON_NOT_FOUND'
 }
 $existing=Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue
+# Python -m resolves the package from its parent directory (WorkingDirectory).
+# Directly running jrei_service/windows_command_center.py cannot resolve the
+# jrei_service package without a separate PYTHONPATH, as observed on Windows.
+$action=New-ScheduledTaskAction -Execute $python -Argument '-B -m jrei_service.windows_command_center --serve' -WorkingDirectory $sourceRoot
 if($null -eq $existing){
- $action=New-ScheduledTaskAction -Execute $python -Argument ('"'+$script+'" --serve') -WorkingDirectory $repo
  $trigger=New-ScheduledTaskTrigger -AtLogOn -User $owner
  $settings=New-ScheduledTaskSettingsSet -ExecutionTimeLimit (New-TimeSpan -Seconds 0) -MultipleInstances IgnoreNew -StartWhenAvailable -RestartCount 3 -RestartInterval (New-TimeSpan -Minutes 1)
  $principal=New-ScheduledTaskPrincipal -UserId $owner -LogonType Interactive -RunLevel Limited
  Register-ScheduledTask -TaskName $taskName -Action $action -Trigger $trigger -Settings $settings -Principal $principal -Description 'JREI owner-private GPU chat, fixed missions and background learning on 127.0.0.1:8092' | Out-Null
  Write-Output '[JREI] WINDOWS_COMMAND_TASK_REGISTERED'
+}else{
+ # Reconcile the older installed action: "already registered" alone is not
+ # success when the registered command cannot import the Python package.
+ if($existing.Principal.UserId -cne $owner){
+   throw 'JREI_COMMAND_TASK_OWNER_MISMATCH'
+ }
+ $needsUpgrade=$true
+ if($existing.Actions.Count -eq 1){
+   $prior=$existing.Actions[0]
+   $needsUpgrade=($prior.Execute -cne $action.Execute -or
+      $prior.Arguments -cne $action.Arguments -or
+      $prior.WorkingDirectory -cne $action.WorkingDirectory)
+ }
+ if($needsUpgrade){
+   Set-ScheduledTask -TaskName $taskName -Action $action -ErrorAction Stop | Out-Null
+   Write-Output '[JREI] WINDOWS_COMMAND_TASK_ACTION_UPGRADED'
+ }else{
+   Write-Output '[JREI] WINDOWS_COMMAND_TASK_ALREADY_CURRENT'
+ }
 }
 if(-not (Ready)){
  Start-ScheduledTask -TaskName $taskName -ErrorAction Stop
