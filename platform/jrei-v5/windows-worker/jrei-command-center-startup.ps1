@@ -26,9 +26,9 @@ function IsCurrentOwner([string]$registeredUser) {
  if([string]::IsNullOrWhiteSpace($registeredUser)){return $false}
  try{
    if($registeredUser -match '^S-1-[0-9]+(-[0-9]+)+$'){
-     $registeredSid=(New-Object Security.Principal.SecurityIdentifier($registeredUser)).Value
+     $registeredSid=(New-Object -TypeName System.Security.Principal.SecurityIdentifier -ArgumentList $registeredUser).Value
    }else{
-     $registeredSid=(New-Object Security.Principal.NTAccount($registeredUser)).Translate(
+     $registeredSid=(New-Object -TypeName System.Security.Principal.NTAccount -ArgumentList $registeredUser).Translate(
        [Security.Principal.SecurityIdentifier]).Value
    }
    return $registeredSid -eq $ownerIdentity.User.Value
