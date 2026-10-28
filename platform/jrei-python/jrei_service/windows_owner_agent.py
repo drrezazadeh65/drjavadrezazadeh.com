@@ -22,6 +22,7 @@ from jrei_service.windows_project_workflows import requested as wants_project_wo
 from jrei_service.windows_project_generator import generate as generate_project
 from jrei_service.windows_document_retrieval import retrieve as retrieve_document_evidence
 from jrei_service import windows_continuous_learning as knowledge
+from jrei_service import windows_evidence_memory as memory_graph
 
 MAX_MESSAGE = 9000
 MAX_HISTORY = 10
@@ -600,8 +601,24 @@ def interact(*, db_path: Path, repo: Path, private: Path, ident: str, message: s
     try:
         grounding=knowledge.retrieve(db_path,message,max_passages=3)
         evidence=grounding["evidence"]
+        # A graph hit is merely a hint to the ORIGINAL source excerpt.
+        # Never put a model-extracted claim into the response as a fact.
+        # Preserve owner-private document and network-source boundaries.
+        related=memory_graph.related_evidence(db_path,message,limit=3)
+        known={item["text_sha256"] for item in evidence}
+        for item in related["evidence"]:
+            if item["text_sha256"] not in known:
+                evidence.append(item)
+                known.add(item["text_sha256"])
+            if len(evidence)>=3:
+                break
     except (OSError,ValueError,sqlite3.Error):
-        evidence=[]
+        # A graph index failure must not disable the original RAG path.
+        try:
+            evidence=knowledge.retrieve(
+                db_path,message,max_passages=3)["evidence"]
+        except (OSError,ValueError,sqlite3.Error):
+            evidence=[]
     if evidence:
         context="\\n\\n".join(
             f"SOURCE: {item['source']} | ISSUER: {item['issuer']} | "
