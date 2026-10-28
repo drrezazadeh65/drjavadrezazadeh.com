@@ -8,6 +8,7 @@ no tests are started and no remote action occurs in this module.
 from __future__ import annotations
 
 from datetime import datetime, timezone
+import ast
 from difflib import unified_diff
 from hashlib import sha256
 import json
@@ -50,6 +51,48 @@ def _source_file(root: Path, name: str) -> Path:
     if file.stat().st_size > MAX_SOURCE_BYTES:
         raise ValueError("JREI_WORKSPACE_SOURCE_TOO_LARGE")
     return file
+
+
+def _review_candidate_source(target: str, before: str,
+                             changed: str, replacement: str) -> dict:
+    """Deterministic non-executing preflight of a local model-proposed edit.
+
+    Inspired by Aider's source-aware edit/review workflow but written for
+    JREI's owner-only SHA-pinned workspace. This is syntax/context review,
+    not a test, CI success, sandbox execution or proof of correctness.
+    """
+    # The local model is allowed to *suggest* edits, not gain new file,
+    # subprocess, network, credential or environment privileges.
+    blocked = re.compile(
+        r"(?i)\b(?:exec|eval|compile|__import__)\s*\("
+        r"|\b(?:subprocess|socket|ctypes|winreg)\b"
+        r"|\bos\s*\.\s*(?:system|popen|environ|remove|unlink)\b"
+        r"|\bshutil\s*\.\s*rmtree\b"
+        r"|\b(?:requests|urllib\.request)\b"
+        r"|\b(?:process\.env|child_process|fetch|XMLHttpRequest)\b"
+        r"|\b(?:powershell|cmd\.exe|bash\s+-c)\b"
+    )
+    new_lines = set(replacement.splitlines()) - set(before.splitlines())
+    for line in new_lines:
+        # Do not trust a forbidden API concealed in a generated comment.
+        if blocked.search(line):
+            raise ValueError("JREI_WORKSPACE_NEW_PRIVILEGED_OPERATION_REFUSED")
+    if target.endswith(".py"):
+        try:
+            tree = ast.parse(changed, filename=target, mode="exec")
+        except (SyntaxError, ValueError, MemoryError) as exc:
+            raise ValueError("JREI_WORKSPACE_PYTHON_SYNTAX_NOT_VALID") from exc
+        if len(list(ast.walk(tree))) > 18000:
+            raise ValueError("JREI_WORKSPACE_AST_COMPLEXITY_LIMIT")
+        language = "PYTHON_AST_PARSED_NOT_EXECUTED"
+    else:
+        # No JS interpreter, Babel installation, test or shell execution
+        # is invoked. JS syntax remains independently unverified.
+        language = "JAVASCRIPT_SYNTAX_UNVERIFIED"
+    return {"source_review": language,
+            "privileged_operation_added": False,
+            "execution_performed": False,
+            "tests_run": False}
 
 
 def develop(*, repo: Path, private: Path, target: str, objective: str,
@@ -111,6 +154,7 @@ def develop(*, repo: Path, private: Path, target: str, objective: str,
     if base[:5000].count(old) != 1 or base.count(old) != 1:
         raise ValueError("JREI_WORKSPACE_MODEL_PATCH_NOT_ANCHORED")
     changed = base.replace(old, new, 1)
+    patch_review = _review_candidate_source(target, base, changed, new)
     output = changed.encode("utf-8")
     if len(output) > 32000 or abs(len(output) - len(base_bytes)) > MAX_DELTA_BYTES:
         raise ValueError("JREI_WORKSPACE_CHANGE_BUDGET_EXCEEDED")
@@ -146,6 +190,7 @@ def develop(*, repo: Path, private: Path, target: str, objective: str,
         "model": str(response.get("model", "LOCAL"))[:90],
         "objective": objective[:500], "diff_lines": len(diff.splitlines()),
         "workspace_path": str(working), "rollback_snapshot": str(backup),
+        **patch_review,
         "tests_run": False, "canonical_checkout_modified": False,
         "production_changed": False, "git_pushed": False,
     }
