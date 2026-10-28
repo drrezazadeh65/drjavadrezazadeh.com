@@ -32,6 +32,7 @@ from jrei_service import windows_continuous_learning as knowledge
 from jrei_service import windows_model_curriculum as curriculum
 from jrei_service import windows_native_brain as native_brain
 from jrei_service import windows_native_neural as native_neural
+from jrei_service import windows_resource_policy as resource_policy
 from jrei_service import windows_learning_agenda as agenda
 from jrei_service import windows_autonomous_topics as auto_topics
 from jrei_service import windows_learning_fts as learning_fts
@@ -460,7 +461,7 @@ def scheduler():
             # local licensed model. The child process never edits the site.
             try:
                 status_info = image_studio.local_model_status(PRIVATE)
-                eligible = knowledge._windows_resources().get("eligible", False)
+                eligible = resource_policy.permits("MEMORY_CURATION")
                 if status_info["state"] == "MODEL_CONFIG_PRESENT_UNVERIFIED" and eligible:
                     job_id = image_studio.claim(DB_PATH)
                     if job_id is not None:
@@ -493,7 +494,7 @@ def scheduler():
         if time.monotonic() >= next_fts_index and not _BUSY.locked():
             if _activity_at == 0 or time.monotonic() - _activity_at >= 180:
                 try:
-                    resources=knowledge._windows_resources()
+                    resources={"eligible":resource_policy.permits("FTS_REBUILD")}
                     index_state=learning_fts.rebuild_when_idle(
                         DB_PATH,resources_available=resources.get("eligible",False),
                         owner_active=False)
@@ -506,7 +507,7 @@ def scheduler():
         if time.monotonic() >= next_native and not _BUSY.locked():
             if _activity_at == 0 or time.monotonic() - _activity_at >= 180:
                 try:
-                    budget = knowledge._windows_resources()
+                    budget = {"eligible":resource_policy.permits("NATIVE_STATISTICAL_TRAIN")}
                     outcome = native_brain.tick(
                         DB_PATH, PRIVATE,
                         resources_available=budget.get("eligible", False),
@@ -521,7 +522,8 @@ def scheduler():
         if time.monotonic() >= next_learning and not _BUSY.locked():
             try:
                 outcome = knowledge.tick(
-                    DB_PATH, permit_network=knowledge.network_enabled(DB_PATH),
+                    DB_PATH, permit_network=(knowledge.network_enabled(DB_PATH) and
+                        resource_policy.permits("APPROVED_NETWORK_STUDY")),
                     user_active=(_activity_at>0 and
                                  time.monotonic()-_activity_at<180))
                 if outcome.get("state") in ("LOCAL_UNVERIFIED_INDEXED","HELD"):
@@ -534,7 +536,7 @@ def scheduler():
         if time.monotonic() >= next_memory and not _BUSY.locked():
             if _activity_at == 0 or time.monotonic() - _activity_at >= 180:
                 try:
-                    resources=knowledge._windows_resources()
+                    resources={"eligible":resource_policy.permits("MEMORY_CURATION")}
                     if resources.get("eligible",False):
                         captured=memory_graph.capture_once(
                             DB_PATH,model_reply=reply,resources_available=True)
@@ -563,7 +565,7 @@ def scheduler():
         if time.monotonic() >= next_agenda and not _BUSY.locked():
             if _activity_at == 0 or time.monotonic() - _activity_at >= 180:
                 try:
-                    resources=knowledge._windows_resources()
+                    resources={"eligible":resource_policy.permits("APPROVED_NETWORK_STUDY")}
                     result=agenda.study_once(
                         DB_PATH,model_reply=reply,
                         resource_available=resources.get("eligible",False),
@@ -580,8 +582,8 @@ def scheduler():
         if time.monotonic() >= next_curriculum and not _BUSY.locked():
             if (_activity_at == 0 or time.monotonic()-_activity_at >= 180):
                 try:
-                    resource=knowledge._windows_resources()
-                    if resource["eligible"]:
+                    resource={"eligible":resource_policy.permits("MEMORY_CURATION")}
+                    if resource["eligible"] and local_model()[0]:
                         drafted=curriculum.practice_once(DB_PATH,reply)
                         if drafted.get("state")=="DRAFT_UNVERIFIED":
                             record("windows_curriculum","DRAFT_UNVERIFIED",
@@ -591,7 +593,7 @@ def scheduler():
                     record("windows_curriculum","HELD",exc.__class__.__name__)
             next_curriculum = time.monotonic() + 900
         if time.monotonic() >= next_study and not _BUSY.locked():
-            if time.monotonic() - _activity_at >= 180:
+            if time.monotonic() - _activity_at >= 180 and resource_policy.permits("MEMORY_CURATION"):
                 # Alternate source study with an isolated candidate stage;
                 # no auto-merge, no unverified skills, no production mutation.
                 run_job("patch_candidate" if _autonomy_tick % 2 else "study", background=True)
@@ -654,6 +656,7 @@ def status():
         "model_curriculum": curriculum.statistics(DB_PATH),
         "native_language_baseline": native_brain.snapshot(DB_PATH, PRIVATE),
         "native_neural_training": native_neural.snapshot(DB_PATH),
+        "adaptive_hardware_budget": resource_policy.snapshot(),
         "learning_agenda": agenda.snapshot(DB_PATH),
         "native_metacognition": agenda.metacognition_snapshot(DB_PATH),
         "autonomous_topic_discovery": auto_topics.snapshot(DB_PATH),
@@ -918,8 +921,8 @@ class OwnerHTTP(BaseHTTPRequestHandler):
                         owner_approved=True,
                         training_rights_reviewed=data.get("training_rights_reviewed"),
                         steps=data.get("steps",48),
-                        resources_available=knowledge._windows_resources().get(
-                            "eligible",False),
+                        resources_available=resource_policy.permits(
+                            "NATIVE_STATISTICAL_TRAIN"),
                         allow_gpu=False)
                 finally:
                     _BUSY.release()
