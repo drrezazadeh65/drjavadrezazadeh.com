@@ -303,36 +303,41 @@ async function openThread(id){selected=id;try{
  }catch(e){toast(e.message)}}
 async function newChat(){const response=await api('/api/conversation/new',{});selected=response.id;welcome();refreshThreads();$('sidebar').classList.remove('open');$('input').focus()}
 async function send(){
- const message=$('input').value.trim();
- if(!message||active)return;
+ const userText=$('input').value.trim();
+ if((!userText&&!attachments.length)||active)return;
+ const message=userText||'فایل پیوست‌شده را بررسی کن';
+ const chosen=attachments.slice(0,2);
+ const display=message+(chosen.length?'\n\n📎 '+chosen.map(x=>x.name).join('، '):'');
  let submitted=false;
  setBusy(true);
  try{
-  if(!token)throw new Error('مجوز ورود به پنل موجود نیست. از میانبر JREI Command Center یا راه‌انداز ویندوز با گزینه Open استفاده کنید.');
+  if(!token)throw new Error('مجوز ورود به پنل موجود نیست. پنل را از راه‌انداز ویندوز باز کنید.');
   if(!selected){
    const created=await api('/api/conversation/new',{});
    selected=created.id;
    welcome();
   }
   $('input').value='';
-  addMessage('user',message);
+  addMessage('user',display);
   submitted=true;
-  const answer=await api('/api/assistant',{conversation_id:selected,message});
+  const answer=await api('/api/assistant',{
+   conversation_id:selected,message:display,attachments:chosen.map(x=>x.id)
+  });
   addMessage('assistant',answer.answer,answer.tool,answer.pending);
+  attachments=attachments.filter(x=>!chosen.some(v=>v.id===x.id));
+  renderAttachments();
   await refreshThreads();
  }catch(e){
   const detail=e&&e.message?e.message:'خطای ناشناخته';
   toast(detail);
   if(!submitted){
-   $('input').value=message;
-   $('busy').textContent='ارسال انجام نشد: '+detail;
+   $('input').value=userText;
   }else{
    addMessage('assistant','درخواست کامل نشد: '+detail);
+   $('input').value=userText;
   }
  }finally{
   setBusy(false);
-  if(!submitted && $('input').value===message)
-   $('busy').textContent='ارسال انجام نشد؛ وضعیت ورود و اتصال را بررسی کنید.';
   $('input').focus();
  }
 }
