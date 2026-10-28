@@ -45,6 +45,20 @@ start a scheduled task, or change any website code. No local Windows
 activation, tests or release verification were performed as part of this
 source-only continuation.
 
+## Local mission progress extension (source only)
+
+`windows_owner_tasks.py` adds a narrowly scoped `owner_task_steps` table to
+the same private `missions.sqlite3` database. Only enumerated checkpoints
+from the existing worker can be written. Task list/detail projections include
+the most recently recorded phase, while `windows_owner_ui.html` displays
+that phase in the existing job strip. Starting, repository investigation,
+private document retrieval, synthesis, tool routing and result persistence
+have explicit phase labels. An interrupt or owner cancellation continues to
+use the original, truthful task status and does not turn a checkpoint into
+a success claim. This is **polling of actual phases, not token streaming,
+cooperative interruption of a currently running Qwen request, or verified
+Windows operation**. No tests or activation were performed.
+
 ## Honest operational boundaries
 
 - **Source-only** commits do not restart or update the owner's already-running Python process. The existing Git fast-forward task can transfer code, but a separately authorized command-centre process restart is required for Python module changes to take effect.
