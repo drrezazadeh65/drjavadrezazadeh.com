@@ -460,6 +460,57 @@ def _compose(history: list, output: str, state: str, tool: str, model_reply) -> 
         return f"ابزار: {tool}\nوضعیت واقعی: {state}\n\n{short}"[:4500]
 
 
+def _native_evidence_answer(query: str, evidence: list) -> tuple[str, str]:
+    """Pretrained-free JREI fallback grounded exclusively in approved passages.
+
+    This is extractive, not synthetic language-model inference. No external
+    weights, subscriptions, new processes or model execution are involved.
+    Retrieved excerpts remain untrusted source data, never tool instructions.
+    """
+    fa = bool(re.search(r"[\u0600-\u06ff]", query))
+    if not evidence:
+        answer = (
+            "هستهٔ بومی JREI و ثبت شکاف دانشی فعال است، اما هنوز برای این "
+            "پرسش شاهد کافی در منابع تأییدشده ندارم. بدون شاهد، پاسخ علمی "
+            "یا توانایی یک مدل زبانی آموزش‌دیده را شبیه‌سازی نمی‌کنم."
+            if fa else
+            "JREI's local evidence engine is available, but it has no "
+            "approved source supporting this question yet. I have recorded "
+            "the knowledge gap; this is not a trained language-model answer."
+        )
+        return answer, "NATIVE_EVIDENCE_GAP_NO_TRAINED_MODEL"
+    lead = (
+        "در منابع مجاز JREI، بخش‌های زیر با پرسش شما ارتباط دارند. "
+        "این‌ها نقلِ محدود از شواهد هستند؛ تحلیل تولیدشده توسط مدل زبانی، "
+        "راستی‌آزمایی مستقل یا جمع‌بندی قطعی محسوب نمی‌شوند:"
+        if fa else
+        "JREI found the following excerpts in authorized sources. "
+        "These are limited source passages, not generated synthesis or "
+        "independently verified conclusions:"
+    )
+    parts = [lead]
+    for index, item in enumerate(evidence[:3], 1):
+        excerpt = item.get("excerpt", "")
+        source = item.get("source", "")
+        anchor = item.get("anchor", "")
+        digest = item.get("source_sha256", "")
+        if (not isinstance(excerpt, str) or not isinstance(source, str)
+                or not isinstance(anchor, str) or not isinstance(digest, str)):
+            continue
+        # Avoid displaying whole copyrighted articles or private documents.
+        # This bounded passage comes from the existing permissions-aware RAG.
+        compact = re.sub(r"\s+", " ", excerpt).strip()[:310]
+        if not compact:
+            continue
+        parts.append(f"{index}. {compact}\n"
+                     f"منبع / Source: {source[:200]} | "
+                     f"بخش / Anchor: {anchor[:90]} | "
+                     f"SHA256: {digest[:16]}")
+    if len(parts) == 1:
+        return _native_evidence_answer(query, [])
+    return "\n\n".join(parts)[:4300], "NATIVE_EXTRACTIVE_EVIDENCE_NO_TRAINED_MODEL"
+
+
 def interact(*, db_path: Path, repo: Path, private: Path, ident: str, message: str,
              model_reply, run_directive, attachment_ids=None, on_progress=None) -> dict:
     def report_progress(phase: str) -> None:
@@ -654,9 +705,11 @@ def interact(*, db_path: Path, repo: Path, private: Path, ident: str, message: s
                  "ANSWERED_WITH_PRIVATE_RETRIEVAL_UNVERIFIED" if evidence else
                  "ANSWERED_LOCAL_MODEL_REGENERATED" if quality == "REGENERATED" else
                  "ANSWERED_LOCAL_MODEL")
-    except (OSError, ValueError, RuntimeError) as exc:
-        answer = "مدل محلی در حال حاضر پاسخ نمی‌دهد. گفت‌وگو ذخیره شد، اما هیچ عملیات خارجی انجام نشده است."
-        state = f"MODEL_UNAVAILABLE:{exc.__class__.__name__}"
+    except (OSError, ValueError, RuntimeError):
+        # No dependency on downloaded pretrained weights: the same owner-
+        # approved source index can still return traceable quotations.
+        # This is NOT an LLM, and it must never invent an answer.
+        answer, state = _native_evidence_answer(message, evidence)
     if not evidence:
         try:
             # Keyed identifiers prevent the storage of personal questions or
