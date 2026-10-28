@@ -36,8 +36,8 @@
     "title": "Academic Services",
     "path": "en/academic-services/",
     "category": "Services",
-    "summary": "Academic English editing, manuscript diagnostics, research and publication consultation, reviewer-response support and academic career preparation.",
-    "keywords": "academic services editing manuscript diagnostic research consultation publication reviewer response academic cv interview"
+    "summary": "Research and manuscript support with direct guidance on English editing, diagnostic review, publication decisions, reviewer responses and academic careers.",
+    "keywords": "academic services manuscript editing diagnostic review research consultation reviewer response academic cv"
   },
   {
     "lang": "en",
@@ -196,8 +196,8 @@
     "title": "Research",
     "path": "en/research/",
     "category": "Research",
-    "summary": "Public research programme and themes.",
-    "keywords": "research education applied linguistics assessment materials"
+    "summary": "Research record in applied linguistics, educational assessment and professional judgement, with clear paths to method and manuscript support.",
+    "keywords": "research applied linguistics educational assessment manuscript diagnosis academic methods research consultation"
   },
   {
     "lang": "en",
@@ -428,8 +428,8 @@
     "title": "University Teaching",
     "path": "en/teaching/",
     "category": "Teaching",
-    "summary": "University teaching and academic instruction.",
-    "keywords": "teaching university courses lecturer"
+    "summary": "Research-informed university teaching and teacher professional development, including a free evidence-based reflection exercise for classroom decisions.",
+    "keywords": "university teaching teacher professional development classroom evidence language teacher learning feedback"
   },
   {
     "lang": "en",
@@ -1516,8 +1516,8 @@
     "title": "تدریس دانشگاهی",
     "path": "fa/tadris/",
     "category": "آموزش",
-    "summary": "سوابق و حوزه‌های تدریس دانشگاهی.",
-    "keywords": "تدریس دانشگاه مدرس"
+    "summary": "سوابق تدریس دانشگاهی و راهنمای علمی توسعه حرفه‌ای معلم، همراه با کاربرگ رایگان پنج پرسشی برای بازاندیشی در کلاس.",
+    "keywords": "تدریس دانشگاهی توسعه حرفه‌ای معلم یادگیری حرفه‌ای شواهد کلاس بازخورد"
   },
   {
     "lang": "fa",
