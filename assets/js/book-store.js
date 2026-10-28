@@ -19,16 +19,18 @@
  const API='/api';
  // Catalogue prices never authorise payment. The server must explicitly permit books and reconcile stock.
  let bookPaymentReady=false;
+ let singleCopyPaymentReady=false;
  let deliveryCaptureReady=false;
  let bookStockPending=false;
  async function verifyBookPaymentCapability(){
   try{
    const response=await fetch(API+'/commerce/health',{cache:'no-store',credentials:'omit'});
-   if(!response.ok)return {payment:false,capture:false};
+   if(!response.ok)return {payment:false,capture:false,singleCopy:false};
    const health=await response.json();
    const healthy=health?.ok===true&&health.service==='commerce';
    return {
     payment:healthy&&health.checkout===true&&health.capabilities?.books===true,
+    singleCopy:healthy&&health.checkout===true&&health.capabilities?.singleCopyCollectible===true,
     capture:healthy&&health.orderCapture===true,
     stockPending:healthy&&health.checkout===true&&health.requirements?.inventoryReconciled===false
    };
@@ -295,6 +297,7 @@
   const host=document.querySelector('[data-book-cart]'); if(!host)return;
   const cart=readCart();
   const books=cart.map(item=>({item,book:data.books.find(b=>b.id===item.book_id)})).filter(row=>row.book);
+  const checkoutReadyForSelection=bookPaymentReady||(books.length===1&&books[0].book?.commerce?.single_copy===true&&singleCopyPaymentReady);
   host.replaceChildren();
   if(!books.length){
    host.innerHTML='<div class="cart-empty-state" role="status"><strong>'+(isFa?'سبد شما هنوز خالی است':'Your cart is empty')+'</strong><p>'+(isFa?'کتاب‌ها را در فروشگاه مرور کنید و انتخابتان را به همین سبد اضافه کنید.':'Browse the bookstore and add your selection to this cart.')+'</p><a class="button primary" href="'+root((isFa?'fa':'en')+'/shop/')+'">'+(isFa?'رفتن به فروشگاه':'Browse books')+'</a></div>';
@@ -344,10 +347,10 @@
   checkout.dataset.bookPayment='';
   checkout.textContent=isFa?'ادامه به تسویه':'Continue to checkout';
   checkout.disabled=!deliveryCaptureReady;
-  checkout.textContent=(bookPaymentReady&&deliveryCaptureReady)
+  checkout.textContent=(checkoutReadyForSelection&&deliveryCaptureReady)
     ?(isFa?'ادامه به تسویه امن':'Continue to secure checkout')
     :(deliveryCaptureReady?(isFa?'ادامه و ثبت سفارش':'Continue and place order'):(isFa?'ثبت سفارش موقتاً در دسترس نیست':'Order capture temporarily unavailable'));
-  checkout.title=(bookPaymentReady&&deliveryCaptureReady)
+  checkout.title=(checkoutReadyForSelection&&deliveryCaptureReady)
     ?(isFa?'ورود اطلاعات تحویل و سپس انتقال به درگاه امن':'Enter delivery details, then proceed to secure payment')
     :(deliveryCaptureReady?(isFa?'اطلاعات تحویل را وارد کنید؛ سفارش بدون برداشت وجه ثبت می‌شود':'Enter delivery details; the order will be recorded without charging you'):(isFa?'ثبت سفارش سمت سرور در دسترس نیست':'Order submission is unavailable'));
   actions.appendChild(checkout);
@@ -419,6 +422,7 @@
   const host=document.querySelector('[data-book-checkout]'); if(!host) return;
   const cart=readCart();
   const books=cart.map(x=>({item:x,book:data.books.find(b=>b.id===x.book_id)})).filter(x=>x.book);
+  const checkoutReadyForSelection=bookPaymentReady||(books.length===1&&books[0].book?.commerce?.single_copy===true&&singleCopyPaymentReady);
   const valid=books.length>0&&books.every(x=>ready(x.book));
   const form=document.getElementById('shipping-details');
   const fieldset=form?.querySelector('fieldset');
@@ -436,13 +440,13 @@
   }
   host.innerHTML='<p class="kicker">'+(isFa?'ثبت سفارش':'Order')+'</p><h1>'+(isFa?'سفارش کتاب':'Book order')+'</h1>'+
    '<p class="store-notice" role="note">'+(isFa?'پس از پرداخت، شناسه سفارش را برای پیگیری نگه دارید. اگر ارسال کتاب امکان‌پذیر نبود، از طریق ایمیل info@drjavadrezazadeh.com با ذکر شناسه سفارش درخواست پیگیری یا استرداد وجه ثبت کنید.':'Keep your order ID after payment. If delivery cannot be completed, email info@drjavadrezazadeh.com with the order ID to request support or a refund.')+'</p>'+ 
-   '<p class="lead">'+(bookPaymentReady
+   '<p class="lead">'+(checkoutReadyForSelection
      ?(isFa?'اطلاعات سفارش و مبلغ نهایی پیش از انتقال به درگاه دوباره در سرور بررسی می‌شود.':'Order details and the final amount are checked again on the server before payment.')
      :(bookStockPending
        ?(isFa?'موجودی فیزیکی کتاب‌ها هنوز در سامانه تأیید نشده است؛ سفارش فعلاً بدون برداشت وجه ثبت می‌شود و شناسه پیگیری دریافت می‌کنید.':'Physical book inventory has not yet been reconciled; your request is recorded without charging you and a tracking ID is provided.')
        :(isFa?'ثبت سفارش سمت سرور فعال است. در وضعیت فعلی سفارش بدون برداشت وجه ثبت می‌شود و شناسه پیگیری دریافت می‌کنید.':'Order submission is active. For now, the order is recorded without charging you and you receive a tracking ID.')) )+'</p>'+ 
    '<div class="store-notice">'+(valid
-     ?(bookPaymentReady
+     ?(checkoutReadyForSelection
        ?(isFa?'ارسال کتاب رایگان است. مبلغ نهایی در سرور محاسبه می‌شود و فقط پرداخت تأییدشده سفارش را قطعی می‌کند.':'Book shipping is free. The final total is calculated on the server and only a verified payment completes the order.')
        :(isFa?'ارسال کتاب رایگان است. با ثبت این فرم، درخواست سفارش در سرور ذخیره می‌شود؛ هیچ وجهی برداشت نمی‌شود.':'Book shipping is free. Submitting this form records the order request on the server; no payment is taken.'))
      :(isFa?'در حال حاضر محصول قیمت‌گذاری‌شده و قابل‌فروش در کاتالوگ فعال نیست.':'There is currently no verified priced and sellable book in the active catalogue.'))+'</div>'+
@@ -450,7 +454,7 @@
   if(valid){
    const btn=document.createElement('button');btn.type='button';btn.className='button primary';btn.disabled=!canCapture;
    btn.textContent=canCapture
-     ?(bookPaymentReady?(isFa?'پرداخت امن سفارش':'Secure checkout'):(isFa?'ثبت سفارش بدون پرداخت':'Place order without payment'))
+     ?(checkoutReadyForSelection?(isFa?'پرداخت امن سفارش':'Secure checkout'):(isFa?'ثبت سفارش بدون پرداخت':'Place order without payment'))
      :(isFa?'ثبت سفارش موقتاً در دسترس نیست':'Order capture temporarily unavailable');
    const feedback=document.createElement('p');feedback.setAttribute('role','status');feedback.setAttribute('aria-live','polite');
    btn.onclick=async()=>{
@@ -459,13 +463,13 @@
     const fd=new FormData(form);
     const customer={name:String(fd.get('name')||'').trim(),email:String(fd.get('email')||'').trim(),address:String(fd.get('address')||'').trim(),postal:String(fd.get('postal')||'').trim(),phone:String(fd.get('tel')||'').trim()};
     btn.disabled=true;
-    feedback.textContent=bookPaymentReady?(isFa?'در حال ایجاد سفارش امن...':'Creating secure order...'):(isFa?'در حال ثبت سفارش...':'Recording your order...');
+    feedback.textContent=checkoutReadyForSelection?(isFa?'در حال ایجاد سفارش امن...':'Creating secure order...'):(isFa?'در حال ثبت سفارش...':'Recording your order...');
     try{
-      const endpoint=bookPaymentReady?'/api/commerce/create':'/api/commerce/prepare';
+      const endpoint=checkoutReadyForSelection?'/api/commerce/create':'/api/commerce/prepare';
       const response=await fetch(endpoint,{method:'POST',mode:'cors',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({items:books.map(({item,book})=>({sku:'book:'+book.id,quantity:item.quantity})),customer})});
       const result=await response.json();
       if(!response.ok||!result.ok)throw Error(result.error||'order_failed');
-      if(bookPaymentReady){
+      if(checkoutReadyForSelection){
         const url=new URL(result.paymentUrl);
         if(url.origin!==location.origin||url.pathname!=='/fa/shop/payment-start/'||url.searchParams.size!==1||!url.searchParams.has('gateway'))throw Error('unsafe_url');
         location.assign(url.href);
@@ -514,6 +518,7 @@
   renderCatalog(data);renderDetail(data);renderCart(data);renderCheckout(data);updateCartBadge();
   const capability=await verifyBookPaymentCapability();
   bookPaymentReady=capability.payment;
+  singleCopyPaymentReady=capability.singleCopy===true;
   deliveryCaptureReady=capability.capture;
   bookStockPending=capability.stockPending===true;
   // Re-render after a fresh explicit readiness check; controls remain disabled on uncertainty.
