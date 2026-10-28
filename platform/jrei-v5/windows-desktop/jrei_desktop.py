@@ -128,6 +128,8 @@ class Desktop:
         self.approval_items = []
         self.approval_context = None
         self.approval_busy = False
+        self.poll_in_flight = False
+        self.last_draft = None
         self._build()
         self.root.after(90, self._drain)
         self.root.after(1100, self._start_poll)
@@ -391,10 +393,18 @@ class Desktop:
         elif key == "sent":
             self.busy_send = False
             self.send_button.configure(state="normal")
+            self.last_draft = None
+            # A brand-new conversation is created by the backend before
+            # submission and becomes selected only on the Tk/UI thread.
+            returned = data.get("conversation_id")
+            if self.conversation is None and isinstance(returned, str):
+                if IDENT.fullmatch(returned):
+                    self.conversation = returned
             self.active_job = {"id": data["id"], "phase": PHASE["QUEUED"]}
             self._render_messages()
             self.fetch("threads", lambda: self.api.request("/api/conversations"))
         elif key == "job":
+            self.poll_in_flight = False
             if not self.active_job or self.active_job["id"] != data.get("id"):
                 return
             status = str(data.get("status", "QUEUED"))
@@ -458,9 +468,25 @@ class Desktop:
         if key == "sent":
             self.busy_send = False
             self.send_button.configure(state="normal")
-            messagebox.showerror("JREI", str(error)[:500], parent=self.root)
+            # The request might have reached the backend before a socket
+            # timeout. Never silently auto-resend and risk duplicate work.
+            # Preserve the owner's typed draft and document references.
+            if self.last_draft is not None:
+                if not self.editor.get("1.0", "end-1c").strip():
+                    self.editor.insert("1.0", self.last_draft["text"])
+                self.attachments = self.last_draft["attachments"]
+                self.attach_view.set(
+                    f"پیوست‌های انتخاب‌شده: {len(self.attachments)} از ۲")
+            messagebox.showerror(
+                "JREI · وضعیت ارسال نامشخص",
+                "پاسخ ارسال دریافت نشد. متن و پیوست‌ها حفظ شدند. "
+                "پیش از ارسال دوباره، تاریخچه را بازخوانی کنید؛ "
+                "ممکن است درخواست اول در موتور ثبت شده باشد.\n\n" +
+                str(error)[:300], parent=self.root)
         if key == "attachment":
             messagebox.showerror("JREI · فایل", str(error)[:500], parent=self.root)
+        if key == "job":
+            self.poll_in_flight = False
         if key == "approval_result":
             self.approval_busy = False
         if key == "approvals" and self.approval_dialog is not None:
@@ -492,7 +518,9 @@ class Desktop:
         self.root.after(110, self._drain)
 
     def _start_poll(self):
-        if self.active_job and not self.busy_send:
+        # Never overlap 12-second HTTP requests during a long mission.
+        if self.active_job and not self.busy_send and not self.poll_in_flight:
+            self.poll_in_flight = True
             ident = self.active_job["id"]
             self.fetch("job", lambda: self.api.request("/api/task?id=" + ident))
         self.root.after(1800, self._start_poll)
@@ -531,6 +559,7 @@ class Desktop:
         self.busy_send = True
         self.send_button.configure(state="disabled")
         snapshot = list(self.attachments)
+        self.last_draft = {"text": text, "attachments": snapshot}
         self.attachments.clear()
         self.attach_view.set("")
         self.editor.delete("1.0", "end")
@@ -541,11 +570,11 @@ class Desktop:
             if not conversation:
                 response = self.api.request("/api/conversation/new", {})
                 conversation = response["id"]
-                self.conversation = conversation
             result = self.api.request("/api/task/submit", {
                 "conversation_id": conversation, "message": text,
                 "attachments": snapshot})
-            return result
+            return {"id": result["id"], "conversation_id": conversation,
+                    "status": result.get("status", "QUEUED")}
         self.fetch("sent", submit)
 
 
