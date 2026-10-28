@@ -1,46 +1,53 @@
-# JREI — one reviewed installer for the owner's two Windows computers
+# JREI universal Windows setup — one EXE for any number of owner computers
 
-**Source status, 2026-10-29:** Two-node packaging and installation code is staged on `migration/bertina-linux6`. **No Windows executable is built or installed by these source commits; no integrated two-PC acceptance has been performed.** The only release mechanism is the existing manually dispatched GitHub Actions packaging workflow.
+**Source revision:** 2026-10-29. This describes the next **source-only** version `0.1.3`. A file being committed to GitHub does **not** mean a fresh binary has been built, accepted or installed. The earlier successful `0.1.2` ZIP is **not updated in place** and still contains obsolete A/B RAM-assumption scripts.
 
-## Two different nodes, one identical native EXE installer
+## One download, one setup file
 
-| Owner Windows PC | Existing signed identity | Local role | Entrypoint after acceptance |
-|---|---|---|---|
-| Node A | Its **existing signed** Node A identity (RAM-independent) | **15.9 GB**, observed in the owner's second-machine terminal screenshot | `JREI-SETUP-NODE-A.cmd` |
-| Node B | Its **existing signed** Node B identity (RAM-independent) | **31.8 GB** measured on the owner's screenshot; this PC is **B**, despite the previous A=32 GB assumption | `JREI-SETUP-NODE-B.cmd` |
+The existing manually triggered [JREI Windows installer workflow](https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/workflows/jrei-windows-desktop-exe.yml) is the only canonical builder. Its next successful artifact `JREI-WINDOWS-DESKTOP-INSTALLER` is a **GitHub-provided ZIP containing exactly one user-facing installer**:
 
-The identities are checked **on the machine itself**, not inferred from RAM, filenames or model capacity. Signed local Node A was directly observed with 15.9 GB RAM and Node B with 31.8 GB RAM. **Do not rename Node B to A** or edit private keys to match previous guesses. Actual GPU capability and signed outbound connectivity still require separate verification; neither node gains the other PC's memory or GPU. No new model, replica database, public port, website dashboard or third-party AI application is installed.
+`JREI-Setup-Windows-x64-v0.1.3.exe`
 
-## Exact release route (AFTER the single final acceptance)
+GitHub Actions artifact downloads arrive as ZIPs; after extracting that ZIP, only the EXE is needed. The GitHub run **Summary** prints the exact source commit, run ID and SHA-256. The same EXE is installed on existing owner nodes, future nodes and nodes with upgraded RAM/CPU/GPU; no model-specific or role-specific installation file is needed.
 
-1. Complete final integrated acceptance for the exact canonical source tree **on both PCs**. Only then may the existing `docs/governance/JREI_WINDOWS_OWNER_APP_APPROVED_SOURCE_V1.json` record have `integratedAcceptancePassed=true` and `ownerApprovedAutomaticPromotion=true` with the exact reviewed `approvedSourceTree`. Source commits, unattended tests, and package builds cannot supply that evidence.
-2. At the approved final build stage only, manually run [JREI Windows desktop installer workflow](https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/workflows/jrei-windows-desktop-exe.yml) on `migration/bertina-linux6`. This workflow **does not run tests, change Bertina or install anything**.
-3. Download the **one** `JREI-WINDOWS-DESKTOP-INSTALLER` artifact from the successful run. It contains `JREI-Setup-Windows-x64-v0.1.2.exe`, `SHA256SUMS.txt`, `installer-manifest.json`, `BUILD-MANIFEST.txt`, `JREI-SETUP-THIS-PC.cmd`, the two role-specific `.cmd` launchers and `jrei-two-pc-owner-install.ps1`. This ZIP is not two programs.
-4. Put the **same extracted folder** on each of the two PCs without moving files out of it. Retain the already connected canonical repository at `%LOCALAPPDATA%\JREI-Python\repo` on each device. Prefer `JREI-SETUP-THIS-PC.cmd` on **either** device; it reads the existing signed Node ID and selects A or B without hardware guesses. Legacy role-specific launchers remain: `JREI-SETUP-NODE-A.cmd` belongs only to signed A and `JREI-SETUP-NODE-B.cmd` only to signed B, regardless of RAM. Each launcher performs a read-only identity/source/SHA gate; if final acceptance or artifact verification is missing, it exits as **blocked** before any installation consent prompt.
-5. If all the gates pass, the launcher invokes the **original** owner-private Windows command center updater (with idle checks and rollback) and then shows the normal per-user Inno Setup installer. It never starts an administrative or hidden setup. If a gate fails, keep the working version and investigate; do not alter the approved ledger to force installation.
-6. Review actual authenticated `127.0.0.1:8092` service status, GUI conversation history and original signed outbound worker identity **on each machine**. A GUI process installing successfully does not establish that local neural models, GPUs, source learning, external crawling, or both signed workers are functional.
+The EXE is assembled by PyInstaller + Inno Setup on a GitHub-hosted Windows runner. It installs the original JREI Tk desktop client and a small, read-only PowerShell device-inventory script. The script is embedded **inside the setup package**, not distributed as an extra file to execute separately. The installer creates Start-menu and desktop icons under the current user's profile. It never executes a hidden model installer, registers a task, calls a server registration endpoint, copies worker credentials, opens a public port or deploys Bertina.
 
-## Files and protections
+## Dynamic machine discovery, not A/B assumptions
 
-- GUI: `platform/jrei-v5/windows-desktop/jrei_desktop.py`, compiled as one native Tk/PyInstaller EXE. No Electron/WebView/browser window.
-- Per-user Inno Setup recipe: `platform/jrei-v5/windows-desktop/JREI.iss`; default directory: `%LOCALAPPDATA%\Programs\JREI`, with Start-menu and desktop shortcuts.
-- Installer orchestration: `platform/jrei-v5/windows-worker/jrei-two-pc-owner-install.ps1` and `JREI-SETUP-NODE-A.cmd`, `JREI-SETUP-NODE-B.cmd`.
-- Original backend reused: `jrei-windows-app-auto-update.ps1` and `jrei-command-center-startup.ps1`, with the original owner-SID scheduled task and original `missions.sqlite3`.
-- The package manifest pins the exact source commit and installer SHA-256. **This is not code signing or proof of a safe binary.** The EXE remains unsigned; Windows SmartScreen may show a warning. Do not override a genuine integrity check to dismiss it.
-- Private documents, chats, model weights, tokens and signed worker keys are **never included in the downloaded ZIP**. The wrapper does not copy them between PCs or replace them.
-- Do not remove the existing Qwen runtime or previously functioning tasks merely to install the JREI native interface. JREI's independent model capabilities and trained weights are separately gated.
-- There is no automatic website, database, payment or news release from the installer. Only the owner-controlled one-click production workflow can deploy the website.
+The GUI includes **«تشخیص و افزودن رایانه»** / *Detect and add a computer*. It can be used **even when no private JREI backend is installed**. Upon an explicit owner click it reads locally:
 
-## Status and rollback boundaries
+- current physical RAM and logical CPU threads, instead of a frozen hardware estimate;
+- presence/format of existing owner-private JREI node configuration and DPAPI key **without exporting the ID, key or configuration**;
+- whether the existing private Python repo, runtime, owner token and original command-center task are present.
 
-The wrapper uses a different SHA-checked copy of the **same UI installer** on each device. It does not claim atomic installation on both machines, and the second PC never waits on a fictitious remote node. The private backend upgrader keeps prior source snapshots and attempts restoration if the new source does not become responsive. The Inno GUI installer itself has its standard Windows uninstaller, **not** a proven fully atomic application+model rollback.
+It does **not** verify NVIDIA/AMD GPU compute, remote node registration, a signed heartbeat or neural-model performance. Its output says so. A fresh device is shown as **`NEW_NODE_OWNER_ENROLLMENT_REQUIRED`**. If a key already exists without a valid configuration, the installer displays a **review-needed** state rather than silently overwriting the key.
 
-**Current gate:** Final integrated acceptance and both Windows runtime observations remain pending. Do not run this package or claim it exists until the owner authorizes the final release build and the actual workflow artifact is present.
+The hardware is re-observed when the owner opens the status view; upgrading RAM from 16 GB to 32 GB does **not** change the node's cryptographic identity. The **installer itself** imposes no two-node ceiling. Real distributed fleet scaling still requires distinct server-side registration/authorization of every new worker and actual signed health reports; installing the UI does not establish a working additional compute node.
 
-## Discovered identity correction — 2026-10-29
+### Correct existing signed identities, from owner screenshots
 
-The first two-node ZIP was successfully packaged, but the owner's real 31.8-GB Windows machine reported `NodeRole=NODE_B`, `ProtocolOK=True` and `SiteOK=True`. A role-specific A launcher therefore correctly rejected this machine. The source code now uses the **signed node identity, not a RAM-based A/B assumption**, and adds `JREI-SETUP-THIS-PC.cmd` to future manually built ZIPs. **Already downloaded artifacts are immutable and do not contain these changes; a new manually dispatched build is needed after final acceptance.** No automatic rebuild, node reassignment, keys edit, test, install or live publication was performed.
+| Existing machine | Signed local node | Measured physical RAM |
+|---|---|---|
+| Owner's first computer | **NODE_B** | **31.8 GB** |
+| Owner's second computer | **NODE_A** | **15.9 GB** |
+| Future computers | Each has its own separate registered ID | Dynamically measured |
 
-## Second computer observed — signed identity versus physical memory
+A machine's memory quantity is **never** a substitute for its signed ID. The prior A=32GB / B=16GB assumption was false.
 
-The owner's later second-machine screenshot independently displays the existing `nodeId=28b1c0d2-b833-41cb-97e2-df92c9373de0` and **15.9 GB RAM**, i.e. **Node A**. The first computer already showed **Node B with 31.8 GB RAM**. Thus **A=15.9 GB, B=31.8 GB** on these actual machines. These observations establish the *local file values and RAM measurement*, not proof of live signed-worker connectivity or functional AI. The originally downloaded ZIP hard-coded the opposite RAM-to-node assumption and must not be used for per-node installation. Future source fixes are absent from already built immutable ZIP artifacts. Wait for the corrected release package and independent final acceptance; do not alter a signed node ID or disable install verification.
+## Backend and model boundaries
+
+The **one EXE installs the GUI and diagnostic helper**. The private JREI command center on `127.0.0.1:8092`, its source snapshot, local mission SQLite, private chat history, model weights and the existing signed outbound worker remain separate and untouched. Existing machines with an accepted running backend can use the new GUI with that service. A brand-new machine can open the GUI and inspect onboarding requirements but must separately complete the original private service and signed-worker registration before computing or participating in the shared JREI fleet.
+
+This is not yet a turnkey neural model deployment on an unregistered third machine. Native JREI weights, cross-node scheduling, and automatic upgrade proficiency still require independently validated evidence. No extra Aider/OpenHands program, pretrained model, cloud chatbot subscription or cloned database is bundled.
+
+## Owner release and updates
+
+1. Continue the single final integrated acceptance separately on the **actual devices**. Do not change `docs/governance/JREI_WINDOWS_OWNER_APP_APPROVED_SOURCE_V1.json` to `true` without actual evidence.
+2. **Only after authorizing the final package build**, manually run the existing GitHub workflow on `migration/bertina-linux6`; this is the established one-click-only release process, not website deployment.
+3. From its successful **Artifacts** entry download `JREI-WINDOWS-DESKTOP-INSTALLER`. Extract the GitHub ZIP and check the single EXE's SHA-256 against the run's Summary.
+4. Run the **same** `JREI-Setup-Windows-x64-v0.1.3.exe` on each owner PC. No administrator rights and no node-specific `.cmd` scripts are required for the UI installation.
+5. Open JREI and choose the **machine inventory** button. On a new computer follow the existing JREI server-side key registration and command-center provisioning process; never copy another PC's private worker key. Separately validate service health and completed signed heartbeats before claiming shared fleet membership.
+
+The Windows EXE has **no publisher Authenticode signature** until an actual publisher certificate is acquired. The SHA-256 from GitHub is a download-integrity check, not a publisher identity signature. A successful GitHub package build is **not** a Windows integration test or proof that the user has installed it.
+
+**No new EXE was built during this source-only update; no tests, training, worker registration, runtime restarts or site releases were performed.**
