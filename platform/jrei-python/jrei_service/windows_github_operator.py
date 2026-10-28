@@ -226,6 +226,53 @@ def _workspace_receipt(private: Path, receipt_id: str) -> tuple[dict, Path]:
     return receipt, patch
 
 
+
+
+def owner_patch_preflight(*, private: Path, receipt_id: str) -> dict:
+    """Owner-triggered READ-ONLY remote comparison before separate GitHub consent.
+
+    This function cannot grant write authority. It never transmits the owner
+    draft or its diff to GitHub; remote calls only fetch HEAD and source hashes.
+    The existing per-file Contents API PUT will still independently revalidate
+    remote HEAD and the file's blob SHA after explicit owner confirmation.
+    """
+    from jrei_service.windows_workspace import preview_diff
+    receipt, _patch = _workspace_receipt(private, receipt_id)
+    preview = preview_diff(private=private, receipt_id=receipt_id)
+    if (receipt.get("target") != preview["target"]
+            or receipt.get("before_sha256") != preview["before_sha256"]
+            or receipt.get("after_sha256") != preview["after_sha256"]):
+        raise ValueError("JREI_GITHUB_PREFLIGHT_RECEIPT_NOT_CONSISTENT")
+    observed_head = remote_head()
+    remote_file = read_remote_source(receipt["target"])
+    # Because the HEAD can move while downloading the file, bracket the
+    # single remote content observation. A subsequent owner action checks
+    # the exact same HEAD again before any separately authorized PUT.
+    if remote_head()["head_sha"] != observed_head["head_sha"]:
+        raise ValueError("JREI_GITHUB_PREFLIGHT_HEAD_CHANGED_WHILE_READING")
+    if remote_file["sha256"] != preview["before_sha256"]:
+        raise ValueError("JREI_GITHUB_PREFLIGHT_REMOTE_SOURCE_CHANGED")
+    return {
+        "schema": "jr.jrei.github-owner-write-preflight.v1",
+        "state": "REMOTE_BASE_MATCHED_REVIEW_ONLY",
+        "repository": REPOSITORY, "branch": BRANCH,
+        "expected_head_sha": observed_head["head_sha"],
+        "remote_blob_sha": remote_file["blob_sha"],
+        "target": preview["target"],
+        "receipt_id": receipt_id,
+        "before_sha256": preview["before_sha256"],
+        "after_sha256": preview["after_sha256"],
+        "diff_sha256": preview["diff_sha256"],
+        "diff": preview["diff"],
+        "remote_write_approved": False,
+        "remote_write_performed": False,
+        "tests_performed": False,
+        "production_deployment_performed": False,
+        "separate_explicit_owner_confirm_required": True,
+        "remote_head_may_change_after_preflight": True,
+    }
+
+
 def submit_owner_reviewed_patch(
         *, db_path: Path, private: Path, receipt_id: str,
         expected_head_sha: str, confirmation: bool) -> dict:
