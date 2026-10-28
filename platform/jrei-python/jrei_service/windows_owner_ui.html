@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#101114">
+<meta name="robots" content="noindex,nofollow,noarchive">
 <meta http-equiv="Cache-Control" content="no-store">
 <title>JREI AI — دستیار اختصاصی ویندوز</title>
 <style>
@@ -16,7 +17,7 @@
 .sideLabel{font-size:11px;color:var(--muted);padding:9px 12px;text-transform:uppercase}.threads{overflow:auto;flex:1;min-height:0}.thread{display:flex;align-items:center;width:100%;border-radius:10px;text-align:right;gap:6px;padding:9px 10px;margin:2px 0}.thread.active{background:#323236}.thread .name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;font-size:12px}.thread .trash{font-size:14px;color:#c1b3a1;opacity:.8}.sidebarFooter{border-top:1px solid var(--line);padding:15px 9px 5px;font-size:11px;color:var(--muted)}
 .workspace{display:flex;flex-direction:column;min-height:0;position:relative;min-width:0}
 .topbar{height:66px;flex-shrink:0;display:flex;align-items:center;gap:14px;padding:0 24px;border-bottom:1px solid #282b31;background:#14161a}
-.title{font-size:15px;font-weight:650}.topbar .sub{color:var(--muted);font-size:11px}.grow{flex:1}.iconButton{border-radius:11px;padding:8px 12px;font-size:13px;white-space:nowrap}.menu{display:none}
+.title{font-size:15px;font-weight:650;margin:0;line-height:1.5}.topbar .sub{color:var(--muted);font-size:11px}.grow{flex:1}.iconButton{border-radius:11px;padding:8px 12px;font-size:13px;white-space:nowrap}.menu{display:none}
 .dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#9298a4;margin-left:5px}.dot.on{background:#85ce9f}.dot.err{background:#de947a}
 .conversation{flex:1;overflow:auto;min-height:0;scroll-behavior:smooth;overscroll-behavior:contain}.conversationInner{width:min(860px,100%);margin:auto;padding:28px 22px 48px}
 .welcome{text-align:center;margin:10vh auto 12px;max-width:700px}.sigil{width:62px;height:62px;display:grid;place-items:center;border-radius:18px;margin:0 auto 14px;border:1px solid #5a4b32;background:linear-gradient(140deg,#3a3226,#1c2024);font-size:23px;font-weight:750;color:#edcf8f;box-shadow:var(--shadow)}
@@ -51,9 +52,11 @@ h1{font-size:29px;line-height:1.3;margin:16px 0 6px;font-weight:650}p{margin:.5e
 .toast{position:absolute;bottom:122px;left:50%;transform:translateX(-50%);background:#33373e;border:1px solid #5c5f66;border-radius:10px;padding:10px 18px;z-index:10;max-width:min(90vw,620px);box-shadow:var(--shadow)}.toast[hidden]{display:none}
 @media(max-width:780px){.shell{display:block;height:100dvh}.sidebar{position:absolute;top:0;bottom:0;right:0;width:min(290px,85vw);z-index:12;box-shadow:var(--shadow);transform:translateX(102%);transition:transform .18s}.sidebar.open{transform:translateX(0)}.workspace{height:100dvh}.menu{display:inline-block}.topbar{height:55px;padding:0 12px}.topbar .sub{display:none}.conversationInner{padding:15px 12px 28px}.composerArea{padding:8px 10px max(12px,env(safe-area-inset-bottom))}.welcome{margin-top:9vh}.welcome h1{font-size:22px}.prompts{grid-template-columns:1fr;margin-top:18px;gap:8px}.toolReceipt{font-size:10px}.turn.user .content{max-width:85%}.toolsPanel{top:55px}}
 @media(prefers-reduced-motion:reduce){.conversation{scroll-behavior:auto}.sidebar{transition:none}}
+a.skip-link{position:fixed;top:-120px;right:14px;z-index:1000;padding:10px 16px;border:2px solid var(--accent);border-radius:10px;background:var(--panel);color:var(--text)}a.skip-link:focus{top:12px}
 </style>
 </head>
 <body>
+<a class="skip-link" href="#main-content">پرش به محتوای اصلی</a>
 <div class="shell">
 <aside class="sidebar" id="sidebar" aria-label="تاریخچه گفتگوها">
  <div class="brand"><b>JREI AI</b><span>PRIVATE WINDOWS INTELLIGENCE</span></div>
@@ -61,9 +64,9 @@ h1{font-size:29px;line-height:1.3;margin:16px 0 6px;font-weight:650}p{margin:.5e
  <div class="sideLabel">گفتگوهای من</div><nav class="threads" id="threads"></nav>
  <div class="sidebarFooter">فقط در همین رایانه · حافظه خصوصی محلی<br>بدون انتشار خودکار یا تغییر سایت زنده</div>
 </aside>
-<div class="workspace">
+<main class="workspace" id="main-content" tabindex="-1">
  <header class="topbar"><button class="iconButton menu" id="menu" aria-label="بازکردن فهرست">☰</button>
- <div><div class="title">JREI <span style="color:var(--accent)">Personal AI</span></div><div class="sub">دستیار پژوهش، توسعه، آموزش و مدیریت پروژه</div></div>
+ <div><h1 class="title">JREI <span style="color:var(--accent)">Personal AI</span></h1><div class="sub">دستیار پژوهش، توسعه، آموزش و مدیریت پروژه</div></div>
  <div class="grow"></div><div class="sub" id="engine"><span class="dot"></span>در حال بررسی مدل</div><button class="iconButton" id="openTools">ابزارها ◫</button></header>
  <div id="conversation" class="conversation" role="log" aria-label="گفتگوی دستیار"><div class="conversationInner" id="conversationInner"></div></div>
  <div class="composerArea"><div class="composerBox"><div class="attachedFiles" id="attachedFiles" aria-live="polite"></div><div class="composer"><textarea id="input" rows="2" aria-label="پیام شما" placeholder="از JREI بخواهید بررسی، تحلیل، طراحی یا اجرا کند…"></textarea><div class="composeBottom"><button class="iconButton" id="attach" title="پیوست سند خصوصی روی همین رایانه" aria-label="افزودن فایل خصوصی">📎</button><input type="file" id="fileInput" accept=".txt,.md,.csv,.json,.py,.js,.mjs,.css,.html,.docx,.pdf" hidden><button class="send" id="send">ارسال <span aria-hidden="true">↑</span></button><span class="hint" id="busy">Enter برای ارسال · Shift+Enter خط جدید</span><div class="grow"></div><span class="hint">محلی · قابل ممیزی</span></div></div><div class="footnote">فایل‌های انتخابی فقط در حافظه خصوصی ویندوز نگهداری می‌شوند. PDF بدون استخراج معتبر، خوانده‌شده محسوب نمی‌شود.</div></div></div>
@@ -77,7 +80,7 @@ h1{font-size:29px;line-height:1.3;margin:16px 0 6px;font-weight:650}p{margin:.5e
  <h2>اسناد خصوصی ویندوز</h2><div id="documents"></div>
  <h2>رویدادهای ثبت‌شده</h2><div class="trace" id="events"></div></section>
  <div class="toast" id="toast" role="alert" hidden></div>
-</div></div>
+</main></div>
 <script>
 'use strict';
 // Legacy compatibility: /api/chat and /api/directive remain separately available.
