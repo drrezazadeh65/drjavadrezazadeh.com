@@ -788,6 +788,7 @@ class OwnerHTTP(BaseHTTPRequestHandler):
                 # Revoking an owner-selected document also revokes its
                 # opt-in learning index before removing the vaulted source.
                 identifier=data.get("id")
+                knowledge.invalidate_staged_training_exports(DB_PATH,PRIVATE)
                 knowledge.revoke_owner_document(DB_PATH,identifier)
                 result = delete_document(private=PRIVATE, identifier=identifier)
                 record("document_delete", "LOCAL_ONLY", result["id"][:12])
@@ -803,6 +804,7 @@ class OwnerHTTP(BaseHTTPRequestHandler):
             if self.path == "/api/learning/source/deactivate":
                 if data.get("confirm") is not True:
                     raise ValueError("LEARNING_SOURCE_CONFIRMATION_REQUIRED")
+                knowledge.invalidate_staged_training_exports(DB_PATH,PRIVATE)
                 return self._send(200, knowledge.deactivate_source(
                     DB_PATH,data.get("id")))
             if self.path == "/api/learning/lesson/review":
