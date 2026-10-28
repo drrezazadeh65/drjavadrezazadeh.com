@@ -481,7 +481,7 @@ def interact(*, db_path: Path, repo: Path, private: Path, ident: str, message: s
             )
             state = "DOCUMENT_EVIDENCE_UNAVAILABLE"
         else:
-            coverage = "\\n".join(
+            coverage = "\n".join(
                 f"{x.get('name', x['id'])}: {x.get('coverage', x['state'])}; "
                 f"method={x.get('method', 'UNREADABLE')}"
                 for x in inspected)
@@ -498,9 +498,9 @@ def interact(*, db_path: Path, repo: Path, private: Path, ident: str, message: s
                 "scientific verification or external literature search. "
                 "Preserve the owner's analytical, cautious academic writing voice. "
                 "Never claim changes to GitHub, Windows services or the website. "
-                "OWNER REQUEST:\\n" + message[:900] +
-                "\\nRETRIEVAL COVERAGE:\\n" + coverage[:1100] +
-                "\\nEVIDENCE:\\n" + evidence
+                "OWNER REQUEST:\n" + message[:900] +
+                "\nRETRIEVAL COVERAGE:\n" + coverage[:1100] +
+                "\nEVIDENCE:\n" + evidence
             )
             try:
                 result = model_reply([{"role": "user", "content": prompt}],
