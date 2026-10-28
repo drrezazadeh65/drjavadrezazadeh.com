@@ -113,6 +113,9 @@ test('one-click owner release safely provisions only existing master with privat
   assert.match(schema,/jrei_news_original_feed_projection/);
   assert.match(schema,/requiredMotherSchemaAvailable/);
   assert.match(schema,/packagedPrivateNewsLibraryAvailable/);
+  assert.match(schema,/\$discoveryReady/);
+  assert.match(schema,/if\(\$discoveryReady\)/);
+  assert.match(cfg,/\$payload\['discoveryReady'\]/);
   assert.match(cfg,/jrei_news_feed_discovery_enabled'\]=true/);
   assert.match(cfg,/jrei_news_official_catalogue_auto_seed_enabled'\]=true/);
   assert.match(cfg,/\.jr-owner-news-master\.v1\.json/);

@@ -351,12 +351,14 @@ function cfg(): array {
                hash_equals($expected,$signed['hmac']) &&
                ($cfg['jrei_news_emergency_stop']??false)!==true){
                 $cfg['operations_cron_master_enabled']=true;
-                // Discovery-only owner grant: preserve all independently
-                // guarded official rights, acquisition, drafting, review,
-                // backup, publisher and public search controls unchanged.
-                $cfg['jrei_news_integrated_release_accepted']=true;
-                $cfg['jrei_news_feed_discovery_enabled']=true;
-                $cfg['jrei_news_official_catalogue_auto_seed_enabled']=true;
+                // Only a fully verified ORIGINAL News schema authorizes
+                // discovery projection. Keep all acquisition, publication,
+                // source rights, backup and model flags independently OFF.
+                if(($payload['discoveryReady']??null)===true){
+                    $cfg['jrei_news_integrated_release_accepted']=true;
+                    $cfg['jrei_news_feed_discovery_enabled']=true;
+                    $cfg['jrei_news_official_catalogue_auto_seed_enabled']=true;
+                }
             }
         }
     }

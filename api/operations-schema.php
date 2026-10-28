@@ -315,11 +315,10 @@ function operationsProvisionNewsMasterOwnerRelease(
     // The owner authorized discovery-only processing of official sources,
     // but NOT unverified crawling, article publication or model drafting.
     // Real original schema and packaged News dependencies are required.
-    if(!function_exists('jrOperationsNewsReadiness'))return false;
-    $readiness=jrOperationsNewsReadiness($pdo,$privateConfig);
-    if(($readiness['requiredMotherSchemaAvailable']??false)!==true||
-       ($readiness['packagedPrivateNewsLibraryAvailable']??false)!==true)
-        return false;
+    $readiness=function_exists('jrOperationsNewsReadiness')
+        ?jrOperationsNewsReadiness($pdo,$privateConfig):[];
+    $discoveryReady=($readiness['requiredMotherSchemaAvailable']??false)===true
+        &&($readiness['packagedPrivateNewsLibraryAvailable']??false)===true;
     $jobs=$pdo->query('SELECT job_id,enabled,last_state,needs_owner_review
                          FROM operations_cron_jobs')->fetchAll(PDO::FETCH_ASSOC);
     $allow=operationsCronRegistry();
@@ -347,40 +346,42 @@ function operationsProvisionNewsMasterOwnerRelease(
         return false;
     $target=$privateRoot.'/.jr-owner-news-master.v1.json';
     if(is_link($target)||is_dir($target))return false;
-    // Activate JUST the original, read-only-source-projection worker.
-    // This worker can register unverified discovery candidates and
-    // reconcile previously approved origins, but it cannot grant rights,
-    // download new articles or publish any content on its own.
-    $jobId='jrei_news_original_feed_projection';
-    $pdo->beginTransaction();
-    try {
-        $get=$pdo->prepare('SELECT enabled,needs_owner_review,last_state,
-                    row_revision FROM operations_cron_jobs
-                    WHERE job_id=? FOR UPDATE');
-        $get->execute([$jobId]);
-        $row=$get->fetch(PDO::FETCH_ASSOC);
-        if(!is_array($row)||(int)$row['enabled']!==0||
-           (int)$row['needs_owner_review']!==0||
-           ($row['last_state']??null)==='running'){
-            $pdo->rollBack();return false;
+    // Activate JUST the original feed projection after independent real
+    // schema validation. If News migrations are missing, master Cron can
+    // still start safely with ALL jobs disabled: no premature ingestion.
+    if($discoveryReady){
+        $jobId='jrei_news_original_feed_projection';
+        $pdo->beginTransaction();
+        try {
+            $get=$pdo->prepare('SELECT enabled,needs_owner_review,last_state,
+                        row_revision FROM operations_cron_jobs
+                        WHERE job_id=? FOR UPDATE');
+            $get->execute([$jobId]);
+            $row=$get->fetch(PDO::FETCH_ASSOC);
+            if(!is_array($row)||(int)$row['enabled']!==0||
+               (int)$row['needs_owner_review']!==0||
+               ($row['last_state']??null)==='running'){
+                $pdo->rollBack();return false;
+            }
+            $set=$pdo->prepare('UPDATE operations_cron_jobs
+                SET enabled=1,next_due_at=?,updated_at=?,
+                    row_revision=row_revision+1
+                WHERE job_id=? AND row_revision=? AND enabled=0
+                      AND needs_owner_review=0');
+            $now=time();
+            $set->execute([$now,$now,$jobId,(int)$row['row_revision']]);
+            if($set->rowCount()!==1){
+                $pdo->rollBack();return false;
+            }
+            $pdo->commit();
+        }catch(Throwable $error){
+            if($pdo->inTransaction())$pdo->rollBack();
+            throw $error;
         }
-        $set=$pdo->prepare('UPDATE operations_cron_jobs
-            SET enabled=1,next_due_at=?,updated_at=?,
-                row_revision=row_revision+1
-            WHERE job_id=? AND row_revision=? AND enabled=0
-                  AND needs_owner_review=0');
-        $now=time();
-        $set->execute([$now,$now,$jobId,(int)$row['row_revision']]);
-        if($set->rowCount()!==1){
-            $pdo->rollBack();return false;
-        }
-        $pdo->commit();
-    }catch(Throwable $error){
-        if($pdo->inTransaction())$pdo->rollBack();
-        throw $error;
     }
     $payload=['schema'=>'jr.owner.news-master-release.v1',
-        'sha'=>$releaseSha,'ownerRelease'=>true,'discoveryOnly'=>true];
+        'sha'=>$releaseSha,'ownerRelease'=>true,'discoveryOnly'=>true,
+        'discoveryReady'=>$discoveryReady];
     $encoded=json_encode($payload,JSON_UNESCAPED_SLASHES);
     if(!is_string($encoded))return false;
     $contents=json_encode(['payload'=>$payload,
