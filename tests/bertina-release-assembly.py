@@ -53,9 +53,12 @@ assert "websterSingleSet" in body
 assert "webster_migration_locked" in body
 assert "historical_transaction_blocks_seed" in body
 assert body.count("stage09_schema_preflight_required") == 1
-assert body.index('drjrHostingManagedReleaseCheck(__DIR__') < body.index("SHOW COLUMNS FROM commerce_orders")
-assert body.index('drjrRecoveryCheck(__DIR__') < body.index("SHOW COLUMNS FROM commerce_orders")
-assert body.index('drjrCpanelBackupCheck(__DIR__') < body.index("SHOW COLUMNS FROM commerce_orders")
+# The installer function definition contains SHOW COLUMNS, but its invocation
+# occurs only after the verified pre-extraction recovery policy.
+handler_columns = body.index("SHOW COLUMNS FROM commerce_orders", body.index('drjrInstallOwnerWebsterSingleSet($pdo)'))
+assert body.index('drjrHostingManagedReleaseCheck(__DIR__') < handler_columns
+assert body.index('drjrRecoveryCheck(__DIR__') < handler_columns
+assert body.index('drjrCpanelBackupCheck(__DIR__') < handler_columns
 assert body.index('drjrHostingManagedReleaseCheck(__DIR__') < body.index('drjrInstallOwnerWebsterSingleSet($pdo)')
 assert body.index('drjrInstallOwnerWebsterSingleSet($pdo)') < body.index("SHOW COLUMNS FROM commerce_orders")
 assert body.index('drjrInstallOwnerWebsterSingleSet($pdo)') < body.index("->extractTo(__DIR__)")
