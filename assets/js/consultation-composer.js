@@ -255,6 +255,7 @@
       preview.hidden = true;
       draft.value = '';
       email.setAttribute('href', recipient);
+      email.textContent=fa?'بازکردن در برنامه ایمیل':'Open in email app';
       status.textContent = '';
     }
     fields.disabled = false;
@@ -324,9 +325,20 @@
       }
       var subject = (fa ? 'درخواست مشاوره: ' : 'Consultation request: ') + values[0];
       draft.value = text;
-      email.setAttribute('href', recipient + '?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(text));
+      var subjectUrl=recipient+'?subject='+encodeURIComponent(subject);
+      var fullMailto=subjectUrl+'&body='+encodeURIComponent(text);
+      // Some mobile email handlers reject very long mailto URLs, especially
+      // when percent-encoding Persian text. Never silently truncate a request.
+      var requiresPaste=fullMailto.length>1800;
+      email.setAttribute('href',requiresPaste?subjectUrl:fullMailto);
+      email.textContent=requiresPaste
+        ?(fa?'بازکردن ایمیل پس از کپی‌کردن متن':'Open email after copying the draft')
+        :(fa?'بازکردن در برنامه ایمیل':'Open in email app');
       preview.hidden = false;
-      status.textContent = fa ? 'پیش‌نویس آماده است؛ هنوز ارسال نشده است.' : 'Your draft is ready. It has not been sent.';
+      status.textContent = requiresPaste
+        ?(fa?'پیش‌نویس کامل آماده است اما برای لینک ایمیل طولانی است. متن را کپی کنید، در برنامه ایمیل بچسبانید و سپس ارسال کنید؛ هنوز هیچ درخواستی ارسال نشده است.'
+          :'The full draft is ready but too long for a reliable email link. Copy it, paste it into your email app and send it. No request has been sent.')
+        :(fa?'پیش‌نویس آماده است؛ هنوز ارسال نشده است.':'Your draft is ready. It has not been sent.');
       draft.focus();
     });
     copy.addEventListener('click', async function () {
