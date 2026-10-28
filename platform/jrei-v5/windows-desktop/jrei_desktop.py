@@ -1619,9 +1619,16 @@ class Desktop:
         def invoke():
             # Delegate validation to the existing JREI owner-only task
             # controller, never run an arbitrary or replaced scheduled task.
-            script = (Path(os.environ.get("LOCALAPPDATA", str(Path.home())))
+            # Prefer the bundled program controller; no Python install or
+            # source checkout is needed to restart a legitimately registered
+            # owner-only 8092 task. A separate existing Python task remains
+            # supported by its original source controller.
+            app = Path(sys.executable).resolve().parent
+            bundled = app / "jrei-engine-setup.ps1"
+            legacy = (Path(os.environ.get("LOCALAPPDATA", str(Path.home())))
                 / "JREI-Python" / "repo" / "platform" / "jrei-v5"
                 / "windows-worker" / "jrei-command-center-startup.ps1")
+            script = bundled if bundled.is_file() and not bundled.is_symlink() else legacy
             if not script.is_file() or script.is_symlink():
                 raise RuntimeError("کنترل‌کنندهٔ امن موتور JREI در این رایانه یافت نشد.")
             controller = os.path.join(
