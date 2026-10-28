@@ -47,9 +47,10 @@
   for(const row of input.slice(0,60)){
    if(!row||typeof row.book_id!=='string'||!/^[a-z0-9-]{1,40}$/.test(row.book_id))continue;
    if(!Number.isInteger(row.quantity)||row.quantity<1)continue;
-   const qty=Math.min(20,row.quantity);
+   const max=row.book_id==='websters-third-1981'?1:20;
+   const qty=Math.min(max,row.quantity);
    const prev=items.find(x=>x.book_id===row.book_id);
-   if(prev){prev.quantity=Math.min(20,prev.quantity+qty);continue}
+   if(prev){prev.quantity=Math.min(max,prev.quantity+qty);continue}
    if(items.length>=20)break;
    items.push({book_id:row.book_id,quantity:qty});
   }
@@ -77,7 +78,7 @@
   if(!ready(book)) return;
   const cart=readCart();
   const found=cart.find(x=>x.book_id===book.id);
-  if(found) found.quantity=Math.min(20,(found.quantity||1)+1);
+  if(found) found.quantity=Math.min(book.commerce?.single_copy===true?1:20,(found.quantity||1)+1);
   else cart.push({book_id:book.id,quantity:1});
   writeCart(cart);
   const selector='[data-add-book="'+book.id+'"],[data-detail-add="'+book.id+'"]';
@@ -102,6 +103,17 @@
  }
 
  function card(book){
+  if(book.commerce?.single_copy===true){
+    const art=document.createElement('article');
+    art.className='book-product-card jr-one-copy';
+    art.innerHTML='<figure class="book-cover" style="width:200px;max-width:100%"><img src="'+root('assets/images/books/websters-third-1981-collectible-illustration.svg')+'" loading="lazy" width="600" height="450" alt="'+(isFa?'تصویر تبلیغاتی؛ عکس واقعی کتاب نیست':'Promotional illustration; not a photo of this copy')+'"><figcaption>'+(isFa?'تصویر تبلیغاتی':'Promotional illustration')+'</figcaption></figure>'+
+      '<div class="book-product-copy"><span class="status-chip">'+(isFa?'کلکسیونی · تنها یک مجموعه دو جلدی':'Collectible · one two-volume set only')+'</span>'+
+      '<h2>'+escapeHtml(isFa?book.title_fa:book.english_reference_title)+'</h2>'+
+      '<p>'+escapeHtml(isFa?book.description_fa:book.description_en)+'</p>'+
+      '<div class="book-price">'+escapeHtml(money(book.commerce.price,book.commerce.currency))+'</div>'+
+      '<div class="actions"><a class="button primary" href="'+root((isFa?'fa':'en')+'/shop/collectibles/websters-third-1981/')+'">'+(isFa?'مشاهده وضعیت نسخه و خرید':'View condition and secure purchase')+'</a></div></div>';
+    return art;
+  }
   const el=document.createElement('article');
   el.className='book-product-card';
   const coverSrc=bookCoverUrl(book);
@@ -210,6 +222,7 @@
   const host=document.querySelector('[data-book-detail]'); if(!host) return;
   const id=new URLSearchParams(location.search).get('id');
   const b=data.books.find(x=>x.id===id);
+  if(b?.commerce?.single_copy===true){location.replace(root((isFa?'fa':'en')+'/shop/collectibles/websters-third-1981/'));return;}
   if(!b){host.innerHTML='<h1>'+(isFa?'کتاب پیدا نشد':'Book not found')+'</h1>';return;}
   document.title=(isFa?b.title_fa:b.english_reference_title)+' | '+(isFa?'فروشگاه کتاب':'Bookstore');
   const detailCoverSrc=bookCoverUrl(b);
@@ -288,7 +301,7 @@
     row.innerHTML='<div><strong lang="fa" dir="rtl">'+escapeHtml(b.title_fa)+'</strong><small>'+
       (isFa?'تعداد':'Qty')+': '+item.quantity+'</small></div>'+
       '<div>'+escapeHtml(money(ready(b)?b.commerce.price*item.quantity:null,b.commerce?.currency))+'</div>'+
-      '<div class="cart-quantity-controls" aria-label="تغییر تعداد کتاب"><button type="button" data-decrease-book="'+escapeHtml(b.id)+'" aria-label="کاهش تعداد '+escapeHtml(b.title_fa)+'">−</button><span aria-live="polite">'+item.quantity+'</span><button type="button" data-increase-book="'+escapeHtml(b.id)+'" aria-label="افزایش تعداد '+escapeHtml(b.title_fa)+'">+</button></div><button type="button" data-remove-book="'+escapeHtml(b.id)+'">'+(isFa?'حذف':'Remove')+'</button>';
+      '<div class="cart-quantity-controls" aria-label="تغییر تعداد کتاب"><button type="button" data-decrease-book="'+escapeHtml(b.id)+'" aria-label="کاهش تعداد '+escapeHtml(b.title_fa)+'">−</button><span aria-live="polite">'+item.quantity+'</span><button type="button" data-increase-book="'+escapeHtml(b.id)+'" '+(b.commerce?.single_copy===true?'disabled title="تنها یک مجموعه موجود است"':'')+' aria-label="افزایش تعداد '+escapeHtml(b.title_fa)+'">+</button></div><button type="button" data-remove-book="'+escapeHtml(b.id)+'">'+(isFa?'حذف':'Remove')+'</button>';
     host.appendChild(row);
   }
   const summary=document.createElement('div');
@@ -355,7 +368,7 @@
    if(increase||decrease){
      const id=(increase||decrease).dataset[increase?'increaseBook':'decreaseBook'];
      const next=readCart();const row=next.find(x=>x.book_id===id);
-     if(row){row.quantity=Math.max(0,Math.min(20,row.quantity+(increase?1:-1)));writeCart(next.filter(x=>x.quantity>0));renderCart(data)}
+     if(row){row.quantity=Math.max(0,Math.min(id==='websters-third-1981'?1:20,row.quantity+(increase?1:-1)));writeCart(next.filter(x=>x.quantity>0));renderCart(data)}
      return;
    }
    const remove=e.target.closest('[data-remove-book]');
@@ -456,6 +469,9 @@
        gateway_rejected:[ 'درگاه بیت‌پی درخواست پرداخت را نپذیرفت. سفارش را دوباره پرداخت نکنید؛ با پشتیبانی تماس بگیرید.','BitPay rejected payment initialization. Do not retry payment; contact support.'],
        database_unconfigured:['سامانه ثبت سفارش موقتاً در دسترس نیست.','Order database is temporarily unavailable.'],
        checkout_disabled:['پرداخت آنلاین در حال حاضر غیرفعال است.','Online payment is currently unavailable.'],
+       collectible_sold_or_unavailable:['این مجموعه تک‌نسخه‌ای دیگر برای خرید آزاد نیست؛ اگر پرداخت کرده‌اید با پشتیبانی تماس بگیرید.','The one-of-one set is no longer available to buy; contact support if you already paid.'],
+       collectible_requires_paid_checkout:['برای این نسخه کلکسیونی، فقط مسیر پرداخت امن پس از تأیید موجودی فعال است.','This collectible requires verified stock and secure payment.'],
+       stock_unavailable:['موجودی این مجموعه قبلاً رزرو یا فروخته شده است.','The set was reserved or sold.'],
        book_shipping_not_configured:['تنظیمات ارسال کتاب هنوز تأیید نشده است.','Book shipping settings are not confirmed.'],
        service_booking_not_configured:['رزرو خدمت هنوز آماده نیست.','Service booking is not ready.'],
        vip_booking_not_configured:['رزرو ویژه هنوز آماده نیست.','VIP booking is not ready.'],
