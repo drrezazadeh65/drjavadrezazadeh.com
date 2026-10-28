@@ -610,21 +610,102 @@ def tick(db_path: Path, *, permit_network: bool, user_active: bool=False) -> dic
                 "model_weights_updated":False}
 
 
+def _retrieval_terms(question: str) -> list[str]:
+    """Persian/English normalized query terms for native JREI retrieval."""
+    normalized = re.sub(
+        r"[^\\w\\u0600-\\u06ff]+", " ",
+        question.casefold().replace("ي","ی").replace("ك","ک")
+                .replace("\\u200c"," "))
+    stop = {"برای","این","آن","است","هست","درباره","کدام",
+            "چه","چطور","چگونه","های","یک","میتوان","توان",
+            "the","and","from","with","what","why","how",
+            "that","are","have","you","your","does","was"}
+    return [word for word in dict.fromkeys(normalized.split())
+            if len(word)>=3 and word not in stop][:16]
+
+
+def _rerank_evidence(rows: list, words: list[str], *, max_passages: int) -> list[dict]:
+    """Fuse lexical relevance, FTS rank and source diversity without embeddings.
+
+    The technique follows published multi-signal retrieval principles;
+    the implementation here is native to JREI, not a bundled framework.
+    Scope, source licence and current-version checks are done by the SQL
+    retrieval query before any candidate reaches this function.
+    """
+    scored=[]
+    seen_passages=set()
+    phrase = " ".join(words[:3]) if len(words)>=2 else ""
+    for rank,row in enumerate(rows):
+        url,issuer,rights,licence,source_hash,anchor,body,passage_hash=row
+        if (not isinstance(body,str) or not body or
+                _sha(body)!=passage_hash or
+                not isinstance(source_hash,str) or
+                not re.fullmatch("[a-f0-9]{64}",source_hash)):
+            continue
+        if passage_hash in seen_passages:
+            continue
+        seen_passages.add(passage_hash)
+        plain=body.casefold().replace("ي","ی").replace("ك","ک").replace("\\u200c"," ")
+        matched=[word for word in words if word in plain]
+        if not matched:
+            continue
+        coverage=len(matched)/len(words)
+        occurrence=sum(min(3,plain.count(word)) for word in matched)
+        phrase_bonus=1.0 if phrase and phrase in plain else 0.0
+        # The candidate SQL order is BM25 when FTS is available, and
+        # observed recency when it is absent. In either case this is only
+        # a weak tie-breaker, not a claim of empirical source reliability.
+        rank_signal=1.0/(1+rank/35.0)
+        relevance=0.60*coverage+0.18*min(1.0,occurrence/18)+ \
+                  0.12*phrase_bonus+0.10*rank_signal
+        scored.append({"relevance":relevance,"source_key":source_hash,
+                       "passage_key":passage_hash,
+                       "public":{
+                           "source":url if rights!="PRIVATE_OWNER_GRANTED"
+                                    else "PRIVATE_OWNER_DOCUMENT",
+                           "issuer":issuer,"rights":rights,"licence":licence,
+                           "source_sha256":source_hash,"anchor":anchor,
+                           "text_sha256":passage_hash,
+                           "excerpt":body[:1000],
+                           "matched_query_terms":len(matched),
+                           "independently_fact_checked":False}})
+    selected=[]
+    source_count={}
+    limit=min(MAX_SEARCH_PASSAGES,max(1,max_passages))
+    while scored and len(selected)<limit:
+        # Greedy maximal marginal relevance style source diversification:
+        # choose a different source when relevance is comparable. Multiple
+        # chunks from one document do NOT count as independent confirmation.
+        best=max(scored,key=lambda item:(
+            item["relevance"]-
+            (0.23*min(2,source_count.get(item["source_key"],0))),
+            item["relevance"],item["source_key"],item["passage_key"]))
+        scored.remove(best)
+        selected.append(best["public"])
+        key=best["source_key"]
+        source_count[key]=source_count.get(key,0)+1
+    return selected
+
+
 def retrieve(db_path: Path, question: str, max_passages: int=4) -> dict:
-    """Deterministic lexical grounding; provenance is not truth validation."""
+    """Native source-grounded search, preserving canonical SQLite provenance.
+
+    Inspired by open multi-signal retrieval approaches, but not copying
+    third-party code or installing a parallel memory provider. The result
+    cannot itself prove any educational claim or model-weight improvement.
+    """
     if not isinstance(question,str) or not 1<=len(question)<=6000:
         raise ValueError("LEARNING_QUERY_INVALID")
-    normalized=re.sub(r"[^\w\u0600-\u06ff]+"," ",question.casefold().replace("ي","ی").replace("ك","ک"))
-    stop={"برای","این","آن","است","هست","درباره","کدام","چه","چطور",
-          "چگونه","های","یک","the","and","from","with","what","why","how"}
-    words=[x for x in dict.fromkeys(normalized.split()) if len(x)>=3 and x not in stop][:12]
+    words=_retrieval_terms(question)
     if not words:
         return {"evidence":[],"state":"NO_SEARCH_TERMS"}
     rows=fts.lookup_rows(db_path,words,limit=500)
+    method="LOCAL_FTS5_SOURCE_DIVERSE"
     if rows is None:
-        # Optional FTS5 may be absent from older Windows Python builds,
-        # or not yet rebuilt from the existing private knowledge archive.
-        # Preserve original read-only retrieval in that case.
+        method="BOUNDED_SQLITE_LEXICAL_SOURCE_DIVERSE"
+        # Fallback keeps older Windows Python installations useful.
+        # It searches only recent current-version passages; no claim of
+        # exhaustive corpus search is made without a functioning FTS index.
         with _db(db_path) as db:
             rows=db.execute("""SELECT s.url,s.issuer,s.rights,s.licence,
               v.sha256,p.anchor,p.text,p.sha256
@@ -635,22 +716,12 @@ def retrieve(db_path: Path, question: str, max_passages: int=4) -> dict:
                 AND (s.active=1 OR s.rights='PRIVATE_OWNER_GRANTED')
                 AND s.last_sha=v.sha256
               ORDER BY p.created DESC,p.id DESC LIMIT 2500""").fetchall()
-    scored=[]
-    for url,issuer,rights,licence,source_hash,anchor,text,p_hash in rows:
-        lowered=text.casefold().replace("ي","ی").replace("ك","ک")
-        hits=sum(1 for w in words if w in lowered)
-        if not hits:
-            continue
-        scored.append((hits,url,anchor,{
-            "source":url if rights!="PRIVATE_OWNER_GRANTED" else "PRIVATE_OWNER_DOCUMENT",
-            "issuer":issuer,"rights":rights,"licence":licence,
-            "source_sha256":source_hash,"anchor":anchor,
-            "text_sha256":p_hash,"excerpt":text[:1000],
-            "independently_fact_checked":False}))
-    scored.sort(key=lambda x:(-x[0],x[1],x[2]))
-    output=[x[3] for x in scored[:min(MAX_SEARCH_PASSAGES,max(1,max_passages))]]
+    output=_rerank_evidence(rows,words,max_passages=max_passages)
     return {"evidence":output,"state":"EVIDENCE_RETRIEVED" if output else
-            "NO_MATCHING_REVIEWED_SOURCE","model_weights_changed":False}
+            "NO_MATCHING_REVIEWED_SOURCE","retrieval_method":method,
+            "distinct_sources":len({x["source_sha256"] for x in output}),
+            "current_version_only":True,"independent_validation":False,
+            "model_weights_changed":False}
 
 
 def note_gap(db_path: Path, question: str, *, hmac_key: bytes,
