@@ -70,3 +70,20 @@
 3. Owner privileges: local edit ≠ GitHub push ≠ production publish ≠ train/activate checkpoint. Every high-impact action separately consented.
 4. No automatic tests or CI/build dispatch during development; Git commit messages use `[skip ci]` to avoid unrequested pipeline execution.
 5. This checklist is a source-development and final-acceptance contract, **not a claim of implementation, benchmark success or live Windows install**.
+
+## Source development progress after checklist freeze — NOT functional acceptance
+
+The following specific source changes were committed on the sole canonical branch. They remain `SOURCE_EXISTS` / `WIRED_IN_SOURCE_ONLY`, not `VERIFIED_ON_PC`.
+
+| Package | Source changes and acceptance boundary | Observed commit |
+|---|---|---|
+| P3 / scoped coding | `windows_workspace.py` records exact `diff_sha256` and exposes a hash-revalidated, read-only `preview_diff` using existing private receipts and snapshot files. | `f64e0c8149c190bb9464ad5928dd60e6af21b702` |
+| P3 / API | Existing owner-authenticated 8092 API now serves `GET /api/workspace/diff?id=...`. No new port, database or execution interface. | `5062cb0bd795136d5c8ed10c17c543e3b35e9215` |
+| P1 + P3 / Tk UI | Native GUI can display the actual local draft unified diff and before/after hashes after an approved local edit, or from a named receipt; it cannot authorize GitHub publishing. | `e9e7d255833325702fcecea5a6d9e17cc15315ea` |
+| P5 / model truth | `windows_native_neural.snapshot` returns registry checkpoint SHA and `CANDIDATE_TRAINED_UNREVIEWED` if a run is recorded; never treats SQLite flags as independent quality evidence. | `82f4b79b841b46ac8b9d4e701704caf185d7db3e` |
+| P1 + P5 / model UI | Native Tk status displays recorded neural checkpoint and flags integrity as not checked; no activation claim. | `af235a96bfea8b32b2a319f31fe1d1110b9ab0f0` |
+| P6 / local sensor | Existing Win32 resource sensor and optional PyTorch CUDA probe now label observation time, first local GPU name, CUDA runtime and unknown driver. | `54520fec07cd7e274b0b4580ea92dfb8e87df59c` |
+| P6 / API | Existing authenticated 8092 API adds read-only local-only `/api/resources/inventory` on explicit request; remote PC remains UNKNOWN. | `c228f346b4a613189267b52ed69d1d55b3df117a` |
+| P1 + P6 / Tk UI | New native user-initiated per-PC hardware inventory screen with honest remote-machine unknown and no assumed 16GB VRAM pool. | `3598f6acf9b14a19d153ae65fae0579d3d3bc43e` |
+
+**Unchanged prohibitions:** No integrated tests, no build or installer dispatch, no model training, no owner-private PC telemetry actually read by this workstream, no Windows installation, no Bertina deployment, no acceptance-bit changes. Remaining [ ] items above are not silently completed. Commit messages contain `[skip ci]` and no CI workflow was dispatched by this workstream.
