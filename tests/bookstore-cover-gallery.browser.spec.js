@@ -16,7 +16,9 @@ for(const locale of ['fa','en']){
   expect(response.status()).toBe(200);
   const host=page.locator('[data-book-catalog]');
   const cards=host.locator('.book-product-card');
-  expect(await cards.count()).toBeGreaterThanOrEqual(catalog.books.length);
+  // The original three-book catalogue and optional collectible sidecar load asynchronously.
+  // Wait for the actual legacy covers rather than checking before fetch completes.
+  await expect.poll(()=>cards.count(),{timeout:15000}).toBeGreaterThanOrEqual(catalog.books.length);
   const coverImages=cards.locator('.jr-book-card-gallery .book-cover img');
   expect(await coverImages.count()).toBeGreaterThanOrEqual(catalog.books.length);
   for(const [i,book] of catalog.books.entries()){
