@@ -633,6 +633,7 @@ def status():
         "continuous_learning": knowledge.snapshot(DB_PATH),
         "model_curriculum": curriculum.statistics(DB_PATH),
         "learning_agenda": agenda.snapshot(DB_PATH),
+        "native_metacognition": agenda.metacognition_snapshot(DB_PATH),
         "autonomous_topic_discovery": auto_topics.snapshot(DB_PATH),
         "private_knowledge_search": learning_fts.snapshot(DB_PATH),
         "native_evidence_memory": memory_graph.snapshot(DB_PATH),
