@@ -30,6 +30,7 @@ from jrei_service.ci_observer import observe_ci
 from jrei_service import windows_owner_agent as owner_agent
 from jrei_service import windows_owner_tasks as owner_tasks
 from jrei_service import windows_continuous_learning as knowledge
+from jrei_service import windows_model_curriculum as curriculum
 from jrei_service.windows_response_quality import has_repetition_loop
 from jrei_service.windows_project_generator import read_generated
 from jrei_service.windows_document_vault import import_document, list_documents, delete_document
@@ -104,6 +105,7 @@ def setup() -> str:
     owner_agent.init(DB_PATH)
     owner_tasks.initialize(DB_PATH)
     knowledge.initialize(DB_PATH)
+    curriculum.initialize(DB_PATH)
     token = TOKEN_PATH.read_text(encoding="ascii").strip()
     if len(token) < 48:
         raise RuntimeError("JREI_OWNER_TOKEN_INVALID")
@@ -549,6 +551,7 @@ def scheduler():
         return
     next_study = time.monotonic() + 30
     next_learning = time.monotonic() + 25
+    next_curriculum = time.monotonic() + 90
     next_ci_check = time.monotonic() + 120
     misses = 0
     while not _STOP.is_set():
@@ -585,6 +588,19 @@ def scheduler():
             except (OSError,ValueError,sqlite3.Error) as exc:
                 record("windows_learning","LOOP_ERROR",exc.__class__.__name__)
             next_learning = time.monotonic() + 65
+        if time.monotonic() >= next_curriculum and not _BUSY.locked():
+            if (_activity_at == 0 or time.monotonic()-_activity_at >= 180):
+                try:
+                    resource=knowledge._windows_resources()
+                    if resource["eligible"]:
+                        drafted=curriculum.practice_once(DB_PATH,reply)
+                        if drafted.get("state")=="DRAFT_UNVERIFIED":
+                            record("windows_curriculum","DRAFT_UNVERIFIED",
+                                   "STUDY_CANDIDATE_NOT_INDEPENDENTLY_REVIEWED",
+                                   drafted.get("draft_sha256",""))
+                except (OSError,ValueError,sqlite3.Error) as exc:
+                    record("windows_curriculum","HELD",exc.__class__.__name__)
+            next_curriculum = time.monotonic() + 900
         if time.monotonic() >= next_study and not _BUSY.locked():
             if time.monotonic() - _activity_at >= 180:
                 # Alternate source study with an isolated candidate stage;
@@ -624,6 +640,7 @@ def status():
         "busy": _BUSY.locked(),
         "study_proposals_not_verified": total,
         "continuous_learning": knowledge.snapshot(DB_PATH),
+        "model_curriculum": curriculum.statistics(DB_PATH),
         "autonomous_study_scheduler": "RUNNING",
         "python_port": 8091, "gpu_port": 8082,
         "site_publishing_control": "NOT_CONNECTED",
@@ -720,6 +737,8 @@ class OwnerHTTP(BaseHTTPRequestHandler):
             return self._send(200, {"items": owner_agent.list_workflows(DB_PATH)})
         if self.path == "/api/learning":
             return self._send(200, knowledge.snapshot(DB_PATH))
+        if self.path == "/api/learning/lessons":
+            return self._send(200, {"items": curriculum.list_lessons(DB_PATH)})
         if self.path == "/api/learning/discoveries":
             return self._send(200, {"items": knowledge.list_discoveries(DB_PATH)})
         if urlsplit(self.path).path == "/api/learning/retrieve":
@@ -786,6 +805,16 @@ class OwnerHTTP(BaseHTTPRequestHandler):
                     raise ValueError("LEARNING_SOURCE_CONFIRMATION_REQUIRED")
                 return self._send(200, knowledge.deactivate_source(
                     DB_PATH,data.get("id")))
+            if self.path == "/api/learning/lesson/review":
+                return self._send(200,curriculum.review_lesson(
+                    DB_PATH,lesson_id=data.get("id"),role=data.get("role"),
+                    reviewer=data.get("reviewer"),
+                    attestation_sha256=data.get("attestation_sha256"),
+                    owner_confirmed=data.get("confirm")))
+            if self.path == "/api/learning/adapter/stage":
+                return self._send(200,curriculum.export_training_candidate(
+                    DB_PATH,private=PRIVATE,
+                    owner_confirmed=data.get("confirm")))
             if self.path == "/api/learning/document/index":
                 if data.get("confirm") is not True:
                     raise ValueError("LEARNING_DOCUMENT_CONFIRMATION_REQUIRED")
