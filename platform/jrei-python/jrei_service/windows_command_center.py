@@ -669,6 +669,13 @@ class OwnerHTTP(BaseHTTPRequestHandler):
             return self._send(200, {"instructions": owner_agent.get_instructions(PRIVATE)})
         if self.path == "/api/conversations":
             return self._send(200, {"items": owner_agent.list_conversations(DB_PATH)})
+        if urlsplit(self.path).path == "/api/approvals":
+            params = parse_qs(urlsplit(self.path).query)
+            try:
+                return self._send(200, {"items": owner_agent.list_pending(
+                    DB_PATH, params.get("conversation_id", [""])[0])})
+            except ValueError:
+                return self._send(404, {"error": "JREI_CONVERSATION_NOT_FOUND"})
         if self.path == "/api/tasks":
             params = parse_qs(urlsplit(self.path).query)
             conversation_id = params.get("conversation_id", [None])[0]
