@@ -12,7 +12,7 @@ import json
 import re
 import secrets
 
-PROJECT = re.compile(r"(مخزن|پرامپت|پرومپت|سورس|کدهای پروژه|repo|repository|codebase|source code)", re.I)
+PROJECT = re.compile(r"(مخزن|پرامپت|پرومپت|سورس|کدهای پروژه|\b(?:repo|repository|codebase|source code)\b)", re.I)
 REVIEW = re.compile(r"(پیدا|بگرد|مطالعه|بخوان|بررسی|تحلیل|خلاصه|جمع.?بندی|ممیزی|find|review|trace|inspect|summari[sz]e|analy[sz]e)", re.I)
 MUTATE = re.compile(r"(اصلاح کن|ویرایش کن|تغییر بده|کدنویسی کن|پیاده کن|deploy|publish|push|merge|delete|edit file)", re.I)
 PATH = re.compile(r"^(?:FILE )?((?:docs|platform|scripts|assets|api)/[A-Za-z0-9_.\-/]+\.(?:py|mjs|js|md|txt|css|html|json|ps1|sql))(?::[0-9]+:|$)", re.I)
