@@ -183,6 +183,9 @@ class Desktop:
         self._button(self.side, "وضعیت واقعی مغز و یادگیری",
                      self.show_engine_status, color=SIDE,
                      foreground=GOLD).pack(fill="x", padx=13, pady=(4, 7))
+        self._button(self.side, "مشاهده منابع و GPU این رایانه",
+                     self.show_local_hardware, color=SIDE,
+                     foreground=GOLD).pack(fill="x", padx=13, pady=(0, 7))
         self._label(self.side, "خصوصی · فقط روی رایانهٔ شما", fg=MUTED, bg=SIDE, size=9).pack(pady=12)
 
         self.main = tk.Frame(body, bg=BG)
@@ -469,6 +472,8 @@ class Desktop:
             self._show_approvals()
         elif key == "draft_diff":
             self._display_local_diff(data)
+        elif key == "hardware_inventory":
+            self._display_local_hardware(data)
         elif key == "approval_result":
             self.approval_busy = False
             state = str(data.get("state", "UNKNOWN"))[:100]
@@ -813,6 +818,73 @@ class Desktop:
             "/api/assistant/confirm",
             {"confirm": True, "conversation_id": cid,
              "action_id": action_id}))
+
+    def show_local_hardware(self):
+        """Owner-initiated, read-only inventory for this Windows PC ONLY."""
+        if not self.online:
+            messagebox.showinfo(
+                "JREI · منابع سخت‌افزاری",
+                "موتور خصوصی این رایانه متصل نیست. دادهٔ دستگاه دیگر حدس زده نمی‌شود.",
+                parent=self.root)
+            return
+        self.status_text.set("در حال خواندن مشخصات واقعی این رایانه…")
+        self.fetch("hardware_inventory", lambda: self.api.request(
+            "/api/resources/inventory"))
+
+    def _display_local_hardware(self, data):
+        if (not isinstance(data, dict)
+                or data.get("schema") != "jr.jrei.owner-local-hardware-inventory.v1"
+                or data.get("remote_node_observed") is not False
+                or data.get("cross_pc_vram_pooled") is not False):
+            self.status_text.set("نتیجهٔ سخت‌افزار معتبر نیست.")
+            return
+        local = data.get("local_node") or {}
+        if not isinstance(local, dict):
+            self.status_text.set("پاسخ منابع ناقص است.")
+            return
+        gpu = local.get("gpu_compute") or {}
+        resources = local.get("resources") or {}
+        if not isinstance(gpu, dict) or not isinstance(resources, dict):
+            self.status_text.set("پاسخ منابع ناقص است.")
+            return
+        info = [
+            "این گزارش فقط از همین رایانه است؛ اطلاعات رایانهٔ دوم دریافت نشده.",
+            "زمان مشاهده (Unix UTC): " + str(local.get("observation_epoch_seconds", "نامشخص")),
+            "RAM فیزیکی (MB): " + str(resources.get("physical_ram_mb", "نامشخص")),
+            "RAM آزاد (MB): " + str(resources.get("free_ram_mb", "نامشخص")),
+            "CPU load: " + str(resources.get("cpu_fraction", "نامشخص")),
+            "آخرین فعالیت مالک (ثانیه): " + str(local.get("owner_idle_seconds", "نامشخص")),
+            "",
+            "GPU probe: " + str(gpu.get("status", "نامشخص")),
+            "نام GPU محلی: " + str(gpu.get("device_name") or "اندازه‌گیری نشده"),
+            "Backend: " + str(gpu.get("backend") or "نامشخص"),
+            "تعداد CUDA device: " + str(gpu.get("device_count", "نامشخص")),
+            "VRAM کل/آزاد (MB): " + str(gpu.get("total_memory_mb", "نامشخص"))
+              + " / " + str(gpu.get("free_memory_mb", "نامشخص")),
+            "Driver version: " + str(gpu.get("driver_version") or "اندازه‌گیری نشده"),
+            "آموزش مدل آغاز شده: خیر",
+            "تجمیع VRAM دو رایانه: خیر",
+            "",
+            "عدم دسترسی به CUDA لزوماً نبود GPU را اثبات نمی‌کند.",
+            "AMD/Vulkan/DirectML به بررسی مستقل در پذیرش نهایی نیاز دارند.",
+        ]
+        window = tk.Toplevel(self.root)
+        window.title("JREI | منابع واقعی این رایانه")
+        window.geometry("670x600")
+        window.minsize(500, 360)
+        window.configure(bg=BG)
+        window.transient(self.root)
+        self._label(window, "مشاهدات محلی CPU / RAM / GPU", bg=BG,
+                    fg=GOLD, size=14, bold=True).pack(
+                        fill="x", padx=18, pady=(18, 8))
+        view = tk.Text(window, bg=SURFACE, fg=FG, wrap="word",
+                       font=self._font(10), padx=15, pady=12)
+        view.pack(fill="both", expand=True, padx=18, pady=(0, 10))
+        view.insert("1.0", "\n".join(info))
+        view.configure(state="disabled")
+        self._button(window, "بستن", window.destroy).pack(
+            side="right", padx=18, pady=(0, 14))
+        self.status_text.set("مشاهدات همین رایانه دریافت شد؛ GPU دوم نامشخص است.")
 
     def show_local_diff(self):
         """Read-only review of an owner-private receipt; no patch execution."""
