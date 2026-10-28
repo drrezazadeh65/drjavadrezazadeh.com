@@ -34,3 +34,10 @@
  .jr-decision-guide h3{font-size:18px}
  .jr-decision-guide .jr-guide-grid>div{padding:13px}
 }
+
+/* Direct scholarly paths inside the existing six English academic offer cards. */
+.service-offer .service-scope-links{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+.service-offer .service-scope-links a{display:inline-flex;align-items:center;min-height:44px;max-width:100%;padding:9px 12px;border:1px solid #caa765;border-radius:11px;color:#f6dfae;text-decoration:underline;text-underline-offset:3px;overflow-wrap:anywhere;line-height:1.55}
+.service-offer .service-scope-links a:hover{background:rgba(197,163,91,.14)}
+.service-offer .service-scope-links a:focus-visible{outline:3px solid #ffe1a1;outline-offset:3px}
+@media(max-width:580px){.service-offer .service-scope-links{flex-direction:column}.service-offer .service-scope-links a{width:100%;justify-content:center;text-align:center}}
