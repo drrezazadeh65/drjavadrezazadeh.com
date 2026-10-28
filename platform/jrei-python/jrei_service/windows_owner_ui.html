@@ -49,6 +49,14 @@ h1{font-size:29px;line-height:1.3;margin:16px 0 6px;font-weight:650}p{margin:.5e
 .attachmentChip{background:#33373c;border:1px solid #5b5d64;border-radius:9px;padding:4px 9px;font-size:11px}
 .attachmentChip button{color:#dec18a;margin-inline-start:8px}
 .documentRow{border-bottom:1px solid #323740;padding:9px 0;font-size:11px;overflow-wrap:anywhere}
+.learningPanel{padding:12px;border:1px solid #554b38;background:#232320;border-radius:12px}
+.learningPanel label{display:block;color:#dfcc9f;font-size:11px;margin:8px 0 3px}
+.learningPanel input,.learningPanel select{width:100%;background:#16191e;color:#f1e8d8;border:1px solid #5e5b53;border-radius:8px;padding:7px;font:inherit}
+.learningPanel .learnCheck{display:flex;align-items:flex-start;gap:8px;line-height:1.5}
+.learningPanel .learnCheck input{width:auto;margin-top:5px}
+.learnState{white-space:pre-wrap;overflow-wrap:anywhere;font:11px/1.9 Consolas,Tahoma,sans-serif;color:#e8d3a8}
+.learnNote{font-size:11px;color:#bcb5a9;overflow-wrap:anywhere;margin:7px 0}
+
 .documentRow button{color:#dec18a;padding:5px;margin-inline-start:9px}
 .taskStrip{max-width:880px;margin:0 auto 7px;display:flex;flex-direction:column;gap:6px}
 .taskStrip:empty{display:none}.taskRow{background:#23262b;border:1px solid #504735;
@@ -88,6 +96,21 @@ a.skip-link{position:fixed;top:-120px;right:14px;z-index:1000;padding:10px 16px;
  <p>راهنمای اختصاصی برای شیوه پاسخ، نگارش، پژوهش و پروژه‌ها؛ این متن فقط در ویندوز شما نگهداری می‌شود.</p>
  <textarea id="profile" aria-label="دستورالعمل‌های شخصی شما" rows="5" maxlength="2800" placeholder="مثلاً: نوشته‌های انگلیسی با سبک دانشگاهی من باشند؛ پاسخ فارسی دقیق و توضیحی باشد."></textarea>
  <button class="confirm" id="saveProfile">ذخیره ترجیحات</button>
+ <h2>یادگیری پیوسته JREI</h2>
+ <div class="learningPanel">
+  <p>پایش منابع مجاز فقط روی ویندوز؛ منابع تازه پیش از خزش نیازمند تأیید مجوز و رعایت robots.txt هستند. مدل زبانی بدون بازبینی مستقل آموزش وزنی نمی‌بیند.</p>
+  <pre id="learningState" class="learnState" aria-live="polite">در حال دریافت وضعیت…</pre>
+  <button class="confirm" id="learningSwitch">تغییر وضعیت خزش</button>
+  <label for="sourceUrl">نشانی دقیق منبع دارای مجوز HTTPS</label><input id="sourceUrl" type="url" maxlength="600" autocomplete="off">
+  <label for="sourceIssuer">نام ناشر</label><input id="sourceIssuer" maxlength="120" autocomplete="off">
+  <label for="sourceLicence">شناسه مجوز بازاستفاده</label><input id="sourceLicence" maxlength="90" placeholder="CC-BY-4.0" autocomplete="off">
+  <label for="sourceTrust">نوع منبع</label>
+  <select id="sourceTrust"><option value="OFFICIAL">رسمی</option><option value="INSTITUTIONAL">دانشگاهی</option><option value="PEER_REVIEWED">داوری‌شده</option></select>
+  <label class="learnCheck"><input type="checkbox" id="sourceRights"> مجوز بازاستفاده، حقوق ناشر و اجازهٔ خزش همین نشانی را بررسی کرده‌ام.</label>
+  <button class="confirm" id="registerSource">ثبت منبع در حافظه خصوصی</button>
+  <div id="learningDiscoveries" class="learnNote"></div>
+  <div id="learningLessons" class="learnNote"></div>
+ </div>
  <h2>اسناد خصوصی ویندوز</h2><div id="documents"></div>
  <h2>رویدادهای ثبت‌شده</h2><div class="trace" id="events"></div></section>
  <div class="toast" id="toast" role="alert" hidden></div>
