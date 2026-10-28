@@ -9,6 +9,7 @@ are necessary for each network fetch; discovered links only enter review.
 from __future__ import annotations
 
 import ctypes
+from contextlib import contextmanager
 from datetime import datetime, timezone
 import hashlib
 from html.parser import HTMLParser
@@ -42,11 +43,19 @@ RIGHTS = frozenset(("PUBLIC_REUSE_APPROVED", "PRIVATE_OWNER_GRANTED"))
 TRUST = frozenset(("OFFICIAL", "INSTITUTIONAL", "PEER_REVIEWED", "OWNER_PRIVATE"))
 
 
+@contextmanager
 def _db(path: Path):
     db = sqlite3.connect(path, timeout=15, isolation_level=None)
-    db.execute("PRAGMA foreign_keys=ON")
-    db.execute("PRAGMA busy_timeout=15000")
-    return db
+    try:
+        db.execute("PRAGMA foreign_keys=ON")
+        db.execute("PRAGMA busy_timeout=15000")
+        yield db
+        db.commit()
+    except BaseException:
+        db.rollback()
+        raise
+    finally:
+        db.close()
 
 
 def initialize(path: Path) -> None:
@@ -162,11 +171,13 @@ def ingest_owner_document(path: Path, private: Path, document_id: str,
     now = int(time.time())
     with _db(path) as db:
         db.execute("BEGIN IMMEDIATE")
-        db.execute("""INSERT OR REPLACE INTO learning_sources
+        db.execute("""INSERT INTO learning_sources
           (id,url,rights,issuer,licence,trust,reviewed,active,
            interval_seconds,next_due,last_fetch,last_sha,created)
           VALUES(?,?,'PRIVATE_OWNER_GRANTED','OWNER_LOCAL',
-            'OWNER_CONSENT','OWNER_PRIVATE',1,0,31536000,0,?,?,?)""",
+            'OWNER_CONSENT','OWNER_PRIVATE',1,0,31536000,0,?,?,?)
+          ON CONFLICT(id) DO UPDATE SET
+            last_fetch=excluded.last_fetch,last_sha=excluded.last_sha""",
           (source_id,"private-document:"+document_id,now,raw_sha,now))
         # Same document digest is not automatically an independent fact check.
         version = _version(db,source_id,raw_sha,len(content.encode("utf-8")),now)
@@ -379,7 +390,6 @@ def _windows_resources() -> dict:
             # This runtime is Windows-specific: never infer Windows capacity
             # from a different machine's process or a default model setting.
             return {"eligible":False,"reason":"WINDOWS_RUNTIME_ONLY"}
-        disk=os.statvfs if False else None
         import shutil
         free=shutil.disk_usage(Path.home()).free
         min_free=max(3*1024**3,int(total*.12))
@@ -471,8 +481,9 @@ def tick(db_path: Path, *, permit_network: bool, user_active: bool=False) -> dic
     except (ValueError,OSError,ssl.SSLError,http.client.HTTPException) as exc:
         # No raw HTML, URLs with private parameters or exception details
         # are written to operational receipts.
-        code=str(exc) if isinstance(exc,ValueError) and
-             re.fullmatch(r"[A-Z0-9_]{4,90}",str(exc)) else "FETCH_UNAVAILABLE"
+        code=(str(exc) if isinstance(exc,ValueError) and
+              re.fullmatch(r"[A-Z0-9_]{4,90}",str(exc))
+              else "FETCH_UNAVAILABLE")
         with _db(db_path) as db:
             db.execute("UPDATE learning_sources SET error_code=? WHERE id=?",
                        (code,sid))
