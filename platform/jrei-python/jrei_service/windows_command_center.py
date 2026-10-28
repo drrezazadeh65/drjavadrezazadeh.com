@@ -41,6 +41,7 @@ from jrei_service import windows_code_experience as code_experience
 from jrei_service import windows_site_image_studio as image_studio
 from jrei_service import windows_github_operator as github_operator
 from jrei_service import windows_language_backend as language_backend
+from jrei_service import windows_native_inference as native_inference
 from jrei_service import windows_resource_envelope as resource_envelope
 from jrei_service.windows_response_quality import has_repetition_loop
 from jrei_service.windows_project_generator import read_generated
@@ -178,9 +179,22 @@ def reply(messages, max_tokens=320):
             raise ValueError("JREI_CHAT_LENGTH_INVALID")
         clean.append({"role": msg["role"], "content": value})
     with _INFERENCE_LOCK:
-        result = language_backend.complete(PRIVATE, clean, max_tokens=max_tokens)
+        try:
+            result = language_backend.complete(
+                PRIVATE, clean, max_tokens=max_tokens)
+        except (OSError, RuntimeError, ValueError, urllib.error.URLError):
+            # No other vendor weights: optionally use an independently
+            # reviewed JREI-from-scratch checkpoint in this same 8092
+            # process, never a new sidecar or alternate chatbot.
+            # No native approval => fail closed and let existing RAG return
+            # cited evidence rather than hallucinating an LLM response.
+            result = native_inference.complete(
+                db_path=DB_PATH, private=PRIVATE, messages=clean,
+                max_tokens=min(256, max_tokens))
     if not has_repetition_loop(result["answer"]):
-        result["quality"] = "ACCEPTED"
+        result["quality"] = ("NATIVE_DRAFT_SCREENED_NOT_FACT_VERIFIED"
+            if result.get("backend") == "JREI_OWN_TRAINED_SOURCE_CODE"
+            else "NONREPETITIVE_DRAFT_NOT_FACT_VERIFIED")
         return result
     record("model_quality", "RETRY_REPETITION", "JREI draft rejected")
     try:
@@ -192,11 +206,17 @@ def reply(messages, max_tokens=320):
             *clean[1:],
         ]
         with _INFERENCE_LOCK:
-            regenerated = language_backend.complete(
-                PRIVATE, retry_messages, max_tokens=min(max_tokens, 520),
-                temperature=0.75)
+            if result.get("backend") == "JREI_OWN_TRAINED_SOURCE_CODE":
+                regenerated = native_inference.complete(
+                    db_path=DB_PATH, private=PRIVATE,
+                    messages=retry_messages,
+                    max_tokens=min(256, max_tokens))
+            else:
+                regenerated = language_backend.complete(
+                    PRIVATE, retry_messages, max_tokens=min(max_tokens, 520),
+                    temperature=0.75)
         if not has_repetition_loop(regenerated["answer"]):
-            regenerated["quality"] = "REGENERATED"
+            regenerated["quality"] = "REGENERATED_DRAFT_NOT_FACT_VERIFIED"
             return regenerated
     except (OSError, RuntimeError, ValueError, urllib.error.URLError):
         pass
