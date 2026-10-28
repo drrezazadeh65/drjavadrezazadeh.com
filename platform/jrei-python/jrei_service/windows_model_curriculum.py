@@ -233,7 +233,7 @@ def export_training_candidate(db_path: Path, *, private: Path,
     # A minimum viable independent sample requirement; still NOT a
     # scientifically adequate benchmark or model training authorization.
     if len(train)<20 or len(heldout)<10 or (
-            {x[3] for x in train}&{x[3] for x in heldout}):
+            {x[5] for x in train}&{x[5] for x in heldout}):
         return {"state":"INSUFFICIENT_INDEPENDENT_TRAIN_HELDOUT_DATA",
                 "training_samples":len(train),"heldout_samples":len(heldout),
                 "model_training_started":False}
@@ -267,3 +267,15 @@ def export_training_candidate(db_path: Path, *, private: Path,
             "candidate_id":ident,"sha256":sha,
             "training_samples":len(train),"heldout_samples":len(heldout),
             "model_weights_changed":False,"production_changed":False}
+
+
+def statistics(db_path: Path) -> dict:
+    with closing(_db(db_path)) as db:
+        rows=db.execute("""SELECT review_state,data_role,COUNT(*)
+          FROM learning_lessons GROUP BY review_state,data_role""").fetchall()
+        exports=db.execute("SELECT COUNT(*) FROM learning_training_exports").fetchone()[0]
+    return {"candidate_lessons":[{"state":state,"role":role,"count":count}
+                                 for state,role,count in rows],
+            "staged_adapter_datasets":exports,
+            "model_weights_updated":False,
+            "quality_improvement_independently_verified":False}
