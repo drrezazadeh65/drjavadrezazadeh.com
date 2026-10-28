@@ -22,6 +22,7 @@ from jrei_service.owner_candidate_pipeline import ALLOWED, SENSITIVE, safe_path,
 from jrei_service.windows_codebase_map import build as build_repository_map
 from jrei_service.windows_code_experience import feedback_hints
 from jrei_service._vendor.aider_exact_edit import prep, perfect_replace
+from jrei_service.windows_python_code_review import inspect_change
 
 MAX_SOURCE_BYTES = 26000
 MAX_DELTA_BYTES = 1800
@@ -89,7 +90,9 @@ def _review_candidate_source(target: str, before: str,
         if len(list(ast.walk(tree))) > 18000:
             raise ValueError("JREI_WORKSPACE_AST_COMPLEXITY_LIMIT")
         language = "PYTHON_AST_PARSED_NOT_EXECUTED"
+        impact = inspect_change(target=target, before=before, after=changed)
     else:
+        impact = None
         # Optional MIT ast-grep Python tree-sitter binding is a PARSER only.
         # It does not execute source, run linters/tests, or grant filesystem
         # rights. Without an installed compatible parser, syntax is honestly
@@ -117,6 +120,7 @@ def _review_candidate_source(target: str, before: str,
                 raise ValueError(
                     "JREI_WORKSPACE_AST_GREP_PARSE_UNAVAILABLE") from exc
     return {"source_review": language,
+            "python_structural_impact": impact,
             "privileged_operation_added": False,
             "execution_performed": False,
             "tests_run": False}
