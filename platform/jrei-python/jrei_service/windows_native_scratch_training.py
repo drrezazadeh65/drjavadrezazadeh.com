@@ -192,11 +192,17 @@ def train(*, db_path: Path, private: Path, config_file: Path,
         model.train()
         x, y = batch(train_ids, cfg["batch_size"])
         _, loss = model(x, y)
+        observed_loss = float(loss.item())
+        if not math.isfinite(observed_loss):
+            raise ValueError("JREI_SCRATCH_NONFINITE_TRAIN_LOSS")
         optimizer.zero_grad(set_to_none=True)
         loss.backward()
-        torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+        gradient_norm = torch.nn.utils.clip_grad_norm_(
+            model.parameters(), 1.0)
+        if not math.isfinite(float(gradient_norm.item())):
+            raise ValueError("JREI_SCRATCH_NONFINITE_GRADIENT")
         optimizer.step()
-        final_train_loss = float(loss.item())
+        final_train_loss = observed_loss
         steps_done = step + 1
     if steps_done < 1:
         raise RuntimeError("JREI_SCRATCH_NO_UPDATES_PERFORMED")
@@ -223,6 +229,9 @@ def train(*, db_path: Path, private: Path, config_file: Path,
         "source_candidate_id": cfg["candidate_id"],
         "source_manifest_sha256": _sha_file(folder / "manifest.json"),
         "source_license_review": provenance["source_training_rights"],
+        "source_partition_policy": provenance["partition_policy"],
+        "publishers_disjoint_at_corpus_preparation": provenance["source_publishers_disjoint"],
+        "bilingual_script_coverage_at_preparation": provenance["bilingual_script_coverage"],
         "train_sha256": provenance["train_sha256"],
         "heldout_sha256": provenance["heldout_sha256"],
         "tokenizer_sha256": provenance["tokenizer_sha256"],
