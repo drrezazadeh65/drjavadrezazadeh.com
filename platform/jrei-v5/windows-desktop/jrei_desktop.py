@@ -664,6 +664,12 @@ class Desktop:
         learning = data.get("continuous_learning") or {}
         if not isinstance(learning, dict):
             learning = {}
+        metacognition = data.get("native_metacognition") or {}
+        if not isinstance(metacognition, dict):
+            metacognition = {}
+        study_window = data.get("tehran_study_priority") or {}
+        if not isinstance(study_window, dict):
+            study_window = {}
         res = data.get("local_pc_real_resources") or {}
         if not isinstance(res, dict):
             res = {}
@@ -692,6 +698,18 @@ class Desktop:
                 str(data.get("native_evidence_answering", "نامشخص")),
             "یادگیری پیوسته (وضعیت ثبت‌شده): " +
                 str(learning.get("state") or learning.get("enabled") or "نامشخص"),
+            "شکاف‌های دانشی مشاهده‌شده (هش خصوصی): " +
+                str(learning.get("observed_gap_hashes", "نامشخص")),
+            "موضوعات یادگیری با سابقهٔ دو چرخه: " +
+                str(metacognition.get("topics_with_two_recent_cycles", "نامشخص")),
+            "افزایش پوشش واژگانی مشاهده‌شده (نه کیفیت مدل): " +
+                str(metacognition.get("observed_coverage_increase", "نامشخص")),
+            "منابع بررسی‌شدهٔ آمادهٔ بازخوانی: " +
+                str(metacognition.get("approved_sources_currently_due_for_refresh", "نامشخص")),
+            "اولویت پردازش ۲–۵ بامداد تهران: " +
+                ("فعال" if study_window.get("priority_active") is True
+                 else "غیرفعال یا نامشخص"),
+            "این بازه مجوز خزش، آموزش یا مصرف منابع اضافی نمی‌دهد.",
             "RAM آزاد اندازه‌گیری‌شده: " +
                 str(resource_state.get("free_ram_mb", "نامشخص")) + " MB",
             "پردازش GPU آموزش‌دیده: تأیید نشده",
