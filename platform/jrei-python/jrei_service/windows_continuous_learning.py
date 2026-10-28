@@ -613,9 +613,9 @@ def tick(db_path: Path, *, permit_network: bool, user_active: bool=False) -> dic
 def _retrieval_terms(question: str) -> list[str]:
     """Persian/English normalized query terms for native JREI retrieval."""
     normalized = re.sub(
-        r"[^\\w\\u0600-\\u06ff]+", " ",
+        r"[^\w\u0600-\u06ff]+", " ",
         question.casefold().replace("ي","ی").replace("ك","ک")
-                .replace("\\u200c"," "))
+                .replace("\u200c"," "))
     stop = {"برای","این","آن","است","هست","درباره","کدام",
             "چه","چطور","چگونه","های","یک","میتوان","توان",
             "the","and","from","with","what","why","how",
