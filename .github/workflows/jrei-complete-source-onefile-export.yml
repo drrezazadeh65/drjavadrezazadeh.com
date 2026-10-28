@@ -61,6 +61,7 @@ jobs:
           name: JREI-AI-COMPLETE-SOURCE-${{ github.sha }}
           path: ${{ runner.temp }}/JREI_AI_ONE_FILE/
           compression-level: 6
+          include-hidden-files: true
           retention-days: 90
           if-no-files-found: error
       - name: Link deliverable from workflow summary
