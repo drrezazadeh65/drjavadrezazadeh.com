@@ -19,3 +19,6 @@
 .free-growth-tool :focus-visible{outline:3px solid #f5ce80;outline-offset:3px}
 @media(min-width:800px){.free-growth-tools{grid-template-columns:repeat(2,minmax(0,1fr))}.free-growth-tool:last-child{grid-column:1/-1}}
 @media(prefers-reduced-motion:reduce){.free-growth-tool{scroll-behavior:auto}}
+
+.free-growth-result a.free-growth-next-step{display:block;max-width:100%;padding:10px 12px;margin-top:14px;border:1px solid #c5a66a;border-radius:10px;text-align:start;color:inherit;font-weight:650;overflow-wrap:anywhere}
+.free-growth-result a.free-growth-next-step:hover{background:rgba(197,166,106,.12)}
