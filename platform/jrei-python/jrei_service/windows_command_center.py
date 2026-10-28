@@ -29,6 +29,7 @@ from jrei_service.owner_candidate_pipeline import stage_candidate
 from jrei_service.ci_observer import observe_ci
 from jrei_service import windows_owner_agent as owner_agent
 from jrei_service import windows_owner_tasks as owner_tasks
+from jrei_service import windows_continuous_learning as knowledge
 from jrei_service.windows_response_quality import has_repetition_loop
 from jrei_service.windows_project_generator import read_generated
 from jrei_service.windows_document_vault import import_document, list_documents, delete_document
@@ -102,6 +103,7 @@ def setup() -> str:
         db.commit()
     owner_agent.init(DB_PATH)
     owner_tasks.initialize(DB_PATH)
+    knowledge.initialize(DB_PATH)
     token = TOKEN_PATH.read_text(encoding="ascii").strip()
     if len(token) < 48:
         raise RuntimeError("JREI_OWNER_TOKEN_INVALID")
@@ -546,6 +548,7 @@ def scheduler():
     if _STOP.wait(120):
         return
     next_study = time.monotonic() + 30
+    next_learning = time.monotonic() + 25
     next_ci_check = time.monotonic() + 120
     misses = 0
     while not _STOP.is_set():
@@ -565,6 +568,23 @@ def scheduler():
                     misses = 0
             except (OSError, subprocess.TimeoutExpired, RuntimeError) as exc:
                 record("gpu_recovery", "FAILED", exc.__class__.__name__)
+        # Learning is a separate owner-private loop. Network mode is OFF
+        # until explicitly authorized in the local owner control. The
+        # Windows resource sensor enforces CPU/RAM/disk headroom; source
+        # permission, robots and rate spacing govern every exact URL.
+        if time.monotonic() >= next_learning and not _BUSY.locked():
+            try:
+                outcome = knowledge.tick(
+                    DB_PATH, permit_network=knowledge.network_enabled(DB_PATH),
+                    user_active=(_activity_at>0 and
+                                 time.monotonic()-_activity_at<180))
+                if outcome.get("state") in ("LOCAL_UNVERIFIED_INDEXED","HELD"):
+                    record("windows_learning",outcome["state"],
+                           str(outcome.get("reason","SOURCE_VERSION_OBSERVED"))[:90],
+                           str(outcome.get("source_sha256","")))
+            except (OSError,ValueError,sqlite3.Error) as exc:
+                record("windows_learning","LOOP_ERROR",exc.__class__.__name__)
+            next_learning = time.monotonic() + 65
         if time.monotonic() >= next_study and not _BUSY.locked():
             if time.monotonic() - _activity_at >= 180:
                 # Alternate source study with an isolated candidate stage;
@@ -603,6 +623,7 @@ def status():
         "model_alias": model,
         "busy": _BUSY.locked(),
         "study_proposals_not_verified": total,
+        "continuous_learning": knowledge.snapshot(DB_PATH),
         "autonomous_study_scheduler": "RUNNING",
         "python_port": 8091, "gpu_port": 8082,
         "site_publishing_control": "NOT_CONNECTED",
@@ -697,6 +718,17 @@ class OwnerHTTP(BaseHTTPRequestHandler):
                 return self._send(404, {"error": "JREI_TASK_NOT_FOUND"})
         if self.path == "/api/workflows":
             return self._send(200, {"items": owner_agent.list_workflows(DB_PATH)})
+        if self.path == "/api/learning":
+            return self._send(200, knowledge.snapshot(DB_PATH))
+        if self.path == "/api/learning/discoveries":
+            return self._send(200, {"items": knowledge.list_discoveries(DB_PATH)})
+        if urlsplit(self.path).path == "/api/learning/retrieve":
+            params=parse_qs(urlsplit(self.path).query)
+            query=params.get("q",[""])[0]
+            try:
+                return self._send(200, knowledge.retrieve(DB_PATH,query))
+            except ValueError:
+                return self._send(400, {"error":"LEARNING_QUERY_INVALID"})
         if self.path == "/api/documents":
             return self._send(200, {"items": list_documents(private=PRIVATE)})
         if urlsplit(self.path).path == "/api/generated/file":
@@ -734,9 +766,33 @@ class OwnerHTTP(BaseHTTPRequestHandler):
             if self.path == "/api/documents/delete":
                 if data.get("confirm") is not True:
                     raise ValueError("JREI_DOCUMENT_DELETE_CONFIRM_REQUIRED")
-                result = delete_document(private=PRIVATE, identifier=data.get("id"))
+                # Revoking an owner-selected document also revokes its
+                # opt-in learning index before removing the vaulted source.
+                identifier=data.get("id")
+                knowledge.revoke_owner_document(DB_PATH,identifier)
+                result = delete_document(private=PRIVATE, identifier=identifier)
                 record("document_delete", "LOCAL_ONLY", result["id"][:12])
                 return self._send(200, result)
+            if self.path == "/api/learning/control":
+                return self._send(200, knowledge.set_network_enabled(
+                    DB_PATH,enabled=data.get("enabled"),confirmed=data.get("confirm")))
+            if self.path == "/api/learning/source/register":
+                if data.get("confirm") is not True:
+                    raise ValueError("LEARNING_SOURCE_CONFIRMATION_REQUIRED")
+                return self._send(200, knowledge.register_source(
+                    DB_PATH,data.get("source")))
+            if self.path == "/api/learning/source/deactivate":
+                if data.get("confirm") is not True:
+                    raise ValueError("LEARNING_SOURCE_CONFIRMATION_REQUIRED")
+                return self._send(200, knowledge.deactivate_source(
+                    DB_PATH,data.get("id")))
+            if self.path == "/api/learning/document/index":
+                if data.get("confirm") is not True:
+                    raise ValueError("LEARNING_DOCUMENT_CONFIRMATION_REQUIRED")
+                return self._send(200, knowledge.ingest_owner_document(
+                    DB_PATH,PRIVATE,data.get("id"),
+                    reviewed=data.get("rights_reviewed"),
+                    permitted_for_retrieval=data.get("permitted_for_retrieval")))
             if self.path == "/api/profile":
                 value = data.get("instructions")
                 return self._send(200, {"state": owner_agent.save_instructions(PRIVATE, value)})
