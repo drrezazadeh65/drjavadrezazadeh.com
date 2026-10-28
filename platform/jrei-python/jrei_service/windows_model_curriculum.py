@@ -225,6 +225,7 @@ def export_training_candidate(db_path: Path, *, private: Path,
           JOIN learning_sources s ON s.id=l.source_id
           JOIN learning_versions v ON v.id=l.version_id
           WHERE l.review_state='EXTERNALLY_ATTESTED'
+            AND s.rights='PUBLIC_REUSE_APPROVED'
             AND s.reviewed=1 AND (s.active=1 OR s.rights='PRIVATE_OWNER_GRANTED')
             AND s.last_sha=v.sha256
           ORDER BY l.id""").fetchall()
