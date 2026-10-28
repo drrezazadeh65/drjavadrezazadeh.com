@@ -59,6 +59,9 @@ if($state -eq 'EXISTING_NODE_CONFIG_PRESENT_REMOTE_STATUS_UNVERIFIED' -and
    -not $keyPresent){
  $state='EXISTING_NODE_SIGNING_KEY_NEEDS_OWNER_REVIEW'
 }
+if($state -eq 'NEW_NODE_OWNER_ENROLLMENT_REQUIRED' -and $keyPresent){
+ $state='ORPHAN_EXISTING_NODE_KEY_REQUIRES_OWNER_REVIEW'
+}
 $ramGB=$null
 $cpuThreads=$null
 try{
@@ -78,7 +81,8 @@ $report=[ordered]@{
  state=$state
  machine_id=$node
  node_slots_fixed=$false
- max_nodes_enforced=$false
+ installer_enforces_node_ceiling=$false
+ server_side_node_capacity_not_verified=$true
  ram_gb_observed=$ramGB
  cpu_threads_observed=$cpuThreads
  ram_is_not_node_identity=$true
@@ -91,9 +95,11 @@ $report=[ordered]@{
  original_command_center_task_present=$taskPresent
  real_signed_server_registration_verified=$false
  real_signed_worker_heartbeat_verified=$false
- new_node_requires_server_side_owner_registration=($node -eq 'NOT_REGISTERED_LOCALLY')
+ new_node_requires_server_side_owner_registration=(
+   $state -eq 'NEW_NODE_OWNER_ENROLLMENT_REQUIRED')
  user_data_modified=$false
- code_executed=$false
+ read_only_inventory_script_executed=$true
+ untrusted_code_executed=$false
  installation_performed=$false
 }
 $report | ConvertTo-Json -Depth 4 -Compress
