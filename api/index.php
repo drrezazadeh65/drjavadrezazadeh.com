@@ -1475,7 +1475,7 @@ if($path==='/commerce/collectible-availability'&&$verb==='GET'){
     $available=is_array($item)&&($item['single_copy']??false)===true&&$pdo!==null
         &&stage9SingleCopyAvailable($pdo,$sku);
     respond(['ok'=>true,'sku'=>$sku,'available'=>$available,
-        'checkoutReady'=>$available&&commerceReady()&&stage9BookStockReady($pdo)]);
+        'checkoutReady'=>$available&&commerceReady()]);
 }
 if($path==='/commerce/health'&&$verb==='GET'){
     $c=cfg();$ready=commerceReady();
@@ -1503,6 +1503,7 @@ if($path==='/commerce/health'&&$verb==='GET'){
         'services'=>$ready,
         'vip'=>$ready,
         'books'=>$ready&&stage9BookStockReady(db()),
+        'singleCopyCollectible'=>$ready&&dbReady()&&stage9SingleCopyAvailable(db(),'book:websters-third-1981'),
         'consultationChoice'=>$ready&&commerceConsultationPreferenceSchemaReady(db()),
         'selfServiceBooking'=>false,
         // Paid services and VIP are fulfilled by subsequent human coordination.
@@ -1552,7 +1553,16 @@ if($path==='/commerce/create'&&$verb==='POST'){
     foreach($counts as $sku=>$q){$x=$inventory[$sku];if(($x['single_copy']??false)===true&&$q!==1)fail('single_copy_quantity_invalid',409);if($x['kind']==='digital'){$hasDigital=true;}if($x['kind']!=='book'&&$q!==1)fail('service_quantity_invalid');if($x['kind']==='book'){$hasBook=true;}$sub=$x['price']*$q;$total+=$sub;$lines[]=array_merge($x,['quantity'=>$q,'subtotal'=>$sub]);}
     if($total<1000||$total>1000000000)fail('amount_out_of_range');
     if($hasDigital&&($hasBook||count($counts)!==1))fail('digital_bundle_only',400);
-    if($hasBook&&!stage9BookStockReady($pdo))fail('inventory_not_reconciled',503);
+    if($hasBook&&!stage9BookStockReady($pdo)){
+        // Do not disable this physically confirmed, separately reconciled
+        // one-of-one set merely because some unrelated poetry-book stock is
+        // awaiting reconciliation. Every paid order still uses the same atomic
+        // InnoDB stock reservation and verified BitPay callback.
+        $onlyOne= count($counts)===1 &&
+            isset($counts['book:websters-third-1981']) &&
+            ($inventory['book:websters-third-1981']['single_copy']??false)===true;
+        if(!$onlyOne)fail('inventory_not_reconciled',503);
+    }
     // A collectible must be the sole remaining physical set, unreserved and
     // independently reconciled before initiating a real payment.
     foreach($counts as $sku=>$q){
