@@ -789,6 +789,12 @@ class Desktop:
         learning = data.get("continuous_learning") or {}
         if not isinstance(learning, dict):
             learning = {}
+        continuum = data.get("continuous_learning_observation") or {}
+        if not isinstance(continuum, dict):
+            continuum = {}
+        observation_areas = continuum.get("areas") or {}
+        if not isinstance(observation_areas, dict):
+            observation_areas = {}
         metacognition = data.get("native_metacognition") or {}
         if not isinstance(metacognition, dict):
             metacognition = {}
@@ -844,6 +850,25 @@ class Desktop:
                  else "نامشخص"),
             "موتور شواهد: " +
                 str(data.get("native_evidence_answering", "نامشخص")),
+            "چرخهٔ یادگیری: " +
+                str(data.get("learning_mode") or "وضعیت موتور تأیید نشده"),
+            "آغاز با سرویس؛ بدون ساعات محدود و بدون سقف روزانه.",
+            "آمار مشاهدهٔ ساعتی (فقط گزارش، نه برنامهٔ یادگیری): " +
+                str(continuum.get("state") or "موجود نیست"),
+            "آخرین مشاهده مربوط به همین ساعت: " +
+                ("بله" if continuum.get("observation_current_hour") is True
+                 else "خیر یا مشاهده نشده"),
+            "ساعت‌های فاقد گزارش در فاصلهٔ دو مشاهده: " +
+                str(continuum.get("missed_hours_between_observations", "نامشخص")),
+            "تغییر تعداد شواهد در مشاهدهٔ اخیر: " +
+                str(((observation_areas.get("evidence_brain") or {})
+                     .get("changes_since_previous_receipt") or {})
+                    .get("evidence_passages", "نامشخص")),
+            "تغییر تعداد چرخه‌های مطالعه: " +
+                str(((observation_areas.get("learning_review") or {})
+                     .get("changes_since_previous_receipt") or {})
+                    .get("study_cycles", "نامشخص")),
+            "افزایش واقعی هوش یا کیفیت برنامه‌نویسی: هنوز تأیید نشده.",
             "یادگیری پیوسته (وضعیت ثبت‌شده): " +
                 str(learning.get("state") or learning.get("enabled") or "نامشخص"),
             "شکاف‌های دانشی مشاهده‌شده (هش خصوصی): " +
