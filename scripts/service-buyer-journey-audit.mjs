@@ -45,8 +45,8 @@ function validate(locale,kind,id){
   requireCondition((html.match(/<h1\b/gi)||[]).length===1,prefix+'must contain one visible H1');
   requireCondition((html.match(/id=["\x27]jr-decision-guide-v1["\x27]/gi)||[]).length===1,prefix+'guide ID missing/duplicated');
   requireCondition(html.includes('href="#jr-decision-guide-v1"'),prefix+'hero jump link missing');
-  const bridge=(html.match(/src=["\\x27]\\/assets\\/js\\/jr-service-intent-bridge\\.js(?:\\?[^"\\x27]*)?["\\x27]/gi)||[]).length;
-  const globalSite=(html.match(/src=["\\x27](?:\\/assets\\/js\\/|[^"\\x27]*\\/)site\\.js(?:\\?[^"\\x27]*)?["\\x27]/gi)||[]).length;
+  const bridge=(html.match(/src=["']\/assets\/js\/jr-service-intent-bridge\.js(?:\?[^"']*)?["']/gi)||[]).length;
+  const globalSite=(html.match(/src=["'](?:\/assets\/js\/|[^"']*\/)site\.js(?:\?[^"']*)?["']/gi)||[]).length;
   requireCondition(bridge+globalSite===1,prefix+'expected one consent-aware intent dispatcher, found '+(bridge+globalSite));
   requireCondition(html.includes('/assets/css/jr-service-decision-guides-20261028.css'),prefix+'guide stylesheet missing');
   const guideStart=html.indexOf('<section id="jr-decision-guide-v1"');
