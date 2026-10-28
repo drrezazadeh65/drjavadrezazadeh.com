@@ -21,6 +21,9 @@ import secrets
 import sqlite3
 import time
 
+from jrei_service import windows_native_visual as native_visual
+from jrei_service import windows_visual_learning as visual_learning
+
 SCHEMA = "jr.jrei.site-image-studio.v1"
 ENGINE_SCHEMA = "jr.jrei.site-image-engine.v1"
 SHA = re.compile(r"^[0-9a-f]{64}$")
@@ -79,11 +82,24 @@ def initialize(db_path: Path):
         CREATE INDEX IF NOT EXISTS jrei_site_image_queue
           ON jrei_site_image_jobs(state, created);
         """)
+        # Preserve old diffusers jobs, but make owner-queued NEW jobs native.
+        # These additive columns do not rewrite or erase prior visual assets.
+        columns = {row[1] for row in db.execute(
+            "PRAGMA table_info(jrei_site_image_jobs)")}
+        if "renderer" not in columns:
+            db.execute("""ALTER TABLE jrei_site_image_jobs
+                ADD COLUMN renderer TEXT NOT NULL
+                DEFAULT 'EXTERNAL_LEGACY_HELD'""")
+        if "native_style" not in columns:
+            db.execute("""ALTER TABLE jrei_site_image_jobs
+                ADD COLUMN native_style TEXT NOT NULL DEFAULT ''""")
+        db.commit()
         # An interrupted generation cannot silently resume after process death.
         db.execute("""UPDATE jrei_site_image_jobs
             SET state='INTERRUPTED',updated=?,error_code='WINDOWS_PROCESS_RESTARTED'
             WHERE state='RUNNING'""", (int(time.time()),))
         db.commit()
+    visual_learning.initialize(db_path)
 
 
 def _text(value, limit: int, name: str, minimum=5):
@@ -116,17 +132,26 @@ def enqueue(db_path: Path, request: dict) -> dict:
     steps = request.get("steps", 24)
     if type(steps) is not int or not 12 <= steps <= 45:
         raise ValueError("JREI_IMAGE_STEPS_INVALID")
+    # No third-party pretrained model may become the default. Old queued
+    # legacy jobs remain for explicit future owner review; NEW jobs use
+    # original native geometric art only.
+    if request.get("renderer", native_visual.ENGINE) != native_visual.ENGINE:
+        raise ValueError("JREI_IMAGE_NEW_JOB_NATIVE_ONLY")
     seed = secrets.randbelow(2**31 - 1)
+    chosen = visual_learning.select_style(db_path, purpose=purpose, seed=seed)
     now, ident = int(time.time()), secrets.token_hex(16)
     with closing(_connect(db_path)) as db:
         db.execute("""INSERT INTO jrei_site_image_jobs(
           id,created,updated,state,purpose,aspect,page_path,subject,visual_brief,
-          alt_fa,alt_en,seed,steps,owner_approved)
-          VALUES(?,?,?,'QUEUED',?,?,?,?,?,?,?,?,?,1)""",
+          alt_fa,alt_en,seed,steps,owner_approved,renderer,native_style)
+          VALUES(?,?,?,'QUEUED',?,?,?,?,?,?,?,?,?,1,?,?)""",
           (ident, now, now, purpose, aspect, page, subject, brief,
-           alt_fa, alt_en, seed, steps))
+           alt_fa, alt_en, seed, steps, native_visual.ENGINE, chosen["style_id"]))
         db.commit()
     return {"schema": SCHEMA, "id": ident, "state": "QUEUED",
+            "renderer": native_visual.ENGINE,
+            "native_style_id": chosen["style_id"],
+            "style_policy": chosen["selection_policy"],
             "publication": "NOT_AUTHORIZED",
             "generation": "NOT_YET_ATTEMPTED"}
 
@@ -193,15 +218,28 @@ def local_model_status(private: Path) -> dict:
     # Avoid expensive full-weight hashing in frequent status requests.
     path = private / "site-image-engine.json"
     if not path.is_file() or path.is_symlink():
-        return {"state": "NOT_CONFIGURED", "installed": False, "running": False}
+        return {"state": "NATIVE_PROCEDURAL_SOURCE_READY_UNTESTED",
+                "native_engine": native_visual.ENGINE,
+                "native_renderer_requires_pillow": True,
+                "neural_text_to_image_model_installed": False,
+                "external_pretrained_weights_used_by_native": False,
+                "installed": False, "running": False}
     try:
         cfg = json.loads(path.read_text(encoding="utf-8"))
         enabled = (cfg.get("schema") == ENGINE_SCHEMA and cfg.get("enabled") is True)
-        return {"state": "MODEL_CONFIG_PRESENT_UNVERIFIED" if enabled else "DISABLED",
+        return {"state": "NATIVE_PROCEDURAL_SOURCE_READY_UNTESTED",
+                "native_engine": native_visual.ENGINE,
+                "native_renderer_requires_pillow": True,
+                "neural_text_to_image_model_installed": False,
+                "legacy_model_config_present_unverified": enabled,
                 "installed": False, "running": False,
                 "license_approval_claimed": cfg.get("model_license_reviewed") is True}
     except (OSError, ValueError, TypeError):
-        return {"state": "CONFIG_INVALID", "installed": False, "running": False}
+        return {"state": "NATIVE_PROCEDURAL_SOURCE_READY_UNTESTED",
+                "native_engine": native_visual.ENGINE,
+                "legacy_model_config_invalid": True,
+                "neural_text_to_image_model_installed": False,
+                "installed": False, "running": False}
 
 
 def claim(db_path: Path) -> str | None:
@@ -254,37 +292,52 @@ def render_one(db_path: Path, private: Path, ident: str) -> dict:
     job = _job(db_path, ident)
     if job["state"] != "RUNNING" or job["owner_approved"] != 1:
         raise ValueError("JREI_IMAGE_JOB_NOT_CLAIMED")
-    cfg, model_dir = _model_config(private)  # licenses + exact file hashes
+    native = job.get("renderer") == native_visual.ENGINE
+    details = {}
+    if native:
+        from PIL import Image  # Optional raster library, NOT an image AI.
+        width, height, _variants = FORMATS[job["aspect"]]
+        image, details = native_visual.render(
+            subject=job["subject"], brief=job["visual_brief"],
+            width=width, height=height, seed=int(job["seed"]),
+            style=job["native_style"])
+        cfg = None
+    else:
+        # Backward-compatible owner-approved LEGACY renderer; old existing
+        # jobs only. It cannot be selected for any new JREI-generated job.
+        cfg, model_dir = _model_config(private)  # licenses + exact file hashes
     os.environ["HF_HUB_OFFLINE"] = "1"
     os.environ["TRANSFORMERS_OFFLINE"] = "1"
     os.environ["HF_DATASETS_OFFLINE"] = "1"
     # Optional imports are never required for ordinary JREI chat.
-    import torch
-    from diffusers import StableDiffusionPipeline, StableDiffusionXLPipeline
-    from PIL import Image
-
-    device = "cuda" if torch.cuda.is_available() else "cpu"
-    if device == "cpu" and cfg.get("allow_cpu_generation") is not True:
-        raise RuntimeError("JREI_IMAGE_GPU_UNAVAILABLE_CPU_NOT_APPROVED")
-    pipe_type = (StableDiffusionXLPipeline if
-                 cfg["pipeline"] == "StableDiffusionXLPipeline" else
-                 StableDiffusionPipeline)
-    pipe = pipe_type.from_pretrained(
-        str(model_dir), local_files_only=True, use_safetensors=True,
-        torch_dtype=torch.float16 if device == "cuda" else torch.float32,
-    )
-    pipe = pipe.to(device)
-    pipe.enable_attention_slicing()
-    if hasattr(pipe, "enable_vae_slicing"):
-        pipe.enable_vae_slicing()
-    width, height, variants = FORMATS[job["aspect"]]
-    generator = torch.Generator(device=device).manual_seed(int(job["seed"]))
-    image = pipe(
-        prompt=PROMPT_PREFIX + job["visual_brief"],
-        negative_prompt=NEGATIVE,
-        height=height, width=width, num_inference_steps=int(job["steps"]),
-        guidance_scale=6.5, generator=generator, num_images_per_prompt=1,
-    ).images[0]
+    if not native:
+        import torch
+        from diffusers import StableDiffusionPipeline, StableDiffusionXLPipeline
+        from PIL import Image
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+        if device == "cpu" and cfg.get("allow_cpu_generation") is not True:
+            raise RuntimeError("JREI_IMAGE_GPU_UNAVAILABLE_CPU_NOT_APPROVED")
+        pipe_type = (StableDiffusionXLPipeline if
+                     cfg["pipeline"] == "StableDiffusionXLPipeline" else
+                     StableDiffusionPipeline)
+        pipe = pipe_type.from_pretrained(
+            str(model_dir), local_files_only=True, use_safetensors=True,
+            torch_dtype=torch.float16 if device == "cuda" else torch.float32,
+        )
+        pipe = pipe.to(device)
+        pipe.enable_attention_slicing()
+        if hasattr(pipe, "enable_vae_slicing"):
+            pipe.enable_vae_slicing()
+        generator = torch.Generator(device=device).manual_seed(int(job["seed"]))
+        image = pipe(
+            prompt=PROMPT_PREFIX + job["visual_brief"],
+            negative_prompt=NEGATIVE,
+            height=FORMATS[job["aspect"]][1],
+            width=FORMATS[job["aspect"]][0],
+            num_inference_steps=int(job["steps"]),
+            guidance_scale=6.5, generator=generator, num_images_per_prompt=1,
+        ).images[0]
+    _width, _height, variants = FORMATS[job["aspect"]]
     if not isinstance(image, Image.Image):
         raise RuntimeError("JREI_IMAGE_RENDERER_RETURNED_NO_IMAGE")
     output_dir = _folder(private, ident)
@@ -302,12 +355,23 @@ def render_one(db_path: Path, private: Path, ident: str) -> dict:
             }
         receipt = {
             "schema": SCHEMA, "id": ident, "state": "GENERATED_UNREVIEWED",
-            "source": "ORIGINAL_AI_ILLUSTRATION",
+            "source": ("ORIGINAL_PROCEDURAL_ILLUSTRATION" if native
+                       else "ORIGINAL_AI_ILLUSTRATION"),
             "illustrative_only": True, "documentary_photo": False,
-            "generated_from": "OWNER_APPROVED_LOCAL_OPEN_SOURCE_PIPELINE",
-            "pipeline": cfg["pipeline"], "model_license": cfg.get("license_id", ""),
-            "model_manifest_sha256": hashlib.sha256(json.dumps(
-                cfg["model_files_sha256"], sort_keys=True).encode()).hexdigest(),
+            "generated_from": ("JREI_SOURCE_OWNED_GEOMETRIC_ART" if native
+                               else "OWNER_APPROVED_LOCAL_OPEN_SOURCE_PIPELINE"),
+            "native_renderer": native_visual.ENGINE if native else None,
+            "native_style_id": job["native_style"] if native else None,
+            "native_visual_provenance": details if native else None,
+            "neural_text_to_image": not native,
+            "external_pretrained_weights_used": not native,
+            "pipeline": ("SOURCE_OWNED_PROCEDURAL_GEOMETRY_V1" if native
+                         else cfg["pipeline"]),
+            "model_license": ("NO_MODEL_WEIGHTS" if native
+                              else cfg.get("license_id", "")),
+            "model_manifest_sha256": ("NO_MODEL_WEIGHTS" if native else
+                hashlib.sha256(json.dumps(
+                    cfg["model_files_sha256"], sort_keys=True).encode()).hexdigest()),
             "purpose": job["purpose"], "page_path": job["page_path"],
             "subject": job["subject"],
             "prompt_sha256": hashlib.sha256((
@@ -379,7 +443,8 @@ def list_recent(db_path: Path, limit: int=20) -> dict:
         db.row_factory = sqlite3.Row
         rows = db.execute("""SELECT id,created,updated,state,purpose,aspect,
             page_path,subject,alt_fa,alt_en,artifacts_json,manifest_sha256,
-            error_code,reviewer,output_published FROM jrei_site_image_jobs
+            error_code,reviewer,output_published,renderer,native_style
+            FROM jrei_site_image_jobs
             ORDER BY created DESC LIMIT ?""", (min(50, max(1, int(limit))),))
         items = []
         for row in rows:
