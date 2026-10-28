@@ -345,6 +345,43 @@ function operationsImportRelease(PDO $pdo, array $batch, string $expectedSha, ar
             if (!$q->fetch()) throw new RuntimeException('admin_account_not_verified');
             $pdo->prepare('INSERT IGNORE INTO operations_admin_memberships(account_id,role,enabled,created_at) VALUES(?,?,1,?)')->execute([$id,$private['role'],$now]);
         }
+        // This code path is reached ONLY after the exact GitHub owner-clicked
+        // release has been checksum-verified on Bertina.  Repair the two
+        // historically absent JREI-KA registrations together with the six
+        // genuine News jobs in the ORIGINAL operations_cron_jobs table.
+        // No migration, master enablement, publisher authorisation, schema
+        // creation, source permission or worker execution follows.
+        if (function_exists('operationsCronSchemaReady') &&
+            function_exists('operationsCronNewsPipelineIds') &&
+            operationsCronSchemaReady($pdo)) {
+            $allowlist=operationsCronRegistry();
+            $ids=operationsCronNewsPipelineIds();
+            if (count($ids)!==8 || count(array_unique($ids))!==8)
+                throw new RuntimeException('original_news_pipeline_registry_incomplete');
+            foreach ($ids as $id)
+                if (!isset($allowlist[$id]) ||
+                    operationsCronSourcePath($id)===null)
+                    throw new RuntimeException('original_news_pipeline_worker_missing');
+            $enroll=$pdo->prepare('INSERT IGNORE INTO operations_cron_jobs
+               (job_id,enabled,cadence_seconds,next_due_at,updated_at)
+               VALUES(?,0,?,0,?)');
+            $registered=0;
+            foreach ($ids as $id) {
+                $enroll->execute([$id,$allowlist[$id]['defaultCadence'],$now]);
+                $registered+=$enroll->rowCount();
+            }
+            $check=$pdo->prepare('SELECT COUNT(*) FROM operations_cron_jobs
+                WHERE job_id IN ('.implode(',',array_fill(0,count($ids),'?')).')');
+            $check->execute($ids);
+            if ((int)$check->fetchColumn()!==8)
+                throw new RuntimeException('original_news_pipeline_registration_incomplete');
+            $pdo->prepare('INSERT INTO operations_audit(actor_id,action,reference_id,occurred_at)
+              VALUES(NULL,?,?,?)')->execute([
+                'news_pipeline_release_enrolled_disabled',
+                'jrei-news-eight-original-jobs:'.$registered,
+                $now
+            ]);
+        }
         $pdo->prepare('INSERT INTO operations_audit(actor_id,action,reference_id,occurred_at) VALUES(NULL,?,?,?)')->execute(['release_imported',$expectedSha,$now]);
         $pdo->commit(); return count($validated);
     } catch (Throwable $e) { if ($pdo->inTransaction()) $pdo->rollBack(); throw $e; }
