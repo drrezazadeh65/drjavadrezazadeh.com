@@ -673,6 +673,9 @@ class Desktop:
         foundation = data.get("native_foundation_source_readiness") or {}
         if not isinstance(foundation, dict):
             foundation = {}
+        scratch = data.get("native_scratch_training_registry") or {}
+        if not isinstance(scratch, dict):
+            scratch = {}
         learning = data.get("continuous_learning") or {}
         if not isinstance(learning, dict):
             learning = {}
@@ -713,6 +716,13 @@ class Desktop:
             "وضعیت مقدماتی مجموعهٔ آموزش: " +
                 str(foundation.get("state") or "نامشخص"),
             "پوشش فارسی و انگلیسیِ مجموعه‌ها: بررسی نشده تا آماده‌سازی با تأیید مالک",
+            "فهرست محلی آموزش از صفر (فقط رسید): " +
+                str(scratch.get("state") or "نامشخص"),
+            "تعداد نامزدهای دارای رسید (نمونه): " +
+                str(scratch.get("recorded_run_count_sample", "نامشخص")),
+            "صحت کنونی وزن‌های آموزش از صفر: " +
+                ("بررسی نشده" if scratch.get("checkpoint_integrity_verified_now") is False
+                 else "نامشخص"),
             "موتور شواهد: " +
                 str(data.get("native_evidence_answering", "نامشخص")),
             "یادگیری پیوسته (وضعیت ثبت‌شده): " +
