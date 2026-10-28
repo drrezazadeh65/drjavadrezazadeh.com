@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 from pathlib import Path
 import re
 import sqlite3
@@ -32,6 +33,52 @@ def _sha(path: Path) -> str:
         for block in iter(lambda: stream.read(1024 * 1024), b""):
             digest.update(block)
     return digest.hexdigest()
+
+
+
+
+def _sealed_measurement_valid(record: dict, run: dict) -> bool:
+    """Validate a measurement receipt's internal arithmetic, not its quality.
+
+    An internally consistent next-token score DOES NOT prove independent
+    bilingual comprehension or establish an honest human reviewer.
+    """
+    if not isinstance(record, dict) or not isinstance(run, dict):
+        return False
+    dims = run.get("model_architecture")
+    if not isinstance(dims, dict):
+        return False
+    context = dims.get("block_size")
+    vocab = dims.get("vocab_size")
+    windows = record.get("windows_sampled")
+    available = record.get("available_nonoverlapping_windows")
+    scored = record.get("tokens_scored")
+    if (type(context) is not int or not 32 <= context <= 256
+            or type(vocab) is not int or not 256 <= vocab <= 768
+            or type(windows) is not int or not 1 <= windows <= 64
+            or type(available) is not int or available < windows
+            or type(scored) is not int or scored != context * windows
+            or record.get("fixed_sampler") !=
+               "CONTENT_BLIND_UNIFORM_STRIDED_WINDOWS_V1"
+            or not SHA.fullmatch(
+                str(record.get("sample_positions_sha256", "")))
+            or record.get("dataset_was_used_for_training") is not False
+            or record.get("human_education_quality_verified") is not False):
+        return False
+    fields = ("cross_entropy_nats", "cross_entropy_bits_per_token",
+              "uniform_bits_per_token", "window_coverage_fraction")
+    if any(type(record.get(key)) not in (int, float)
+           or not math.isfinite(record[key]) for key in fields):
+        return False
+    nats = record["cross_entropy_nats"]
+    bits = record["cross_entropy_bits_per_token"]
+    uniform = record["uniform_bits_per_token"]
+    fraction = record["window_coverage_fraction"]
+    return (nats >= 0 and bits >= 0
+            and abs(nats - bits * math.log(2)) <= 0.00001
+            and abs(uniform - math.log2(vocab)) <= 0.00001
+            and 0 < fraction <= 1
+            and abs(fraction - windows / available) <= 0.00001)
 
 
 def _approved(private: Path, db_path: Path) -> dict:
@@ -83,7 +130,8 @@ def _approved(private: Path, db_path: Path) -> dict:
             or eva.get("schema") != "jr.jrei.native-sealed-evaluation.v1"
             or eva.get("run_id") != rid
             or eva.get("model_sha256") != cfg["checkpoint_sha256"]
-            or eva.get("state") != "SEALED_NEXT_TOKEN_SCORE_UNVERIFIED"):
+            or eva.get("state") != "SEALED_NEXT_TOKEN_SCORE_UNVERIFIED"
+            or not _sealed_measurement_valid(eva, rec)):
         raise ValueError("JREI_NATIVE_ACTIVATION_PROVENANCE_INVALID")
     if (not isinstance(review_data, dict)
             or review_data.get("schema") != "jr.jrei.native-bilingual-review.v1"
@@ -199,7 +247,7 @@ def acceptance_preflight(*, db_path: Path, private: Path,
         and eva.get("model_sha256") == rec["weights_sha256"]
         and eva.get("corpus_sha256") ==
             candidate["manifest"]["sealed_test_sha256"]
-        and eva.get("dataset_was_used_for_training") is False)
+        and _sealed_measurement_valid(eva, rec))
     status["stages"]["sealed_next_token_measurement"] = (
         "RECORD_LINKED_NOT_HUMAN_QUALITY_PROOF" if evaluation_recorded
         else "MISSING_OR_INCONSISTENT")
