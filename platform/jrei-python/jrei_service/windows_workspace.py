@@ -33,7 +33,10 @@ def _digest(value: bytes) -> str:
 
 def requested_path(command: str) -> str | None:
     """Only an owner-supplied, allowlisted first-party relative path is usable."""
-    for value in re.findall(r"(?:platform[\\/][A-Za-z0-9_.\\/-]+\.(?:py|mjs|js))", command):
+    for value in re.findall(
+            r"(?:(?:platform[\\/][A-Za-z0-9_.\\/-]+)|"
+            r"(?:assets[\\/]css[\\/][A-Za-z0-9_.\\/-]+))"
+            r"\.(?:py|mjs|js|css|html|php)", command, flags=re.I):
         name = value.replace("\\", "/").rstrip(".,;:)")
         try:
             return safe_path(name).as_posix()
@@ -86,9 +89,32 @@ def _review_candidate_source(target: str, before: str,
             raise ValueError("JREI_WORKSPACE_AST_COMPLEXITY_LIMIT")
         language = "PYTHON_AST_PARSED_NOT_EXECUTED"
     else:
-        # No JS interpreter, Babel installation, test or shell execution
-        # is invoked. JS syntax remains independently unverified.
-        language = "JAVASCRIPT_SYNTAX_UNVERIFIED"
+        # Optional MIT ast-grep Python tree-sitter binding is a PARSER only.
+        # It does not execute source, run linters/tests, or grant filesystem
+        # rights. Without an installed compatible parser, syntax is honestly
+        # unverified; no dependency is downloaded on an owner machine.
+        supported = {
+            ".js": "javascript", ".mjs": "javascript",
+            ".css": "css", ".html": "html", ".php": "php",
+        }
+        suffix = Path(target).suffix.lower()
+        if suffix not in supported:
+            raise ValueError("JREI_WORKSPACE_LANGUAGE_UNSUPPORTED")
+        try:
+            from ast_grep_py import SgRoot
+        except ImportError:
+            language = "MULTILANGUAGE_SYNTAX_UNVERIFIED_NO_AST_GREP"
+        else:
+            try:
+                tree = SgRoot(changed, supported[suffix]).root()
+                # tree-sitter ERROR nodes are only *observed parser errors*;
+                # absence of ERROR does not prove PHP/HTML/CSS correctness.
+                if tree.find(kind="ERROR") is not None:
+                    raise ValueError("JREI_WORKSPACE_AST_GREP_PARSE_ERROR")
+                language = "AST_GREP_TREE_PARSED_NO_ERROR_NODE_NOT_TESTED"
+            except (AttributeError, RuntimeError, TypeError) as exc:
+                raise ValueError(
+                    "JREI_WORKSPACE_AST_GREP_PARSE_UNAVAILABLE") from exc
     return {"source_review": language,
             "privileged_operation_added": False,
             "execution_performed": False,
@@ -99,8 +125,8 @@ def develop(*, repo: Path, private: Path, target: str, objective: str,
             model_reply, db_path: Path | None = None) -> dict:
     """Modify only LOCALAPPDATA private workspace, not the project checkout.
 
-    model_reply is the existing private loopback Qwen chat adapter; it cannot
-    select a file, execute a program or introduce a new tool.
+    model_reply is the existing separately authorized local language callback;
+    it cannot select a file, execute a program or introduce a new tool.
     """
     relative = safe_path(target)
     if not isinstance(objective, str) or not 10 <= len(objective) <= 1500:
