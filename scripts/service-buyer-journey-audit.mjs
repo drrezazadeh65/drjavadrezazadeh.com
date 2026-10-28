@@ -265,6 +265,62 @@ for(const locale of ['fa','en']){
    product+': the revised product guide must carry an honest sitemap lastmod');
 }
 
+// Informed purchasing requires relevant worked reasoning, not only generic
+// promotional copy. These examples are explicitly hypothetical and do not
+// change the authoritative published catalogue, pricing or service readiness.
+const evidenceRichStandardIds=[
+ 'konkur_month','field_selection_standard','reviewer_response',
+ 'teacher_dev_90','organization_consult_90','golden_talent_comprehensive'
+];
+for(const locale of ['fa','en']){
+ for(const id of evidenceRichStandardIds){
+  const file=locale+'/services/'+id+'/index.html';
+  const html=read(file);
+  requireCondition((html.match(/data-jr-worked-example="v2"/g)||[]).length===1,
+    file+': substantive illustrative service reasoning is missing or duplicated');
+  requireCondition(html.includes('jr-case-boundary'),
+    file+': hypothetical output lacks a clear professional/contractual limitation');
+ }
+ for(const offer of vip){
+  const file=locale+'/vip/'+offer.id+'/index.html';
+  const html=read(file);
+  requireCondition((html.match(/data-jr-worked-example-vip="v2"/g)||[]).length===1,
+    file+': VIP output illustration must be unique and context-specific');
+  requireCondition(html.includes('jr-case-boundary'),
+    file+': VIP illustrative deliverable must disclose its contractual limits');
+ }
+ const vipHub=locale+'/vip/index.html';
+ const html=read(vipHub);
+ requireCondition((html.match(/id="jr-vip-compare-v1"/g)||[]).length===1,
+   vipHub+': 6-offer standard-vs-VIP comparison missing');
+ requireCondition(html.includes('/assets/css/jr-service-decision-guides-20261028.css'),
+   vipHub+': VIP comparisons require the accessible mobile guide style');
+ for(const offer of vip){
+  requireCondition(html.includes('href="/'+locale+'/vip/'+offer.id+'/'),
+    vipHub+': incomplete canonical VIP comparison '+offer.id);
+ }
+ const purchaseGuide=locale+'/shop/purchase-guide/index.html';
+ const guide=read(purchaseGuide);
+ requireCondition((guide.match(/id="service-commissioning-journey"/g)||[]).length===1,
+   purchaseGuide+': customer cannot distinguish enquiry, booking and payment');
+ requireCondition(guide.includes('href="/'+locale+'/services/"')&&
+  guide.includes('href="/'+locale+'/vip/"'),
+  purchaseGuide+': professional help guide must include ordinary and VIP services');
+ requireCondition(guide.includes(
+  locale==='fa'?'/fa/darkhast-moshavere/':'/en/request-consultation/'),
+  purchaseGuide+': initial consented/email enquiry should be discoverable');
+ const sitemap=read(locale==='fa'?'sitemap-fa.xml':'sitemap-en.xml');
+ requireCondition(sitemap.includes(
+  '<loc>https://drjavadrezazadeh.com/'+locale+
+  '/shop/purchase-guide/</loc><lastmod>2026-10-28</lastmod>'),
+  purchaseGuide+': informative purchase guide lastmod is stale');
+ const vipMap=read(locale==='fa'?'sitemap-services.xml':'sitemap-en.xml');
+ requireCondition(vipMap.includes(
+  '<loc>https://drjavadrezazadeh.com/'+locale+
+  '/vip/</loc><lastmod>2026-10-28</lastmod>'),
+  vipHub+': new comparison not reflected in existing canonical sitemap');
+}
+
 console.log('Audited '+checked+' bilingual standard/VIP pages, two intake routes and the public catalogue bridge.');
 if(errors.length){
   for(const message of errors)console.error('✗ '+message);
