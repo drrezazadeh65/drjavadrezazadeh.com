@@ -101,7 +101,12 @@ def observe(db_path: Path, *, observed_at: int | None = None) -> dict:
             FROM jrei_hourly_continuum_observations WHERE observed_hour<?
             ORDER BY observed_hour DESC LIMIT 1""", (hour,)).fetchone()
         counters = _counters(db)
-        previous = json.loads(prior[1]) if prior else {}
+        try:
+            previous = json.loads(prior[1]) if prior else {}
+        except (ValueError, TypeError):
+            previous = {}
+        if not isinstance(previous, dict):
+            previous = {}
         deltas = {
             name: (value - previous[name]
                    if type(value) is int and
@@ -149,8 +154,13 @@ def snapshot(db_path: Path) -> dict:
     hour, seen, raw, recorded_sha, previous, delta_raw, state = row
     if hashlib.sha256(raw.encode("utf-8")).hexdigest() != recorded_sha:
         return {**base, "state": "OBSERVATION_HASH_MISMATCH"}
-    counts = json.loads(raw)
-    deltas = json.loads(delta_raw)
+    try:
+        counts = json.loads(raw)
+        deltas = json.loads(delta_raw)
+    except (TypeError, ValueError):
+        return {**base, "state": "OBSERVATION_RECORD_NOT_READABLE"}
+    if not isinstance(counts, dict) or not isinstance(deltas, dict):
+        return {**base, "state": "OBSERVATION_RECORD_INVALID"}
     return {
         **base, "state": state, "observed_hour_utc": hour,
         "last_observed_unix": seen,
