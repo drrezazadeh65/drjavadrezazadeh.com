@@ -77,7 +77,7 @@ def observe(*, gpu_probe: bool = False) -> dict:
         free, total = torch.cuda.mem_get_info(0)
         measured_free = max(0, int(free) // (1024 * 1024))
         measured_total = max(0, int(total) // (1024 * 1024))
-        margin = max(1024, int(measured_total * 0.16))
+        margin = max(2048, int(measured_total * 0.40))
         base["gpu_compute"] = {
             "status": "CUDA_RUNTIME_MEASURED",
             "device_count": count,
@@ -85,7 +85,7 @@ def observe(*, gpu_probe: bool = False) -> dict:
             "total_memory_mb": measured_total,
             "free_memory_mb": measured_free,
             "owner_display_reserve_mb": margin,
-            "compute_supported": measured_free > margin,
+            "compute_supported": measured_free >= margin + 2048,
         }
         return base
     except (ImportError, OSError, RuntimeError, ValueError, AssertionError):
@@ -97,7 +97,8 @@ def allow_heavy_training(*, require_gpu: bool) -> dict:
     """Training admission uses measured RAM, activity and accelerator headroom.
 
     No training starts while the owner is actively using this PC. For an
-    8GB GPU the display/OS retains at least 1GB or 16% (whichever larger).
+    8GB GPU the display/OS retains at least 2GB or 40% (whichever larger)
+    plus 2GB of independently measured free GPU compute headroom.
     This is not a claim that the GPU supports JREI's training operators.
     """
     current = observe(gpu_probe=require_gpu)
