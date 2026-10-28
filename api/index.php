@@ -687,7 +687,7 @@ function localCatalog(): array {
     $read=function(string $file)use($base){$raw=@file_get_contents($base.$file);$d=$raw?json_decode($raw,true):null;return is_array($d)?$d:[];};
     $books=$read('book-catalog.json');$services=$read('service-catalog.json');$vip=$read('vip-catalog.json');
     $items=[];
-    foreach(($books['books']??[]) as $b){$c=$b['commerce']??[];if(($c['sellable']??false)===true&&($c['inventory_state']??'')==='IN_STOCK'&&($c['currency']??'')==='IRT'&&is_int($c['price']??null)&&$c['price']>0){$items['book:'.$b['id']]=['sku'=>'book:'.$b['id'],'title'=>(string)($b['title_fa']??$b['id']),'price'=>$c['price'],'kind'=>'book'];}}
+    foreach(($books['books']??[]) as $b){$c=$b['commerce']??[];if(($c['sellable']??false)===true&&($c['inventory_state']??'')==='IN_STOCK'&&($c['currency']??'')==='IRT'&&is_int($c['price']??null)&&$c['price']>0){$items['book:'.$b['id']]=['sku'=>'book:'.$b['id'],'title'=>(string)($b['title_fa']??$b['id']),'price'=>$c['price'],'kind'=>'book','single_copy'=>($c['single_copy']??false)===true,'max_quantity'=>(($c['single_copy']??false)===true?1:20)];}}
     foreach(($services['services']??[]) as $s){if(($s['sellable']??false)===true&&is_int($s['price']??null)&&$s['price']>0){$items['service:'.$s['id']]=['sku'=>'service:'.$s['id'],'title'=>(string)($s['title_fa']??$s['id']),'price'=>$s['price'],'kind'=>'service'];}}
     foreach(($vip['services']??[]) as $v){if(($v['sellable']??false)===true&&($v['checkout_enabled']??false)===true&&is_int($v['price']??null)&&$v['price']>0){$items['vip:'.$v['id']]=['sku'=>'vip:'.$v['id'],'title'=>(string)($v['title_fa']??$v['id']),'price'=>$v['price'],'kind'=>'vip'];}}
     // Digital authors' titles are not physical books and must never use stock/shipping logic.
@@ -1466,6 +1466,17 @@ if($path==='/commerce/consultation-preference'&&$verb==='POST'){
         fail('consultation_preference_unavailable',503);
     }
 }
+// Public boolean inventory visibility for the one-owner-set collector item.
+// Payment remains governed by the existing /commerce/create route.
+if($path==='/commerce/collectible-availability'&&$verb==='GET'){
+    $sku='book:websters-third-1981';
+    $item=localCatalog()[$sku]??null;
+    $pdo=db();
+    $available=is_array($item)&&($item['single_copy']??false)===true&&$pdo!==null
+        &&stage9SingleCopyAvailable($pdo,$sku);
+    respond(['ok'=>true,'sku'=>$sku,'available'=>$available,
+        'checkoutReady'=>$available&&commerceReady()&&stage9BookStockReady($pdo)]);
+}
 if($path==='/commerce/health'&&$verb==='GET'){
     $c=cfg();$ready=commerceReady();
     respond(['ok'=>true,'service'=>'commerce','hardeningRevision'=>'tls-gate-v1','checkout'=>$ready,'orderCapture'=>commerceSchemaReady(),'requirements'=>[
@@ -1506,7 +1517,7 @@ if($path==='/commerce/prepare'&&$verb==='POST'){
     requirePostOrigin();$pdo=db();if(!$pdo||!commerceSchemaReady())fail('order_capture_unavailable',503);
     $b=jsonBody();$items=$b['items']??null;if(!is_array($items)||count($items)<1||count($items)>20)fail('invalid_items');
     $inventory=localCatalog();$counts=[];
-    foreach($items as $item){$sku=(string)($item['sku']??'');$q=$item['quantity']??null;if(!isset($inventory[$sku])||!is_int($q)||$q<1||$q>20)fail('invalid_item');$counts[$sku]=($counts[$sku]??0)+$q;}
+    foreach($items as $item){$sku=(string)($item['sku']??'');$q=$item['quantity']??null;if(!isset($inventory[$sku])||!is_int($q)||$q<1||$q>20)fail('invalid_item');if(($inventory[$sku]['single_copy']??false)===true)fail('collectible_requires_paid_checkout',503);$counts[$sku]=($counts[$sku]??0)+$q;}
     $lines=[];$total=0;
     foreach($counts as $sku=>$q){$x=$inventory[$sku];if(($x['kind']??'')!=='book')fail('book_order_only');$sub=$x['price']*$q;$total+=$sub;$lines[]=array_merge($x,['quantity'=>$q,'subtotal'=>$sub]);}
     if($total<1000||$total>1000000000)fail('amount_out_of_range');
@@ -1538,10 +1549,17 @@ if($path==='/commerce/create'&&$verb==='POST'){
     $inventory=localCatalog();$counts=[];
     foreach($items as $item){$sku=(string)($item['sku']??'');$q=$item['quantity']??null;if(!isset($inventory[$sku])||!is_int($q)||$q<1||$q>20)fail('invalid_item');$counts[$sku]=($counts[$sku]??0)+$q;}
     $lines=[];$total=0;$c=cfg();$hasBook=false;$hasDigital=false;
-    foreach($counts as $sku=>$q){$x=$inventory[$sku];if($x['kind']==='digital'){$hasDigital=true;}if($x['kind']!=='book'&&$q!==1)fail('service_quantity_invalid');if($x['kind']==='book'){$hasBook=true;}$sub=$x['price']*$q;$total+=$sub;$lines[]=array_merge($x,['quantity'=>$q,'subtotal'=>$sub]);}
+    foreach($counts as $sku=>$q){$x=$inventory[$sku];if(($x['single_copy']??false)===true&&$q!==1)fail('single_copy_quantity_invalid',409);if($x['kind']==='digital'){$hasDigital=true;}if($x['kind']!=='book'&&$q!==1)fail('service_quantity_invalid');if($x['kind']==='book'){$hasBook=true;}$sub=$x['price']*$q;$total+=$sub;$lines[]=array_merge($x,['quantity'=>$q,'subtotal'=>$sub]);}
     if($total<1000||$total>1000000000)fail('amount_out_of_range');
     if($hasDigital&&($hasBook||count($counts)!==1))fail('digital_bundle_only',400);
     if($hasBook&&!stage9BookStockReady($pdo))fail('inventory_not_reconciled',503);
+    // A collectible must be the sole remaining physical set, unreserved and
+    // independently reconciled before initiating a real payment.
+    foreach($counts as $sku=>$q){
+        if(($inventory[$sku]['single_copy']??false)===true &&
+           !stage9SingleCopyAvailable($pdo,$sku))
+            fail('collectible_sold_or_unavailable',409);
+    }
     $customer=null;$customerEmail=null;$customerJson=null;
     if($hasBook){$customer=normalizedCustomer($b['customer']??null);}
     else {$customer=normalizedServiceBuyer($b['customer']??null);}
