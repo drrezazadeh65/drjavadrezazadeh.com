@@ -21,6 +21,7 @@ import tempfile
 from jrei_service.owner_candidate_pipeline import ALLOWED, SENSITIVE, safe_path, parse_response
 from jrei_service.windows_codebase_map import build as build_repository_map
 from jrei_service.windows_code_experience import feedback_hints
+from jrei_service._vendor.aider_exact_edit import prep, perfect_replace
 
 MAX_SOURCE_BYTES = 26000
 MAX_DELTA_BYTES = 1800
@@ -179,8 +180,27 @@ def develop(*, repo: Path, private: Path, target: str, objective: str,
     old, new = parse_response(response["answer"])
     if base[:5000].count(old) != 1 or base.count(old) != 1:
         raise ValueError("JREI_WORKSPACE_MODEL_PATCH_NOT_ANCHORED")
-    changed = base.replace(old, new, 1)
+    # Use the two audited Apache-2.0 Aider exact-edit helpers only for a
+    # complete, unique line-anchored block. Never use its fuzzy guessing,
+    # cross-file fallback, shell execution or automatic Git commit logic.
+    _whole, whole_lines = prep(base)
+    _part, part_lines = prep(old)
+    _replacement, replacement_lines = prep(new)
+    matches = sum(whole_lines[i:i+len(part_lines)] == part_lines
+                  for i in range(len(whole_lines)-len(part_lines)+1))
+    if matches == 1 and old.endswith("\n") and new.endswith("\n"):
+        exact = perfect_replace(whole_lines, part_lines, replacement_lines)
+        if exact is None or base.replace(old, new, 1) != exact:
+            raise ValueError("JREI_WORKSPACE_VENDOR_EXACT_EDIT_MISMATCH")
+        changed = exact
+        edit_strategy = "AUDITED_AIDER_EXACT_WHOLE_LINE"
+    else:
+        # Preserve the legacy strict UNIQUE literal replacement for partial
+        # line fragments. This cannot broaden the modification scope.
+        changed = base.replace(old, new, 1)
+        edit_strategy = "STRICT_UNIQUE_LITERAL_NO_FUZZY_FALLBACK"
     patch_review = _review_candidate_source(target, base, changed, new)
+    patch_review["exact_edit_strategy"] = edit_strategy
     output = changed.encode("utf-8")
     if len(output) > 32000 or abs(len(output) - len(base_bytes)) > MAX_DELTA_BYTES:
         raise ValueError("JREI_WORKSPACE_CHANGE_BUDGET_EXCEEDED")
