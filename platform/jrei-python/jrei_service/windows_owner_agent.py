@@ -449,7 +449,16 @@ def _compose(history: list, output: str, state: str, tool: str, model_reply) -> 
 
 
 def interact(*, db_path: Path, repo: Path, private: Path, ident: str, message: str,
-             model_reply, run_directive, attachment_ids=None) -> dict:
+             model_reply, run_directive, attachment_ids=None, on_progress=None) -> dict:
+    def report_progress(phase: str) -> None:
+        # Worker-owned callback; never tool/model content. A storage outage
+        # must not be disguised as an unsuccessful model answer.
+        if on_progress is not None:
+            try:
+                on_progress(phase)
+            except (OSError, ValueError, sqlite3.Error):
+                pass
+
     if not isinstance(message, str) or not 1 <= len(message.strip()) <= MAX_MESSAGE:
         raise ValueError("JREI_OWNER_MESSAGE_INVALID")
     message = message.strip()
@@ -461,10 +470,12 @@ def interact(*, db_path: Path, repo: Path, private: Path, ident: str, message: s
         raise ValueError("JREI_OWNER_DOCUMENT_REFERENCES_INVALID")
     _add(db_path, ident, "user", message)
     if attachment_ids:
+        report_progress("READING_DOCUMENT")
         # Only owner-selected private document IDs are accepted. Retrieval
         # revalidates each stored SHA-256 and returns bounded, anchored evidence;
         # source text is never persisted in the operation receipt.
         try:
+            report_progress("RETRIEVING_EVIDENCE")
             retrieval = retrieve_document_evidence(
                 private=private, identifiers=attachment_ids, query=message)
             inspected = retrieval["files"]
@@ -502,6 +513,7 @@ def interact(*, db_path: Path, repo: Path, private: Path, ident: str, message: s
                 "\nRETRIEVAL COVERAGE:\n" + coverage[:1100] +
                 "\nEVIDENCE:\n" + evidence
             )
+            report_progress("SYNTHESIZING")
             try:
                 result = model_reply([{"role": "user", "content": prompt}],
                                      max_tokens=1000)
@@ -529,6 +541,7 @@ def interact(*, db_path: Path, repo: Path, private: Path, ident: str, message: s
     # evidence-based synthesis, durable local receipts. The model only
     # suggests search terms; it cannot grant itself filesystem permissions.
     if wants_project_workflow(message):
+        report_progress("RESEARCHING_REPOSITORY")
         result = investigate_project(
             message=message, search=lambda q: find_source(repo, q),
             read=lambda p: read_source(repo, p), model_reply=model_reply)
@@ -542,6 +555,7 @@ def interact(*, db_path: Path, repo: Path, private: Path, ident: str, message: s
                 "tool": {"name": "project_investigation", "state": result["state"],
                          "receipt": raw[:MAX_TOOL_OUTPUT],
                          "steps": receipt["steps"]}}
+    report_progress("ROUTING_TOOL")
     choice = pick_tool(message)
     if choice and choice[0] in ("edit_local", "rollback_local", "generate_project"):
         tool, arguments = choice
@@ -574,6 +588,7 @@ def interact(*, db_path: Path, repo: Path, private: Path, ident: str, message: s
         _add(db_path, ident, "assistant", answer, tool, state, result)
         return {"conversation_id": ident, "answer": answer, "state": state,
                 "tool": {"name": tool, "state": state, "receipt": result[:MAX_TOOL_OUTPUT]}}
+    report_progress("GENERATING_RESPONSE")
     # Local Qwen conversation for writing, reasoning, translation and project advice.
     history = messages(db_path, ident)
     prompt = [{"role": x["role"], "content": x["content"][:3300]}
