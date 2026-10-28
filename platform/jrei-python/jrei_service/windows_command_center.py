@@ -33,6 +33,7 @@ from jrei_service import windows_continuous_learning as knowledge
 from jrei_service import windows_model_curriculum as curriculum
 from jrei_service import windows_learning_agenda as agenda
 from jrei_service import windows_autonomous_topics as auto_topics
+from jrei_service import windows_learning_fts as learning_fts
 from jrei_service.windows_response_quality import has_repetition_loop
 from jrei_service.windows_project_generator import read_generated
 from jrei_service.windows_document_vault import import_document, list_documents, delete_document
@@ -107,6 +108,7 @@ def setup() -> str:
     owner_agent.init(DB_PATH)
     owner_tasks.initialize(DB_PATH)
     knowledge.initialize(DB_PATH)
+    learning_fts.initialize(DB_PATH)
     curriculum.initialize(DB_PATH)
     agenda.initialize(DB_PATH)
     auto_topics.initialize(DB_PATH)
@@ -558,6 +560,7 @@ def scheduler():
     next_curriculum = time.monotonic() + 90
     next_agenda = time.monotonic() + 110
     next_auto_topics = time.monotonic() + 140
+    next_fts_index = time.monotonic() + 180
     next_ci_check = time.monotonic() + 120
     misses = 0
     while not _STOP.is_set():
@@ -581,6 +584,19 @@ def scheduler():
         # until explicitly authorized in the local owner control. The
         # Windows resource sensor enforces CPU/RAM/disk headroom; source
         # permission, robots and rate spacing govern every exact URL.
+        if time.monotonic() >= next_fts_index and not _BUSY.locked():
+            if _activity_at == 0 or time.monotonic() - _activity_at >= 180:
+                try:
+                    resources=knowledge._windows_resources()
+                    index_state=learning_fts.rebuild_when_idle(
+                        DB_PATH,resources_available=resources.get("eligible",False),
+                        owner_active=False)
+                    if index_state.get("state")=="FTS_REBUILT_LOCALLY":
+                        record("windows_search_index","FTS_REBUILT_LOCALLY",
+                               "INDEX_ONLY_NO_MODEL_TRAINING")
+                except (OSError,ValueError,sqlite3.Error) as exc:
+                    record("windows_search_index","HELD",exc.__class__.__name__)
+            next_fts_index = time.monotonic() + 2700
         if time.monotonic() >= next_learning and not _BUSY.locked():
             try:
                 outcome = knowledge.tick(
@@ -681,6 +697,7 @@ def status():
         "model_curriculum": curriculum.statistics(DB_PATH),
         "learning_agenda": agenda.snapshot(DB_PATH),
         "autonomous_topic_discovery": auto_topics.snapshot(DB_PATH),
+        "private_knowledge_search": learning_fts.snapshot(DB_PATH),
         "autonomous_study_scheduler": "RUNNING",
         "python_port": 8091, "gpu_port": 8082,
         "site_publishing_control": "NOT_CONNECTED",
