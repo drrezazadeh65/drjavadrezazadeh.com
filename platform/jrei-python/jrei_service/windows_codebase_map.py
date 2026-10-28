@@ -14,8 +14,9 @@ from pathlib import Path
 import re
 
 SAFE_ROOTS = ("platform/jrei-python", "platform/jrei-v5",
-              "platform/news-intelligence", "scripts", "api")
-SOURCE_SUFFIXES = frozenset((".py", ".js", ".mjs", ".cjs", ".ts", ".php"))
+              "platform/news-intelligence", "assets/css", "scripts", "api")
+SOURCE_SUFFIXES = frozenset((".py", ".js", ".mjs", ".cjs", ".ts",
+                            ".php", ".css", ".html"))
 SKIP_DIRS = frozenset((".git", "node_modules", "vendor", "__pycache__",
                        "private", "secrets", "credentials", "cache", "dist",
                        "build", "backup", "backups", ".venv", "venv"))
@@ -33,6 +34,11 @@ PHP_DEF = re.compile(
     r"^\s*(?:final\s+|abstract\s+)?(?:class|function)\s+"
     r"([A-Za-z_][A-Za-z0-9_]{1,75})\b"
 )
+CSS_DEF = re.compile(r"^\s*(?:[.#:@][A-Za-z_][\w.\-:#\[\](), >+~]{0,130})\s*\{")
+HTML_DEF = re.compile(
+    r"^\s*<(?:main|section|article|header|footer|nav|form|dialog|"
+    r"script|style|h[1-6])\b[^>]{0,200}>", re.I)
+
 
 
 def _py_symbols(text: str) -> list[tuple[int, str]]:
@@ -104,7 +110,9 @@ def _tree_sitter_symbols(text: str, suffix: str) -> list[tuple[int, str]]:
 
 
 def _other_symbols(text: str, suffix: str) -> list[tuple[int, str]]:
-    pattern = PHP_DEF if suffix == ".php" else LINE_DEF
+    pattern = (PHP_DEF if suffix == ".php" else
+               CSS_DEF if suffix == ".css" else
+               HTML_DEF if suffix == ".html" else LINE_DEF)
     matches = []
     for number, line in enumerate(text.splitlines(), start=1):
         if len(matches) >= MAX_SYMBOLS_PER_FILE:
