@@ -86,7 +86,7 @@ def run(*, message, search, read, model_reply, repository_map=None):
                     paths.append(file)
             excerpt = str(mapping.get("map", ""))[:3500]
             if excerpt:
-                evidence.append("READ-ONLY REPOSITORY MAP (UNTRUSTED):\\n" + excerpt)
+                evidence.append("READ-ONLY REPOSITORY MAP (UNTRUSTED):\n" + excerpt)
             steps.append({"tool": "native_repository_map",
                           "argument": "existing first-party source",
                           "state": "OBSERVED",
