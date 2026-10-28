@@ -51,6 +51,7 @@ class Capability:
     capabilities: tuple[str, ...]
     observed_at: int
     tainted: bool = False
+    gpu_compute_backend: str = "UNMEASURED"  # Signed NODE CLAIM, not host attestation
 
 
 @dataclass(frozen=True)
@@ -66,6 +67,7 @@ class Demand:
     owner_authorized: bool
     network_writes: bool = False
     requires_model_weights: bool = False
+    gpu_compute_backend: str = "CPU"
 
 
 def _nonneg(value, maximum: int, name: str) -> int:
@@ -110,6 +112,12 @@ def parse_signed_report(raw: dict, *, validated_by_gateway: bool) -> Capability:
     gpu=raw.get("gpu_kind")
     if gpu not in ("NONE","NVIDIA","AMD","INTEL","OTHER"):
         raise ValueError("JREI_FLEET_GPU_KIND_INVALID")
+    backend=raw.get("gpu_compute_backend", "UNMEASURED")
+    if backend not in ("UNMEASURED", "CUDA", "DIRECTML"):
+        raise ValueError("JREI_FLEET_GPU_RUNTIME_UNRECOGNISED")
+    if (gpu=="NONE" and backend!="UNMEASURED"
+            or backend=="CUDA" and gpu!="NVIDIA"):
+        raise ValueError("JREI_FLEET_GPU_RUNTIME_INCONSISTENT")
     observed=_nonneg(raw.get("observed_at"),2**42,"TIMESTAMP")
     slots=_nonneg(raw.get("max_parallel"),128,"PARALLEL_SLOTS")
     used=_nonneg(raw.get("busy"),128,"BUSY_SLOTS")
@@ -129,7 +137,8 @@ def parse_signed_report(raw: dict, *, validated_by_gateway: bool) -> Capability:
         gpu_vram_mb=vram,gpu_free_mb=gpu_free,
         gpu_kind=gpu,max_parallel=slots,busy=used,
         source_digests=tuple(hashes),capabilities=tuple(cap),
-        observed_at=observed,tainted=raw.get("tainted") is True)
+        observed_at=observed,tainted=raw.get("tainted") is True,
+        gpu_compute_backend=backend)
 
 
 def demand(raw: dict) -> Demand:
@@ -148,6 +157,14 @@ def demand(raw: dict) -> Demand:
         raise ValueError("JREI_FLEET_JOB_OWNER_AUTH_REQUIRED")
     if raw.get("network_writes") is not False:
         raise ValueError("JREI_FLEET_NO_NETWORK_WRITE_DELEGATION")
+    gpu_backend=raw.get("gpu_compute_backend", "CPU")
+    if gpu_backend not in ("CPU","CUDA","DIRECTML"):
+        raise ValueError("JREI_FLEET_JOB_GPU_BACKEND_INVALID")
+    # Raw VRAM claims do not prove the presence of a usable GPU compute
+    # library or driver. Any GPU job must name the required runtime.
+    if (raw.get("min_vram_mb",0)>0 and gpu_backend=="CPU"
+            or raw.get("min_vram_mb",0)==0 and gpu_backend!="CPU"):
+        raise ValueError("JREI_FLEET_JOB_GPU_BACKEND_NOT_SPECIFIED")
     return Demand(
         job_id=job, task_type=task,
         cpu_threads=_nonneg(raw.get("cpu_threads"),2048,"TASK_CPU"),
@@ -157,12 +174,13 @@ def demand(raw: dict) -> Demand:
         deadline_seconds=_nonneg(raw.get("deadline_seconds"),MAX_TASK_SECONDS,"TASK_TIME"),
         priority=_nonneg(raw.get("priority"),100,"TASK_PRIORITY"),
         owner_authorized=True,network_writes=False,
-        requires_model_weights=raw.get("requires_model_weights") is True)
+        requires_model_weights=raw.get("requires_model_weights") is True,
+        gpu_compute_backend=gpu_backend)
 
 
 def _eligible(node: Capability, job: Demand, *, now: int):
     if (node.state!="ENABLED" or not node.fresh_signed_observation or
-            node.tainted or node.observed_at>now+120 or now-node.observed_at>90):
+            node.tainted or node.observed_at>now+5 or now-node.observed_at>90):
         return False,"NOT_TRUSTED_AND_FRESH"
     if job.task_type not in node.capabilities:
         return False,"TASK_UNAVAILABLE"
@@ -175,9 +193,15 @@ def _eligible(node: Capability, job: Demand, *, now: int):
     if (node.cpu_threads<job.cpu_threads or
             node.free_ram_mb<job.min_ram_mb*1.25):
         return False,"COMPUTE_HEADROOM_LOW"
-    if job.min_vram_mb and (node.gpu_kind=="NONE" or
-                              node.gpu_free_mb<job.min_vram_mb*1.20):
-        return False,"GPU_HEADROOM_LOW"
+    if job.min_vram_mb:
+        # The signed report provides an unverified hardware hint, not a
+        # server-side GPU benchmark. Missing/mismatched backend must HOLD.
+        if (job.gpu_compute_backend not in ("CUDA","DIRECTML")
+                or node.gpu_compute_backend!=job.gpu_compute_backend):
+            return False,"GPU_RUNTIME_NOT_ATTESTED_COMPATIBLE"
+        if (node.gpu_kind=="NONE" or
+                node.gpu_free_mb<job.min_vram_mb*1.20):
+            return False,"GPU_HEADROOM_LOW"
     # A model-dependent task requires a second authorization tied to a
     # JREI-trained, independently evaluated checkpoint, not generic GPU.
     if job.requires_model_weights:
@@ -259,6 +283,8 @@ def suggest(nodes: Iterable[Capability], jobs: Iterable[Demand], *,
         "live_dispatch_authority":"EXISTING_SIGNED_ED25519_SERVER_QUEUE_ONLY",
         "execution_performed":False,
         "neural_training_distributed":False,
+        "gpu_runtime_compatibility_is_signed_node_report_only":True,
+        "gpu_runtime_requires_explicit_job_backend":True,
         "gpu_memory_pooled":False,
         "source_code_reviewed_or_tested_by_this_plan":False,
     }
@@ -278,5 +304,7 @@ def architecture_status() -> dict:
         "50_nodes_actually_connected":False,
         "distributed_training_enabled":False,
         "hardware_gpu_acceleration_verified":False,
+        "future_gpu_jobs_require_signed_local_runtime_hint":True,
+        "no_cross_node_gpu_memory_pooling":True,
         "site_deployment_performed":False,
     }
