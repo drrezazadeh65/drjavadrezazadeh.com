@@ -101,6 +101,7 @@ a.skip-link{position:fixed;top:-120px;right:14px;z-index:1000;padding:10px 16px;
   <p>پایش منابع مجاز فقط روی ویندوز؛ منابع تازه پیش از خزش نیازمند تأیید مجوز و رعایت robots.txt هستند. مدل زبانی بدون بازبینی مستقل آموزش وزنی نمی‌بیند.</p>
   <pre id="learningState" class="learnState" aria-live="polite">در حال دریافت وضعیت…</pre>
   <div id="memoryGraphState" class="learnNote" aria-live="polite">حافظهٔ مفهومی: هنوز ارزیابی نشده است.</div>
+  <div id="codeLearningState" class="learnNote" aria-live="polite">تجربهٔ کدنویسی: هنوز گزارشی ثبت نشده است.</div>
   <button class="confirm" id="learningSwitch">تغییر وضعیت خزش</button>
   <label for="sourceUrl">نشانی دقیق منبع دارای مجوز HTTPS</label><input id="sourceUrl" type="url" maxlength="600" autocomplete="off">
   <label for="sourceIssuer">نام ناشر</label><input id="sourceIssuer" maxlength="120" autocomplete="off">
@@ -363,6 +364,12 @@ async function refreshLearning(){
   $('learningDiscoveries').textContent=links.items.length?
    'پیوندهای نیازمند تأیید مستقل: '+links.items.length:
    'پیوند نیازمند بازبینی وجود ندارد.';
+  const codeLearning=globalState.code_learning||{};
+  const codeCounts=codeLearning.counts||[];
+  const pendingCode=codeCounts.filter(x=>x.state==='DRAFT_UNREVIEWED').reduce((n,x)=>n+(x.count||0),0);
+  const reviewedCode=codeCounts.filter(x=>x.state==='OWNER_FEEDBACK_RECORDED').reduce((n,x)=>n+(x.count||0),0);
+  $('codeLearningState').textContent='تجربهٔ کدنویسی JREI | پیش‌نویس‌های بازبینی‌نشده: '+pendingCode+
+    ' · نظرهای مالک ثبت‌شده: '+reviewedCode+' · آموزش واقعی وزن‌ها: آغاز نشده';
   const memoryInfo=globalState.native_evidence_memory||{};
   $('memoryGraphState').textContent=
    'حافظهٔ رابطه‌ای JREI | ادعاهای پیشنهادی: '+
