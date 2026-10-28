@@ -44,7 +44,11 @@ function stage9SchemaReady(PDO $pdo): bool {
 }
 function stage9BookStockReady(PDO $pdo): bool {
     if (!stage9SchemaReady($pdo)) return false;
-    $books=array_filter(localCatalog(),static fn(array $entry): bool => $entry['kind']==='book');
+    // Single-copy collectible stock is gated per SKU by the same atomic
+    // reservation SQL below. Do not let a new listing disable checkout for
+    // legacy print titles while its one-off inventory is being reconciled.
+    $books=array_filter(localCatalog(),static fn(array $entry): bool =>
+        $entry['kind']==='book' && ($entry['single_copy']??false)!==true);
     if (count($books)<1) return false;
     // Each statement observes a consistent InnoDB snapshot of the stock row
     // and reservation ledger. A reconciled stock flag cannot excuse drift in
@@ -61,6 +65,27 @@ function stage9BookStockReady(PDO $pdo): bool {
     }
     return true;
 }
+/**
+ * Read-only availability for one collectible. Never trust a public catalogue
+ * stock label. Reconciled inventory, reserved ledger and InnoDB schema must
+ * agree. The buy path independently enforces stock inside a transaction.
+ */
+function stage9SingleCopyAvailable(PDO $pdo,string $sku): bool {
+    if(!preg_match('/^book:[a-z0-9-]{1,40}$/D',$sku)||!stage9SchemaReady($pdo))
+        return false;
+    try{
+        $s=$pdo->prepare("SELECT physical_on_hand,reserved,reconciled_at,
+             COALESCE((SELECT SUM(quantity) FROM commerce_book_reservations
+               WHERE sku=? AND state='reserved'),0) AS held
+             FROM commerce_book_stock WHERE sku=?");
+        $s->execute([$sku,$sku]);
+        $r=$s->fetch(PDO::FETCH_ASSOC);
+        return is_array($r) && !empty($r['reconciled_at']) &&
+            (int)$r['reserved']===(int)$r['held'] &&
+            (int)$r['physical_on_hand']===1 && (int)$r['reserved']===0;
+    }catch(Throwable $e){return false;}
+}
+
 /** Must be called inside an open transaction, before an order becomes payable. */
 function stage9ReserveBooks(PDO $pdo,string $orderId,array $lines): void {
     if (!$pdo->inTransaction()) throw new RuntimeException('inventory_transaction_required');
