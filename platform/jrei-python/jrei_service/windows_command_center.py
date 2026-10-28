@@ -34,6 +34,7 @@ from jrei_service import windows_model_curriculum as curriculum
 from jrei_service import windows_learning_agenda as agenda
 from jrei_service import windows_autonomous_topics as auto_topics
 from jrei_service import windows_learning_fts as learning_fts
+from jrei_service import windows_letta_bridge as letta_bridge
 from jrei_service.windows_response_quality import has_repetition_loop
 from jrei_service.windows_project_generator import read_generated
 from jrei_service.windows_document_vault import import_document, list_documents, delete_document
@@ -698,6 +699,7 @@ def status():
         "learning_agenda": agenda.snapshot(DB_PATH),
         "autonomous_topic_discovery": auto_topics.snapshot(DB_PATH),
         "private_knowledge_search": learning_fts.snapshot(DB_PATH),
+        "optional_letta_code": letta_bridge.state(PRIVATE),
         "autonomous_study_scheduler": "RUNNING",
         "python_port": 8091, "gpu_port": 8082,
         "site_publishing_control": "NOT_CONNECTED",
@@ -792,6 +794,13 @@ class OwnerHTTP(BaseHTTPRequestHandler):
                 return self._send(404, {"error": "JREI_TASK_NOT_FOUND"})
         if self.path == "/api/workflows":
             return self._send(200, {"items": owner_agent.list_workflows(DB_PATH)})
+        if self.path == "/api/letta":
+            return self._send(200, letta_bridge.state(PRIVATE))
+        if self.path == "/api/letta/agents":
+            try:
+                return self._send(200, letta_bridge.available_agents())
+            except (OSError,ValueError,json.JSONDecodeError) as exc:
+                return self._send(503, {"error":"JREI_LOCAL_LETTA_UNAVAILABLE"})
         if self.path == "/api/learning":
             return self._send(200, knowledge.snapshot(DB_PATH))
         if self.path == "/api/learning/topics":
@@ -859,6 +868,12 @@ class OwnerHTTP(BaseHTTPRequestHandler):
                 result = delete_document(private=PRIVATE, identifier=identifier)
                 record("document_delete", "LOCAL_ONLY", result["id"][:12])
                 return self._send(200, result)
+            if self.path == "/api/letta/configure":
+                return self._send(200, letta_bridge.configure(
+                    PRIVATE,enabled=data.get("enabled"),
+                    agent_id=data.get("agent_id"),
+                    local_tools_reviewed=data.get("local_tools_reviewed"),
+                    confirmed=data.get("confirm")))
             if self.path == "/api/learning/control":
                 return self._send(200, knowledge.set_network_enabled(
                     DB_PATH,enabled=data.get("enabled"),confirmed=data.get("confirm")))
