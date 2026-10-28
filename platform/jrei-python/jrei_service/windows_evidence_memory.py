@@ -151,7 +151,7 @@ def _parse(raw: str, source_text: str) -> list[dict]:
 
 def capture_once(db_path: Path, *, model_reply, resources_available: bool,
                  owner_active: bool = False) -> dict:
-    """Extract one source-grounded claim set with a crash-safe local lease.
+    """Extract one source-grounded claim set with a crash-recoverable local lease.
 
     Never imports a private document, user chat or unlicensed web text.
     This is a model inference operation on a PREVIOUSLY downloaded source.
@@ -173,8 +173,8 @@ def capture_once(db_path: Path, *, model_reply, resources_available: bool,
              AND s.last_sha=v.sha256
              AND LENGTH(p.text)>=140
              AND (a.passage_id IS NULL OR
-                  (a.status='MODEL_DRAFT_FAILED' AND a.next_due<=?
-                   AND a.count<3))
+                  (a.status IN ('MODEL_DRAFT_FAILED','PROCESSING')
+                   AND a.next_due<=? AND a.count<3))
           ORDER BY p.created DESC,p.id LIMIT 1""", (now,)).fetchone()
         if not row:
             db.commit()
