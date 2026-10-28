@@ -69,13 +69,13 @@ a.skip-link{position:fixed;top:-120px;right:14px;z-index:1000;padding:10px 16px;
  <div><h1 class="title">JREI <span style="color:var(--accent)">Personal AI</span></h1><div class="sub">دستیار پژوهش، توسعه، آموزش و مدیریت پروژه</div></div>
  <div class="grow"></div><div class="sub" id="engine"><span class="dot"></span>در حال بررسی مدل</div><button class="iconButton" id="openTools">ابزارها ◫</button></header>
  <div id="conversation" class="conversation" role="log" aria-label="گفتگوی دستیار"><div class="conversationInner" id="conversationInner"></div></div>
- <div class="composerArea"><div class="composerBox"><div class="attachedFiles" id="attachedFiles" aria-live="polite"></div><div class="composer"><textarea id="input" rows="2" aria-label="پیام شما" placeholder="از JREI بخواهید بررسی، تحلیل، طراحی یا اجرا کند…"></textarea><div class="composeBottom"><button class="iconButton" id="attach" title="پیوست سند خصوصی روی همین رایانه" aria-label="افزودن فایل خصوصی">📎</button><input type="file" id="fileInput" accept=".txt,.md,.csv,.json,.py,.js,.mjs,.css,.html,.docx,.pdf" hidden><button class="send" id="send">ارسال <span aria-hidden="true">↑</span></button><span class="hint" id="busy">Enter برای ارسال · Shift+Enter خط جدید</span><div class="grow"></div><span class="hint">محلی · قابل ممیزی</span></div></div><div class="footnote">فایل‌های انتخابی فقط در حافظه خصوصی ویندوز نگهداری می‌شوند. PDF بدون استخراج معتبر، خوانده‌شده محسوب نمی‌شود.</div></div></div>
+ <div class="composerArea"><div class="composerBox"><div class="attachedFiles" id="attachedFiles" aria-live="polite"></div><div class="composer"><textarea id="input" rows="2" aria-label="پیام شما" placeholder="از JREI بخواهید بررسی، تحلیل، طراحی یا اجرا کند…"></textarea><div class="composeBottom"><button class="iconButton" id="attach" title="پیوست سند خصوصی روی همین رایانه" aria-label="افزودن فایل خصوصی">📎</button><input type="file" id="fileInput" aria-label="انتخاب فایل خصوصی برای پیوست" accept=".txt,.md,.csv,.json,.py,.js,.mjs,.css,.html,.docx,.pdf" hidden><button class="send" id="send">ارسال <span aria-hidden="true">↑</span></button><span class="hint" id="busy">Enter برای ارسال · Shift+Enter خط جدید</span><div class="grow"></div><span class="hint">محلی · قابل ممیزی</span></div></div><div class="footnote">فایل‌های انتخابی فقط در حافظه خصوصی ویندوز نگهداری می‌شوند. PDF بدون استخراج معتبر، خوانده‌شده محسوب نمی‌شود.</div></div></div>
  <section class="toolsPanel" id="toolsPanel" hidden><div class="panelHeading"><h2>ابزارهای JREI</h2><button class="iconButton" id="closeTools" aria-label="بستن ابزارها">✕</button></div>
  <p>می‌توانید این دستورات را در همان گفتگوی اصلی بنویسید. برای تغییر کد در محیط مستقل ویندوز، تأیید جداگانه لازم است.</p>
  <div id="tools"></div><h2>وضعیت سیستم</h2><div class="trace" id="trace">در حال بارگذاری…</div>
  <h2>دستورالعمل‌های شخصی شما</h2>
  <p>راهنمای اختصاصی برای شیوه پاسخ، نگارش، پژوهش و پروژه‌ها؛ این متن فقط در ویندوز شما نگهداری می‌شود.</p>
- <textarea id="profile" rows="5" maxlength="2800" placeholder="مثلاً: نوشته‌های انگلیسی با سبک دانشگاهی من باشند؛ پاسخ فارسی دقیق و توضیحی باشد."></textarea>
+ <textarea id="profile" aria-label="دستورالعمل‌های شخصی شما" rows="5" maxlength="2800" placeholder="مثلاً: نوشته‌های انگلیسی با سبک دانشگاهی من باشند؛ پاسخ فارسی دقیق و توضیحی باشد."></textarea>
  <button class="confirm" id="saveProfile">ذخیره ترجیحات</button>
  <h2>اسناد خصوصی ویندوز</h2><div id="documents"></div>
  <h2>رویدادهای ثبت‌شده</h2><div class="trace" id="events"></div></section>
@@ -95,7 +95,7 @@ let selected=null,active=false,attachments=[];
 const toolCommands=[
  ['جستجو در مخزن','در مخزن فایل پرامپت خبر را پیدا کن'],
  ['بررسی محتوای مخزن','بررسی کد مخزن را اجرا کن'],
- ['ممیزی SEO','ممیزی سئو را اجرا کن'],
+ ['ممیزی SEO','ممیزی سئو را اجرا کن','seo_audit'],
  ['ممیزی GEO','ممیزی GEO را اجرا کن'],
  ['بررسی اخبار','اخبار سایت را بررسی کن'],
  ['وضعیت موتور پایتون','سلامت پایتون را بررسی کن'],
@@ -384,7 +384,7 @@ $('openTools').onclick=()=>{$('toolsPanel').hidden=!$('toolsPanel').hidden;if(!$
 $('closeTools').onclick=()=>$('toolsPanel').hidden=true;
 $('saveProfile').onclick=async()=>{try{const r=await api('/api/profile',{instructions:$('profile').value});toast('ترجیحات شخصی در ویندوز ذخیره شد.')}catch(e){toast(e.message)}};
 api('/api/profile').then(x=>$('profile').value=x.instructions||'').catch(()=>{});
-for(const [name,cmd] of toolCommands){const button=el('button','tool');button.append(el('strong','',name),el('small','',cmd));button.onclick=()=>{$('toolsPanel').hidden=true;$('input').value=cmd;$('input').focus()};$('tools').append(button)}
+for(const [name,cmd,toolId] of toolCommands){const button=el('button','tool');if(toolId)button.dataset.toolId=toolId;button.append(el('strong','',name),el('small','',cmd));button.onclick=()=>{$('toolsPanel').hidden=true;$('input').value=cmd;$('input').focus()};$('tools').append(button)}
 welcome();
 if(!token){
  $('engine').textContent='نیازمند ورود از راه‌انداز ویندوز';
