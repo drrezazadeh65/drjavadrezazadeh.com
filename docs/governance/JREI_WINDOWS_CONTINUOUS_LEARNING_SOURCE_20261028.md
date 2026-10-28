@@ -41,3 +41,38 @@ that dataset-cleanup operation. No trained adapters exist as a result of
 this source change, and the cleanup is not evidence of unlearning already
 trained weights. Source-level provenance and genuine independent-review
 verification remain mandatory for a later adapter-training implementation.
+
+
+## Owner clarification: native JREI only; selective open-source reuse
+
+The owner explicitly does **not** want to install or connect a second AI
+program such as Letta. The brief Letta sidecar prototype was removed from
+`windows_owner_agent.py`, `windows_command_center.py` and
+`windows_owner_ui.html`, and its adapter file was deleted. Qwen remains the
+only ordinary model backend in the Windows command centre.
+
+The selected external open-source *references* are architectural inputs,
+not deployed or downloaded dependencies:
+
+- Mem0 (Apache 2.0): https://github.com/mem0ai/mem0 — append-oriented,
+  evidence-aware memory and multi-signal source retrieval concepts.
+- LangGraph: https://github.com/langchain-ai/langgraph — durable step
+  checkpoints, provenance-separated state and interruption recovery concepts.
+- Crawl4AI (Apache 2.0, inspect NOTICE/attribution requirements before any
+  direct redistribution): https://github.com/unclecode/crawl4ai —
+  adaptive extraction, source quality and resource-aware crawling concepts.
+
+The new `_rerank_evidence` and `_retrieval_terms` functions in
+`windows_continuous_learning.py` are original project-native implementations
+of general multi-signal/source-diversity retrieval techniques. They check
+exact passage hashes, combine query coverage with lexical frequency/phrase
+and bounded SQL rank, and penalise redundant passages from the same original
+source. This **does not** install Mem0, LangGraph, Crawl4AI, Letta or any
+other agent runtime. It is not a licensed verbatim copy of another
+project's source; any future verbatim port must preserve the source licence,
+copyright notices, repository version and upstream attribution explicitly.
+
+No changes to pretrained Qwen weights were made. This source-only feature
+is not evidence that model intelligence or educational outcomes improved.
+A single final integrated acceptance check remains necessary under the
+owner's no-tests-during-development instruction.
