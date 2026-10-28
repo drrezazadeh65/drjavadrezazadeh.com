@@ -418,10 +418,14 @@ class Desktop:
                     "/api/conversation?id=" + current))
                 self.fetch("threads", lambda: self.api.request("/api/conversations"))
             else:
-                steps = data.get("progress", [])
-                phase = (steps[-1].get("phase", "") if isinstance(steps, list) and steps
-                         else str(data.get("status", "RUNNING")))
-                self.active_job["phase"] = PHASE.get(phase, PHASE.get(status, phase))
+                # The ORIGINAL owner_tasks API reports a single verified
+                # progress object {phase, updated}, not a list of steps.
+                # Never invent or simulate phase transitions in the UI.
+                checkpoint = data.get("progress")
+                phase = (checkpoint.get("phase") if isinstance(checkpoint, dict)
+                         else None) or status
+                self.active_job["phase"] = PHASE.get(
+                    phase, PHASE.get(status, str(phase)[:45]))
                 self._render_messages()
         elif key == "attachment":
             if "id" in data:
