@@ -262,6 +262,9 @@ jobs:
           php tests/bertina-receipt-contract.php
           php tests/bertina-commerce-callback-contract.php
           php tests/bertina-commerce-mysql-contract.php
+          # Owner-only, additive and repeat-safe Webster inventory acceptance.
+          # Uses ONLY the disposable CI MySQL service, never Bertina production.
+          php tests/bertina-owner-webster-stock-mysql.php
           php tests/bertina-donations-mysql-contract.php
           php tests/bertina-student-support-contract.php
           php -l scripts/journal-ojs-preflight.php
