@@ -200,6 +200,35 @@ requireCondition(composer.includes("option.dataset.serviceId='vip:'+vipId")&&com
   'public catalogue IDs must survive selected-option reuse');
 requireCondition(composer.includes('Public service ID: ')&&composer.includes('publicServiceId'),
   'reviewed email draft must preserve a bounded public service identifier');
+requireCondition(composer.includes('loadManualCatalogueOptions()')&&
+  composer.includes('publicServiceFacts.set(')&&composer.includes('optgroup'),
+  'manual email enquiries must offer canonical standard and VIP choices without a new catalogue');
+requireCondition(composer.includes('reconcileManualService()')&&
+  composer.includes('renderRequestedService(facts.service,facts.english)'),
+  'manually selected services must display the authoritative scope summary');
+requireCondition(composer.includes('fullMailto.length>1800')&&
+  composer.includes('requiresPaste?subjectUrl:fullMailto'),
+  'mobile email preparation must preserve long draft text rather than truncate it');
+for(const [file,html] of [
+ ['fa/darkhast-moshavere/',faIntake],['en/request-consultation/',enIntake]
+]){
+ requireCondition(html.includes('consultation-composer.js?v=20261028-canonical-intake-v2'),
+   file+' must load the current canonical offer selector rather than a cached script');
+}
+const navigator=read('assets/js/jr-service-navigator-v1.js');
+for(const path of ['fa/khadamat/index.html','en/services/index.html']){
+ const html=read(path);
+ requireCondition(html.includes('jr-service-navigator-v1.js?v=20261028-journey-v2'),
+   path+': current source navigator script not referenced');
+ requireCondition(html.includes('jr-service-navigator-v1.css?v=20261028-journey-v2'),
+   path+': current mobile navigator styles not referenced');
+}
+requireCondition(navigator.includes('encodeURIComponent(item.id)')&&
+  navigator.includes('dataset.conversionEvent'),
+  'navigator optional enquiry must reuse canonical public ID and existing intent bus');
+requireCondition(!navigator.includes('localStorage')&&!navigator.includes('sendBeacon('),
+  'service navigator must not transmit or persist visitor activity');
+
 requireCondition(!composer.includes('localStorage'),'email composer must not retain sensitive enquiry fields');
 const bridgeSource=read('assets/js/jr-service-intent-bridge.js');
 requireCondition(bridgeSource.includes('JR_CONVERSION_INTENT')&&bridgeSource.includes('analytics-adapter.js'),
