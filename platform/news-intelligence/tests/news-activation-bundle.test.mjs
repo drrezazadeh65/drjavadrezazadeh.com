@@ -22,6 +22,24 @@ test('Owner activation is only in the original MFA/CSRF operations route',()=>{
  assert.match(cron,/publicationExecutedByActivation'\]=false/);
  assert.doesNotMatch(front,/\b(?:window\.)?localStorage\s*[.\[]|\binnerHTML\s*=/);
 });
+test('News bundle registration closes the JREI-KA gap without silently activating jobs',()=>{
+  const cron=read('api/operations-cron-dispatcher.php');
+  const owner=read('assets/js/jrei-news-owner-panel-v1.mjs');
+  const central=read('assets/js/operations-cron-master-v1.js');
+  const branch=cron.slice(cron.indexOf("if(($body['action']??null)==='register_news_bundle')"),
+    cron.indexOf("if(($body['action']??null)==='activate_news_pipeline')"));
+  assert.match(branch,/\$requiredIds=operationsCronNewsPipelineIds\(\)/);
+  assert.match(branch,/array_unique\(array_merge\(/);
+  assert.match(branch,/INSERT IGNORE INTO operations_cron_jobs/);
+  assert.match(branch,/VALUES\(\?,0,\?,0,\?,\?\)/);
+  assert.match(branch,/newRowsInitiallyDisabled/);
+  assert.match(branch,/newsPipelineRequiredRegisteredCount/);
+  assert.match(branch,/automaticCronOrNewsPublicationActivated'\]=false/);
+  assert.doesNotMatch(branch,/enabled=1|UPDATE operations_cron_jobs SET enabled/);
+  assert.match(owner,/newsPipelineRequiredRegisteredCount!==8/);
+  assert.match(central,/requiredIds\.includes\(j\?\.jobId\)/);
+});
+
 test('Original publisher remains source and receipt gated; no alternate CMS',()=>{
  const worker=read('api/internal/jrei-news-private-publisher-worker.php');
  const cron=read('api/operations-cron-dispatcher.php');

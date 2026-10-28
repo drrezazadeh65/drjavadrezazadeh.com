@@ -307,16 +307,23 @@ function operationsCronOwnerChange(PDO $pdo,array $config,
     string $accountId,array $body): array {
     if(!operationsCronSchemaReady($pdo))
         throw new DomainException('operations_cron_migration_required');
-    // Single MFA administrator action registers ALL first-party News
-    // workers in the ORIGINAL mother DB. Never activates any of them,
-    // installs host Cron, publishes a news item or creates shell commands.
+    // Single MFA administrator action registers the EXACT eight required
+    // first-party News pipeline workers (including BOTH JREI-KA jobs), plus
+    // existing ancillary News workers, in the ORIGINAL mother DB.
+    // This is idempotent: existing registrations and enablement are untouched.
+    // Newly inserted jobs remain OFF; no Cron execution or publication occurs.
     if(($body['action']??null)==='register_news_bundle'){
         if(($body['confirmation']??null)!=='REGISTER_NEWS_WORKERS_DISABLED')
             throw new InvalidArgumentException('cron_news_bundle_confirmation_required');
-        $newsIds=array_keys(array_filter(operationsCronRegistry(),
-            static fn(array $job,string $id):bool=>
-                str_starts_with($id,'jrei_news_'),
-            ARRAY_FILTER_USE_BOTH));
+        $registry=operationsCronRegistry();
+        $requiredIds=operationsCronNewsPipelineIds();
+        $newsIds=array_values(array_unique(array_merge(
+            $requiredIds,
+            array_keys(array_filter($registry,
+                static fn(array $job,string $id):bool=>
+                    str_starts_with($id,'jrei_news_'),
+                ARRAY_FILTER_USE_BOTH))
+        )));
         if(!$newsIds)throw new DomainException('cron_news_bundle_registry_empty');
         foreach($newsIds as $id)
             if(operationsCronSourcePath($id)===null)
@@ -329,7 +336,7 @@ function operationsCronOwnerChange(PDO $pdo,array $config,
             $inserted=0;
             $now=time();
             foreach($newsIds as $id){
-                $job=operationsCronRegistry()[$id];
+                $job=$registry[$id];
                 $stmt->execute([$id,$job['defaultCadence'],$now,$accountId]);
                 $inserted+=$stmt->rowCount();
             }
@@ -343,7 +350,15 @@ function operationsCronOwnerChange(PDO $pdo,array $config,
         $snapshot=operationsCronOwnerSnapshot($pdo,$config);
         $snapshot['newsBundleRegisteredCount']=count($newsIds);
         $snapshot['newRowsCreated']=$inserted;
-        $snapshot['allNewsWorkersInitiallyDisabled']=true;
+        $snapshot['newsPipelineRequiredRegisteredCount']=$snapshot['newsPipelineRegisteredCount'];
+        $snapshot['newRowsInitiallyDisabled']=true;
+        // Existing KA/news rows may already be enabled by independent owner
+        // actions. Never report those preserved rows as forcibly disabled.
+        $snapshot['allNewsWorkersInitiallyDisabled']=count(array_filter(
+            $snapshot['jobs'],
+            static fn(array $row):bool=>
+                in_array($row['jobId'],$newsIds,true)&&$row['enabled']===true
+        ))===0;
         $snapshot['automaticCronOrNewsPublicationActivated']=false;
         return $snapshot;
     }

@@ -119,21 +119,24 @@
       });
       summary.append(activateNews);
     }
-    const newsJobs=Array.isArray(snapshot.jobs)
-      ?snapshot.jobs.filter(j=>typeof j?.jobId==='string'&&
-        j.jobId.startsWith('jrei_news_original_')):[];
-    const absentNews=newsJobs.filter(j=>j.registered!==true);
+    // The publication pipeline includes two original JREI-KA workers.
+    // Earlier this quick action disappeared when only those two were missing.
+    const requiredIds=Array.isArray(snapshot.newsPipelineRequiredJobIds)
+      ?snapshot.newsPipelineRequiredJobIds:[];
+    const absentNews=Array.isArray(snapshot.jobs)
+      ?snapshot.jobs.filter(j=>requiredIds.includes(j?.jobId)&&
+        j.registered!==true):[];
     if(snapshot.schemaReady&&absentNews.length&&
       absentNews.every(j=>j.sourceAvailable===true)){
       const registerNews=el('button','jr-cron-register-news-bundle',
-        T('ثبت یک‌جای تمام موتورهای News؛ همگی خاموش',
-          'Register all News workers at once; all disabled'));
+        T('ثبت یک‌جای ۸ Worker اصلی خبر (بدون اجرا)',
+          'Register all eight required News workers; no execution'));
       registerNews.type='button';
       registerNews.addEventListener('click',()=>{
         if(!open()||busy)return;
         const yes=window.confirm(T(
-          'تمام موتورهای مجاز News فقط در دیتابیس مادر ثبت می‌شوند و هیچ‌کدام اجرا یا فعال نخواهند شد. ادامه می‌دهید؟',
-          'Register all allowlisted News workers in the original DB only? None will run or be enabled.'));
+          'دو Worker جاافتادهٔ JREI-KA و سایر اجزای زنجیره فقط در دیتابیس اصلی ثبت می‌شوند. ردیف‌های موجود تغییر نمی‌کنند و هیچ کار جدیدی اجرا نمی‌شود. ادامه می‌دهید؟',
+          'Register missing JREI-KA and news workers in the original DB only? Existing rows are untouched and no new job runs.'));
         if(!yes)return;
         write({action:'register_news_bundle',
           confirmation:'REGISTER_NEWS_WORKERS_DISABLED'});
