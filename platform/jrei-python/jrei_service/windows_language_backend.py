@@ -51,8 +51,13 @@ def _settings(private: Path) -> dict | None:
     for key in ("engine_id", "family", "model_id"):
         if not isinstance(cfg[key], str) or not NAME.fullmatch(cfg[key]):
             raise ValueError("JREI_ENGINE_ID_INVALID")
-    if any("qwen" in cfg[key].casefold() for key in ("engine_id", "family", "model_id")):
-        raise ValueError("JREI_QWEN_RETIRED")
+    # The owner requires a JREI-trained model, not another vendor's weights.
+    # A local endpoint labelled JREI is not sufficient evidence of origin:
+    # native family and a tied training provenance record are mandatory.
+    if (cfg["family"] != "jrei-native" or
+            not cfg["engine_id"].startswith("jrei-") or
+            not cfg["model_id"].startswith("jrei-native-")):
+        raise ValueError("JREI_THIRD_PARTY_MODEL_ROUTING_DISABLED")
     if not isinstance(cfg["endpoint"], str):
         raise ValueError("JREI_ENGINE_ENDPOINT_INVALID")
     from urllib.parse import urlsplit
@@ -78,6 +83,22 @@ def _settings(private: Path) -> dict | None:
     st = model.stat()
     if st.st_size < 1024 or st.st_size > 2_199_023_255_552:
         raise ValueError("JREI_ENGINE_ARTIFACT_SIZE_INVALID")
+    # Check the owner-private training provenance, not a name, logo, or
+    # generic model server. Missing records always fail closed.
+    provenance = model.with_name(model.name + ".jrei-provenance.json")
+    if (provenance.is_symlink() or not provenance.is_file()
+            or provenance.stat().st_size > 4096):
+        raise ValueError("JREI_NATIVE_TRAINING_PROVENANCE_REQUIRED")
+    proof = json.loads(provenance.read_text(encoding="utf-8"))
+    if (not isinstance(proof, dict) or
+            proof.get("schema") != "jr.jrei.trained-native-checkpoint.v1" or
+            proof.get("weights_sha256") != cfg["model_sha256"] or
+            proof.get("model_id") != cfg["model_id"] or
+            proof.get("trained_from_scratch") is not True or
+            proof.get("external_pretrained_weights_used") is not False or
+            proof.get("owner_activation_approved") is not True or
+            proof.get("integrated_evaluation_passed") is not True):
+        raise ValueError("JREI_NATIVE_CHECKPOINT_NOT_APPROVED")
     signature = (str(model.resolve()), st.st_size, st.st_mtime_ns, cfg["model_sha256"])
     with _LOCK:
         if signature not in _VERIFIED:
