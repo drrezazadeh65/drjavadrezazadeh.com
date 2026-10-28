@@ -8,7 +8,7 @@
 ; A NEW node still requires its own signed worker enrollment with the server.
 
 #define MyAppName "JREI Personal AI"
-#define MyAppVersion "0.1.4"
+#define MyAppVersion "0.1.5"
 #define MyPublisher "Javad Rezazadeh"
 #define MyAppExeName "JREI.exe"
 
@@ -28,12 +28,12 @@ ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 DisableProgramGroupPage=yes
 OutputDir=output
-OutputBaseFilename=JREI-Setup-Windows-x64-v0.1.4
+OutputBaseFilename=JREI-Setup-Windows-x64-v0.1.5
 Compression=lzma2
 SolidCompression=yes
 WizardStyle=modern
 SetupLogging=yes
-CloseApplications=no
+CloseApplications=yes
 RestartApplications=no
 RestartIfNeededByRun=no
 AlwaysRestart=no
@@ -65,11 +65,41 @@ Name: "privateengine"; Description: "Set up existing private JREI 8092 engine fr
 Name: "{autoprograms}\JREI Personal AI"; Filename: "{app}\{#MyAppExeName}"; WorkingDir: "{app}"
 Name: "{userdesktop}\JREI Personal AI"; Filename: "{app}\{#MyAppExeName}"; WorkingDir: "{app}"
 
-[Run]
-; Explicitly selected installer task; PowerShell only reads fixed LOCAL
-; installed script. No server enrollment, model training, site deployment or
-; privileged elevation. A running original private engine is left untouched.
-Filename: "{sys}\WindowsPowerShell\v1.0\powershell.exe"; Parameters: "-NoProfile -NonInteractive -ExecutionPolicy Bypass -File ""{app}\jrei-engine-setup.ps1"" -Mode Install -OwnerApproved"; WorkingDir: "{app}"; Tasks: privateengine; Flags: runhidden waituntilterminated; StatusMsg: "Preparing original private JREI engine from bundled offline files..."
+[Code]
+{ Running an unattended [Run] item can silently hide the engine failure;
+  using Exec exposes a nonzero exit so UI setup is never called a healthy AI. }
+procedure CurStepChanged(CurStep: TSetupStep);
+var
+  PsPath: String;
+  PsArgs: String;
+  ReturnCode: Integer;
+  Started: Boolean;
+begin
+  if (CurStep = ssPostInstall) and IsTaskSelected('privateengine') then
+  begin
+    PsPath := ExpandConstant('{sys}\WindowsPowerShell\v1.0\powershell.exe');
+    PsArgs := '-NoProfile -NonInteractive -ExecutionPolicy Bypass -File "' +
+      ExpandConstant('{app}\jrei-engine-setup.ps1') + '" -Mode Install -OwnerApproved';
+    Started := Exec(PsPath, PsArgs, ExpandConstant('{app}'),
+      SW_HIDE, ewWaitUntilTerminated, ReturnCode);
+    if not Started then
+    begin
+      Log('JREI_PRIVATE_ENGINE_SETUP_NOT_STARTED_ERROR=' + IntToStr(ReturnCode));
+      MsgBox('JREI interface files installed, but the private engine could ' +
+        'not be started. No JREI model is online. Review the local install ' +
+        'receipt. Windows error ' + IntToStr(ReturnCode) + '.', mbError, MB_OK);
+    end
+    else if ReturnCode <> 0 then
+    begin
+      Log('JREI_PRIVATE_ENGINE_SETUP_FAILED_EXIT=' + IntToStr(ReturnCode));
+      MsgBox('JREI interface files installed, but the private 8092 engine ' +
+        'is NOT confirmed running. Do not skip installation files. ' +
+        'Review the JREI command-center install receipt.', mbError, MB_OK);
+    end
+    else
+      Log('JREI_PRIVATE_ENGINE_SETUP_REPORTED_SUCCESS_SEPARATE_HEALTH_CHECK_REQUIRED');
+  end;
+end;
 
 [UninstallDelete]
 ; None: the private JREI data and signed worker configuration are never removed.
