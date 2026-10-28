@@ -15,6 +15,36 @@ Turn the existing private JREI Windows loopback command centre into a genuinely 
 5. **Model quality and response usability:** The existing `windows_response_quality.py` negative screen, bounded regeneration, safe Markdown renderer, Persian list alignment, Enter-to-send and private model status remain preserved. Source or model output is not proof of scientific validity; repeated-text rejection is not a general hallucination detector.
 6. **Owner approval and truthful action states:** the existing local code-edit workspace and rollback remain confirmation-gated. New code creation requires explicit confirmation. Tools return actual result states and receipts, not fabricated deployment/test outcomes.
 
+## 28 October Windows-only evidence retrieval extension (source only)
+
+The existing owner-selected document chat now uses
+`platform/jrei-python/jrei_service/windows_document_retrieval.py`.
+This module reads only previously imported private document IDs, checks the
+stored extracted text SHA-256, verifies PDF original bytes before attempting
+page extraction with the already installed optional `pypdf`, and selects up
+to five bounded passages from up to two selected documents. Actual PDF page
+numbers are used only when page extraction succeeds; DOCX references are
+identified as extracted paragraphs and text references as extracted lines.
+If the PDF page parser cannot supply verified page boundaries, the assistant
+explicitly labels fallback text unpaginated instead of inventing pages.
+
+`windows_owner_agent.py` now grounds its document synthesis in these specific
+excerpts, and stores document IDs, source hashes, anchors, extraction coverage,
+and individual evidence hashes in the existing private SQLite operation receipts,
+**not** full retrieved excerpts. The private Windows
+`windows_owner_ui.html` presents the evidence anchors separately from the
+model's prose. Missing matches and extraction failures remain explicitly
+unavailable rather than generating citations from unsupported material.
+
+This is **bounded retrieval, not verified full-document reading, semantic
+embedding search, original-file page viewing, source validation, or scientific
+review**. The existing 18-page PDF and 80,000-character import boundaries
+still apply; OCR and encrypted/scanned PDF processing are not added. This
+extension does not introduce a new database, open an external network port,
+start a scheduled task, or change any website code. No local Windows
+activation, tests or release verification were performed as part of this
+source-only continuation.
+
 ## Honest operational boundaries
 
 - **Source-only** commits do not restart or update the owner's already-running Python process. The existing Git fast-forward task can transfer code, but a separately authorized command-centre process restart is required for Python module changes to take effect.
@@ -25,6 +55,6 @@ Turn the existing private JREI Windows loopback command centre into a genuinely 
 
 ## Remaining engineering requirements (not marked complete)
 
-A permissioned typed tool registry and long-running job queue; reliable cancellation/progress streaming; scoped file search and full-document retrieval with page citations; optional high-quality local PDF parsers and OCR; document edit/export beyond code drafts; richer multi-file code patches and diffs; isolated code execution only under explicit current owner approval; independent regression and model-evaluation datasets; source-rights and educational evidence retrieval; connector consent, audit/revocation, secure signed site routing, and final scientific/operational acceptance. Multi-machine orchestration and JREI News remain separate original programme obligations.
+A typed permissioned tool registry; richer progress streaming for the existing durable queue and cancellation states; complete long-document and cross-document retrieval with reliable page-level coverage (beyond the current bounded excerpts); optional high-quality local PDF parsers and OCR; document edit/export beyond code drafts; richer multi-file code patches and diffs; isolated code execution only under explicit current owner approval; independent regression and model-evaluation datasets; source-rights and educational evidence retrieval; connector consent, audit/revocation, secure signed site routing, and final scientific/operational acceptance. Multi-machine orchestration and JREI News remain separate original programme obligations.
 
 **Current result:** ADDITIVE SOURCE INTEGRATION, NOT TESTED OR DEPLOYED. The owner-directed consolidated verification remains deferred until the development phase is complete.
