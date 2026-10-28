@@ -40,6 +40,11 @@ h1{font-size:29px;line-height:1.3;margin:16px 0 6px;font-weight:650}p{margin:.5e
 .workflowStep{padding:6px 9px;background:#252a30;border-radius:7px;direction:auto;unicode-bidi:plaintext}
 .draftDownloads{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}
 .draftDownload{border:1px solid #77613d;border-radius:7px;padding:5px 10px;color:#ead09e;background:#292722;font-size:12px}
+.attachedFiles{display:flex;flex-wrap:wrap;gap:7px;padding:5px 0}.attachedFiles:empty{display:none}
+.attachmentChip{background:#33373c;border:1px solid #5b5d64;border-radius:9px;padding:4px 9px;font-size:11px}
+.attachmentChip button{color:#dec18a;margin-inline-start:8px}
+.documentRow{border-bottom:1px solid #323740;padding:9px 0;font-size:11px;overflow-wrap:anywhere}
+.documentRow button{color:#dec18a;padding:5px;margin-inline-start:9px}
 .pending{border:1px solid #827147;border-radius:13px;background:#24221e;padding:13px;margin-top:12px;max-width:600px}.pending p{font-size:12px;color:#dfd4bf}.confirm{background:#d4b171;color:#201a12;border-radius:10px;padding:8px 16px;font-weight:bold;margin:6px 0}.cancel{border:1px solid var(--line);padding:8px 13px;border-radius:10px;margin-inline-start:8px}
 .composerArea{padding:8px 24px max(17px,env(safe-area-inset-bottom));background:linear-gradient(transparent,#101114 25%);flex-shrink:0}.composerBox{max-width:880px;margin:auto}.composer{border:1px solid #4b4f57;background:#26292f;box-shadow:0 3px 26px #0003;border-radius:21px;padding:10px 10px 8px}.composer:focus-within{border-color:#8c7653}textarea{border:0;background:transparent;resize:none;width:100%;color:var(--text);outline:none;min-height:36px;max-height:180px;line-height:1.9;padding:1px 8px;font-size:14px}textarea::placeholder{color:#aeb0b6}.composeBottom{display:flex;align-items:center;gap:9px}.send{background:#d0b17d;color:#171717;border-radius:11px;padding:6px 16px;font-size:13px;font-weight:750}.hint{color:var(--muted);font-size:11px}.footnote{text-align:center;color:#868a92;font-size:10px;margin:8px 0 0}
 .toolsPanel{position:absolute;top:66px;bottom:0;left:0;width:min(390px,100vw);background:#1b1e23;border-right:1px solid #484b52;z-index:5;box-shadow:0 8px 35px #0008;padding:20px;overflow:auto}.toolsPanel[hidden]{display:none}.panelHeading{display:flex;align-items:center;justify-content:space-between}.toolsPanel h2{font-size:17px}.toolsPanel p{color:var(--muted);font-size:12px;line-height:1.9}.tool{width:100%;padding:12px 8px;border-bottom:1px solid #33363e;text-align:right;border-radius:8px}.tool strong{display:block;font-size:12px}.tool small{display:block;color:var(--muted);font-size:11px}.trace{color:var(--muted);direction:ltr;text-align:left;white-space:pre-wrap;font:11px Consolas,monospace;overflow-wrap:anywhere;margin-top:15px}
@@ -61,7 +66,7 @@ h1{font-size:29px;line-height:1.3;margin:16px 0 6px;font-weight:650}p{margin:.5e
  <div><div class="title">JREI <span style="color:var(--accent)">Personal AI</span></div><div class="sub">دستیار پژوهش، توسعه، آموزش و مدیریت پروژه</div></div>
  <div class="grow"></div><div class="sub" id="engine"><span class="dot"></span>در حال بررسی مدل</div><button class="iconButton" id="openTools">ابزارها ◫</button></header>
  <div id="conversation" class="conversation" role="log" aria-label="گفتگوی دستیار"><div class="conversationInner" id="conversationInner"></div></div>
- <div class="composerArea"><div class="composerBox"><div class="composer"><textarea id="input" rows="2" aria-label="پیام شما" placeholder="از JREI بخواهید بررسی، تحلیل، طراحی یا اجرا کند…"></textarea><div class="composeBottom"><button class="iconButton" id="attach" title="افزودن محتوای فایل متنی" aria-label="افزودن فایل متنی">📎</button><input type="file" id="fileInput" accept=".txt,.md,.csv,.json,.py,.js,.mjs,.css,.html,.log" hidden><button class="send" id="send">ارسال <span aria-hidden="true">↑</span></button><span class="hint" id="busy">Enter برای ارسال · Shift+Enter خط جدید</span><div class="grow"></div><span class="hint">محلی · قابل ممیزی</span></div></div><div class="footnote">فایل متنی پیوست‌شده در گفتگوی محلی ذخیره می‌شود. اقدامات اجرایی فقط با ابزارهای متصل و مجاز انجام می‌شوند.</div></div></div>
+ <div class="composerArea"><div class="composerBox"><div class="attachedFiles" id="attachedFiles" aria-live="polite"></div><div class="composer"><textarea id="input" rows="2" aria-label="پیام شما" placeholder="از JREI بخواهید بررسی، تحلیل، طراحی یا اجرا کند…"></textarea><div class="composeBottom"><button class="iconButton" id="attach" title="پیوست سند خصوصی روی همین رایانه" aria-label="افزودن فایل خصوصی">📎</button><input type="file" id="fileInput" accept=".txt,.md,.csv,.json,.py,.js,.mjs,.css,.html,.docx,.pdf" hidden><button class="send" id="send">ارسال <span aria-hidden="true">↑</span></button><span class="hint" id="busy">Enter برای ارسال · Shift+Enter خط جدید</span><div class="grow"></div><span class="hint">محلی · قابل ممیزی</span></div></div><div class="footnote">فایل‌های انتخابی فقط در حافظه خصوصی ویندوز نگهداری می‌شوند. PDF بدون استخراج معتبر، خوانده‌شده محسوب نمی‌شود.</div></div></div>
  <section class="toolsPanel" id="toolsPanel" hidden><div class="panelHeading"><h2>ابزارهای JREI</h2><button class="iconButton" id="closeTools" aria-label="بستن ابزارها">✕</button></div>
  <p>می‌توانید این دستورات را در همان گفتگوی اصلی بنویسید. برای تغییر کد در محیط مستقل ویندوز، تأیید جداگانه لازم است.</p>
  <div id="tools"></div><h2>وضعیت سیستم</h2><div class="trace" id="trace">در حال بارگذاری…</div>
@@ -69,6 +74,7 @@ h1{font-size:29px;line-height:1.3;margin:16px 0 6px;font-weight:650}p{margin:.5e
  <p>راهنمای اختصاصی برای شیوه پاسخ، نگارش، پژوهش و پروژه‌ها؛ این متن فقط در ویندوز شما نگهداری می‌شود.</p>
  <textarea id="profile" rows="5" maxlength="2800" placeholder="مثلاً: نوشته‌های انگلیسی با سبک دانشگاهی من باشند؛ پاسخ فارسی دقیق و توضیحی باشد."></textarea>
  <button class="confirm" id="saveProfile">ذخیره ترجیحات</button>
+ <h2>اسناد خصوصی ویندوز</h2><div id="documents"></div>
  <h2>رویدادهای ثبت‌شده</h2><div class="trace" id="events"></div></section>
  <div class="toast" id="toast" role="alert" hidden></div>
 </div></div>
@@ -82,7 +88,7 @@ if(received && /^[A-Za-z0-9_-]{50,128}$/.test(received))sessionStorage.setItem(a
 const token=sessionStorage.getItem(accessKey)||'';
 if(location.hash)history.replaceState(null,'',location.pathname);
 const $=id=>document.getElementById(id);
-let selected=null,active=false;
+let selected=null,active=false,attachments=[];
 const toolCommands=[
  ['جستجو در مخزن','در مخزن فایل پرامپت خبر را پیدا کن'],
  ['بررسی محتوای مخزن','بررسی کد مخزن را اجرا کن'],
