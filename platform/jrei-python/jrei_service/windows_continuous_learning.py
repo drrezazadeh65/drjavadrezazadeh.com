@@ -62,7 +62,12 @@ def initialize(path: Path) -> None:
     """Additive private tables only; never modify the Bertina mother DB."""
     with _db(path) as db:
         db.executescript("""
-            CREATE TABLE IF NOT EXISTS learning_sources(
+            CREATE TABLE IF NOT EXISTS learning_controls(
+              name TEXT PRIMARY KEY, enabled INTEGER NOT NULL,
+              changed INTEGER NOT NULL);
+            INSERT OR IGNORE INTO learning_controls(name,enabled,changed)
+              VALUES('network_acquisition',0,0);
+                        CREATE TABLE IF NOT EXISTS learning_sources(
               id TEXT PRIMARY KEY, url TEXT UNIQUE NOT NULL, rights TEXT NOT NULL,
               issuer TEXT NOT NULL, licence TEXT NOT NULL, trust TEXT NOT NULL,
               reviewed INTEGER NOT NULL, active INTEGER NOT NULL DEFAULT 0,
@@ -101,6 +106,57 @@ def initialize(path: Path) -> None:
             CREATE INDEX IF NOT EXISTS learning_observations_created
               ON learning_observations(created DESC);
         """)
+
+
+def network_enabled(path: Path) -> bool:
+    with _db(path) as db:
+        row=db.execute("SELECT enabled FROM learning_controls WHERE name='network_acquisition'").fetchone()
+    return bool(row and row[0]==1)
+
+
+def set_network_enabled(path: Path, *, enabled: bool, confirmed: bool) -> dict:
+    """Owner-authenticated private endpoint must invoke this; never the model."""
+    if not isinstance(enabled,bool) or confirmed is not True:
+        raise ValueError("LEARNING_OWNER_NETWORK_CONFIRMATION_REQUIRED")
+    with _db(path) as db:
+        db.execute("""UPDATE learning_controls SET enabled=?,changed=?
+           WHERE name='network_acquisition'""",(int(enabled),int(time.time())))
+        _observe(db,"CONTROL","ENABLED" if enabled else "DISABLED",
+                 None,None,"OWNER_CONFIRMED_PRIVATE_SETTING")
+    return {"state":"OWNER_NETWORK_MODE_ENABLED" if enabled else "OWNER_NETWORK_MODE_DISABLED",
+            "production_changed":False,
+            "network_requests_executed_by_control":False}
+
+
+def list_discoveries(path: Path) -> list[dict]:
+    with _db(path) as db:
+        rows=db.execute("""SELECT parent_source_id,url,discovered
+           FROM learning_discoveries WHERE state='REVIEW_REQUIRED'
+           ORDER BY discovered DESC LIMIT 40""").fetchall()
+    return [{"parent_source_id":sid,"url":url,"discovered":when,
+             "state":"REVIEW_REQUIRED_NOT_AUTO_APPROVED"}
+            for sid,url,when in rows]
+
+
+def deactivate_source(path: Path, source_id: str) -> dict:
+    if not isinstance(source_id,str) or not IDENT.fullmatch(source_id):
+        raise ValueError("LEARNING_SOURCE_ID_INVALID")
+    with _db(path) as db:
+        db.execute("BEGIN IMMEDIATE")
+        row=db.execute("SELECT rights FROM learning_sources WHERE id=?",
+                       (source_id,)).fetchone()
+        if not row:
+            raise ValueError("LEARNING_SOURCE_NOT_FOUND")
+        # Invalidate both retrieval and scheduling without erasing the
+        # source version/provenance archive. Owner-local files are handled by
+        # revoke_owner_document, not this network endpoint.
+        if row[0]=="PRIVATE_OWNER_GRANTED":
+            raise ValueError("LEARNING_PRIVATE_SOURCE_REQUIRES_DOCUMENT_REVOCATION")
+        db.execute("UPDATE learning_sources SET active=0 WHERE id=?",(source_id,))
+        _observe(db,"SOURCE_CONTROL","SOURCE_DEACTIVATED",source_id,None,
+                 "OWNER_REVOKED_FUTURE_RETRIEVAL")
+    return {"state":"SOURCE_DEACTIVATED","id":source_id,
+            "production_changed":False}
 
 
 def _sha(data: bytes | str) -> str:
@@ -555,10 +611,11 @@ def snapshot(db_path: Path) -> dict:
         passages=query("SELECT COUNT(*) FROM learning_passages")
         discoveries=query("SELECT COUNT(*) FROM learning_discoveries WHERE state='REVIEW_REQUIRED'")
         gaps=query("SELECT COUNT(*) FROM learning_gaps")
+        enabled=network_enabled(db_path)
         logs=db.execute("""SELECT created,operation,state,detail_code FROM
            learning_observations ORDER BY id DESC LIMIT 8""").fetchall()
     return {"schema":"jr.jrei.windows-learning-runtime.v1",
-            "reviewed_sources":sources,"versioned_observations":versions,
+            "network_authorized":enabled,"reviewed_sources":sources,"versioned_observations":versions,
             "private_passages":passages,"unreviewed_discovered_links":discoveries,
             "observed_gap_hashes":gaps,
             "latest":[{"at":t,"operation":op,"state":s,"detail":d}
