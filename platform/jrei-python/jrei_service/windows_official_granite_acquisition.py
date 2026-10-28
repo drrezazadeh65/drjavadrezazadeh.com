@@ -95,29 +95,58 @@ def stage_model(*, private: Path, owner_approved: bool,
     else:
         if shutil.disk_usage(store).free < data["size_bytes"] * 2:
             raise ValueError("JREI_MODEL_INSUFFICIENT_DOWNLOAD_HEADROOM")
-        temp = store / ("." + secrets.token_hex(12) + ".partial")
+        # Resume across transient network failures without redownloading
+        # the entire multi-gigabyte artifact. The part filename includes
+        # the pinned revision and final integrity is always the full SHA256.
+        partial = store / (target.name + ".partial")
+        lock = store / (target.name + ".downloading.lock")
+        if lock.is_symlink() or partial.is_symlink():
+            raise ValueError("JREI_MODEL_LOCAL_DOWNLOAD_LINK_REFUSED")
         try:
-            request = urllib.request.Request(
-                data["source"], headers={"User-Agent": "JREI-Owner-Model/1"})
-            received = 0
-            sha = hashlib.sha256()
-            with urllib.request.urlopen(request, timeout=120) as stream:
-                if stream.status != 200:
-                    raise ValueError("JREI_MODEL_DOWNLOAD_HTTP_ERROR")
-                # Accept only a full response; don't append to partial files
-                # across unverified commit changes.
-                with temp.open("xb") as output:
-                    for block in iter(lambda: stream.read(4 * 1024 * 1024), b""):
-                        received += len(block)
-                        if received > data["size_bytes"]:
-                            raise ValueError("JREI_MODEL_REMOTE_SIZE_CHANGED")
-                        sha.update(block)
-                        output.write(block)
-            if received != data["size_bytes"] or sha.hexdigest() != data["sha256"]:
-                raise ValueError("JREI_MODEL_REMOTE_HASH_CHANGED")
-            os.replace(temp, target)
+            with lock.open("x", encoding="utf-8") as claim:
+                claim.write(str(os.getpid()))
+        except FileExistsError as exc:
+            raise ValueError("JREI_MODEL_ALREADY_DOWNLOADING_OR_STALE_LOCK") from exc
+        try:
+            already = partial.stat().st_size if partial.exists() else 0
+            if already > data["size_bytes"]:
+                raise ValueError("JREI_MODEL_INVALID_PARTIAL_LENGTH")
+            if already == data["size_bytes"]:
+                if _sha256(partial) != data["sha256"]:
+                    raise ValueError("JREI_MODEL_PARTIAL_SHA_MISMATCH")
+            else:
+                headers = {"User-Agent": "JREI-Owner-Model/1",
+                           "Accept-Encoding": "identity"}
+                if already:
+                    headers["Range"] = f"bytes={already}-"
+                request = urllib.request.Request(data["source"], headers=headers)
+                with urllib.request.urlopen(request, timeout=120) as stream:
+                    if already and stream.status == 206:
+                        needed = f"bytes {already}-{data['size_bytes']-1}/{data['size_bytes']}"
+                        if stream.headers.get("Content-Range") != needed:
+                            raise ValueError("JREI_MODEL_RANGE_INVALID")
+                        mode = "ab"
+                    elif stream.status == 200:
+                        # Server ignored Range; restart rather than splice
+                        # unrelated content into a trusted artifact.
+                        already = 0
+                        mode = "wb"
+                    else:
+                        raise ValueError("JREI_MODEL_HTTP_STATUS_INVALID")
+                    received = already
+                    with partial.open(mode) as output:
+                        for block in iter(lambda: stream.read(4 * 1024 * 1024), b""):
+                            received += len(block)
+                            if received > data["size_bytes"]:
+                                raise ValueError("JREI_MODEL_SIZE_CHANGED")
+                            output.write(block)
+                    if received != data["size_bytes"]:
+                        raise ValueError("JREI_MODEL_TRANSFER_INTERRUPTED_RESUMABLE")
+                if _sha256(partial) != data["sha256"]:
+                    raise ValueError("JREI_MODEL_SHA256_MISMATCH")
+            os.replace(partial, target)
         finally:
-            temp.unlink(missing_ok=True)
+            lock.unlink(missing_ok=True)
     manifest = {**data, "model_file": str(target),
                 "state": "OWNER_LOCAL_WEIGHTS_STAGED_UNTESTED",
                 "installed_in_JREI": False,
