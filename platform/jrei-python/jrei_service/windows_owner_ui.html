@@ -96,6 +96,19 @@ a.skip-link{position:fixed;top:-120px;right:14px;z-index:1000;padding:10px 16px;
  <p>راهنمای اختصاصی برای شیوه پاسخ، نگارش، پژوهش و پروژه‌ها؛ این متن فقط در ویندوز شما نگهداری می‌شود.</p>
  <textarea id="profile" aria-label="دستورالعمل‌های شخصی شما" rows="5" maxlength="2800" placeholder="مثلاً: نوشته‌های انگلیسی با سبک دانشگاهی من باشند؛ پاسخ فارسی دقیق و توضیحی باشد."></textarea>
  <button class="confirm" id="saveProfile">ذخیره ترجیحات</button>
+ <h2>موتور متن‌باز Letta Code (اختیاری)</h2>
+ <div class="learningPanel">
+  <p>این اتصال فقط برای Letta App Server محلی در 127.0.0.1:4500 است. موتور Qwen و مسیر اصلی JREI حفظ می‌شوند. حافظهٔ Letta جداگانه است و ابزارهای عامل باید پیش از فعال‌سازی بررسی شوند.</p>
+  <pre class="learnState" id="lettaStatus">اتصال Letta غیرفعال است.</pre>
+  <button class="receiptBtn" id="lettaDiscover">شناسایی عامل‌های محلی Letta</button>
+  <label for="lettaAgent">شناسه عامل محلی</label>
+  <input id="lettaAgent" maxlength="160" autocomplete="off" placeholder="شناسهٔ عامل از فهرست محلی">
+  <div id="lettaAgentList" class="learnNote"></div>
+  <label class="learnCheck"><input id="lettaToolsReviewed" type="checkbox">عامل انتخاب‌شده فقط از ابزارهای مورد تأیید من استفاده می‌کند و می‌دانم Letta ممکن است ابزارهای خودش را اجرا کند.</label>
+  <button class="confirm" id="lettaEnable">فعال‌سازی اختیاری عامل محلی</button>
+  <button class="receiptBtn" id="lettaDisable">غیرفعال‌سازی و بازگشت کامل به Qwen</button>
+  <p class="learnNote">بدون نصب و راه‌اندازی محلی Letta هیچ اتصال جدیدی فعال نخواهد شد. این گزینه آموزش وزن مدل نیست.</p>
+ </div>
  <h2>یادگیری پیوسته JREI</h2>
  <div class="learningPanel">
   <p>پایش منابع مجاز فقط روی ویندوز؛ منابع تازه پیش از خزش نیازمند تأیید مجوز و رعایت robots.txt هستند. مدل زبانی بدون بازبینی مستقل آموزش وزنی نمی‌بیند.</p>
@@ -344,6 +357,47 @@ function renderAttachments(){
   chip.append(remove);root.append(chip);
  }
 }
+async function refreshLetta(){
+ try{
+  const config=await api('/api/letta');
+  $('lettaStatus').textContent=config.enabled?
+   'Letta محلی انتخاب‌شده: '+config.agent_id+' · فعال با تأیید مالک':
+   'Letta غیرفعال است؛ Qwen موتور پاسخ‌گویی اصلی باقی می‌ماند.';
+  if(config.agent_id)$('lettaAgent').value=config.agent_id;
+ }catch(e){$('lettaStatus').textContent='وضعیت Letta: '+e.message}
+}
+$('lettaDiscover').onclick=async()=>{
+ try{
+  const result=await api('/api/letta/agents');
+  const root=$('lettaAgentList');root.replaceChildren();
+  if(!result.agents.length)root.textContent='در سرور محلی عاملی ثبت نشده است.';
+  for(const item of result.agents){
+   const button=el('button','receiptBtn',item.id);
+   button.onclick=()=>{$('lettaAgent').value=item.id};
+   root.append(button);
+  }
+ }catch(e){toast('Letta App Server محلی در دسترس نیست: '+e.message)}
+};
+$('lettaEnable').onclick=async()=>{
+ const id=$('lettaAgent').value.trim();
+ if(!$('lettaToolsReviewed').checked){toast('بررسی ابزارهای عامل ضروری است.');return}
+ if(!confirm('عامل Letta انتخاب‌شده فقط برای گفت‌وگوی معمول JREI فعال شود؟ این سرور ممکن است ابزارهای اختصاصی خودش را اجرا کند و نباید به دادهٔ حساس یا ابزار خطرناک دسترسی داشته باشد.'))return;
+ try{
+  const result=await api('/api/letta/configure',{
+   enabled:true,agent_id:id,local_tools_reviewed:true,confirm:true});
+  toast('تنظیم اختیاری Letta ثبت شد؛ پاسخ‌گویی واقعی نیازمند سرور محلی است.');
+  await refreshLetta();
+ }catch(e){toast(e.message)}
+};
+$('lettaDisable').onclick=async()=>{
+ const id=$('lettaAgent').value.trim();
+ if(!id){toast('شناسهٔ عامل قبلی وارد نشده است.');return}
+ try{
+  await api('/api/letta/configure',{
+   enabled:false,agent_id:id,local_tools_reviewed:false,confirm:true});
+  await refreshLetta();toast('مسیر اختیاری Letta غیرفعال شد.');
+ }catch(e){toast(e.message)}
+};
 async function refreshLearning(){
  try{
   const [stats,links,lessons,topics,globalState]=await Promise.all([
@@ -624,7 +678,7 @@ $('fileInput').onchange=async()=>{
  finally{$('attach').disabled=false;$('fileInput').value='';setBusy(false)}
 };
 $('menu').onclick=()=>$('sidebar').classList.toggle('open');
-$('openTools').onclick=()=>{$('toolsPanel').hidden=!$('toolsPanel').hidden;if(!$('toolsPanel').hidden){loadHealth();refreshDocuments();refreshLearning()}};
+$('openTools').onclick=()=>{$('toolsPanel').hidden=!$('toolsPanel').hidden;if(!$('toolsPanel').hidden){loadHealth();refreshDocuments();refreshLearning();refreshLetta()}};
 $('closeTools').onclick=()=>$('toolsPanel').hidden=true;
 $('saveProfile').onclick=async()=>{try{const r=await api('/api/profile',{instructions:$('profile').value});toast('ترجیحات شخصی در ویندوز ذخیره شد.')}catch(e){toast(e.message)}};
 api('/api/profile').then(x=>$('profile').value=x.instructions||'').catch(()=>{});
