@@ -133,6 +133,12 @@ a.skip-link{position:fixed;top:-120px;right:14px;z-index:1000;padding:10px 16px;
   <div id="agendaTopics" class="learnNote"></div>
   <div id="agendaCycles" class="learnNote"></div>
   <div id="learningLessons" class="learnNote"></div>
+  <h3>مغز زبانی بومی JREI — آزمایشی، بدون مدل آماده</h3>
+  <p class="learnNote">آموزش آماری پیش‌بینی نویسه از صفر و فقط با نمونه‌های عمومیِ دارای مجوز و بازبینی‌شده. این یک مدل زبانی بزرگ و پاسخ‌گوی عمومی نیست. آموزش فقط با تأیید مالک، دادهٔ آموزشی و دادهٔ ارزیابی مستقل انجام می‌شود.</p>
+  <div id="nativeBrainState" class="learnNote" aria-live="polite">مدل بومی: وضعیت در حال بررسی</div>
+  <div id="metacognitionState" class="learnNote" aria-live="polite">یادگیریِ یادگیری: وضعیت در حال بررسی</div>
+  <label class="learnCheck"><input type="checkbox" id="nativeTrainRights"> حقوق آموزش ماشینی با منابع عمومیِ داوری‌شده را بررسی و اجازهٔ استفاده از آنها برای آموزش آزمایشی JREI را تأیید می‌کنم.</label>
+  <button class="confirm" id="trainNativeBrain">آموزش آزمایشی مدل بومی — بدون نصب برنامهٔ دیگر</button>
  </div>
  <h2>استودیو تصویر اختصاصی JREI</h2>
  <section class="imagePanel" aria-label="تولید تصویر برای سایت">
@@ -423,6 +429,18 @@ async function refreshLearning(){
    (memoryInfo.potential_unreviewed_conflict_groups||0)+
    ' · ادعاهای تأیید علمی: '+
    (memoryInfo.independently_verified_claims||0);
+  const native=globalState.native_language_baseline||{};
+  $('nativeBrainState').textContent='مدل بومی آزمایشی | وضعیت: '+(native.state||'نامشخص')+
+    ' · دادهٔ آموزشی بازبینی‌شده: '+(native.training_examples||0)+
+    ' · ارزیابی مستقل: '+(native.heldout_examples||0)+
+    ' · مدل زبانی بزرگ آموزش‌دیده: خیر';
+  const metacog=globalState.native_metacognition||{};
+  $('metacognitionState').textContent='یادگیریِ یادگیری | موضوع‌های دارای دو چرخه: '+
+    (metacog.topics_with_two_recent_cycles||0)+
+    ' · افزایش پوشش شواهد: '+(metacog.observed_coverage_increase||0)+
+    ' · افت پوشش شواهد: '+(metacog.observed_coverage_decline||0)+
+    ' · شکاف‌های حل‌نشده: '+(metacog.unresolved_or_blocked_topics||0)+
+    ' · پیشرفت علمی مستقلاً تأییدشده: خیر';
   const agendaInfo=globalState.learning_agenda||{};
   const proposed=globalState.autonomous_topic_discovery||{};
   $('agendaStats').textContent='موضوع‌های ثبت‌شده: '+(agendaInfo.topics||0)+
@@ -593,6 +611,21 @@ $('gitCommit').onclick=async()=>{
  }catch(e){githubObservedHead=null;toast(e.message)}
 };
 
+$('trainNativeBrain').onclick=async()=>{
+ if(!$('nativeTrainRights').checked){
+  toast('بررسی صریح حقوق آموزش ماشینی ضروری است.');return;
+ }
+ if(!confirm('آموزش آماری اولیه JREI فقط از نمونه‌های عمومیِ بازبینی‌شده آغاز شود؟ این کار مدل عمومی یا LLM ایجاد نمی‌کند، دادهٔ خصوصی را آموزش نمی‌دهد و سایت را تغییر نمی‌دهد.'))return;
+ const button=$('trainNativeBrain');button.disabled=true;
+ try{
+  const result=await api('/api/learning/native-brain/train',{
+   confirm:true,training_rights_reviewed:true
+  });
+  $('nativeBrainState').textContent=JSON.stringify(result,null,2);
+  await refreshLearning();
+ }catch(e){toast('آموزش بومی انجام نشد: '+e.message)}
+ finally{button.disabled=false;$('nativeTrainRights').checked=false}
+};
 $('agendaAdd').onclick=async()=>{
  const question=$('agendaQuestion').value.trim();
  if(question.length<10){toast('پرسش باید دقیق‌تر باشد.');return}
