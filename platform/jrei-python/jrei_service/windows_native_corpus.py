@@ -1,0 +1,243 @@
+"""JREI-owned, from-scratch language dataset builder using approved source data.
+
+Reuses the EXISTING windows_continuous_learning SQLite source/passages schema.
+Tokenizer is bundled MIT minBPE *code*; no weights, online downloader, new
+database, hosted model, UI or separate process are introduced. This does not
+run automatically: it is invoked after explicit owner preparation consent.
+
+Training/heldout groups are separated by source, before training the BPE.
+The heldout corpus is never used to fit the tokenizer. Hashes, independent
+review boundaries and source revocation are preserved in a local manifest.
+"""
+from __future__ import annotations
+
+from array import array
+from contextlib import closing
+import hashlib
+import json
+import os
+from pathlib import Path
+import re
+import secrets
+import sqlite3
+import sys
+import time
+
+SCHEMA = "jr.jrei.native-foundation-corpus.v1"
+SHA = re.compile(r"^[a-f0-9]{64}$")
+IDENT = re.compile(r"^[a-f0-9]{32}$")
+MAX_CHARS = 850_000
+MAX_PASSAGE = 6000
+MIN_TRAIN_IDS = 512
+MIN_HELDOUT_IDS = 128
+
+
+def _sha_bytes(value: bytes) -> str:
+    return hashlib.sha256(value).hexdigest()
+
+
+def _sha_file(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as stream:
+        for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def _db(path: Path):
+    connection = sqlite3.connect(path, timeout=20, isolation_level=None)
+    connection.execute("PRAGMA foreign_keys=ON")
+    connection.execute("PRAGMA busy_timeout=20000")
+    return connection
+
+
+def _approved_corpus(db_path: Path) -> list[dict]:
+    """Read current, explicitly public-reuse-approved versions only."""
+    with closing(_db(db_path)) as db:
+        db.execute("BEGIN")
+        rows = db.execute("""SELECT s.id, s.last_sha, s.licence,
+          p.text, p.sha256
+          FROM learning_passages p
+          JOIN learning_sources s ON s.id=p.source_id
+          JOIN learning_versions v ON v.id=p.version_id
+          WHERE s.reviewed=1 AND s.active=1
+            AND s.rights='PUBLIC_REUSE_APPROVED'
+            AND s.last_sha=v.sha256
+          ORDER BY s.id,p.id LIMIT 4500""").fetchall()
+        db.commit()
+    sources: dict[str, dict] = {}
+    for sid, revision, license_id, passage, digest in rows:
+        if (not isinstance(sid, str) or not IDENT.fullmatch(sid)
+                or not isinstance(revision, str) or not SHA.fullmatch(revision)
+                or not isinstance(license_id, str) or not license_id.strip()
+                or not isinstance(passage, str) or not 40 <= len(passage) <= MAX_PASSAGE
+                or not isinstance(digest, str) or _sha_bytes(passage.encode("utf-8")) != digest):
+            continue
+        source = sources.setdefault(sid, {
+            "id": sid, "revision": revision, "license": license_id, "passages": []})
+        if source["revision"] != revision or source["license"] != license_id:
+            raise ValueError("JREI_SOURCE_REVISION_CHANGED_DURING_COLLECTION")
+        source["passages"].append(passage)
+    result = [item for item in sources.values() if item["passages"]]
+    return sorted(result, key=lambda item: _sha_bytes(item["id"].encode("ascii")))
+
+
+def _write_ids(path: Path, ids: list[int]) -> str:
+    if sys.byteorder != "little" or array("I").itemsize != 4:
+        raise RuntimeError("JREI_NATIVE_CORPUS_U32_LITTLE_ENDIAN_REQUIRED")
+    if any(type(x) is not int or not 0 <= x <= 65535 for x in ids):
+        raise ValueError("JREI_NATIVE_TOKEN_OUT_OF_RANGE")
+    with path.open("xb") as stream:
+        array("I", ids).tofile(stream)
+    return _sha_file(path)
+
+
+def prepare(*, db_path: Path, private: Path, owner_approved: bool,
+            vocab_size: int = 384) -> dict:
+    """Explicitly stage a JREI training *candidate*, not run training."""
+    if owner_approved is not True:
+        raise ValueError("JREI_NATIVE_CORPUS_OWNER_APPROVAL_REQUIRED")
+    if (not isinstance(vocab_size, int) or isinstance(vocab_size, bool)
+            or not 256 <= vocab_size <= 768):
+        raise ValueError("JREI_NATIVE_VOCAB_OUTSIDE_REVIEWED_LIMITS")
+    if private.name != "command-center" or not private.is_dir() or private.is_symlink():
+        raise ValueError("JREI_NATIVE_PRIVATE_DIRECTORY_REQUIRED")
+    if not db_path.is_file() or db_path.is_symlink() or db_path.parent.resolve() != private.resolve():
+        raise ValueError("JREI_NATIVE_EXISTING_SQLITE_DB_REQUIRED")
+    source_groups = _approved_corpus(db_path)
+    if len(source_groups) < 3:
+        return {"state": "NEEDS_THREE_INDEPENDENT_LICENSED_SOURCES",
+                "available_source_groups": len(source_groups),
+                "training_started": False}
+    # Deterministic source-level split; a source never appears in both sets.
+    heldout_count = max(1, len(source_groups) // 5)
+    heldout_groups = source_groups[:heldout_count]
+    train_groups = source_groups[heldout_count:]
+    def materialize(groups):
+        text, refs, count = [], [], 0
+        for group in groups:
+            for passage in group["passages"]:
+                size = len(passage) + 2
+                if count + size > MAX_CHARS:
+                    break
+                text.append(passage)
+                count += size
+            refs.append({"id": group["id"], "revision": group["revision"],
+                         "license": group["license"]})
+        return "\n\n".join(text), refs
+    train_text, train_refs = materialize(train_groups)
+    heldout_text, heldout_refs = materialize(heldout_groups)
+    if (len(train_text.encode("utf-8")) < 4000
+            or len(heldout_text.encode("utf-8")) < 1000):
+        return {"state": "INSUFFICIENT_REVIEWED_BILINGUAL_CORPUS",
+                "training_started": False}
+    # Fit the tokenizer on TRAIN TEXT ONLY. minBPE is MIT licensed and
+    # embedded in the JREI Python package; no web or model API is used.
+    from jrei_service._vendor.minbpe import BasicTokenizer
+    tokenizer = BasicTokenizer()
+    tokenizer.train(train_text, vocab_size=vocab_size, verbose=False)
+    train_ids = tokenizer.encode(train_text)
+    heldout_ids = tokenizer.encode(heldout_text)
+    if len(train_ids) < MIN_TRAIN_IDS or len(heldout_ids) < MIN_HELDOUT_IDS:
+        return {"state": "INSUFFICIENT_TOKENS_FOR_HELDOUT_EVALUATION",
+                "training_started": False}
+    folder = private / "native-foundation-candidates"
+    if folder.is_symlink():
+        raise ValueError("JREI_NATIVE_CORPUS_DIRECTORY_LINKED")
+    folder.mkdir(parents=True, exist_ok=True, mode=0o700)
+    ident = secrets.token_hex(16)
+    dest = folder / ident
+    dest.mkdir(mode=0o700)
+    merge_rules = [[a, b, idx] for (a, b), idx
+                   in sorted(tokenizer.merges.items(), key=lambda item: item[1])]
+    tokenizer_meta = {"schema": "jr.jrei.native-byte-bpe.v1",
+                      "vocab_size": 256 + len(merge_rules),
+                      "merges": merge_rules,
+                      "trained_on": "TRAIN_SOURCES_ONLY",
+                      "external_tokenizer_weights": False}
+    tok_bytes = json.dumps(tokenizer_meta, ensure_ascii=False,
+                           sort_keys=True, separators=(",", ":")).encode("utf-8")
+    with (dest / "tokenizer.json").open("xb") as output:
+        output.write(tok_bytes)
+    digest_train = _write_ids(dest / "train.u32", train_ids)
+    digest_heldout = _write_ids(dest / "heldout.u32", heldout_ids)
+    receipt = {
+        "schema": SCHEMA, "id": ident, "state": "REVIEWED_SOURCE_CANDIDATE_ONLY",
+        "created": int(time.time()), "owner_approved_preparation": True,
+        "train_sources": train_refs, "heldout_sources": heldout_refs,
+        "train_tokens": len(train_ids), "heldout_tokens": len(heldout_ids),
+        "vocab_size": tokenizer_meta["vocab_size"],
+        "tokenizer_sha256": _sha_bytes(tok_bytes),
+        "train_sha256": digest_train, "heldout_sha256": digest_heldout,
+        "tokenization": "MIT_MINBPE_BYTE_LEVEL_FROM_SCRATCH",
+        "source_training_rights": "PUBLIC_REUSE_APPROVED_OWNER_REVIEWED",
+        "source_groups_disjoint": True, "training_performed": False,
+        "independent_evaluation_passed": False,
+        "external_pretrained_weights_used": False,
+        "production_modified": False,
+    }
+    with (dest / "manifest.json").open("x", encoding="utf-8") as output:
+        json.dump(receipt, output, ensure_ascii=False, indent=2)
+    return {"state": receipt["state"], "candidate_id": ident,
+            "train_tokens": len(train_ids), "heldout_tokens": len(heldout_ids),
+            "source_groups": len(source_groups), "trained_model": False}
+
+
+def load_verified_candidate(db_path: Path, private: Path, ident: str) -> dict:
+    if not isinstance(ident, str) or not IDENT.fullmatch(ident):
+        raise ValueError("JREI_NATIVE_CANDIDATE_ID_INVALID")
+    folder = private / "native-foundation-candidates"
+    dest = folder / ident
+    if (folder.is_symlink() or dest.is_symlink() or not dest.is_dir()
+            or dest.resolve().parent != folder.resolve()):
+        raise ValueError("JREI_NATIVE_CANDIDATE_PATH_INVALID")
+    manifest_file = dest / "manifest.json"
+    if (manifest_file.is_symlink() or not manifest_file.is_file()
+            or manifest_file.stat().st_size > 100_000):
+        raise ValueError("JREI_NATIVE_CORPUS_MANIFEST_MISSING")
+    data = json.loads(manifest_file.read_text(encoding="utf-8"))
+    if (not isinstance(data, dict) or data.get("schema") != SCHEMA
+            or data.get("id") != ident
+            or data.get("state") != "REVIEWED_SOURCE_CANDIDATE_ONLY"
+            or data.get("source_groups_disjoint") is not True
+            or data.get("external_pretrained_weights_used") is not False):
+        raise ValueError("JREI_NATIVE_CORPUS_CANDIDATE_INVALID")
+    train_refs, heldout_refs = data["train_sources"], data["heldout_sources"]
+    if ({entry["id"] for entry in train_refs} &
+            {entry["id"] for entry in heldout_refs}):
+        raise ValueError("JREI_NATIVE_CORPUS_SOURCE_LEAKAGE")
+    for name, field in (("tokenizer.json", "tokenizer_sha256"),
+                        ("train.u32", "train_sha256"),
+                        ("heldout.u32", "heldout_sha256")):
+        item = dest / name
+        if (item.is_symlink() or not item.is_file()
+                or not SHA.fullmatch(data[field]) or _sha_file(item) != data[field]):
+            raise ValueError("JREI_NATIVE_CORPUS_ARTIFACT_HASH_MISMATCH")
+    # Any source revocation or revision change blocks future weight training.
+    refs = train_refs + heldout_refs
+    with closing(_db(db_path)) as db:
+        for item in refs:
+            row = db.execute("""SELECT last_sha,licence,reviewed,active,rights
+                FROM learning_sources WHERE id=?""", (item["id"],)).fetchone()
+            if row != (item["revision"], item["license"], 1, 1,
+                       "PUBLIC_REUSE_APPROVED"):
+                raise ValueError("JREI_NATIVE_SOURCE_REVOKED_OR_REVISED")
+    return {"path": dest, "manifest": data}
+
+
+def main():
+    import argparse
+    parser = argparse.ArgumentParser(description="JREI licensed source corpus builder")
+    parser.add_argument("--db", type=Path, required=True)
+    parser.add_argument("--private", type=Path, required=True)
+    parser.add_argument("--vocab-size", type=int, default=384)
+    parser.add_argument("--owner-approved", action="store_true")
+    args = parser.parse_args()
+    result = prepare(db_path=args.db, private=args.private,
+                     owner_approved=args.owner_approved,
+                     vocab_size=args.vocab_size)
+    print(json.dumps(result, ensure_ascii=False))
+
+
+if __name__ == "__main__":
+    main()
