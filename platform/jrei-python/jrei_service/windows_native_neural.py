@@ -205,8 +205,10 @@ def train(*, db_path: Path, private: Path, owner_approved: bool,
         # Stop at a safe gradient boundary if the owner resumes using the PC
         # or Windows RAM/CPU headroom disappears (e.g., a heavy game starts).
         if step and step % 8 == 0:
-            probe=resources.observe(gpu_probe=False)
-            if (not probe["sensitive_heavy_jobs_eligible"]):
+            probe=resources.observe(gpu_probe=allow_gpu)
+            if (not probe["sensitive_heavy_jobs_eligible"] or
+                    (allow_gpu and
+                     probe["gpu_compute"].get("compute_supported") is not True)):
                 return {"state":"NATIVE_NEURAL_STOPPED_OWNER_OR_RESOURCE_PRESSURE",
                         "training_steps_completed":step,
                         "weights_published":False,
