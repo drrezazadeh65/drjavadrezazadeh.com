@@ -1,3 +1,5 @@
+> **SUPERSEDED BY OWNER DIRECTIVE (28 October 2026):** Qwen is no longer an eligible JREI language backend. The replacement route is `platform/jrei-python/jrei_service/windows_language_backend.py` with an independently selected non-Qwen model, plus the native optional `windows_peft_training.py` LoRA implementation. This historical model review is preserved for provenance only. Neither a replacement model nor training has been installed or run; Windows deployment and site publication remain paused.
+
 # JREI · Existing open-weight language-model adoption decision (2026-10-28)
 
 ## Owner directive and decision
