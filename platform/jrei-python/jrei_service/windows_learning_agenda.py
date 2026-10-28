@@ -375,6 +375,21 @@ def metacognition_snapshot(db_path: Path) -> dict:
         verdicts=db.execute("""SELECT r.verdict,COUNT(*)
             FROM learning_agenda_reviews r
             GROUP BY r.verdict""").fetchall()
+        # Private query content is never read back from learning_gaps:
+        # only HMAC-keyed aggregate counts may guide the owner's study.
+        gap_rows=db.execute("""SELECT reason,COUNT(*),
+            COALESCE(SUM(occurrences),0),MAX(last_seen)
+            FROM learning_gaps GROUP BY reason ORDER BY reason""").fetchall()
+        now=int(time.time())
+        sources_due=db.execute("""SELECT COUNT(*) FROM learning_sources
+            WHERE active=1 AND reviewed=1 AND next_due<=?""",
+            (now,)).fetchone()[0]
+    gap_signals={
+        reason: {"distinct_private_query_hashes":int(count),
+                 "observed_occurrences":int(total),
+                 "most_recent_unix":last}
+        for reason,count,total,last in gap_rows
+    }
     histories={}
     for ident,cover,state,sources in cycles:
         if len(histories.get(ident,[]))<2:
@@ -413,6 +428,10 @@ def metacognition_snapshot(db_path: Path) -> dict:
         "observed_coverage_decline":coverage_declined,
         "unresolved_or_blocked_topics":unresolved,
         "owner_recorded_review_verdicts":dict(verdicts),
+        "privacy_preserving_gap_signals":gap_signals,
+        "approved_sources_currently_due_for_refresh":sources_due,
+        "hashed_gap_question_text_recoverable":False,
+        "observed_gaps_do_not_authorize_new_source_domains":True,
         "suggested_next_study":suggestions,
         "network_acquisition_automatically_authorized":False,
         "claims_independently_validated":False,
