@@ -308,11 +308,31 @@ async function refreshThreads(){
     await api('/api/conversation/delete',{id:t.id});if(selected===t.id){selected=null;welcome()}await refreshThreads();
   };node.append(del);root.append(node)}
 }
-async function openThread(id){selected=id;try{
- const record=await api('/api/conversation?id='+encodeURIComponent(id));$('conversationInner').replaceChildren();
- for(const m of record.items)addMessage(m.role,m.content,m.tool&&m.state!=='AWAITING_CONFIRMATION'?{name:m.tool,state:m.state,receipt:m.receipt||'رسید موجود نیست'}:null);
- if(!record.items.length)welcome();await refreshThreads();$('sidebar').classList.remove('open');
- }catch(e){toast(e.message)}}
+async function openThread(id){
+ selected=id;
+ try{
+  const [record, approvalResult]=await Promise.all([
+   api('/api/conversation?id='+encodeURIComponent(id)),
+   api('/api/approvals?conversation_id='+encodeURIComponent(id))
+  ]);
+  if(selected!==id)return;
+  $('conversationInner').replaceChildren();
+  const approvals=approvalResult.items.slice();
+  for(const m of record.items){
+   let pending=null;
+   if(m.state==='AWAITING_CONFIRMATION'&&m.tool){
+    const index=approvals.findIndex(a=>a.tool===m.tool&&Math.abs(a.created-m.created)<=90);
+    if(index>=0)pending=approvals.splice(index,1)[0];
+   }
+   const tool=m.tool&&m.state!=='AWAITING_CONFIRMATION'?
+    {name:m.tool,state:m.state,receipt:m.receipt||'رسید موجود نیست'}:null;
+   addMessage(m.role,m.content,tool,pending);
+  }
+  if(!record.items.length)welcome();
+  await refreshThreads();
+  $('sidebar').classList.remove('open');
+ }catch(e){toast(e.message)}
+}
 async function newChat(){const response=await api('/api/conversation/new',{});selected=response.id;welcome();refreshThreads();$('sidebar').classList.remove('open');$('input').focus()}
 const TASK_ACTIVE=new Set(['QUEUED','RUNNING','CANCEL_REQUESTED']);
 const TASK_FINAL=new Set(['SUCCEEDED','FAILED','CANCELLED','INTERRUPTED',
@@ -344,7 +364,7 @@ async function refreshTasks(){
   for(const task of items.filter(t=>TASK_ACTIVE.has(t.status)).slice(0,6)){
    const row=el('div','taskRow');
    const label=el('span','taskStatus',taskStateText(task.status));
-   const description=el('span','taskSummary','مأموریت '+task.id.slice(0,8));
+   const description=el('span','taskSummary',String(task.preview||'مأموریت '+task.id.slice(0,8)));
    const cancel=el('button','taskCancel',task.status==='CANCEL_REQUESTED'?'در انتظار پایان':'لغو');
    cancel.disabled=task.status==='CANCEL_REQUESTED';
    cancel.onclick=async()=>{
@@ -379,6 +399,7 @@ async function send(){
    conversation_id:conversationId,message:display,
    attachments:chosen.map(x=>x.id)
   });
+  taskStates.set(job.id,'QUEUED');
   $('input').value='';
   attachments=attachments.filter(x=>!chosen.some(v=>v.id===x.id));
   renderAttachments();
