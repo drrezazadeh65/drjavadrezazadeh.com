@@ -1,7 +1,13 @@
 -- Owner-authorized one-time STOCK RECONCILIATION for the single
 -- TWO-VOLUME Webster's collectible set. One two-volume set is ONE SKU.
--- Source-only: never run automatically at deploy or public HTTP request.
--- Existing Stage09 tables MUST be installed and approved before this step.
+-- Manual, emergency fallback reference only. The owner explicitly approved
+-- automatic, idempotent first installation within the existing authenticated
+-- one-click Bertina deployment on 2026-10-28. That path is implemented in
+-- scripts/bertina-owner-webster-stock-on-deploy.php and does NOT expose a
+-- general public migration endpoint. Never run this SQL separately if stock
+-- has already been seeded, reserved, sold or otherwise reconciled.
+-- The automatic installer checks/creates missing approved Stage09 tables and
+-- verifies the actual mother database before attempting the single-row seed.
 -- Owner's declaration on 2026-10-28: exactly one set physically on hand.
 -- Run ONCE after verifying the current production DB/backup and that there
 -- are no historic transactions for the exact SKU. Do not re-stock on deploy.
