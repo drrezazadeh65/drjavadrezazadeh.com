@@ -60,9 +60,9 @@ assert body.index('drjrHostingManagedReleaseCheck(__DIR__') < handler_columns
 assert body.index('drjrRecoveryCheck(__DIR__') < handler_columns
 assert body.index('drjrCpanelBackupCheck(__DIR__') < handler_columns
 assert body.index('drjrHostingManagedReleaseCheck(__DIR__') < body.index('drjrInstallOwnerWebsterSingleSet($pdo)')
-assert body.index('drjrInstallOwnerWebsterSingleSet($pdo)') < body.index("SHOW COLUMNS FROM commerce_orders")
+assert body.index('drjrInstallOwnerWebsterSingleSet($pdo)') < handler_columns
 assert body.index('drjrInstallOwnerWebsterSingleSet($pdo)') < body.index("->extractTo(__DIR__)")
-assert body.index("SHOW COLUMNS FROM commerce_orders") < body.index("->extractTo(__DIR__)")
+assert handler_columns < body.index("->extractTo(__DIR__)")
 assert body.index("SHOW INDEX FROM commerce_payment_claims") < body.index("->extractTo(__DIR__)")
 for table in [
     "commerce_book_stock", "commerce_book_reservations",
