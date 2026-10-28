@@ -39,6 +39,20 @@
     script.async=true;
     document.head.appendChild(script);
   };
-  if(document.readyState==='complete')loadAdapter();
-  else window.addEventListener('load',loadAdapter,{once:true});
+  let scheduled=false;
+  const schedule=()=>{
+    if(scheduled)return;
+    scheduled=true;
+    const start=()=>loadAdapter();
+    if('requestIdleCallback' in window)requestIdleCallback(start,{timeout:2400});
+    else setTimeout(start,700);
+  };
+  if(document.readyState==='complete')schedule();
+  else{
+    window.addEventListener('load',schedule,{once:true});
+    const afterDom=()=>setTimeout(schedule,1800);
+    if(document.readyState==='loading')
+      document.addEventListener('DOMContentLoaded',afterDom,{once:true});
+    else afterDom();
+  }
 })();
