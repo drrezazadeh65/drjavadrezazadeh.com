@@ -32,7 +32,7 @@ MAX_HISTORY = 10
 MAX_FILE_BYTES = 50000
 MAX_TOOL_OUTPUT = 9000
 SAFE_ROOTS = ("platform/", "scripts/", "docs/", "assets/", "api/")
-SAFE_SUFFIXES = frozenset((".py", ".mjs", ".js", ".md", ".txt", ".css", ".html", ".json", ".ps1", ".sql"))
+SAFE_SUFFIXES = frozenset((".py", ".mjs", ".js", ".md", ".txt", ".css", ".html", ".php", ".json", ".ps1", ".sql"))
 EXCLUDE_PARTS = frozenset((".git", "node_modules", "vendor", "private", "secrets", "credentials", "backup", "backups", "cache", "__pycache__"))
 WRITE_VERBS = re.compile(r"(اصلاح|تغییر|ویرایش|بازنویسی|کدنویسی|پیاده.?سازی|توسعه بده|edit|modify|rewrite|fix code|implement|patch)", re.I)
 CREATE_PROJECT_VERBS = re.compile(
@@ -46,7 +46,7 @@ MEMORY_VERBS = re.compile(r"(در گفتگوهای قبلی|در تاریخچه|
 DRAFT_FILE_VERBS = re.compile(r"(متن.*در فایل|در فایل.*بنویس|فایل متنی بساز|فایل متنی ذخیره|write.*to file|save.*document|create.*document file)", re.I)
 AUDIT_VERBS = re.compile(r"(بررسی کن|ممیزی کن|اجرا کن|گزارش بده|کنترل کن|check|run|audit|inspect|verify|پایش کن|ارزیابی کن)", re.I)
 DANGEROUS_VERBS = re.compile(r"(publish|انتشار|منتشر|deploy|دیپلوی|push|commit|mysql|دیتابیس|پایگاه.?داده|database|پرداخت|payment|ارسال ایمیل|send email)", re.I)
-PATH_PATTERN = re.compile(r"(?:platform|scripts|docs|assets|api)[\\/][A-Za-z0-9_.\\/-]+\.(?:py|mjs|js|md|txt|css|html|json|ps1|sql)", re.I)
+PATH_PATTERN = re.compile(r"(?:platform|scripts|docs|assets|api)[\\/][A-Za-z0-9_.\\/-]+\.(?:py|mjs|js|md|txt|css|html|php|json|ps1|sql)", re.I)
 RECEIPT_PATTERN = re.compile(r"\b\d{8}T\d{6}Z-[a-f0-9]{12}\b")
 
 
