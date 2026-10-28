@@ -15,7 +15,7 @@ concurrency:
 jobs:
   package-desktop:
     if: github.ref == 'refs/heads/migration/bertina-linux6'
-    name: Build owner-only GUI installer (no tests, no deployment)
+    name: Build owner-only offline GUI + Python engine installer (no tests, no deployment)
     runs-on: windows-2022
     timeout-minutes: 35
     steps:
@@ -35,8 +35,12 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
-          python -m pip install --disable-pip-version-check --no-input 'pyinstaller==6.16.0'
+          python -m pip install --disable-pip-version-check --no-input 'pyinstaller==6.16.0' 'Pillow==11.3.0'
           if ($LASTEXITCODE -ne 0) { throw 'JREI_PACKAGING_PYINSTALLER_UNAVAILABLE' }
+          # Resolve pinned runtime dependencies on THE GITHUB RUNNER only.
+          # The Windows owner device never connects to PyPI for installation.
+          python -m pip install --disable-pip-version-check --no-input './platform/jrei-python'
+          if ($LASTEXITCODE -ne 0) { throw 'JREI_PACKAGING_PRIVATE_PYTHON_DEPS_UNAVAILABLE' }
           $compiler = 'C:\Program Files (x86)\Inno Setup 6\ISCC.exe'
           if (-not (Test-Path -LiteralPath $compiler -PathType Leaf)) {
             choco install innosetup --version=6.7.1 --yes --no-progress --limit-output
@@ -68,20 +72,62 @@ jobs:
             branch = 'migration/bertina-linux6'
             github_workflow_run_id = $runId
           } | ConvertTo-Json -Compress | Set-Content -LiteralPath $stamp -Encoding utf8NoBOM
-          python -m PyInstaller --noconfirm --clean --onefile --windowed --noupx --name JREI --add-data "$stamp;." --distpath "$desktop/build" --workpath "$env:RUNNER_TEMP/jrei-build" --specpath "$env:RUNNER_TEMP/jrei-spec" "$source"
+          python -m PyInstaller --noconfirm --clean --onefile --windowed --noupx --name JREI --add-data "$stamp;." --distpath "$desktop/build" --workpath "$env:RUNNER_TEMP/jrei-ui-build" --specpath "$env:RUNNER_TEMP/jrei-ui-spec" "$source"
           if ($LASTEXITCODE -ne 0) { throw 'JREI_NATIVE_DESKTOP_EXE_BUILD_FAILED' }
           if (-not (Test-Path -LiteralPath "$desktop/build/JREI.exe" -PathType Leaf)) {
             throw 'JREI_NATIVE_DESKTOP_EXE_MISSING'
           }
+
+          # Freeze THE EXISTING original 8092 service, not another AI agent.
+          # PyInstaller includes Python and required libraries in engine/_internal.
+          $pythonProject = 'platform/jrei-python'
+          python -m PyInstaller --noconfirm --clean --onedir --console --noupx --name JREI-Engine --paths "$pythonProject" --collect-data jrei_service --collect-submodules jrei_service --collect-submodules jrei_core --collect-submodules jrei_learning --collect-submodules jrei_memory --collect-submodules jrei_orchestrator --collect-submodules jrei_skills --collect-submodules PIL --distpath "$desktop/build/engine" --workpath "$env:RUNNER_TEMP/jrei-engine-build" --specpath "$env:RUNNER_TEMP/jrei-engine-spec" "$desktop/jrei_embedded_engine.py"
+          if ($LASTEXITCODE -ne 0) { throw 'JREI_PRIVATE_FROZEN_ENGINE_BUILD_FAILED' }
+          $frozenEngine = "$desktop/build/engine/JREI-Engine/JREI-Engine.exe"
+          if (-not (Test-Path -LiteralPath $frozenEngine -PathType Leaf)) {
+            throw 'JREI_PRIVATE_FROZEN_ENGINE_MISSING'
+          }
+          # Copy the engine's entire PyInstaller onedir tree to the fixed
+          # installer location. Avoid downloading Python/pip on owner PCs.
+          $engineStage = "$desktop/build/engine-staged"
+          New-Item -ItemType Directory -Force $engineStage | Out-Null
+          Copy-Item -Path "$desktop/build/engine/JREI-Engine/*" -Destination $engineStage -Recurse -Force
+          # Build a clean READ-ONLY source inspection snapshot from TRACKED
+          # canonical files only. Never include .git credentials or local edits.
+          $sourceArchive = Join-Path $env:RUNNER_TEMP 'jrei-source-snapshot.zip'
+          git archive --format=zip --output="$sourceArchive" HEAD platform/jrei-python platform/jrei-v5 platform/news-intelligence scripts assets/css api
+          if ($LASTEXITCODE -ne 0) { throw 'JREI_SOURCE_SNAPSHOT_ARCHIVE_FAILED' }
+          $sourceStage = "$desktop/build/source"
+          New-Item -ItemType Directory -Force $sourceStage | Out-Null
+          Expand-Archive -LiteralPath $sourceArchive -DestinationPath $sourceStage -Force
+          if (-not (Test-Path -LiteralPath "$sourceStage/platform/jrei-python/jrei_service/windows_command_center.py" -PathType Leaf)) {
+            throw 'JREI_CANONICAL_SOURCE_SNAPSHOT_MISSING'
+          }
+          # Inno Setup recursively packages only these source-controlled
+          # application components, not documents/private user profile data.
+          $engineHash = (Get-FileHash -LiteralPath $frozenEngine -Algorithm SHA256).Hash.ToLowerInvariant()
+          @{
+            schema = 'jr.jrei.offline-engine-package.v1'
+            source_branch = 'migration/bertina-linux6'
+            source_commit = $commit
+            engine_sha256 = $engineHash
+            model_weights_embedded = $false
+            private_node_keys_embedded = $false
+            tests_performed = $false
+          } | ConvertTo-Json -Compress | Set-Content -LiteralPath "$desktop/build/jrei-engine-manifest.json" -Encoding utf8NoBOM
+          # Inno expects the staged onedir contents at build/engine/.
+          # Keep the staging layout flat and do NOT copy an EXE alone.
+          Remove-Item -LiteralPath "$desktop/build/engine" -Recurse -Force
+          Move-Item -LiteralPath $engineStage -Destination "$desktop/build/engine"
           $compiler = 'C:\Program Files (x86)\Inno Setup 6\ISCC.exe'
           & $compiler "$desktop/JREI.iss"
           if ($LASTEXITCODE -ne 0) { throw 'JREI_NATIVE_INNO_INSTALLER_FAILED' }
-          $installer = "$desktop/output/JREI-Setup-Windows-x64-v0.1.3.exe"
+          $installer = "$desktop/output/JREI-Setup-Windows-x64-v0.1.4.exe"
           if (-not (Test-Path -LiteralPath $installer -PathType Leaf)) {
             throw 'JREI_NATIVE_INSTALLER_NOT_CREATED'
           }
           New-Item -ItemType Directory -Force 'JREI-OWNER-DOWNLOAD' | Out-Null
-          Copy-Item -LiteralPath $installer -Destination 'JREI-OWNER-DOWNLOAD/JREI-Setup-Windows-x64-v0.1.3.exe'
+          Copy-Item -LiteralPath $installer -Destination 'JREI-OWNER-DOWNLOAD/JREI-Setup-Windows-x64-v0.1.4.exe'
           # Exactly ONE user-facing setup EXE in the downloadable artifact.
           # No A/B/RAM role scripts, confidential config or auxiliary apps
           # are shipped alongside it; the included inventory is read-only.
@@ -89,15 +135,19 @@ jobs:
           @(
             "## JREI universal Windows x64 setup (source-only package)"
             ""
-            "- One installer, for any existing or newly enrolled computer."
-            "- Installer file: JREI-Setup-Windows-x64-v0.1.3.exe"
+            "- One installer containing native GUI, frozen private 8092 engine and tracked source."
+            "- No Python, pip, wheelhouse or GitHub access required on the destination to start the bundled engine."
+            "- Existing owner SQLite, tokens, signed node IDs, Git edits and model weights are NEVER overwritten."
+            "- New signed workers still require independent owner/server enrollment."
+            "- Existing live original engine is preserved until safe reconciliation."
+            "- Installer file: JREI-Setup-Windows-x64-v0.1.4.exe"
             "- Installer SHA-256: $hash"
             "- Canonical source commit: $commit"
             "- Workflow run ID: $runId"
             "- Signing: UNSIGNED (hash != code-signature)."
             "- Independent Windows acceptance: NOT RUN by this job."
             "- Signed worker enrollment on new machines: NOT PERFORMED."
-            "- Installed native neural weights: NOT INCLUDED."
+            "- Native neural weights and private model data: NOT INCLUDED."
             "- Site deployment / live Windows install: NOT PERFORMED."
           ) -join "`n" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
 
@@ -106,7 +156,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: JREI-WINDOWS-DESKTOP-INSTALLER
-          path: JREI-OWNER-DOWNLOAD/JREI-Setup-Windows-x64-v0.1.3.exe
+          path: JREI-OWNER-DOWNLOAD/JREI-Setup-Windows-x64-v0.1.4.exe
           retention-days: 30
           if-no-files-found: error
           compression-level: 0
