@@ -159,6 +159,14 @@ def train(*, db_path: Path, private: Path, owner_approved: bool,
     if not resources_available:
         return {"state":"NATIVE_NEURAL_TRAINING_DEFERRED_RESOURCES",
                 "training_performed":False}
+    # Existing training jobs now use the original Windows telemetry and
+    # measured local CUDA capability. Two PCs never share GPU allocations.
+    # Owner activity or missing driver proof defers the expensive operation.
+    from jrei_service import windows_resource_envelope as resources
+    guard=resources.allow_heavy_training(require_gpu=allow_gpu)
+    if guard["state"]!="HEAVY_WORK_ELIGIBLE_TO_ATTEMPT":
+        return {"state":"NATIVE_NEURAL_DEFERRED_REAL_PC_CAPACITY",
+                "reason":guard["reason"],"training_performed":False}
     pair=_docs(db_path)
     if pair is None:
         return {"state":"NATIVE_NEURAL_WAITING_FOR_REVIEWED_DATA",
@@ -194,6 +202,15 @@ def train(*, db_path: Path, private: Path, owner_approved: bool,
     optimizer=torch.optim.AdamW(model.parameters(),lr=0.00035,
                                  weight_decay=0.01)
     for step in range(steps):
+        # Stop at a safe gradient boundary if the owner resumes using the PC
+        # or Windows RAM/CPU headroom disappears (e.g., a heavy game starts).
+        if step and step % 8 == 0:
+            probe=resources.observe(gpu_probe=False)
+            if (not probe["sensitive_heavy_jobs_eligible"]):
+                return {"state":"NATIVE_NEURAL_STOPPED_OWNER_OR_RESOURCE_PRESSURE",
+                        "training_steps_completed":step,
+                        "weights_published":False,
+                        "training_improvement_verified":False}
         model.train()
         # Fixed indexing, no random I/O or data leakage from heldout.
         sample=training[(step*7919)%len(training)]
