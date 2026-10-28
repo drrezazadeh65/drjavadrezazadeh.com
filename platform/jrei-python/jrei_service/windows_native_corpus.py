@@ -305,24 +305,68 @@ def load_verified_candidate(db_path: Path, private: Path, ident: str) -> dict:
             or data.get("id") != ident
             or data.get("state") != "REVIEWED_SOURCE_CANDIDATE_ONLY"
             or data.get("source_groups_disjoint") is not True
+            or data.get("source_publishers_disjoint") is not True
+            or data.get("partition_policy") != "REVIEWED_ISSUER_GROUP_SHA256_ORDER"
             or data.get("external_pretrained_weights_used") is not False):
         raise ValueError("JREI_NATIVE_CORPUS_CANDIDATE_INVALID")
     train_refs, heldout_refs = data["train_sources"], data["heldout_sources"]
     test_refs = data.get("sealed_test_sources")
-    if not isinstance(test_refs, list) or not test_refs:
-        raise ValueError("JREI_NATIVE_SEALED_TEST_MISSING")
-    train_ids = {entry["id"] for entry in train_refs}
-    dev_ids = {entry["id"] for entry in heldout_refs}
-    test_ids = {entry["id"] for entry in test_refs}
-    if (train_ids & dev_ids or train_ids & test_ids or dev_ids & test_ids):
-        raise ValueError("JREI_NATIVE_CORPUS_SOURCE_LEAKAGE")
+    if (not isinstance(train_refs, list) or not train_refs
+            or not isinstance(heldout_refs, list) or not heldout_refs
+            or not isinstance(test_refs, list) or not test_refs):
+        raise ValueError("JREI_NATIVE_CORPUS_THREE_WAY_SPLIT_MISSING")
+    roles = (train_refs, heldout_refs, test_refs)
+    for refs in roles:
+        for entry in refs:
+            if (not isinstance(entry, dict)
+                    or not isinstance(entry.get("id"), str)
+                    or not IDENT.fullmatch(entry["id"])
+                    or not isinstance(entry.get("revision"), str)
+                    or not SHA.fullmatch(entry["revision"])
+                    or not isinstance(entry.get("license"), str)
+                    or entry["license"].casefold() not in TRAINABLE_LICENSES
+                    or not isinstance(entry.get("issuer"), str)
+                    or not 3 <= len(entry["issuer"]) <= 120):
+                raise ValueError("JREI_NATIVE_CORPUS_SOURCE_REF_INVALID")
+    train_ids, dev_ids, test_ids = [
+        {entry["id"] for entry in refs} for refs in roles
+    ]
+    train_publishers, dev_publishers, test_publishers = [
+        {_publisher_key(entry["issuer"]) for entry in refs} for refs in roles
+    ]
+    if (len(train_ids) != len(train_refs)
+            or len(dev_ids) != len(heldout_refs)
+            or len(test_ids) != len(test_refs)
+            or train_ids & dev_ids or train_ids & test_ids or dev_ids & test_ids
+            or train_publishers & dev_publishers
+            or train_publishers & test_publishers
+            or dev_publishers & test_publishers):
+        raise ValueError("JREI_NATIVE_CORPUS_SOURCE_OR_PUBLISHER_LEAKAGE")
     for name, field in (("tokenizer.json", "tokenizer_sha256"),
                         ("train.u32", "train_sha256"),
                         ("heldout.u32", "heldout_sha256"),
                         ("sealed-test.u32", "sealed_test_sha256")):
         item = dest / name
+        expected_length = 100_000
+        if name.endswith(".u32"):
+            token_field = {
+                "train.u32": "train_tokens",
+                "heldout.u32": "heldout_tokens",
+                "sealed-test.u32": "sealed_test_tokens",
+            }[name]
+            count = data.get(token_field)
+            min_count = (MIN_TRAIN_IDS if name == "train.u32"
+                         else MIN_HELDOUT_IDS)
+            if (type(count) is not int or
+                    not min_count <= count <= MAX_CHARS * 4):
+                raise ValueError("JREI_NATIVE_CORPUS_TOKEN_COUNT_INVALID")
+            expected_length = count * 4
         if (item.is_symlink() or not item.is_file()
-                or not SHA.fullmatch(data[field]) or _sha_file(item) != data[field]):
+                or item.stat().st_size > MAX_CHARS * 16
+                or (item.stat().st_size != expected_length if name.endswith(".u32")
+                    else item.stat().st_size > expected_length)
+                or not SHA.fullmatch(str(data.get(field, "")))
+                or _sha_file(item) != data[field]):
             raise ValueError("JREI_NATIVE_CORPUS_ARTIFACT_HASH_MISMATCH")
     # Any source revocation or revision change blocks future weight training.
     refs = train_refs + heldout_refs + test_refs
