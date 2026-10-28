@@ -396,6 +396,19 @@ function addMessage(role,content,tool,pending){
  if(role==='assistant')renderMarkdown(contentEl,content);
  else contentEl.textContent=String(content||'');
  body.append(contentEl);
+ const actions=el('div','turnActions');
+ const copy=el('button','turnAction','کپی');
+ copy.type='button';copy.title='کپی پیام';
+ copy.onclick=()=>copyText(content);
+ actions.append(copy);
+ if(role==='assistant'){
+  const followup=el('button','turnAction','ادامهٔ گفتگو');
+  followup.type='button';followup.onclick=()=>{
+   $('input').focus();scrollBottom();
+  };
+  actions.append(followup);
+ }
+ body.append(actions);
  row.append(el('span','avatar',role==='user'?'من':'JR'),body);
  if(tool||pending){const slot=el('div','');
   if(tool){const card=el('div','toolReceipt');card.append(el('span','',`ابزار: ${tool.name} · ${tool.state}`));
@@ -449,6 +462,7 @@ function addMessage(role,content,tool,pending){
     }catch(e){toast(e.message);yes.disabled=false;no.disabled=false}finally{setBusy(false)}};
    no.onclick=()=>{card.remove();toast('اقدام اجرا نشد.');};card.append(yes,no);slot.append(card)}
   body.append(slot)}root.append(row);scrollBottom();
+ return row;
 }
 function setBusy(value){
  active=value;$('send').disabled=value;$('input').disabled=value;
