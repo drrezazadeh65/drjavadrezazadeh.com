@@ -88,14 +88,14 @@ def _module_effects(root: ast.Module) -> set[str]:
     def inspect(node: ast.AST) -> None:
         if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.Lambda)):
             return
+        if isinstance(node, ast.Call):
+            try:
+                name = ast.unparse(node.func)[:110]
+            except (ValueError, TypeError, RecursionError):
+                name = "UNKNOWN_CALL"
+            effects.add(name)
         # Class definitions execute their class bodies at import time.
         for child in ast.iter_child_nodes(node):
-            if isinstance(child, ast.Call):
-                try:
-                    name = ast.unparse(child.func)[:110]
-                except (ValueError, TypeError, RecursionError):
-                    name = "UNKNOWN_CALL"
-                effects.add(name)
             inspect(child)
 
     for entry in root.body:
