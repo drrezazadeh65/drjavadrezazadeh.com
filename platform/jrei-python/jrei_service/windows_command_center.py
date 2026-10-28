@@ -29,6 +29,7 @@ from jrei_service.owner_candidate_pipeline import stage_candidate
 from jrei_service.ci_observer import observe_ci
 from jrei_service import windows_owner_agent as owner_agent
 from jrei_service.windows_response_quality import has_repetition_loop
+from jrei_service.windows_project_generator import read_generated
 from urllib.parse import parse_qs, urlsplit
 
 HOST = "127.0.0.1"
@@ -620,6 +621,16 @@ class OwnerHTTP(BaseHTTPRequestHandler):
             return self._send(200, {"items": owner_agent.list_conversations(DB_PATH)})
         if self.path == "/api/workflows":
             return self._send(200, {"items": owner_agent.list_workflows(DB_PATH)})
+        if urlsplit(self.path).path == "/api/generated/file":
+            params = parse_qs(urlsplit(self.path).query)
+            project_id = params.get("id", [""])[0]
+            filename = params.get("name", [""])[0]
+            try:
+                content = read_generated(private=PRIVATE, project_id=project_id,
+                                         filename=filename)
+            except (OSError, ValueError, TypeError, KeyError):
+                return self._send(404, {"error": "PRIVATE_DRAFT_NOT_FOUND"})
+            return self._send(200, content, "application/octet-stream")
         if urlsplit(self.path).path == "/api/conversation":
             query = parse_qs(urlsplit(self.path).query)
             ident = query.get("id", [""])[0]
