@@ -192,7 +192,9 @@
     "/journal/peer-review/",
     "/journal/reviewer-registration/",
     "/journal/roadmap/",
-    "/publisher/"
+    "/publisher/",
+    "/fa/shop/collectibles/websters-third-1981/",
+    "/en/shop/collectibles/websters-third-1981/"
   ],
   "note": "These indexable public route identities are frozen for SEO continuity. Content/design may evolve without changing the path. The historical shop archive is preserved as a truthful consolidation target for verified former commerce URLs; future path migrations require explicit permanent one-hop redirects.",
   "approved_addition_20261016": {
@@ -288,5 +290,14 @@
       "/fa/exams/phd/"
     ],
     "rule": "No checkout or verified exam claims until independent review. Preserve indexed URL, canonical, hreflang. Private /exams/my remains excluded."
+  },
+  "approved_addition_20261028_bilingual_webster_collectible": {
+    "approved_by": "website_owner",
+    "scope": "Two newly owner-published bilingual indexable charitable collectible detail URLs already present in the repository and public sitemaps",
+    "routes": [
+      "/fa/shop/collectibles/websters-third-1981/",
+      "/en/shop/collectibles/websters-third-1981/"
+    ],
+    "rule": "Immutable URLs and self-canonicals; reciprocal hreflang, no new payment route, no claim that SVG promotional illustration is a product photograph."
   }
 }

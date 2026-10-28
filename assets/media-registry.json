@@ -137,6 +137,19 @@
       "optimization_profile": "book-cover-premium"
     },
     {
+      "path": "assets/images/books/websters-third-1981-collectible-illustration.svg",
+      "kind": "illustration",
+      "role": "websters-third-1981-collectible-promotional-illustration",
+      "provenance": "Original SVG promotional graphic committed in the owner's site repository; explicitly not a photograph or evidence of the physical copies' condition",
+      "rights": "website owner-authorized original site illustration",
+      "alt_en": "Illustrated promotional display of a two-volume Webster's Third dictionary set; not a photograph of the actual copies",
+      "alt_fa": "تصویرسازی تبلیغاتی مجموعه دو جلدی فرهنگ وبستر؛ عکس نسخه‌های واقعی کتاب نیست",
+      "caption_en": "An illustrative visualization, not a condition report for the collectible books",
+      "caption_fa": "طرح مفهومی تبلیغاتی؛ نمایانگر وضعیت واقعی نسخه‌های کلکسیونی نیست",
+      "source_status": "original-repository-svg-illustration",
+      "mime_type": "image/svg+xml"
+    },
+    {
       "path": "assets/images/bookstore-talent-approved-scene-20261011.webp",
       "kind": "illustration",
       "role": "bookstore-approved-image-mobile-crop",
