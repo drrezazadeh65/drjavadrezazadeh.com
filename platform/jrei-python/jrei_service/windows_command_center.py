@@ -42,6 +42,7 @@ from jrei_service import windows_learning_fts as learning_fts
 from jrei_service import windows_evidence_memory as memory_graph
 from jrei_service import windows_code_experience as code_experience
 from jrei_service import windows_site_image_studio as image_studio
+from jrei_service import windows_visual_learning as visual_learning
 from jrei_service import windows_github_operator as github_operator
 from jrei_service import windows_open_source_discovery as source_discovery
 from jrei_service import windows_language_backend as language_backend
@@ -488,6 +489,7 @@ def scheduler():
     next_memory = now
     next_ci_check = now + 120
     next_image = now + 10
+    next_visual_day = now + 15
     next_observation = now
     while not _STOP.is_set():
         _CONTINUUM_LAST_HEARTBEAT = time.monotonic()
@@ -501,13 +503,24 @@ def scheduler():
                 record("learning_continuum", "OBSERVATION_UNAVAILABLE",
                        exc.__class__.__name__)
             next_observation = time.monotonic() + 45
+        if time.monotonic() >= next_visual_day and not _BUSY.locked():
+            # One read/write receipt per UTC day. The loop never invents
+            # images, user ratings, model training or constant quality gains.
+            try:
+                visual_learning.daily_checkpoint(DB_PATH)
+            except (OSError, ValueError, sqlite3.Error, KeyError) as exc:
+                record("native_visual_daily", "RECEIPT_UNAVAILABLE",
+                       exc.__class__.__name__)
+            next_visual_day = time.monotonic() + 1800
         if time.monotonic() >= next_image and not _BUSY.locked():
             # Render only explicit owner-queued draft images with a configured
             # local licensed model. The child process never edits the site.
             try:
                 status_info = image_studio.local_model_status(PRIVATE)
                 eligible = resource_policy.permits("MEMORY_CURATION")
-                if status_info["state"] == "MODEL_CONFIG_PRESENT_UNVERIFIED" and eligible:
+                if status_info["state"] in (
+                        "MODEL_CONFIG_PRESENT_UNVERIFIED",
+                        "NATIVE_PROCEDURAL_SOURCE_READY_UNTESTED") and eligible:
                     job_id = image_studio.claim(DB_PATH)
                     if job_id is not None:
                         args = [sys.executable, "-m",
@@ -744,6 +757,7 @@ def status():
         "native_evidence_memory": memory_graph.snapshot(DB_PATH),
         "code_learning": code_experience.snapshot(DB_PATH),
         "site_image_studio": image_studio.local_model_status(PRIVATE),
+        "native_visual_learning": visual_learning.snapshot(DB_PATH),
         "independent_github_operator": "OWNER_SCOPED_API_AVAILABLE_IF_CONFIGURED",
         "open_source_code_research": "OWNER_REQUEST_ONLY_NO_CODE_DOWNLOAD",
         "independent_site_governor": "EXISTING_GITHUB_WORKFLOW_NOT_DUPLICATED",
@@ -904,6 +918,8 @@ class OwnerHTTP(BaseHTTPRequestHandler):
                 params.get("path", [""])[0]))
         if self.path == "/api/site-images/jobs":
             return self._send(200, image_studio.list_recent(DB_PATH))
+        if self.path == "/api/site-images/learning":
+            return self._send(200, visual_learning.snapshot(DB_PATH))
         if self.path == "/api/code-experience":
             return self._send(200, code_experience.snapshot(DB_PATH))
         if urlsplit(self.path).path == "/api/workspace/diff":
@@ -1049,6 +1065,9 @@ class OwnerHTTP(BaseHTTPRequestHandler):
                 return self._send(200, image_studio.retry(DB_PATH, data))
             if self.path == "/api/site-images/review":
                 return self._send(200, image_studio.review(DB_PATH, PRIVATE, data))
+            if self.path == "/api/site-images/feedback":
+                return self._send(200, visual_learning.record_owner_feedback(
+                    DB_PATH, private=PRIVATE, request=data))
             if self.path == "/api/code-experience/review":
                 return self._send(200, code_experience.record_owner_feedback(
                     DB_PATH, private=PRIVATE, receipt_id=data.get("receipt_id"),
