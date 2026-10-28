@@ -103,6 +103,14 @@ def train(*, db_path: Path, private: Path, config_file: Path,
     os.environ["TRANSFORMERS_OFFLINE"] = "1"
     import torch
     from jrei_service._vendor.nanogpt.model import GPT, GPTConfig
+    # Workstation scheduling: one interactive 16GB or 32GB PC must not
+    # become unusable when experimental JREI CPU training begins. Read RAM
+    # again per job; hardware upgrades are reflected without configuration.
+    total_ram = resource_guard["read_only_observation"]["resources"].get(
+        "physical_ram_mb") or 0
+    cores = max(1, os.cpu_count() or 1)
+    cap = 4 if total_ram >= 28672 else 2
+    torch.set_num_threads(max(1, min(cap, cores - 1 if cores > 2 else 1)))
     if cfg["device"] == "cuda" and not torch.cuda.is_available():
         raise RuntimeError("JREI_SCRATCH_CUDA_NOT_AVAILABLE")
     device = torch.device(cfg["device"])
