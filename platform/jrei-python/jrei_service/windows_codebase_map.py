@@ -55,6 +55,54 @@ def _py_symbols(text: str) -> list[tuple[int, str]]:
     return records[:MAX_SYMBOLS_PER_FILE]
 
 
+def _tree_sitter_symbols(text: str, suffix: str) -> list[tuple[int, str]]:
+    """Optional structure-aware JS/TS map; safe regex fallback if unavailable.
+
+    Uses MIT Tree-sitter Python bindings/grammar *as libraries in JREI*, not
+    a second editor, process or assistant. Strictly parses source as data.
+    This does not download a grammar, execute JavaScript or validate code.
+    """
+    if suffix not in (".js", ".mjs", ".cjs", ".ts"):
+        return []
+    try:
+        from tree_sitter import Language, Parser
+        if suffix == ".ts":
+            import tree_sitter_typescript as grammar
+            language = Language(grammar.language_typescript())
+        else:
+            import tree_sitter_javascript as grammar
+            language = Language(grammar.language())
+        parser = Parser(language)
+        raw = text.encode("utf-8")
+        tree = parser.parse(raw)
+    except (ImportError, AttributeError, RuntimeError, TypeError, ValueError):
+        return []
+    lines = text.splitlines()
+    records = []
+    defined = {
+        "function_declaration", "generator_function_declaration",
+        "class_declaration", "lexical_declaration",
+        "variable_declaration", "method_definition",
+        "interface_declaration", "type_alias_declaration",
+    }
+
+    def visit(node, depth: int):
+        if len(records) >= MAX_SYMBOLS_PER_FILE or depth > 3:
+            return
+        if node.type in defined and 0 <= node.start_point.row < len(lines):
+            line = node.start_point.row + 1
+            value = lines[line - 1].strip()[:190]
+            if value and (line, value) not in records:
+                records.append((line, value))
+        if depth < 3:
+            for child in node.named_children[:100]:
+                if len(records) >= MAX_SYMBOLS_PER_FILE:
+                    break
+                visit(child, depth + 1)
+    visit(tree.root_node, 0)
+    return sorted(records, key=lambda item: item[0])[:MAX_SYMBOLS_PER_FILE]
+
+
 def _other_symbols(text: str, suffix: str) -> list[tuple[int, str]]:
     pattern = PHP_DEF if suffix == ".php" else LINE_DEF
     matches = []
@@ -116,8 +164,10 @@ def build(*, repo: Path, request: str, max_files: int = 7,
             continue
         considered += 1
         name = path.relative_to(repo).as_posix()
-        symbols = (_py_symbols(text) if path.suffix.lower() == ".py"
-                   else _other_symbols(text, path.suffix.lower()))
+        suffix = path.suffix.lower()
+        symbols = (_py_symbols(text) if suffix == ".py"
+                   else (_tree_sitter_symbols(text, suffix)
+                         or _other_symbols(text, suffix)))
         if not symbols:
             continue
         lowered_path = name.casefold()
