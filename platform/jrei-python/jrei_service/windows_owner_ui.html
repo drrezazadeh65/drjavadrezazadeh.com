@@ -139,6 +139,10 @@ a.skip-link{position:fixed;top:-120px;right:14px;z-index:1000;padding:10px 16px;
   <div id="metacognitionState" class="learnNote" aria-live="polite">یادگیریِ یادگیری: وضعیت در حال بررسی</div>
   <label class="learnCheck"><input type="checkbox" id="nativeTrainRights"> حقوق آموزش ماشینی با منابع عمومیِ داوری‌شده را بررسی و اجازهٔ استفاده از آنها برای آموزش آزمایشی JREI را تأیید می‌کنم.</label>
   <button class="confirm" id="trainNativeBrain">آموزش آزمایشی مدل بومی — بدون نصب برنامهٔ دیگر</button>
+  <h3>آموزش شبکهٔ عصبی اختصاصی JREI از صفر</h3>
+  <p class="learnNote">ساختار کوچک Transformer با وزن‌های تصادفی؛ کتابخانهٔ PyTorch فقط در صورت موجودبودن در همین محیط Python استفاده می‌شود. هیچ وزن آماده‌ای دریافت نمی‌شود و خروجی تا ارزیابی مستقل وارد گفت‌وگو نمی‌شود.</p>
+  <div id="nativeNeuralState" class="learnNote">وضعیت مدل عصبی: هنوز بررسی نشده</div>
+  <button class="confirm" id="trainNativeNeural">آموزش اولیهٔ عصبی از صفر — فقط با تأیید</button>
   <button class="confirm" id="nativeAutoLearn">فعال‌سازی یک‌بارهٔ یادگیری خودکار بومی</button>
  </div>
  <h2>استودیو تصویر اختصاصی JREI</h2>
@@ -430,6 +434,10 @@ async function refreshLearning(){
    (memoryInfo.potential_unreviewed_conflict_groups||0)+
    ' · ادعاهای تأیید علمی: '+
    (memoryInfo.independently_verified_claims||0);
+  const neural=globalState.native_neural_training||{};
+  $('nativeNeuralState').textContent='مدل عصبی JREI | '+(neural.state||'نامشخص')+
+    ' · تعداد گام‌های آزمایشی: '+(neural.steps||0)+
+    ' · ارزیابی علمی مستقل: انجام نشده · مدل فعال در گفت‌وگو: خیر';
   const native=globalState.native_language_baseline||{};
   $('nativeBrainState').textContent='مدل بومی آزمایشی | وضعیت: '+(native.state||'نامشخص')+
     ' · دادهٔ آموزشی بازبینی‌شده: '+(native.training_examples||0)+
@@ -630,6 +638,21 @@ $('nativeAutoLearn').onclick=async()=>{
   toast(result.state);$('nativeTrainRights').checked=false;
   await refreshLearning();
  }catch(e){toast('تغییر وضعیت یادگیری ممکن نشد: '+e.message)}
+};
+$('trainNativeNeural').onclick=async()=>{
+ if(!$('nativeTrainRights').checked){
+  toast('ابتدا حقوق آموزش ماشینی با داده‌های بازبینی‌شده را تأیید کنید.');return;
+ }
+ if(!confirm('ساخت یک مدل عصبی کوچک با وزن‌های تصادفی در JREI آغاز شود؟ آموزش اولیه است؛ به کیفیت ChatGPT نمی‌رسد، برای سایت منتشر نمی‌شود و کتابخانهٔ Torch باید از قبل موجود باشد.'))return;
+ const button=$('trainNativeNeural');button.disabled=true;
+ try{
+  const result=await api('/api/learning/native-neural/train',{
+   confirm:true,training_rights_reviewed:true,steps:48
+  });
+  $('nativeNeuralState').textContent=JSON.stringify(result,null,2);
+  await refreshLearning();
+ }catch(e){toast('آموزش عصبی در این محیط ممکن نشد: '+e.message)}
+ finally{button.disabled=false;$('nativeTrainRights').checked=false}
 };
 $('trainNativeBrain').onclick=async()=>{
  if(!$('nativeTrainRights').checked){
