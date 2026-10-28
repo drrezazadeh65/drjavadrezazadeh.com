@@ -9,7 +9,7 @@
  Existing active 8092 engine is NEVER interrupted by an installer.
 #>
 [CmdletBinding()]
-param([ValidateSet('Status','Install')][string]$Mode='Status',
+param([ValidateSet('Status','Start','Install')][string]$Mode='Status',
       [switch]$OwnerApproved)
 Set-StrictMode -Version Latest
 $ErrorActionPreference='Stop'
@@ -115,6 +115,149 @@ if($Mode -eq 'Status'){
     'OWNER_TASK_PRESENT'})
  Emit 'NO_INSTALL_OR_RUNTIME_CHANGE'
  return
+}
+if($Mode -eq 'Start'){
+ # A normal desktop click can restart only the ORIGINAL known owner task,
+ # even if the task was previously installed from the Python 3.13 source.
+ # No new task/keys/model/runtime is registered by this mode.
+ if($null -eq $task){throw 'JREI_OWNER_ORIGINAL_TASK_NOT_INSTALLED'}
+ if($task.Actions.Count -ne 1){throw 'JREI_OWNER_TASK_ACTION_AMBIGUOUS'}
+ $old=$task.Actions[0]
+ $exe=[IO.Path]::GetFullPath(
+   [Environment]::ExpandEnvironmentVariables([string]$old.Execute))
+ $folder=[IO.Path]::GetFullPath($PSScriptRoot)+[IO.Path]::DirectorySeparatorChar
+ $frozen=(
+   $exe.StartsWith($folder,[StringComparison]::OrdinalIgnoreCase) -and
+   $exe -imatch '[\\/]engine-v[0-9]+\.[0-9]+\.[0-9]+[\\/]JREI-Engine\.exe
+# Existing responsive engine may be busy with learning and drafts; never
+# terminate, rewire, or overwrite its current Python source. Files are copied
+# under the application directory by the parent installer only.
+if(LocalReady){
+ Receipt 'EXISTING_LIVE_ENGINE_PRESERVED_UPDATE_DEFERRED'
+ Emit 'EXISTING_LIVE_ENGINE_PRESERVED'
+ return
+}
+$work=Split-Path -Path $engine -Parent
+$newAction=New-ScheduledTaskAction -Execute $engine -Argument '--serve' -WorkingDirectory $work
+$oldAction=$null
+$created=$false
+if($null -eq $task){
+ $trigger=New-ScheduledTaskTrigger -AtLogOn -User $owner.Name
+ $principal=New-ScheduledTaskPrincipal -UserId $owner.Name -LogonType Interactive -RunLevel Limited
+ $settings=New-ScheduledTaskSettingsSet -ExecutionTimeLimit (New-TimeSpan -Seconds 0) -MultipleInstances IgnoreNew -StartWhenAvailable -RestartCount 3 -RestartInterval (New-TimeSpan -Minutes 1)
+ Register-ScheduledTask -TaskName $taskName -Action $newAction -Trigger $trigger -Principal $principal -Settings $settings -Description 'JREI original owner-private Windows intelligence core on loopback 8092' -ErrorAction Stop | Out-Null
+ $created=$true
+ Emit 'OWNER_PRIVATE_OFFLINE_TASK_REGISTERED'
+}else{
+ if($task.Actions.Count -ne 1){throw 'JREI_EXISTING_TASK_ACTION_AMBIGUOUS_PRESERVED'}
+ $oldAction=$task.Actions[0]
+ $oldArgs=[string]$oldAction.Arguments
+ $oldExecute=[string]$oldAction.Execute
+ # Only previously known ORIGINAL 8092 command center actions are eligible.
+ # Never rewire an unknown named task or another user's process.
+ $expectedPy=[IO.Path]::GetFullPath((Join-Path $env:LOCALAPPDATA 'JREI-Python\venv\Scripts\python.exe'))
+ $priorExe=[IO.Path]::GetFullPath([Environment]::ExpandEnvironmentVariables($oldExecute))
+ $programDir=[IO.Path]::GetFullPath($PSScriptRoot)+[IO.Path]::DirectorySeparatorChar
+ $knownFrozen=(
+    $priorExe.StartsWith($programDir,[StringComparison]::OrdinalIgnoreCase) -and
+    $priorExe -imatch '[\\/]engine-v[0-9]+\.[0-9]+\.[0-9]+[\\/]JREI-Engine\.exe
+ $knownPython=($priorExe -ieq $expectedPy -and
+               $oldArgs -ceq '-B -m jrei_service.windows_command_center --serve')
+ if(-not ($knownFrozen -or $knownPython)){
+  throw 'JREI_EXISTING_TASK_ACTION_UNKNOWN_PRESERVED'
+ }
+ # If a task is already RUNNING but not answering, avoid interrupting it.
+ $liveTask=Get-ScheduledTask -TaskName $taskName -ErrorAction Stop
+ if($liveTask.State -eq 'Running'){
+  Receipt 'EXISTING_TASK_RUNNING_UNRESPONSIVE_NO_REPLACEMENT'
+  Emit 'EXISTING_TASK_RUNNING_HELD_FOR_MANUAL_REVIEW'
+  return
+ }
+ # A nonresponsive, idle, verified owner task can be repointed to the
+ # bundled owner core, with its previous action restored on failure.
+ Set-ScheduledTask -TaskName $taskName -Action $newAction -ErrorAction Stop | Out-Null
+ Emit 'ORIGINAL_OWNER_TASK_UPDATED_WITH_ROLLBACK'
+}
+$ready=$false
+try{
+ Start-ScheduledTask -TaskName $taskName -ErrorAction Stop
+ for($i=0;$i -lt 12;$i++){
+  if(LocalReady){$ready=$true;break}
+  Start-Sleep -Seconds 2
+ }
+ if(-not $ready){throw 'JREI_PRIVATE_OFFLINE_ENGINE_NOT_RESPONDING'}
+ Receipt 'ORIGINAL_PRIVATE_ENGINE_RUNNING_ON_8092'
+ Emit 'ORIGINAL_PRIVATE_ENGINE_RUNNING_ON_8092'
+}catch{
+ # Roll back only *this* task registration/action. Preserve data, models,
+ # private files and other tasks regardless of startup outcome.
+ if($created){
+  Unregister-ScheduledTask -TaskName $taskName -Confirm:$false -ErrorAction SilentlyContinue
+ }elseif($null -ne $oldAction){
+  Set-ScheduledTask -TaskName $taskName -Action $oldAction -ErrorAction SilentlyContinue | Out-Null
+ }
+ try{Receipt 'STARTUP_FAILED_PREVIOUS_ACTION_RETAINED'}catch{}
+ throw
+}
+ -and
+    $oldArgs -ceq '--serve'
+ )
+ $knownPython=($priorExe -ieq $expectedPy -and
+               $oldArgs -ceq '-B -m jrei_service.windows_command_center --serve')
+ if(-not ($knownFrozen -or $knownPython)){
+  throw 'JREI_EXISTING_TASK_ACTION_UNKNOWN_PRESERVED'
+ }
+ # If a task is already RUNNING but not answering, avoid interrupting it.
+ $liveTask=Get-ScheduledTask -TaskName $taskName -ErrorAction Stop
+ if($liveTask.State -eq 'Running'){
+  Receipt 'EXISTING_TASK_RUNNING_UNRESPONSIVE_NO_REPLACEMENT'
+  Emit 'EXISTING_TASK_RUNNING_HELD_FOR_MANUAL_REVIEW'
+  return
+ }
+ # A nonresponsive, idle, verified owner task can be repointed to the
+ # bundled owner core, with its previous action restored on failure.
+ Set-ScheduledTask -TaskName $taskName -Action $newAction -ErrorAction Stop | Out-Null
+ Emit 'ORIGINAL_OWNER_TASK_UPDATED_WITH_ROLLBACK'
+}
+$ready=$false
+try{
+ Start-ScheduledTask -TaskName $taskName -ErrorAction Stop
+ for($i=0;$i -lt 12;$i++){
+  if(LocalReady){$ready=$true;break}
+  Start-Sleep -Seconds 2
+ }
+ if(-not $ready){throw 'JREI_PRIVATE_OFFLINE_ENGINE_NOT_RESPONDING'}
+ Receipt 'ORIGINAL_PRIVATE_ENGINE_RUNNING_ON_8092'
+ Emit 'ORIGINAL_PRIVATE_ENGINE_RUNNING_ON_8092'
+}catch{
+ # Roll back only *this* task registration/action. Preserve data, models,
+ # private files and other tasks regardless of startup outcome.
+ if($created){
+  Unregister-ScheduledTask -TaskName $taskName -Confirm:$false -ErrorAction SilentlyContinue
+ }elseif($null -ne $oldAction){
+  Set-ScheduledTask -TaskName $taskName -Action $oldAction -ErrorAction SilentlyContinue | Out-Null
+ }
+ try{Receipt 'STARTUP_FAILED_PREVIOUS_ACTION_RETAINED'}catch{}
+ throw
+}
+ -and
+   [string]$old.Arguments -ceq '--serve'
+ )
+ $legacy=(
+   $exe -ieq [IO.Path]::GetFullPath(
+      (Join-Path $env:LOCALAPPDATA 'JREI-Python\venv\Scripts\python.exe')) -and
+   [string]$old.Arguments -ceq '-B -m jrei_service.windows_command_center --serve'
+ )
+ if(-not ($frozen -or $legacy)){
+  throw 'JREI_UNRECOGNIZED_OWNER_TASK_PRESERVED'
+ }
+ if(LocalReady){Emit 'ORIGINAL_PRIVATE_JREI_ALREADY_RESPONDING';return}
+ Start-ScheduledTask -TaskName $taskName -ErrorAction Stop
+ for($i=0;$i -lt 12;$i++){
+  if(LocalReady){Emit 'ORIGINAL_PRIVATE_JREI_RESPONDING';return}
+  Start-Sleep -Seconds 2
+ }
+ throw 'JREI_OWNER_TASK_START_UNVERIFIED'
 }
 if(-not $OwnerApproved){throw 'JREI_ENGINE_EXPLICIT_OWNER_INSTALL_REQUIRED'}
 # Existing responsive engine may be busy with learning and drafts; never
