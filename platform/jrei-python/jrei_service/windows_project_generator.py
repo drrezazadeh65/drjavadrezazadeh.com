@@ -97,24 +97,40 @@ def generate(*, private: Path, objective: str, model_reply) -> dict:
     folder = parent / run_id
     folder.mkdir(mode=0o700)
     records = []
-    for name, payload in clean:
-        destination = folder / name
-        with destination.open("xb") as stream:
-            stream.write(payload)
-        records.append({"name": name, "sha256": hashlib.sha256(payload).hexdigest(),
-                        "bytes": len(payload), "path": str(destination)})
-    receipt = {
-        "schema": "jr.jrei.windows-generated-project.v1",
-        "id": run_id, "state": "PRIVATE_DRAFT_FILES_CREATED_UNTESTED",
-        "objective": objective[:700], "description": description.strip()[:800],
-        "files": records, "total_bytes": total,
-        "model": str(result.get("model", "LOCAL"))[:100],
-        "path": str(folder), "executed": False, "tested": False,
-        "canonical_repository_modified": False, "production_modified": False
-    }
-    with (folder / "jrei-receipt.json").open("x", encoding="utf-8") as out:
-        json.dump(receipt, out, ensure_ascii=False, indent=2)
-    return receipt
+    created = []
+    try:
+        for name, payload in clean:
+            destination = folder / name
+            with destination.open("xb") as stream:
+                stream.write(payload)
+            created.append(destination)
+            records.append({"name": name, "sha256": hashlib.sha256(payload).hexdigest(),
+                            "bytes": len(payload), "path": str(destination)})
+        receipt = {
+            "schema": "jr.jrei.windows-generated-project.v1",
+            "id": run_id, "state": "PRIVATE_DRAFT_FILES_CREATED_UNTESTED",
+            "objective": objective[:700], "description": description.strip()[:800],
+            "files": records, "total_bytes": total,
+            "model": str(result.get("model", "LOCAL"))[:100],
+            "path": str(folder), "executed": False, "tested": False,
+            "canonical_repository_modified": False, "production_modified": False
+        }
+        receipt_path = folder / "jrei-receipt.json"
+        with receipt_path.open("x", encoding="utf-8") as out:
+            json.dump(receipt, out, ensure_ascii=False, indent=2)
+        return receipt
+    except (OSError, ValueError, TypeError):
+        # Remove only files created in this new private directory on a
+        # failed write. Never delete a repository or a user-provided path.
+        if not folder.is_symlink():
+            for candidate in [folder / "jrei-receipt.json", *created]:
+                if candidate.is_file() and not candidate.is_symlink():
+                    candidate.unlink(missing_ok=True)
+            try:
+                folder.rmdir()
+            except OSError:
+                pass
+        raise
 
 
 def read_generated(*, private: Path, project_id: str, filename: str) -> bytes:
@@ -133,9 +149,14 @@ def read_generated(*, private: Path, project_id: str, filename: str) -> bytes:
     if not receipt.is_file() or receipt.stat().st_size > 9000:
         raise ValueError("JREI_DRAFT_RECEIPT_UNAVAILABLE")
     manifest = json.loads(receipt.read_text(encoding="utf-8"))
+    if not isinstance(manifest, dict) or manifest.get("id") != project_id:
+        raise ValueError("JREI_DRAFT_MANIFEST_INVALID")
     entries = manifest.get("files", [])
-    entry = next((v for v in entries if v.get("name") == filename), None)
-    if manifest.get("id") != project_id or not entry:
+    if not isinstance(entries, list) or len(entries) > MAX_FILES:
+        raise ValueError("JREI_DRAFT_MANIFEST_FILES_INVALID")
+    entry = next((v for v in entries if isinstance(v, dict) and
+                  v.get("name") == filename), None)
+    if not entry:
         raise ValueError("JREI_DRAFT_FILE_NOT_REGISTERED")
     path = folder / filename
     if path.is_symlink() or not path.is_file() or path.stat().st_size > MAX_FILE_BYTES:
