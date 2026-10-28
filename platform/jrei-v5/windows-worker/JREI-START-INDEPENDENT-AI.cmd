@@ -2,7 +2,7 @@
 setlocal EnableExtensions DisableDelayedExpansion
 rem JREI original Windows AI - source controlled, no ChatGPT Plus required.
 rem Only one command for the already-configured JREI Windows owner PC.
-rem Actual model download is >2GB; requires approved existing Python+llama.
+rem Never installs another chatbot or downloads external pretrained weights.
 set "SCRIPT=%~dp0jrei-independent-windows-setup.ps1"
 if not exist "%SCRIPT%" (
  echo [JREI] CANONICAL_INSTALL_SCRIPT_NOT_FOUND
@@ -20,13 +20,13 @@ echo JREI - Original Windows Independent AI
 echo ----------------------------------------------------
 echo Original private command-center, existing site workers
 echo and one-click GitHub/Bertina deployment are preserved.
-echo This action will sync/install JREI and stage official
-echo Apache-2.0 IBM Granite model weights, then start a
-echo private local inference task on 127.0.0.1:8093.
-echo No ChatGPT subscription or paid AI API is required.
-echo A review and actual Windows validation remain necessary.
+echo This action syncs original JREI Windows code and starts its
+echo existing private command center. No other application,
+echo cloud language model or pretrained weights are installed.
+echo The native evidence and learning engine runs locally.
+echo A trained general-purpose language model is NOT yet ready.
 echo ----------------------------------------------------
-choice /c YN /m "Do you authorize local JREI installation and model download"
+choice /c YN /m "Do you authorize local JREI code update and private startup"
 if errorlevel 2 exit /b 0
 "%PWSH%" -NoProfile -ExecutionPolicy Bypass -File "%SCRIPT%" -Mode Install -OwnerApproved
 set "RESULT=%ERRORLEVEL%"
