@@ -296,14 +296,14 @@ def snapshot(db_path: Path) -> dict:
         # checkpoint exists, has a valid digest or passed independent QA.
         # Never infer an active conversational model from training loss.
         return {"state":state,"run_id":ident,"trained_at":t,
-                "lifecycle":"CANDIDATE_TRAINED_UNREVIEWED"
-                    if not accepted else "EVALUATED_NOT_APPROVED",
+                "lifecycle":"CANDIDATE_TRAINED_UNREVIEWED",
+                "independent_review_flag_in_db_unverified":bool(accepted),
                 "registered_checkpoint_sha256":digest,
                 "checkpoint_integrity_verified_now":False,
                 "initial_heldout_bits_per_byte":start,
                 "final_heldout_bits_per_byte":final,"steps":steps,
                 "pretrained_weights_used":False,
-                "independent_quality_accepted":bool(accepted),
+                "independent_quality_accepted":False,
                 "model_active":False}
     except sqlite3.Error:
         return {"state":"NEURAL_STATUS_UNAVAILABLE",
