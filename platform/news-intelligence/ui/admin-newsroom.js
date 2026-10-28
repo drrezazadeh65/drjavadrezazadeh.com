@@ -150,9 +150,15 @@ export function mountNewsOwnerPanel({root,csrfResolver,
       if(snapshot.masterEnabled!==true)warnings.push(say(
         'MASTER OFF: زمان‌بند در تنظیمات خصوصی سرور خاموش است؛ با ثبت یا فعال‌کردن ردیف‌ها روشن نمی‌شود.',
         'MASTER OFF: enable the original server-side private master setting; registering/enabling DB rows cannot override it.'));
-      if(snapshot.serverCronVerified!==true)warnings.push(say(
-        'نصب Cron در برتینا هنوز تأیید مستقل ندارد؛ زمان اجرای Worker ثبت‌شده در دیتابیس با رسید نصب هاست متفاوت است.',
-        'Host Cron installation is still independently unverified; recorded worker start is not a host installation receipt.'));
+      if(snapshot.masterCliRecentlyInvoked===true&&
+         Number.isSafeInteger(snapshot.latestVerifiedMasterCliTickAt)){
+        warnings.push(say('فراخوانی واقعی PHP CLI سرور ثبت شد: ',
+          'Real server PHP CLI tick observed: ')+
+          new Date(snapshot.latestVerifiedMasterCliTickAt*1000)
+            .toLocaleString(fa?'fa-IR':'en-GB'));
+      }else if(snapshot.serverCronVerified!==true)warnings.push(say(
+        'رسید تازهٔ امضاشده از اجرای CLI موجود نیست؛ این به‌تنهایی ثابت نمی‌کند Cron نصب نشده است.',
+        'No recent signed CLI invocation observed; this alone does not prove Cron is missing.'));
       const latest=snapshot.latestDbWorkerStartedAt;
       if(Number.isSafeInteger(latest)&&latest>0){
         warnings.push(say('آخرین اجرای ثبت‌شدهٔ Worker: ','Last recorded worker start: ')+

@@ -40,6 +40,22 @@ test('News bundle registration closes the JREI-KA gap without silently activatin
   assert.match(central,/requiredIds\.includes\(j\?\.jobId\)/);
 });
 
+test('One-Cron existing host invocation is observable even while master policy is OFF',()=>{
+  const cron=read('api/operations-cron-dispatcher.php');
+  const dispatch=read('api/internal/operations-master-dispatcher.php');
+  const ui=read('platform/news-intelligence/ui/admin-newsroom.js');
+  assert.match(cron,/function operationsCronWriteMasterTickEvidence/);
+  assert.match(cron,/function operationsCronReadMasterTickEvidence/);
+  assert.match(cron,/dirname\(__DIR__,2\)/);
+  assert.match(cron,/hash_hmac\('sha256'/);
+  assert.match(cron,/is_link\(\$path\)/);
+  assert.match(cron,/latestVerifiedMasterCliTickAt/);
+  assert.match(cron,/'serverCronVerified'=>false/);
+  assert.ok(dispatch.indexOf('operationsCronWriteMasterTickEvidence($config)')<
+    dispatch.indexOf('if(!operationsCronMasterEnabled($config))'));
+  assert.match(ui,/snapshot\.masterCliRecentlyInvoked===true/);
+});
+
 test('Original publisher remains source and receipt gated; no alternate CMS',()=>{
  const worker=read('api/internal/jrei-news-private-publisher-worker.php');
  const cron=read('api/operations-cron-dispatcher.php');

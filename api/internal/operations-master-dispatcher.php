@@ -216,6 +216,9 @@ function jrMasterWorkerTimeLimit(string $jobId): int {
 
 function jrMasterDispatch(): int {
     $config=cfg();
+    // The provider-hosted CLI can be observed even while MASTER is OFF.
+    // A signed private evidence file is not permission to run any job.
+    operationsCronWriteMasterTickEvidence($config);
     // Both the master private flag and each mother-DB row default OFF.
     if(!operationsCronMasterEnabled($config)){
         fwrite(STDOUT,"JR master scheduler disabled by private owner policy.\n");

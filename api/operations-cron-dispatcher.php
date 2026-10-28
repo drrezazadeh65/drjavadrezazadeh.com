@@ -170,6 +170,65 @@ function operationsCronSchemaReady(PDO $pdo): bool {
         return true;
     }catch(Throwable $e){return false;}
 }
+/**
+ * A recent CLI invocation is an observed event, NOT proof of host crontab
+ * installation or the availability of any news publisher rights.
+ * Write only outside the public document root with a HMAC derived from the
+ * existing private auth pepper; never expose paths, credentials or raw logs.
+ */
+function operationsCronMasterTickReceiptPath(): string {
+    return dirname(__DIR__,2).'/.jr-operations-master-last-tick.v1.json';
+}
+function operationsCronWriteMasterTickEvidence(array $config): void {
+    $key=(string)($config['auth_pepper']??'');
+    if(strlen($key)<32)return;
+    $entry=['schema'=>'jr.ops.private-master-cli-tick.v1',
+        'at'=>time(),'php83'=>PHP_VERSION_ID>=80300,
+        'cli'=>PHP_SAPI==='cli','procOpen'=>function_exists('proc_open')];
+    $json=json_encode($entry,JSON_UNESCAPED_SLASHES);
+    if(!is_string($json))return;
+    $record=json_encode(['entry'=>$entry,
+        'hmac'=>hash_hmac('sha256',$json,
+            hash_hmac('sha256','jr.ops.cli-tick.v1',$key))],
+        JSON_UNESCAPED_SLASHES);
+    if(!is_string($record))return;
+    $path=operationsCronMasterTickReceiptPath();
+    $dir=dirname($path);
+    if(!is_dir($dir)||!is_writable($dir))return;
+    $temp=@tempnam($dir,'.jr-ops-tick-');
+    if(!is_string($temp))return;
+    @chmod($temp,0600);
+    try {
+        if(@file_put_contents($temp,$record,LOCK_EX)!==strlen($record)||
+           !@rename($temp,$path))return;
+        @chmod($path,0600);
+    }finally{if(is_file($temp))@unlink($temp);}
+}
+function operationsCronReadMasterTickEvidence(array $config): array {
+    $none=['recent'=>false,'at'=>null,'php83'=>null,'procOpen'=>null];
+    $key=(string)($config['auth_pepper']??'');
+    if(strlen($key)<32)return $none;
+    $path=operationsCronMasterTickReceiptPath();
+    if(!is_file($path)||is_link($path)||@filesize($path)>2048)return $none;
+    $raw=@file_get_contents($path);
+    $record=is_string($raw)?json_decode($raw,true):null;
+    if(!is_array($record)||!is_array($record['entry']??null)||
+       !is_string($record['hmac']??null)||
+       !preg_match('/^[a-f0-9]{64}$/D',$record['hmac']))return $none;
+    $entry=$record['entry'];$at=$entry['at']??null;
+    if(($entry['schema']??null)!=='jr.ops.private-master-cli-tick.v1'||
+       ($entry['cli']??null)!==true||!is_int($at)||
+       $at>time()+60||$at<time()-900||
+       !is_bool($entry['php83']??null)||
+       !is_bool($entry['procOpen']??null))return $none;
+    $json=json_encode($entry,JSON_UNESCAPED_SLASHES);
+    $digest=hash_hmac('sha256',(string)$json,
+        hash_hmac('sha256','jr.ops.cli-tick.v1',$key));
+    if(!hash_equals($digest,$record['hmac']))return $none;
+    return ['recent'=>true,'at'=>$at,'php83'=>$entry['php83'],
+        'procOpen'=>$entry['procOpen']];
+}
+
 function operationsCronMasterEnabled(array $config): bool {
     return ($config['operations_cron_master_enabled']??false)===true;
 }
@@ -209,6 +268,7 @@ function operationsCronOwnerSnapshot(PDO $pdo,array $config): array {
         $unrecognized=(int)$count->fetchColumn();
     }
     $master=operationsCronMasterEnabled($config);
+    $hostTick=operationsCronReadMasterTickEvidence($config);
     $phpReady=PHP_VERSION_ID>=80300;
     $spawnReady=function_exists('proc_open')&&
       !in_array('proc_open',array_map('trim',explode(',',(string)ini_get('disable_functions'))),true);
@@ -290,7 +350,11 @@ function operationsCronOwnerSnapshot(PDO $pdo,array $config): array {
         'dataState'=>$schema?'SOURCE_POLICY_READ':'MOTHER_DB_MIGRATION_REQUIRED',
         'masterEnabled'=>$master,'webRuntimePhp83Observed'=>$phpReady,
         'webRuntimeProcOpenObserved'=>$spawnReady,
-        'phpCli83SourceCompatible'=>null, 'subprocessAvailable'=>null,
+        'phpCli83SourceCompatible'=>$hostTick['php83'],
+        'subprocessAvailable'=>$hostTick['procOpen'],
+        'masterCliRecentlyInvoked'=>$hostTick['recent'],
+        'latestVerifiedMasterCliTickAt'=>$hostTick['at'],
+        // CLI invocation does not attest whether Bertina installed Cron.
         'serverCronVerified'=>false,
         'hostExecutionVerified'=>false,'emailDeliveryVerified'=>false,
         'schemaReady'=>$schema,'hostMinimumCadenceSeconds'=>300,
