@@ -196,6 +196,10 @@ requireCondition(composer.includes('applyRequestedVip'),'bilingual composer miss
 requireCondition(composer.includes("fetch('/assets/data/vip-catalog.json'"),
   'VIP metadata must originate in the canonical public catalogue');
 requireCondition(composer.includes('revision!==startedAt'),'service selection must reject stale asynchronous responses');
+requireCondition(composer.includes("option.dataset.serviceId='vip:'+vipId")&&composer.includes('option.dataset.serviceId=service.id'),
+  'public catalogue IDs must survive selected-option reuse');
+requireCondition(composer.includes('Public service ID: ')&&composer.includes('publicServiceId'),
+  'reviewed email draft must preserve a bounded public service identifier');
 requireCondition(!composer.includes('localStorage'),'email composer must not retain sensitive enquiry fields');
 const bridgeSource=read('assets/js/jr-service-intent-bridge.js');
 requireCondition(bridgeSource.includes('JR_CONVERSION_INTENT')&&bridgeSource.includes('analytics-adapter.js'),
