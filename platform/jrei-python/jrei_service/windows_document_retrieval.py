@@ -58,6 +58,19 @@ def _manifest_and_text(private: Path, identifier: str):
             not isinstance(record.get("name"), str) or
             record.get("source_name") != "original" + Path(record["name"]).suffix.lower()):
         raise ValueError("JREI_DOCUMENT_MANIFEST_INVALID")
+    # Verify the vault's ORIGINAL source for every document format, not just
+    # PDF/OOXML. A valid extracted text hash alone cannot attest its original.
+    original = folder / record["source_name"]
+    if (original.is_symlink() or not original.is_file() or
+            original.stat().st_size > MAX_BYTES or
+            not re.fullmatch(r"[0-9a-f]{64}", record["sha256"])):
+        raise ValueError("JREI_DOCUMENT_ORIGINAL_INVALID")
+    digest = hashlib.sha256()
+    with original.open("rb") as source_stream:
+        for block in iter(lambda: source_stream.read(65536), b""):
+            digest.update(block)
+    if digest.hexdigest() != record["sha256"]:
+        raise ValueError("JREI_DOCUMENT_ORIGINAL_INTEGRITY_FAILED")
     if (text_file.is_symlink() or not text_file.is_file() or
             text_file.stat().st_size > 400_000):
         raise ValueError("JREI_DOCUMENT_TEXT_UNAVAILABLE")
@@ -206,7 +219,7 @@ def retrieve(*, private: Path, identifiers: list[str], query: str) -> dict:
     terms = _terms(query)
     overview = bool(re.search(
         r"خلاصه|جمع.?بندی|مرور کلی|summari[sz]e|overview|outline", query, re.I))
-    seen, all_items, files = [], [], []
+    candidates_by_document, files = [], []
     for identifier in identifiers:
         try:
             folder, record, source = _manifest_and_text(private, identifier)
@@ -231,29 +244,47 @@ def retrieve(*, private: Path, identifiers: list[str], query: str) -> dict:
                           "coverage": coverage, "method": method,
                           "passages_inspected": len(passages),
                           "evidence_count": len(picks), "state": "READ_LOCAL"})
-            for item in picks:
-                all_items.append({"document_id": identifier, "name": record["name"],
-                                  "source_sha256": record["sha256"],
-                                  "anchor": item["anchor"],
-                                  "text": item["text"],
-                                  "text_sha256": _hash(item["text"])})
+            candidates_by_document.append([
+                {"document_id": identifier, "name": record["name"],
+                 "source_sha256": record["sha256"], "anchor": item["anchor"],
+                 "text": item["text"], "text_sha256": _hash(item["text"])}
+                for item in picks
+            ])
         except (ValueError, OSError, UnicodeError, TypeError, KeyError, json.JSONDecodeError) as exc:
             files.append({"id": identifier, "state": "UNREADABLE",
                           "reason": str(exc)[:80] if isinstance(exc, ValueError)
                           else exc.__class__.__name__})
-    # Maintain one bounded retrieval budget even for two selected documents.
+            candidates_by_document.append([])
+    # Interleave top-ranked passages from selected documents. Previously the
+    # first document could consume all 5 result slots and silently starve
+    # the second document, even when both had valid matching evidence.
+    # Every sampled passage is <= MAX_PASSAGE; the bound is source text only.
     selected, chars = [], 0
-    for item in all_items[:MAX_EVIDENCE]:
-        budget = MAX_PROMPT_CHARS - chars
-        if budget <= 0:
-            break
-        if len(item["text"]) > budget:
-            break
-        selected.append(item)
-        chars += len(item["text"])
+    for rank in range(MAX_PER_DOCUMENT):
+        for candidates in candidates_by_document:
+            if len(selected) >= MAX_EVIDENCE or rank >= len(candidates):
+                continue
+            item = candidates[rank]
+            if chars + len(item["text"]) > MAX_PROMPT_CHARS:
+                continue
+            selected.append(item)
+            chars += len(item["text"])
+    selected_counts = {}
+    for item in selected:
+        key = item["document_id"]
+        selected_counts[key] = selected_counts.get(key, 0) + 1
+    for file_info in files:
+        if file_info.get("state") == "READ_LOCAL":
+            file_info["evidence_count"] = selected_counts.get(file_info["id"], 0)
+            file_info["candidate_passages_found"] = sum(
+                len(items) for items in candidates_by_document
+                if items and items[0]["document_id"] == file_info["id"])
+            file_info["retrieval_limited"] = (
+                file_info["candidate_passages_found"] > file_info["evidence_count"])
     evidence = "\n\n".join(
         f"[{i}] DOCUMENT={item['name']} | ANCHOR={item['anchor']} | "
-        f"ORIGINAL_SHA256={item['source_sha256']}\n"
+        f"ORIGINAL_SHA256={item['source_sha256']} | "
+        f"EXCERPT_SHA256={item['text_sha256']}\n"
         f"UNTRUSTED EXCERPT:\n{item['text']}"
         for i, item in enumerate(selected, 1)
     )
