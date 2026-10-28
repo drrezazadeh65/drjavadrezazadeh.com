@@ -155,6 +155,34 @@ for(const id of ['transcript_analysis','field_selection_standard','talent_initia
 requireCondition(!freeTools.includes('localStorage')&&!freeTools.includes('sendBeacon('),
  'free worksheets must not persist or transmit reflection answers');
 
+
+// International educational information stays readable without sales
+// dependence; readers can proceed to a specific, bounded professional offer.
+const englishContext=new Map([
+ ['en/research/index.html',['manuscript_diagnostic','academic_editing','research_consult_60']],
+ ['en/teaching/index.html',['teacher_consult_60','teacher_dev_90','specialist_workshop_120']],
+ ['en/student-guidance/index.html',['academic_consult_60','student_parent_90','talent_initial']]
+]);
+for(const [file,ids] of englishContext){
+ const html=read(file);
+ requireCondition(html.includes('jr-service-decision-guides-20261028.css'),
+   file+': contextual guidance stylesheet missing');
+ requireCondition((html.match(/data-conversion-event="organic_article_service_intent"/g)||[]).length>=ids.length,
+   file+': contextual route events must remain informational, never received leads');
+ for(const id of ids){
+   requireCondition(html.includes('href="/en/services/'+id+'/"'),
+     file+': missing relevant service scope '+id);
+ }
+}
+const academicHub=read('en/academic-services/index.html');
+for(const id of ['academic_editing','manuscript_diagnostic','research_consult_60',
+                 'journal_strategy','reviewer_response','academic_cv','academic_interview_90']){
+ requireCondition(academicHub.includes('href="/en/services/'+id+'"'),
+   'international academic services hub lacks direct scope link '+id);
+}
+requireCondition(academicHub.includes('Published standard tariffs'),
+  'international academic hub must not contradict published canonical pricing');
+
 const faIntake=read('fa/darkhast-moshavere/index.html');
 const enIntake=read('en/request-consultation/index.html');
 for(const [file,html] of [['fa/darkhast-moshavere/',faIntake],['en/request-consultation/',enIntake]]){
