@@ -866,6 +866,12 @@ class OwnerHTTP(BaseHTTPRequestHandler):
                     question=data.get("question"),
                     priority=data.get("priority",0.65),
                     owner_confirmed=data.get("confirm")))
+            if self.path == "/api/learning/topic/review":
+                return self._send(200,agenda.record_review(
+                    DB_PATH,cycle_id=data.get("cycle_id"),
+                    verdict=data.get("verdict"),reviewer=data.get("reviewer"),
+                    evidence_sha256=data.get("evidence_sha256"),
+                    owner_confirmed=data.get("confirm")))
             if self.path == "/api/learning/topic/deactivate":
                 return self._send(200,agenda.deactivate_topic(
                     DB_PATH,topic_id=data.get("id"),
