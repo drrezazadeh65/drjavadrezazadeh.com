@@ -424,7 +424,8 @@ def _tool_output(tool: str, args: dict, *, repo: Path, private: Path, db_path: P
         return str(result.get("state", "UNKNOWN")), str(result.get("detail", ""))
     if tool == "edit_local":
         receipt = develop(repo=repo, private=private, target=args["target"],
-                          objective=args["objective"], model_reply=model_reply)
+                          objective=args["objective"], model_reply=model_reply,
+                          db_path=db_path)
         # Draft experiences are metadata, never automatically trusted labels.
         # Do not hide a successful local edit if learning ledger is offline.
         try:
