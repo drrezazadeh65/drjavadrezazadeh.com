@@ -42,23 +42,15 @@ if(-not $OwnerApproved){throw 'JREI_OWNER_APPROVAL_REQUIRED'}
 # A first-class owner action. Existing source transfer is fast-forward only,
 # and no rollback/destructive forced checkout is permitted.
 InvokeStep $sync 'Sync' $false
-# A healthy authenticated owner-only JREI panel is already installed. Never
-# stop it merely to activate a model, particularly while the owner is using
-# it or the existing mission queue has work. Model installation is isolated
-# from updating the owner's running app and local mission history.
+# A healthy, authenticated JREI panel is already installed. Avoid stopping
+# active owner work solely to promote the app while installing a language
+# model. App promotion and language-model activation are independent.
 function ExistingPanelReady {
  $tokenPath=Join-Path $env:LOCALAPPDATA 'JREI\command-center\owner-token'
  if(-not (Test-Path -LiteralPath $tokenPath -PathType Leaf)){return $false}
- try {
+ try{
   $secret=(Get-Content -LiteralPath $tokenPath -Encoding Ascii -Raw).Trim()
-  if($secret -cnotmatch '^[A-Za-z0-9_-]{50,128} is >=2GB; the installer blocks until its actual
-# SHA256 matches the official IBM model repository revision.
-InvokeStep $model 'Install' $true
-Write-Output '[JREI] OWNER_PRIVATE_INSTALL_SEQUENCE_COMPLETED'
-Write-Output '[JREI] GRANITE_INFERENCE_QUALITY_NOT_INDEPENDENTLY_ACCEPTED'
-Write-Output '[JREI] SECOND_PC_IS_NOT_REMOTELY_INSTALLED_BY_THIS_COMMAND'
-Write-Output '[JREI] NO_BERTINA_DEPLOY_OR_GITHUB_CREDENTIAL_CREATED'
-){return $false}
+  if($secret -cnotmatch '^[A-Za-z0-9_-]{50,128}$'){return $false}
   $status=Invoke-RestMethod -Method Get -Uri 'http://127.0.0.1:8092/api/status' -TimeoutSec 6 -Headers @{
    Authorization=('Bearer '+$secret)
   }
@@ -68,7 +60,7 @@ Write-Output '[JREI] NO_BERTINA_DEPLOY_OR_GITHUB_CREDENTIAL_CREATED'
 }
 if(ExistingPanelReady){
  Write-Output '[JREI] EXISTING_PRIVATE_COMMAND_CENTER_RESPONDING'
- Write-Output '[JREI] APP_UPGRADE_POSTPONED_NO_ACTIVE_MISSIONS_INTERRUPTED'
+ Write-Output '[JREI] APP_PROMOTION_DEFERRED_NO_ACTIVE_WORK_INTERRUPTED'
 }else{
  InvokeStep $app 'Install' $true
  if(-not (ExistingPanelReady)){throw 'JREI_EXISTING_PRIVATE_APP_NOT_READY'}
