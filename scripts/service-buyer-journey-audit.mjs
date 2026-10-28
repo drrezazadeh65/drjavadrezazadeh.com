@@ -64,7 +64,7 @@ function validate(locale,kind,id){
   requireCondition(guide.includes('data-conversion-event="consultation_intent"'),prefix+'CTA must label the canonical conversion intent');
   requireCondition(guide.includes('jr-guide-actions'),prefix+'usable action links missing');
   requireCondition(!/<form\b/i.test(guide),prefix+'guide must not collect private data or create shadow checkout');
-  requireCondition(locale==='fa'?guide.includes('نمونه فرضی'):/(?:hypothetical|illustrative)/i.test(guide),
+  requireCondition(locale==='fa'?/(?:نمونه|سناریو|مثال)\s+فرضی/.test(guide):/(?:hypothetical|illustrative)/i.test(guide),
     prefix+'hypothetical example needs explicit disclosure');
   for(const tag of guide.match(/<a\b[^>]*>/gi)||[]){
     const url=attr(tag,'href');
