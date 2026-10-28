@@ -185,9 +185,11 @@ def train(*, db_path: Path, private: Path, config_file: Path,
             reason = "RESOURCE_TIME_LIMIT"
             break
         if step and step % 10 == 0:
-            capacity = resources.observe(gpu_probe=False)
-            if not capacity["sensitive_heavy_jobs_eligible"]:
-                reason = "OWNER_ACTIVITY_OR_RESOURCE_PRESSURE"
+            capacity = resources.observe(gpu_probe=(device.type == "cuda"))
+            if (not capacity["sensitive_heavy_jobs_eligible"]
+                    or (device.type == "cuda" and
+                        capacity["gpu_compute"].get("compute_supported") is not True)):
+                reason = "OWNER_ACTIVITY_OR_RESOURCE_OR_GPU_PRESSURE"
                 break
         model.train()
         x, y = batch(train_ids, cfg["batch_size"])
