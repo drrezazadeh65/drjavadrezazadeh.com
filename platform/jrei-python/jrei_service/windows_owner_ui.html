@@ -325,6 +325,48 @@ function renderAttachments(){
   chip.append(remove);root.append(chip);
  }
 }
+async function refreshLearning(){
+ try{
+  const [stats,links,lessons]=await Promise.all([
+   api('/api/learning'),api('/api/learning/discoveries'),api('/api/learning/lessons')
+  ]);
+  $('learningState').textContent=
+   (stats.network_authorized?'شبکه: فعال برای منابع مجاز':'شبکه: غیرفعال')+
+   '\nنسخه‌ها: '+stats.versioned_observations+
+   ' | قطعات بازیابی: '+stats.private_passages+
+   '\nشکاف‌های مشاهده‌شده: '+stats.observed_gap_hashes+
+   ' | پیوندهای بازبینی‌نشده: '+stats.unreviewed_discovered_links;
+  $('learningSwitch').dataset.enabled=stats.network_authorized?'true':'false';
+  $('learningSwitch').textContent=stats.network_authorized?
+   'توقف خزش شبکه':'فعال کردن خزش مجاز';
+  $('learningDiscoveries').textContent=links.items.length?
+   'پیوندهای نیازمند تأیید مستقل: '+links.items.length:
+   'پیوند نیازمند بازبینی وجود ندارد.';
+  const list=$('learningLessons');list.replaceChildren();
+  list.append(el('strong','','تمرین‌های پیشنهادی مدل، هنوز تأییدنشده:'));
+  for(const item of lessons.items.slice(0,5))
+   list.append(el('p','',item.question.slice(0,120)+' · '+item.state));
+ }catch(e){$('learningState').textContent='اطلاعات یادگیری در دسترس نیست: '+e.message}
+}
+$('learningSwitch').onclick=async()=>{
+ const enabled=$('learningSwitch').dataset.enabled!=='true';
+ if(!confirm(enabled?'فقط خزش نشانی‌های دارای مجوز و مطابق robots.txt فعال شود؟':'خزش شبکه متوقف شود؟'))return;
+ try{await api('/api/learning/control',{enabled,confirm:true});await refreshLearning()}
+ catch(e){toast(e.message)}
+};
+$('registerSource').onclick=async()=>{
+ if(!$('sourceRights').checked){toast('تأیید مجوز ضروری است.');return}
+ try{
+  const source={url:$('sourceUrl').value.trim(),
+   issuer:$('sourceIssuer').value.trim(),licence:$('sourceLicence').value.trim(),
+   trust:$('sourceTrust').value,rights:'PUBLIC_REUSE_APPROVED',
+   owner_approval:true,rights_reviewed:true,interval_seconds:21600};
+  const result=await api('/api/learning/source/register',{confirm:true,source});
+  toast('منبع تأییدشده در ویندوز ثبت شد: '+result.id.slice(0,8));
+  $('sourceRights').checked=false;$('sourceUrl').value='';
+  await refreshLearning();
+ }catch(e){toast(e.message)}
+};
 async function refreshDocuments(){
  const root=$('documents');root.replaceChildren();
  try{
@@ -340,7 +382,15 @@ async function refreshDocuments(){
      renderAttachments();await refreshDocuments();
     }catch(e){toast(e.message)}
    };
-   row.append(remove);root.append(row);
+   const learn=el('button','','نمایه‌سازی برای حافظه خصوصی');
+   learn.onclick=async()=>{
+    if(!confirm('این سند خصوصی برای بازیابی محلی و نه آموزش وزن مدل نمایه شود؟'))return;
+    try{await api('/api/learning/document/index',{id:file.id,
+      rights_reviewed:true,permitted_for_retrieval:true,confirm:true});
+      toast('سند به حافظه محلی افزوده شد.');await refreshLearning()}
+    catch(e){toast(e.message)}
+   };
+   row.append(learn,remove);root.append(row);
   }
  }catch(e){root.textContent='فهرست اسناد در دسترس نیست: '+e.message}
 }
@@ -504,7 +554,7 @@ $('fileInput').onchange=async()=>{
  finally{$('attach').disabled=false;$('fileInput').value='';setBusy(false)}
 };
 $('menu').onclick=()=>$('sidebar').classList.toggle('open');
-$('openTools').onclick=()=>{$('toolsPanel').hidden=!$('toolsPanel').hidden;if(!$('toolsPanel').hidden){loadHealth();refreshDocuments()}};
+$('openTools').onclick=()=>{$('toolsPanel').hidden=!$('toolsPanel').hidden;if(!$('toolsPanel').hidden){loadHealth();refreshDocuments();refreshLearning()}};
 $('closeTools').onclick=()=>$('toolsPanel').hidden=true;
 $('saveProfile').onclick=async()=>{try{const r=await api('/api/profile',{instructions:$('profile').value});toast('ترجیحات شخصی در ویندوز ذخیره شد.')}catch(e){toast(e.message)}};
 api('/api/profile').then(x=>$('profile').value=x.instructions||'').catch(()=>{});
