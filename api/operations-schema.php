@@ -287,6 +287,83 @@ function operationsInstall(PDO $pdo): void {
 
 }
 
+/**
+ * Executed only by the checksum-verified, owner-clicked GitHub Actions
+ * production release. Never requested by a visitor, Worker, or model.
+ *
+ * Enables ONLY the existing master policy. No News/KA worker, sensitive
+ * source/copyright status, model, CMS publisher or unrelated functionality
+ * is ever enabled by this release. The original private config.local.php,
+ * credentials and database schema remain untouched.
+ */
+function operationsProvisionNewsMasterOwnerRelease(
+    PDO $pdo,array $privateConfig,string $releaseSha
+): bool {
+    if(!preg_match('/^[a-f0-9]{40}$/D',$releaseSha)||
+       !function_exists('operationsCronSchemaReady')||
+       !operationsCronSchemaReady($pdo)||
+       !function_exists('operationsCronRegistry'))return false;
+    $pepper=(string)($privateConfig['auth_pepper']??'');
+    if(strlen($pepper)<32||
+       ($privateConfig['jrei_news_emergency_stop']??false)===true)
+        return false;
+
+    // The master may already have unrelated jobs running, including SMTP
+    // and commerce side effects. Refuse activation if ANY existing job is
+    // enabled, running, awaiting review, or outside the source allowlist.
+    $jobs=$pdo->query('SELECT job_id,enabled,last_state,needs_owner_review
+                         FROM operations_cron_jobs')->fetchAll(PDO::FETCH_ASSOC);
+    $allow=operationsCronRegistry();
+    if(!is_array($jobs)||count($jobs)<8)return false;
+    $ids=[];
+    foreach($jobs as $job){
+        $id=(string)($job['job_id']??'');
+        if(!isset($allow[$id])||(int)$job['enabled']!==0||
+           (int)$job['needs_owner_review']!==0||
+           ($job['last_state']??null)==='running')
+            return false;
+        $ids[$id]=true;
+    }
+    foreach(operationsCronNewsPipelineIds() as $id)
+        if(!isset($ids[$id])||operationsCronSourcePath($id)===null)
+            return false;
+
+    // Private HMAC file only, never public_html or a published artifact.
+    $publicRoot=realpath(dirname(__DIR__));
+    $privateRoot=realpath(dirname(__DIR__,2));
+    if($publicRoot===false||$privateRoot===false||
+       $publicRoot===$privateRoot||
+       !str_starts_with($publicRoot,$privateRoot.DIRECTORY_SEPARATOR)||
+       !is_writable($privateRoot))
+        return false;
+    $target=$privateRoot.'/.jr-owner-news-master.v1.json';
+    if(is_link($target)||is_dir($target))return false;
+    $payload=['schema'=>'jr.owner.news-master-release.v1',
+        'sha'=>$releaseSha,'ownerRelease'=>true,'masterOnly'=>true];
+    $encoded=json_encode($payload,JSON_UNESCAPED_SLASHES);
+    if(!is_string($encoded))return false;
+    $contents=json_encode(['payload'=>$payload,
+        'hmac'=>hash_hmac('sha256',$encoded,
+            hash_hmac('sha256','jr.owner.news-master-release.v1',$pepper))],
+        JSON_UNESCAPED_SLASHES);
+    if(!is_string($contents))return false;
+    $temporary=@tempnam($privateRoot,'.jr-news-master-');
+    if(!is_string($temporary))return false;
+    @chmod($temporary,0600);
+    $ok=false;
+    try{
+        $ok=@file_put_contents($temporary,$contents,LOCK_EX)===strlen($contents)
+            && @rename($temporary,$target);
+        if($ok)@chmod($target,0600);
+    }finally{if(is_file($temporary))@unlink($temporary);}
+    if(!$ok)return false;
+    // One real release audit receipt, no fake Cron execution attestation.
+    $pdo->prepare('INSERT INTO operations_audit
+       (actor_id,action,reference_id,occurred_at) VALUES(NULL,?,?,?)')
+       ->execute(['news_owner_release_master_enabled',$releaseSha,time()]);
+    return true;
+}
+
 /** Exact-release evidence is accepted only by the one-time authenticated deployment helper. */
 function operationsImportRelease(PDO $pdo, array $batch, string $expectedSha, array $privateConfig, string $expectedRun): int {
     if (($batch['schema'] ?? '') !== 'operations-release-v1' || ($batch['releaseSha'] ?? '') !== $expectedSha
@@ -383,6 +460,16 @@ function operationsImportRelease(PDO $pdo, array $batch, string $expectedSha, ar
             ]);
         }
         $pdo->prepare('INSERT INTO operations_audit(actor_id,action,reference_id,occurred_at) VALUES(NULL,?,?,?)')->execute(['release_imported',$expectedSha,$now]);
-        $pdo->commit(); return count($validated);
+        $pdo->commit();
+        // The release is already committed: provisioning is optional and
+        // strictly gated. Failed/unknown readiness leaves MASTER OFF and the
+        // website live. Never roll back unrelated commerce release records.
+        try {
+            operationsProvisionNewsMasterOwnerRelease(
+                $pdo,$privateConfig,$expectedSha);
+        }catch(Throwable $ignored){
+            // Leave source/private activation OFF on uncertain host state.
+        }
+        return count($validated);
     } catch (Throwable $e) { if ($pdo->inTransaction()) $pdo->rollBack(); throw $e; }
 }

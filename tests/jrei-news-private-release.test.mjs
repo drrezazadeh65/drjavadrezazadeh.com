@@ -97,6 +97,27 @@ test('both public knowledge hubs include the same reviewed-only news archive sea
   }
 });
 
+test('one-click owner release safely provisions only existing master with private HMAC, not news rights',()=>{
+  const cfg=read('api/index.php');
+  const schema=read('api/operations-schema.php');
+  assert.match(schema,/function operationsProvisionNewsMasterOwnerRelease/);
+  assert.match(schema,/operationsCronSchemaReady\(\$pdo\)/);
+  assert.match(schema,/operationsCronNewsPipelineIds\(\)/);
+  assert.match(schema,/operationsCronSourcePath\(\$id\)/);
+  assert.match(schema,/\(int\)\$job\['enabled'\]!==0/);
+  assert.match(schema,/\(int\)\$job\['needs_owner_review'\]!==0/);
+  assert.match(schema,/\$job\['last_state'\].*'running'/);
+  assert.match(schema,/tempnam\(\$privateRoot/);
+  assert.match(schema,/hash_hmac\('sha256'/);
+  assert.match(schema,/news_owner_release_master_enabled/);
+  assert.match(cfg,/\.jr-owner-news-master\.v1\.json/);
+  assert.match(cfg,/hash_equals\(\$expected,\$signed\['hmac'\]\)/);
+  assert.match(cfg,/\$cfg\['operations_cron_master_enabled'\]=true/);
+  const provisioning=schema.split('function operationsProvisionNewsMasterOwnerRelease(')[1].split('function operationsImportRelease(')[0];
+  assert.doesNotMatch(provisioning,/jrei_news_original_cms_writer_enabled|jrei_news_verified_restore_accepted|jrei_news_standing_official_publishing_enabled/);
+  assert.doesNotMatch(provisioning,/UPDATE operations_cron_jobs|CREATE TABLE|DROP TABLE/);
+});
+
 test('MFA-only bilingual owner newsroom reuses existing operations identity and packaged module',()=>{
   const source=fs.readFileSync(path.join(root,'platform/news-intelligence/ui/admin-newsroom.js'),'utf8');
   const projected=fs.readFileSync(path.join(out,'assets/js/jrei-news-owner-panel-v1.mjs'),'utf8');

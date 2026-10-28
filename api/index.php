@@ -315,6 +315,35 @@ function cfg(): array {
         $loaded = require $local;
         if (is_array($loaded)) $cfg = array_replace($cfg, $loaded);
     }
+    // Owner-approved ONE-CLICK release may safely enable the existing master
+    // scheduler without editing secrets or overwriting config.local.php.
+    // The receipt lives OUTSIDE public_html, is HMAC-authenticated using the
+    // private existing auth pepper, and has a single fixed flag allowlist.
+    // All sensitive worker rows, source rights, AI and CMS publisher switches
+    // retain their independent default OFF state.
+    $masterReceipt=dirname(__DIR__,2).'/.jr-owner-news-master.v1.json';
+    $pepper=(string)($cfg['auth_pepper']??'');
+    if(strlen($pepper)>=32 && is_file($masterReceipt) &&
+       !is_link($masterReceipt) &&
+       ($bytes=@filesize($masterReceipt))!==false && $bytes<=4096){
+        $raw=@file_get_contents($masterReceipt);
+        $signed=is_string($raw)?json_decode($raw,true):null;
+        $payload=is_array($signed)?($signed['payload']??null):null;
+        if(is_array($payload) &&
+           ($payload['schema']??null)==='jr.owner.news-master-release.v1' &&
+           ($payload['masterOnly']??null)===true &&
+           ($payload['ownerRelease']??null)===true &&
+           preg_match('/^[a-f0-9]{40}$/D',(string)($payload['sha']??'')) &&
+           is_string($signed['hmac']??null) &&
+           preg_match('/^[a-f0-9]{64}$/D',$signed['hmac'])){
+            $encoded=json_encode($payload,JSON_UNESCAPED_SLASHES);
+            $expected=hash_hmac('sha256',(string)$encoded,
+                hash_hmac('sha256','jr.owner.news-master-release.v1',$pepper));
+            if(hash_equals($expected,$signed['hmac']) &&
+               ($cfg['jrei_news_emergency_stop']??false)!==true)
+                $cfg['operations_cron_master_enabled']=true;
+        }
+    }
     return $cfg;
 }
 /** Per-order guest receipt capability: UUID alone never proves ownership. */
