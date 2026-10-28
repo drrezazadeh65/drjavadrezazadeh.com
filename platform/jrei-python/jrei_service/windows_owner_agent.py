@@ -22,6 +22,7 @@ from jrei_service.windows_project_workflows import requested as wants_project_wo
 from jrei_service.windows_project_generator import generate as generate_project
 from jrei_service.windows_document_retrieval import retrieve as retrieve_document_evidence
 from jrei_service import windows_continuous_learning as knowledge
+from jrei_service import windows_letta_bridge as letta_bridge
 
 MAX_MESSAGE = 9000
 MAX_HISTORY = 10
@@ -619,10 +620,26 @@ def interact(*, db_path: Path, repo: Path, private: Path, ident: str, message: s
             "PRIVATE EVIDENCE:\\n"+context)})
     try:
         report_progress("GENERATING_RESPONSE")
-        result = model_reply(prompt, max_tokens=850)
+        # The optionally installed Letta local agent is used only for
+        # ordinary owner chat with NO retrieved document excerpts. JREI
+        # retains all original local tool-approval and knowledge pathways.
+        # Letta server-side tools must have been owner-reviewed separately.
+        letta_result = None
+        if not evidence:
+            try:
+                letta_result = letta_bridge.local_reply(
+                    private, conversation_id=ident, prompt=message[:3800])
+            except (OSError, ValueError, RuntimeError, KeyError, TypeError):
+                # A missing or stopped optional sidecar must never
+                # block ordinary questions to the existing local Qwen.
+                letta_result = None
+        result = letta_result if letta_result is not None else model_reply(
+            prompt, max_tokens=850)
         answer = str(result["answer"])[:MAX_MESSAGE]
         quality = result.get("quality", "ACCEPTED")
-        state = ("QUALITY_REJECTED" if quality == "REJECTED_REPETITION" else
+        state = ("ANSWERED_BY_OWNER_ENABLED_LOCAL_LETTA_UNVERIFIED"
+                 if letta_result is not None else
+                 "QUALITY_REJECTED" if quality == "REJECTED_REPETITION" else
                  "ANSWERED_WITH_PRIVATE_RETRIEVAL_UNVERIFIED" if evidence else
                  "ANSWERED_LOCAL_MODEL_REGENERATED" if quality == "REGENERATED" else
                  "ANSWERED_LOCAL_MODEL")
