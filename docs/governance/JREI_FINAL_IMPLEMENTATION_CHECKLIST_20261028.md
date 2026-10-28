@@ -113,3 +113,22 @@ This section is appended after the original source freeze checklist, without cha
 - Multi-file **atomic application** is **not** implemented: bundled receipt preview is a separate, safe partial milestone, not an automated merge/push.
 - Automated code promotion, source-rights attestation, site deployment, live examination outcomes, full-document semantic understanding and unrestricted self-improvement have **not** been performed or established.
 - Per owner instruction no tests, CI runs, Windows EXE packaging, installation, training or Bertina deployment were executed during this continuation. Owner-app integrated acceptance JSON remains default-deny.
+
+## Continuation: source-only scratch-model reliability and recorded status
+
+All changes below remain **unexecuted source code**. No local owner PC or external host was accessed by this continuation. The canonical Windows 8092 process, private SQLite, repository branch and owner-release rules remain unchanged.
+
+| Priority | Concrete source change | GitHub commit |
+|---|---|---|
+| P5 | `windows_native_corpus.py`: distribute candidate read rows across sources, group training/development/sealed partitions by owner-reviewed issuer label, detect normalized duplicate passages, require script-coverage floors for all three partitions. An issuer label does not prove independent institutional identity. | `a12e89f6d8079329b5cc3ebf426cc78388843d9a` |
+| P5 | On reload of a staged corpus, re-check each source ID, SHA, issuer, trainable licence, publisher partition fence, exact token-file size and file SHA. Older manifests lacking stronger provenance are conservatively ineligible. | `0bbc47dfbe2d684db5055450e70f942522b3b20c` |
+| P5 | Scratch nanoGPT trainer now uses fixed development-validation window offsets before and after training, independent of the training sample RNG. This does **not** evaluate Persian/English fluency; sealed evaluation remains separate. | `8e435838744ed3e6a543aced3f810abee10e72c9` |
+| P5 | Added read-only source/publisher preflight; installed on original owner `status()` without preparing data, running torch or creating checkpoints. | `b849aea11d72ed9ff087fb5999b878c91f837d09`, `275d0dfbc43277c8bdeef16c3c5fd9cb61397f79` |
+| P1/P5 | Native Windows UI displays the recorded real eligibility sample, expressly without claiming bilingual corpus completion. | `6c3971a058f2ee63f8565a0b068fccad172e16b8` |
+| P5 | Existing native statistical baseline and legacy small-neural trainer now exclude source licences not in the explicit trainable allowlist and reject publisher-identity / duplicate Q&A leakage between train and heldout. | `8cada4d93c482965fa2e4f335d3995d20c8cc0c7` |
+| P5 | Private curriculum supervised export now rejects disallowed training licences, overlapping issuer labels and repeated Q&A content across learning/heldout roles. | `ba8f78302ab11a2fd8fab471c9d771647e351a09` |
+| P5 | Scratch-run manifest includes partition/script evidence and refuses nonfinite training losses/gradients before new optimizer updates. | `1248024a6bef37cfaa5e0bdecaec096539e2d6ba` |
+| P5/P6 | Both existing owner-approved neural training paths re-check *local measured* CUDA memory availability on long jobs instead of relying on startup VRAM capacity alone. No cross-PC pooling. | `a36d73f69ae8180e1694d660b58a635a903aad3a`, `c0fd44a21f85ce9f3bc9f8257240f5e0072e9402` |
+| P5 | Added read-only previous-run receipt inventory that never loads or hashes a checkpoint, plus status and Tk GUI wiring; saved SHA is explicitly **unverified now**, not model activation. | `7f86e0b3a8a59f82514d7e6e26ea67299033e3b6`, `1aeb2e9da9444ef44a53cc365e022afbaa39e1e9`, `da9741566f1299c0fddd893055cae2fc913b742a` |
+
+**Unresolved approval gates:** actual owner-permitted bilingual corpus quality; source identity and licensing evidence; source-rights audit beyond labels; genuine model-training runs, independently sealed measurements, human Persian/English review, independent acceptance, Windows GPU driver confirmation, signed physical-node telemetry, installation and release. A change in cross-entropy or source-index coverage cannot alone establish language competence. No tests, training, app packaging, deployment, CI dispatch, production writes or real local-PC observation took place in this coding continuation.
