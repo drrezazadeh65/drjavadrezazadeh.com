@@ -230,9 +230,28 @@ def study_once(db_path: Path, *, model_reply: Callable,
                 backend="LOCAL_MODEL"
                 state="STUDY_DRAFT_UNVERIFIED"
             except (ValueError,TypeError,KeyError,OSError,RuntimeError):
-                state="MODEL_DRAFT_UNAVAILABLE"
-                note="Source excerpts found; the local model produced no acceptable study note."
-                backend="MODEL_UNAVAILABLE"
+                # JREI can study genuine local evidence without a vendor's
+                # pretrained weights. This is an extractive study record,
+                # NOT a language-model generated answer or a verified claim.
+                # Bound quotations rather than copying full licensed works.
+                pieces=[
+                    f"ANCHOR: {str(item['anchor'])[:110]}; "
+                    f"ISSUER: {str(item['issuer'])[:100]}; "
+                    f"SOURCE_SHA256: {item['source_sha256']}\n"
+                    f"EXCERPT (unverified): "
+                    f"{re.sub(r'\\s+', ' ', item['excerpt'])[:210]}"
+                    for item in evidence[:3]]
+                unresolved=(
+                    "The cited excerpts cover only "
+                    f"{round(coverage*100)}% of the query terms. "
+                    "Review the source passages, check alternative "
+                    "independent references and record any missing answer."
+                )
+                note=("JREI NATIVE EVIDENCE STUDY (NOT AN LLM ANSWER)\n"
+                      "QUESTION: "+question[:450]+"\n\n"+
+                      "\n\n".join(pieces)+"\n\nOPEN QUESTION: "+unresolved)[:_MAX_NOTE]
+                backend="JREI_NATIVE_EXTRACTIVE"
+                state="EVIDENCE_ONLY_NOTE_UNVERIFIED"
     except (ValueError,TypeError,OSError,sqlite3.Error):
         state="RETRIEVAL_UNAVAILABLE"
         note="The local evidence index could not be read."
@@ -336,6 +355,69 @@ def record_review(db_path: Path, *, cycle_id: str, verdict: str,
             "verdict":verdict,"topic_id":topic_id,
             "independent_review_verified_by_program":False,
             "model_learning_proven":False}
+
+
+def metacognition_snapshot(db_path: Path) -> dict:
+    """Audit measured source-study progress, not self-certified intelligence.
+
+    Evidence coverage can rise from indexing alone. A changed score is not
+    scientific validation or neural language-model improvement. Independent
+    review verdicts are owner-recorded assertions, not externally proven.
+    """
+    with closing(_db(db_path)) as db:
+        topics=db.execute("""SELECT id,priority,latest_coverage,latest_state
+            FROM learning_agenda WHERE active=1 ORDER BY priority DESC,id
+            LIMIT 100""").fetchall()
+        cycles=db.execute("""SELECT topic_id,coverage,state,distinct_sources
+            FROM learning_agenda_cycles ORDER BY finished DESC,id DESC
+            LIMIT 1000""").fetchall()
+        verdicts=db.execute("""SELECT r.verdict,COUNT(*)
+            FROM learning_agenda_reviews r
+            GROUP BY r.verdict""").fetchall()
+    histories={}
+    for ident,cover,state,sources in cycles:
+        if len(histories.get(ident,[]))<2:
+            histories.setdefault(ident,[]).append((cover,state,sources))
+    with_history=0
+    coverage_increased=0
+    coverage_declined=0
+    unresolved=0
+    suggestions=[]
+    for ident,priority,latest,state in topics:
+        past=histories.get(ident,[])
+        if len(past)==2:
+            with_history+=1
+            if past[0][0]>past[1][0]:
+                coverage_increased+=1
+            elif past[0][0]<past[1][0]:
+                coverage_declined+=1
+        if state in ("NO_GROUNDED_EVIDENCE","MODEL_DRAFT_UNAVAILABLE",
+                     "RETRIEVAL_UNAVAILABLE") or state.startswith("REVIEWED_GAP_"):
+            unresolved+=1
+        if len(suggestions)<8 and (state=="NO_GROUNDED_EVIDENCE" or
+             state.startswith("REVIEWED_GAP_") or latest is None or latest<0.45):
+            suggestions.append({
+                "topic_id":ident,
+                "reason":"NO_REVIEWED_EVIDENCE" if state=="NO_GROUNDED_EVIDENCE"
+                        else "REVIEW_FLAGGED" if state.startswith("REVIEWED_GAP_")
+                        else "LOW_LEXICAL_COVERAGE",
+                "strategy":"FIND_INDEPENDENT_LICENSED_SOURCE_AND_REVIEW",
+                "owner_source_approval_required":True,
+            })
+    return {
+        "schema":"jr.jrei.native-metacognition.v1",
+        "active_topic_sample":len(topics),
+        "topics_with_two_recent_cycles":with_history,
+        "observed_coverage_increase":coverage_increased,
+        "observed_coverage_decline":coverage_declined,
+        "unresolved_or_blocked_topics":unresolved,
+        "owner_recorded_review_verdicts":dict(verdicts),
+        "suggested_next_study":suggestions,
+        "network_acquisition_automatically_authorized":False,
+        "claims_independently_validated":False,
+        "model_weights_trained":False,
+        "knowledge_retrieval_is_not_language_model_training":True,
+    }
 
 
 def snapshot(db_path: Path) -> dict:
