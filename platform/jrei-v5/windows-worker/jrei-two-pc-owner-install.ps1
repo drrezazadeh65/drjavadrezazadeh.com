@@ -10,7 +10,7 @@
 #>
 [CmdletBinding()]
 param(
- [ValidateSet('A','B')][string]$Node,
+ [ValidateSet('AUTO','A','B')][string]$Node='AUTO',
  [ValidateSet('Status','Install')][string]$Mode='Status',
  [string]$ArtifactRoot=$PSScriptRoot,
  [switch]$OwnerApproved
@@ -31,7 +31,8 @@ $knownNodeIds=@{
  A='28b1c0d2-b833-41cb-97e2-df92c9373de0'
  B='7f742039-6c42-4cb7-9bd3-044e30b059f7'
 }
-$minimumRam=@{A=28GB;B=12GB}
+# Hardware capacity is measured independently. The signed node ID, NOT
+# RAM capacity, determines A/B identity; real Node B has ~31.8 GB RAM.
 function Emit([string]$key,[string]$value) {
  if($key -cnotmatch '^[A-Z0-9_]{3,65}$'){throw 'JREI_DUAL_PC_LOG_KEY_INVALID'}
  Write-Output ('[JREI] '+$key+'='+$value)
@@ -80,14 +81,24 @@ try {
 if(-not $cleanWork -or -not $cleanIndex){throw 'JREI_DUAL_PC_TRACKED_CHANGES_PRESERVED'}
 $config=SmallJson $cfgPath 65536
 if($null -eq $config -or $config.protocol -cne 'jr.jrei.windows-worker.v1' -or
-   [string]$config.nodeId -cne $knownNodeIds[$Node] -or
    $config.origin -cne 'https://drjavadrezazadeh.com'){
- throw 'JREI_DUAL_PC_EXISTING_SIGNED_NODE_IDENTITY_MISMATCH'
+ throw 'JREI_DUAL_PC_EXISTING_SIGNED_NODE_CONFIGURATION_INVALID'
 }
+$detectedNode=''
+if([string]$config.nodeId -ceq $knownNodeIds['A']){$detectedNode='A'}
+elseif([string]$config.nodeId -ceq $knownNodeIds['B']){$detectedNode='B'}
+if($detectedNode -eq ''){throw 'JREI_DUAL_PC_UNKNOWN_EXISTING_SIGNED_NODE_ID'}
+Emit 'ACTUAL_SIGNED_NODE_ROLE' $detectedNode
+if($Node -eq 'AUTO'){$Node=$detectedNode}
+if($Node -cne $detectedNode){
+ Emit 'REQUESTED_WRAPPER_NODE_ROLE' $Node
+ throw 'JREI_DUAL_PC_WRONG_NODE_WRAPPER_USE_ACTUAL_SIGNED_ROLE'
+}
+# RAM determines future resource allocation; it cannot rename a node.
 $ram=[long](Get-CimInstance Win32_ComputerSystem -ErrorAction Stop).TotalPhysicalMemory
-if($ram -lt $minimumRam[$Node]){
- throw 'JREI_DUAL_PC_NODE_MEMORY_ROLE_MISMATCH'
-}
+Emit 'OBSERVED_PHYSICAL_RAM_GB' ([math]::Round($ram/1GB,1).ToString('0.0',
+       [Globalization.CultureInfo]::InvariantCulture))
+if($ram -lt 4GB){throw 'JREI_DUAL_PC_WINDOWS_GUI_MEMORY_BELOW_BASELINE'}
 $task=Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue
 $existingTask=($null -ne $task)
 $approval=SmallJson $acceptancePath 10000
@@ -135,7 +146,14 @@ Emit 'SIGNED_WORKER_CHANGED' 'NO'
 Emit 'MODEL_WEIGHTS_CHANGED' 'NO'
 Emit 'WEBSITE_DEPLOYED' 'NO'
 if($Mode -eq 'Status'){
- Emit 'STATUS' 'READ_ONLY_NO_WINDOWS_INSTALL_NO_TEST'
+ Emit 'STATUS' $(if($installerReady){
+   'READY_FOR_OWNER_CHOICE_NO_INSTALL_PERFORMED'
+ }else{'INSTALL_BLOCKED_READ_ONLY_NO_WINDOWS_INSTALL_NO_TEST'})
+ # A successful status exit MUST NOT open the wrapper's Install/YN prompt
+ # when release acceptance or artifact source/hash is still unavailable.
+ if(-not $installerReady){
+   throw 'JREI_DUAL_PC_NOT_READY_KEEP_EXISTING_INSTALLATION'
+ }
  return
 }
 if(-not $OwnerApproved){throw 'JREI_DUAL_PC_EXPLICIT_OWNER_APPROVAL_REQUIRED'}
