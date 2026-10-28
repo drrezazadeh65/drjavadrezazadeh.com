@@ -626,6 +626,7 @@ def status():
         "model_alias": model,
         "native_language_backend": language_backend.snapshot(PRIVATE),
         "busy": _BUSY.locked(),
+        "owner_activity_recent": bool(_activity_at and time.monotonic() - _activity_at < 180),
         "study_proposals_not_verified": total,
         "continuous_learning": knowledge.snapshot(DB_PATH),
         "model_curriculum": curriculum.statistics(DB_PATH),
