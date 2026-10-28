@@ -1,6 +1,6 @@
 @echo off
 setlocal EnableExtensions DisableDelayedExpansion
-rem JREI one shared native installer; THIS wrapper is for existing Node B (16GB).
+rem JREI one shared native installer; this wrapper is ONLY for signed Node B (~31.8GB observed).
 rem No auto-install: inspect status first and request an explicit owner choice.
 rem Use ONLY after final source acceptance and downloaded SHA-pinned artifact.
 set "PS=%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe"
