@@ -12,6 +12,7 @@ import ctypes
 from contextlib import contextmanager
 from datetime import datetime, timezone
 import hashlib
+import hmac
 from html.parser import HTMLParser
 import http.client
 import ipaddress
@@ -587,13 +588,16 @@ def retrieve(db_path: Path, question: str, max_passages: int=4) -> dict:
             "NO_MATCHING_REVIEWED_SOURCE","model_weights_changed":False}
 
 
-def note_gap(db_path: Path, question: str, reason: str="NO_SOURCE_MATCH") -> None:
-    """Store irreversible SHA only, never raw prompts or personal data."""
-    if not isinstance(question,str) or reason not in (
-        "NO_SOURCE_MATCH","ANSWER_NOT_GROUNDED","OWNER_CORRECTION"):
+def note_gap(db_path: Path, question: str, *, hmac_key: bytes,
+             reason: str="NO_SOURCE_MATCH") -> None:
+    """Store only keyed HMAC: no raw prompts, terms or low-entropy public hashes."""
+    if (not isinstance(question,str) or not isinstance(hmac_key,bytes)
+            or len(hmac_key)<32 or reason not in (
+                "NO_SOURCE_MATCH","ANSWER_NOT_GROUNDED","OWNER_CORRECTION")):
         raise ValueError("LEARNING_GAP_INVALID")
     now=int(time.time())
-    digest=_sha(question.strip().casefold())
+    digest=hmac.new(hmac_key,question.strip().casefold().encode("utf-8"),
+                    hashlib.sha256).hexdigest()
     with _db(db_path) as db:
         db.execute("""INSERT INTO learning_gaps(
           query_sha256,first_seen,last_seen,occurrences,state,reason)
@@ -611,7 +615,8 @@ def snapshot(db_path: Path) -> dict:
         passages=query("SELECT COUNT(*) FROM learning_passages")
         discoveries=query("SELECT COUNT(*) FROM learning_discoveries WHERE state='REVIEW_REQUIRED'")
         gaps=query("SELECT COUNT(*) FROM learning_gaps")
-        enabled=network_enabled(db_path)
+        control=db.execute("SELECT enabled FROM learning_controls WHERE name='network_acquisition'").fetchone()
+        enabled=bool(control and control[0])
         logs=db.execute("""SELECT created,operation,state,detail_code FROM
            learning_observations ORDER BY id DESC LIMIT 8""").fetchall()
     return {"schema":"jr.jrei.windows-learning-runtime.v1",
