@@ -53,10 +53,17 @@ function OpenOwnerConsole {
  if($secret -cnotmatch '^[A-Za-z0-9_-]{50,128}$'){
    throw 'JREI_COMMAND_CENTER_TOKEN_INVALID'
  }
- $url='http://127.0.0.1:8092/#token='+[Uri]::EscapeDataString($secret)
- Start-Process $url
- Write-Output '[JREI] WINDOWS_COMMAND_CENTER_OPENED'
+ # Native EXE reads its own owner token from the private profile.
+ # Never expose token through browser URL, arguments or environment.
+ $desktopApp=Join-Path $env:LOCALAPPDATA 'Programs\JREI\JREI.exe'
+ if(-not (Test-Path -LiteralPath $desktopApp -PathType Leaf)){
+  Write-Output '[JREI] PRIVATE_ENGINE_READY_NATIVE_DESKTOP_NOT_INSTALLED'
+  return
+ }
+ Start-Process -FilePath $desktopApp -ErrorAction Stop
+ Write-Output '[JREI] NATIVE_WINDOWS_DESKTOP_APP_OPENED_NO_BROWSER'
 }
+
 if($Mode -eq 'Status'){
  $registered=Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue
  Write-Output ('[JREI] WINDOWS_COMMAND_TASK='+$(if($null -eq $registered){'NOT_REGISTERED'}else{$registered.State.ToString()}))
