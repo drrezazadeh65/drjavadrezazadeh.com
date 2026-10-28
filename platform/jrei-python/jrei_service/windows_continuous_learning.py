@@ -396,7 +396,9 @@ def _fetch_exact(url: str, cap: int) -> tuple[str,bytes]:
 def _robots_allowed(url: str) -> bool:
     parsed=urlsplit(url)
     robots="https://"+parsed.hostname+"/robots.txt"
-    _,data=_fetch_exact(robots,MAX_ROBOTS)
+    mime,data=_fetch_exact(robots,MAX_ROBOTS)
+    if mime!='text/plain':
+        raise ValueError("LEARNING_ROBOTS_NOT_TEXT")
     policy=RobotFileParser()
     policy.parse(data.decode("utf-8",errors="replace").splitlines())
     return policy.can_fetch(USER_AGENT,url)
@@ -519,7 +521,11 @@ def tick(db_path: Path, *, permit_network: bool, user_active: bool=False) -> dic
             for value in links:
                 try:
                     candidate=_public_url(urljoin(url,value))
-                    if urlsplit(candidate).hostname!=host or candidate==url:
+                    # Avoid retaining tracking or session query tokens in
+                    # discovered-link metadata.
+                    parts=urlsplit(candidate)
+                    candidate=urlunsplit((parts.scheme,parts.netloc,parts.path,"",""))
+                    if parts.hostname!=host or candidate==url:
                         continue
                     db.execute("""INSERT OR IGNORE INTO learning_discoveries
                       (url_sha256,parent_source_id,url,discovered)
