@@ -934,6 +934,17 @@ class OwnerHTTP(BaseHTTPRequestHandler):
                     json.JSONDecodeError, RuntimeError, urllib.error.URLError):
                 return self._send(409, {
                     "error": "JREI_GITHUB_DRAFT_PREFLIGHT_UNAVAILABLE_OR_STALE"})
+        if self.path == "/api/github/windows-installer":
+            # Authenticated on-loopback; remote request is read-only fixed
+            # GitHub API metadata. Even a real package is not yet accepted.
+            try:
+                return self._send(200, github_operator.available_desktop_installer())
+            except (OSError,ValueError,TypeError,RuntimeError,
+                    urllib.error.URLError,json.JSONDecodeError):
+                return self._send(503,{
+                    "schema":"jr.jrei.installer-update-observation.v1",
+                    "state":"GITHUB_INSTALLER_LOOKUP_UNAVAILABLE",
+                    "update_installed":False})
         if self.path == "/api/github/status":
             return self._send(200, github_operator.snapshot())
         if self.path == "/api/github/site-governor":
