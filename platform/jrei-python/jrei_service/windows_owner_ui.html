@@ -129,20 +129,55 @@ async function openThread(id){selected=id;try{
  if(!record.items.length)welcome();await refreshThreads();$('sidebar').classList.remove('open');
  }catch(e){toast(e.message)}}
 async function newChat(){const response=await api('/api/conversation/new',{});selected=response.id;welcome();refreshThreads();$('sidebar').classList.remove('open');$('input').focus()}
-async function send(){const message=$('input').value.trim();if(!message||active)return;
- if(!selected)await newChat();$('input').value='';addMessage('user',message);setBusy(true);
- try{const answer=await api('/api/assistant',{conversation_id:selected,message});
-  addMessage('assistant',answer.answer,answer.tool,answer.pending);await refreshThreads();
- }catch(e){toast(e.message);addMessage('assistant','درخواست کامل نشد: '+e.message)}finally{setBusy(false);$('input').focus()}}
+async function send(){
+ const message=$('input').value.trim();
+ if(!message||active)return;
+ let submitted=false;
+ setBusy(true);
+ try{
+  if(!token)throw new Error('مجوز ورود به پنل موجود نیست. از میانبر JREI Command Center یا راه‌انداز ویندوز با گزینه Open استفاده کنید.');
+  if(!selected){
+   const created=await api('/api/conversation/new',{});
+   selected=created.id;
+   welcome();
+  }
+  $('input').value='';
+  addMessage('user',message);
+  submitted=true;
+  const answer=await api('/api/assistant',{conversation_id:selected,message});
+  addMessage('assistant',answer.answer,answer.tool,answer.pending);
+  await refreshThreads();
+ }catch(e){
+  const detail=e&&e.message?e.message:'خطای ناشناخته';
+  toast(detail);
+  if(!submitted){
+   $('input').value=message;
+   $('busy').textContent='ارسال انجام نشد: '+detail;
+  }else{
+   addMessage('assistant','درخواست کامل نشد: '+detail);
+  }
+ }finally{
+  setBusy(false);
+  if(!submitted && $('input').value===message)
+   $('busy').textContent='ارسال انجام نشد؛ وضعیت ورود و اتصال را بررسی کنید.';
+  $('input').focus();
+ }
+}
 async function loadHealth(){
  try{const state=await api('/api/status');$('engine').replaceChildren();const dot=el('span','dot '+(state.model_connected?'on':'err'));$('engine').append(dot,document.createTextNode(state.model_connected?state.inference_backend+' · '+state.model_alias:'مدل محلی غیرفعال'));
   $('trace').textContent=JSON.stringify({model:state.model_alias||'OFFLINE',backend:state.inference_backend,
     GPU_recovery:state.gpu_recovery,workspace:'LOCAL_ONLY',publication:state.site_publishing_control,
     production_database_write:state.database_write_control},null,2);
   const events=await api('/api/events');$('events').textContent=events.items.slice(0,18).map(x=>`${new Date(x.time*1000).toLocaleString()} ${x.job}: ${x.state}`).join('\n')||'فعلاً رویدادی نیست.';
- }catch(e){$('engine').textContent='پنل در دسترس نیست';$('trace').textContent=e.message}}
+ }catch(e){$('engine').textContent='پنل در دسترس نیست';$('trace').textContent=e.message}
 }
-$('send').onclick=send;$('input').onkeydown=e=>{if(e.key==='Enter'&&!e.shiftKey&&!e.isComposing){e.preventDefault();send()}};
+$('send').addEventListener('click',()=>{void send()});
+$('input').addEventListener('keydown',e=>{
+ if(e.key==='Enter'&&!e.shiftKey&&!e.isComposing&&e.keyCode!==229){
+  e.preventDefault();
+  void send();
+ }
+});
 $('newChat').onclick=()=>newChat().catch(e=>toast(e.message));
 $('attach').onclick=()=>$('fileInput').click();
 $('fileInput').onchange=async()=>{
@@ -160,6 +195,15 @@ $('closeTools').onclick=()=>$('toolsPanel').hidden=true;
 $('saveProfile').onclick=async()=>{try{const r=await api('/api/profile',{instructions:$('profile').value});toast('ترجیحات شخصی در ویندوز ذخیره شد.')}catch(e){toast(e.message)}};
 api('/api/profile').then(x=>$('profile').value=x.instructions||'').catch(()=>{});
 for(const [name,cmd] of toolCommands){const button=el('button','tool');button.append(el('strong','',name),el('small','',cmd));button.onclick=()=>{$('toolsPanel').hidden=true;$('input').value=cmd;$('input').focus()};$('tools').append(button)}
-welcome();refreshThreads().catch(e=>toast(e.message));loadHealth();setInterval(loadHealth,45000);
+welcome();
+if(!token){
+ $('engine').textContent='نیازمند ورود از راه‌انداز ویندوز';
+ $('busy').textContent='برای گفت‌وگو، پنل را با راه‌انداز JREI باز کنید.';
+ toast('این نشانی بدون توکن خصوصی باز شده است. برای فعال‌کردن ارسال، پنل را از میانبر JREI Command Center باز کنید.');
+}else{
+ refreshThreads().catch(e=>toast(e.message));
+ loadHealth();
+ setInterval(loadHealth,45000);
+}
 </script>
 </body></html>
