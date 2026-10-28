@@ -86,6 +86,24 @@ try{
  $t=Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue
  $taskPresent=($null -ne $t)
 }catch{}
+# Report the previous offline installer outcome without leaking logs,
+# worker keys, private database contents or owner tokens.
+$lastSetupState='NO_OFFLINE_ENGINE_RECEIPT'
+$receiptPath=Join-Path $homePath 'JREI\command-center\install-receipts\latest-native-setup-receipt.json'
+try{
+ if(Test-Path -LiteralPath $receiptPath -PathType Leaf){
+  $file=Get-Item -LiteralPath $receiptPath -ErrorAction Stop
+  if(-not ($file.Attributes -band [IO.FileAttributes]::ReparsePoint) -and
+     $file.Length -gt 0 -and $file.Length -le 5000){
+   $record=Get-Content -LiteralPath $receiptPath -Encoding UTF8 -Raw |
+     ConvertFrom-Json -ErrorAction Stop
+   if($record.schema -ceq 'jr.jrei.offline-owner-install.v1' -and
+      [string]$record.state -cmatch '^[A-Z0-9_]{4,110}$'){
+    $lastSetupState=[string]$record.state
+   }
+  }
+ }
+}catch{$lastSetupState='INSTALL_RECEIPT_UNREADABLE'}
 $report=[ordered]@{
  schema='jr.jrei.windows-dynamic-node-inventory.v1'
  state=$state
@@ -105,6 +123,7 @@ $report=[ordered]@{
  original_repo_present=(Test-Path -LiteralPath $repoPath -PathType Container)
  original_python_present=(Test-Path -LiteralPath $pythonPath -PathType Leaf)
  original_command_center_task_present=$taskPresent
+ offline_engine_installer_state=$lastSetupState
  real_signed_server_registration_verified=$false
  real_signed_worker_heartbeat_verified=$false
  new_node_requires_server_side_owner_registration=(
