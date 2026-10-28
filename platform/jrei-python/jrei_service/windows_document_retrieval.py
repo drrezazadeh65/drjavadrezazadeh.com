@@ -144,6 +144,26 @@ def _pdf_passages(folder: Path, record: dict) -> tuple[list[dict], str]:
 
 def _passages(folder: Path, record: dict, text: str) -> tuple[list[dict], str]:
     kind = Path(record["name"]).suffix.lower()
+    if kind in (".pptx", ".xlsx"):
+        # The anchor is the actual slide/sheet of the original OOXML
+        # archive, never a line pretending to be a slide.
+        from jrei_service.windows_office_structures import parse_office
+        source = folder / record["source_name"]
+        if source.is_symlink() or not source.is_file() or source.stat().st_size > MAX_BYTES:
+            raise ValueError("JREI_OFFICE_ORIGINAL_INVALID")
+        original = source.read_bytes()
+        if hashlib.sha256(original).hexdigest() != record["sha256"]:
+            raise ValueError("JREI_OFFICE_ORIGINAL_INTEGRITY_FAILED")
+        try:
+            sections = parse_office(record["name"], original)
+            passages = [
+                segment for section in sections
+                for segment in _chunks(section.text, section.anchor)
+            ]
+            return passages, "ORIGINAL_OFFICE_STRUCTURAL_ANCHORS_BOUNDED"
+        except (ValueError, OSError, TypeError, KeyError, IndexError):
+            # Never infer slide or sheet identifiers from unverified text.
+            return _line_passages(text, ".txt"), "OFFICE_PARSER_UNAVAILABLE_UNPAGINATED_FALLBACK"
     if kind != ".pdf":
         return _line_passages(text, kind), (
             "ORIGINAL_EXTRACTION_LIMIT_80000_CHARS" if len(text) >= MAX_EXTRACTED
