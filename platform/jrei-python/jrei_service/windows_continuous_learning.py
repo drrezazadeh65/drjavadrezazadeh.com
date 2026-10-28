@@ -247,6 +247,39 @@ def ingest_owner_document(path: Path, private: Path, document_id: str,
             "independently_verified":False,"production_changed":False}
 
 
+def invalidate_staged_training_exports(path: Path, private: Path) -> dict:
+    """Fail-safe candidate data revocation when any source rights change.
+
+    The current v1 training registry does not yet track a full derivative
+    dependency graph. Therefore *all* staged candidate datasets are
+    invalidated on any source withdrawal, rather than risking retention
+    of a licensed or confidential source in a mixed training file.
+    """
+    folder=private/"adapter-candidates"
+    with _db(path) as db:
+        db.execute("BEGIN IMMEDIATE")
+        rows=db.execute("""SELECT id FROM learning_training_exports
+           WHERE state='CANDIDATE_DATA_ONLY_NOT_TRAINED'""").fetchall()
+        # A file may have been removed already; only recorded, exact files
+        # inside the owner's private candidate folder can be touched.
+        for (ident,) in rows:
+            if not IDENT.fullmatch(ident):
+                raise ValueError("LEARNING_STAGED_EXPORT_ID_INVALID")
+            if folder.is_symlink():
+                raise ValueError("LEARNING_STAGED_EXPORT_DIRECTORY_LINKED")
+            for suffix in (".train.jsonl",".manifest.json"):
+                target=folder/(ident+suffix)
+                if target.is_symlink():
+                    raise ValueError("LEARNING_STAGED_EXPORT_LINKED")
+                if target.is_file():
+                    target.unlink()
+            db.execute("""UPDATE learning_training_exports
+                SET state='INVALIDATED_SOURCE_REVOKED' WHERE id=?""",(ident,))
+        db.commit()
+    return {"state":"STAGED_EXPORTS_INVALIDATED",
+            "count":len(rows),"model_weights_changed":False}
+
+
 def revoke_owner_document(path: Path, document_id: str) -> None:
     if not isinstance(document_id, str) or not IDENT.fullmatch(document_id):
         raise ValueError("LEARNING_DOCUMENT_ID_INVALID")
