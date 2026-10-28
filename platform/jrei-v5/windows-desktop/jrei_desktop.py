@@ -151,6 +151,9 @@ class Desktop:
         self._fonts = {}
         self.root.option_add("*Font", "TkDefaultFont")
         self.ui_queue: queue.Queue = queue.Queue()
+        # Network requests finish out of order. Only the newest READ for
+        # each view may update Tk; owner writes are never silently discarded.
+        self._request_versions = {}
         self.busy_send = False
         self.conversation = None
         self.threads = []
@@ -379,6 +382,10 @@ class Desktop:
                 self.thread_list.selection_set(len(self.shown_threads) - 1)
 
     def _choose_thread(self, _event):
+        if self.busy_send:
+            self.status_text.set(
+                "ارسال قبلی هنوز تعیین‌تکلیف نشده؛ گفتگو را فعلاً عوض نکنید.")
+            return
         indices = self.thread_list.curselection()
         if indices and indices[0] < len(self.shown_threads):
             value = self.shown_threads[indices[0]].get("id")
@@ -386,6 +393,8 @@ class Desktop:
                 self.conversation = value
                 self.messages = []
                 self.active_job = None
+                self.poll_in_flight = False
+                self._invalidate_conversation_reads()
                 self.fetch("thread", lambda: self.api.request(
                     "/api/conversation?id=" + urllib.parse.quote(value)))
 
@@ -632,21 +641,43 @@ class Desktop:
     def _bootstrap(self):
         return self.api.request("/api/status")
 
+    def _invalidate_conversation_reads(self):
+        """Fence old chat/job HTTP responses when changing local views."""
+        for key in ("thread", "task_list", "job", "approvals"):
+            self._request_versions[key] = (
+                self._request_versions.get(key, 0) + 1)
+
     def fetch(self, name, fn):
+        # Tk-thread serial numbers do not authorize execution or cancel a
+        # submitted request; they only suppress superseded view *responses*.
+        read_views = {
+            "connect", "threads", "thread", "task_list", "approvals", "job",
+            "draft_diff", "draft_bundle", "github_preflight",
+            "native_acceptance", "hardware_inventory",
+        }
+        if name in read_views:
+            serial = self._request_versions.get(name, 0) + 1
+            self._request_versions[name] = serial
+        else:
+            serial = None
         def worker():
             try:
                 answer = fn()
-                self.ui_queue.put((name, answer, None))
+                self.ui_queue.put((name, serial, answer, None))
             except (OSError, RuntimeError, ValueError, TypeError) as exc:
-                self.ui_queue.put((name, None, exc))
-        threading.Thread(target=worker, name="jrei-private-request", daemon=True).start()
+                self.ui_queue.put((name, serial, None, exc))
+        threading.Thread(target=worker, name="jrei-private-request",
+                         daemon=True).start()
 
     def _drain(self):
         for _ in range(30):
             try:
-                name, data, error = self.ui_queue.get_nowait()
+                name, serial, data, error = self.ui_queue.get_nowait()
             except queue.Empty:
                 break
+            if (serial is not None and
+                    serial != self._request_versions.get(name)):
+                continue  # Obsolete GET from a prior conversation/view.
             if error:
                 self._error(name, error)
             else:
@@ -669,12 +700,18 @@ class Desktop:
                 "/api/conversation?id=" + current))
 
     def new_chat(self):
+        if self.busy_send:
+            self.status_text.set(
+                "ابتدا نتیجهٔ ارسال جاری مشخص شود تا گفتگو گم نشود.")
+            return
         if self.active_job:
             if not messagebox.askyesno("JREI", "وظیفهٔ قبلی هنوز در حال اجراست. گفتگوی تازه باز شود؟",
                                        parent=self.root):
                 return
         self.active_job = None
+        self.poll_in_flight = False
         self.conversation = None
+        self._invalidate_conversation_reads()
         self.attachments.clear()
         self.attach_view.set("")
         self.fetch("new", lambda: self.api.request("/api/conversation/new", {}))
