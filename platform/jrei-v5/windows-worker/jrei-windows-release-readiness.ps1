@@ -81,7 +81,8 @@ $missing=@($expected | Where-Object {
  -not (Test-Path -LiteralPath (Join-Path $source $_) -PathType Leaf)
 })
 Say 'OWNER_APP_SOURCE_TREE' $(if($missing.Count -eq 0){'PRESENT'}else{'INCOMPLETE'})
-Say 'PYTHON_RUNTIME' $(if(Test-Path -LiteralPath (Join-Path $root 'venv\Scripts\python.exe') -PathType Leaf){'PRESENT'}else{'MISSING'})
+$pythonPresent=Test-Path -LiteralPath (Join-Path $root 'venv\Scripts\python.exe') -PathType Leaf
+Say 'PYTHON_RUNTIME' $(if($pythonPresent){'PRESENT'}else{'MISSING'})
 Say 'OWNER_PRIVATE_DATABASE' $(if(Test-Path -LiteralPath (Join-Path $private 'missions.sqlite3') -PathType Leaf){'PRESENT'}else{'NOT_FOUND'})
 Say 'MODEL_WEIGHTS' 'NOT_ASSUMED_OR_DOWNLOADED'
 Say 'GPU_COMPUTE' 'NOT_VERIFIED_BY_READINESS_REPORT'
@@ -136,4 +137,4 @@ $accepted=($approvalRecord -and
 Say 'INTEGRATED_ACCEPTANCE' $(if($accepted){'APPROVED_FOR_EXACT_SOURCE_TREE'}else{'NOT_YET_APPROVED'})
 Say 'LIVE_SITE_CHANGE' 'NONE'
 Say 'FINAL_RESULT' $(if($originOk -and $branchOk -and $clean -and
- $missing.Count -eq 0 -and $accepted){'RELEASE_CANDIDATE_ELIGIBLE_FOR_OWNER_INSTALL'}else{'SOURCE_PREPARATION_ONLY_NOT_RELEASED'})
+ $missing.Count -eq 0 -and $pythonPresent -and $accepted){'RELEASE_CANDIDATE_ELIGIBLE_FOR_OWNER_INSTALL'}else{'SOURCE_PREPARATION_ONLY_NOT_RELEASED'})
