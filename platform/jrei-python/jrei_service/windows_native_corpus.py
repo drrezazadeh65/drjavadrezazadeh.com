@@ -22,6 +22,7 @@ import secrets
 import sqlite3
 import sys
 import time
+import unicodedata
 
 SCHEMA = "jr.jrei.native-foundation-corpus.v1"
 SHA = re.compile(r"^[a-f0-9]{64}$")
@@ -62,15 +63,22 @@ def _approved_corpus(db_path: Path) -> list[dict]:
     """Read current, explicitly public-reuse-approved versions only."""
     with closing(_db(db_path)) as db:
         db.execute("BEGIN")
-        rows = db.execute("""SELECT s.id, s.last_sha, s.licence,
-          s.issuer, p.text, p.sha256
-          FROM learning_passages p
-          JOIN learning_sources s ON s.id=p.source_id
-          JOIN learning_versions v ON v.id=p.version_id
-          WHERE s.reviewed=1 AND s.active=1
-            AND s.rights='PUBLIC_REUSE_APPROVED'
-            AND s.last_sha=v.sha256
-          ORDER BY s.id,p.id LIMIT 4500""").fetchall()
+        # Bound each source's contribution before applying the global read
+        # budget. Ordering by one source ID would otherwise starve other
+        # eligible publishers and compromise source-disjoint evaluation.
+        rows = db.execute("""SELECT id, last_sha, licence, issuer, text, sha256
+          FROM (
+            SELECT s.id, s.last_sha, s.licence, s.issuer,
+              p.text, p.sha256,
+              ROW_NUMBER() OVER (PARTITION BY s.id ORDER BY p.id) AS rank_in_source
+            FROM learning_passages p
+            JOIN learning_sources s ON s.id=p.source_id
+            JOIN learning_versions v ON v.id=p.version_id
+            WHERE s.reviewed=1 AND s.active=1
+              AND s.rights='PUBLIC_REUSE_APPROVED'
+              AND s.last_sha=v.sha256
+          ) WHERE rank_in_source<=64
+          ORDER BY id,rank_in_source LIMIT 4500""").fetchall()
         db.commit()
     sources: dict[str, dict] = {}
     for sid, revision, license_id, issuer, passage, digest in rows:
@@ -91,6 +99,50 @@ def _approved_corpus(db_path: Path) -> list[dict]:
     result = [item for item in sources.values() if item["passages"]]
     return sorted(result, key=lambda item: _sha_bytes(item["id"].encode("ascii")))
 
+
+
+def _publisher_key(issuer: str) -> str:
+    """Normalize owner-reviewed publisher identity for partition fencing."""
+    return " ".join(unicodedata.normalize(
+        "NFKC", issuer).casefold().split())
+
+
+def _canonical_passage(value: str) -> str:
+    """Catch Unicode/whitespace disguises of an identical cross-source text."""
+    return " ".join(unicodedata.normalize(
+        "NFKC", value).casefold().split())
+
+
+def _language_counts(value: str) -> dict:
+    """Script coverage only; neither a language-ID model nor quality score."""
+    return {
+        "persian_arabic_script_letters": sum(
+            ("\u0621" <= char <= "\u06ff")
+            and unicodedata.category(char).startswith("L") for char in value),
+        "latin_script_letters": sum(
+            ("A" <= char <= "Z") or ("a" <= char <= "z")
+            for char in value),
+    }
+
+
+def _source_partitions(groups: list[dict]) -> tuple[list, list, list]:
+    """Fence whole publishers, not only individual URLs or source IDs."""
+    by_publisher: dict[str, list[dict]] = {}
+    for source in groups:
+        by_publisher.setdefault(_publisher_key(source["issuer"]), []).append(source)
+    # The public source registry defines an issuer as a reviewed provenance
+    # label, not proof that two unrelated labels are distinct institutions.
+    if len(by_publisher) < 3:
+        return [], [], []
+    ordered = sorted(by_publisher, key=lambda key: _sha_bytes(
+        key.encode("utf-8")))
+    test_count = max(1, len(ordered) // 6)
+    dev_count = max(1, len(ordered) // 5)
+    def flatten(keys):
+        return [source for key in keys for source in by_publisher[key]]
+    return (flatten(ordered[test_count + dev_count:]),
+            flatten(ordered[test_count:test_count + dev_count]),
+            flatten(ordered[:test_count]))
 
 def _write_ids(path: Path, ids: list[int]) -> str:
     if sys.byteorder != "little" or array("I").itemsize != 4:
@@ -119,14 +171,15 @@ def prepare(*, db_path: Path, private: Path, owner_approved: bool,
         return {"state": "NEEDS_THREE_INDEPENDENT_LICENSED_SOURCES",
                 "available_source_groups": len(source_groups),
                 "training_started": False}
-    # Deterministic THREE-WAY split, grouping by independent publisher
-    # source: train -> development validation -> sealed final test. No test
-    # tokens are included in model training, loss monitoring or BPE fitting.
-    test_count = max(1, len(source_groups) // 6)
-    heldout_count = max(1, len(source_groups) // 5)
-    sealed_test_groups = source_groups[:test_count]
-    heldout_groups = source_groups[test_count:test_count + heldout_count]
-    train_groups = source_groups[test_count + heldout_count:]
+    # Whole reviewed issuer/publisher groups are deterministically separated.
+    # Splitting only by source ID would place URLs owned by the same publisher
+    # on both sides of the evaluation fence.
+    train_groups, heldout_groups, sealed_test_groups = _source_partitions(
+        source_groups)
+    if not all((train_groups, heldout_groups, sealed_test_groups)):
+        return {"state": "NEEDS_THREE_DISTINCT_REVIEWED_PUBLISHERS",
+                "available_source_groups": len(source_groups),
+                "training_started": False}
     def materialize(groups):
         text, refs, count = [], [], 0
         for group in groups:
@@ -142,7 +195,8 @@ def prepare(*, db_path: Path, private: Path, owner_approved: bool,
     # Refuse identical passages repeated across nominally independent
     # sources. Distinct source IDs alone would not prevent benchmark leakage.
     group_digests = [
-        {_sha_bytes(text.encode("utf-8")) for text in g["passages"]}
+        {_sha_bytes(_canonical_passage(text).encode("utf-8"))
+         for text in g["passages"]}
         for g in (train_groups + heldout_groups + sealed_test_groups)]
     for i, values in enumerate(group_digests):
         for other in group_digests[i + 1:]:
@@ -155,6 +209,20 @@ def prepare(*, db_path: Path, private: Path, owner_approved: bool,
             or len(heldout_text.encode("utf-8")) < 1000
             or len(sealed_test_text.encode("utf-8")) < 1000):
         return {"state": "INSUFFICIENT_REVIEWED_BILINGUAL_CORPUS",
+                "training_started": False}
+    script_coverage = {
+        "TRAIN": _language_counts(train_text),
+        "DEVELOPMENT": _language_counts(heldout_text),
+        "SEALED_TEST": _language_counts(sealed_test_text),
+    }
+    # A Persian–English ability claim requires both scripts on both unseen
+    # evaluation partitions. Script coverage is a *minimum input gate*, not
+    # evidence of bilingual comprehension, fluent writing, or model quality.
+    if any(coverage["persian_arabic_script_letters"] < 120 or
+           coverage["latin_script_letters"] < 120
+           for coverage in script_coverage.values()):
+        return {"state": "BILINGUAL_PARTITION_COVERAGE_INSUFFICIENT",
+                "script_coverage": script_coverage,
                 "training_started": False}
     # Fit the tokenizer on TRAIN TEXT ONLY. minBPE is MIT licensed and
     # embedded in the JREI Python package; no web or model API is used.
@@ -202,7 +270,12 @@ def prepare(*, db_path: Path, private: Path, owner_approved: bool,
         "sealed_test_sha256": digest_sealed,
         "tokenization": "MIT_MINBPE_BYTE_LEVEL_FROM_SCRATCH",
         "source_training_rights": "PUBLIC_REUSE_APPROVED_OWNER_REVIEWED",
-        "source_groups_disjoint": True, "training_performed": False,
+        "source_groups_disjoint": True,
+        "source_publishers_disjoint": True,
+        "partition_policy": "REVIEWED_ISSUER_GROUP_SHA256_ORDER",
+        "cross_partition_exact_match": "NFKC_CASEFOLD_WHITESPACE",
+        "bilingual_script_coverage": script_coverage,
+        "training_performed": False,
         "independent_evaluation_passed": False,
         "external_pretrained_weights_used": False,
         "production_modified": False,
