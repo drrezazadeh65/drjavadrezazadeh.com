@@ -31,7 +31,7 @@ function jrMasterWorker(string $script,int $limitSeconds): array {
     if(isset($pipes[0]))fclose($pipes[0]);
     foreach([1,2] as $fd)if(isset($pipes[$fd]))
         stream_set_blocking($pipes[$fd],false);
-    $deadline=microtime(true)+max(1,min(20,$limitSeconds));
+    $deadline=microtime(true)+max(1,min(90,$limitSeconds));
     $exit=null;$timedOut=false;
     while(true){
         foreach([1,2] as $fd)if(isset($pipes[$fd]))
@@ -194,6 +194,26 @@ function jrMasterHostLoadTooHigh(array $config): bool {
         is_numeric($loads[0])&&(float)$loads[0]>=(float)$threshold;
 }
 
+/**
+ * Original News workers may need more than the standard 12-second slot for
+ * signed model requests, independent verification and two-language CMS I/O.
+ * The limits are fixed in source (never DB- or request-controlled), remain
+ * shorter than the five-minute host Cron cadence, and use the same advisory
+ * lock, subprocess timeout, audit and unknown-outcome quarantine as all jobs.
+ * Other site workers keep their existing 12-second limit.
+ */
+function jrMasterWorkerTimeLimit(string $jobId): int {
+    return match($jobId){
+        'jrei_news_original_private_draft'=>75,
+        'jrei_news_original_private_publisher'=>45,
+        'jrei_news_independent_primary_evidence'=>35,
+        'jrei_news_original_article_intake'=>35,
+        'jrei_news_original_feed_projection'=>30,
+        'jrei_news_original_public_index'=>30,
+        default=>12
+    };
+}
+
 function jrMasterDispatch(): int {
     $config=cfg();
     // Both the master private flag and each mother-DB row default OFF.
@@ -251,7 +271,7 @@ function jrMasterDispatch(): int {
         usort($due,static fn($a,$b): int=>
             $tier((string)$a)<=>$tier((string)$b));
         foreach($due as $id){
-            if($attempts>=4||microtime(true)-$started>35)break;
+            if($attempts>=4||microtime(true)-$started>135)break;
             if(!isset($registry[$id]))continue;
             // Recheck after each prior child. A busy shared host must not
             // launch more discretionary JREI AI/collection subprocesses.
@@ -272,8 +292,8 @@ function jrMasterDispatch(): int {
             $claim=jrMasterClaim($pdo,(string)$id,time());
             if($claim===null)continue;
             $attempts++;
-            $available=max(1,(int)floor(43-(microtime(true)-$started)));
-            $result=jrMasterWorker($script,min(12,$available));
+            $available=max(1,(int)floor(150-(microtime(true)-$started)));
+            $result=jrMasterWorker($script,min(jrMasterWorkerTimeLimit((string)$id),$available));
             jrMasterFinish($pdo,$claim,$result);
             if($result['state']!=='completed')$issues++;
             // Only bounded, nonpersonal facts. Child output/SMTP credentials
