@@ -24,6 +24,31 @@ import urllib.parse
 import urllib.request
 
 BASE = "http://127.0.0.1:8092"
+
+
+def _packaged_source_commit() -> str | None:
+    """Read the optional build provenance stamp, not the running backend.
+
+    Never infer a successful install, a tested binary, a publisher signature,
+    neural-model quality or Windows runtime acceptance from this manifest.
+    Source execution outside an EXE intentionally lacks a packaging stamp.
+    """
+    root = Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parent))
+    file = root / "jrei-desktop-build.json"
+    if file.is_symlink() or not file.is_file() or file.stat().st_size > 2048:
+        return None
+    try:
+        record = json.loads(file.read_text(encoding="utf-8"))
+        if (not isinstance(record, dict)
+                or record.get("schema") != "jr.jrei.desktop-source-stamp.v1"
+                or record.get("branch") != "migration/bertina-linux6"):
+            return None
+        commit = record.get("source_commit")
+        if isinstance(commit, str) and re.fullmatch(r"[0-9a-f]{40}", commit):
+            return commit
+    except (OSError, ValueError, UnicodeError, json.JSONDecodeError):
+        pass
+    return None
 TOKEN_FILE = Path(os.environ.get("LOCALAPPDATA", Path.home())) / "JREI" / "command-center" / "owner-token"
 FINAL = {"SUCCEEDED", "FAILED", "CANCELLED", "INTERRUPTED",
          "SUCCEEDED_AFTER_CANCEL_REQUEST", "FAILED_AFTER_CANCEL_REQUEST"}
@@ -134,6 +159,7 @@ class Desktop:
         self.attachments = []
         self.online = False
         self.real_engine_status = None
+        self.packaged_source_commit = _packaged_source_commit()
         self.approval_dialog = None
         self.approval_items = []
         self.approval_context = None
@@ -377,6 +403,15 @@ class Desktop:
                 re.fullmatch(r"[a-f0-9]{40}", active_sha))
             version_label = (f" · موتور {active_sha[:8]}"
                              if valid_sha else " · نسخهٔ موتور تأییدنشده")
+            if self.packaged_source_commit:
+                if valid_sha and active_sha != self.packaged_source_commit:
+                    version_label += " · نسخهٔ بسته و موتور متفاوت"
+                elif valid_sha:
+                    version_label += " · شناسهٔ منبع یکسان"
+                else:
+                    version_label += " · تطبیق با بسته ممکن نیست"
+            else:
+                version_label += " · شناسهٔ بستهٔ EXE موجود نیست"
             label = ("مدل زبانیِ پیکربندی‌شده متصل است" if model else
                      "هستهٔ شواهد موجود است؛ مدل عصبی آماده نیست" if native else
                      "موتور قدیمی/نامشخص؛ مدل زبانی آماده نیست")
@@ -733,6 +768,15 @@ class Desktop:
             "بررسی واقعی و بدون نصب / آموزش / انتشار",
             "",
             "نسخهٔ موتور خصوصی: " + version,
+            "شناسهٔ سورس بستهٔ رابط: " +
+                (self.packaged_source_commit or "بدون مدرک بسته‌بندی"),
+            "تطبیق نسخهٔ بسته و موتور: " +
+                ("در دسترس نیست" if not self.packaged_source_commit or
+                 not isinstance(digest, str) or
+                 not re.fullmatch(r"[a-f0-9]{40}", digest)
+                 else "شناسهٔ منبع یکسان؛ پذیرش عملیاتی احراز نشده"
+                 if digest == self.packaged_source_commit
+                 else "شناسهٔ نسخه‌ها متفاوت است؛ نیازمند بررسی مالک"),
             "مدل زبانی خارجی/پیکربندی‌شده متصل: " +
                 ("بله، اما نه الزاماً مدل اختصاصی" if
                  data.get("model_connected") else "خیر"),
