@@ -343,8 +343,8 @@ for(const slug of ["chegoone-estedaad-vaghei-farzand-ra-beshenasim","barname-yek
    article.includes('property="og:image"'),
   'fa/masir-man: incomplete public article metadata '+slug);
 }
-requireCondition((pathway.match(/class="jr-knowledge-card"/g)||[]).length===6,
- 'fa/masir-man: six decision explanations must be visible in static HTML');
+requireCondition((pathway.match(/class="jr-q-card"/g)||[]).length===6,
+ 'fa/masir-man: six illustrated question-to-reading cards must remain static, visible HTML');
 requireCondition(pathway.includes('id="free-guides"')&&
  pathway.includes('href="/fa/rahnamaha/"'),
  'fa/masir-man: public learning guide hub must remain discoverable');
@@ -360,6 +360,121 @@ try{
  requireCondition(collection?.hasPart?.length===6,
    'fa/masir-man: CollectionPage schema must describe six visible articles');
 }catch{requireCondition(false,'fa/masir-man: invalid educational pathway JSON-LD');}
+
+
+// The six real learner questions must be answered in indexable, image-backed
+// content, not only by routing visitors into a paid checkout or an AI tool.
+const sixFamilyQuestions=[
+ ['chegoone-estedaad-vaghei-farzand-ra-beshenasim','talent_initial'],
+ ['barname-yek-mahe-konkur','konkur_month'],
+ ['tahlil-karname-tahsili','transcript_analysis'],
+ ['che-reshteyi-baraye-man-monaseb-ast','field_selection_standard'],
+ ['gozaresh-estedaad-va-masir-roshd','golden_talent_comprehensive'],
+ ['moghayese-reshteha-ba-matris-tasmim','field_selection_comprehensive']
+];
+const enPath=read('en/my-path/index.html');
+const guideHub=read('fa/rahnamaha/index.html');
+const faHome=read('fa/index.html');
+const faServices=read('fa/khadamat/index.html');
+const enServices=read('en/services/index.html');
+const questionCss='assets/css/jr-question-journeys-v1.css';
+requireCondition(fs.existsSync(path.join(root,questionCss)),
+ 'the shared RTL/LTR mobile question pathway CSS is missing');
+for(const [file,html] of [
+ ['fa/masir-man/index.html',pathway],
+ ['en/my-path/index.html',enPath],
+ ['fa/rahnamaha/index.html',guideHub]
+]){
+ requireCondition((html.match(/class="jr-q-card"/g)||[]).length===6,
+  file+': exactly six explanatory, image-supported question cards required');
+ requireCondition(html.includes('/assets/css/jr-question-journeys-v1.css?v=20261028-q1'),
+  file+': the approved accessible mobile question layout must be loaded');
+ requireCondition(html.includes('max-image-preview:large')&&
+   html.includes('application/ld+json'),
+  file+': indexable content requires meaningful metadata and valid structured data');
+ const json=html.match(/<script type="application\\/ld\\+json">([\\s\\S]*?)<\\/script>/);
+ try{
+  const entities=JSON.parse(json?.[1]||'{}')['@graph']||[];
+  const list=entities.find(entity=>entity['@type']==='ItemList'&&
+   /#(?:free-guides|family-questions)$/.test(entity['@id']||''));
+  requireCondition(list?.itemListElement?.length===6,
+   file+': six authored linkable questions missing from the ItemList');
+ }catch{
+  requireCondition(false,file+': invalid or incomplete JSON-LD question entity graph');
+ }
+}
+requireCondition(faHome.includes('id="jr-home-family-questions-v1"'),
+ 'Persian home must link organically to the public answers, without a purchase gate');
+requireCondition(faServices.includes('/fa/masir-man/#free-guides'),
+ 'Persian service hub must allow free educational reading before pricing');
+requireCondition(enServices.includes('/en/my-path/#free-guides'),
+ 'English services must disclose non-commercial educational entry points');
+const faMap=read('sitemap-fa.xml');
+const enMap=read('sitemap-en.xml');
+for(const [slug,service] of sixFamilyQuestions){
+ const article='fa/rahnamaha/'+slug+'/index.html';
+ const html=read(article);
+ const canonical=BASE+'/fa/rahnamaha/'+slug+'/';
+ requireCondition(html.includes('rel="canonical" href="'+canonical+'"'),
+  article+': original published canonical URL must remain unchanged');
+ requireCondition(html.includes('name="robots" content="index,follow,max-image-preview:large"'),
+  article+': public article must remain discoverable');
+ requireCondition(html.includes('id="jr-family-decision-v1"')&&
+  html.includes('href="/fa/services/'+service+'/'),
+  article+': useful next step and relevant scoped service are absent');
+ requireCondition(html.includes('href="/fa/masir-man/#free-guides"'),
+  article+': answer must connect back to visible family question router');
+ const feature='/assets/images/knowledge/'+slug+'-featured.webp';
+ const og='/assets/images/knowledge/'+slug+'-og.webp';
+ requireCondition(fs.existsSync(path.join(root,feature.slice(1)))&&
+  fs.existsSync(path.join(root,og.slice(1))),
+  article+': real local featured and social share images are required');
+ requireCondition(html.includes('src="../../../assets/images/knowledge/'+slug+'-featured.webp"'),
+  article+': main visual must be a real image, not empty decorative alt');
+ requireCondition(pathway.includes('src="'+feature+'"')&&
+  guideHub.includes('src="'+feature+'"'),
+  article+': native question cards must expose a lazy-loading conceptual image');
+ requireCondition(html.includes('property="og:image"')&&
+  html.includes('name="twitter:image"'),
+  article+': social and chat preview images must be declared');
+ const rawJson=html.match(/<script type="application\\/ld\\+json">([\\s\\S]*?)<\\/script>/);
+ try{
+  const nodes=JSON.parse(rawJson?.[1]||'{}')['@graph']||[];
+  const story=nodes.find(x=>x['@type']==='Article');
+  requireCondition(story?.dateModified==='2026-10-28'&&
+   (story.mentions||[]).some(x=>x['@id']===BASE+'/fa/services/'+service+'/#service'),
+   article+': Article schema must reflect current content and canonical service entity');
+ }catch{
+  requireCondition(false,article+': invalid Article structured data');
+ }
+ requireCondition(faMap.includes('<loc>'+canonical+'</loc><lastmod>2026-10-28</lastmod>'),
+  article+': the unchanged public slug needs authentic latest modification date');
+}
+for(const locale of ['fa','en']){
+ const publicPath=locale+'/bahar/index.html';
+ const html=read(publicPath);
+ requireCondition(html.includes('id="study-methods-evidence"')&&
+  html.includes('data-jr-free-study-answer="v1"'),
+  publicPath+': free study-method explanation is required for the broad study question');
+ requireCondition(html.includes('https://doi.org/10.1177/1529100612453266')&&
+  html.includes('https://doi.org/10.1111/j.1467-9280.2006.01693.x'),
+  publicPath+': substantive study advice must link genuine research sources');
+ requireCondition(html.includes('id="section-1"')&&html.includes('id="section-2"')&&
+  html.includes('id="weekly-plan"'),
+  publicPath+': pre-existing free BAHAR exercises must remain intact');
+ requireCondition(html.includes('max-image-preview:large')&&
+  html.includes('barname-yek-mahe-konkur-og.webp'),
+  publicPath+': free educational answer requires an appropriate real preview');
+ const sitemap=locale==='fa'?faMap:enMap;
+ requireCondition(sitemap.includes('<loc>'+BASE+'/'+locale+'/bahar/</loc><lastmod>2026-10-28</lastmod>'),
+  publicPath+': genuine study-guide changes must be reflected in the existing sitemap');
+}
+requireCondition(guideHub.includes('numberOfItems":45')&&
+ guideHub.includes('id="family-questions"'),
+ 'the original 45-guide index and its six featured questions must coexist without duplicates');
+requireCondition(faMap.includes('<loc>'+BASE+'/fa/rahnamaha/</loc><lastmod>2026-10-28</lastmod>')&&
+ enMap.includes('<loc>'+BASE+'/en/my-path/</loc><lastmod>2026-10-28</lastmod>'),
+ 'both language pathway hubs need real published revision dates');
 
 console.log('Audited '+checked+' bilingual standard/VIP pages, two intake routes and the public catalogue bridge.');
 if(errors.length){
