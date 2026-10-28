@@ -131,7 +131,7 @@ jobs:
           node --check scripts/bertina-phased-release-gate.mjs
           node --test tests/bertina-phased-release-gate.test.mjs
           node scripts/bertina-phased-release-gate.mjs
-          echo "Guarded current-snapshot mode. PDF installation, general SQL migrations, payouts and full 41/21 certification remain deferred; the owner authorized only the narrow Webster one-copy migration." >> "$GITHUB_STEP_SUMMARY"
+          echo "Guarded current-snapshot mode. PDF installation, SQL migrations, payouts, full 41/21 certification remain deferred." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Capture the live release fingerprint for automatic deployment
         if: github.event_name == 'push'
@@ -262,9 +262,6 @@ jobs:
           php tests/bertina-receipt-contract.php
           php tests/bertina-commerce-callback-contract.php
           php tests/bertina-commerce-mysql-contract.php
-          # Owner-only, additive and repeat-safe Webster inventory acceptance.
-          # Uses ONLY the disposable CI MySQL service, never Bertina production.
-          php tests/bertina-owner-webster-stock-mysql.php
           php tests/bertina-donations-mysql-contract.php
           php tests/bertina-student-support-contract.php
           php -l scripts/journal-ojs-preflight.php
@@ -396,9 +393,7 @@ jobs:
           HOSTING_GATE_SOURCE="$(tail -n +2 scripts/bertina-hosting-managed-release.php)"
           RECOVERY_GATE_SOURCE="$(tail -n +2 scripts/bertina-private-recovery-gate.php)"
           CONTROLLED_GATE_SOURCE="$(tail -n +2 scripts/bertina-controlled-cpanel-gate.php)"
-          WEBSTER_INSTALL_SOURCE="$(tail -n +2 scripts/bertina-owner-webster-stock-on-deploy.php)"
           test -n "$HOSTING_GATE_SOURCE"
-          test -n "$WEBSTER_INSTALL_SOURCE"
           BACKUP_REQUEST_B64=''
           [[ "$RECOVERY_MODE" = hosting_managed || "$RECOVERY_MODE" = signed_restore || "$RECOVERY_MODE" = owner_cpanel_custody ]]
           if [ "$RECOVERY_MODE" = signed_restore ]; then
@@ -415,7 +410,6 @@ jobs:
           $HOSTING_GATE_SOURCE
           $RECOVERY_GATE_SOURCE
           $CONTROLLED_GATE_SOURCE
-          $WEBSTER_INSTALL_SOURCE
           header('Content-Type: application/json; charset=utf-8');
           header('Cache-Control: no-store');
           header('X-Robots-Tag: noindex, noarchive');
@@ -465,8 +459,7 @@ jobs:
               echo json_encode(['ok'=>false,'error'=>'release_policy_preflight_failed','reason'=>\$reasonCode]);
               exit;
           }
-          // Scoped owner-authorized collectible initialization, then the
-          // existing fail-closed read-only schema compatibility check.
+          // Read-only database compatibility check; never backfill or migrate.
           try {
               \$cfg = require __DIR__ . '/api/config.local.php';
               if (!is_array(\$cfg)) throw new RuntimeException('private_config_missing');
@@ -476,9 +469,6 @@ jobs:
                       PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
                       PDO::ATTR_EMULATE_PREPARES => false,
                   ]);
-              // Scoped owner authorization: bootstrap a single physical
-              // collectible without replacing existing commercial records.
-              \$websterInit=drjrInstallOwnerWebsterSingleSet(\$pdo);
               \$columns = array_column(\$pdo->query('SHOW COLUMNS FROM commerce_orders')->fetchAll(), 'Field');
               foreach (['customer_email','customer_json','receipt_email_sent_at'] as \$column) {
                   if (!in_array(\$column, \$columns, true)) throw new RuntimeException('missing_commerce_column');
@@ -614,7 +604,6 @@ jobs:
               }
           }
           \$response = ['ok'=>\$ok,'commit'=>\$commit,'checked'=>\$checked,
-              'websterSingleSet'=>\$websterInit,
               'mismatch'=>array_slice(\$mismatch,0,20),'operations'=>\$operations,
               'recoveryPolicy'=>[
                 'mode'=>'$RECOVERY_MODE',
@@ -673,13 +662,6 @@ jobs:
           if(!Number.isInteger(d.checked) || d.checked < 500) throw new Error('Unexpected deployed file count: '+d.checked);
           console.log('Bertina server-side checksum verification PASS:',d.checked,'files; commit',d.commit);
           if(d.operations?.ready!==true) throw new Error('Operations schema and scoped evidence import failed');
-          if(d.websterSingleSet?.schema!=='webster-single-physical-set-v1' ||
-              !['one_set_seeded','existing_unchanged','historical_transaction_blocks_seed']
-                .includes(d.websterSingleSet.stockState))
-            throw new Error('Owner single-set inventory reconciliation did not complete');
-          console.log('Webster single-set inventory reconciliation:',d.websterSingleSet.stockState,
-            'new approved tables:',d.websterSingleSet.tablesCreated?.length??0,
-            'new optional columns:',d.websterSingleSet.columnsAdded?.length??0);
           NODE
 
       - name: Verify published bookstore and cache against this exact release
@@ -869,19 +851,6 @@ jobs:
           echo "Commerce create validation status: $code"
           node -e 'const fs=require("fs");const x=JSON.parse(fs.readFileSync("/tmp/commerce-create-probe.json","utf8"));if(x.error==="not_found"){console.error("Commerce create route is missing");process.exit(1)}console.log("Commerce create route response:",x.error||"ok")'
           test "$code" = "400" || test "$code" = "503"
-          curl -fsS --max-time 30 --resolve drjavadrezazadeh.com:443:"$ORIGIN_IP" \
-            "$HOST/api/commerce/collectible-availability" -o /tmp/webster-stock-live.json
-          node - <<'NODE'
-          const fs=require('fs');
-          const x=JSON.parse(fs.readFileSync('/tmp/webster-stock-live.json','utf8'));
-          if(x.ok!==true || x.sku!=='book:websters-third-1981' ||
-             typeof x.available!=='boolean' || typeof x.checkoutReady!=='boolean' ||
-             (x.checkoutReady && !x.available))
-            throw Error('Live one-set inventory/checkout API contract invalid');
-          console.log('Live Webster availability:',x.available,
-            '; secure payment readiness:',x.checkoutReady,
-            '(no order or payment created)');
-          NODE
 
       - name: Verify production voluntary-support readiness without creating a payment
         run: |
