@@ -120,7 +120,7 @@ def _public(row, *, include_result=False):
            "updated": row[3], "status": row[4],
            "cancel_requested": bool(row[5]),
            "started": row[6], "finished": row[7],
-           "error_code": row[8]}
+           "error_code": row[8], "preview": row[10][:100]}
     if include_result and row[9]:
         try:
             out["result"] = json.loads(row[9])
@@ -130,7 +130,7 @@ def _public(row, *, include_result=False):
 
 
 _SELECT = ("SELECT id,conversation_id,created,updated,status,cancel_requested,"
-           "started,finished,error_code,result_json FROM owner_tasks")
+           "started,finished,error_code,result_json,prompt FROM owner_tasks")
 
 
 def get(db_path, task_id):
@@ -219,9 +219,10 @@ def finish(db_path, task_id, *, result=None, error_code=None):
             # Important: do not serialize 9k+ evidence receipts without bounds.
             clipped = {k: v for k, v in result.items() if k != "tool"}
             clipped["receipt_truncated"] = True
-            output = json.dumps(clipped, ensure_ascii=False)[:16000]
-            # JSON above must remain parseable.
-            if not output.endswith("}"):
+            candidate = json.dumps(clipped, ensure_ascii=False)
+            if len(candidate) <= 16000:
+                output = candidate
+            else:
                 output = json.dumps({"answer": str(result.get("answer", ""))[:6000],
                                      "state": str(result.get("state", "UNKNOWN")),
                                      "receipt_truncated": True}, ensure_ascii=False)
