@@ -73,6 +73,7 @@ h1{font-size:29px;line-height:1.3;margin:16px 0 6px;font-weight:650}p{margin:.5e
 @media(prefers-reduced-motion:reduce){.conversation{scroll-behavior:auto}.sidebar{transition:none}}
 a.skip-link{position:fixed;top:-120px;right:14px;z-index:1000;padding:10px 16px;border:2px solid var(--accent);border-radius:10px;background:var(--panel);color:var(--text)}a.skip-link:focus{top:12px}
 .imagePanel{border:1px solid #574932;border-radius:12px;padding:13px;background:#24221e;display:grid;gap:7px}.imagePanel label{font-size:11px;color:#e0c795}.imagePanel input,.imagePanel select,.imagePanel textarea{width:100%;border:1px solid #504735;border-radius:8px;background:#15181c;color:#eee;padding:8px;font:inherit;min-height:36px}.imagePanel input{direction:auto}.imagePanel .imageJob{border-top:1px solid #534a3b;padding:10px 0;font-size:11px}.imagePanel .imageJob img{display:block;max-width:100%;height:auto;border-radius:8px;margin:6px 0;border:1px solid #464039}.imagePanel button{border:1px solid #66543a;border-radius:8px;padding:7px 10px;background:#2d2921;color:#edcf9d}.imagePanel .imageActions{display:flex;gap:8px;flex-wrap:wrap}.imagePanel .imageActions button{flex:1 0 auto}.imagePanel .imageDisclaimer{font-size:11px;color:#bab09c}
+.gitPanel{padding:12px;border:1px solid #394958;background:#1c2429;border-radius:12px;display:grid;gap:8px}.gitPanel input{width:100%;background:#12171d;color:#e9e9eb;border:1px solid #4d5a6a;border-radius:9px;padding:8px;direction:ltr}.gitPanel button{border:1px solid #50657d;border-radius:9px;background:#263242;padding:7px 10px;color:#e9ebed}.gitPanel .readout{white-space:pre-wrap;word-break:break-word;max-height:280px;overflow:auto;font:11px/1.7 Consolas,Tahoma,sans-serif;color:#e3dfd7}.gitPanel label{font-size:11px;color:#c9d7e8}
 </style>
 </head>
 <body>
@@ -159,6 +160,20 @@ a.skip-link{position:fixed;top:-120px;right:14px;z-index:1000;padding:10px 16px;
   <button id="imageGenerate" type="button">ثبت دستور تولید تصویر در JREI</button>
   <button id="imageRefresh" type="button">نمایش وضعیت و تصاویر</button>
   <div id="imageJobs" aria-live="polite">هنوز خروجی قابل نمایش ثبت نشده است.</div>
+ </section>
+ <h2>اتصال مستقل JREI به GitHub و سایت</h2>
+ <section class="gitPanel" aria-label="GitHub operator">
+  <p>خود JREI وضعیت مخزن و گزارش پایش سایت را بدون اشتراک ChatGPT می‌خواند. انتشار سایت از مسیر یک‌کلیکی قبلی شما جدا می‌ماند. نوشتن در GitHub فقط با دسترسی محدود و تأیید صریح مالک انجام می‌شود.</p>
+  <button id="gitStatus" type="button">بررسی اتصال واقعی GitHub</button>
+  <button id="gitSiteHealth" type="button">آخرین گزارش موتور پایش سایت</button>
+  <label for="gitPath">فایل مجاز برای بررسی در مخزن اصلی</label>
+  <input id="gitPath" value="platform/jrei-python/jrei_service/windows_owner_agent.py" maxlength="200">
+  <button id="gitRead" type="button">مطالعهٔ فایل از GitHub</button>
+  <label for="gitReceipt">شناسهٔ اصلاح کد در محیط ایزوله</label>
+  <input id="gitReceipt" placeholder="YYYYMMDDTHHMMSSZ-xxxxxxxxxxxx" maxlength="40">
+  <p>ثبت کد بازبینی‌شده در GitHub بدون انتشار سایت؛ پیش از تأیید، نسخهٔ فعلی شاخه باید مشاهده شود. هیچ کدی به صورت خودکار وارد سایت زنده نمی‌شود.</p>
+  <button id="gitCommit" type="button">ثبت اصلاح تأییدشده در مخزن</button>
+  <pre id="gitOutput" class="readout" aria-live="polite">اتصال هنوز از ویندوز بررسی نشده است.</pre>
  </section>
  <h2>اسناد خصوصی ویندوز</h2><div id="documents"></div>
  <h2>رویدادهای ثبت‌شده</h2><div class="trace" id="events"></div></section>
@@ -534,6 +549,49 @@ $('imageGenerate').onclick=async()=>{
      await refreshImages()}catch(e){toast(e.message)}
 };
 $('imageRefresh').onclick=()=>refreshImages();
+
+
+let githubObservedHead=null;
+async function githubStatus(){
+ try{
+  const result=await api('/api/github/status');
+  githubObservedHead=result.state==='REMOTE_HEAD_OBSERVED'?result.head_sha:null;
+  $('gitOutput').textContent='وضعیت: '+result.state+'\nمخزن: '+result.repository+
+   '\nشاخه: '+result.branch+'\nHEAD: '+(result.head_sha||'تأییدنشده')+
+   '\nمجوز GitHub: '+(result.token_configured?'پیکربندی شده':'ثبت نشده')+
+   '\nانتشار سایت: غیرمجاز';
+ }catch(e){githubObservedHead=null;$('gitOutput').textContent='اتصال: '+e.message}
+}
+$('gitStatus').onclick=()=>githubStatus();
+$('gitSiteHealth').onclick=async()=>{
+ try{
+  const result=await api('/api/github/site-governor');
+  $('gitOutput').textContent='آخرین پایش GitHub (نه سلامت دیتابیس خصوصی):\n'+
+    JSON.stringify(result,null,2);
+ }catch(e){toast(e.message)}
+};
+$('gitRead').onclick=async()=>{
+ try{
+  const result=await api('/api/github/source?path='+encodeURIComponent($('gitPath').value.trim()));
+  $('gitOutput').textContent='SOURCE: '+result.path+'\nSHA256: '+result.sha256+
+   '\nفقط پیش‌نمایش (نه مطالعهٔ کامل):\n'+result.excerpt;
+ }catch(e){toast(e.message)}
+};
+$('gitCommit').onclick=async()=>{
+ const receipt_id=$('gitReceipt').value.trim();
+ if(!githubObservedHead){toast('ابتدا وضعیت واقعی GitHub را بررسی کنید.');return}
+ if(!/^\d{8}T\d{6}Z-[0-9a-f]{12}$/.test(receipt_id)){
+  toast('شناسهٔ رسید اصلاح ایزوله معتبر نیست.');return;
+ }
+ if(!confirm('آیا این اصلاح محلی را بازبینی کرده‌اید و می‌خواهید فقط در مخزن GitHub ثبت شود؟ سایت منتشر نمی‌شود.'))return;
+ try{
+  const result=await api('/api/github/owner-reviewed-patch',{
+   receipt_id,expected_head_sha:githubObservedHead,confirm:true});
+  githubObservedHead=null;
+  $('gitOutput').textContent=JSON.stringify(result,null,2);
+  toast('نتیجهٔ واقعی GitHub ثبت شد. انتشار سایت انجام نشده است.');
+ }catch(e){githubObservedHead=null;toast(e.message)}
+};
 
 $('agendaAdd').onclick=async()=>{
  const question=$('agendaQuestion').value.trim();
