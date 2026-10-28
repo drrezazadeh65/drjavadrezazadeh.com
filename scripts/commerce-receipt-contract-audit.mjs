@@ -37,11 +37,13 @@ for(const [source,needle,label] of [
 
 for(const [needle,why] of [
  ["const API='/api'",'book client must use same-origin Bertina API'],
+ ["let singleCopyPaymentReady=false",'single-copy payment readiness must initialise fail-closed'],
+ ["checkoutReadyForSelection=bookPaymentReady||",'limited item checkout must retain verified legacy capability'],
  ["let bookPaymentReady=false",'payment must initialise fail-closed'],
  ["let deliveryCaptureReady=false",'order capture must initialise fail-closed'],
  ["health.capabilities?.books===true",'generic checkout cannot authorise book payment'],
  ["health.orderCapture===true",'non-monetary capture must have an explicit capability'],
- ["bookPaymentReady?'/api/commerce/create':'/api/commerce/prepare'",'order-only flow must never create payment'],
+ ["checkoutReadyForSelection?'/api/commerce/create':'/api/commerce/prepare'",'order-only flow must never create payment'],
  ["btn.disabled=!canCapture",'order submission must require capture readiness']
 ])requireSource(checkout,needle,why);
 
