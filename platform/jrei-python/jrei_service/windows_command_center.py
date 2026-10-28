@@ -61,7 +61,15 @@ PORT = 8092
 PRIVATE = Path(os.environ.get("LOCALAPPDATA", Path.home())) / "JREI" / "command-center"
 TOKEN_PATH = PRIVATE / "owner-token"
 DB_PATH = PRIVATE / "missions.sqlite3"
-REPO = Path(os.environ.get("LOCALAPPDATA", Path.home())) / "JREI-Python" / "repo"
+# The offline one-EXE Windows distribution embeds its own matching, tracked
+# source snapshot for read-only source study. The owner's older Git checkout
+# and its uncommitted worker edits remain untouched. Non-frozen Python keeps
+# using the original canonical per-user repository path.
+REPO = (
+    Path(sys.executable).resolve().parent.parent / "source"
+    if getattr(sys, "frozen", False) else
+    Path(os.environ.get("LOCALAPPDATA", Path.home())) / "JREI-Python" / "repo"
+)
 JOBS = {
     "seo_audit": ("SEO audit", ["node", "scripts/seo-regression.mjs"], 105),
     "geo_audit": ("GEO audit", ["node", "scripts/master-semantic-geo-audit.mjs"], 75),
@@ -545,10 +553,18 @@ def scheduler():
                         "NATIVE_PROCEDURAL_SOURCE_READY_UNTESTED") and eligible:
                     job_id = image_studio.claim(DB_PATH)
                     if job_id is not None:
-                        args = [sys.executable, "-m",
-                                "jrei_service.windows_site_image_studio",
-                                "--render", job_id, "--private", str(PRIVATE),
-                                "--owner-queued"]
+                        if getattr(sys, "frozen", False):
+                            # Do not launch a nonexistent Python interpreter
+                            # from a PyInstaller EXE. Reuse the same original
+                            # owner-queued renderer within the frozen binary.
+                            args = [sys.executable, "--render-owner-image",
+                                    "--render", job_id, "--private",
+                                    str(PRIVATE), "--owner-queued"]
+                        else:
+                            args = [sys.executable, "-m",
+                                    "jrei_service.windows_site_image_studio",
+                                    "--render", job_id, "--private",
+                                    str(PRIVATE), "--owner-queued"]
                         try:
                             subprocess.Popen(
                                 args, cwd=REPO / "platform" / "jrei-python",
