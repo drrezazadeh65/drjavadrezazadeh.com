@@ -19,6 +19,7 @@ import time
 from jrei_service.owner_candidate_pipeline import SENSITIVE
 from jrei_service.windows_workspace import develop, rollback, requested_path
 from jrei_service.windows_project_workflows import requested as wants_project_workflow, run as investigate_project
+from jrei_service.windows_project_generator import generate as generate_project
 
 MAX_MESSAGE = 9000
 MAX_HISTORY = 10
@@ -28,6 +29,9 @@ SAFE_ROOTS = ("platform/", "scripts/", "docs/", "assets/", "api/")
 SAFE_SUFFIXES = frozenset((".py", ".mjs", ".js", ".md", ".txt", ".css", ".html", ".json", ".ps1", ".sql"))
 EXCLUDE_PARTS = frozenset((".git", "node_modules", "vendor", "private", "secrets", "credentials", "backup", "backups", "cache", "__pycache__"))
 WRITE_VERBS = re.compile(r"(اصلاح|تغییر|ویرایش|بازنویسی|کدنویسی|پیاده.?سازی|توسعه بده|edit|modify|rewrite|fix code|implement|patch)", re.I)
+CREATE_PROJECT_VERBS = re.compile(
+    r"((?:کد|اسکریپت|برنامه|پروژه|فایل پایتون).{0,70}(?:بساز|ایجاد کن|بنویس|تولید کن|ذخیره کن)|"
+    r"(?:create|write|build|generate).{0,70}(?:script|program|code|project|source file))", re.I)
 READ_VERBS = re.compile(r"(بخوان|باز کن|نمایش بده|نشان بده|محتوای|read|open file|show file|explain file)", re.I)
 SEARCH_VERBS = re.compile(r"(بگرد|جستجو|جست.?وجو|پیدا کن|بیاب|search|find|locate|where is|کجاست)", re.I)
 LIST_VERBS = re.compile(r"(فهرست فایل|لیست فایل|فایل.?ها را لیست|list files|show files)", re.I)
@@ -298,6 +302,8 @@ def pick_tool(command: str) -> tuple[str, dict] | None:
         if requested_path(s) != path:
             return "unsupported", {}
         return "edit_local", {"target": path, "objective": s[:1500]}
+    if CREATE_PROJECT_VERBS.search(s) and not path:
+        return "generate_project", {"objective": s[:1800]}
     if re.search(r"(بازگردان|برگردان|rollback|revert)", s, re.I) and RECEIPT_PATTERN.search(s):
         return "rollback_local", {"receipt_id": RECEIPT_PATTERN.search(s).group(0)}
     if path and READ_VERBS.search(s):
@@ -380,6 +386,10 @@ def _tool_output(tool: str, args: dict, *, repo: Path, private: Path, db_path: P
         return "READ_ONLY", memory_search(db_path, args["query"])
     if tool == "draft_document":
         return "LOCAL_DRAFT_CREATED", draft_document(private, args["objective"], model_reply)
+    if tool == "generate_project":
+        receipt = generate_project(private=private, objective=args["objective"],
+                                   model_reply=model_reply)
+        return receipt["state"], json.dumps(receipt, ensure_ascii=False)
     if tool == "mission":
         result = run_directive(args["directive"])
         return str(result.get("state", "UNKNOWN")), str(result.get("detail", ""))
@@ -437,20 +447,25 @@ def interact(*, db_path: Path, repo: Path, private: Path, ident: str, message: s
                          "receipt": raw[:MAX_TOOL_OUTPUT],
                          "steps": receipt["steps"]}}
     choice = pick_tool(message)
-    if choice and choice[0] in ("edit_local", "rollback_local"):
+    if choice and choice[0] in ("edit_local", "rollback_local", "generate_project"):
         tool, arguments = choice
         action_id = secrets.token_urlsafe(28)
         with closing(_db(db_path)) as db:
             db.execute("INSERT INTO owner_pending VALUES(?,?,?,?,?)",
                        (action_id, ident, int(time.time()), tool, json.dumps(arguments, ensure_ascii=False)))
             db.commit()
-        answer = ("برای اعمال تغییر فقط در فضای توسعه محلی ویندوز، تأیید شما لازم است. "
-                  "هیچ تغییری در مخزن اصلی، GitHub یا سایت منتشرشده انجام نمی‌شود."
-                  if tool == "edit_local" else
-                  "برای بازگردانی همان نسخه در فضای توسعه محلی، تأیید کنید.")
+        answer = (
+            "برای ایجاد فایل‌های واقعی کد در پوشه خصوصی JREI روی ویندوز، "
+            "تأیید شما لازم است. کد صرفاً ذخیره می‌شود؛ اجرا یا منتشر نمی‌شود."
+            if tool == "generate_project" else
+            "برای اعمال تغییر فقط در فضای توسعه محلی ویندوز، تأیید شما لازم است. "
+            "هیچ تغییری در مخزن اصلی، GitHub یا سایت منتشرشده انجام نمی‌شود."
+            if tool == "edit_local" else
+            "برای بازگردانی همان نسخه در فضای توسعه محلی، تأیید کنید.")
         _add(db_path, ident, "assistant", answer, tool, "AWAITING_CONFIRMATION")
         return {"conversation_id": ident, "answer": answer, "state": "AWAITING_CONFIRMATION",
-                "pending": {"id": action_id, "tool": tool, "target": arguments.get("target", arguments.get("receipt_id"))}}
+                "pending": {"id": action_id, "tool": tool,
+                            "target": arguments.get("target", arguments.get("receipt_id", arguments.get("objective", "LOCAL"))[:110])}}
     if choice:
         tool, arguments = choice
         try:
