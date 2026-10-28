@@ -417,8 +417,12 @@ def interact(*, db_path: Path, repo: Path, private: Path, ident: str, message: s
     prompt = [{"role": x["role"], "content": x["content"][:3300]}
               for x in history[-MAX_HISTORY:] if x["role"] in ("user", "assistant")]
     try:
-        answer = str(model_reply(prompt, max_tokens=850)["answer"])[:MAX_MESSAGE]
-        state = "ANSWERED_LOCAL_MODEL"
+        result = model_reply(prompt, max_tokens=850)
+        answer = str(result["answer"])[:MAX_MESSAGE]
+        quality = result.get("quality", "ACCEPTED")
+        state = ("QUALITY_REJECTED" if quality == "REJECTED_REPETITION" else
+                 "ANSWERED_LOCAL_MODEL_REGENERATED" if quality == "REGENERATED" else
+                 "ANSWERED_LOCAL_MODEL")
     except (OSError, ValueError, RuntimeError) as exc:
         answer = "مدل محلی در حال حاضر پاسخ نمی‌دهد. گفت‌وگو ذخیره شد، اما هیچ عملیات خارجی انجام نشده است."
         state = f"MODEL_UNAVAILABLE:{exc.__class__.__name__}"

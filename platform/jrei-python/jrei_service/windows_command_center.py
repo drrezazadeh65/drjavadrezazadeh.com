@@ -28,6 +28,7 @@ import urllib.error
 from jrei_service.owner_candidate_pipeline import stage_candidate
 from jrei_service.ci_observer import observe_ci
 from jrei_service import windows_owner_agent as owner_agent
+from jrei_service.windows_response_quality import has_repetition_loop
 from urllib.parse import parse_qs, urlsplit
 
 HOST = "127.0.0.1"
@@ -200,6 +201,9 @@ def reply(messages, max_tokens=320):
               "You are JREI, the owner's private Windows AI assistant for education, "
               "research, writing, site development, SEO, news and project administration. "
               "Respond in the owner's language and prefer useful, concrete work. "
+              "For a short yes/no or capability question, answer directly in one or "
+              "two sentences. Do not pad an answer with examples or lists unless "
+              "requested. Avoid repeated words and filler. "
               "Keep the owner's academic voice in English writing. "
               "Never claim an action executed without a receipt. "
               "This Windows agent has bounded local tools for source search, private "
@@ -219,24 +223,78 @@ def reply(messages, max_tokens=320):
         if not isinstance(value, str) or len(value) > 3500:
             raise ValueError("JREI_CHAT_LENGTH_INVALID")
         clean.append({"role": msg["role"], "content": value})
-    payload = json.dumps({
-        "model": model, "messages": clean, "max_tokens": max_tokens,
-        "temperature": 0.35, "stream": False,
-        "chat_template_kwargs": {"enable_thinking": False},
-    }, ensure_ascii=False).encode("utf-8")
-    request = urllib.request.Request(
-        base + "/v1/chat/completions", payload,
-        headers={"Content-Type": "application/json", "User-Agent": "JREI-Owner-Console"},
-        method="POST")
-    with urllib.request.urlopen(request, timeout=115) as response:
-        result = json.loads(response.read(180000))
-    choices = result.get("choices", [])
-    answer = choices[0].get("message", {}).get("content") if choices else None
-    if not isinstance(answer, str) or not answer.strip():
-        raise RuntimeError("JREI_LOCAL_MODEL_EMPTY_ANSWER")
-    return {"answer": answer.strip(), "model": model,
+    # The current private GPU uses llama.cpp's OpenAI-compatible endpoint.
+    # Sampling penalties are per-request and never change model files,
+    # inference tasks, site code or GPU/CPU launch parameters.
+    def one_completion(*, retry: bool):
+        settings = {
+            "model": model, "messages": clean, "stream": False,
+            "max_tokens": min(max_tokens, 520) if retry else max_tokens,
+            "temperature": 0.75 if retry else 0.60,
+            "top_p": 0.85 if retry else 0.90,
+            "repeat_penalty": 1.18 if retry else 1.12,
+            "repeat_last_n": 192 if retry else 128,
+            "frequency_penalty": 0.40 if retry else 0.20,
+            "presence_penalty": 0.50 if retry else 0.30,
+            "chat_template_kwargs": {"enable_thinking": False},
+        }
+        if retry:
+            settings["messages"] = [
+                *clean[:1],
+                {"role": "system", "content":
+                 "Previous draft failed a deterministic repetition check. "
+                 "Answer the last user request anew, briefly and precisely. "
+                 "Never fill space with repeated words, repeated lists or filler. "
+                 "If unsure, state uncertainty instead of generating more text."},
+                *clean[1:],
+            ]
+        payload = json.dumps(settings, ensure_ascii=False).encode("utf-8")
+        request = urllib.request.Request(
+            base + "/v1/chat/completions", payload,
+            headers={"Content-Type": "application/json",
+                     "User-Agent": "JREI-Owner-Console"}, method="POST")
+        with urllib.request.urlopen(request, timeout=115) as response:
+            result = json.loads(response.read(180000))
+        choices = result.get("choices", [])
+        answer = choices[0].get("message", {}).get("content") if choices else None
+        if not isinstance(answer, str) or not answer.strip():
+            raise RuntimeError("JREI_LOCAL_MODEL_EMPTY_ANSWER")
+        return answer.strip(), result.get("usage", {}).get("completion_tokens")
+
+    answer, tokens = one_completion(retry=False)
+    if not has_repetition_loop(answer):
+        return {"answer": answer, "model": model,
+                "backend": "GPU" if base == GPU else "CPU",
+                "quality": "ACCEPTED", "output_tokens": tokens}
+
+    # The raw pathological text is never shown, stored or logged.
+    record("model_quality", "RETRY_REPETITION", "Local model output rejected")
+    try:
+        answer, tokens = one_completion(retry=True)
+    except (OSError, ValueError, RuntimeError, urllib.error.URLError):
+        # A failed retry must not be mistaken for a successful answer.
+        record("model_quality", "REJECTED_REPETITION", "Regeneration unavailable")
+        answer = ""
+    if answer and not has_repetition_loop(answer):
+        record("model_quality", "REGENERATED", "Second response passed negative screen")
+        return {"answer": answer, "model": model,
+                "backend": "GPU" if base == GPU else "CPU",
+                "quality": "REGENERATED", "output_tokens": tokens}
+
+    record("model_quality", "REJECTED_REPETITION", "Regeneration remained repetitive")
+    is_persian = any("\u0600" <= c <= "\u06ff" for msg in clean
+                     if msg.get("role") == "user"
+                     for c in msg.get("content", "")[:160])
+    fallback = (
+        "پاسخ تولیدشده به دلیل تکرار بی‌معنا رد شد. برای جلوگیری از نمایش "
+        "متن نامعتبر، آن پاسخ ذخیره نشد. لطفاً درخواست را دوباره ارسال کنید."
+        if is_persian else
+        "The local model repeated itself. I rejected the invalid output "
+        "instead of presenting it as a valid answer. Please retry your request."
+    )
+    return {"answer": fallback, "model": model,
             "backend": "GPU" if base == GPU else "CPU",
-            "output_tokens": result.get("usage", {}).get("completion_tokens")}
+            "quality": "REJECTED_REPETITION", "output_tokens": None}
 
 
 def execute(job: str):
