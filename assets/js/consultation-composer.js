@@ -44,9 +44,68 @@
           requestedServiceDetails.appendChild(paragraph);
         });
     }
+    async function applyRequestedVip(vipId){
+      // VIP deep links are public package identifiers, not a booking or
+      // entitlement. Never infer any client details from URL parameters.
+      var startedAt=revision;
+      try{
+        var responses=await Promise.all([
+          fetch('/assets/data/vip-catalog.json',{cache:'no-store'}),
+          fa?Promise.resolve(null):fetch('/assets/data/vip-descriptions-en.json',{cache:'no-store'})
+        ]);
+        if(!responses[0].ok||(!fa&&!responses[1].ok))return;
+        var catalogue=await responses[0].json();
+        var localized=fa?null:await responses[1].json();
+        var vip=(catalogue.services||[]).find(function(item){
+          return item.id===vipId&&item.sellable===true&&
+            typeof item.title_fa==='string'&&item.title_fa.trim();
+        });
+        var translated=fa?null:localized?.services?.[vipId];
+        if(!vip||(!fa&&(localized.language!=='en'||typeof translated!=='string'||
+          !translated.trim()))||revision!==startedAt||!preview.hidden)return;
+        var select=form.elements.namedItem('service');
+        if(!select)return;
+        var title=fa?vip.title_fa:translated;
+        var option=Array.from(select.options).find(function(item){
+          return item.value===title;
+        });
+        if(!option){
+          option=document.createElement('option');
+          option.value=title;
+          option.textContent=title;
+          option.dataset.serviceId='vip:'+vipId;
+          select.appendChild(option);
+        }
+        select.value=option.value;
+        requestedServiceValue=option.value;
+        // The public VIP catalogue gives only a name, price and booking
+        // requirement. Do not invent session counts, outcomes or acceptance.
+        var display={
+          title_fa:vip.title_fa,
+          price:vip.price,
+          fit_fa:'درخواست بررسی تناسب بسته اختصاصی با مسئله شما، پس از استعلام ظرفیت.',
+          outcome_fa:'خروجی دقیق فقط پس از توافق مکتوب و تأیید امکان اجرا مشخص می‌شود.',
+          boundary_fa:'قیمت و انتخاب بسته به معنی رزرو، پذیرش پرونده یا تأیید پرداخت نیست.'
+        };
+        var english=fa?null:{
+          title:translated,
+          fit:'A scoped VIP enquiry subject to suitability and capacity review.',
+          outcome:'Exact deliverables require a written agreement before payment.',
+          boundary:'The listed fee does not confirm booking, availability or settlement.'
+        };
+        renderRequestedService(display,english);
+        status.textContent=fa
+          ?'بسته VIP از کاتالوگ رسمی انتخاب شد؛ پیش از پرداخت، ظرفیت، تعداد جلسات، خروجی، زمان تحویل و لغو باید کتبی تأیید شوند.'
+          :'VIP package selected from the public catalogue. Please agree on capacity, sessions, deliverables, timing and cancellation in writing before payment.';
+      }catch(_){ /* Never disable the separate ordinary email request path. */ }
+    }
     async function applyRequestedService(){
       var requested=new URLSearchParams(location.search).get('service');
-      if(!requested||!/^[a-z][a-z0-9_]{2,63}$/.test(requested))return;
+      if(!requested)return;
+      // Shared with the consented-intake catalogue's existing VIP selector.
+      var vipMatch=/^vip:([a-z][a-z0-9-]{2,63})$/.exec(requested);
+      if(vipMatch){ await applyRequestedVip(vipMatch[1]); return; }
+      if(!/^[a-z][a-z0-9_]{2,63}$/.test(requested))return;
       // Catalogue and English copy are public descriptions, never payment,
       // booking or entitlement proof. Manual choices always take precedence.
       var startedAt=revision;
