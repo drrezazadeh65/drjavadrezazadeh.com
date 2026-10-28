@@ -152,3 +152,21 @@
  .jr-decision-guide .jr-case-study ol{padding-inline-start:22px}
  .jr-decision-guide .jr-case-study .jr-case-boundary{padding:12px}
 }
+
+/* Service-aware guidance for a user-reviewed, no-storage enquiry form. */
+[data-consultation-composer] .jr-intake-scope-hint{
+ margin:12px 0 18px;
+ padding:12px 15px;
+ background:#30281b;
+ color:#f7e8c6;
+ border-inline-start:3px solid #e7c17e;
+ border-radius:10px;
+ line-height:1.9;
+ font-size:clamp(14px,1.55vw,16px);
+ overflow-wrap:anywhere;
+}
+@media(max-width:600px){
+ [data-consultation-composer] .jr-intake-scope-hint{
+  margin:10px 0 15px;padding:12px;
+ }
+}
