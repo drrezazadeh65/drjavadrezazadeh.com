@@ -606,9 +606,13 @@ for(const route of ['/fa/shop/','/en/shop/']){
     await page.goto(base+route,{waitUntil:'domcontentloaded'});
     await page.waitForTimeout(320);
     const cards=page.locator('[data-book-catalog] .book-product-card');
-    await expect(cards).toHaveCount(4);
+    // Three canonical printed books, one digital PDF offer and exactly one
+    // indivisible two-volume Webster collectible: five distinct products.
+    await expect(cards).toHaveCount(5);
+    await expect(page.locator('[data-book-catalog] .jr-one-copy')).toHaveCount(1);
+    await expect(page.locator('[data-book-catalog] .jr-digital-product-card')).toHaveCount(1);
     await expect(page.locator('[data-add-book]')).toHaveCount(3);
-    await expect(page.locator('.book-price')).toHaveCount(4);
+    await expect(page.locator('[data-book-catalog] .book-price')).toHaveCount(5);
     await expect(page.locator('.book-pending')).toHaveCount(0);
     const body=(await page.locator('body').innerText()).replace(/\s+/g,' ');
     expect(body).toMatch(/(?:درگاه|gateway|payment)/i);
