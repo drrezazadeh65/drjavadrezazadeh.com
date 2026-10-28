@@ -39,12 +39,32 @@ concurrency:
 jobs:
   preflight:
     runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: fixture-password
+          MYSQL_DATABASE: operations_fixture
+        ports: ['3306:3306']
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -pfixture-password"
+          --health-interval=10s --health-timeout=5s --health-retries=10
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+
+      - name: Verify safe one-set MySQL stock migration in isolated CI only
+        env:
+          OPERATIONS_TEST_DSN: mysql:host=127.0.0.1;port=3306;dbname=operations_fixture;charset=utf8mb4
+          OPERATIONS_TEST_USER: root
+          OPERATIONS_TEST_PASSWORD: fixture-password
+        run: |
+          php -l scripts/bertina-owner-webster-stock-on-deploy.php
+          php tests/bertina-owner-webster-stock-mysql.php
+          echo "PASS: isolated CI MySQL stock bootstrapping and no double selling; live Bertina unchanged."
 
       - name: Verify safe public data projections
         run: node scripts/build-public-data.mjs --check
