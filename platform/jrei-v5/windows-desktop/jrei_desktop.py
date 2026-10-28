@@ -1577,6 +1577,11 @@ class Desktop:
                     else "اندازه‌گیری نشده")
         cpu_text = (str(cpu) if type(cpu) is int else "اندازه‌گیری نشده")
         existing = report.get("machine_id") == "EXISTING_NODE_ID_PRESENT"
+        adapters = report.get("gpu_adapter_names_observed")
+        gpu_text = (", ".join(str(name)[:90] for name in adapters[:4])
+                    if isinstance(adapters, list) and all(
+                        isinstance(name, str) for name in adapters[:4])
+                    else "اندازه‌گیری نشده")
         parts = [
             labels.get(report.get("state"), "وضعیت دستگاه نیازمند بازبینی است."),
             "حافظهٔ فیزیکی فعلی: " + ram_text,
@@ -1591,7 +1596,8 @@ class Desktop:
                 ("وظیفهٔ قبلی مشاهده شد" if report.get(
                     "original_command_center_task_present") is True
                  else "هنوز روی این دستگاه ثبت نشده"),
-            "GPU و کیفیت مدل: هنوز احراز نشده",
+            "کارت‌های گرافیک گزارش‌شده توسط ویندوز: " + gpu_text,
+            "سازگاری واقعی GPU برای یادگیری: هنوز احراز نشده",
             "",
             "برای دستگاه سوم، چهارم یا پس از ارتقای RAM/GPU:"
             " ابتدا گره را در سامانهٔ اصلی با هویت مستقل ثبت و تأیید کنید."
