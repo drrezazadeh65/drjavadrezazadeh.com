@@ -17,12 +17,15 @@ import subprocess
 import time
 import uuid
 
-SUPPORTED = (".py", ".mjs", ".js")
+SUPPORTED = (".py", ".mjs", ".js", ".css", ".html", ".php")
+# HTML/CSS/PHP remain LOCAL DRAFT ONLY until separate language-specific
+# review/acceptance; no execution, syntax-validation assertion or deployment.
 ALLOWED = (
     "platform/jrei-v5/",
     "platform/news-intelligence/",
     "platform/jrei-python/jrei_learning/",
     "platform/jrei-python/jrei_orchestrator/",
+    "assets/css/",
 )
 SENSITIVE = re.compile(
     r"(?i)(-----BEGIN .*PRIVATE KEY|authorization\s*:\s*bearer|"
@@ -110,7 +113,7 @@ def stage_candidate(*, repo: Path, sandbox: Path, target: str,
             syntactic = "FAILED"
         else:
             syntactic = "PASS"
-    else:
+    elif name.suffix in (".js", ".mjs"):
         try:
             done = subprocess.run(
                 ["node", "--check", str(target_file)], shell=False,
@@ -120,6 +123,10 @@ def stage_candidate(*, repo: Path, sandbox: Path, target: str,
             syntactic = "PASS" if done.returncode == 0 else "FAILED"
         except (OSError, subprocess.TimeoutExpired):
             syntactic = "NOT_AVAILABLE"
+    else:
+        # CSS/HTML/PHP cannot be syntax-validated with node --check.
+        # Do not invoke php, browsers, external tools or network here.
+        syntactic = "NOT_AVAILABLE"
     receipt = {
         "schema": "jr.jrei.owner-isolated-candidate.v1",
         "candidate_id": candidate_id,
