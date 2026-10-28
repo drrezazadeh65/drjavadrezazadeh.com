@@ -150,6 +150,8 @@ test('CMS receipts require actual original mother DB state and both canonical fi
   assert.match(api,/publisher_state='PUBLISHED'/);
   assert.match(api,/hash_equals\(\$receipt,\$row\['publisher_receipt_reference'\]\)/);
   assert.match(api,/@hash_file\('sha256',\$path\)/);
+  assert.match(api,/hash\('sha256',\(string\)\$row\['bilingual_editorial_json'\]\)/);
+  assert.match(api,/if\(is_link\(\$ancestor\)\)/);
   assert.match(api,/is_link\(\$path\)/);
   assert.match(api,/publicHttpChecked'=>false/);
   assert.match(api,/mutationsPerformed'=>false/);
