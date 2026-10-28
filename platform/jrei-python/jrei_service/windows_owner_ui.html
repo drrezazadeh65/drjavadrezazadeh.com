@@ -221,6 +221,13 @@ a.skip-link{position:fixed;top:-120px;right:14px;z-index:1000;padding:10px 16px;
   <p>ثبت کد بازبینی‌شده در GitHub بدون انتشار سایت؛ پیش از تأیید، نسخهٔ فعلی شاخه باید مشاهده شود. هیچ کدی به صورت خودکار وارد سایت زنده نمی‌شود.</p>
   <button id="gitCommit" type="button">ثبت اصلاح تأییدشده در مخزن</button>
   <pre id="gitOutput" class="readout" aria-live="polite">اتصال هنوز از ویندوز بررسی نشده است.</pre>
+  <h3>پژوهش کدهای متن‌باز جهان برای JREI</h3>
+  <p>جستجوی مخازن GitHub فقط به درخواست شما؛ نتایج پیشنهادی‌اند، نه مجوز کپی، نصب یا اجرای کد. پیش از بومی‌سازی باید مجوز دقیق فایل‌ها و وابستگی‌ها بررسی شود.</p>
+  <label for="openSourceQuery">چه قابلیتی برای JREI جستجو شود؟</label>
+  <input id="openSourceQuery" maxlength="75" placeholder="Python document parsing" autocomplete="off">
+  <button id="openSourceSearch" type="button">یافتن کدهای آزاد برای بررسی</button>
+  <button id="openSourceCatalog" type="button">کدهای بررسی‌شده و بومی‌شده</button>
+  <div id="openSourceResults" class="readout" aria-live="polite">هنوز جستجوی خارجی انجام نشده است.</div>
  </section>
  <h2>اسناد خصوصی ویندوز</h2><div id="documents"></div>
  <h2>رویدادهای ثبت‌شده</h2><div class="trace" id="events"></div></section>
@@ -709,6 +716,45 @@ async function githubStatus(){
    '\nانتشار سایت: غیرمجاز';
  }catch(e){githubObservedHead=null;$('gitOutput').textContent='اتصال: '+e.message}
 }
+function renderSourceResults(result){
+ const root=$('openSourceResults');root.replaceChildren();
+ if(result.state==='GITHUB_PUBLIC_RATE_BUDGET_DEFERRED'){
+  root.textContent='محدودیت موقت درخواست GitHub؛ چند ثانیه بعد دوباره تلاش کنید.';
+  return;
+ }
+ root.append(el('p','','وضعیت: '+String(result.state||'NOT_READY')+
+  ' · فقط مشخصات مخزن؛ بدون دانلود یا نصب.'));
+ const list=Array.isArray(result.items)?result.items:
+  Array.isArray(result.repositories)?result.repositories:[];
+ for(const candidate of list.slice(0,12)){
+  const row=el('div','documentRow');
+  row.append(el('strong','',String(candidate.repository||'')+' · '+String(
+   candidate.license_reported_by_github||candidate.status||'مجوز بررسی نشده')));
+  if(candidate.description)row.append(el('p','',String(candidate.description).slice(0,260)));
+  if(candidate.url&&/^https:\/\/github\.com\/[\w.-]+\/[\w.-]+$/.test(candidate.url)){
+   const link=el('a','','مشاهدهٔ مخزن اصلی');
+   link.href=candidate.url;link.target='_blank';link.rel='noopener noreferrer';
+   row.append(link);
+  }
+  root.append(row);
+ }
+ if(!list.length)root.append(el('p','','مخزن واجد شرایط اولیه در این جستجو پیدا نشد.'));
+}
+$('openSourceSearch').onclick=async()=>{
+ const q=$('openSourceQuery').value.trim();
+ if(q.length<3||q.length>75){toast('عبارت جستجو باید ۳ تا ۷۵ نویسه باشد.');return}
+ const btn=$('openSourceSearch');btn.disabled=true;
+ $('openSourceResults').textContent='در حال دریافت مشخصات مخازن از GitHub…';
+ try{
+  const result=await api('/api/open-source/search?q='+encodeURIComponent(q));
+  renderSourceResults(result);
+ }catch(e){$('openSourceResults').textContent='جستجو انجام نشد: '+e.message}
+ finally{btn.disabled=false}
+};
+$('openSourceCatalog').onclick=async()=>{
+ try{renderSourceResults(await api('/api/open-source/catalog'))}
+ catch(e){$('openSourceResults').textContent='فهرست کدها قابل دریافت نیست: '+e.message}
+};
 $('gitStatus').onclick=()=>githubStatus();
 $('gitSiteHealth').onclick=async()=>{
  try{
