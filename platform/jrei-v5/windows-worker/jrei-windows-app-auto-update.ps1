@@ -63,14 +63,14 @@ function GitExit([string[]]$argsList){
 function CurrentHead{
  if(-not (Test-Path -LiteralPath $repo -PathType Container)){throw 'JREI_APP_REPO_NOT_FOUND'}
  $script:git=(Get-Command git.exe -ErrorAction Stop).Source
- $url=Git @('remote','get-url','origin')
+ $url=Git -argsList @('remote','get-url','origin')
  if($url -cne $remote -and $url -cne ($remote+'.git')){throw 'JREI_APP_WRONG_ORIGIN'}
- if((Git @('branch','--show-current')) -cne $branch){throw 'JREI_APP_WRONG_BRANCH'}
- if((GitExit @('diff','--quiet','--exit-code')) -ne 0 -or
-    (GitExit @('diff','--cached','--quiet','--exit-code')) -ne 0){
+ if((Git -argsList @('branch','--show-current')) -cne $branch){throw 'JREI_APP_WRONG_BRANCH'}
+ if((GitExit -argsList @('diff','--quiet','--exit-code')) -ne 0 -or
+    (GitExit -argsList @('diff','--cached','--quiet','--exit-code')) -ne 0){
    throw 'JREI_APP_LOCAL_TRACKED_CHANGES_PRESERVED'
  }
- $sha=Git @('rev-parse','HEAD')
+ $sha=Git -argsList @('rev-parse','HEAD')
  if($sha -cnotmatch '^[0-9a-f]{40}$'){throw 'JREI_APP_HEAD_INVALID'}
  return $sha
 }
@@ -173,7 +173,11 @@ function Promote([string]$sha){
  if(-not (Test-Path -LiteralPath $py -PathType Leaf)){throw 'JREI_APP_PYTHON_MISSING'}
  $task=OwnerTask
  if($task.State -ne 'Running'){throw 'JREI_APP_COMMAND_CENTER_TASK_NOT_RUNNING'}
- if(-not (IsIdle)){Report 'WINDOWS_APP_UPDATE_DEFERRED_BUSY';return}
+ if(-not (IsIdle)){
+  Report 'WINDOWS_APP_UPDATE_DEFERRED_BUSY'
+  if($Mode -eq 'Install'){throw 'JREI_APP_OWNER_INSTALL_HELD_ACTIVE_WORK'}
+  return
+ }
  $work=Stage $sha
  $oldAction=$task.Actions[0]
  if([string]$oldAction.WorkingDirectory -ieq $work){
@@ -271,7 +275,7 @@ $state=ReadJson $installed
 # A routine source commit or model-written patch does not authorize a running
 # code swap. The one-time explicit owner Install mode remains separate.
 $approval=ReadJson (Join-Path $repo 'docs\governance\JREI_WINDOWS_OWNER_APP_APPROVED_SOURCE_V1.json')
-$tree=Git @('rev-parse','HEAD:platform/jrei-python')
+$tree=Git -argsList @('rev-parse','HEAD:platform/jrei-python')
 if(-not $approval -or
    $approval.schema -cne 'jr.jrei.windows-owner-app-approval.v1' -or
    $approval.approvedSourceTree -cne $tree -or
