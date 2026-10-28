@@ -9,6 +9,9 @@ const htmlFiles=[];
 function walk(dir){
   for(const ent of fs.readdirSync(dir,{withFileTypes:true})){
     if(ignoreDirs.has(ent.name)) continue;
+    // This Python-owned Windows desktop template is not a deployable website route.
+    // Keep the strict public SEO checks limited to pages eligible for the site build.
+    if(ent.isDirectory() && path.relative(root,path.join(dir,ent.name)).replaceAll(path.sep,'/')==='platform/jrei-python') continue;
     const p=path.join(dir,ent.name);
     if(ent.isDirectory()) walk(p);
     else if(ent.isFile() && ent.name.endsWith('.html') &&
