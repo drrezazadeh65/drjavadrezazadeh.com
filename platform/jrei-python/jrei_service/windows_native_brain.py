@@ -26,6 +26,7 @@ import re
 import secrets
 import sqlite3
 import time
+import threading
 
 SCHEMA = "jr.jrei.native-byte-language-baseline.v1"
 RIGHTS_SCOPE = "REVIEWED_PUBLIC_LESSONS_TRAINING_OWNER_APPROVED"
@@ -35,6 +36,7 @@ MAX_BYTES = 1_800_000
 ORDER = 4
 SHA = re.compile(r"^[a-f0-9]{64}$")
 _BASE = 256
+_TRAIN_LOCK = threading.Lock()
 
 
 def _db(path: Path):
@@ -57,6 +59,49 @@ def initialize(db_path: Path):
             state TEXT NOT NULL, independent_quality_verified INTEGER NOT NULL
                 DEFAULT 0)""")
         db.execute("CREATE INDEX IF NOT EXISTS jrei_native_brain_runs_time ON jrei_native_brain_runs(created DESC)")
+        db.execute("""CREATE TABLE IF NOT EXISTS jrei_native_brain_controls (
+            id INTEGER PRIMARY KEY CHECK(id=1),
+            enabled INTEGER NOT NULL DEFAULT 0,
+            training_rights_reviewed INTEGER NOT NULL DEFAULT 0,
+            changed INTEGER NOT NULL DEFAULT 0)""")
+        db.execute("""INSERT OR IGNORE INTO jrei_native_brain_controls
+            (id,enabled,training_rights_reviewed,changed)
+            VALUES(1,0,0,0)""")
+
+
+def set_continuous_training(db_path: Path, *, enabled: bool,
+                            owner_confirmed: bool,
+                            training_rights_reviewed: bool) -> dict:
+    """Only an owner-authenticated request can opt into continuous learning.
+
+    Never extends source permissions: private owner documents remain excluded.
+    This permission affects only local candidate training, not production.
+    """
+    if (type(enabled) is not bool or owner_confirmed is not True or
+            (enabled and training_rights_reviewed is not True)):
+        raise ValueError("JREI_NATIVE_TRAINING_OWNER_RIGHTS_APPROVAL_REQUIRED")
+    with closing(_db(db_path)) as db:
+        db.execute("BEGIN IMMEDIATE")
+        db.execute("""UPDATE jrei_native_brain_controls
+            SET enabled=?,training_rights_reviewed=?,changed=? WHERE id=1""",
+            (int(enabled),int(enabled and training_rights_reviewed),int(time.time())))
+        db.commit()
+    return {"state":"CONTINUOUS_NATIVE_TRAINING_OPTED_IN" if enabled
+            else "CONTINUOUS_NATIVE_TRAINING_DISABLED",
+            "private_documents_used":False,
+            "network_requests":0,
+            "training_performed_by_control":False}
+
+
+def training_allowed(db_path: Path) -> bool:
+    try:
+        with closing(_db(db_path)) as db:
+            row=db.execute("""SELECT enabled,training_rights_reviewed
+                FROM jrei_native_brain_controls WHERE id=1""").fetchone()
+        return bool(row and row==(1,1))
+    except sqlite3.Error:
+        return False
+
 
 
 def _rows(db_path: Path):
@@ -177,6 +222,15 @@ def train(*, db_path: Path, private: Path, owner_approved: bool,
                 "train_samples":len(train_rows),"heldout_samples":len(held_rows),
                 "trained":False, "other_models_used":False}
     train_docs, train_sha = _canonical(train_rows)
+    # A source unchanged since the latest candidate needs no new training.
+    # This is a content-addressed learning cycle, not a fixed daily quota.
+    with closing(_db(db_path)) as db:
+        prior=db.execute("""SELECT id FROM jrei_native_brain_runs
+            WHERE train_sha256=? AND state='CANDIDATE_UNTESTED_NOT_PROMOTED'
+            ORDER BY created DESC LIMIT 1""",(train_sha,)).fetchone()
+    if prior is not None:
+        return {"state":"NATIVE_TRAINING_DATA_UNCHANGED",
+                "existing_run_id":prior[0], "trained":False}
     held_docs, held_sha = _canonical(held_rows)
     if train_sha == held_sha:
         raise ValueError("JREI_NATIVE_HELDOUT_DUPLICATES_TRAIN")
@@ -242,6 +296,23 @@ def train(*, db_path: Path, private: Path, owner_approved: bool,
             "other_models_used":False}
 
 
+def tick(db_path: Path, private: Path, *, resources_available: bool,
+         owner_active: bool) -> dict:
+    """One bounded owner-opted-in candidate training step while Windows idle."""
+    if owner_active or not resources_available:
+        return {"state":"NATIVE_TRAINING_DEFERRED"}
+    if not training_allowed(db_path):
+        return {"state":"NATIVE_TRAINING_NOT_AUTHORIZED"}
+    if not _TRAIN_LOCK.acquire(blocking=False):
+        return {"state":"NATIVE_TRAINING_ALREADY_RUNNING"}
+    try:
+        return train(db_path=db_path,private=private,owner_approved=True,
+                     training_rights_reviewed=True,
+                     resources_available=resources_available)
+    finally:
+        _TRAIN_LOCK.release()
+
+
 def snapshot(db_path: Path, private: Path):
     """Passive status; never loads or executes a model file."""
     try:
@@ -252,10 +323,12 @@ def snapshot(db_path: Path, private: Path):
                 ORDER BY created DESC,id DESC LIMIT 1""").fetchone()
         if not row:
             return {"state":"NO_NATIVE_TRAINING_RUN",
+                    "continuous_training_authorized":training_allowed(db_path),
                     "trained_general_llm":False,
                     "other_models_used":False}
         ident,created,train_sha,examples,held,bpb,baseline,state=row
         return {"state":state,"run_id":ident,"created":created,
+                "continuous_training_authorized":training_allowed(db_path),
                 "train_data_sha256":train_sha,
                 "training_examples":examples,"heldout_examples":held,
                 "heldout_bits_per_byte":bpb,
