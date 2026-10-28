@@ -18,7 +18,7 @@ import subprocess
 import sys
 import threading
 import tkinter as tk
-from tkinter import filedialog, messagebox, ttk, font as tkfont
+from tkinter import filedialog, messagebox, simpledialog, ttk, font as tkfont
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -467,6 +467,8 @@ class Desktop:
                     "edit_local", "generate_project", "rollback_local")
             ]
             self._show_approvals()
+        elif key == "draft_diff":
+            self._display_local_diff(data)
         elif key == "approval_result":
             self.approval_busy = False
             state = str(data.get("state", "UNKNOWN"))[:100]
@@ -477,6 +479,20 @@ class Desktop:
                     "\nفقط محیط خصوصی توسعه؛ هیچ انتشار سایتی انجام نشده است.",
                     parent=self.approval_dialog)
                 self._load_approvals()
+            if state == "LOCAL_CODE_WRITTEN_UNTESTED":
+                # This is a post-edit, pre-GitHub review of the exact private
+                # draft. It never grants consent to push/deploy or run code.
+                try:
+                    receipt = json.loads(
+                        (data.get("tool") or {}).get("receipt") or "{}")
+                    draft_id = receipt.get("id")
+                    if isinstance(draft_id, str) and re.fullmatch(
+                            r"\d{8}T\d{6}Z-[a-f0-9]{12}", draft_id):
+                        self.fetch("draft_diff", lambda rid=draft_id:
+                            self.api.request("/api/workspace/diff?id=" + rid))
+                except (TypeError, ValueError, json.JSONDecodeError):
+                    self.status_text.set(
+                        "پیش‌نویس ذخیره شد؛ رسید بازبینی قابل استخراج نبود.")
             if self.conversation:
                 cid = self.conversation
                 self.fetch("thread", lambda: self.api.request(
@@ -506,6 +522,11 @@ class Desktop:
                 str(error)[:300], parent=self.root)
         if key == "attachment":
             messagebox.showerror("JREI · فایل", str(error)[:500], parent=self.root)
+        if key == "draft_diff":
+            messagebox.showerror(
+                "JREI · بازبینی کد",
+                "رسید یا فایل پیش‌نویس معتبر نیست، یا محتوا پس از ایجاد تغییر کرده است.\n"
+                + str(error)[:220], parent=self.root)
         if key == "job":
             self.poll_in_flight = False
         if key == "approval_result":
@@ -712,6 +733,8 @@ class Desktop:
         controls = tk.Frame(dlg, bg=BG)
         controls.pack(fill="x", padx=18, pady=14)
         self._button(controls, "بازخوانی", self._load_approvals).pack(side="left")
+        self._button(controls, "نمایش Diff پیش‌نویس", self.show_local_diff,
+                     foreground=GOLD).pack(side="left", padx=8)
         self._button(controls, "بستن", dlg.destroy).pack(side="right")
         self._button(controls, "تأیید عملیات انتخاب‌شده",
                      self._confirm_selected, color=GOLD,
@@ -783,6 +806,70 @@ class Desktop:
             "/api/assistant/confirm",
             {"confirm": True, "conversation_id": cid,
              "action_id": action_id}))
+
+    def show_local_diff(self):
+        """Read-only review of an owner-private receipt; no patch execution."""
+        value = simpledialog.askstring(
+            "JREI · بررسی کد", "شناسهٔ رسید ویرایش محلی را وارد کنید:",
+            parent=self.root)
+        if value is None:
+            return
+        receipt = value.strip()
+        if not re.fullmatch(r"\d{8}T\d{6}Z-[a-f0-9]{12}", receipt):
+            messagebox.showwarning(
+                "JREI", "شناسهٔ رسید ویرایش معتبر نیست.", parent=self.root)
+            return
+        self.fetch("draft_diff", lambda: self.api.request(
+            "/api/workspace/diff?id=" + receipt))
+
+    def _display_local_diff(self, data):
+        """Show only authenticated, hash-verified source text; never run it."""
+        if (not isinstance(data, dict)
+                or data.get("schema") != "jr.jrei.workspace-diff-review.v1"
+                or data.get("state") != "LOCAL_DRAFT_UNTESTED_REVIEW_ONLY"
+                or data.get("production_changed") is not False
+                or data.get("github_pushed") is not False):
+            self.status_text.set("پاسخ رسید بازبینی کد معتبر نیست.")
+            return
+        receipt = str(data.get("receipt_id", ""))
+        content = str(data.get("diff", ""))[:18000]
+        if not content or not re.fullmatch(
+                r"\d{8}T\d{6}Z-[a-f0-9]{12}", receipt):
+            self.status_text.set("Diff تأییدشده‌ای برای نمایش موجود نیست.")
+            return
+        window = tk.Toplevel(self.root)
+        window.title("JREI | بازبینی پیش‌نویس، بدون اجرا یا انتشار")
+        window.geometry("900x630")
+        window.minsize(600, 370)
+        window.configure(bg=BG)
+        window.transient(self.root)
+        self._label(window, "بازبینی تغییرات کد در فضای خصوصی", fg=GOLD,
+                    bg=BG, bold=True, size=14).pack(
+                        fill="x", padx=16, pady=(14, 5))
+        metadata = ("فایل: " + str(data.get("target", ""))[:180]
+                    + "\nرسید: " + receipt
+                    + "\nSHA پیشین: " + str(data.get("before_sha256", ""))
+                    + "\nSHA جدید: " + str(data.get("after_sha256", ""))
+                    + "\nصرفاً پیش‌نویس؛ تست، Push، اجرای کد و انتشار انجام نشده.")
+        self._label(window, metadata, bg=BG, fg=MUTED, size=9,
+                    justify="left", anchor="w").pack(
+                        fill="x", padx=16, pady=(0, 8))
+        body = tk.Frame(window, bg=BG)
+        body.pack(fill="both", expand=True, padx=16, pady=4)
+        scroll = ttk.Scrollbar(body, orient="vertical")
+        reading = tk.Text(body, bg=SURFACE, fg=FG, font=self._font(10),
+                          wrap="none", relief="flat",
+                          padx=12, pady=10, yscrollcommand=scroll.set)
+        scroll.configure(command=reading.yview)
+        scroll.pack(side="right", fill="y")
+        reading.pack(side="left", fill="both", expand=True)
+        reading.insert("1.0", content)
+        reading.configure(state="disabled")
+        buttons = tk.Frame(window, bg=BG)
+        buttons.pack(fill="x", padx=16, pady=(4, 14))
+        self._button(buttons, "کپی Diff", lambda: self._copy(content),
+                     foreground=GOLD).pack(side="left")
+        self._button(buttons, "بستن", window.destroy).pack(side="right")
 
     def start_existing_engine(self):
         """Only request the ORIGINAL owner Scheduled Task, never install/replace it."""
