@@ -329,6 +329,38 @@ for(const locale of ['fa','en']){
   vipHub+': new comparison not reflected in existing canonical sitemap');
 }
 
+// Visible question-to-guide links must connect the main educational need
+// router to indexable, original articles and proportionate paid alternatives.
+const pathway=read('fa/masir-man/index.html');
+const matches=[...pathway.matchAll(/href="\/fa\/rahnamaha\/([^"\/]+)\/"/g)]
+ .map(x=>x[1]);
+for(const slug of ["chegoone-estedaad-vaghei-farzand-ra-beshenasim","barname-yek-mahe-konkur","tahlil-karname-tahsili","che-reshteyi-baraye-man-monaseb-ast","gozaresh-estedaad-va-masir-roshd","moghayese-reshteha-ba-matris-tasmim"]){
+ requireCondition(matches.includes(slug),
+  'fa/masir-man: missing direct public reading route '+slug);
+ const article=read('fa/rahnamaha/'+slug+'/index.html');
+ requireCondition(article.includes('<title>')&&
+   article.includes('application/ld+json')&&
+   article.includes('property="og:image"'),
+  'fa/masir-man: incomplete public article metadata '+slug);
+}
+requireCondition((pathway.match(/class="jr-knowledge-card"/g)||[]).length===6,
+ 'fa/masir-man: six decision explanations must be visible in static HTML');
+requireCondition(pathway.includes('id="free-guides"')&&
+ pathway.includes('href="/fa/rahnamaha/"'),
+ 'fa/masir-man: public learning guide hub must remain discoverable');
+requireCondition(pathway.includes('max-image-preview:large'),
+ 'fa/masir-man: permit rich image previews for indexable learning router');
+requireCondition(read('sitemap-fa.xml').includes(
+ '<loc>https://drjavadrezazadeh.com/fa/masir-man/</loc><lastmod>2026-10-28</lastmod>'),
+ 'fa/masir-man: sitemap lastmod needs to match new guidance');
+const journeyMarkup=pathway.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/);
+try{
+ const entities=JSON.parse(journeyMarkup?.[1]||'{}')?.['@graph']||[];
+ const collection=entities.find(x=>x['@type']==='CollectionPage');
+ requireCondition(collection?.hasPart?.length===6,
+   'fa/masir-man: CollectionPage schema must describe six visible articles');
+}catch{requireCondition(false,'fa/masir-man: invalid educational pathway JSON-LD');}
+
 console.log('Audited '+checked+' bilingual standard/VIP pages, two intake routes and the public catalogue bridge.');
 if(errors.length){
   for(const message of errors)console.error('✗ '+message);
