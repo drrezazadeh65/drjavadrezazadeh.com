@@ -766,7 +766,37 @@ for(const route of approvedPrivateExamPages){
   if(!/<meta name="robots" content="[^"]*noindex/i.test(html))
     failures.push('Private candidate exam must be noindex: '+route);
 }
-const approvedPublicHtmlRoutes=existingBaseHtmlRoutes+approvedEnglishServices.length+protectedNewRoutes.length+2+approvedEnglishVipRoutes.length+1+1+1+approvedBilingualEducationalRoutes.length*2+approvedPublicExamPages.length+approvedPrivateExamPages.length;
+// 2026-10-28: two explicitly reviewed charitable collectible detail URLs.
+// Preserve the strict fixed-count guard: adding an arbitrary HTML file must
+// still fail a production build. Verify both canonical URLs, reciprocal
+// language alternates, publication visibility and shared approved illustration.
+const approvedBilingualCollectibleRoutes=[
+  'fa/shop/collectibles/websters-third-1981/index.html',
+  'en/shop/collectibles/websters-third-1981/index.html'
+];
+const collectibleFa='https://drjavadrezazadeh.com/fa/shop/collectibles/websters-third-1981/';
+const collectibleEn='https://drjavadrezazadeh.com/en/shop/collectibles/websters-third-1981/';
+for(const route of approvedBilingualCollectibleRoutes){
+  const file=path.join(out,route);
+  if(!fs.existsSync(file)){
+    failures.push('Approved bilingual collectible route missing: '+route);
+    continue;
+  }
+  const source=fs.readFileSync(file,'utf8');
+  const ownCanonical=route.startsWith('fa/')?collectibleFa:collectibleEn;
+  for(const marker of [
+    '<link rel="canonical" href="'+ownCanonical+'">',
+    '<link rel="alternate" hreflang="fa" href="'+collectibleFa+'">',
+    '<link rel="alternate" hreflang="en" href="'+collectibleEn+'">',
+    '<meta name="robots" content="index,follow',
+    'assets/images/books/websters-third-1981-collectible-illustration.svg',
+    'application/ld+json'
+  ]){
+    if(!source.includes(marker))
+      failures.push('Approved collectible canonical, locale, media or schema contract missing: '+route);
+  }
+}
+const approvedPublicHtmlRoutes=existingBaseHtmlRoutes+approvedEnglishServices.length+protectedNewRoutes.length+2+approvedEnglishVipRoutes.length+1+1+1+approvedBilingualEducationalRoutes.length*2+approvedPublicExamPages.length+approvedPrivateExamPages.length+approvedBilingualCollectibleRoutes.length;
 
 const aiLabRoute='fa/konkur-ai-lab/index.html';
 const aiLabPath=path.join(out,aiLabRoute);
