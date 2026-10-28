@@ -1,0 +1,52 @@
+#Requires -Version 5.1
+<#
+ Single-owner-action activation orchestrator for the EXISTING JREI Windows AI.
+ Run ONLY on owner PC after code freeze and acceptance; no site deployment.
+ Reuses current repo, scheduled-task installer, original 30-min repo sync,
+ official Apache-2.0 Granite download, and existing licensed llama backend.
+ No Qwen deletion, no data wipe, no GitHub token creation, no elevated admin.
+#>
+[CmdletBinding()]
+param([ValidateSet('Install','Status')][string]$Mode='Status',
+      [switch]$OwnerApproved)
+Set-StrictMode -Version Latest
+$ErrorActionPreference='Stop'
+if($env:OS -cne 'Windows_NT'){throw 'JREI_WINDOWS_REQUIRED'}
+$repo=Join-Path $env:LOCALAPPDATA 'JREI-Python\repo'
+$scripts=Join-Path $repo 'platform\jrei-v5\windows-worker'
+$sync=Join-Path $scripts 'jrei-repo-auto-sync.ps1'
+$app=Join-Path $scripts 'jrei-windows-app-auto-update.ps1'
+$model=Join-Path $scripts 'jrei-independent-granite-startup.ps1'
+function InvokeStep([string]$file,[string]$task,[bool]$approved){
+ if(-not (Test-Path -LiteralPath $file -PathType Leaf)){
+  throw 'JREI_STEP_NOT_IN_CANONICAL_REPOSITORY'
+ }
+ $exe=Join-Path $env:SystemRoot 'System32\WindowsPowerShell\v1.0\powershell.exe'
+ $arguments=@('-NoProfile','-NonInteractive','-ExecutionPolicy','Bypass',
+              '-File',$file,'-Mode',$task)
+ if($approved){$arguments+=('-OwnerApproved')}
+ $prior=$ErrorActionPreference
+ try{
+  $ErrorActionPreference='Continue'
+  & $exe @arguments
+  $code=$LASTEXITCODE
+ }finally{$ErrorActionPreference=$prior}
+ if($code -ne 0){throw 'JREI_STEP_NOT_COMPLETED'}
+}
+if($Mode -eq 'Status'){
+ InvokeStep $app 'Check' $false
+ InvokeStep $model 'Status' $false
+ return
+}
+if(-not $OwnerApproved){throw 'JREI_OWNER_APPROVAL_REQUIRED'}
+# A first-class owner action. Existing source transfer is fast-forward only,
+# and no rollback/destructive forced checkout is permitted.
+InvokeStep $sync 'Sync' $false
+InvokeStep $app 'Install' $true
+# The official GGUF download is >=2GB; the installer blocks until its actual
+# SHA256 matches the official IBM model repository revision.
+InvokeStep $model 'Install' $true
+Write-Output '[JREI] OWNER_PRIVATE_INSTALL_SEQUENCE_COMPLETED'
+Write-Output '[JREI] GRANITE_INFERENCE_QUALITY_NOT_INDEPENDENTLY_ACCEPTED'
+Write-Output '[JREI] SECOND_PC_IS_NOT_REMOTELY_INSTALLED_BY_THIS_COMMAND'
+Write-Output '[JREI] NO_BERTINA_DEPLOY_OR_GITHUB_CREDENTIAL_CREATED'
