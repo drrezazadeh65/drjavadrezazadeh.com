@@ -56,3 +56,19 @@ No local Windows acceptance has yet been performed by this chat, and no result s
 3. The ordinary JREI command-center desktop shortcut opens the original authenticated loopback JREI app; this does not install or grant model training privileges.
 
 **Remaining truth condition:** Source readiness != model-trained != Windows-installed != website-deployed. An activated evidence-only JREI app remains useful for retrieval and controlled project work, while the native LLM must be trained and independently measured before being called capable.
+
+## 2026-10-29 dual-PC installation preparation (source only)
+
+The single canonical GitHub workflow `.github/workflows/jrei-windows-desktop-exe.yml` was corrected so future manual builds can produce a coherent native Tk/Inno Setup package. **No workflow was dispatched during this preparation.** Its eventual one downloadable artifact will contain the same UI installer for both existing Windows PCs and two identity-bound commands:
+
+- `JREI-SETUP-NODE-A.cmd`: existing signed 32-GB-class Node A only.
+- `JREI-SETUP-NODE-B.cmd`: existing signed 16-GB-class Node B only.
+- `jrei-two-pc-owner-install.ps1`: shared owner-confirmed source/identity/SHA256 acceptance gate, no second runtime.
+
+The per-node gate reads the existing owner-private signed-worker config and verifies its known node ID, RAM role, expected canonical Git origin/branch/source commit, absence of tracked modifications, a final integrated acceptance receipt for the **same Python tree**, the existing owner command-center task, and the exact SHA-256 of the downloaded GUI installer. It then reuses the existing owner-private rollback-capable `jrei-windows-app-auto-update.ps1` (only after acceptance and explicit owner selection) before opening the normal per-user Inno Setup UI. No credentials, model weights, personal documents, chat logs or second SQLite database are bundled. Installation cannot be asserted from committed source.
+
+The native Tk GUI now includes a **read-only startup GitHub package check** via the authenticated existing 8092 service. The offer appears only when the service observes a real non-expired artifact from a completed successful manual workflow run whose GitHub run ID is strictly newer than the ID embedded in the currently installed EXE. Source-head changes alone do not cause installation prompts. If the installed EXE has no trusted embedded run ID, this comparison is unavailable; do not infer a new version. The offer opens the exact GitHub workflow-run page, **not** an automatic download or arbitrary installer execution. Each PC must still review its own downloaded artifact.
+
+The owner's standing requirement for continuous open-source discovery was also attached to the **existing** 8092 scheduler as a bounded, read-only, resource-admitted mission across fifteen technical domains. Public repository metadata is not sufficient to establish source licensing, security, coding proficiency or readiness for autonomous promotion.
+
+**Outstanding release gate:** finish remaining source integration; perform the one owner-authorized integrated acceptance pass on **both** actual Windows nodes; independently confirm signed worker health and hardware; set exact evidence-backed approval; manually build the artifact; then run the appropriate one-click installer on each PC. No live installation, local device check, model training, CI test or production deployment occurred during source-only preparation.
