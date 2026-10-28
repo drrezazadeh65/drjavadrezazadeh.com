@@ -57,7 +57,8 @@ test('official bookstore styles are mobile-first without synthetic covers or ext
  assert.doesNotMatch(css,/overflow-x\s*:\s*hidden/);
  for(const locale of ['fa','en']){
   const html=source(locale+'/shop/index.html');
-  assert.match(html,/store-premium-editorial-2026\.css\?v=20261026-indexable-books-r1/);
+  assert.match(html,/store-premium-editorial-2026\.css\?v=20261028-webster-collector-r3/);
+  assert.doesNotMatch(html,/jr-collector-static-link/, 'Only one collectible representation belongs in the live catalogue');
   assert.match(html,/data-book-catalog/);
   if(locale==='fa'){
     assert.match(html,/class="book-store-hero talent-hero cinema-original-hero"/);
