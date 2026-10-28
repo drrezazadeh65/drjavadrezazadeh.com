@@ -15,7 +15,7 @@ param(
 )
 Set-StrictMode -Version Latest
 $ErrorActionPreference='Stop'
-$version='0.1.6'
+$version='0.1.7'
 $taskName='JREI-Owner-Windows-Command-Center'
 $private=Join-Path $env:LOCALAPPDATA 'JREI\command-center'
 $receipts=Join-Path $private 'install-receipts'
@@ -59,6 +59,10 @@ function TaskActionRecognized($action) {
   # releases without renaming or replacing the original owner task.
   $oldHome=[IO.Path]::GetFullPath(
     (Join-Path $env:LOCALAPPDATA 'Programs\JREI'))+[IO.Path]::DirectorySeparatorChar
+  $localAlternate=[IO.Path]::GetFullPath(
+    (Join-Path $env:LOCALAPPDATA 'JREI-Applications\releases'))+[IO.Path]::DirectorySeparatorChar
+  $profileAlternate=[IO.Path]::GetFullPath(
+    (Join-Path $env:USERPROFILE 'JREI-Applications\releases'))+[IO.Path]::DirectorySeparatorChar
   $args=[string]$action.Arguments
   $oldPython=[IO.Path]::GetFullPath(
     (Join-Path $env:LOCALAPPDATA 'JREI-Python\venv\Scripts\python.exe'))
@@ -66,7 +70,9 @@ function TaskActionRecognized($action) {
     $args -ceq '-B -m jrei_service.windows_command_center --serve')
   $isOriginalFrozen=(
     ($actual.StartsWith($home,[StringComparison]::OrdinalIgnoreCase) -or
-     $actual.StartsWith($oldHome,[StringComparison]::OrdinalIgnoreCase)) -and
+     $actual.StartsWith($oldHome,[StringComparison]::OrdinalIgnoreCase) -or
+     $actual.StartsWith($localAlternate,[StringComparison]::OrdinalIgnoreCase) -or
+     $actual.StartsWith($profileAlternate,[StringComparison]::OrdinalIgnoreCase)) -and
     $actual -imatch '[\\/]engine-v[0-9]+\.[0-9]+\.[0-9]+[\\/]JREI-Engine\.exe$' -and
     $args -ceq '--serve'
   )
