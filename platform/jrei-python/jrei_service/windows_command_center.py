@@ -755,6 +755,20 @@ class OwnerHTTP(BaseHTTPRequestHandler):
             return self._send(401, {"error": "JREI_OWNER_AUTH_REQUIRED"})
         if self.path == "/api/status":
             return self._send(200, status())
+        if self.path == "/api/resources/inventory":
+            # Explicit, authenticated owner read; observes THIS local PC
+            # on demand. Never constructs a second remote node or GPU pool.
+            # Optional installed PyTorch may probe CUDA; no training starts.
+            current = resource_envelope.observe(gpu_probe=True)
+            return self._send(200, {
+                "schema": "jr.jrei.owner-local-hardware-inventory.v1",
+                "local_node": current,
+                "remote_node_observed": False,
+                "remote_node_status": "NOT_QUERIED_BY_LOCAL_INVENTORY",
+                "cross_pc_vram_pooled": False,
+                "training_started": False,
+                "distributed_training_started": False,
+            })
         if self.path == "/api/events":
             return self._send(200, {"items": recent()})
         if self.path == "/api/profile":
