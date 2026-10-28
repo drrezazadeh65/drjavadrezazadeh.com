@@ -185,7 +185,7 @@ def _add(db_path: Path, ident: str, role: str, content: str, tool: str = "", sta
 def _safe_source(repo: Path, path: str) -> Path:
     if not isinstance(path, str) or len(path) > 180 or "\\" in path and ":" in path:
         raise ValueError("JREI_SOURCE_PATH_INVALID")
-    relative = path.replace("\\", "/").strip("'\"` ")
+    relative = path.replace("\\", "/").strip("'\"` ")
     if not relative.startswith(SAFE_ROOTS) or ".." in Path(relative).parts:
         raise ValueError("JREI_SOURCE_PATH_OUT_OF_SCOPE")
     p = Path(relative)
