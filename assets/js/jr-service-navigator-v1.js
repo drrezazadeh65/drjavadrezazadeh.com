@@ -237,9 +237,22 @@
      // not ad hoc machine-translated from sensitive Persian service text.
      details.append(node('p','Read the bilingual service page for the full deliverable and professional limits.','jr-sn-english-note'));
     }
+    const actions=node('div',null,'jr-sn-actions');
     const link=node('a',t.scope,'jr-sn-link');
     link.href=(isFa?'/fa/services/':'/en/services/')+item.id+'/';
-    card.append(header,title,fit,details,link);cards.append(card);
+    actions.append(link);
+    // Optional contact action uses the existing bilingual intake. A public
+    // catalogue ID preserves context without collecting data or implying
+    // availability, payment, booking, or personalised recommendations.
+    const enquire=node('a',
+      isFa?'پرسش درباره این خدمت':'Enquire about this service',
+      'jr-sn-inquire');
+    enquire.href=(isFa?'/fa/darkhast-moshavere/':'/en/request-consultation/')+
+      '?service='+encodeURIComponent(item.id);
+    enquire.dataset.conversionEvent='consultation_intent';
+    enquire.dataset.conversionSurface=isFa?'fa_service_navigator':'en_service_navigator';
+    actions.append(enquire);
+    card.append(header,title,fit,details,actions);cards.append(card);
    }
    cards.hidden=false;
    summary.textContent=new Intl.NumberFormat(isFa?'fa-IR':'en-US').format(active.length)+' '+t.count;
