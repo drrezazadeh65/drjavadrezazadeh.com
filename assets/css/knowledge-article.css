@@ -334,15 +334,3 @@
  }
  .knowledge-article-page a[href^="http"]::after{content:none!important}
 }
-
-/* Question-to-next-step educational guidance: reader autonomy before enquiries. */
-.knowledge-article-page .jr-article-next{margin:28px 0;padding:clamp(17px,3vw,26px);border:1px solid #94784b;border-radius:17px;background:#24231f;color:#f6ebd7}
-.knowledge-article-page .jr-article-next h2{color:#f4d9a0;font-size:clamp(1.2rem,2.5vw,1.65rem);line-height:1.65;margin:0 0 12px}
-.knowledge-article-page .jr-article-next :is(p,li){line-height:1.95;color:#f4e9d7}
-.knowledge-article-page .jr-article-next ul{padding-inline-start:22px}
-.knowledge-article-page .jr-article-next a{color:#f5d08d;text-underline-offset:4px}
-.knowledge-article-page .jr-article-next .jr-article-next-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
-.knowledge-article-page .jr-article-next .jr-article-next-actions a{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:9px 15px;border:1px solid #c6a569;border-radius:11px;text-decoration:none;text-align:center}
-.knowledge-article-page .jr-article-next a:focus-visible{outline:3px solid #ffe6ad;outline-offset:3px}
-@media(max-width:600px){.knowledge-article-page .jr-article-next{padding:16px 13px}.knowledge-article-page .jr-article-next .jr-article-next-actions{display:grid;grid-template-columns:minmax(0,1fr)}}
-@media print{.knowledge-article-page .jr-article-next{background:white;color:#111}.knowledge-article-page .jr-article-next :is(h2,p,li,a){color:#111}}
