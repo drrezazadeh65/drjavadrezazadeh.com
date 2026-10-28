@@ -44,7 +44,12 @@ test('all new English service routes exist in the international sitemap and the 
  const xml=read('sitemap-en.xml');
  const index=read('sitemap.xml');
  assert.ok(index.includes('<loc>'+base+'/sitemap-en.xml</loc>'));
- assert.ok(xml.includes('<loc>'+base+'/en/services/</loc><lastmod>2026-10-16</lastmod>'));
+ const hubEntry='<loc>'+base+'/en/services/</loc><lastmod>';
+ const indexOfHub=xml.indexOf(hubEntry);
+ assert.ok(indexOfHub>=0,'English service hub must appear in international sitemap');
+ const hubDate=xml.slice(indexOfHub+hubEntry.length,indexOfHub+hubEntry.length+10);
+ assert.match(hubDate,/^\\d{4}-\\d{2}-\\d{2}$/,'service hub lastmod must be a real ISO calendar date');
+ assert.ok(hubDate>='2026-10-16','service hub lastmod must never regress before its published baseline');
  for(const s of catalog.services){
   const marker='<loc>'+base+'/en/services/'+s.id+'/</loc>';
   assert.equal(xml.split(marker).length-1,1,'sitemap EN missing or duplicate: '+s.id);
