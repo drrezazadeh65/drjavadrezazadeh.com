@@ -274,23 +274,66 @@ def preview_diff(*, private: Path, receipt_id: str) -> dict:
     }
 
 
+
 def rollback(*, private: Path, receipt_id: str) -> dict:
-    """Revert one local edit only if its exact output hash remains current."""
-    if not re.fullmatch(r"\d{8}T\d{6}Z-[a-f0-9]{12}", receipt_id):
+    """Atomically restore one exact, owner-approved local draft snapshot.
+
+    Neither the source checkout nor any Github/Bertina URL is a destination.
+    A conflicting edit always blocks rollback rather than overwriting it.
+    """
+    if not isinstance(receipt_id, str) or not re.fullmatch(
+            r"\d{8}T\d{6}Z-[a-f0-9]{12}", receipt_id):
         raise ValueError("JREI_WORKSPACE_RECEIPT_ID_INVALID")
-    workspace = (private / WORKSPACE_DIR).resolve()
+    root = private / WORKSPACE_DIR
+    if root.is_symlink() or not root.is_dir():
+        raise ValueError("JREI_WORKSPACE_ROLLBACK_ROOT_INVALID")
+    workspace = root.resolve(strict=True)
     receipt_dir = workspace / ".receipts"
-    data = json.loads((receipt_dir / (receipt_id + ".json")).read_text(encoding="utf-8"))
-    relative = safe_path(data["target"])
-    target = workspace.joinpath(*relative.parts)
-    if target.is_symlink() or not target.is_file() or not target.resolve().is_relative_to(workspace):
-        raise ValueError("JREI_WORKSPACE_ROLLBACK_TARGET_INVALID")
-    if _digest(target.read_bytes()) != data["after_sha256"]:
-        raise ValueError("JREI_WORKSPACE_ROLLBACK_CONFLICT")
+    if receipt_dir.is_symlink() or not receipt_dir.is_dir():
+        raise ValueError("JREI_WORKSPACE_ROLLBACK_LEDGER_INVALID")
+    receipt_file = receipt_dir / (receipt_id + ".json")
     backup = receipt_dir / (receipt_id + ".before")
+    for item, maximum in ((receipt_file, 15000), (backup, MAX_SOURCE_BYTES)):
+        if item.is_symlink() or not item.is_file() or item.stat().st_size > maximum:
+            raise ValueError("JREI_WORKSPACE_ROLLBACK_RECEIPT_INVALID")
+    data = json.loads(receipt_file.read_text(encoding="utf-8"))
+    if (not isinstance(data, dict)
+            or data.get("schema") != "jr.jrei.windows-workspace-edit.v1"
+            or data.get("id") != receipt_id
+            or data.get("state") != "LOCAL_CODE_WRITTEN_UNTESTED"
+            or data.get("production_changed") is not False):
+        raise ValueError("JREI_WORKSPACE_ROLLBACK_RECEIPT_INVALID")
+    relative = safe_path(data.get("target"))
+    target = workspace.joinpath(*relative.parts)
+    if (target.is_symlink() or not target.is_file()
+            or not target.resolve().is_relative_to(workspace)):
+        raise ValueError("JREI_WORKSPACE_ROLLBACK_TARGET_INVALID")
+    current = target.read_bytes()
+    if _digest(current) != data.get("after_sha256"):
+        raise ValueError("JREI_WORKSPACE_ROLLBACK_CONFLICT")
     snapshot = backup.read_bytes()
-    if _digest(snapshot) != data["before_sha256"]:
+    if _digest(snapshot) != data.get("before_sha256"):
         raise ValueError("JREI_WORKSPACE_ROLLBACK_SNAPSHOT_MISMATCH")
-    target.write_bytes(snapshot)
+    staged = None
+    try:
+        with tempfile.NamedTemporaryFile(
+                mode="wb", dir=target.parent, prefix=".jrei-rollback-",
+                delete=False) as stream:
+            staged = Path(stream.name)
+            stream.write(snapshot)
+            stream.flush()
+            os.fsync(stream.fileno())
+        # Re-check the owner-private current file immediately before replace.
+        # os.replace is atomic on the same destination volume.
+        if (target.is_symlink() or not target.is_file()
+                or _digest(target.read_bytes()) != data["after_sha256"]):
+            raise ValueError("JREI_WORKSPACE_ROLLBACK_STALE_CURRENT")
+        os.replace(staged, target)
+    finally:
+        if staged is not None and staged.exists():
+            staged.unlink()
     return {"state": "LOCAL_WORKSPACE_ROLLED_BACK", "id": receipt_id,
-            "target": data["target"], "production_changed": False}
+            "target": relative.as_posix(),
+            "restored_sha256": _digest(snapshot),
+            "production_changed": False, "github_pushed": False,
+            "tests_run": False}
