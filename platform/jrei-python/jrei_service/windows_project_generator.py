@@ -115,3 +115,35 @@ def generate(*, private: Path, objective: str, model_reply) -> dict:
     with (folder / "jrei-receipt.json").open("x", encoding="utf-8") as out:
         json.dump(receipt, out, ensure_ascii=False, indent=2)
     return receipt
+
+
+def read_generated(*, private: Path, project_id: str, filename: str) -> bytes:
+    """Return exactly an already-created local draft, never an arbitrary file."""
+    if not isinstance(project_id, str) or not re.fullmatch(
+        r"[0-9]{8}T[0-9]{6}Z-[a-f0-9]{12}", project_id
+    ):
+        raise ValueError("JREI_DRAFT_ID_INVALID")
+    if not isinstance(filename, str) or not VALID_NAME.fullmatch(filename):
+        raise ValueError("JREI_DRAFT_NAME_INVALID")
+    parent = private.resolve(strict=True) / "generated-projects"
+    folder = parent / project_id
+    receipt = folder / "jrei-receipt.json"
+    if parent.is_symlink() or folder.is_symlink() or receipt.is_symlink():
+        raise ValueError("JREI_DRAFT_SYMLINK_BLOCKED")
+    if not receipt.is_file() or receipt.stat().st_size > 9000:
+        raise ValueError("JREI_DRAFT_RECEIPT_UNAVAILABLE")
+    manifest = json.loads(receipt.read_text(encoding="utf-8"))
+    entries = manifest.get("files", [])
+    entry = next((v for v in entries if v.get("name") == filename), None)
+    if manifest.get("id") != project_id or not entry:
+        raise ValueError("JREI_DRAFT_FILE_NOT_REGISTERED")
+    path = folder / filename
+    if path.is_symlink() or not path.is_file() or path.stat().st_size > MAX_FILE_BYTES:
+        raise ValueError("JREI_DRAFT_FILE_NOT_AVAILABLE")
+    if not path.resolve(strict=True).is_relative_to(folder.resolve(strict=True)):
+        raise ValueError("JREI_DRAFT_PATH_INVALID")
+    contents = path.read_bytes()
+    if (hashlib.sha256(contents).hexdigest() != entry.get("sha256") or
+            len(contents) != entry.get("bytes")):
+        raise ValueError("JREI_DRAFT_FILE_CHANGED_SINCE_RECEIPT")
+    return contents
