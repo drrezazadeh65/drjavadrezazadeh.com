@@ -88,3 +88,28 @@ The following specific source changes were committed on the sole canonical branc
 | P1 + P6 / Tk UI | New native user-initiated per-PC hardware inventory screen with honest remote-machine unknown and no assumed 16GB VRAM pool. | `3598f6acf9b14a19d153ae65fae0579d3d3bc43e` |
 
 **Unchanged prohibitions:** No integrated tests, no build or installer dispatch, no model training, no owner-private PC telemetry actually read by this workstream, no Windows installation, no Bertina deployment, no acceptance-bit changes. Remaining [ ] items above are not silently completed. Commit messages contain `[skip ci]` and no CI workflow was dispatched by this workstream.
+
+
+## Continuation: evidence, grouped code review and metacognition — SOURCE ONLY
+
+This section is appended after the original source freeze checklist, without changing final-acceptance requirements. Every row records a GitHub source commit on \`migration/bertina-linux6\`; it does **not** claim that the code has run on either Windows PC.
+
+| Scope | Actual committed source change | Commit |
+|---|---|---|
+| P2 / original-document integrity | \`windows_document_retrieval.py\`: re-hashes the original owner-vault file for all supported formats before retrieval; interleaves selected excerpts across up to two documents; adds SHA-256 passage evidence and actual post-budget counts. | \`097dbd3460225a0bf4a61356291228b1ed3f731f\` |
+| P2 / grounded answer | \`windows_owner_agent.py\`: fixes literal newline escape delimiters in memory RAG prompt; appends independent source-anchor manifests after successful selected-document synthesis and notes unreadable documents without asserting full-document review. | \`a7e6d07b6ec5d23c333e5aa4e3e3f0a1f9da2e79\` |
+| P3 / grouped proposal | \`windows_workspace.py\`: composes 2–5 **already individually owner-approved** isolated draft receipts into one bounded, deterministic, per-file hash-revalidated, read-only review bundle; performs **no** atomic multi-file apply. | \`d98682080ff16d8d399cd2c2c2daad13e4c55bdc\` |
+| P3 / private API | Existing authenticated 8092 API adds \`GET /api/workspace/bundle?ids=...\`, never grants GitHub rights or opens a network port. | \`8399455af300c2367ce94eafbd78c310dfdae151\` |
+| P1/P3 / UI | Native Tk GUI displays source-verified grouped Diff and receipt references in an explicit read-only review window. | \`ae03e85d9264bcf809075d0a154775b1598ea86b\` |
+| P4 / priority policy | Existing \`windows_resource_policy.py\` defines the 02:00–05:00 Asia/Tehran higher-frequency study cadence, with labelled UTC+03:30 fallback; rights/robots/resource admission unchanged. | \`71cc1047ccfcbf1b01a2d3e58673dd1044a5e181\` |
+| P4 / scheduler | Existing 8092 scheduler now uses time-dependent local FTS/agenda/memory/auto-topic intervals, not a hard stop outside the night window and not a daily global quota. | \`8a83616ad6a84e1901f7b11716566239d69ef778\` |
+| P4 / private metacognition | Existing learning-agenda snapshot now reads counts of HMAC-keyed learning gaps and due approved sources, rather than returning private user queries or treating source coverage as independently validated learning. | \`e4fb086d9510d5cad76f59742203e83ec5f5a111\` |
+| P1/P4 / native status | Existing engine status window displays gap totals, observed source-coverage changes, due source counts and Tehran priority indicator without claiming model training. | \`6c27a50a7d8f0391eab5eabff3b89e5962f79c54\` |
+| P1 / security | Desktop urllib opener refuses **all** HTTP redirects, preventing private owner bearer token forwarding from 127.0.0.1:8092. | \`c2d3a1b541b45f8395e6b8c5e1bfa3dbad0a2190\` |
+
+### Still open (do not mark completed)
+- Native scratch model training to a trustworthy Persian/English response level remains empirical work needing legal datasets and real independent sealed evaluations.
+- Two-PC GPU/driver/network capability, signed live presence, installation and OS-level native GUI functionality remain unobserved in this workstream.
+- Multi-file **atomic application** is **not** implemented: bundled receipt preview is a separate, safe partial milestone, not an automated merge/push.
+- Automated code promotion, source-rights attestation, site deployment, live examination outcomes, full-document semantic understanding and unrestricted self-improvement have **not** been performed or established.
+- Per owner instruction no tests, CI runs, Windows EXE packaging, installation, training or Bertina deployment were executed during this continuation. Owner-app integrated acceptance JSON remains default-deny.
