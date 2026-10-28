@@ -88,6 +88,7 @@ jobs:
           $worker = 'platform/jrei-v5/windows-worker'
           foreach ($name in @(
             'jrei-two-pc-owner-install.ps1',
+            'JREI-SETUP-THIS-PC.cmd',
             'JREI-SETUP-NODE-A.cmd',
             'JREI-SETUP-NODE-B.cmd'
           )) {
