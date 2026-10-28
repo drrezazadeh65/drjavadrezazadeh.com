@@ -26,8 +26,10 @@ h1{font-size:29px;line-height:1.3;margin:16px 0 6px;font-weight:650}p{margin:.5e
 .turn.assistant .content p{margin:0 0 1em}
 .turn.assistant .content p:last-child{margin-bottom:0}
 .turn.assistant .content h2,.turn.assistant .content h3,.turn.assistant .content h4{font-size:1.11em;line-height:1.7;margin:1.2em 0 .55em}
-.turn.assistant .content ul,.turn.assistant .content ol{margin:.45em 0 1em;padding-inline-start:1.8em}
-.turn.assistant .content li{margin:.4em 0}
+.turn.assistant .content ul,.turn.assistant .content ol{margin:.45em 0 1em;padding:0;list-style:none;max-width:100%}
+.turn.assistant .content li{display:flex;align-items:baseline;gap:.55em;margin:.4em 0;max-width:100%;text-align:start}
+.turn.assistant .content .listMarker{flex:0 0 2em;text-align:end;direction:ltr;unicode-bidi:isolate;white-space:nowrap;color:#d9c6a4;font-variant-numeric:tabular-nums}
+.turn.assistant .content .listText{display:block;min-width:0;flex:1;text-align:start;unicode-bidi:plaintext}
 .turn.assistant .content strong{font-weight:750;color:#f1e6cd}
 .turn.assistant .content code{font:12px/1.7 Consolas,monospace;background:#262b32;padding:2px 5px;border-radius:5px;direction:ltr;unicode-bidi:isolate}
 .turn.assistant .content pre{direction:ltr;text-align:left;overflow:auto;max-width:100%;background:#1d2229;border:1px solid #353c47;border-radius:12px;padding:12px;margin:10px 0 15px;white-space:pre}
@@ -166,8 +168,18 @@ function renderMarkdown(parent,value){
   if(bullet){
    flushParagraph();
    const kind=/^\d/.test(bullet[1])?'ol':'ul';
-   if(!list||list.tagName.toLowerCase()!==kind){list=el(kind,'');parent.append(list)}
-   const li=el('li','');li.dir='auto';li.append(inlineMarkdown(bullet[2]));list.append(li);continue;
+   // Mixed Persian/English lists must keep each marker beside its own text.
+   // Native list markers combined with dir=auto and unicode-bidi:plaintext
+   // can otherwise render at opposite ends of the available line.
+   const direction=/[\u0600-\u06ff]/.test(bullet[2])?'rtl':'ltr';
+   if(!list||list.tagName.toLowerCase()!==kind||list.dir!==direction){
+    list=el(kind,'');list.dir=direction;parent.append(list);
+   }
+   const li=el('li','');li.dir=direction;
+   const mark=el('span','listMarker',kind==='ol'?bullet[1].trim():'•');
+   mark.setAttribute('aria-hidden','true');
+   const body=el('span','listText');body.dir=direction;body.append(inlineMarkdown(bullet[2]));
+   li.append(mark,body);list.append(li);continue;
   }
   flushList();
   paragraph.push(line);
