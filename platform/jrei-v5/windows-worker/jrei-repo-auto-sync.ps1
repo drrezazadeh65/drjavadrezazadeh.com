@@ -177,6 +177,21 @@ try{
   }else{
     Report 'PYTHON_AUTO_INSTALL_NOT_OPTED_IN'
   }
+  # Reuse the EXISTING thirty-minute sync task and the owner-approved
+  # local updater. Source downloads alone never restart the private app.
+  $appApproval=Join-Path $root 'windows-owner-app-auto-update.json'
+  $appUpdater=Join-Path $repo 'platform\jrei-v5\windows-worker\jrei-windows-app-auto-update.ps1'
+  if((Test-Path -LiteralPath $appApproval -PathType Leaf) -and
+     (Test-Path -LiteralPath $appUpdater -PathType Leaf)){
+    $shell=Join-Path $env:SystemRoot 'System32\WindowsPowerShell\v1.0\powershell.exe'
+    try{
+      & $shell -NoProfile -NonInteractive -ExecutionPolicy Bypass -File $appUpdater -Mode Auto
+      if($LASTEXITCODE -eq 0){Report 'WINDOWS_APP_UPDATE_CYCLE_COMPLETE'}
+      else{Report 'WINDOWS_APP_UPDATE_REQUIRES_REVIEW'}
+    }catch{Report 'WINDOWS_APP_UPDATE_REQUIRES_REVIEW'}
+  }else{
+    Report 'WINDOWS_APP_AUTO_UPDATE_NOT_OPTED_IN'
+  }
 }catch{
   # Avoid writing untrusted exception strings to a persistent log.
   Report 'REPO_SYNC_BLOCKED_NO_SERVICE_CHANGE'
