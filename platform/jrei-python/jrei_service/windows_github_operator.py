@@ -164,6 +164,67 @@ def workflow_observation() -> dict:
     }
 
 
+
+
+def available_desktop_installer() -> dict:
+    """Read-only observation of ONE actual successful owner-build artifact.
+
+    A source HEAD or green workflow alone is NOT an installer. This code must
+    see an unexpired, named GitHub Actions artifact attached to the canonical
+    manually dispatched Windows package workflow. It does not download ZIPs,
+    execute an EXE, authorize model activation, or imply acceptance/signature.
+    """
+    runs=_request("/actions/workflows/jrei-windows-desktop-exe.yml/runs?"
+                  "branch="+urllib.parse.quote(BRANCH,safe="")+
+                  "&event=workflow_dispatch&per_page=5")
+    history=runs.get("workflow_runs")
+    if not isinstance(history,list):
+        raise ValueError("JREI_WINDOWS_PACKAGE_RUN_LIST_INVALID")
+    for run in history[:5]:
+        if not isinstance(run,dict):
+            continue
+        ident=run.get("id")
+        sha=run.get("head_sha")
+        if (type(ident) is not int or not 1 <= ident < 10**16
+            or not isinstance(sha,str) or not HEAD_RE.fullmatch(sha)
+            or run.get("head_branch")!=BRANCH
+            or run.get("event")!="workflow_dispatch"
+            or run.get("status")!="completed"
+            or run.get("conclusion")!="success"):
+            continue
+        artifact=_request(f"/actions/runs/{ident}/artifacts?per_page=25")
+        raw=artifact.get("artifacts")
+        if not isinstance(raw,list):
+            raise ValueError("JREI_WINDOWS_PACKAGE_ARTIFACT_LIST_INVALID")
+        for item in raw[:25]:
+            if (not isinstance(item,dict)
+                or item.get("name")!="JREI-WINDOWS-DESKTOP-INSTALLER"
+                or item.get("expired") is not False
+                or type(item.get("size_in_bytes")) is not int
+                or item["size_in_bytes"]<100000):
+                continue
+            return {
+                "schema":"jr.jrei.installer-update-observation.v1",
+                "state":"GITHUB_PACKAGED_ARTIFACT_OBSERVED_UNACCEPTED",
+                "workflow_run_id":ident,"source_commit":sha,
+                "github_workflow_run_url":
+                    f"https://github.com/{REPOSITORY}/actions/runs/{ident}",
+                "artifact_name":"JREI-WINDOWS-DESKTOP-INSTALLER",
+                "artifact_expired":False,
+                "artifact_verified_on_local_machine":False,
+                "model_weights_installed":False,
+                "integrated_windows_acceptance_verified":False,
+                "production_updated":False,
+                "update_installed":False,
+            }
+    return {
+        "schema":"jr.jrei.installer-update-observation.v1",
+        "state":"NO_VERIFIED_AVAILABLE_PACKAGED_ARTIFACT",
+        "update_installed":False,
+        "source_head_is_not_installer":True,
+    }
+
+
 def snapshot() -> dict:
     status = {"schema": SCHEMA, "repository": REPOSITORY,
               "branch": BRANCH, "token_configured": bool(_token()),
