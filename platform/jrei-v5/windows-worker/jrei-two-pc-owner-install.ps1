@@ -140,9 +140,27 @@ if($Mode -eq 'Status'){
 }
 if(-not $OwnerApproved){throw 'JREI_DUAL_PC_EXPLICIT_OWNER_APPROVAL_REQUIRED'}
 if(-not $installerReady){throw 'JREI_DUAL_PC_INSTALL_HELD_FOR_FINAL_ACCEPTANCE_OR_MISSING_ARTIFACT'}
-# Launch the NORMAL INNO UI, never silent and never elevated. The owner
-# controls Windows installer prompts. Exit-code 0 only establishes that the
-# installer process ended successfully, NOT that backend/model tests passed.
+# Reuse the ORIGINAL accepted and rollback-capable owner-private 8092
+# updater. Never create another service, shadow database, model or scheduler.
+# The existing updater checks owner-idle/task state and restores the previous
+# scheduled action if the candidate does not become responsive.
+$updater=Join-Path $repo 'platform\jrei-v5\windows-worker\jrei-windows-app-auto-update.ps1'
+if(-not (Test-Path -LiteralPath $updater -PathType Leaf)){
+ throw 'JREI_DUAL_PC_ORIGINAL_PRIVATE_BACKEND_UPDATER_MISSING'
+}
+$ps=Join-Path $env:SystemRoot 'System32\WindowsPowerShell\v1.0\powershell.exe'
+if(-not (Test-Path -LiteralPath $ps -PathType Leaf)){
+ throw 'JREI_DUAL_PC_TRUSTED_POWERSHELL_MISSING'
+}
+Emit 'BACKEND_STEP' 'REQUEST_ORIGINAL_ACCEPTED_PRIVATE_SOURCE_PROMOTION'
+& $ps -NoProfile -NonInteractive -ExecutionPolicy Bypass -File $updater -Mode Install -OwnerApproved
+$upgradeResult=$LASTEXITCODE
+if($upgradeResult -ne 0){
+ throw 'JREI_DUAL_PC_BACKEND_UPGRADE_FAILED_OR_DEFERRED_OLD_RUNTIME_PRESERVED'
+}
+# Launch the NORMAL INNO UI, never silently and never elevated. The owner
+# controls Windows installer prompts. Exit-code 0 establishes only a
+# successful GUI package installation, not model or multi-node acceptance.
 $process=Start-Process -FilePath $installer -Wait -PassThru -ErrorAction Stop
 if($process.ExitCode -ne 0){throw 'JREI_DUAL_PC_UI_INSTALLER_NONZERO_EXIT'}
 $gui=Join-Path $env:LOCALAPPDATA 'Programs\JREI\JREI.exe'
