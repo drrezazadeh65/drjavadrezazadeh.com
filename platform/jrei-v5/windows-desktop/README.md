@@ -8,6 +8,12 @@ The source code of the desktop client is `jrei_desktop.py`, written with Python'
 
 **Prerequisite:** before first use on each PC, the actual original JREI Python service, private token and owner Scheduled Task must exist and be able to start. Installing the EXE client **does not** by itself install or activate this backend, train JREI weights or authenticate a second computer. If the service is offline, the GUI displays that truthful status instead of pretending to be ChatGPT.
 
+## Crash fix — installer v0.1.2
+
+The owner-provided traceback of the first Windows desktop run reported a Tcl/Tk font parse failure: `expected integer but got "UI"`, with stack frames in `jrei_desktop.py` `Desktop._label`. The original GUI passed `("Segoe UI", size, weight)` tuples to Tcl, which parsed the two-word font family incorrectly. All widgets now use owner-rooted, cached `tkinter.font.Font(family="Segoe UI", size=...)` objects; the unsafe default font-option string was removed. This is a source-level fix; the new installer has NOT yet been compiled, installed or tested on the owner's Windows PC.
+
+**Do not continue installing the earlier executable while the exception popup is present.** Close the exception and cancel the earlier setup, without removing private JREI files. Build a fresh artifact from this commit, verify that the Inno installer says `0.1.2`, and complete one integrated acceptance when the owner authorizes it. Old artifacts are never silently replaced.
+
 ## Desktop icon and restart safety — installer v0.1.1
 
 The first packaged installer v0.1.0 allowed the desktop-icon task to be unselected or restored from earlier task preferences; it also launched JREI.exe automatically after setup. That did not reliably produce the single-click user experience requested by the owner. It did not explicitly request an operating-system reboot, and this repository alone cannot establish the cause of a reported Windows restart.
