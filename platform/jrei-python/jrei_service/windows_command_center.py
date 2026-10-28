@@ -35,6 +35,7 @@ from jrei_service import windows_autonomous_topics as auto_topics
 from jrei_service import windows_learning_fts as learning_fts
 from jrei_service import windows_evidence_memory as memory_graph
 from jrei_service import windows_code_experience as code_experience
+from jrei_service import windows_site_image_studio as image_studio
 from jrei_service import windows_language_backend as language_backend
 from jrei_service.windows_response_quality import has_repetition_loop
 from jrei_service.windows_project_generator import read_generated
@@ -110,6 +111,7 @@ def setup() -> str:
     auto_topics.initialize(DB_PATH)
     memory_graph.initialize(DB_PATH)
     code_experience.initialize(DB_PATH)
+    image_studio.initialize(DB_PATH)
     token = TOKEN_PATH.read_text(encoding="ascii").strip()
     if len(token) < 48:
         raise RuntimeError("JREI_OWNER_TOKEN_INVALID")
@@ -444,7 +446,36 @@ def scheduler():
     next_fts_index = time.monotonic() + 180
     next_memory = time.monotonic() + 160
     next_ci_check = time.monotonic() + 120
+    next_image = time.monotonic() + 80
     while not _STOP.is_set():
+        if time.monotonic() >= next_image and not _BUSY.locked():
+            # Render only explicit owner-queued draft images with a configured
+            # local licensed model. The child process never edits the site.
+            try:
+                status_info = image_studio.local_model_status(PRIVATE)
+                eligible = knowledge._windows_resources().get("eligible", False)
+                if status_info["state"] == "MODEL_CONFIG_PRESENT_UNVERIFIED" and eligible:
+                    job_id = image_studio.claim(DB_PATH)
+                    if job_id is not None:
+                        args = [sys.executable, "-m",
+                                "jrei_service.windows_site_image_studio",
+                                "--render", job_id, "--private", str(PRIVATE),
+                                "--owner-queued"]
+                        try:
+                            subprocess.Popen(
+                                args, cwd=REPO / "platform" / "jrei-python",
+                                stdin=subprocess.DEVNULL,
+                                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                                creationflags=(0x08000000 if os.name == "nt" else 0))
+                            record("site_image", "OWNER_QUEUED_RENDER_LAUNCHED", job_id[:12])
+                        except (OSError, ValueError) as exc:
+                            image_studio.mark_failure(
+                                DB_PATH, job_id, "HELD_RESOURCES",
+                                "IMAGE_RENDER_PROCESS_START_FAILED")
+                            record("site_image", "HELD_RESOURCES", exc.__class__.__name__)
+            except (OSError, ValueError, RuntimeError, sqlite3.Error) as exc:
+                record("site_image", "HELD", exc.__class__.__name__)
+            next_image = time.monotonic() + 240
         if time.monotonic() >= next_ci_check and not _BUSY.locked():
             run_job("ci_health", background=True)
             next_ci_check = time.monotonic() + 1800
@@ -583,6 +614,7 @@ def status():
         "private_knowledge_search": learning_fts.snapshot(DB_PATH),
         "native_evidence_memory": memory_graph.snapshot(DB_PATH),
         "code_learning": code_experience.snapshot(DB_PATH),
+        "site_image_studio": image_studio.local_model_status(PRIVATE),
         "autonomous_study_scheduler": "RUNNING",
         "python_port": 8091, "gpu_port": None,
         "site_publishing_control": "NOT_CONNECTED",
@@ -681,6 +713,8 @@ class OwnerHTTP(BaseHTTPRequestHandler):
             return self._send(200, knowledge.snapshot(DB_PATH))
         if self.path == "/api/learning/memory":
             return self._send(200, memory_graph.snapshot(DB_PATH))
+        if self.path == "/api/site-images/jobs":
+            return self._send(200, image_studio.list_recent(DB_PATH))
         if self.path == "/api/code-experience":
             return self._send(200, code_experience.snapshot(DB_PATH))
         if self.path == "/api/learning/topics":
@@ -696,6 +730,15 @@ class OwnerHTTP(BaseHTTPRequestHandler):
             return self._send(200, {"items": curriculum.list_lessons(DB_PATH)})
         if self.path == "/api/learning/discoveries":
             return self._send(200, {"items": knowledge.list_discoveries(DB_PATH)})
+        if urlsplit(self.path).path == "/api/site-images/asset":
+            params = parse_qs(urlsplit(self.path).query)
+            try:
+                data = image_studio.asset_bytes(
+                    DB_PATH, PRIVATE, params.get("id", [""])[0],
+                    params.get("name", [""])[0])
+            except (ValueError, OSError, json.JSONDecodeError):
+                return self._send(404, {"error": "JREI_PRIVATE_IMAGE_NOT_FOUND"})
+            return self._send(200, data, "image/webp")
         if urlsplit(self.path).path == "/api/learning/retrieve":
             params=parse_qs(urlsplit(self.path).query)
             query=params.get("q",[""])[0]
@@ -782,6 +825,12 @@ class OwnerHTTP(BaseHTTPRequestHandler):
                 return self._send(200,agenda.deactivate_topic(
                     DB_PATH,topic_id=data.get("id"),
                     owner_confirmed=data.get("confirm")))
+            if self.path == "/api/site-images/enqueue":
+                return self._send(200, image_studio.enqueue(DB_PATH, data))
+            if self.path == "/api/site-images/retry":
+                return self._send(200, image_studio.retry(DB_PATH, data))
+            if self.path == "/api/site-images/review":
+                return self._send(200, image_studio.review(DB_PATH, PRIVATE, data))
             if self.path == "/api/code-experience/review":
                 return self._send(200, code_experience.record_owner_feedback(
                     DB_PATH, private=PRIVATE, receipt_id=data.get("receipt_id"),
