@@ -30,6 +30,7 @@ from jrei_service import windows_owner_agent as owner_agent
 from jrei_service import windows_owner_tasks as owner_tasks
 from jrei_service import windows_continuous_learning as knowledge
 from jrei_service import windows_model_curriculum as curriculum
+from jrei_service import windows_native_brain as native_brain
 from jrei_service import windows_learning_agenda as agenda
 from jrei_service import windows_autonomous_topics as auto_topics
 from jrei_service import windows_learning_fts as learning_fts
@@ -108,6 +109,7 @@ def setup() -> str:
     knowledge.initialize(DB_PATH)
     learning_fts.initialize(DB_PATH)
     curriculum.initialize(DB_PATH)
+    native_brain.initialize(DB_PATH)
     agenda.initialize(DB_PATH)
     auto_topics.initialize(DB_PATH)
     memory_graph.initialize(DB_PATH)
@@ -632,6 +634,7 @@ def status():
         "study_proposals_not_verified": total,
         "continuous_learning": knowledge.snapshot(DB_PATH),
         "model_curriculum": curriculum.statistics(DB_PATH),
+        "native_language_baseline": native_brain.snapshot(DB_PATH, PRIVATE),
         "learning_agenda": agenda.snapshot(DB_PATH),
         "native_metacognition": agenda.metacognition_snapshot(DB_PATH),
         "autonomous_topic_discovery": auto_topics.snapshot(DB_PATH),
@@ -883,6 +886,15 @@ class OwnerHTTP(BaseHTTPRequestHandler):
                     reviewer=data.get("reviewer"),
                     attestation_sha256=data.get("attestation_sha256"),
                     owner_confirmed=data.get("confirm")))
+            if self.path == "/api/learning/native-brain/train":
+                if _BUSY.locked():
+                    return self._send(409, {"error":"JREI_OWNER_WORK_ACTIVE"})
+                return self._send(200,native_brain.train(
+                    db_path=DB_PATH,private=PRIVATE,
+                    owner_approved=data.get("confirm"),
+                    training_rights_reviewed=data.get("training_rights_reviewed"),
+                    resources_available=knowledge._windows_resources().get(
+                        "eligible",False)))
             if self.path == "/api/learning/adapter/stage":
                 return self._send(200,curriculum.export_training_candidate(
                     DB_PATH,private=PRIVATE,
