@@ -149,3 +149,25 @@
 @media(prefers-reduced-motion:reduce){
  .jr-en-services-atlas .jr-sn-atlas-filter *{scroll-behavior:auto}
 }
+
+/* Bounded next step on curated navigator cards: information first, enquiry second. */
+.jr-service-navigator .jr-sn-actions{
+ display:grid;grid-template-columns:minmax(0,1fr);
+ gap:10px;margin-top:auto;min-width:0
+}
+.jr-service-navigator .jr-sn-actions .jr-sn-link{margin-top:0}
+.jr-service-navigator .jr-sn-inquire{
+ display:flex;align-items:center;justify-content:center;
+ min-height:48px;max-width:100%;padding:10px 12px;
+ border:1px solid #b89a63;border-radius:11px;
+ background:#282118;color:#f6e3be!important;
+ font-size:.94rem;line-height:1.6;font-weight:700;
+ text-align:center;text-decoration:none!important;overflow-wrap:anywhere
+}
+.jr-service-navigator .jr-sn-inquire:hover{background:#393020}
+.jr-service-navigator .jr-sn-inquire:focus-visible{
+ outline:3px solid #f2d99f;outline-offset:3px
+}
+@media print{
+ .jr-service-navigator .jr-sn-inquire{display:none!important}
+}
