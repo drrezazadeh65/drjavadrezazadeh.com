@@ -13,6 +13,9 @@
     var revision = 0;
     var requestedServiceDetails=form.querySelector('[data-requested-service-details]');
     var requestedServiceValue=null;
+    // Labels and prices come from the already-published public catalogues.
+    // The map is display-only: it never confers capacity, acceptance or payment.
+    var publicServiceFacts=new Map();
     function renderRequestedService(service,english){
       if(!requestedServiceDetails)return;
       requestedServiceDetails.replaceChildren();
@@ -146,6 +149,100 @@
           :'The selected service has been added from the official catalogue. Review its fee, scope and outcome, then describe your context. Nothing has been sent or booked.';
       }catch(_){ /* Keep the ordinary manual email route available. */ }
     }
+    function reconcileManualService(){
+      var select=form.elements.namedItem('service');
+      var option=select?.selectedOptions?.[0];
+      var key=option?.dataset?.serviceId||'';
+      var facts=publicServiceFacts.get(key);
+      if(!facts){
+        requestedServiceValue=null;
+        renderRequestedService(null,null);
+        return;
+      }
+      requestedServiceValue=option.value;
+      renderRequestedService(facts.service,facts.english);
+      status.textContent=fa
+        ?'شرح و تعرفه خدمت از کاتالوگ رسمی بارگذاری شد؛ این انتخاب نه رزرو است و نه پرداخت.'
+        :'Service details were loaded from the public catalogue. Selection is neither a booking nor payment.';
+    }
+    async function loadManualCatalogueOptions(){
+      var select=form.elements.namedItem('service');
+      if(!select)return;
+      // Explicit optgroups preserve the general free-text subject categories.
+      // Missing catalogue responses never block the existing email draft route.
+      function adoptOption(title,id,service,english,group){
+        if(typeof title!=='string'||!title.trim())return;
+        var existing=Array.from(select.options).find(function(item){
+          return item.value===title&&item.value!=='';
+        });
+        var option=existing||document.createElement('option');
+        if(!existing){
+          option.value=title;
+          option.textContent=title;
+          group.appendChild(option);
+        }
+        option.dataset.serviceId=id;
+        publicServiceFacts.set(id,{service:service,english:english});
+      }
+      try{
+        var [standardResponse,englishResponse]=await Promise.all([
+          fetch('/assets/data/service-catalog.json',{cache:'no-store'}),
+          fa?Promise.resolve(null):fetch('/assets/data/service-descriptions-en.json',{cache:'no-store'})
+        ]);
+        if(standardResponse.ok&&(fa||englishResponse?.ok)){
+          var standard=await standardResponse.json();
+          var translated=fa?null:await englishResponse.json();
+          if(fa||translated?.language==='en'){
+            var standardGroup=document.createElement('optgroup');
+            standardGroup.label=fa?'خدمات تخصصی با تعرفه مشخص':'Specific professional services';
+            (Array.isArray(standard.services)?standard.services:[]).forEach(function(service){
+              var en=fa?null:translated?.services?.[service.id];
+              if(service?.sellable!==true||!service.id||
+                (!fa&&(!en||!['title','fit','outcome','boundary'].every(function(key){
+                  return typeof en[key]==='string'&&en[key].trim();
+                }))))return;
+              adoptOption(fa?service.title_fa:en.title,service.id,service,en,standardGroup);
+            });
+            if(standardGroup.children.length)select.appendChild(standardGroup);
+          }
+        }
+      }catch(_){/* Generic service areas stay available. */}
+      try{
+        var [vipResponse,vipEnglishResponse]=await Promise.all([
+          fetch('/assets/data/vip-catalog.json',{cache:'no-store'}),
+          fa?Promise.resolve(null):fetch('/assets/data/vip-descriptions-en.json',{cache:'no-store'})
+        ]);
+        if(vipResponse.ok&&(fa||vipEnglishResponse?.ok)){
+          var catalog=await vipResponse.json();
+          var labels=fa?null:await vipEnglishResponse.json();
+          if(fa||labels?.language==='en'){
+            var vipGroup=document.createElement('optgroup');
+            vipGroup.label=fa?'بسته‌های VIP (پیش از پرداخت نیازمند تأیید)':'VIP proposals (confirm terms before payment)';
+            (Array.isArray(catalog.services)?catalog.services:[]).forEach(function(service){
+              var name=fa?service?.title_fa:labels?.services?.[service?.id];
+              if(service?.sellable!==true||service?.checkout_enabled!==true||
+                 !service?.id||typeof name!=='string'||!name.trim())return;
+              var display={
+                title_fa:service.title_fa,price:service.price,
+                fit_fa:'بررسی تناسب و ظرفیت بسته اختصاصی بر اساس نیاز شما.',
+                outcome_fa:'خروجی‌ها، تعداد جلسات و مهلت تحویل باید پیش از پرداخت توافق شوند.',
+                boundary_fa:'انتخاب بسته، رزرو یا تأیید پرداخت و ظرفیت نیست.'
+              };
+              var en=fa?null:{
+                title:name,fit:'VIP enquiry subject to suitability and availability.',
+                outcome:'Sessions, deliverables and turnaround require written agreement.',
+                boundary:'Selecting a package is not a confirmed booking or payment.'
+              };
+              adoptOption(name,'vip:'+service.id,display,en,vipGroup);
+            });
+            if(vipGroup.children.length)select.appendChild(vipGroup);
+          }
+        }
+      }catch(_){/* Standard catalogue and email composer remain operational. */}
+      // Do not reset a draft or overwrite a manual selection after asynchronous
+      // catalogue retrieval. A visible summary is never authority to purchase.
+      if(preview.hidden&&select.value)reconcileManualService();
+    }
     function invalidate() {
       revision++;
       if(requestedServiceValue){
@@ -166,6 +263,9 @@
     fields.style.gap = '1.25rem';
     form.addEventListener('input', invalidate);
     form.addEventListener('change', invalidate);
+    form.addEventListener('change',function(event){
+      if(event.target===form.elements.namedItem('service'))reconcileManualService();
+    });
     form.addEventListener('reset', invalidate);
     form.addEventListener('reset',function(){
       requestedServiceValue=null;
@@ -244,5 +344,6 @@
     });
     window.addEventListener('pageshow', function (event) { if (event.persisted) form.reset(); });
     applyRequestedService();
+    loadManualCatalogueOptions();
   });
 }());
