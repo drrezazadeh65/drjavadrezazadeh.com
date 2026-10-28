@@ -261,6 +261,7 @@ def acceptance_preflight(*, db_path: Path, private: Path,
         and review.get("evaluation_sha256") == eval_sha
         and review.get("persian_reviewed") is True
         and review.get("english_reviewed") is True
+        and review.get("owner_authorized_private_inference") is True
         and review.get("reviewer_is_model_itself") is False)
     status["stages"]["external_bilingual_review"] = (
         "REVIEW_ATTESTATION_RECORDED_AUTHENTICITY_UNVERIFIED"
@@ -278,10 +279,13 @@ def acceptance_preflight(*, db_path: Path, private: Path,
             and selected.get("schema") == "jr.jrei.native-owner-activation.v1"
             and selected.get("run_id") == run_id
             and selected.get("owner_approved") is True
+            and selected.get("independent_review_recorded") is True
+            and selected.get("mode") == "JREI_NATIVE_SOURCE_ONLY"
             and selected.get("external_pretrained_weights_used") is False
             and selected.get("checkpoint_sha256") == rec["weights_sha256"]
             and selected.get("sealed_evaluation_sha256") == eval_sha
-            and selected.get("review_record_sha256") == review_sha)
+            and selected.get("review_record_sha256") == review_sha
+            and attested)
         status["stages"]["owner_activation_record"] = (
             "RECORD_PRESENT_RUNTIME_NOT_VERIFIED" if requested
             else "NOT_SELECTED_OR_MISMATCH")
