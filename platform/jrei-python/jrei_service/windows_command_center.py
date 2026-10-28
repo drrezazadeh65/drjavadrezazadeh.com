@@ -87,6 +87,8 @@ _INFERENCE_LOCK = threading.Lock()
 _TASK_WAKE = threading.Event()
 _activity_at = 0.0
 _cycle = 0
+_CONTINUUM_LAST_HEARTBEAT = 0.0
+_CONTINUUM_STARTED_AT = 0
 
 
 
@@ -469,7 +471,9 @@ def owner_task_worker():
 
 
 def scheduler():
-    global _autonomy_tick
+    global _autonomy_tick, _CONTINUUM_LAST_HEARTBEAT, _CONTINUUM_STARTED_AT
+    _CONTINUUM_STARTED_AT = utc()
+    _CONTINUUM_LAST_HEARTBEAT = time.monotonic()
     # Start the *existing* continuous learning loop immediately with service
     # startup; no daily schedule, reserved study hours or fixed activity cap.
     # Monotonic timestamps below are only resource/backpressure probes, never
@@ -486,6 +490,7 @@ def scheduler():
     next_image = now + 10
     next_observation = now
     while not _STOP.is_set():
+        _CONTINUUM_LAST_HEARTBEAT = time.monotonic()
         # A timestamped observation once per UTC hour does not SCHEDULE
         # learning; source indexing and evidence review run indefinitely
         # between receipts. Missed hours while offline are never fabricated.
@@ -721,6 +726,14 @@ def status():
         "tehran_study_priority": resource_policy.tehran_study_window(),
         "continuous_learning_observation": continuum.snapshot(DB_PATH),
         "learning_mode": "ALWAYS_ON_FROM_PROCESS_START_RESOURCE_ADAPTIVE",
+        "learning_worker_started_at_unix": _CONTINUUM_STARTED_AT or None,
+        "learning_worker_heartbeat_age_seconds": (
+            round(max(0.0, time.monotonic()-_CONTINUUM_LAST_HEARTBEAT), 1)
+            if _CONTINUUM_LAST_HEARTBEAT else None),
+        "learning_worker_recently_alive": bool(
+            _CONTINUUM_LAST_HEARTBEAT and
+            time.monotonic()-_CONTINUUM_LAST_HEARTBEAT < 180),
+        "learning_worker_health_is_not_learning_quality": True,
         "learning_has_no_daily_schedule_or_quota": True,
         "background_model_training_automatic": False,
         "background_code_activation_automatic": False,
