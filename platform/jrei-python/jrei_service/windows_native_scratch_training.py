@@ -269,6 +269,71 @@ def train(*, db_path: Path, private: Path, config_file: Path,
             "serving_activated": False, "independent_quality_proven": False}
 
 
+
+
+def snapshot(private: Path) -> dict:
+    """Read only unverified private run manifests; no torch/checkpoint load.
+
+    A saved manifest is a local *claim* about prior training, not proof that
+    its large checkpoint exists, retains its hash, passed review or is active.
+    """
+    default = {
+        "schema": "jr.jrei.native-from-scratch-status.v1",
+        "state": "NO_LOCAL_SCRATCH_RUN_RECORDED",
+        "recorded_run_count_sample": 0,
+        "checkpoint_integrity_verified_now": False,
+        "independent_bilingual_ability_verified": False,
+        "production_model_active": False,
+        "training_started_by_status_read": False,
+    }
+    root = private / "native-foundation-runs"
+    if root.is_symlink():
+        return {**default, "state": "RUN_REGISTRY_LINKED_REFUSED"}
+    if not root.is_dir():
+        return default
+    try:
+        candidates = []
+        examined = 0
+        for folder in root.iterdir():
+            examined += 1
+            if examined > 256:
+                return {**default, "state": "RUN_REGISTRY_TOO_LARGE_TO_SUMMARIZE",
+                        "listing_truncated": True}
+            if (folder.is_symlink() or not folder.is_dir()
+                    or len(folder.name) != 32
+                    or any(char not in "0123456789abcdef" for char in folder.name)):
+                continue
+            manifest = folder / "training-manifest.json"
+            if (manifest.is_symlink() or not manifest.is_file()
+                    or manifest.stat().st_size > 16_000):
+                continue
+            data = json.loads(manifest.read_text(encoding="utf-8"))
+            if (not isinstance(data, dict)
+                    or data.get("schema") != "jr.jrei.native-from-scratch-run.v1"
+                    or data.get("run_id") != folder.name
+                    or data.get("state") != "LOCAL_NATIVE_WEIGHTS_TRAINED_UNVERIFIED"):
+                continue
+            candidates.append((int(data.get("created", 0)), folder.name, data))
+        if not candidates:
+            return default
+        _, ident, data = max(candidates, key=lambda item: (item[0], item[1]))
+        return {
+            **default,
+            "state": "PRIVATE_SCRATCH_CANDIDATE_MANIFEST_RECORDED_UNVERIFIED",
+            "recorded_run_count_sample": len(candidates),
+            "latest_run_id": ident,
+            "registered_checkpoint_sha256": str(data.get("weights_sha256", ""))[:64],
+            "recorded_training_steps": data.get("training_steps"),
+            "fixed_development_validation_windows": data.get(
+                "development_validation_fixed_windows") is True,
+            "source_partitions_reported_disjoint": data.get(
+                "publishers_disjoint_at_corpus_preparation") is True,
+        }
+    except (OSError, ValueError, TypeError, KeyError, UnicodeError,
+            json.JSONDecodeError):
+        return {**default, "state": "SCRATCH_STATUS_READ_UNAVAILABLE"}
+
+
 def main():
     parser = argparse.ArgumentParser(description="JREI owner-private neural scratch training")
     parser.add_argument("--db", type=Path, required=True)
