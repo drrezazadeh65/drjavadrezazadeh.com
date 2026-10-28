@@ -36,6 +36,7 @@ from jrei_service import windows_native_corpus as native_corpus
 from jrei_service import windows_native_scratch_training as scratch_training
 from jrei_service import windows_resource_policy as resource_policy
 from jrei_service import windows_learning_agenda as agenda
+from jrei_service import windows_learning_continuum as continuum
 from jrei_service import windows_autonomous_topics as auto_topics
 from jrei_service import windows_learning_fts as learning_fts
 from jrei_service import windows_evidence_memory as memory_graph
@@ -121,6 +122,7 @@ def setup() -> str:
     native_brain.initialize(DB_PATH)
     native_neural.initialize(DB_PATH)
     agenda.initialize(DB_PATH)
+    continuum.initialize(DB_PATH)
     auto_topics.initialize(DB_PATH)
     memory_graph.initialize(DB_PATH)
     code_experience.initialize(DB_PATH)
@@ -468,20 +470,32 @@ def owner_task_worker():
 
 def scheduler():
     global _autonomy_tick
-    # Learning, inference and index updates are model-neutral.
-    if _STOP.wait(120):
-        return
-    next_study = time.monotonic() + 30
-    next_learning = time.monotonic() + 25
-    next_native = time.monotonic() + 200
-    next_curriculum = time.monotonic() + 90
-    next_agenda = time.monotonic() + 110
-    next_auto_topics = time.monotonic() + 140
-    next_fts_index = time.monotonic() + 180
-    next_memory = time.monotonic() + 160
-    next_ci_check = time.monotonic() + 120
-    next_image = time.monotonic() + 80
+    # Start the *existing* continuous learning loop immediately with service
+    # startup; no daily schedule, reserved study hours or fixed activity cap.
+    # Monotonic timestamps below are only resource/backpressure probes, never
+    # deadlines that stop studying or grant new external source permissions.
+    now = time.monotonic()
+    next_study = now
+    next_learning = now
+    next_curriculum = now
+    next_agenda = now
+    next_auto_topics = now
+    next_fts_index = now
+    next_memory = now
+    next_ci_check = now + 120
+    next_image = now + 10
+    next_observation = now
     while not _STOP.is_set():
+        # A timestamped observation once per UTC hour does not SCHEDULE
+        # learning; source indexing and evidence review run indefinitely
+        # between receipts. Missed hours while offline are never fabricated.
+        if time.monotonic() >= next_observation:
+            try:
+                continuum.observe(DB_PATH)
+            except (OSError, ValueError, sqlite3.Error) as exc:
+                record("learning_continuum", "OBSERVATION_UNAVAILABLE",
+                       exc.__class__.__name__)
+            next_observation = time.monotonic() + 45
         if time.monotonic() >= next_image and not _BUSY.locked():
             # Render only explicit owner-queued draft images with a configured
             # local licensed model. The child process never edits the site.
@@ -518,62 +532,62 @@ def scheduler():
         # Windows resource sensor enforces CPU/RAM/disk headroom; source
         # permission, robots and rate spacing govern every exact URL.
         if time.monotonic() >= next_fts_index and not _BUSY.locked():
+            fts_state = "DEFER_OWNER_ACTIVITY"
             if _activity_at == 0 or time.monotonic() - _activity_at >= 180:
                 try:
                     resources={"eligible":resource_policy.permits("FTS_REBUILD")}
                     index_state=learning_fts.rebuild_when_idle(
                         DB_PATH,resources_available=resources.get("eligible",False),
                         owner_active=False)
+                    fts_state = str(index_state.get("state", "UNKNOWN"))
                     if index_state.get("state")=="FTS_REBUILT_LOCALLY":
                         record("windows_search_index","FTS_REBUILT_LOCALLY",
                                "INDEX_ONLY_NO_MODEL_TRAINING")
                 except (OSError,ValueError,sqlite3.Error) as exc:
+                    fts_state = "LOOP_ERROR"
                     record("windows_search_index","HELD",exc.__class__.__name__)
-            next_fts_index = time.monotonic() + resource_policy.study_interval_seconds("FTS_INDEX")
-        if time.monotonic() >= next_native and not _BUSY.locked():
-            if _activity_at == 0 or time.monotonic() - _activity_at >= 180:
-                try:
-                    budget = {"eligible":resource_policy.permits("NATIVE_STATISTICAL_TRAIN")}
-                    outcome = native_brain.tick(
-                        DB_PATH, PRIVATE,
-                        resources_available=budget.get("eligible", False),
-                        owner_active=False)
-                    if outcome.get("state") == "CANDIDATE_UNTESTED_NOT_PROMOTED":
-                        record("native_brain", "TRAINING_CANDIDATE_ONLY",
-                               "HELDOUT_BYTE_PREDICTION_NOT_GENERAL_AI",
-                               outcome.get("artifact_sha256", ""))
-                except (OSError, ValueError, RuntimeError, sqlite3.Error) as exc:
-                    record("native_brain", "HELD", exc.__class__.__name__)
-            next_native = time.monotonic() + 1800
+            next_fts_index = time.monotonic() + resource_policy.continuous_probe_delay(
+                "FTS_INDEX", fts_state)
+        # No autonomous neural/statistical weight training is triggered from
+        # this always-on study loop. That operation requires separate owner
+        # approval and final evaluation after source development is complete.
         if time.monotonic() >= next_learning and not _BUSY.locked():
+            crawl_state = "LOOP_ERROR"
             try:
                 outcome = knowledge.tick(
                     DB_PATH, permit_network=(knowledge.network_enabled(DB_PATH) and
                         resource_policy.permits("APPROVED_NETWORK_STUDY")),
                     user_active=(_activity_at>0 and
                                  time.monotonic()-_activity_at<180))
+                crawl_state = str(outcome.get("state", "UNKNOWN"))
                 if outcome.get("state") in ("LOCAL_UNVERIFIED_INDEXED","HELD"):
                     record("windows_learning",outcome["state"],
                            str(outcome.get("reason","SOURCE_VERSION_OBSERVED"))[:90],
                            str(outcome.get("source_sha256","")))
             except (OSError,ValueError,sqlite3.Error) as exc:
                 record("windows_learning","LOOP_ERROR",exc.__class__.__name__)
-            next_learning = time.monotonic() + 65
+            next_learning = time.monotonic() + resource_policy.continuous_probe_delay(
+                "APPROVED_SOURCE", crawl_state)
         if time.monotonic() >= next_memory and not _BUSY.locked():
+            memory_state = "DEFER_OWNER_ACTIVITY"
             if _activity_at == 0 or time.monotonic() - _activity_at >= 180:
                 try:
                     resources={"eligible":resource_policy.permits("MEMORY_CURATION")}
                     if resources.get("eligible",False):
                         captured=memory_graph.capture_once(
                             DB_PATH,model_reply=reply,resources_available=True)
+                        memory_state = str(captured.get("state", "UNKNOWN"))
                         if captured.get("state")=="CANDIDATE_UNVERIFIED":
                             record("windows_evidence_memory","CANDIDATE_UNVERIFIED",
                                    "SOURCE_ANCHORED_FACT_DRAFTS_NOT_VERIFIED",
                                    captured.get("source_sha256",""))
                 except (OSError,ValueError,sqlite3.Error) as exc:
+                    memory_state = "LOOP_ERROR"
                     record("windows_evidence_memory","HELD",exc.__class__.__name__)
-            next_memory = time.monotonic() + resource_policy.study_interval_seconds("SOURCE_MEMORY")
+            next_memory = time.monotonic() + resource_policy.continuous_probe_delay(
+                "SOURCE_MEMORY", memory_state)
         if time.monotonic() >= next_auto_topics and not _BUSY.locked():
+            topic_state = "DEFER_OWNER_ACTIVITY"
             if _activity_at == 0 or time.monotonic() - _activity_at >= 180:
                 try:
                     resources=knowledge._windows_resources()
@@ -581,14 +595,18 @@ def scheduler():
                         discovered=auto_topics.propose_once(
                             DB_PATH,model_reply=reply,
                             owner_active=False,resources_available=True)
+                        topic_state = str(discovered.get("state", "UNKNOWN"))
                         if discovered.get("state")=="AUTO_TOPIC_UNVERIFIED":
                             record("windows_auto_topics","AUTO_TOPIC_UNVERIFIED",
                                    "ONLY_LICENSED_SOURCE_STUDY_QUESTION",
                                    discovered.get("source_sha256",""))
                 except (OSError,ValueError,sqlite3.Error) as exc:
+                    topic_state = "LOOP_ERROR"
                     record("windows_auto_topics","HELD",exc.__class__.__name__)
-            next_auto_topics = time.monotonic() + resource_policy.study_interval_seconds("AUTO_TOPICS")
+            next_auto_topics = time.monotonic() + resource_policy.continuous_probe_delay(
+                "AUTO_TOPICS", topic_state)
         if time.monotonic() >= next_agenda and not _BUSY.locked():
+            agenda_state = "DEFER_OWNER_ACTIVITY"
             if _activity_at == 0 or time.monotonic() - _activity_at >= 180:
                 try:
                     resources={"eligible":resource_policy.permits("APPROVED_NETWORK_STUDY")}
@@ -596,6 +614,7 @@ def scheduler():
                         DB_PATH,model_reply=reply,
                         resource_available=resources.get("eligible",False),
                         owner_active=False)
+                    agenda_state = str(result.get("state", "UNKNOWN"))
                     if result.get("state") in (
                         "STUDY_DRAFT_UNVERIFIED","NO_GROUNDED_EVIDENCE",
                         "MODEL_DRAFT_UNAVAILABLE"):
@@ -603,29 +622,42 @@ def scheduler():
                                "EVIDENCE_COVERAGE_NOT_MODEL_QUALITY",
                                result.get("cycle_id",""))
                 except (OSError,ValueError,sqlite3.Error) as exc:
+                    agenda_state = "LOOP_ERROR"
                     record("windows_agenda","HELD",exc.__class__.__name__)
-            next_agenda = time.monotonic() + resource_policy.study_interval_seconds("LEARNING_AGENDA")
+            next_agenda = time.monotonic() + resource_policy.continuous_probe_delay(
+                "LEARNING_AGENDA", agenda_state)
         if time.monotonic() >= next_curriculum and not _BUSY.locked():
+            curriculum_state = "DEFER_OWNER_ACTIVITY"
             if (_activity_at == 0 or time.monotonic()-_activity_at >= 180):
                 try:
                     resource={"eligible":resource_policy.permits("MEMORY_CURATION")}
                     if resource["eligible"] and local_model()[0]:
                         drafted=curriculum.practice_once(DB_PATH,reply)
+                        curriculum_state = str(drafted.get("state", "UNKNOWN"))
                         if drafted.get("state")=="DRAFT_UNVERIFIED":
                             record("windows_curriculum","DRAFT_UNVERIFIED",
                                    "STUDY_CANDIDATE_NOT_INDEPENDENTLY_REVIEWED",
                                    drafted.get("draft_sha256",""))
                 except (OSError,ValueError,sqlite3.Error) as exc:
+                    curriculum_state = "LOOP_ERROR"
                     record("windows_curriculum","HELD",exc.__class__.__name__)
-            next_curriculum = time.monotonic() + 900
+            next_curriculum = time.monotonic() + resource_policy.continuous_probe_delay(
+                "CURRICULUM", curriculum_state)
         if time.monotonic() >= next_study and not _BUSY.locked():
-            if time.monotonic() - _activity_at >= 180 and resource_policy.permits("MEMORY_CURATION"):
-                # Alternate source study with an isolated candidate stage;
-                # no auto-merge, no unverified skills, no production mutation.
-                run_job("patch_candidate" if _autonomy_tick % 2 else "study", background=True)
-                _autonomy_tick += 1
-            next_study = time.monotonic() + 720
-        if _STOP.wait(60):
+            if (time.monotonic() - _activity_at >= 180 and
+                    resource_policy.permits("MEMORY_CURATION")):
+                # Continuously study current first-party source and suggest
+                # changes. Do not run/generated syntax checks, alter the
+                # canonical checkout or install self-written code unattended.
+                run_job("study", background=True)
+                next_study = time.monotonic() + resource_policy.continuous_probe_delay(
+                    "CODE_STUDY", "PROPOSED_NOT_VERIFIED")
+            else:
+                next_study = time.monotonic() + resource_policy.continuous_probe_delay(
+                    "CODE_STUDY", "DEFER_OWNER_ACTIVITY", resource_available=False)
+        # The one-second wake is purely a cancellation/resource signal probe,
+        # not a study start time, a daily quota or a forced stop.
+        if _STOP.wait(1.0):
             break
 
 
@@ -687,6 +719,11 @@ def status():
         "native_scratch_training_registry": scratch_training.snapshot(PRIVATE),
         "adaptive_hardware_budget": resource_policy.snapshot(),
         "tehran_study_priority": resource_policy.tehran_study_window(),
+        "continuous_learning_observation": continuum.snapshot(DB_PATH),
+        "learning_mode": "ALWAYS_ON_FROM_PROCESS_START_RESOURCE_ADAPTIVE",
+        "learning_has_no_daily_schedule_or_quota": True,
+        "background_model_training_automatic": False,
+        "background_code_activation_automatic": False,
         "learning_agenda": agenda.snapshot(DB_PATH),
         "native_metacognition": agenda.metacognition_snapshot(DB_PATH),
         "autonomous_topic_discovery": auto_topics.snapshot(DB_PATH),
