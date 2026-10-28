@@ -233,11 +233,20 @@ if($Mode -eq 'Install'){
  $head=CurrentHead
  $launcher=Join-Path $repo 'platform\jrei-v5\windows-worker\jrei-command-center-startup.ps1'
  if(-not (Test-Path -LiteralPath $launcher -PathType Leaf)){throw 'JREI_APP_LAUNCHER_MISSING'}
- if(-not (Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue)){
+ # A registered scheduled task does not prove the private command
+ # center is running. Existing owner tasks can remain registered after a
+ # reboot, a failed launch or an earlier source migration. Reinvoke the
+ # existing, SID-validated startup installer only when the authenticated
+ # local endpoint is not ready. It reconciles the original task action and
+ # starts it without clearing private mission history or changing the site.
+ if(-not (IsReady)){
+  Report 'WINDOWS_APP_RECOVERING_EXISTING_COMMAND_CENTER'
   & $launcher -Mode Install -OwnerApproved
  }
  $null=OwnerTask
- if(-not (IsReady)){throw 'JREI_APP_ORIGINAL_COMMAND_CENTER_NOT_RESPONDING'}
+ if(-not (IsReady)){
+  throw 'JREI_APP_COMMAND_CENTER_RECOVERY_UNAVAILABLE'
+ }
  if(-not (Get-ScheduledTask -TaskName 'JREI-Repo-Auto-Sync' -ErrorAction SilentlyContinue)){
   $sync=Join-Path $repo 'platform\jrei-v5\windows-worker\jrei-repo-auto-sync.ps1'
   & $sync -Mode Install -OwnerApproved
