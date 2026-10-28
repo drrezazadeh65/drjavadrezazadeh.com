@@ -13,6 +13,21 @@ require_once __DIR__.'/jrei-hybrid-readiness.php';
 require_once __DIR__.'/jrei-local-chat.php';
 
 /**
+ * Owner-authorized fleet capacity, not an activation count. A registered
+ * worker remains DISABLED until its individual signed key is approved.
+ * Scales to 50+ nodes; resource utilization and evidence rights remain
+ * enforced by the original signed lease worker.
+ */
+function jrHybridFleetLimits(array $cfg): array {
+    $value=$cfg['jrei_hybrid_node_capacity_limit']??64;
+    $nodes=is_int($value)&&$value>=1&&$value<=128?$value:64;
+    $queue=min(256,max(20,$nodes*2));
+    return ['activeNodes'=>$nodes,'maxQueue'=>$queue,
+      'leaseSeconds'=>JR_HYBRID_LEASE_SECONDS,
+      'maxLeaseAgeSeconds'=>JR_HYBRID_MAX_LEASE_AGE];
+}
+
+/**
  * MFA SUPER_ADMIN-only projection and control of the OUTBOUND JREI worker.
  * All operations work inside the original Bertina mother database and the
  * original operationsAudit; neither calls the Windows machine nor runs a model.
@@ -31,9 +46,7 @@ function jrHybridOwnerSnapshot(PDO $pdo,array $cfg): array {
       'counts'=>['queued'=>null,'leased'=>null,'reviewRequired'=>null,
         'completed'=>null,'rejected'=>null,'closedUnknown'=>null,
         'expired'=>null,'cancelled'=>null],
-      'limits'=>['activeNodes'=>2,'maxQueue'=>20,
-        'leaseSeconds'=>JR_HYBRID_LEASE_SECONDS,
-        'maxLeaseAgeSeconds'=>JR_HYBRID_MAX_LEASE_AGE],
+      'limits'=>jrHybridFleetLimits($cfg),
       'approvedPublicDatasetCount'=>count(is_array($cfg['jrei_hybrid_approved_datasets']??null)
         ?$cfg['jrei_hybrid_approved_datasets']:[]),
       'warning'=>'A source-level server status or worker self-report is not proof of trusted local hardware, scientific validation or real model inference.'
@@ -43,7 +56,7 @@ function jrHybridOwnerSnapshot(PDO $pdo,array $cfg): array {
       permitted_task,model_id,model_version,max_concurrent,last_seen_at,
       latest_cpu_percent,latest_ram_percent,latest_gpu_percent,
       latest_latency_ms,last_reported_state,revoked_at,revision,created_at
-      FROM jrei_hybrid_nodes ORDER BY created_at DESC,node_id ASC LIMIT 20');
+      FROM jrei_hybrid_nodes ORDER BY created_at DESC,node_id ASC LIMIT 128');
     foreach($q as $r){
         $recent=$r['last_seen_at']!==null &&
             time()-(int)$r['last_seen_at']<=90;
@@ -192,6 +205,19 @@ function jrHybridOwnerChange(PDO $pdo,array $cfg,string $actor,
                 throw new DomainException('node_version_conflict');
             if($row['revoked_at']!==null)
                 throw new DomainException('node_already_revoked');
+            if($enabled&&$row['status']!=='ENABLED'){
+                // Lock the existing fleet before activation so concurrent
+                // owner actions cannot silently exceed the configured cap.
+                // The original signed-node registry and revocation controls
+                // remain authoritative; no parallel node system is added.
+                $fleet=$pdo->query("SELECT node_id,status FROM jrei_hybrid_nodes
+                  WHERE revoked_at IS NULL ORDER BY node_id FOR UPDATE");
+                $active=0;
+                foreach($fleet as $member)
+                    if($member['status']==='ENABLED')$active++;
+                if($active>=jrHybridFleetLimits($cfg)['activeNodes'])
+                    throw new DomainException('hybrid_owner_fleet_capacity_reached');
+            }
             $state=$action==='revoke_node'?'REVOKED':($enabled?'ENABLED':'DISABLED');
             $q=$pdo->prepare('UPDATE jrei_hybrid_nodes
                 SET status=?,revoked_at=?,revision=revision+1,updated_at=?
@@ -253,7 +279,7 @@ function jrHybridOwnerChange(PDO $pdo,array $cfg,string $actor,
                 throw new DomainException('dataset_version_no_longer_approved');
             $q=$pdo->query("SELECT COUNT(*) FROM jrei_hybrid_jobs
               WHERE status IN ('QUEUED','LEASED')");
-            if((int)$q->fetchColumn()>=20)
+            if((int)$q->fetchColumn()>=jrHybridFleetLimits($cfg)['maxQueue'])
                 throw new DomainException('hybrid_queue_at_capacity');
             $idempotency=hash('sha256',json_encode([
               gmdate('Y-m-d',$now),$id,$record['datasetSha256'],
