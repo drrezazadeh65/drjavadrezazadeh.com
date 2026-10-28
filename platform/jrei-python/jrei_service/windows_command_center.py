@@ -41,6 +41,7 @@ from jrei_service import windows_code_experience as code_experience
 from jrei_service import windows_site_image_studio as image_studio
 from jrei_service import windows_github_operator as github_operator
 from jrei_service import windows_language_backend as language_backend
+from jrei_service import windows_resource_envelope as resource_envelope
 from jrei_service.windows_response_quality import has_repetition_loop
 from jrei_service.windows_project_generator import read_generated
 from jrei_service.windows_document_vault import import_document, list_documents, delete_document
@@ -651,6 +652,7 @@ def status():
         "native_language_model_training": "NOT_STARTED",
         "busy": _BUSY.locked(),
         "owner_activity_recent": bool(_activity_at and time.monotonic() - _activity_at < 180),
+        "local_pc_real_resources": resource_envelope.observe(gpu_probe=False),
         "study_proposals_not_verified": total,
         "continuous_learning": knowledge.snapshot(DB_PATH),
         "model_curriculum": curriculum.statistics(DB_PATH),
