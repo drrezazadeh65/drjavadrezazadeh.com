@@ -761,6 +761,18 @@ class OwnerHTTP(BaseHTTPRequestHandler):
             return self._send(401, {"error": "JREI_OWNER_AUTH_REQUIRED"})
         if self.path == "/api/status":
             return self._send(200, status())
+        if urlsplit(self.path).path == "/api/native/acceptance/preflight":
+            # Authenticated, owner-triggered READ ONLY; the preflight never
+            # loads torch, a weight file or an external reviewer identity.
+            params = parse_qs(urlsplit(self.path).query)
+            try:
+                return self._send(200, native_inference.acceptance_preflight(
+                    db_path=DB_PATH, private=PRIVATE,
+                    run_id=params.get("id", [""])[0]))
+            except (OSError, ValueError, TypeError, KeyError,
+                    sqlite3.Error, json.JSONDecodeError):
+                return self._send(404, {
+                    "error": "JREI_NATIVE_ACCEPTANCE_PREFLIGHT_UNAVAILABLE"})
         if self.path == "/api/resources/inventory":
             # Explicit, authenticated owner read; observes THIS local PC
             # on demand. Never constructs a second remote node or GPU pool.
