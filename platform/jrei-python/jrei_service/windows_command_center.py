@@ -517,11 +517,15 @@ def owner_task_worker():
             continue
         _activity_at = time.monotonic()
         try:
+            owner_tasks.update_progress(DB_PATH, task["id"], "STARTING")
             result = owner_agent.interact(
                 db_path=DB_PATH, repo=REPO, private=PRIVATE,
                 ident=task["conversation_id"], message=task["prompt"],
                 attachment_ids=task["attachments"],
-                model_reply=reply, run_directive=route_directive)
+                model_reply=reply, run_directive=route_directive,
+                on_progress=lambda phase: owner_tasks.update_progress(
+                    DB_PATH, task["id"], phase))
+            owner_tasks.update_progress(DB_PATH, task["id"], "PERSISTING_RESULT")
             outcome = owner_tasks.finish(DB_PATH, task["id"], result=result)
         except Exception as exc:
             # No input text or document content enters operational logs.
