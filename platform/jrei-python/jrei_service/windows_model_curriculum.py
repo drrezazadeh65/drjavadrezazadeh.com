@@ -218,9 +218,11 @@ def export_training_candidate(db_path: Path, *, private: Path,
     """Stage a private adapter dataset; does NOT train Qwen GGUF weights."""
     if owner_confirmed is not True:
         raise ValueError("CURRICULUM_TRAINING_EXPORT_APPROVAL_REQUIRED")
+    from jrei_service.windows_native_corpus import (
+        TRAINABLE_LICENSES, _publisher_key, _canonical_passage)
     with closing(_db(db_path)) as db:
         rows=db.execute("""SELECT l.question,l.answer,l.data_role,
-          v.sha256,l.independent_evidence_sha256,l.source_id
+          v.sha256,l.independent_evidence_sha256,l.source_id,s.licence,s.issuer
           FROM learning_lessons l
           JOIN learning_sources s ON s.id=l.source_id
           JOIN learning_versions v ON v.id=l.version_id
@@ -229,12 +231,22 @@ def export_training_candidate(db_path: Path, *, private: Path,
             AND s.reviewed=1 AND (s.active=1 OR s.rights='PRIVATE_OWNER_GRANTED')
             AND s.last_sha=v.sha256
           ORDER BY l.id""").fetchall()
-    train=[x for x in rows if x[2]=="LEARNING"]
-    heldout=[x for x in rows if x[2]=="HELDOUT"]
+    eligible=[x for x in rows
+              if isinstance(x[6],str) and x[6].casefold() in TRAINABLE_LICENSES
+              and isinstance(x[7],str) and len(x[7].strip())>=3]
+    train=[x for x in eligible if x[2]=="LEARNING"]
+    heldout=[x for x in eligible if x[2]=="HELDOUT"]
+    # Source IDs alone do not establish independent publishers, and nominally
+    # distinct source references may contain the same supervised Q&A pair.
+    source_overlap=({x[5] for x in train}&{x[5] for x in heldout})
+    publisher_overlap=({_publisher_key(x[7]) for x in train}
+                       & {_publisher_key(x[7]) for x in heldout})
+    content_overlap=({_canonical_passage(x[0]+"\n"+x[1]) for x in train}
+                     & {_canonical_passage(x[0]+"\n"+x[1]) for x in heldout})
     # A minimum viable independent sample requirement; still NOT a
     # scientifically adequate benchmark or model training authorization.
-    if len(train)<20 or len(heldout)<10 or (
-            {x[5] for x in train}&{x[5] for x in heldout}):
+    if (len(train)<20 or len(heldout)<10
+            or source_overlap or publisher_overlap or content_overlap):
         return {"state":"INSUFFICIENT_INDEPENDENT_TRAIN_HELDOUT_DATA",
                 "training_samples":len(train),"heldout_samples":len(heldout),
                 "model_training_started":False}
@@ -253,6 +265,9 @@ def export_training_candidate(db_path: Path, *, private: Path,
     manifest={"id":ident,"created":datetime.now(timezone.utc).isoformat(),
               "file_sha256":sha,"approved_sample_count":len(train),
               "heldout_sample_count":len(heldout),
+              "publisher_partition_disjoint":True,
+              "supervised_question_answer_partition_disjoint":True,
+              "training_licences_allowlisted":True,
               "state":"CANDIDATE_DATA_ONLY_NOT_TRAINED",
               "base_model_compatibility":"NOT_VERIFIED",
               "GPU_OR_TRAINER_COMPATIBILITY":"NOT_VERIFIED",
