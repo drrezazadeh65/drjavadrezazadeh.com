@@ -528,8 +528,16 @@ def tick(db_path: Path, *, permit_network: bool, user_active: bool=False) -> dic
         db.execute("UPDATE learning_sources SET next_due=? WHERE id=?",
                    (now+max(interval,3600),sid))
     try:
+        # A disabling action must block the *next* network request even if
+        # an earlier tick already leased this source.
+        if not network_enabled(db_path):
+            return {"state":"OWNER_DISABLED_BEFORE_NETWORK",
+                    "network_requests":0}
         if not _robots_allowed(url):
             raise ValueError("LEARNING_ROBOTS_DISALLOWED")
+        if not network_enabled(db_path):
+            return {"state":"OWNER_DISABLED_AFTER_ROBOTS",
+                    "network_requests":1}
         mime,raw=_fetch_exact(url,MAX_RESPONSE)
         if len(raw)<80:
             raise ValueError("LEARNING_SOURCE_TOO_SHORT")
@@ -548,6 +556,19 @@ def tick(db_path: Path, *, permit_network: bool, user_active: bool=False) -> dic
         stamp=int(time.time())
         with _db(db_path) as db:
             db.execute("BEGIN IMMEDIATE")
+            # A source can be withdrawn, or crawling disabled, during a
+            # request. Never index fetched bytes after either change.
+            source_state=db.execute("""SELECT active,reviewed,rights,url
+              FROM learning_sources WHERE id=?""",(sid,)).fetchone()
+            control=db.execute("""SELECT enabled FROM learning_controls
+              WHERE name='network_acquisition'""").fetchone()
+            if (not source_state or source_state!=
+                (1,1,"PUBLIC_REUSE_APPROVED",url) or
+                not control or control[0]!=1):
+                db.rollback()
+                return {"state":"SOURCE_OR_NETWORK_REVOKED_DURING_FETCH",
+                        "network_requests_completed":2,
+                        "source_index_modified":False}
             v=_version(db,sid,digest,len(raw),stamp)
             count=_replace_passages(db,sid,v,content,stamp,
                                     "html" if mime=="text/html" else "text")
