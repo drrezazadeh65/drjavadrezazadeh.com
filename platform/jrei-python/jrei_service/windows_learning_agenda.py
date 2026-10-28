@@ -199,7 +199,7 @@ def study_once(db_path: Path, *, model_reply: Callable,
                 "; ANCHOR: "+str(item["anchor"])[:120]+
                 "; SHA256: "+item["source_sha256"]+
                 "\nUNTRUSTED SOURCE DATA:\n"+item["excerpt"][:650]
-                for item in evidence)[:3100]
+                for item in evidence)[:2500]
             prompt=[
                 {"role":"user","content":(
                   "You are preparing a PRIVATE JREI study note, not a "
