@@ -19,7 +19,23 @@ $python=Join-Path $env:LOCALAPPDATA 'JREI-Python\venv\Scripts\python.exe'
 $root=Join-Path $env:LOCALAPPDATA 'JREI\command-center'
 $token=Join-Path $root 'owner-token'
 $taskName='JREI-Owner-Windows-Command-Center'
-$owner=[Security.Principal.WindowsIdentity]::GetCurrent().Name
+$ownerIdentity=[Security.Principal.WindowsIdentity]::GetCurrent()
+$owner=$ownerIdentity.Name
+function IsCurrentOwner([string]$registeredUser) {
+ # Compare account SID, not a display name that may be short or qualified.
+ if([string]::IsNullOrWhiteSpace($registeredUser)){return $false}
+ try{
+   if($registeredUser -match '^S-1-[0-9]+(-[0-9]+)+$'){
+     $registeredSid=(New-Object Security.Principal.SecurityIdentifier($registeredUser)).Value
+   }else{
+     $registeredSid=(New-Object Security.Principal.NTAccount($registeredUser)).Translate(
+       [Security.Principal.SecurityIdentifier]).Value
+   }
+   return $registeredSid -eq $ownerIdentity.User.Value
+ }catch{
+   return $false
+ }
+}
 function Ready {
  try {
    $r=Invoke-WebRequest -UseBasicParsing -Uri 'http://127.0.0.1:8092/' -TimeoutSec 3
@@ -44,6 +60,9 @@ function OpenOwnerConsole {
 if($Mode -eq 'Status'){
  $registered=Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue
  Write-Output ('[JREI] WINDOWS_COMMAND_TASK='+$(if($null -eq $registered){'NOT_REGISTERED'}else{$registered.State.ToString()}))
+ if($null -ne $registered){
+   Write-Output ('[JREI] WINDOWS_COMMAND_TASK_OWNER='+$(if(IsCurrentOwner ([string]$registered.Principal.UserId)){'SAME_WINDOWS_ACCOUNT'}else{'DIFFERENT_OR_UNRESOLVED_ACCOUNT'}))
+ }
  Write-Output ('[JREI] WINDOWS_COMMAND_HTTP_8092='+$(if(Ready){'RESPONDING'}else{'NOT_READY'}))
  Write-Output '[JREI] WINDOWS_COMMAND_CENTER_PRIVATE_ONLY'
  return
@@ -82,8 +101,8 @@ if($null -eq $existing){
 }else{
  # Reconcile the older installed action: "already registered" alone is not
  # success when the registered command cannot import the Python package.
- if($existing.Principal.UserId -cne $owner){
-   throw 'JREI_COMMAND_TASK_OWNER_MISMATCH'
+ if(-not (IsCurrentOwner ([string]$existing.Principal.UserId))){
+   throw 'JREI_COMMAND_TASK_DIFFERENT_WINDOWS_ACCOUNT'
  }
  $needsUpgrade=$true
  if($existing.Actions.Count -eq 1){
