@@ -118,6 +118,18 @@ test('one-click owner release safely provisions only existing master with privat
   assert.doesNotMatch(provisioning,/UPDATE operations_cron_jobs|CREATE TABLE|DROP TABLE/);
 });
 
+test('owner release seeds the official directory as unverified candidates, never as rights approval',()=>{
+  const seed=fs.readFileSync(path.join(root,'platform/news-intelligence/php/original-official-source-bootstrap.php'),'utf8');
+  const schema=fs.readFileSync(path.join(root,'api/operations-schema.php'),'utf8');
+  assert.match(seed,/GITHUB_OWNER_VERIFIED_RELEASE/);
+  assert.match(seed,/SELECT release_sha FROM operations_release/);
+  assert.match(seed,/hash_equals\(\$stored,\$releaseSha\)/);
+  assert.match(seed,/PERMISSION_UNVERIFIED/);
+  assert.match(seed,/PENDING_REVIEW/);
+  assert.match(schema,/news_official_origins_discovered_unverified/);
+  assert.match(schema,/jrNewsOriginalSeedOfficialInstitutionSources/);
+});
+
 test('MFA-only bilingual owner newsroom reuses existing operations identity and packaged module',()=>{
   const source=fs.readFileSync(path.join(root,'platform/news-intelligence/ui/admin-newsroom.js'),'utf8');
   const projected=fs.readFileSync(path.join(out,'assets/js/jrei-news-owner-panel-v1.mjs'),'utf8');

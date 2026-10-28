@@ -30,9 +30,23 @@ function jrNewsOriginalSeedOfficialInstitutionSources(
     $fromMfa=($privateJob['source']??null)==='EXISTING_OWNER_NEWS_OPERATIONS'&&
         ($privateJob['confirmation']??null)==='DISCOVER_KNOWN_OFFICIAL_ORIGINS'&&
         is_array($privateJob['ownerSession']??null);
-    if ((!$fromCron&&!$fromMfa)||$nowEpoch<=0||$limit<1||$limit>20)
+    // One exact GitHub owner-clicked Bertina release authorizes the
+    // DISCOVERY of named official roots, not source rights or publication.
+    $releaseSha=(string)($privateJob['releaseSha']??'');
+    $fromRelease=($privateJob['source']??null)==='GITHUB_OWNER_VERIFIED_RELEASE'&&
+        preg_match('/^[a-f0-9]{40}$/D',$releaseSha)===1;
+    if ((!$fromCron&&!$fromMfa&&!$fromRelease)||
+        $nowEpoch<=0||$limit<1||$limit>20)
         throw new RuntimeException('news_official_seed_private_authority_required');
     if($fromMfa)jrNewsOwnerAuthority($privateJob['ownerSession']);
+    if($fromRelease){
+        $proof=$pdo->prepare('SELECT release_sha FROM operations_release
+            WHERE singleton_id=1 LIMIT 1');
+        $proof->execute();
+        $stored=$proof->fetchColumn();
+        if(!is_string($stored)||!hash_equals($stored,$releaseSha))
+            throw new RuntimeException('news_official_seed_release_not_committed');
+    }
 
     $summary=[
         'schema'=>'jr.jrei.news-original-institution-seed.v1',

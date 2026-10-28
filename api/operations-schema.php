@@ -470,6 +470,30 @@ function operationsImportRelease(PDO $pdo, array $batch, string $expectedSha, ar
         }catch(Throwable $ignored){
             // Leave source/private activation OFF on uncertain host state.
         }
+        // Owner authorized original official institutions for source discovery.
+        // The same mother database stores new sources as DISCOVERED with
+        // PERMISSION_UNVERIFIED rights and PENDING_REVIEW scheduling.
+        try {
+            $module=__DIR__.'/internal/jrei-news/original-official-source-bootstrap.php';
+            if(is_file($module)&&is_readable($module)){
+                require_once $module;
+                $discovery=jrNewsOriginalSeedOfficialInstitutionSources(
+                    $pdo,
+                    ['source'=>'GITHUB_OWNER_VERIFIED_RELEASE',
+                     'releaseSha'=>$expectedSha],
+                    time(),20);
+                $pdo->prepare('INSERT INTO operations_audit
+                   (actor_id,action,reference_id,occurred_at)
+                   VALUES(NULL,?,?,?)')->execute([
+                    'news_official_origins_discovered_unverified',
+                    'original-roots:'.(int)($discovery['newDiscovered']??0),
+                    time()
+                ]);
+            }
+        }catch(Throwable $ignored){
+            // Missing original mother schema is not permission to migrate,
+            // infer rights or abort an otherwise healthy site release.
+        }
         return count($validated);
     } catch (Throwable $e) { if ($pdo->inTransaction()) $pdo->rollBack(); throw $e; }
 }
