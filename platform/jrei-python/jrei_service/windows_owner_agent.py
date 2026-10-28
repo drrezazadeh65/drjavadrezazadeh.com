@@ -18,6 +18,7 @@ import time
 
 from jrei_service.owner_candidate_pipeline import SENSITIVE
 from jrei_service.windows_workspace import develop, rollback, requested_path
+from jrei_service.windows_project_workflows import requested as wants_project_workflow, run as investigate_project
 
 MAX_MESSAGE = 9000
 MAX_HISTORY = 10
@@ -89,8 +90,41 @@ def init(db_path: Path) -> None:
               id TEXT PRIMARY KEY, conversation_id TEXT NOT NULL
                 REFERENCES owner_conversations(id) ON DELETE CASCADE,
               created INTEGER NOT NULL, tool TEXT NOT NULL, arguments TEXT NOT NULL);
+            CREATE TABLE IF NOT EXISTS owner_workflows(
+              id TEXT PRIMARY KEY,
+              conversation_id TEXT NOT NULL REFERENCES owner_conversations(id) ON DELETE CASCADE,
+              created INTEGER NOT NULL, state TEXT NOT NULL,
+              step_count INTEGER NOT NULL, receipt_sha256 TEXT NOT NULL,
+              receipt TEXT NOT NULL);
+            CREATE INDEX IF NOT EXISTS owner_workflows_conversation
+              ON owner_workflows(conversation_id,created DESC);
         """)
         db.commit()
+
+
+def store_workflow(db_path: Path, ident: str, receipt: dict) -> None:
+    raw = json.dumps(receipt, ensure_ascii=False, separators=(",", ":"))
+    if len(raw) > 14000:
+        raw = json.dumps({k: v for k, v in receipt.items()
+                          if k != "evidence_excerpt"}, ensure_ascii=False)
+    with closing(_db(db_path)) as db:
+        _valid_conversation(db, ident)
+        db.execute("""INSERT INTO owner_workflows
+          (id,conversation_id,created,state,step_count,receipt_sha256,receipt)
+          VALUES(?,?,?,?,?,?,?)""",
+          (receipt["id"], ident, int(time.time()), receipt["state"],
+           len(receipt["steps"]), hashlib.sha256(raw.encode("utf-8")).hexdigest(),
+           raw))
+        db.commit()
+
+
+def list_workflows(db_path: Path) -> list:
+    with closing(_db(db_path)) as db:
+        rows = db.execute("""SELECT id,conversation_id,created,state,step_count,receipt_sha256
+          FROM owner_workflows ORDER BY created DESC LIMIT 30""").fetchall()
+    return [{"id": a,"conversation_id": b,"created": c,"state": d,
+             "steps": e,"receipt_sha256": f}
+            for a,b,c,d,e,f in rows]
 
 
 def start(db_path: Path, title: str = "گفتگوی جدید") -> str:
@@ -385,6 +419,23 @@ def interact(*, db_path: Path, repo: Path, private: Path, ident: str, message: s
         raise ValueError("JREI_OWNER_MESSAGE_INVALID")
     message = message.strip()
     _add(db_path, ident, "user", message)
+    # Owner-explicit project investigation: bounded real search, reads,
+    # evidence-based synthesis, durable local receipts. The model only
+    # suggests search terms; it cannot grant itself filesystem permissions.
+    if wants_project_workflow(message):
+        result = investigate_project(
+            message=message, search=lambda q: find_source(repo, q),
+            read=lambda p: read_source(repo, p), model_reply=model_reply)
+        receipt = result["receipt"]
+        store_workflow(db_path, ident, receipt)
+        raw = json.dumps(receipt, ensure_ascii=False)
+        _add(db_path, ident, "assistant", result["answer"],
+             "project_investigation", result["state"], raw[:MAX_TOOL_OUTPUT])
+        return {"conversation_id": ident, "answer": result["answer"],
+                "state": result["state"],
+                "tool": {"name": "project_investigation", "state": result["state"],
+                         "receipt": raw[:MAX_TOOL_OUTPUT],
+                         "steps": receipt["steps"]}}
     choice = pick_tool(message)
     if choice and choice[0] in ("edit_local", "rollback_local"):
         tool, arguments = choice
