@@ -71,6 +71,16 @@ try{
 }catch{
  # Do not fake hardware measurements when Windows blocks this API.
 }
+# GPU name is WMI self-reported inventory, never CUDA/DirectML proof.
+$gpuNames=@()
+try{
+ $gpuNames=@(Get-CimInstance Win32_VideoController -ErrorAction Stop |
+  Select-Object -First 4 | ForEach-Object {
+   if(-not [string]::IsNullOrWhiteSpace($_.Name)){
+    ([string]$_.Name).Substring(0,[math]::Min(90,([string]$_.Name).Length))
+   }
+  })
+}catch{}
 $taskPresent=$false
 try{
  $t=Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue
@@ -85,6 +95,8 @@ $report=[ordered]@{
  server_side_node_capacity_not_verified=$true
  ram_gb_observed=$ramGB
  cpu_threads_observed=$cpuThreads
+ gpu_adapter_names_observed=$gpuNames
+ gpu_adapter_names_are_unverified_windows_claims=$true
  ram_is_not_node_identity=$true
  gpu_compute_verified=$false
  existing_private_config_present=$configPresent
