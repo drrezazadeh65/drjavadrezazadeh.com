@@ -39,6 +39,10 @@ h1{font-size:29px;line-height:1.3;margin:16px 0 6px;font-weight:650}p{margin:.5e
 .toolReceipt{margin-top:12px;border:1px solid #4e4536;border-radius:12px;padding:9px 12px;background:#201f1d;color:#d8c7aa;font-size:11px;max-width:100%}.receiptBtn{background:#34312b;padding:5px 9px;border-radius:8px;font-size:11px;margin-right:9px}.receipt{display:none;white-space:pre-wrap;word-break:break-word;margin-top:9px;color:#d8d6d1;max-height:280px;overflow:auto;direction:ltr;text-align:left;font:11px/1.8 Consolas,monospace}.toolReceipt.expanded .receipt{display:block}
 .workflowSteps{display:grid;gap:5px;margin:10px 0;font-size:11px;color:#d9c9aa}
 .workflowStep{padding:6px 9px;background:#252a30;border-radius:7px;direction:auto;unicode-bidi:plaintext}
+.evidenceAnchors{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px;align-items:center}
+.evidenceHeading{width:100%;font-size:11px;color:#e1c895}
+.evidenceAnchor{max-width:100%;font-size:11px;border:1px solid #5a5040;border-radius:8px;background:#292823;padding:4px 8px;overflow-wrap:anywhere;unicode-bidi:plaintext}
+.evidenceNotice{width:100%;color:#aba89f;font-size:10px}
 .draftDownloads{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}
 .draftDownload{border:1px solid #77613d;border-radius:7px;padding:5px 10px;color:#ead09e;background:#292722;font-size:12px}
 .attachedFiles{display:flex;flex-wrap:wrap;gap:7px;padding:5px 0}.attachedFiles:empty{display:none}
@@ -257,6 +261,24 @@ function addMessage(role,content,tool,pending){
       card.append(downloads);
      }
     }catch(e){/* A partial historical receipt is not a downloadable file. */}
+   }
+   if(tool.name==='local_document_retrieval'&&tool.receipt){
+    try{
+     const trace=JSON.parse(tool.receipt);
+     if(Array.isArray(trace.evidence_anchors)&&trace.evidence_anchors.length){
+      const evidenceBox=el('div','evidenceAnchors');
+      evidenceBox.append(el('strong','evidenceHeading','ارجاعات متن بازیابی‌شده'));
+      const filenames=new Map((trace.files||[]).map(x=>[x.id,x.name||'سند خصوصی']));
+      for(const item of trace.evidence_anchors.slice(0,5)){
+       const name=filenames.get(item.document_id)||'سند خصوصی';
+       const anchor=el('span','evidenceAnchor',name+' · '+(item.anchor||'بدون شماره صفحه'));
+       anchor.title='اثر انگشت متن: '+(item.text_sha256||'ناموجود');
+       evidenceBox.append(anchor);
+      }
+      evidenceBox.append(el('span','evidenceNotice','ارجاع به بخش‌های بازیابی‌شده است؛ نه گواه بررسی کامل یا تأیید علمی سند.'));
+      card.append(evidenceBox);
+     }
+    }catch(e){/* Malformed historic receipts never alter the assistant answer. */}
    }
    slot.append(card)}
   if(pending){const card=el('div','pending');card.append(el('p','',`عملیات محلی در انتظار تأیید: ${pending.tool} — ${pending.target}`));
