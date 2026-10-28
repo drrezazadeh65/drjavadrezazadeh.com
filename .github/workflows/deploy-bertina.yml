@@ -131,7 +131,7 @@ jobs:
           node --check scripts/bertina-phased-release-gate.mjs
           node --test tests/bertina-phased-release-gate.test.mjs
           node scripts/bertina-phased-release-gate.mjs
-          echo "Guarded current-snapshot mode. PDF installation, SQL migrations, payouts, full 41/21 certification remain deferred." >> "$GITHUB_STEP_SUMMARY"
+          echo "Guarded current-snapshot mode. PDF installation, general SQL migrations, payouts and full 41/21 certification remain deferred; the owner authorized only the narrow Webster one-copy migration." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Capture the live release fingerprint for automatic deployment
         if: github.event_name == 'push'
@@ -393,7 +393,9 @@ jobs:
           HOSTING_GATE_SOURCE="$(tail -n +2 scripts/bertina-hosting-managed-release.php)"
           RECOVERY_GATE_SOURCE="$(tail -n +2 scripts/bertina-private-recovery-gate.php)"
           CONTROLLED_GATE_SOURCE="$(tail -n +2 scripts/bertina-controlled-cpanel-gate.php)"
+          WEBSTER_INSTALL_SOURCE="$(tail -n +2 scripts/bertina-owner-webster-stock-on-deploy.php)"
           test -n "$HOSTING_GATE_SOURCE"
+          test -n "$WEBSTER_INSTALL_SOURCE"
           BACKUP_REQUEST_B64=''
           [[ "$RECOVERY_MODE" = hosting_managed || "$RECOVERY_MODE" = signed_restore || "$RECOVERY_MODE" = owner_cpanel_custody ]]
           if [ "$RECOVERY_MODE" = signed_restore ]; then
@@ -410,6 +412,7 @@ jobs:
           $HOSTING_GATE_SOURCE
           $RECOVERY_GATE_SOURCE
           $CONTROLLED_GATE_SOURCE
+          $WEBSTER_INSTALL_SOURCE
           header('Content-Type: application/json; charset=utf-8');
           header('Cache-Control: no-store');
           header('X-Robots-Tag: noindex, noarchive');
@@ -459,7 +462,8 @@ jobs:
               echo json_encode(['ok'=>false,'error'=>'release_policy_preflight_failed','reason'=>\$reasonCode]);
               exit;
           }
-          // Read-only database compatibility check; never backfill or migrate.
+          // Scoped owner-authorized collectible initialization, then the
+          // existing fail-closed read-only schema compatibility check.
           try {
               \$cfg = require __DIR__ . '/api/config.local.php';
               if (!is_array(\$cfg)) throw new RuntimeException('private_config_missing');
@@ -469,6 +473,9 @@ jobs:
                       PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
                       PDO::ATTR_EMULATE_PREPARES => false,
                   ]);
+              // Scoped owner authorization: bootstrap a single physical
+              // collectible without replacing existing commercial records.
+              \$websterInit=drjrInstallOwnerWebsterSingleSet(\$pdo);
               \$columns = array_column(\$pdo->query('SHOW COLUMNS FROM commerce_orders')->fetchAll(), 'Field');
               foreach (['customer_email','customer_json','receipt_email_sent_at'] as \$column) {
                   if (!in_array(\$column, \$columns, true)) throw new RuntimeException('missing_commerce_column');
@@ -604,6 +611,7 @@ jobs:
               }
           }
           \$response = ['ok'=>\$ok,'commit'=>\$commit,'checked'=>\$checked,
+              'websterSingleSet'=>\$websterInit,
               'mismatch'=>array_slice(\$mismatch,0,20),'operations'=>\$operations,
               'recoveryPolicy'=>[
                 'mode'=>'$RECOVERY_MODE',
