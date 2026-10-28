@@ -28,6 +28,7 @@ import urllib.error
 from jrei_service.owner_candidate_pipeline import stage_candidate
 from jrei_service.ci_observer import observe_ci
 from jrei_service import windows_owner_agent as owner_agent
+from jrei_service import windows_owner_tasks as owner_tasks
 from jrei_service.windows_response_quality import has_repetition_loop
 from jrei_service.windows_project_generator import read_generated
 from jrei_service.windows_document_vault import import_document, list_documents, delete_document
@@ -64,6 +65,8 @@ STUDY = [
 ]
 _STOP = threading.Event()
 _BUSY = threading.Lock()
+_INFERENCE_LOCK = threading.Lock()
+_TASK_WAKE = threading.Event()
 _activity_at = 0.0
 _cycle = 0
 _GPU_TASK = "JREI-GPU-Qwen-Private"
@@ -98,6 +101,7 @@ def setup() -> str:
         db.execute("CREATE INDEX IF NOT EXISTS events_time ON events(ts)")
         db.commit()
     owner_agent.init(DB_PATH)
+    owner_tasks.initialize(DB_PATH)
     token = TOKEN_PATH.read_text(encoding="ascii").strip()
     if len(token) < 48:
         raise RuntimeError("JREI_OWNER_TOKEN_INVALID")
@@ -263,7 +267,8 @@ def reply(messages, max_tokens=320):
             raise RuntimeError("JREI_LOCAL_MODEL_EMPTY_ANSWER")
         return answer.strip(), result.get("usage", {}).get("completion_tokens")
 
-    answer, tokens = one_completion(retry=False)
+    with _INFERENCE_LOCK:
+        answer, tokens = one_completion(retry=False)
     if not has_repetition_loop(answer):
         return {"answer": answer, "model": model,
                 "backend": "GPU" if base == GPU else "CPU",
@@ -272,7 +277,8 @@ def reply(messages, max_tokens=320):
     # The raw pathological text is never shown, stored or logged.
     record("model_quality", "RETRY_REPETITION", "Local model output rejected")
     try:
-        answer, tokens = one_completion(retry=True)
+        with _INFERENCE_LOCK:
+            answer, tokens = one_completion(retry=True)
     except (OSError, ValueError, RuntimeError, urllib.error.URLError):
         # A failed retry must not be mistaken for a successful answer.
         record("model_quality", "REJECTED_REPETITION", "Regeneration unavailable")
@@ -486,6 +492,49 @@ def run_job(job: str, background: bool = False):
         _BUSY.release()
 
 
+def owner_task_worker():
+    """Execute queued owner requests; no arbitrary shell or unrestricted tools.
+
+    Crash recovery is handled by owner_tasks.initialize. A running task is
+    marked INTERRUPTED after restart and cannot be silently re-executed.
+    """
+    global _activity_at
+    while not _STOP.is_set():
+        if _BUSY.locked():
+            _TASK_WAKE.wait(1.5)
+            _TASK_WAKE.clear()
+            continue
+        try:
+            task = owner_tasks.claim(DB_PATH)
+        except (OSError, sqlite3.Error) as exc:
+            record("owner_queue", "STORAGE_ERROR", exc.__class__.__name__)
+            if _STOP.wait(3):
+                break
+            continue
+        if task is None:
+            _TASK_WAKE.wait(1.5)
+            _TASK_WAKE.clear()
+            continue
+        _activity_at = time.monotonic()
+        try:
+            result = owner_agent.interact(
+                db_path=DB_PATH, repo=REPO, private=PRIVATE,
+                ident=task["conversation_id"], message=task["prompt"],
+                attachment_ids=task["attachments"],
+                model_reply=reply, run_directive=route_directive)
+            outcome = owner_tasks.finish(DB_PATH, task["id"], result=result)
+        except Exception as exc:
+            # No input text or document content enters operational logs.
+            error_code = "JREI_OWNER_TASK_" + exc.__class__.__name__.upper()
+            try:
+                outcome = owner_tasks.finish(
+                    DB_PATH, task["id"], error_code=error_code[:100])
+            except (OSError, ValueError, sqlite3.Error):
+                outcome = "FINALIZATION_FAILED"
+        _activity_at = time.monotonic()
+        record("owner_task", outcome, task["id"][:12])
+
+
 def scheduler():
     global _autonomy_tick
     # Autonomous studying does not suppress background GPU recovery.
@@ -620,6 +669,21 @@ class OwnerHTTP(BaseHTTPRequestHandler):
             return self._send(200, {"instructions": owner_agent.get_instructions(PRIVATE)})
         if self.path == "/api/conversations":
             return self._send(200, {"items": owner_agent.list_conversations(DB_PATH)})
+        if self.path == "/api/tasks":
+            params = parse_qs(urlsplit(self.path).query)
+            conversation_id = params.get("conversation_id", [None])[0]
+            try:
+                return self._send(200, {"items": owner_tasks.list_recent(
+                    DB_PATH, conversation_id=conversation_id)})
+            except ValueError:
+                return self._send(400, {"error": "JREI_TASK_QUERY_INVALID"})
+        if urlsplit(self.path).path == "/api/task":
+            params = parse_qs(urlsplit(self.path).query)
+            try:
+                return self._send(200, owner_tasks.get(DB_PATH,
+                    params.get("id", [""])[0]))
+            except ValueError:
+                return self._send(404, {"error": "JREI_TASK_NOT_FOUND"})
         if self.path == "/api/workflows":
             return self._send(200, {"items": owner_agent.list_workflows(DB_PATH)})
         if self.path == "/api/documents":
@@ -665,6 +729,15 @@ class OwnerHTTP(BaseHTTPRequestHandler):
             if self.path == "/api/profile":
                 value = data.get("instructions")
                 return self._send(200, {"state": owner_agent.save_instructions(PRIVATE, value)})
+            if self.path == "/api/task/submit":
+                result = owner_tasks.submit(
+                    DB_PATH, conversation_id=data.get("conversation_id"),
+                    prompt=data.get("message"), attachments=data.get("attachments", []))
+                _TASK_WAKE.set()
+                return self._send(202, result)
+            if self.path == "/api/task/cancel":
+                result = owner_tasks.cancel(DB_PATH, data.get("id"))
+                return self._send(200, result)
             if self.path == "/api/conversation/new":
                 title = data.get("title", "گفتگوی جدید")
                 if not isinstance(title, str) or len(title) > 90:
@@ -749,6 +822,9 @@ def main():
     # background bounded cycle and persistent private observation ledger.
     thread = threading.Thread(target=scheduler, name="jrei-background-study", daemon=True)
     thread.start()
+    owner_thread = threading.Thread(target=owner_task_worker,
+        name="jrei-private-owner-queue", daemon=True)
+    owner_thread.start()
     with ThreadingHTTPServer((HOST, PORT), OwnerHTTP) as server:
         server.owner_token = token
         print(f"[JREI] OWNER_CONSOLE_LISTENING_{PORT}", flush=True)
