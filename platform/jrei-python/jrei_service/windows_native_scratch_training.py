@@ -90,6 +90,13 @@ def train(*, db_path: Path, private: Path, config_file: Path,
     folder, provenance = candidate["path"], candidate["manifest"]
     if shutil.disk_usage(private).free < 4 * 1024 ** 3:
         raise ValueError("JREI_SCRATCH_INSUFFICIENT_DISK_HEADROOM")
+    from jrei_service import windows_resource_envelope as resources
+    resource_guard = resources.allow_heavy_training(
+        require_gpu=(cfg["device"] == "cuda"))
+    if resource_guard["state"] != "HEAVY_WORK_ELIGIBLE_TO_ATTEMPT":
+        return {"state": "JREI_SCRATCH_DEFERRED_RESOURCE_OR_OWNER_ACTIVITY",
+                "reason": resource_guard["reason"],
+                "trained_model": False, "site_changed": False}
     # No PyTorch import at panel startup. PyTorch is optional library code,
     # not a separate desktop application, and may already be on this machine.
     os.environ["HF_HUB_OFFLINE"] = "1"
@@ -152,6 +159,11 @@ def train(*, db_path: Path, private: Path, config_file: Path,
         if time.monotonic() - started >= cfg["max_seconds"]:
             reason = "RESOURCE_TIME_LIMIT"
             break
+        if step and step % 10 == 0:
+            capacity = resources.observe(gpu_probe=False)
+            if not capacity["sensitive_heavy_jobs_eligible"]:
+                reason = "OWNER_ACTIVITY_OR_RESOURCE_PRESSURE"
+                break
         model.train()
         x, y = batch(train_ids, cfg["batch_size"])
         _, loss = model(x, y)
