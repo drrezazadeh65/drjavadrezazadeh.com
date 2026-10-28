@@ -796,14 +796,18 @@ for(const route of approvedBilingualCollectibleRoutes){
       failures.push('Approved collectible canonical, locale, media or schema contract missing: '+route);
   }
 }
-const approvedPublicHtmlRoutes=existingBaseHtmlRoutes+approvedEnglishServices.length+protectedNewRoutes.length+2+approvedEnglishVipRoutes.length+1+1+1+approvedBilingualEducationalRoutes.length*2+approvedPublicExamPages.length+approvedPrivateExamPages.length+approvedBilingualCollectibleRoutes.length;
+// These two already-present JHELA roadmap pages are explicitly checked
+// below but were omitted from the fixed-count arithmetic. Preserve the strict
+// route-count release guard while accounting for the verified page pair.
+const approvedJhelaRoadmapRoutes=['journal/roadmap/index.html','journal/fa/roadmap/index.html'];
+const approvedPublicHtmlRoutes=existingBaseHtmlRoutes+approvedEnglishServices.length+protectedNewRoutes.length+2+approvedEnglishVipRoutes.length+1+1+1+approvedBilingualEducationalRoutes.length*2+approvedPublicExamPages.length+approvedPrivateExamPages.length+approvedBilingualCollectibleRoutes.length+approvedJhelaRoadmapRoutes.length;
 
 const aiLabRoute='fa/konkur-ai-lab/index.html';
 const aiLabPath=path.join(out,aiLabRoute);
 const aiLabJs=path.join(out,'assets/js/jr-konkur-ai-lab-public-v1.mjs');
 if(!fs.existsSync(aiLabPath)||!fs.existsSync(aiLabJs))failures.push('Isolated AI lab or its public-only adapter missing from sanitized artifact');
 else if(!/<meta name="robots" content="noindex,nofollow,noarchive">/.test(fs.readFileSync(aiLabPath,'utf8')))failures.push('AI research lab must remain noindex and nonpublic');
-for(const route of ['journal/roadmap/index.html','journal/fa/roadmap/index.html']){
+for(const route of approvedJhelaRoadmapRoutes){
   if(!fs.existsSync(path.join(out,route))) failures.push('Approved JHELA roadmap page missing: '+route);
 }
 if(html.length!==approvedPublicHtmlRoutes) failures.push(
