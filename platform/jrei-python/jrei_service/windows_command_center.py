@@ -625,6 +625,8 @@ def status():
         "inference_backend": "JREI_LOCAL" if base else "OFFLINE",
         "model_alias": model,
         "native_language_backend": language_backend.snapshot(PRIVATE),
+        "native_evidence_answering": "AVAILABLE_NO_EXTERNAL_WEIGHTS",
+        "native_language_model_training": "NOT_STARTED",
         "busy": _BUSY.locked(),
         "owner_activity_recent": bool(_activity_at and time.monotonic() - _activity_at < 180),
         "study_proposals_not_verified": total,
