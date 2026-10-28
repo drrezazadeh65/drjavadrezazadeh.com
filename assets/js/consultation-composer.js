@@ -76,6 +76,7 @@
           option.dataset.serviceId='vip:'+vipId;
           select.appendChild(option);
         }
+        option.dataset.serviceId='vip:'+vipId;
         select.value=option.value;
         requestedServiceValue=option.value;
         // The public VIP catalogue gives only a name, price and booking
@@ -136,6 +137,7 @@
           option.dataset.serviceId=service.id;
           select.appendChild(option);
         }
+        option.dataset.serviceId=service.id;
         select.value=option.value;
         requestedServiceValue=option.value;
         renderRequestedService(service,english);
@@ -181,8 +183,17 @@
           return;
         }
       }
+      // Include only the validated public catalogue ID in the user's email draft.
+      // This helps staff distinguish similarly named services, but is never a
+      // booking, payment, identity, or analytics event.
+      var selectedOption=form.elements.namedItem('service')?.selectedOptions?.[0];
+      var publicServiceId=selectedOption?.dataset?.serviceId||'';
+      if(!/^(?:vip:[a-z][a-z0-9-]{2,63}|[a-z][a-z0-9_]{2,63})$/.test(publicServiceId)){
+        publicServiceId='';
+      }
       var labels = fa ? ['نوع خدمت', 'نقش یا زمینه', 'سؤال اصلی', 'مهلت'] : ['Service', 'Context', 'Main question', 'Deadline'];
       var text = values.map(function (value, index) { return value ? labels[index] + ': ' + value : ''; }).filter(Boolean).join('\n\n');
+      if(publicServiceId) text+='\n\n'+(fa?'شناسه عمومی خدمت: ':'Public service ID: ')+publicServiceId;
       // A preference is not a booking. Keep the mode allowlisted rather than
       // trusting modified form option labels or granting in-person access.
       var modeField = form.elements.namedItem('delivery_mode');
