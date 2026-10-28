@@ -1,0 +1,13 @@
+{
+  "schema": "jr.jrei.windows-owner-app-approval.v1",
+  "state": "SOURCE_CANDIDATE_AWAITING_INTEGRATED_WINDOWS_ACCEPTANCE",
+  "approvedSourceTree": "",
+  "integratedAcceptancePassed": false,
+  "ownerApprovedAutomaticPromotion": false,
+  "testsRunOnWindows": false,
+  "windows16gbVerified": false,
+  "windows32gbVerified": false,
+  "modelFromScratchQualityProven": false,
+  "websiteDeployed": false,
+  "reason": "This is a conservative placeholder, NEVER a release authorization. Record exact source tree and final Windows acceptance only after real owner-observed checks on both PCs."
+}
