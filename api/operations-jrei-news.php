@@ -836,6 +836,75 @@ function jrOperationsNewsReadiness(PDO $pdo,array $config): array {
     ];
 }
 
+
+/** Actual CMS receipt verifier: private mother DB and both on-disk SHA256s.
+ * Owner-only (the existing operations MFA/CSRF gate runs before dispatch).
+ * Bounded read; absent migrations/files are not treated as zero or success.
+ */
+function jrOperationsNewsCmsReceiptInventory(PDO $pdo,string $siteRoot,int $limit=8):array {
+    if($limit<1||$limit>12)throw new InvalidArgumentException('news_receipt_limit_invalid');
+    $root=realpath($siteRoot);
+    $base=['schema'=>'jr.jrei.news-original-cms-disk-receipts.v1',
+           'verifiedCount'=>0,'unverifiedCount'=>0,'receipts'=>[],
+           'mutationsPerformed'=>false,'publicHttpChecked'=>false];
+    if($root===false||is_link($siteRoot)||!is_dir($root))
+        return [...$base,'state'=>'FILESYSTEM_UNAVAILABLE'];
+    try{
+        $q=$pdo->prepare("SELECT p.publication_id,p.fa_route,p.en_route,
+                p.fa_content_sha256,p.en_content_sha256,p.publisher_receipt_reference,
+                p.published_at,v.approval_digest
+            FROM jrei_news_publications p
+            JOIN jrei_news_editorial_versions v ON v.revision_id=p.revision_id
+            WHERE p.publisher_state='PUBLISHED'
+            ORDER BY p.published_at DESC,p.publication_id ASC LIMIT ?");
+        $q->bindValue(1,$limit,PDO::PARAM_INT);
+        $q->execute();
+        $rows=$q->fetchAll(PDO::FETCH_ASSOC);
+    }catch(Throwable $ignored){return [...$base,'state'=>'DATABASE_UNAVAILABLE'];}
+    $out=[];$valid=0;$bad=0;
+    foreach($rows as $row){
+        $id=(string)$row['publication_id'];
+        $approval=(string)$row['approval_digest'];
+        $fa=(string)$row['fa_content_sha256'];
+        $en=(string)$row['en_content_sha256'];
+        $receipt='jrei-original-bilingual:'.hash('sha256',
+            implode('|',[$id,$approval,$fa,$en]));
+        $pass=preg_match('/^[a-f0-9-]{36}$/iD',$id)===1&&
+            preg_match('/^[a-f0-9]{64}$/D',$approval)===1&&
+            preg_match('/^[a-f0-9]{64}$/D',$fa)===1&&
+            preg_match('/^[a-f0-9]{64}$/D',$en)===1&&
+            is_string($row['publisher_receipt_reference'])&&
+            hash_equals($receipt,$row['publisher_receipt_reference'])&&
+            is_numeric($row['published_at'])&&(int)$row['published_at']>0;
+        $routes=['fa'=>(string)$row['fa_route'],'en'=>(string)$row['en_route']];
+        foreach($routes as $language=>$route){
+            if(!$pass)break;
+            $prefix=$language==='fa'?'/fa/akhbar/':'/en/news-insights/';
+            if(preg_match('#^'.preg_quote($prefix,'#').'[a-z0-9-]{5,100}/$#D',$route)!==1){
+                $pass=false;break;
+            }
+            $directory=$root.rtrim($route,'/');
+            $path=$directory.'/index.html';
+            if(is_link($directory)||is_link($path)||realpath($path)!==$path||
+               !is_file($path)||!is_readable($path)||
+               !hash_equals($language==='fa'?$fa:$en,
+                   (string)@hash_file('sha256',$path)))$pass=false;
+        }
+        if($pass)$valid++;else $bad++;
+        $out[]=['publicationId'=>$id,
+            'state'=>$pass?'VERIFIED_DB_AND_BILINGUAL_FILES':'UNVERIFIED',
+            'publishedAt'=>$pass?(int)$row['published_at']:null,
+            'faRoute'=>$pass?$routes['fa']:null,'enRoute'=>$pass?$routes['en']:null,
+            'receiptReference'=>$pass?$receipt:null,
+            'faContentSha256'=>$pass?$fa:null,
+            'enContentSha256'=>$pass?$en:null];
+    }
+    return [...$base,'state'=>$bad>0?'REQUIRES_RECONCILIATION':
+        ($valid>0?'VERIFIED_FILES':'NO_PUBLICATION_RECEIPTS'),
+        'verifiedCount'=>$valid,'unverifiedCount'=>$bad,'receipts'=>$out,
+        'verifiedScope'=>'ORIGINAL_MOTHER_DB_AND_LOCAL_BILINGUAL_CMS_FILES'];
+}
+
 function jrOperationsNewsDispatch(
     PDO $pdo,array $config,string $route,string $method,
     array $body,string $ownerId,string $mfaSessionHash
@@ -847,6 +916,10 @@ function jrOperationsNewsDispatch(
         throw new InvalidArgumentException('news_owner_original_route_invalid');
     if($method==='GET'&&$route==='/owner/integration-readiness')
         return jrOperationsNewsReadiness($pdo,$config);
+    // Protected, read-only receipt verification remains available while
+    // the autonomous publisher or News API is deliberately OFF.
+    if($method==='GET'&&$route==='/owner/cms-receipts')
+        return jrOperationsNewsCmsReceiptInventory($pdo,dirname(__DIR__));
     // Superseding owner directive: durable standing authority for independently
     // verified official primary sources. Never require per-article MFA for this
     // class. Only SUPER_ADMIN session/MFA/CSRF in operations.php can get here.

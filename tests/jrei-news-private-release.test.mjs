@@ -142,6 +142,22 @@ test('owner release seeds the official directory as unverified candidates, never
   assert.match(schema,/jrNewsOriginalSeedOfficialInstitutionSources/);
 });
 
+test('CMS receipts require actual original mother DB state and both canonical file SHA256s',()=>{
+  const api=fs.readFileSync(path.join(root,'api/operations-jrei-news.php'),'utf8');
+  const owner=fs.readFileSync(path.join(root,'platform/news-intelligence/ui/admin-newsroom.js'),'utf8');
+  assert.match(api,/function jrOperationsNewsCmsReceiptInventory/);
+  assert.match(api,/GET'&&\$route==='\/owner\/cms-receipts'/);
+  assert.match(api,/publisher_state='PUBLISHED'/);
+  assert.match(api,/hash_equals\(\$receipt,\$row\['publisher_receipt_reference'\]\)/);
+  assert.match(api,/@hash_file\('sha256',\$path\)/);
+  assert.match(api,/is_link\(\$path\)/);
+  assert.match(api,/publicHttpChecked'=>false/);
+  assert.match(api,/mutationsPerformed'=>false/);
+  assert.match(owner,/refreshCmsReceipts\(\)/);
+  assert.match(owner,/VERIFIED_DB_AND_BILINGUAL_FILES/);
+  assert.match(owner,/No CMS publication receipts recorded/);
+});
+
 test('MFA-only bilingual owner newsroom reuses existing operations identity and packaged module',()=>{
   const source=fs.readFileSync(path.join(root,'platform/news-intelligence/ui/admin-newsroom.js'),'utf8');
   const projected=fs.readFileSync(path.join(out,'assets/js/jrei-news-owner-panel-v1.mjs'),'utf8');

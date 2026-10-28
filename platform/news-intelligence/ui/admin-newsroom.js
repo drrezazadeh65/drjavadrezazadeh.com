@@ -32,6 +32,8 @@ export function mountNewsOwnerPanel({root,csrfResolver,
   integration.className='ni-admin-integration-readiness';
   const publications=document.createElement('section');
   publications.className='ni-admin-publication-backlog';
+  const cmsReceipts=document.createElement('section');
+  cmsReceipts.className='ni-admin-publication-backlog';
   const list=document.createElement('div');list.className='ni-admin-queue';
   const customSources=document.createElement('section');
   customSources.className='ni-admin-custom-source-manager';
@@ -44,7 +46,7 @@ export function mountNewsOwnerPanel({root,csrfResolver,
   const cronControls=document.createElement('section');
   cronControls.className='ni-admin-custom-source-manager';
   root.replaceChildren(header,refresh,status,standingControls,customSources,
-    delegatedControls,exceptionDesk,cronControls,integration,metrics,sources,articles,
+    delegatedControls,exceptionDesk,cronControls,cmsReceipts,integration,metrics,sources,articles,
     acquisition,publications,list);
   const show=s=>{status.textContent=s;};
   const request=async (path,options)=>{
@@ -819,6 +821,66 @@ export function mountNewsOwnerPanel({root,csrfResolver,
       // owner-reviewed preview. Never permit a second blind submission.
     }
   }
+  async function refreshCmsReceipts(){
+    cmsReceipts.replaceChildren();
+    const title=document.createElement('h3');
+    title.textContent=say('رسیدهای واقعی انتشار CMS','Real CMS publication receipts');
+    cmsReceipts.append(title);
+    try{
+      const result=await request('/owner/cms-receipts',{method:'GET'});
+      if(result.schema!=='jr.jrei.news-original-cms-disk-receipts.v1'||
+         !Array.isArray(result.receipts)||result.mutationsPerformed!==false)
+        throw Error('NEWS_CMS_RECEIPT_INVALID');
+      const summary=document.createElement('p');
+      summary.textContent=say('فایل و دیتابیس تأییدشده: ',
+        'DB and files verified: ')+String(result.verifiedCount??0)+
+        say(' · مغایرت: ',' · Discrepancies: ')+String(result.unverifiedCount??0);
+      cmsReceipts.append(summary);
+      if(result.state==='DATABASE_UNAVAILABLE'||result.state==='FILESYSTEM_UNAVAILABLE'){
+        const warning=document.createElement('p');
+        warning.textContent=say('رسیدها از سرور قابل تأیید نیستند.',
+          'CMS receipts cannot be verified on this server.');
+        cmsReceipts.append(warning);
+      }
+      for(const item of result.receipts.slice(0,8)){
+        const row=document.createElement('div');
+        row.className='ni-admin-publication-row';
+        const state=document.createElement('strong');
+        state.textContent=item.state==='VERIFIED_DB_AND_BILINGUAL_FILES'?
+          say('هر دو صفحه واقعاً تأیید شدند','Both physical pages verified'):
+          say('رسید نامعتبر یا فایل ناقص','Unverified receipt or missing page');
+        row.append(state);
+        if(item.state==='VERIFIED_DB_AND_BILINGUAL_FILES'){
+          for(const [caption,url] of [['فارسی',item.faRoute],['English',item.enRoute]]){
+            if(typeof url!=='string'||!/^\/(?:fa\/akhbar|en\/news-insights)\/[a-z0-9-]{5,100}\/$/.test(url))continue;
+            const link=document.createElement('a');
+            link.href=url;link.textContent=caption;
+            link.target='_blank';link.rel='noopener noreferrer';
+            row.append(link);
+          }
+          const reference=document.createElement('code');
+          reference.textContent=String(item.receiptReference??'');
+          row.append(reference);
+        }
+        cmsReceipts.append(row);
+      }
+      if(result.state==='NO_PUBLICATION_RECEIPTS'){
+        const empty=document.createElement('p');
+        empty.textContent=say('هنوز رسید انتشار ثبت نشده است.','No CMS publication receipts recorded.');
+        cmsReceipts.append(empty);
+      }
+      const qualification=document.createElement('p');
+      qualification.textContent=say(
+        'این بررسی فایل‌های سرور است؛ دسترسی عمومی HTTPS جداگانه سنجیده می‌شود.',
+        'Server file verification; external HTTPS reachability is checked separately.');
+      cmsReceipts.append(qualification);
+    }catch{
+      const unavailable=document.createElement('p');
+      unavailable.textContent=say('وضعیت رسید نامشخص است؛ انتشار تأیید نشده.',
+        'Receipt status unknown; publication unverified.');
+      cmsReceipts.append(unavailable);
+    }
+  }
   let loadRevision=0;
   async function load(){
     const readVersion=++loadRevision;
@@ -835,7 +897,7 @@ export function mountNewsOwnerPanel({root,csrfResolver,
     await Promise.all([
       refreshCustomSources(),refreshStandingPolicy(),
       refreshEvidenceExceptions(),refreshDelegatedScopes(),
-      refreshOriginalCronStatus()
+      refreshOriginalCronStatus(),refreshCmsReceipts()
     ]);
     if(readVersion!==loadRevision)return false;
     show(say('در حال بررسی وضعیت یکپارچگی…','Checking existing integrations…'));
