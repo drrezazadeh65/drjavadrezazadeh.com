@@ -15,6 +15,8 @@ from __future__ import annotations
 import os
 import threading
 import time
+from datetime import datetime, timedelta, timezone
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from jrei_service import windows_resource_envelope as sensor
 
@@ -102,3 +104,51 @@ def permits(kind: str, *,fresh=False) -> bool:
 def slots_for(kind: str) -> int:
     plan=snapshot()
     return plan["cpu_only_background_slots"] if permits(kind) else 0
+
+
+def tehran_study_window() -> dict:
+    """Return the 02:00–05:00 Tehran PRIORITY window, never authority.
+
+    Windows Python may lack an installed IANA timezone database; use a clearly
+    labelled UTC+03:30 fallback for the owner's current 2026 Iran time rule.
+    If Iran's civil timezone legislation changes, a later source update is
+    required. This clock alone never permits crawling or heavy model training.
+    """
+    now = datetime.now(timezone.utc)
+    try:
+        local = now.astimezone(ZoneInfo("Asia/Tehran"))
+        clock_source = "IANA_ASIA_TEHRAN"
+    except ZoneInfoNotFoundError:
+        local = now.astimezone(timezone(timedelta(hours=3, minutes=30)))
+        clock_source = "IRAN_FIXED_UTC_PLUS_0330_FALLBACK"
+    active = 2 <= local.hour < 5
+    return {
+        "schema": "jr.jrei.tehran-study-window.v1",
+        "priority_active": active,
+        "local_hour": local.hour,
+        "clock_source": clock_source,
+        "priority_only": True,
+        "robots_and_rights_still_required": True,
+        "resource_admission_still_required": True,
+        "no_network_or_training_permission_granted": True,
+    }
+
+
+def study_interval_seconds(kind: str) -> int:
+    """Adaptive scheduling cadence, not a daily cap or execution entitlement."""
+    normal = {
+        "LEARNING_AGENDA": 500,
+        "SOURCE_MEMORY": 720,
+        "AUTO_TOPICS": 900,
+        "FTS_INDEX": 2700,
+    }
+    high_priority = {
+        "LEARNING_AGENDA": 300,
+        "SOURCE_MEMORY": 450,
+        "AUTO_TOPICS": 540,
+        "FTS_INDEX": 1800,
+    }
+    if kind not in normal:
+        raise ValueError("JREI_STUDY_PRIORITY_KIND_INVALID")
+    return (high_priority if tehran_study_window()["priority_active"]
+            else normal)[kind]
