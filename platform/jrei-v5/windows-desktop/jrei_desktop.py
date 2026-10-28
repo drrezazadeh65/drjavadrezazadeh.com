@@ -124,6 +124,10 @@ class Desktop:
         self.active_job = None
         self.attachments = []
         self.online = False
+        self.approval_dialog = None
+        self.approval_items = []
+        self.approval_context = None
+        self.approval_busy = False
         self._build()
         self.root.after(90, self._drain)
         self.root.after(1100, self._start_poll)
@@ -183,6 +187,8 @@ class Desktop:
         self.status_text = tk.StringVar(value="در حال اتصال به موتور خصوصی…")
         self._label(top, "", fg=MUTED).pack(side="left", padx=5)
         self._button(top, "بازخوانی", self.refresh).pack(side="right")
+        self._button(top, "تأیید تغییرات", self.show_approvals,
+                     color="#423624", foreground=GOLD).pack(side="right", padx=6)
         self._button(top, "روشن‌کردن موتور JREI", self.start_existing_engine, foreground=GOLD).pack(side="right", padx=6)
         self._label(top, "", fg=MUTED).pack(side="right")
         self._button(top, "قطع / لغو", self.cancel_job, foreground=ERROR).pack(side="right", padx=5)
@@ -361,6 +367,27 @@ class Desktop:
             if data.get("id") == self.conversation:
                 self.messages = data.get("items", [])[:300]
                 self._render_messages()
+                cid = self.conversation
+                self.fetch("task_list", lambda: {
+                    "conversation_id": cid,
+                    "items": self.api.request(
+                        "/api/tasks?conversation_id=" + cid)["items"]})
+        elif key == "task_list":
+            if data.get("conversation_id") != self.conversation:
+                return
+            if self.active_job is None:
+                for item in data.get("items", [])[:50]:
+                    if item.get("status") in (
+                            "QUEUED", "RUNNING", "CANCEL_REQUESTED"):
+                        p = item.get("progress") or {}
+                        self.active_job = {
+                            "id": item["id"],
+                            "phase": PHASE.get(
+                                p.get("phase"),
+                                PHASE.get(item["status"], "در حال پردازش"))
+                        }
+                        self._render_messages()
+                        break
         elif key == "sent":
             self.busy_send = False
             self.send_button.configure(state="normal")
@@ -395,6 +422,34 @@ class Desktop:
         elif key == "service":
             self.status_text.set("درخواست اجرای سرویس موجود JREI ثبت شد.")
             self.root.after(1400, self.refresh)
+        elif key == "approvals":
+            if (self.approval_dialog is None or
+                    not self.approval_dialog.winfo_exists() or
+                    data.get("conversation_id") != self.conversation):
+                return
+            self.approval_context = self.conversation
+            self.approval_items = [
+                item for item in data.get("items", [])[:12]
+                if isinstance(item, dict) and
+                re.fullmatch(r"[A-Za-z0-9_-]{24,60}", str(item.get("id", "")))
+                and item.get("tool") in (
+                    "edit_local", "generate_project", "rollback_local")
+            ]
+            self._show_approvals()
+        elif key == "approval_result":
+            self.approval_busy = False
+            state = str(data.get("state", "UNKNOWN"))[:100]
+            self.status_text.set("نتیجهٔ تأیید: " + state)
+            if self.approval_dialog is not None and self.approval_dialog.winfo_exists():
+                messagebox.showinfo(
+                    "JREI · نتیجهٔ عملیات", "وضعیت: " + state +
+                    "\nفقط محیط خصوصی توسعه؛ هیچ انتشار سایتی انجام نشده است.",
+                    parent=self.approval_dialog)
+                self._load_approvals()
+            if self.conversation:
+                cid = self.conversation
+                self.fetch("thread", lambda: self.api.request(
+                    "/api/conversation?id=" + cid))
 
     def _error(self, key, error):
         self.status_text.set(str(error)[:170])
@@ -406,6 +461,11 @@ class Desktop:
             messagebox.showerror("JREI", str(error)[:500], parent=self.root)
         if key == "attachment":
             messagebox.showerror("JREI · فایل", str(error)[:500], parent=self.root)
+        if key == "approval_result":
+            self.approval_busy = False
+        if key == "approvals" and self.approval_dialog is not None:
+            if self.approval_dialog.winfo_exists():
+                self.approval_status.set("درخواست‌ها دریافت نشد: " + str(error)[:100])
 
     def _bootstrap(self):
         return self.api.request("/api/status")
@@ -487,6 +547,112 @@ class Desktop:
                 "attachments": snapshot})
             return result
         self.fetch("sent", submit)
+
+
+    def show_approvals(self):
+        """Owner-only confirmation UX for ORIGINAL one-time 10-min actions."""
+        if self.approval_dialog is not None and self.approval_dialog.winfo_exists():
+            self.approval_dialog.lift()
+            self._load_approvals()
+            return
+        if not self.conversation or not IDENT.fullmatch(self.conversation):
+            messagebox.showinfo("JREI", "ابتدا گفتگو را انتخاب کنید.",
+                                parent=self.root)
+            return
+        dlg = tk.Toplevel(self.root)
+        dlg.title("JREI | بررسی عملیات خصوصی")
+        dlg.geometry("720x400")
+        dlg.minsize(520, 320)
+        dlg.configure(bg=BG)
+        dlg.transient(self.root)
+        self.approval_dialog = dlg
+        self.approval_status = tk.StringVar(value="در حال دریافت درخواست‌ها…")
+        self._label(dlg, "تأیید یک‌بارهٔ تغییرات ایزوله", bg=BG, fg=GOLD,
+                    size=15, bold=True).pack(fill="x", padx=18, pady=(14, 4))
+        self._label(dlg, "تأیید فقط برای محیط توسعه است؛ نه GitHub یا سایت.",
+                    bg=BG, fg=MUTED).pack(fill="x", padx=18)
+        tk.Label(dlg, textvariable=self.approval_status, bg=BG, fg=MUTED,
+                 font=self._font(9)).pack(fill="x", padx=18, pady=8)
+        self.approval_list = tk.Listbox(
+            dlg, bg=SURFACE, fg=FG, selectbackground="#59462c",
+            font=self._font(10), activestyle="none", relief="flat",
+            highlightthickness=1, highlightbackground=LINE)
+        self.approval_list.pack(fill="both", expand=True, padx=18, pady=5)
+        self.approval_list.bind("<<ListboxSelect>>", self._approval_selected)
+        controls = tk.Frame(dlg, bg=BG)
+        controls.pack(fill="x", padx=18, pady=14)
+        self._button(controls, "بازخوانی", self._load_approvals).pack(side="left")
+        self._button(controls, "بستن", dlg.destroy).pack(side="right")
+        self._button(controls, "تأیید عملیات انتخاب‌شده",
+                     self._confirm_selected, color=GOLD,
+                     foreground=BG).pack(side="right", padx=8)
+        self._load_approvals()
+
+    def _load_approvals(self):
+        dlg = self.approval_dialog
+        if dlg is None or not dlg.winfo_exists():
+            return
+        cid = self.conversation
+        if not cid or not IDENT.fullmatch(cid):
+            self.approval_status.set("شناسهٔ گفتگو معتبر نیست.")
+            return
+        self.approval_items = []
+        self.approval_list.delete(0, "end")
+        self.approval_status.set("در حال دریافت تأییدها از موتور JREI…")
+        self.fetch("approvals", lambda: {
+            "conversation_id": cid,
+            "items": self.api.request(
+                "/api/approvals?conversation_id=" + cid)["items"]})
+
+    def _show_approvals(self):
+        names = {
+            "edit_local": "ویرایش کد خصوصی",
+            "generate_project": "ساخت پروژهٔ خصوصی",
+            "rollback_local": "بازگردانی پیش‌نویس"
+        }
+        self.approval_list.delete(0, "end")
+        self.approval_status.set(
+            f"{len(self.approval_items)} درخواست؛ اعتبار هر درخواست حداکثر ۱۰ دقیقه")
+        for item in self.approval_items:
+            self.approval_list.insert(
+                "end", names.get(item["tool"], item["tool"]) +
+                " | " + str(item.get("target", ""))[:110])
+        if not self.approval_items:
+            self.approval_list.insert("end", "درخواست تأیید فعالی وجود ندارد.")
+
+    def _approval_selected(self, _event=None):
+        selected = self.approval_list.curselection()
+        if selected and selected[0] < len(self.approval_items):
+            self.approval_status.set(
+                "مقصد: " + str(self.approval_items[selected[0]]
+                                .get("target", ""))[:150])
+
+    def _confirm_selected(self):
+        if self.approval_busy or self.approval_context != self.conversation:
+            return
+        selected = self.approval_list.curselection()
+        if not selected or selected[0] >= len(self.approval_items):
+            self.approval_status.set("یک درخواست فعال انتخاب کنید.")
+            return
+        item = self.approval_items[selected[0]]
+        cid, action_id = self.conversation, item["id"]
+        if (not IDENT.fullmatch(cid) or
+                not re.fullmatch(r"[A-Za-z0-9_-]{24,60}", action_id)):
+            return
+        warning = (
+            "آیا این تغییر را بررسی و تأیید می‌کنید؟\n\n" +
+            "نوع: " + item["tool"] + "\n" +
+            "مقصد: " + str(item.get("target", ""))[:110] + "\n\n" +
+            "این تأیید اجازهٔ اجرای کد، انتشار سایت، یا Push به GitHub نمی‌دهد.")
+        if not messagebox.askyesno("JREI · تأیید مالک", warning,
+                                   icon="warning", parent=self.approval_dialog):
+            return
+        self.approval_busy = True
+        self.approval_status.set("در حال ارسال تأیید یک‌باره…")
+        self.fetch("approval_result", lambda: self.api.request(
+            "/api/assistant/confirm",
+            {"confirm": True, "conversation_id": cid,
+             "action_id": action_id}))
 
     def start_existing_engine(self):
         """Only request the ORIGINAL owner Scheduled Task, never install/replace it."""
