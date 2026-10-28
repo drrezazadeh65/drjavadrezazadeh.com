@@ -1,52 +1,50 @@
-# JREI Universal OFFLINE Windows Installer — owner source handoff
+# JREI owner universal Windows installation — v0.1.6 candidate
 
-**Current source target:** `JREI-Setup-Windows-x64-v0.1.4.exe`.  
-**Canonical branch:** `migration/bertina-linux6`.  
-**Status:** source-only; **not built, installed or Windows-accepted** at the time of this record.
+**Status: source committed; NO v0.1.6 Windows build or real-device installation has been verified.**
 
-## One installer with complete program files
+Repository: drrezazadeh65/drjavadrezazadeh.com
+Canonical branch: migration/bertina-linux6
 
-The original manually dispatched GitHub Actions workflow [jrei-windows-desktop-exe.yml](https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/workflows/jrei-windows-desktop-exe.yml) now stages on the **Windows runner**:
+## Why the setup technology changed
 
-- native JREI Tk GUI `JREI.exe`, with desktop/Start-menu shortcuts;
-- frozen **original** Python `jrei_service.windows_command_center` as `JREI-Engine.exe` with its Python 3.13 runtime and collected libraries, including the source-owned image renderer's optional Pillow dependency;
-- a version-matched, **tracked-only** source snapshot for JREI Python, worker, news, script, CSS and API code inspection (no `.git` secrets, local untracked edits or personal data);
-- a fixed owner-private Windows Task Scheduler helper `jrei-engine-setup.ps1` and read-only device inventory `jrei-device-inventory.ps1`;
-- the exact source commit and SHA-256 of the packaged frozen engine. The package has **no publisher signature**.
+The original Inno Setup owner EXEs v0.1.2–0.1.4 could show their Tk client without a working 8092 private engine. On the owner's signed **NODE_A (15.9 GB RAM)**, Inno Setup repeatedly failed **BEFORE its normal log was created** while making an is-...tmp folder with Windows error 5. The owner could create independent test folders in the same TEMP root. On signed **NODE_B (31.8 GB RAM)** the GUI launched but **8092 was not responding**; during installation the owner skipped one locked/unavailable file. None of these observations proves the earlier installer completed successfully.
 
-These components are enclosed **inside one Inno Setup EXE**, not transferred as separate files. GitHub's artifact service supplies the EXE within a ZIP. The target Windows computer does **not need** Python 3.13, pip, a wheelhouse, PyPI or GitHub access to **install the packaged GUI/core**. The live frozen private service continues to run on `127.0.0.1:8092`. It is not a second dashboard or a new AI model.
+The **canonical existing manual GitHub workflow** has been reworked to use a **native Go Windows x64 setup EXE** instead of Inno's self-extracting setup loader. The builder also changed **both PyInstaller components to onedir** to eliminate the common PyInstaller _MEI... TEMP extraction on user machines. This is a source-level design change, **not a verified cure** until it runs on both real devices.
 
-## Reinstall and upgrade behavior
+## Exactly ONE user-facing file for all present and future PCs
 
-The installer writes its own program binaries and helpers to `%LOCALAPPDATA%\Programs\JREI`. The Tk UI and helpers are replaced at the same installed paths. The version-specific frozen runtime and source tree are stored as `engine-v0.1.4` and `source-v0.1.4`: this avoids replacing a currently running engine DLL and retains previous executable versions for rollback. Future versions repeat this versioned pattern. This is an **additive program-only upgrade**; it does **not overwrite**:
+At the next successful, explicitly owner-dispatched build, GitHub Actions' JREI-WINDOWS-DESKTOP-INSTALLER artifact will contain **one file**, JREI-Setup-Windows-x64-v0.1.6.exe (the GitHub artifact download itself is wrapped as a ZIP). It is a native standard-library Go EXE with a build-time embedded ZIP payload. The EXE:
 
-- `%LOCALAPPDATA%\JREI\command-center\missions.sqlite3` (private conversations, evidence and receipts);
-- `%LOCALAPPDATA%\JREI\command-center\owner-token`;
-- `%LOCALAPPDATA%\JREI\jrei-worker-config.json` and DPAPI worker private keys;
-- local neural model weights, user documents, notebooks, payments, website deployment or owner-customized Git checkout (`JREI-Development` or `JREI-Python\repo`).
+1. Opens without running Inno Setup or asking for elevation.
+2. Extracts the payload DIRECTLY to %LOCALAPPDATA%\Programs\JREI\releases\v0.1.6\ using staging files **inside the release directory**. Does not use %TEMP% for its own extraction. Checks entry paths, archive CRC, limits and duplicate files; refuses unsafe links or unexpected mismatching files instead of Skip.
+3. Installs the version-matched native Tk client, **original** 8092 JREI Python service compiled with Python 3.13 in a PyInstaller onedir layout, owner-only setup script and hardware inventory. There is no dependency installation/download on target Windows PCs.
+4. Uses the **original** JREI-Owner-Windows-Command-Center task if the current owner is verified. A new machine may register this owner-private task. An existing live verified 8092 engine is preserved. If a known, idle original action must be changed, the previous action is saved and restored upon startup failure. A running but nonresponsive owner task is NOT forcibly stopped or replaced; it becomes an explicit unresolved error.
+5. Creates/repoints the per-user Desktop and Start-menu JREI Personal AI shortcuts to the **versioned** client. Old installations and old executable versions are retained for recovery.
+6. Shows an unambiguous success or partial-failure dialog; does not silently assert model readiness when the offline task fails.
 
-The private core setup is an **opt-in installer task selected by default once**. It checks fixed binaries, manifest and SHA-256; refuses another Windows account's task and unknown task actions; checks authenticated original `/api/status`; and creates the original limited-user `JREI-Owner-Windows-Command-Center` task only when absent. On an existing PC whose authenticated 8092 service is running, it **preserves** the active engine and defers replacement. If the task is recognized, idle and not responding, it can update its action to the bundled runtime; a failed startup restores the previous task action when possible. An unknown listener on 8092 is not hijacked. There is no automatic disabling of safeguards or unsigned-worker-key cloning.
+The same setup works for **NODE_A, NODE_B, new NODE_C/D/etc and upgraded PCs**. It re-observes local hardware and does not equate RAM capacity with node cryptographic identity.
 
-The device inventory in the GUI reports present RAM/CPU, OS-reported GPU adapter, owner token and task presence, and the sanitized latest `install-receipts\latest-native-setup-receipt.json` state. A fresh PC can install this private local core, but it **cannot become a trusted distributed compute node without independent signed server-side enrollment**. The installer has no arbitrary PC-count ceiling.
+## Explicit write/preservation policy
 
-## Already observed Windows hardware
+**Program files installed/replaced via a new immutable release folder:** native Tk GUI EXE and its onedir libraries, native frozen Python command center and libraries, immutable tracked-only site/Python/worker source snapshot, installer helper scripts, manifest and application shortcuts.
 
-| Signed owner node | Measured local memory |
-|---|---:|
-| NODE_A (second PC) | 15.9 GB |
-| NODE_B (first PC) | 31.8 GB |
+**NEVER overwritten or cloned between PCs:** %LOCALAPPDATA%\JREI\command-center\missions.sqlite3, private conversation history, owner token, individual signed worker DPAPI key and node configuration, neural weights, private files, customized Desktop\JREI-Development or %LOCALAPPDATA%\JREI-Python\repo Git clones, website production/DB, previous program release folders or any other owner's scheduled task.
 
-RAM must never determine node identity. Upgrading RAM, CPU or GPU is detected anew by the local inventory; scheduling decisions must use later independently validated capability reports.
+The owner-private 8092 core can initialize its own database/token on first genuine start; those files are not put inside the setup artifact. The installer does NOT install a trained native conversational neural model or image-generation model, and it cannot promise ChatGPT-level answers, independent self-improvement, working GPU, server enrollment, website editing, GitHub workflow execution or cross-PC task sharing. Those remain separate evidence-based activation requirements.
 
-## Release and reality checks
+## Developer provenance and owner build controls
 
-1. Finish source development and perform the one owner-authorized integrated Windows acceptance on **both** actual devices; do not mark placeholder acceptance files as passed without evidence.
-2. At the approved build stage, manually click **Run workflow** in the same GitHub Actions workflow. No second CI pipeline, manual FTP or production deployment.
-3. Only after the GitHub runner reports success, download `JREI-WINDOWS-DESKTOP-INSTALLER`, extract the one EXE and compare its SHA-256 to the exact run Summary.
-4. Close the old Tk GUI, run the one installer normally as the owner, keep its private engine setup task selected and inspect actual status on each PC. A successful UI installation does not prove model weights, GPU compute, signed fleet connectivity or autonomous self-upgrades.
-5. On any failed core setup, review the **sanitized** private receipt in `%LOCALAPPDATA%\JREI\command-center\install-receipts\latest-native-setup-receipt.json`. Do not upload or expose private tokens, DPAPI keys or full local machine logs.
-6. On a fresh PC, separately complete authorized signed-worker enrollment. The installer cannot fabricate remote server approval.
+Only the established .github/workflows/jrei-windows-desktop-exe.yml workflow runs, explicitly by manual **Run workflow** on migration/bertina-linux6, using GitHub-hosted Windows runner. It builds Python 3.13 + frozen services and the native Go setup *on the runner*, not on the owner's hardware. The run Summary should report exact GitHub source SHA, workflow run ID and final installer SHA-256. There is **no Windows publisher Authenticode signing** in this pipeline; SHA-256 is an integrity check, not publisher authentication.
 
-**Known unresolved issue:** the owner's NODE_A previously encountered Inno Setup `Error 5: Access is denied` when creating a uniquely named temporary directory, even though manual temporary-directory creation was successful. Packaging the Python engine offline removes the **PyPI dependency problem**, but **does not itself prove this separate Inno temporary-folder issue has been solved**. Do not claim installation success until the real installer runs on NODE_A.
+The workflow runs **NO user-facing Windows acceptance tests, model training or production website deployment**. Verify actual Windows installation on both owner machines as part of the single owner-authorized integrated acceptance.
 
-**No new EXE was produced or run by these source-only commits.** No model training, test, owner machine changes, website deployment or task registration was performed by this authoring work.
+**Release safety:** do not run old v0.1.4 again, and never select Skip for a DLL/EXE copy failure. A new successful GitHub source commit is not a verified installer binary. Keep the old JREI files and signed node identities intact until the two-PC acceptance is completed.
+
+## Diagnostic receipts
+
+For the frozen owner engine, the helper stores a bounded sanitized local status at:
+%LOCALAPPDATA%\JREI\command-center\install-receipts\latest-native-setup-receipt.json.
+
+If the new owner EXE reports engine failure, the error code and this local receipt can be inspected **without exposing tokens, private configuration or DPAPI keys**. A running unresponsive old task must be reviewed separately instead of hidden behind a successful installer popup.
+
+Build page: https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/workflows/jrei-windows-desktop-exe.yml
