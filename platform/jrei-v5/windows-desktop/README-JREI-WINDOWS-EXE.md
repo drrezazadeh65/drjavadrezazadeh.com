@@ -1,33 +1,38 @@
-# JREI Personal AI — one Windows EXE installer
+# JREI — one reviewed installer for the owner's two Windows computers
 
-**Status:** Native desktop source and the Windows packaging workflow are ready. An actual compiled binary is **not** claimed until a GitHub Actions run completes with an attached artifact. No integrated owner-Windows acceptance or live installation has yet been performed.
+**Source status, 2026-10-29:** Two-node packaging and installation code is staged on `migration/bertina-linux6`. **No Windows executable is built or installed by these source commits; no integrated two-PC acceptance has been performed.** The only release mechanism is the existing manually dispatched GitHub Actions packaging workflow.
 
-## Canonical app and package
+## Two different nodes, one identical native EXE installer
 
-- Native GUI: `platform/jrei-v5/windows-desktop/jrei_desktop.py` (Tkinter, Python stdlib; no browser window, Electron, WebView or external AI app).
-- Installer recipe: `platform/jrei-v5/windows-desktop/JREI.iss` (Inno Setup; per-user and no admin; Start and desktop shortcut).
-- **Single canonical build:** `.github/workflows/jrei-windows-desktop-exe.yml`. No duplicate desktop apps/build workflows. Builds on a GitHub-hosted Windows runner only. It is nondeploying and does not run integrated tests.
-- Output artifact: `JREI-WINDOWS-DESKTOP-INSTALLER` containing `JREI-Setup-Windows-x64.exe`, `SHA256SUMS.txt`, `BUILD-MANIFEST.txt`.
+| Owner Windows PC | Existing signed identity | Local role | Entrypoint after acceptance |
+|---|---|---|---|
+| Node A | Its **existing** local DPAPI/worker configuration | Approximately 32 GB RAM; foreground-safe higher resource capacity | `JREI-SETUP-NODE-A.cmd` |
+| Node B | Its **existing** local DPAPI/worker configuration | Approximately 16 GB RAM; conservative background work | `JREI-SETUP-NODE-B.cmd` |
 
-## Owner one-click build
+The identities are checked **on the machine itself**, not inferred remotely. Memory sizes are reported planning figures until individually inspected; neither node gains the other PC's memory or GPU. No new model, replica database, public port, website dashboard or third-party AI application is installed.
 
-Open https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/workflows/jrei-windows-desktop-exe.yml, choose **Run workflow** on the canonical branch `migration/bertina-linux6`. Wait for successful completion, open the workflow run's **Artifacts**, download `JREI-WINDOWS-DESKTOP-INSTALLER`, extract it, verify SHA-256 if desired, and run `JREI-Setup-Windows-x64.exe`. GitHub Actions artifacts are ZIP containers; the installer itself is a single EXE.
+## Exact release route (AFTER the single final acceptance)
 
-Do not use the other website deployment workflow; this operation never deploys Bertina.
+1. Complete final integrated acceptance for the exact canonical source tree **on both PCs**. Only then may the existing `docs/governance/JREI_WINDOWS_OWNER_APP_APPROVED_SOURCE_V1.json` record have `integratedAcceptancePassed=true` and `ownerApprovedAutomaticPromotion=true` with the exact reviewed `approvedSourceTree`. Source commits, unattended tests, and package builds cannot supply that evidence.
+2. At the approved final build stage only, manually run [JREI Windows desktop installer workflow](https://github.com/drrezazadeh65/drjavadrezazadeh.com/actions/workflows/jrei-windows-desktop-exe.yml) on `migration/bertina-linux6`. This workflow **does not run tests, change Bertina or install anything**.
+3. Download the **one** `JREI-WINDOWS-DESKTOP-INSTALLER` artifact from the successful run. It contains `JREI-Setup-Windows-x64-v0.1.2.exe`, `SHA256SUMS.txt`, `installer-manifest.json`, `BUILD-MANIFEST.txt`, the two `.cmd` launchers and `jrei-two-pc-owner-install.ps1`. This ZIP is not two programs.
+4. Put the **same extracted folder** on each of the two PCs without moving files out of it. Retain the already connected canonical repository at `%LOCALAPPDATA%\JREI-Python\repo` on each device. Run `JREI-SETUP-NODE-A.cmd` **only** on existing Node A and `JREI-SETUP-NODE-B.cmd` **only** on Node B. Each launcher first performs a read-only identity/source/SHA gate and then asks the owner separately whether to install.
+5. If all the gates pass, the launcher invokes the **original** owner-private Windows command center updater (with idle checks and rollback) and then shows the normal per-user Inno Setup installer. It never starts an administrative or hidden setup. If a gate fails, keep the working version and investigate; do not alter the approved ledger to force installation.
+6. Review actual authenticated `127.0.0.1:8092` service status, GUI conversation history and original signed outbound worker identity **on each machine**. A GUI process installing successfully does not establish that local neural models, GPUs, source learning, external crawling, or both signed workers are functional.
 
-## What the installer actually provides
+## Files and protections
 
-- A real standalone-looking **desktop window** with JREI conversation history, a native chat composer, actual job progress, copy controls, attachment upload and cancellation.
-- Per-user installation under `%LOCALAPPDATA%\Programs\JREI`, shortcuts and uninstall entry.
-- The desktop executable contains the frontend only, **not** a pretrained model, trainer, backend, token or private data.
-- The same existing authenticated owner API at `127.0.0.1:8092` must already be installed on each Windows PC. If it is offline, the GUI can request safe startup of the already registered owner-SID-validated service. It does not silently register an unapproved service or replace older working versions.
-- Chat history, document vault, credential material and existing worker keys remain in their original owner-private locations, untouched by installation/uninstallation of the GUI.
-- This app does not imply ChatGPT-equivalent intelligence. A proven JREI-native language checkpoint is still not trained/activated.
+- GUI: `platform/jrei-v5/windows-desktop/jrei_desktop.py`, compiled as one native Tk/PyInstaller EXE. No Electron/WebView/browser window.
+- Per-user Inno Setup recipe: `platform/jrei-v5/windows-desktop/JREI.iss`; default directory: `%LOCALAPPDATA%\Programs\JREI`, with Start-menu and desktop shortcuts.
+- Installer orchestration: `platform/jrei-v5/windows-worker/jrei-two-pc-owner-install.ps1` and `JREI-SETUP-NODE-A.cmd`, `JREI-SETUP-NODE-B.cmd`.
+- Original backend reused: `jrei-windows-app-auto-update.ps1` and `jrei-command-center-startup.ps1`, with the original owner-SID scheduled task and original `missions.sqlite3`.
+- The package manifest pins the exact source commit and installer SHA-256. **This is not code signing or proof of a safe binary.** The EXE remains unsigned; Windows SmartScreen may show a warning. Do not override a genuine integrity check to dismiss it.
+- Private documents, chats, model weights, tokens and signed worker keys are **never included in the downloaded ZIP**. The wrapper does not copy them between PCs or replace them.
+- Do not remove the existing Qwen runtime or previously functioning tasks merely to install the JREI native interface. JREI's independent model capabilities and trained weights are separately gated.
+- There is no automatic website, database, payment or news release from the installer. Only the owner-controlled one-click production workflow can deploy the website.
 
-## Platform details and limits
+## Status and rollback boundaries
 
-- Windows 10/11 x64. Installer itself is unsigned until a real publisher code-signing certificate is obtained; Windows SmartScreen may display a warning. Do not claim a code signature.
-- Build tooling PyInstaller and Inno Setup run on GitHub's Windows builder, not on the owner's computers.
-- A GitHub Actions build artifact is **not** a passed functional acceptance test. Do not set any acceptance ledger flags from mere compilation.
-- GitHub repository source links do NOT themselves contain the final compiled installer; retrieve it from the completed Actions run.
-- No live site URLs, payment system, published paths, Bertina hosting, deployment action or model weights are altered by this app.
+The wrapper uses a different SHA-checked copy of the **same UI installer** on each device. It does not claim atomic installation on both machines, and the second PC never waits on a fictitious remote node. The private backend upgrader keeps prior source snapshots and attempts restoration if the new source does not become responsive. The Inno GUI installer itself has its standard Windows uninstaller, **not** a proven fully atomic application+model rollback.
+
+**Current gate:** Final integrated acceptance and both Windows runtime observations remain pending. Do not run this package or claim it exists until the owner authorizes the final release build and the actual workflow artifact is present.
