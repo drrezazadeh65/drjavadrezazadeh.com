@@ -8,6 +8,14 @@ The source code of the desktop client is `jrei_desktop.py`, written with Python'
 
 **Prerequisite:** before first use on each PC, the actual original JREI Python service, private token and owner Scheduled Task must exist and be able to start. Installing the EXE client **does not** by itself install or activate this backend, train JREI weights or authenticate a second computer. If the service is offline, the GUI displays that truthful status instead of pretending to be ChatGPT.
 
+## Desktop icon and restart safety — installer v0.1.1
+
+The first packaged installer v0.1.0 allowed the desktop-icon task to be unselected or restored from earlier task preferences; it also launched JREI.exe automatically after setup. That did not reliably produce the single-click user experience requested by the owner. It did not explicitly request an operating-system reboot, and this repository alone cannot establish the cause of a reported Windows restart.
+
+v0.1.1 makes the current-user Desktop and Start-menu shortcuts unconditional. Setup does **not** auto-launch JREI.exe, run any scripts, close other applications, request restart from a [Run] action, or demand elevation. Existing owner-private chats and workers remain untouched. Use this revised installer only after a new Windows packaging workflow run succeeds. The earlier workflow artifact remains the older build; a GitHub source commit does not update an already downloaded EXE.
+
+If an old install appears to have succeeded but the Desktop icon is missing, Windows Start-menu search for "JREI Personal AI" can establish whether an installed shortcut exists. Do not rerun an unknown installer merely to check this; report the exact executable name and Windows installation/reboot history first.
+
 ## Create the downloadable EXE entirely on GitHub
 
 The workflow is **manual** and has **no tests, no production changes, and no website deployment**:
