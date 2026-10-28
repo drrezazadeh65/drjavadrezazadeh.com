@@ -109,10 +109,15 @@ function LocalApi([string]$endpoint){
 function IsIdle{
  try{
   $status=LocalApi '/api/status'
-  if($status.schema -cne 'jr.jrei.windows-command-center.v2' -or $status.busy -ne $false){return $false}
+  if($status.schema -cne 'jr.jrei.windows-command-center.v2' -or
+     $status.busy -ne $false -or $status.owner_activity_recent -ne $false){return $false}
   $tasks=LocalApi '/api/tasks'
   foreach($item in @($tasks.items)){
    if($item.status -in @('QUEUED','RUNNING','CANCEL_REQUESTED')){return $false}
+  }
+  $images=LocalApi '/api/site-images/jobs'
+  foreach($item in @($images.items)){
+   if($item.state -eq 'RUNNING'){return $false}
   }
   return $true
  }catch{return $false}
