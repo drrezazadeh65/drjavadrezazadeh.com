@@ -1003,7 +1003,9 @@
    const nodes=Array.isArray(d.nodes)?d.nodes:[];
    if(!nodes.length)listing.append(el('p',T('هنوز هیچ کلید عمومی ثبت نشده است.',
      'No public keys registered yet.')));
-   for(const n of nodes.slice(0,20)){
+   // Owner-approved fleet can include 50+ signed machines; preserve
+   // mobile-first cards and avoid hiding machines past the former 20 cap.
+   for(const n of nodes.slice(0,128)){
      const box=el('article',undefined,'jr-hybrid-node');
      box.append(el('h4',String(n.name||'Node').slice(0,80)));
      cell(box,T('نوع','Type'),String(n.providerType||'—'));
