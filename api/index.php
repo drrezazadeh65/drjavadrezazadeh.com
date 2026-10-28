@@ -325,6 +325,7 @@ function cfg(): array {
     $pepper=(string)($cfg['auth_pepper']??'');
     if(strlen($pepper)>=32 && is_file($masterReceipt) &&
        !is_link($masterReceipt) &&
+       ((@fileperms($masterReceipt)&0777)===0600) &&
        ($bytes=@filesize($masterReceipt))!==false && $bytes<=4096){
         $raw=@file_get_contents($masterReceipt);
         $signed=is_string($raw)?json_decode($raw,true):null;
@@ -339,7 +340,15 @@ function cfg(): array {
             $encoded=json_encode($payload,JSON_UNESCAPED_SLASHES);
             $expected=hash_hmac('sha256',(string)$encoded,
                 hash_hmac('sha256','jr.owner.news-master-release.v1',$pepper));
-            if(hash_equals($expected,$signed['hmac']) &&
+            // A previous owner release must never silently authorize a
+            // different live SHA after a rollback or partial deployment.
+            $sw=@file_get_contents(dirname(__DIR__).'/sw.js',false,null,0,2048);
+            $verifiedLive=is_string($sw) &&
+                preg_match("/^const CACHE_VERSION='jr-site-bertina-([a-f0-9]{40})';$/m",
+                    $sw,$version)===1 &&
+                hash_equals($version[1],(string)$payload['sha']);
+            if($verifiedLive &&
+               hash_equals($expected,$signed['hmac']) &&
                ($cfg['jrei_news_emergency_stop']??false)!==true){
                 $cfg['operations_cron_master_enabled']=true;
                 // Discovery-only owner grant: preserve all independently

@@ -116,6 +116,8 @@ test('one-click owner release safely provisions only existing master with privat
   assert.match(cfg,/jrei_news_feed_discovery_enabled'\]=true/);
   assert.match(cfg,/jrei_news_official_catalogue_auto_seed_enabled'\]=true/);
   assert.match(cfg,/\.jr-owner-news-master\.v1\.json/);
+  assert.match(cfg,/hash_equals\(\$version\[1\],\(string\)\$payload\['sha'\]\)/);
+  assert.match(cfg,/@fileperms\(\$masterReceipt\)/);
   assert.match(cfg,/hash_equals\(\$expected,\$signed\['hmac'\]\)/);
   assert.match(cfg,/\$cfg\['operations_cron_master_enabled'\]=true/);
   const provisioning=schema.split('function operationsProvisionNewsMasterOwnerRelease(')[1].split('function operationsImportRelease(')[0];

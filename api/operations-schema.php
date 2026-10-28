@@ -291,10 +291,11 @@ function operationsInstall(PDO $pdo): void {
  * Executed only by the checksum-verified, owner-clicked GitHub Actions
  * production release. Never requested by a visitor, Worker, or model.
  *
- * Enables ONLY the existing master policy. No News/KA worker, sensitive
- * source/copyright status, model, CMS publisher or unrelated functionality
- * is ever enabled by this release. The original private config.local.php,
- * credentials and database schema remain untouched.
+ * Enables ONLY the existing master policy plus the original bounded
+ * official-source feed projection when its COMPLETE original schema exists.
+ * No acquisition, source-rights approval, model, CMS publisher or unrelated
+ * functionality is enabled. Original private config.local.php, credentials
+ * and database schema remain untouched.
  */
 function operationsProvisionNewsMasterOwnerRelease(
     PDO $pdo,array $privateConfig,string $releaseSha
