@@ -234,13 +234,14 @@ def study_once(db_path: Path, *, model_reply: Callable,
                 # pretrained weights. This is an extractive study record,
                 # NOT a language-model generated answer or a verified claim.
                 # Bound quotations rather than copying full licensed works.
-                pieces=[
-                    f"ANCHOR: {str(item['anchor'])[:110]}; "
-                    f"ISSUER: {str(item['issuer'])[:100]}; "
-                    f"SOURCE_SHA256: {item['source_sha256']}\n"
-                    f"EXCERPT (unverified): "
-                    f"{re.sub(r'\\s+', ' ', item['excerpt'])[:210]}"
-                    for item in evidence[:3]]
+                pieces=[]
+                for item in evidence[:3]:
+                    compact=re.sub(r"\s+", " ", item["excerpt"])[:210]
+                    pieces.append(
+                        f"ANCHOR: {str(item['anchor'])[:110]}; "
+                        f"ISSUER: {str(item['issuer'])[:100]}; "
+                        f"SOURCE_SHA256: {item['source_sha256']}\n"
+                        "EXCERPT (unverified): "+compact)
                 unresolved=(
                     "The cited excerpts cover only "
                     f"{round(coverage*100)}% of the query terms. "
