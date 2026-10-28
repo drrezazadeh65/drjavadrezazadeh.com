@@ -1,0 +1,31 @@
+/* Editorial, privacy-first bridge: free knowledge -> optional verified professional scope.
+ * This is not a paywall, sponsored content, artificial urgency, or checkout.
+ */
+.jr-knowledge-decision{
+ box-sizing:border-box;max-width:100%;margin:clamp(26px,5vw,52px) 0;
+ padding:clamp(18px,3vw,30px);border:1px solid #a48b5c;border-radius:20px;
+ background:linear-gradient(125deg,#201b14,#101317);color:#f2e8d8;
+ line-height:1.95;overflow-wrap:anywhere;scroll-margin-block-start:90px
+}
+.jr-knowledge-decision *{box-sizing:border-box}
+.jr-knowledge-decision h2{margin:0 0 14px;color:#f7d99b;font-size:clamp(21px,2.5vw,28px);line-height:1.55}
+.jr-knowledge-decision p{margin:10px 0 14px;color:#f2e8d8;line-height:2.05}
+.jr-knowledge-decision .jr-knowledge-decision-actions{display:flex;align-items:stretch;flex-wrap:wrap;gap:12px;margin:20px 0 10px}
+.jr-knowledge-decision-actions a{
+ display:inline-flex;justify-content:center;align-items:center;min-height:48px;
+ padding:10px 16px;border:1px solid #d5ac69;border-radius:12px;
+ color:#f7d99b;text-align:center;text-decoration:none;line-height:1.65;font-weight:700
+}
+.jr-knowledge-decision-actions a:first-child{background:#e9c786;color:#20170c}
+.jr-knowledge-decision-actions a:hover{background:#3b3020;color:#fff0cf}
+.jr-knowledge-decision-actions a:first-child:hover{background:#f7d99b;color:#20170c}
+.jr-knowledge-decision a:focus-visible{outline:3px solid #ffe6a9;outline-offset:4px}
+.jr-knowledge-decision .jr-knowledge-decision-note{
+ margin-top:14px;padding-top:12px;border-top:1px solid #665338;
+ color:#dfd4c2;font-size:clamp(13px,1.1vw,15px);line-height:1.9
+}
+@media(max-width:600px){
+ .jr-knowledge-decision{margin:22px 0;padding:17px 14px;border-radius:15px}
+ .jr-knowledge-decision-actions{flex-direction:column}
+ .jr-knowledge-decision-actions a{width:100%}
+}
