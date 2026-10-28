@@ -258,6 +258,22 @@ if(-not $approved -or $approved.schema -cne 'jr.jrei.windows-app-auto-update.v1'
 }
 $head=CurrentHead
 $state=ReadJson $installed
-if($state -and $state.sourceCommit -ceq $head){Report 'WINDOWS_APP_ALREADY_CURRENT';return}
+# Automatic promotion needs the exact previously reviewed Python source TREE.
+# A routine source commit or model-written patch does not authorize a running
+# code swap. The one-time explicit owner Install mode remains separate.
+$approval=ReadJson (Join-Path $repo 'docs\governance\JREI_WINDOWS_OWNER_APP_APPROVED_SOURCE_V1.json')
+$tree=Git @('rev-parse','HEAD:platform/jrei-python')
+if(-not $approval -or
+   $approval.schema -cne 'jr.jrei.windows-owner-app-approval.v1' -or
+   $approval.approvedSourceTree -cne $tree -or
+   $approval.integratedAcceptancePassed -ne $true -or
+   $approval.ownerApprovedAutomaticPromotion -ne $true){
+ Report 'WINDOWS_APP_SOURCE_AWAITING_INTEGRATED_ACCEPTANCE'
+ return
+}
+if($state -and $state.sourceCommit -ceq $head){
+ Report 'WINDOWS_APP_ALREADY_CURRENT'
+ return
+}
 try{Promote $head}
 catch{Report 'WINDOWS_APP_UPDATE_HELD_PREVIOUS_RUNTIME_PRESERVED'}
