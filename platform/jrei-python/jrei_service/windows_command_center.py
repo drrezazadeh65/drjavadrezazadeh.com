@@ -444,6 +444,7 @@ def scheduler():
         return
     next_study = time.monotonic() + 30
     next_learning = time.monotonic() + 25
+    next_native = time.monotonic() + 200
     next_curriculum = time.monotonic() + 90
     next_agenda = time.monotonic() + 110
     next_auto_topics = time.monotonic() + 140
@@ -500,6 +501,21 @@ def scheduler():
                 except (OSError,ValueError,sqlite3.Error) as exc:
                     record("windows_search_index","HELD",exc.__class__.__name__)
             next_fts_index = time.monotonic() + 2700
+        if time.monotonic() >= next_native and not _BUSY.locked():
+            if _activity_at == 0 or time.monotonic() - _activity_at >= 180:
+                try:
+                    budget = knowledge._windows_resources()
+                    outcome = native_brain.tick(
+                        DB_PATH, PRIVATE,
+                        resources_available=budget.get("eligible", False),
+                        owner_active=False)
+                    if outcome.get("state") == "CANDIDATE_UNTESTED_NOT_PROMOTED":
+                        record("native_brain", "TRAINING_CANDIDATE_ONLY",
+                               "HELDOUT_BYTE_PREDICTION_NOT_GENERAL_AI",
+                               outcome.get("artifact_sha256", ""))
+                except (OSError, ValueError, RuntimeError, sqlite3.Error) as exc:
+                    record("native_brain", "HELD", exc.__class__.__name__)
+            next_native = time.monotonic() + 1800
         if time.monotonic() >= next_learning and not _BUSY.locked():
             try:
                 outcome = knowledge.tick(
@@ -886,6 +902,11 @@ class OwnerHTTP(BaseHTTPRequestHandler):
                     reviewer=data.get("reviewer"),
                     attestation_sha256=data.get("attestation_sha256"),
                     owner_confirmed=data.get("confirm")))
+            if self.path == "/api/learning/native-brain/control":
+                return self._send(200, native_brain.set_continuous_training(
+                    DB_PATH,enabled=data.get("enabled"),
+                    owner_confirmed=data.get("confirm"),
+                    training_rights_reviewed=data.get("training_rights_reviewed")))
             if self.path == "/api/learning/native-brain/train":
                 if _BUSY.locked():
                     return self._send(409, {"error":"JREI_OWNER_WORK_ACTIVE"})
