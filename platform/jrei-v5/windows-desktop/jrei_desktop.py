@@ -485,6 +485,8 @@ class Desktop:
             self._display_local_bundle(data)
         elif key == "hardware_inventory":
             self._display_local_hardware(data)
+        elif key == "native_acceptance":
+            self._display_native_acceptance(data)
         elif key == "approval_result":
             self.approval_busy = False
             state = str(data.get("state", "UNKNOWN"))[:100]
@@ -547,6 +549,11 @@ class Desktop:
             messagebox.showerror(
                 "JREI · بستهٔ بازبینی",
                 "رسیدهای این بسته معتبر نیستند، تغییر کرده‌اند یا حجم Diff مجاز نیست.\n"
+                + str(error)[:160], parent=self.root)
+        if key == "native_acceptance":
+            messagebox.showerror(
+                "JREI · بررسی مدارک مدل اختصاصی",
+                "شناسهٔ مدل یا مدارک بررسی مستقل در دسترس نیست؛ مدل فعال نشده است.\n"
                 + str(error)[:160], parent=self.root)
         if key == "job":
             self.poll_in_flight = False
@@ -765,6 +772,85 @@ class Desktop:
         reading.configure(state="disabled")
         self._button(dialog, "بستن", dialog.destroy).pack(
             side="right", padx=16, pady=(0, 14))
+        self._button(dialog, "بررسی مدارک پذیرش مدل", self.show_native_acceptance,
+                     foreground=GOLD).pack(
+                         side="left", padx=16, pady=(0, 14))
+
+    def show_native_acceptance(self):
+        """Owner explicitly requests read-only acceptance evidence inventory."""
+        candidate = (self.real_engine_status or {}).get(
+            "native_scratch_training_registry") or {}
+        suggested = candidate.get("latest_run_id", "")
+        if not isinstance(suggested, str) or not IDENT.fullmatch(suggested):
+            suggested = ""
+        run_id = simpledialog.askstring(
+            "JREI · مدارک پذیرش",
+            "شناسهٔ ۳۲ کاراکتری مدل آزمایشی را وارد کنید:",
+            initialvalue=suggested, parent=self.root)
+        if run_id is None:
+            return
+        run_id = run_id.strip()
+        if not IDENT.fullmatch(run_id):
+            messagebox.showwarning(
+                "JREI", "شناسهٔ مدل باید ۳۲ کاراکتر هگزادسیمال باشد.",
+                parent=self.root)
+            return
+        self.fetch("native_acceptance", lambda: self.api.request(
+            "/api/native/acceptance/preflight?id=" + run_id))
+
+    def _display_native_acceptance(self, data):
+        """Display claimed metadata only; no training, model load or promotion."""
+        if (not isinstance(data, dict)
+                or data.get("schema") != "jr.jrei.native-acceptance-preflight.v1"
+                or data.get("weights_loaded") is not False
+                or data.get("owner_activation_performed") is not False
+                or data.get("production_changed") is not False
+                or not IDENT.fullmatch(str(data.get("run_id", "")))):
+            self.status_text.set("پاسخ بررسی پذیرش مدل معتبر نیست.")
+            return
+        stages = data.get("stages", {})
+        if not isinstance(stages, dict):
+            self.status_text.set("فهرست مراحل پذیرش معتبر نیست.")
+            return
+        title = {
+            "training_manifest": "رسید آموزش از صفر",
+            "checkpoint": "فایل وزن‌ها",
+            "approved_source_corpus": "اعتبار کنونی منابع و داده‌ها",
+            "sealed_next_token_measurement": "سنجش مجموعهٔ مهروموم‌شده",
+            "external_bilingual_review": "داوری انسانی فارسی و انگلیسی",
+            "owner_activation_record": "سند فعال‌سازی مالک",
+        }
+        content = [
+            "شناسهٔ نامزد: " + data["run_id"],
+            "وضعیت: " + str(data.get("state", "UNVERIFIED"))[:100],
+            "",
+        ] + [
+            title.get(key, key) + ": " + str(stages.get(key, "نامشخص"))[:90]
+            for key in title
+        ] + [
+            "",
+            "این بررسی فقط مدارک سبک را مطالعه می‌کند؛ "
+            "وزن‌های مدل باز یا اعتبارسنجی کامل نشده‌اند.",
+            "ادعای داوری انسانی، تأیید مستقل هویت داور نیست.",
+            "هیچ تست، آموزش یا فعال‌سازی مدلی با این دکمه آغاز نمی‌شود.",
+        ]
+        window = tk.Toplevel(self.root)
+        window.title("JREI | وضعیت مدارک پذیرش مدل")
+        window.geometry("720x510")
+        window.minsize(530, 340)
+        window.configure(bg=BG)
+        window.transient(self.root)
+        self._label(window, "ممیزی مدارک مدل اختصاصی", fg=GOLD, bg=BG,
+                    bold=True, size=14).pack(fill="x", padx=16, pady=(15, 7))
+        reading = tk.Text(window, bg=SURFACE, fg=FG, font=self._font(10),
+                          wrap="word", relief="flat", padx=14, pady=12)
+        reading.pack(fill="both", expand=True, padx=16, pady=6)
+        reading.tag_configure("rtl", justify="right")
+        reading.insert("1.0", "\n".join(content))
+        reading.tag_add("rtl", "1.0", "end")
+        reading.configure(state="disabled")
+        self._button(window, "بستن", window.destroy).pack(
+            side="right", padx=16, pady=(5, 15))
 
     def show_approvals(self):
         """Owner-only confirmation UX for ORIGINAL one-time 10-min actions."""
