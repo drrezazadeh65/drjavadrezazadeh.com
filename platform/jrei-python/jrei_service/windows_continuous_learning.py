@@ -491,7 +491,10 @@ def _windows_resources() -> dict:
         return {"eligible":eligible,"reason":"HEADROOM_OK" if eligible
                 else "RESOURCE_HEADROOM_LOW",
                 "cpu_fraction":round(cpu,3) if cpu is not None else None,
-                "free_ram_mb":int(available/1048576) if available else None,
+                "cpu_logical_cores":os.cpu_count(),
+                "physical_ram_mb":int(total/1048576) if total else None,
+                "free_ram_mb":int(available/1048576) if available is not None else None,
+                "reserved_free_ram_floor_mb":int(min_free/1048576),
                 "free_disk_gb":int(free/1073741824)}
     except (OSError,ValueError,AttributeError):
         return {"eligible":False,"reason":"RESOURCE_TELEMETRY_UNAVAILABLE"}
