@@ -255,7 +255,38 @@ function addMessage(role,content,tool,pending){
    no.onclick=()=>{card.remove();toast('اقدام اجرا نشد.');};card.append(yes,no);slot.append(card)}
   body.append(slot)}root.append(row);scrollBottom();
 }
-function setBusy(value){active=value;$('send').disabled=value;$('input').disabled=value;$('busy').textContent=value?'در حال پردازش و اجرای دستور…':'Enter ارسال · Shift+Enter خط جدید'}
+function setBusy(value){
+ active=value;$('send').disabled=value;$('input').disabled=value;
+ $('busy').textContent=value?'در حال پردازش و اجرای دستور…':'Enter ارسال · Shift+Enter خط جدید';
+}
+function renderAttachments(){
+ const root=$('attachedFiles');root.replaceChildren();
+ for(const item of attachments){
+  const chip=el('span','attachmentChip',item.name+' · '+item.extraction);
+  const remove=el('button','','×');remove.title='حذف از پیام جاری';
+  remove.onclick=()=>{attachments=attachments.filter(v=>v.id!==item.id);renderAttachments()};
+  chip.append(remove);root.append(chip);
+ }
+}
+async function refreshDocuments(){
+ const root=$('documents');root.replaceChildren();
+ try{
+  const result=await api('/api/documents');
+  for(const file of result.items.slice(0,20)){
+   const row=el('div','documentRow',file.name+' · '+file.extraction);
+   const remove=el('button','','حذف از حافظه خصوصی');
+   remove.onclick=async()=>{
+    if(!confirm('این سند خصوصی و متن استخراج‌شده آن از حافظه ویندوز حذف شود؟'))return;
+    try{
+     await api('/api/documents/delete',{id:file.id,confirm:true});
+     attachments=attachments.filter(v=>v.id!==file.id);
+     renderAttachments();await refreshDocuments();
+    }catch(e){toast(e.message)}
+   };
+   row.append(remove);root.append(row);
+  }
+ }catch(e){root.textContent='فهرست اسناد در دسترس نیست: '+e.message}
+}
 async function refreshThreads(){
  const {items}=await api('/api/conversations');const root=$('threads');root.replaceChildren();
  for(const t of items){const node=el('div','thread'+(t.id===selected?' active':''));
@@ -324,15 +355,24 @@ $('newChat').onclick=()=>newChat().catch(e=>toast(e.message));
 $('attach').onclick=()=>$('fileInput').click();
 $('fileInput').onchange=async()=>{
  const file=$('fileInput').files[0];if(!file)return;
- if(file.size>14000){toast('برای این نسخه حداکثر حجم فایل متنی ۱۴ کیلوبایت است.');return}
- try{const contents=await file.text();if(contents.includes('\0'))throw Error('فایل باینری قابل پیوست نیست.');
- const appendix='\n\n[پیوست متنی: '+file.name.replace(/[<>]/g,'')+']\n'+contents.slice(0,2400)+(contents.length>2400?'\n[پیوست طولانی بود؛ تنها ۲۴۰۰ کاراکتر اول برای مدل درج شد]':'')+'\n[پایان پیوست]';
- if($('input').value.length+appendix.length>8500)throw Error('حجم پیام و پیوست بیش از حد مجاز است.');
- $('input').value+=appendix;$('input').focus();
- }catch(e){toast(e.message)}finally{$('fileInput').value=''}
+ if(attachments.length>=2){toast('در هر پیام حداکثر دو سند انتخاب کنید.');$('fileInput').value='';return}
+ if(file.size>4000000){toast('حداکثر حجم هر سند خصوصی ۴ مگابایت است.');$('fileInput').value='';return}
+ try{
+  $('attach').disabled=true;
+  $('busy').textContent='در حال ذخیره سند در حافظه خصوصی همین ویندوز…';
+  const bytes=new Uint8Array(await file.arrayBuffer());
+  let binary='';
+  for(let i=0;i<bytes.length;i+=16384)
+   binary+=String.fromCharCode(...bytes.subarray(i,i+16384));
+  const stored=await api('/api/documents/import',{name:file.name,data:btoa(binary)});
+  attachments.push({id:stored.id,name:stored.name,extraction:stored.extraction});
+  renderAttachments();
+  toast(stored.extracted_chars?'سند ذخیره و متن آن استخراج شد.':'سند ذخیره شد؛ استخراج متن در دسترس نیست.');
+ }catch(e){toast(e.message)}
+ finally{$('attach').disabled=false;$('fileInput').value='';setBusy(false)}
 };
 $('menu').onclick=()=>$('sidebar').classList.toggle('open');
-$('openTools').onclick=()=>{$('toolsPanel').hidden=!$('toolsPanel').hidden;if(!$('toolsPanel').hidden)loadHealth()};
+$('openTools').onclick=()=>{$('toolsPanel').hidden=!$('toolsPanel').hidden;if(!$('toolsPanel').hidden){loadHealth();refreshDocuments()}};
 $('closeTools').onclick=()=>$('toolsPanel').hidden=true;
 $('saveProfile').onclick=async()=>{try{const r=await api('/api/profile',{instructions:$('profile').value});toast('ترجیحات شخصی در ویندوز ذخیره شد.')}catch(e){toast(e.message)}};
 api('/api/profile').then(x=>$('profile').value=x.instructions||'').catch(()=>{});
