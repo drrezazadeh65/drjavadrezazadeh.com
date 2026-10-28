@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#101114">
+<meta http-equiv="Cache-Control" content="no-store">
+<title>JREI AI — دستیار اختصاصی ویندوز</title>
+<style>
+:root{color-scheme:dark;font:14px/1.8 "Segoe UI",Tahoma,sans-serif;--bg:#101114;--side:#17191d;--panel:#1d2025;--hover:#292d33;--line:#32353c;--text:#eeeff1;--muted:#a5a9b2;--accent:#c7a467;--warn:#e3b674;--shadow:0 8px 35px #0005}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text)}button,textarea,input{font:inherit}button{cursor:pointer;color:inherit;border:0;background:transparent}button:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}button:disabled{opacity:.5;cursor:wait}a{color:var(--accent)}
+.shell{display:grid;grid-template-columns:270px minmax(0,1fr);height:100dvh;min-height:540px}
+.sidebar{background:var(--side);border-left:1px solid var(--line);display:flex;flex-direction:column;min-height:0;padding:18px 12px}
+.brand{padding:7px 12px 20px;border-bottom:1px solid var(--line)}.brand b{font-size:23px;font-weight:720;letter-spacing:.07em;color:#e9cd9a}.brand span{display:block;color:var(--muted);font-size:11px;letter-spacing:.02em}
+.new{background:#292b2f;border:1px solid #51515a;border-radius:13px;padding:10px;text-align:right;margin:18px 2px 10px;font-weight:650}.new:hover,.thread:hover,.tool:hover,.iconButton:hover{background:var(--hover)}
+.sideLabel{font-size:11px;color:var(--muted);padding:9px 12px;text-transform:uppercase}.threads{overflow:auto;flex:1;min-height:0}.thread{display:flex;align-items:center;width:100%;border-radius:10px;text-align:right;gap:6px;padding:9px 10px;margin:2px 0}.thread.active{background:#323236}.thread .name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;font-size:12px}.thread .trash{font-size:14px;color:#c1b3a1;opacity:.8}.sidebarFooter{border-top:1px solid var(--line);padding:15px 9px 5px;font-size:11px;color:var(--muted)}
+.workspace{display:flex;flex-direction:column;min-height:0;position:relative;min-width:0}
+.topbar{height:66px;flex-shrink:0;display:flex;align-items:center;gap:14px;padding:0 24px;border-bottom:1px solid #282b31;background:#14161a}
+.title{font-size:15px;font-weight:650}.topbar .sub{color:var(--muted);font-size:11px}.grow{flex:1}.iconButton{border-radius:11px;padding:8px 12px;font-size:13px;white-space:nowrap}.menu{display:none}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#9298a4;margin-left:5px}.dot.on{background:#85ce9f}.dot.err{background:#de947a}
+.conversation{flex:1;overflow:auto;min-height:0;scroll-behavior:smooth;overscroll-behavior:contain}.conversationInner{width:min(860px,100%);margin:auto;padding:28px 22px 48px}
+.welcome{text-align:center;margin:10vh auto 12px;max-width:700px}.sigil{width:62px;height:62px;display:grid;place-items:center;border-radius:18px;margin:0 auto 14px;border:1px solid #5a4b32;background:linear-gradient(140deg,#3a3226,#1c2024);font-size:23px;font-weight:750;color:#edcf8f;box-shadow:var(--shadow)}
+h1{font-size:29px;line-height:1.3;margin:16px 0 6px;font-weight:650}p{margin:.5em 0}.welcome p{color:var(--muted);font-size:14px}.prompts{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;text-align:right;margin:29px auto}.prompt{background:#1b1e22;border:1px solid #363a42;padding:13px;border-radius:14px;text-align:right;line-height:1.6}.prompt:hover{border-color:var(--accent)}.prompt b{display:block;font-size:12px}.prompt span{color:var(--muted);font-size:11px}
+.turn{margin:0 0 23px;display:flex;gap:12px;align-items:flex-start;max-width:100%}.avatar{flex:0 0 29px;height:29px;border-radius:10px;display:grid;place-items:center;background:#34363a;color:#ddd;font-size:11px;font-weight:750}.turn.assistant .avatar{background:#3b3329;color:#e3bd78}.turnBody{min-width:0;flex:1}.content{min-width:0;overflow-wrap:anywhere;white-space:pre-wrap;font-size:14px;line-height:2;unicode-bidi:plaintext}.turn.user .content{background:#25282d;border-radius:17px;padding:9px 15px;display:inline-block;flex:0 1 auto;max-width:90%}.turn.user{justify-content:flex-start}.turn.user .avatar{order:-1}
+.toolReceipt{margin-top:12px;border:1px solid #4e4536;border-radius:12px;padding:9px 12px;background:#201f1d;color:#d8c7aa;font-size:11px;max-width:100%}.receiptBtn{background:#34312b;padding:5px 9px;border-radius:8px;font-size:11px;margin-right:9px}.receipt{display:none;white-space:pre-wrap;word-break:break-word;margin-top:9px;color:#d8d6d1;max-height:280px;overflow:auto;direction:ltr;text-align:left;font:11px/1.8 Consolas,monospace}.toolReceipt.expanded .receipt{display:block}
+.pending{border:1px solid #827147;border-radius:13px;background:#24221e;padding:13px;margin-top:12px;max-width:600px}.pending p{font-size:12px;color:#dfd4bf}.confirm{background:#d4b171;color:#201a12;border-radius:10px;padding:8px 16px;font-weight:bold;margin:6px 0}.cancel{border:1px solid var(--line);padding:8px 13px;border-radius:10px;margin-inline-start:8px}
+.composerArea{padding:8px 24px max(17px,env(safe-area-inset-bottom));background:linear-gradient(transparent,#101114 25%);flex-shrink:0}.composerBox{max-width:880px;margin:auto}.composer{border:1px solid #4b4f57;background:#26292f;box-shadow:0 3px 26px #0003;border-radius:21px;padding:10px 10px 8px}.composer:focus-within{border-color:#8c7653}textarea{border:0;background:transparent;resize:none;width:100%;color:var(--text);outline:none;min-height:36px;max-height:180px;line-height:1.9;padding:1px 8px;font-size:14px}textarea::placeholder{color:#aeb0b6}.composeBottom{display:flex;align-items:center;gap:9px}.send{background:#d0b17d;color:#171717;border-radius:11px;padding:6px 16px;font-size:13px;font-weight:750}.hint{color:var(--muted);font-size:11px}.footnote{text-align:center;color:#868a92;font-size:10px;margin:8px 0 0}
+.toolsPanel{position:absolute;top:66px;bottom:0;left:0;width:min(390px,100vw);background:#1b1e23;border-right:1px solid #484b52;z-index:5;box-shadow:0 8px 35px #0008;padding:20px;overflow:auto}.toolsPanel[hidden]{display:none}.panelHeading{display:flex;align-items:center;justify-content:space-between}.toolsPanel h2{font-size:17px}.toolsPanel p{color:var(--muted);font-size:12px;line-height:1.9}.tool{width:100%;padding:12px 8px;border-bottom:1px solid #33363e;text-align:right;border-radius:8px}.tool strong{display:block;font-size:12px}.tool small{display:block;color:var(--muted);font-size:11px}.trace{color:var(--muted);direction:ltr;text-align:left;white-space:pre-wrap;font:11px Consolas,monospace;overflow-wrap:anywhere;margin-top:15px}
+.toast{position:absolute;bottom:122px;left:50%;transform:translateX(-50%);background:#33373e;border:1px solid #5c5f66;border-radius:10px;padding:10px 18px;z-index:10;max-width:min(90vw,620px);box-shadow:var(--shadow)}.toast[hidden]{display:none}
+@media(max-width:780px){.shell{display:block;height:100dvh}.sidebar{position:absolute;top:0;bottom:0;right:0;width:min(290px,85vw);z-index:12;box-shadow:var(--shadow);transform:translateX(102%);transition:transform .18s}.sidebar.open{transform:translateX(0)}.workspace{height:100dvh}.menu{display:inline-block}.topbar{height:55px;padding:0 12px}.topbar .sub{display:none}.conversationInner{padding:15px 12px 28px}.composerArea{padding:8px 10px max(12px,env(safe-area-inset-bottom))}.welcome{margin-top:9vh}.welcome h1{font-size:22px}.prompts{grid-template-columns:1fr;margin-top:18px;gap:8px}.toolReceipt{font-size:10px}.turn.user .content{max-width:85%}.toolsPanel{top:55px}}
+@media(prefers-reduced-motion:reduce){.conversation{scroll-behavior:auto}.sidebar{transition:none}}
+</style>
+</head>
+<body>
+<div class="shell">
+<aside class="sidebar" id="sidebar" aria-label="تاریخچه گفتگوها">
+ <div class="brand"><b>JREI AI</b><span>PRIVATE WINDOWS INTELLIGENCE</span></div>
+ <button class="new" id="newChat">＋ گفتگوی جدید</button>
+ <div class="sideLabel">گفتگوهای من</div><nav class="threads" id="threads"></nav>
+ <div class="sidebarFooter">فقط در همین رایانه · حافظه خصوصی محلی<br>بدون انتشار خودکار یا تغییر سایت زنده</div>
+</aside>
+<div class="workspace">
+ <header class="topbar"><button class="iconButton menu" id="menu" aria-label="بازکردن فهرست">☰</button>
+ <div><div class="title">JREI <span style="color:var(--accent)">Personal AI</span></div><div class="sub">دستیار پژوهش، توسعه، آموزش و مدیریت پروژه</div></div>
+ <div class="grow"></div><div class="sub" id="engine"><span class="dot"></span>در حال بررسی مدل</div><button class="iconButton" id="openTools">ابزارها ◫</button></header>
+ <div id="conversation" class="conversation" role="log" aria-label="گفتگوی دستیار"><div class="conversationInner" id="conversationInner"></div></div>
+ <div class="composerArea"><div class="composerBox"><div class="composer"><textarea id="input" rows="2" aria-label="پیام شما" placeholder="از JREI بخواهید بررسی، تحلیل، طراحی یا اجرا کند…"></textarea><div class="composeBottom"><button class="iconButton" id="attach" title="افزودن محتوای فایل متنی" aria-label="افزودن فایل متنی">📎</button><input type="file" id="fileInput" accept=".txt,.md,.csv,.json,.py,.js,.mjs,.css,.html,.log" hidden><button class="send" id="send">ارسال <span aria-hidden="true">↑</span></button><span class="hint" id="busy">Enter برای ارسال · Shift+Enter خط جدید</span><div class="grow"></div><span class="hint">محلی · قابل ممیزی</span></div></div><div class="footnote">فایل متنی پیوست‌شده در گفتگوی محلی ذخیره می‌شود. اقدامات اجرایی فقط با ابزارهای متصل و مجاز انجام می‌شوند.</div></div></div>
+ <section class="toolsPanel" id="toolsPanel" hidden><div class="panelHeading"><h2>ابزارهای JREI</h2><button class="iconButton" id="closeTools" aria-label="بستن ابزارها">✕</button></div>
+ <p>می‌توانید این دستورات را در همان گفتگوی اصلی بنویسید. برای تغییر کد در محیط مستقل ویندوز، تأیید جداگانه لازم است.</p>
+ <div id="tools"></div><h2>وضعیت سیستم</h2><div class="trace" id="trace">در حال بارگذاری…</div>
+ <h2>دستورالعمل‌های شخصی شما</h2>
+ <p>راهنمای اختصاصی برای شیوه پاسخ، نگارش، پژوهش و پروژه‌ها؛ این متن فقط در ویندوز شما نگهداری می‌شود.</p>
+ <textarea id="profile" rows="5" maxlength="2800" placeholder="مثلاً: نوشته‌های انگلیسی با سبک دانشگاهی من باشند؛ پاسخ فارسی دقیق و توضیحی باشد."></textarea>
+ <button class="confirm" id="saveProfile">ذخیره ترجیحات</button>
+ <h2>رویدادهای ثبت‌شده</h2><div class="trace" id="events"></div></section>
+ <div class="toast" id="toast" role="alert" hidden></div>
+</div></div>
+<script>
+'use strict';
+// Legacy compatibility: /api/chat and /api/directive remain separately available.
+// This UI uses /api/assistant as its single conversational command interface.
+const accessKey='jrei-owner-private-token-8092';
+const received=decodeURIComponent((location.hash.match(/(?:^#|&)token=([^&]+)/)||[])[1]||'');
+if(received && /^[A-Za-z0-9_-]{50,128}$/.test(received))sessionStorage.setItem(accessKey,received);
+const token=sessionStorage.getItem(accessKey)||'';
+if(location.hash)history.replaceState(null,'',location.pathname);
+const $=id=>document.getElementById(id);
+let selected=null,active=false;
+const toolCommands=[
+ ['جستجو در مخزن','در مخزن فایل پرامپت خبر را پیدا کن'],
+ ['بررسی محتوای مخزن','بررسی کد مخزن را اجرا کن'],
+ ['ممیزی SEO','ممیزی سئو را اجرا کن'],
+ ['ممیزی GEO','ممیزی GEO را اجرا کن'],
+ ['بررسی اخبار','اخبار سایت را بررسی کن'],
+ ['وضعیت موتور پایتون','سلامت پایتون را بررسی کن'],
+ ['مطالعه و یادگیری','کد JREI را مطالعه کن و پیشنهاد بهبود بده'],
+ ['یادداشت شخصی','یادداشت کن: برنامه توسعه JREI را به صورت مرحله‌ای ادامه ده']
+];
+const el=(tag,cls,text)=>{const node=document.createElement(tag);if(cls)node.className=cls;if(text!==undefined)node.textContent=text;return node};
+function toast(message){$('toast').textContent=message;$('toast').hidden=false;setTimeout(()=>$('toast').hidden=true,5500)}
+async function api(url,body){
+ if(!token)throw new Error('توکن خصوصی موجود نیست. پنل را از راه‌انداز ویندوز باز کنید.');
+ const response=await fetch(url,{method:body===undefined?'GET':'POST',cache:'no-store',
+  headers:{Authorization:'Bearer '+token,...(body===undefined?{}:{'Content-Type':'application/json'})},
+  body:body===undefined?undefined:JSON.stringify(body)});
+ const data=await response.json();if(!response.ok)throw new Error(data.error||'REQUEST_FAILED');return data;
+}
+function scrollBottom(){$('conversation').scrollTop=$('conversation').scrollHeight}
+function welcome(){
+ const root=$('conversationInner');root.replaceChildren();const wrap=el('div','welcome');
+ wrap.append(el('div','sigil','JR'),el('h1','', 'امروز چه کاری برای شما انجام بدهم؟'),
+ el('p','','JREI، دستیار خصوصی شما برای پژوهش، تحلیل، نگارش، کدنویسی و مدیریت پروژه در ویندوز است.'));
+ const grid=el('div','prompts');
+ for(const [name,cmd] of toolCommands.slice(0,4)){
+  const item=el('button','prompt');item.append(el('b','',name),el('span','',cmd));
+  item.onclick=()=>{$('input').value=cmd;$('input').focus()};grid.append(item);
+ }wrap.append(grid);root.append(wrap);
+}
+function addMessage(role,content,tool,pending){
+ const root=$('conversationInner');const first=root.querySelector('.welcome');if(first)first.remove();
+ const row=el('article','turn '+(role==='user'?'user':'assistant'));
+ const body=el('div','turnBody');body.append(el('div','content',content));
+ row.append(el('span','avatar',role==='user'?'من':'JR'),body);
+ if(tool||pending){const slot=el('div','');
+  if(tool){const card=el('div','toolReceipt');card.append(el('span','',`ابزار: ${tool.name} · ${tool.state}`));
+   const btn=el('button','receiptBtn','مشاهده سند اجرا');btn.onclick=()=>card.classList.toggle('expanded');
+   card.append(btn,el('div','receipt',tool.receipt||''));slot.append(card)}
+  if(pending){const card=el('div','pending');card.append(el('p','',`عملیات محلی در انتظار تأیید: ${pending.tool} — ${pending.target}`));
+   const yes=el('button','confirm','تأیید و اجرا');const no=el('button','cancel','انصراف');
+   yes.onclick=async()=>{yes.disabled=true;no.disabled=true;try{setBusy(true);const result=await api('/api/assistant/confirm',{conversation_id:selected,action_id:pending.id,confirm:true});
+     card.remove();addMessage('assistant',result.answer,result.tool);await refreshThreads();
+    }catch(e){toast(e.message);yes.disabled=false;no.disabled=false}finally{setBusy(false)}};
+   no.onclick=()=>{card.remove();toast('اقدام اجرا نشد.');};card.append(yes,no);slot.append(card)}
+  body.append(slot)}root.append(row);scrollBottom();
+}
+function setBusy(value){active=value;$('send').disabled=value;$('input').disabled=value;$('busy').textContent=value?'در حال پردازش و اجرای دستور…':'Enter ارسال · Shift+Enter خط جدید'}
+async function refreshThreads(){
+ const {items}=await api('/api/conversations');const root=$('threads');root.replaceChildren();
+ for(const t of items){const node=el('div','thread'+(t.id===selected?' active':''));
+  const btn=el('button','name',t.title);btn.title=t.title;btn.onclick=()=>openThread(t.id);node.append(btn);
+  const del=el('button','trash','×');del.title='حذف گفتگوی محلی';del.onclick=async()=>{
+    if(!confirm('این گفتگو و پیام‌های محلی آن حذف شود؟'))return;
+    await api('/api/conversation/delete',{id:t.id});if(selected===t.id){selected=null;welcome()}await refreshThreads();
+  };node.append(del);root.append(node)}
+}
+async function openThread(id){selected=id;try{
+ const record=await api('/api/conversation?id='+encodeURIComponent(id));$('conversationInner').replaceChildren();
+ for(const m of record.items)addMessage(m.role,m.content,m.tool&&m.state!=='AWAITING_CONFIRMATION'?{name:m.tool,state:m.state,receipt:m.receipt||'رسید موجود نیست'}:null);
+ if(!record.items.length)welcome();await refreshThreads();$('sidebar').classList.remove('open');
+ }catch(e){toast(e.message)}}
+async function newChat(){const response=await api('/api/conversation/new',{});selected=response.id;welcome();refreshThreads();$('sidebar').classList.remove('open');$('input').focus()}
+async function send(){const message=$('input').value.trim();if(!message||active)return;
+ if(!selected)await newChat();$('input').value='';addMessage('user',message);setBusy(true);
+ try{const answer=await api('/api/assistant',{conversation_id:selected,message});
+  addMessage('assistant',answer.answer,answer.tool,answer.pending);await refreshThreads();
+ }catch(e){toast(e.message);addMessage('assistant','درخواست کامل نشد: '+e.message)}finally{setBusy(false);$('input').focus()}}
+async function loadHealth(){
+ try{const state=await api('/api/status');$('engine').replaceChildren();const dot=el('span','dot '+(state.model_connected?'on':'err'));$('engine').append(dot,document.createTextNode(state.model_connected?state.inference_backend+' · '+state.model_alias:'مدل محلی غیرفعال'));
+  $('trace').textContent=JSON.stringify({model:state.model_alias||'OFFLINE',backend:state.inference_backend,
+    GPU_recovery:state.gpu_recovery,workspace:'LOCAL_ONLY',publication:state.site_publishing_control,
+    production_database_write:state.database_write_control},null,2);
+  const events=await api('/api/events');$('events').textContent=events.items.slice(0,18).map(x=>`${new Date(x.time*1000).toLocaleString()} ${x.job}: ${x.state}`).join('\n')||'فعلاً رویدادی نیست.';
+ }catch(e){$('engine').textContent='پنل در دسترس نیست';$('trace').textContent=e.message}}
+}
+$('send').onclick=send;$('input').onkeydown=e=>{if(e.key==='Enter'&&!e.shiftKey&&!e.isComposing){e.preventDefault();send()}};
+$('newChat').onclick=()=>newChat().catch(e=>toast(e.message));
+$('attach').onclick=()=>$('fileInput').click();
+$('fileInput').onchange=async()=>{
+ const file=$('fileInput').files[0];if(!file)return;
+ if(file.size>14000){toast('برای این نسخه حداکثر حجم فایل متنی ۱۴ کیلوبایت است.');return}
+ try{const contents=await file.text();if(contents.includes('\0'))throw Error('فایل باینری قابل پیوست نیست.');
+ const appendix='\n\n[پیوست متنی: '+file.name.replace(/[<>]/g,'')+']\n'+contents.slice(0,2400)+(contents.length>2400?'\n[پیوست طولانی بود؛ تنها ۲۴۰۰ کاراکتر اول برای مدل درج شد]':'')+'\n[پایان پیوست]';
+ if($('input').value.length+appendix.length>8500)throw Error('حجم پیام و پیوست بیش از حد مجاز است.');
+ $('input').value+=appendix;$('input').focus();
+ }catch(e){toast(e.message)}finally{$('fileInput').value=''}
+};
+$('menu').onclick=()=>$('sidebar').classList.toggle('open');
+$('openTools').onclick=()=>{$('toolsPanel').hidden=!$('toolsPanel').hidden;if(!$('toolsPanel').hidden)loadHealth()};
+$('closeTools').onclick=()=>$('toolsPanel').hidden=true;
+$('saveProfile').onclick=async()=>{try{const r=await api('/api/profile',{instructions:$('profile').value});toast('ترجیحات شخصی در ویندوز ذخیره شد.')}catch(e){toast(e.message)}};
+api('/api/profile').then(x=>$('profile').value=x.instructions||'').catch(()=>{});
+for(const [name,cmd] of toolCommands){const button=el('button','tool');button.append(el('strong','',name),el('small','',cmd));button.onclick=()=>{$('toolsPanel').hidden=true;$('input').value=cmd;$('input').focus()};$('tools').append(button)}
+welcome();refreshThreads().catch(e=>toast(e.message));loadHealth();setInterval(loadHealth,45000);
+</script>
+</body></html>
