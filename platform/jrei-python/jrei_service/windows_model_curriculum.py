@@ -202,6 +202,29 @@ def review_lesson(db_path: Path, *, lesson_id: str, role: str,
            AND data_role<>? LIMIT 1""",(vid,role)).fetchone()
         if leak:
             raise ValueError("CURRICULUM_HELDOUT_SOURCE_OVERLAP")
+        # The source-version fence alone is insufficient when the same
+        # reviewed issuer has several URLs or multiple revised versions.
+        # Refuse role allocation as soon as the owner records it, not only
+        # at the later export/train boundary.
+        from jrei_service.windows_native_corpus import (
+            _publisher_key, _canonical_passage)
+        current=db.execute("""SELECT s.issuer,l.question,l.answer
+            FROM learning_lessons l
+            JOIN learning_sources s ON s.id=l.source_id
+            WHERE l.id=?""",(lesson_id,)).fetchone()
+        if current is None:
+            raise ValueError("CURRICULUM_REVIEW_SOURCE_NOT_FOUND")
+        others=db.execute("""SELECT s.issuer,l.question,l.answer
+            FROM learning_lessons l
+            JOIN learning_sources s ON s.id=l.source_id
+            WHERE l.review_state='EXTERNALLY_ATTESTED'
+              AND l.data_role<>?""",(role,)).fetchall()
+        issuer_key=_publisher_key(current[0])
+        answer_key=_canonical_passage(current[1]+"\n"+current[2])
+        if any(_publisher_key(row[0])==issuer_key or
+               _canonical_passage(row[1]+"\n"+row[2])==answer_key
+               for row in others):
+            raise ValueError("CURRICULUM_PUBLISHER_OR_QA_PARTITION_LEAKAGE")
         db.execute("""UPDATE learning_lessons SET review_state='EXTERNALLY_ATTESTED',
            data_role=?,reviewer_id=?,independent_evidence_sha256=?,reviewed_at=?
            WHERE id=?""",(role,reviewer,attestation_sha256,
