@@ -22,6 +22,7 @@ from tkinter import filedialog, messagebox, simpledialog, ttk, font as tkfont
 import urllib.error
 import urllib.parse
 import urllib.request
+import webbrowser
 
 BASE = "http://127.0.0.1:8092"
 
@@ -49,6 +50,26 @@ def _packaged_source_commit() -> str | None:
     except (OSError, ValueError, UnicodeError, json.JSONDecodeError):
         pass
     return None
+def _packaged_workflow_run_id() -> int | None:
+    """Only an embedded workflow build stamp can establish version order."""
+    folder = Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parent))
+    path = folder / "jrei-desktop-build.json"
+    if path.is_symlink() or not path.is_file() or path.stat().st_size > 2048:
+        return None
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+        if (not isinstance(data, dict)
+                or data.get("schema") != "jr.jrei.desktop-source-stamp.v1"
+                or data.get("branch") != "migration/bertina-linux6"):
+            return None
+        run_id = data.get("github_workflow_run_id")
+        if type(run_id) is int and 0 < run_id < 10**16:
+            return run_id
+    except (OSError, ValueError, UnicodeError, json.JSONDecodeError):
+        pass
+    return None
+
+
 TOKEN_FILE = Path(os.environ.get("LOCALAPPDATA", Path.home())) / "JREI" / "command-center" / "owner-token"
 FINAL = {"SUCCEEDED", "FAILED", "CANCELLED", "INTERRUPTED",
          "SUCCEEDED_AFTER_CANCEL_REQUEST", "FAILED_AFTER_CANCEL_REQUEST"}
@@ -163,6 +184,8 @@ class Desktop:
         self.online = False
         self.real_engine_status = None
         self.packaged_source_commit = _packaged_source_commit()
+        self.packaged_workflow_run_id = _packaged_workflow_run_id()
+        self.installer_check_started = False
         self.approval_dialog = None
         self.approval_items = []
         self.approval_context = None
@@ -426,6 +449,12 @@ class Desktop:
                      "موتور قدیمی/نامشخص؛ مدل زبانی آماده نیست")
             self.status_text.set(label + version_label)
             self.fetch("threads", lambda: self.api.request("/api/conversations"))
+            if not self.installer_check_started:
+                self.installer_check_started = True
+                self.fetch("windows_installer", lambda: self.api.request(
+                    "/api/github/windows-installer"))
+        elif key == "windows_installer":
+            self._display_windows_installer_offer(data)
         elif key == "threads":
             self.threads = data.get("items", [])[:100]
             self._render_threads()
@@ -578,6 +607,10 @@ class Desktop:
                     "/api/conversation?id=" + cid))
 
     def _error(self, key, error):
+        if key == "windows_installer":
+            # An unavailable GitHub check is not an application failure;
+            # never claim an update exists without a real artifact.
+            return
         self.status_text.set(str(error)[:170])
         if key == "connect":
             self.online = False
@@ -654,6 +687,7 @@ class Desktop:
             "connect", "threads", "thread", "task_list", "approvals", "job",
             "draft_diff", "draft_bundle", "github_preflight",
             "native_acceptance", "hardware_inventory",
+            "windows_installer",
         }
         if name in read_views:
             serial = self._request_versions.get(name, 0) + 1
@@ -1105,6 +1139,43 @@ class Desktop:
             "/api/assistant/confirm",
             {"confirm": True, "conversation_id": cid,
              "action_id": action_id}))
+
+    def _display_windows_installer_offer(self, data):
+        """Show one startup notice ONLY for a newer actual GitHub build.
+
+        A new source commit alone is never a downloadable installer. The
+        embedded GitHub run ID is from our previous successful package, and
+        the backend independently observes an unexpired named artifact.
+        No automatic downloads, installer execution or model restart.
+        """
+        if not isinstance(data, dict) or (
+                data.get("schema") != "jr.jrei.installer-update-observation.v1"
+                or data.get("state") !=
+                   "GITHUB_PACKAGED_ARTIFACT_OBSERVED_UNACCEPTED"
+                or data.get("artifact_expired") is not False
+                or data.get("update_installed") is not False):
+            return
+        rid = data.get("workflow_run_id")
+        if (type(rid) is not int or not 0 < rid < 10**16
+                or self.packaged_workflow_run_id is None
+                or rid <= self.packaged_workflow_run_id):
+            return
+        if not isinstance(data.get("source_commit"), str) or not re.fullmatch(
+                r"[0-9a-f]{40}", data["source_commit"]):
+            return
+        choice = messagebox.askyesno(
+            "JREI | بستهٔ جدید ویندوز",
+            "یک بستهٔ جدیدتر JREI واقعاً در GitHub ساخته شده است.\\n\\n"
+            "برای مشاهده و دریافت بسته، «بله» را انتخاب کنید.\\n"
+            "نصب فقط پس از بررسی SHA-256، پذیرش نهایی و تشخیص گرهٔ "
+            "A یا B انجام می‌شود. این پیام به معنی ارتقای مدل یا "
+            "موفقیت تست‌ها نیست.",
+            parent=self.root)
+        if choice:
+            # Construct the URL from a validated numeric run ID only.
+            webbrowser.open(
+                "https://github.com/drrezazadeh65/drjavadrezazadeh.com/"
+                "actions/runs/" + str(rid), new=2)
 
     def show_local_hardware(self):
         """Owner-initiated, read-only inventory for this Windows PC ONLY."""
