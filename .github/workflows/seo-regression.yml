@@ -25,6 +25,8 @@ jobs:
         run: node scripts/seo-regression.mjs
       - name: Validate all 54 bilingual service/VIP pages against canonical prices and crawl contracts
         run: node --test tests/bilingual-service-indexability-audit.test.mjs
+      - name: Verify 54 bilingual service guides, deep-linked consent and privacy contracts
+        run: node scripts/service-buyer-journey-audit.mjs
       - name: Verify dedicated JHELA scholarly sitemap and founding-stage governance
         run: node scripts/jhela-discovery-audit.mjs
       - name: Verify JHELA search-title, social/schema consistency and founding contact clarity
