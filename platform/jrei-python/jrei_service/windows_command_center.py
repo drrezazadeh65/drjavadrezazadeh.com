@@ -46,6 +46,7 @@ from jrei_service import windows_native_inference as native_inference
 from jrei_service import windows_resource_envelope as resource_envelope
 from jrei_service.windows_response_quality import has_repetition_loop
 from jrei_service.windows_project_generator import read_generated
+from jrei_service.windows_workspace import preview_diff as preview_workspace_diff
 from jrei_service.windows_document_vault import import_document, list_documents, delete_document
 from urllib.parse import parse_qs, urlsplit
 
@@ -811,6 +812,16 @@ class OwnerHTTP(BaseHTTPRequestHandler):
             return self._send(200, image_studio.list_recent(DB_PATH))
         if self.path == "/api/code-experience":
             return self._send(200, code_experience.snapshot(DB_PATH))
+        if urlsplit(self.path).path == "/api/workspace/diff":
+            params = parse_qs(urlsplit(self.path).query)
+            try:
+                return self._send(200, preview_workspace_diff(
+                    private=PRIVATE, receipt_id=params.get("id", [""])[0]))
+            except (OSError, ValueError, UnicodeError, KeyError,
+                    json.JSONDecodeError):
+                # The API never discloses the private workspace path or
+                # raw error text for missing, stale or tampered receipts.
+                return self._send(404, {"error": "JREI_DRAFT_PREVIEW_UNAVAILABLE"})
         if self.path == "/api/learning/topics":
             return self._send(200, {"items": agenda.list_topics(DB_PATH)})
         if urlsplit(self.path).path == "/api/learning/topic/cycles":
