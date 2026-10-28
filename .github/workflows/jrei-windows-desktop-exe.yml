@@ -53,7 +53,65 @@ jobs:
           if (-not (Test-Path -LiteralPath $source -PathType Leaf)) {
             throw "JREI_DESKTOP_SOURCE_NOT_PRESENT"
           }
-          python -m PyInstaller --noconfirm --clean --onefile --windowed --noupx --name JREI --distpath "$desktop/build" --workpath "$env:RUNNER_TEMP/jrei-build" --specpath "$env:RUNNER_TEMP/jrei-spec" "$source"
+          # Stamp the exact checked-out source commit INSIDE the UI EXE.
+          # This is a build identity, NOT a code-signature or test result.
+          $commit = (git rev-parse HEAD).Trim()
+          if ($commit -notmatch '^[a-f0-9]{40}
+          if ($LASTEXITCODE -ne 0) { throw "JREI_DESKTOP_EXECUTABLE_BUILD_FAILED" }
+          $exe = "$desktop/build/JREI.exe"
+          if (-not (Test-Path -LiteralPath $exe -PathType Leaf)) {
+            throw "JREI_DESKTOP_EXE_MISSING"
+          }
+          $compiler = 'C:\Program Files (x86)\Inno Setup 6\ISCC.exe'
+          & $compiler "$desktop/JREI.iss"
+          if ($LASTEXITCODE -ne 0) { throw "JREI_DESKTOP_INSTALLER_BUILD_FAILED" }
+          $setup = "$desktop/output/JREI-Setup-Windows-x64-v0.1.2.exe"
+          if (-not (Test-Path -LiteralPath $setup -PathType Leaf)) {
+            throw "JREI_DESKTOP_INSTALLER_MISSING"
+          }
+          New-Item -ItemType Directory -Force 'JREI-OWNER-DOWNLOAD' | Out-Null
+          Copy-Item -LiteralPath $setup -Destination 'JREI-OWNER-DOWNLOAD/JREI-Setup-Windows-x64-v0.1.2.exe'
+          $hash = (Get-FileHash -LiteralPath $setup -Algorithm SHA256).Hash.ToLowerInvariant()
+          "$hash  JREI-Setup-Windows-x64-v0.1.2.exe" | Set-Content -Encoding ascii 'JREI-OWNER-DOWNLOAD/SHA256SUMS.txt'
+          $commit = (git rev-parse HEAD).Trim()
+          @(
+            "JREI Owner Native Desktop Installer"
+            "GITHUB_SOURCE_COMMIT=$commit"
+            "CLIENT_EMBEDDED_SOURCE_COMMIT=$commit"
+            "SOURCE_IDENTITY_NOT_CODE_SIGNATURE=TRUE"
+            "WINDOWS_TARGET=x64"
+            "APPLICATION=Native Tk GUI bundled using PyInstaller"
+            "INSTALLER=Inno Setup 6.7.1"
+            "INSTALLER_VERSION=0.1.2"
+            "SIGNATURE=UNSIGNED; Windows SmartScreen may warn"
+            "BACKEND_REQUIRED=Existing authenticated 127.0.0.1:8092 owner server"
+            "EXTERNAL_PRETRAINED_WEIGHTS=NONE"
+            "MODEL_DOWNLOADS=NONE"
+            "OWNER_SECRETS_BUNDLED=NONE"
+            "WEBSITE_DEPLOYMENT=NONE"
+            "INTEGRATED_WINDOWS_ACCEPTANCE=NOT_RUN"
+            "NO_NEW_MODEL_TRAINING=TRUE"
+            "NO_LIVE_WINDOWS_INSTALL=TRUE"
+          ) | Set-Content -Encoding utf8 'JREI-OWNER-DOWNLOAD/BUILD-MANIFEST.txt'
+          "Installer artifact SHA256: $hash" >> $env:GITHUB_STEP_SUMMARY
+          "Download from this workflow run's Artifacts, not from the repository source view." >> $env:GITHUB_STEP_SUMMARY
+
+      - name: Upload downloadable EXE installer (unaccepted until final review)
+        uses: actions/upload-artifact@v4
+        with:
+          name: JREI-WINDOWS-DESKTOP-INSTALLER
+          path: JREI-OWNER-DOWNLOAD/
+          retention-days: 30
+          if-no-files-found: error
+          compression-level: 0
+) { throw "JREI_BUILD_COMMIT_UNKNOWN" }
+          $stamp = Join-Path $env:RUNNER_TEMP 'jrei-desktop-build.json'
+          @{
+            schema = 'jr.jrei.desktop-source-stamp.v1'
+            source_commit = $commit
+            branch = 'migration/bertina-linux6'
+          } | ConvertTo-Json -Compress | Set-Content -LiteralPath $stamp -Encoding utf8NoBOM
+          python -m PyInstaller --noconfirm --clean --onefile --windowed --noupx --name JREI --add-data "$stamp;." --distpath "$desktop/build" --workpath "$env:RUNNER_TEMP/jrei-build" --specpath "$env:RUNNER_TEMP/jrei-spec" "$source"
           if ($LASTEXITCODE -ne 0) { throw "JREI_DESKTOP_EXECUTABLE_BUILD_FAILED" }
           $exe = "$desktop/build/JREI.exe"
           if (-not (Test-Path -LiteralPath $exe -PathType Leaf)) {
