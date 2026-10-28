@@ -59,11 +59,14 @@ jobs:
           if ($commit -notmatch '^[a-f0-9]{40}$') {
             throw 'JREI_BUILD_SOURCE_COMMIT_INVALID'
           }
+          $runId = [long]$env:GITHUB_RUN_ID
+          if ($runId -le 0) { throw 'JREI_WINDOWS_BUILD_RUN_ID_INVALID' }
           $stamp = Join-Path $env:RUNNER_TEMP 'jrei-desktop-build.json'
           @{
             schema = 'jr.jrei.desktop-source-stamp.v1'
             source_commit = $commit
             branch = 'migration/bertina-linux6'
+            github_workflow_run_id = $runId
           } | ConvertTo-Json -Compress | Set-Content -LiteralPath $stamp -Encoding utf8NoBOM
           python -m PyInstaller --noconfirm --clean --onefile --windowed --noupx --name JREI --add-data "$stamp;." --distpath "$desktop/build" --workpath "$env:RUNNER_TEMP/jrei-build" --specpath "$env:RUNNER_TEMP/jrei-spec" "$source"
           if ($LASTEXITCODE -ne 0) { throw 'JREI_NATIVE_DESKTOP_EXE_BUILD_FAILED' }
@@ -101,6 +104,7 @@ jobs:
             "JREI Owner Native Desktop Installer"
             "GITHUB_SOURCE_COMMIT=$commit"
             "CLIENT_EMBEDDED_SOURCE_COMMIT=$commit"
+            "CLIENT_PACKAGING_RUN_ID=$runId"
             "INSTALLER_SHA256=$hash"
             "INSTALLER_VERSION=0.1.2"
             "WINDOWS_TARGET=x64"
@@ -120,6 +124,7 @@ jobs:
           @{
             schema = 'jr.jrei.native-installer-artifact.v1'
             source_commit = $commit
+            github_workflow_run_id = $runId
             installer_name = 'JREI-Setup-Windows-x64-v0.1.2.exe'
             installer_sha256 = $hash
             os = 'windows-x64'
