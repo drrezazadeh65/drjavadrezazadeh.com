@@ -109,6 +109,7 @@ jobs:
           run_audit "FAQ integrity" node scripts/faq-integrity-audit.mjs
           run_audit "RSS distribution" node scripts/rss-audit.mjs
           run_audit "Conversion paths" node scripts/conversion-path-audit.mjs
+          run_audit "Bilingual service buyer journey and verified enquiry context" node scripts/service-buyer-journey-audit.mjs
           run_audit "Analytics/privacy contract" node scripts/analytics-contract-audit.mjs
           run_audit "Commerce fail-closed schema" node scripts/commerce-schema-safety-audit.mjs
           run_audit "Bertina receipt integrity" node scripts/commerce-receipt-contract-audit.mjs
