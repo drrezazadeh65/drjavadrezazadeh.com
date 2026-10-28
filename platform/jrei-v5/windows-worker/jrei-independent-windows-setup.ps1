@@ -3,7 +3,7 @@
  Single-owner-action activation orchestrator for the EXISTING JREI Windows AI.
  Run ONLY on owner PC after code freeze and acceptance; no site deployment.
  Reuses current repo, scheduled-task installer, original 30-min repo sync,
- official Apache-2.0 Granite download, and existing licensed llama backend.
+ the existing private JREI dashboard and approved code-only runtime.
  No Qwen deletion, no data wipe, no GitHub token creation, no elevated admin.
 #>
 [CmdletBinding()]
@@ -16,7 +16,6 @@ $repo=Join-Path $env:LOCALAPPDATA 'JREI-Python\repo'
 $scripts=Join-Path $repo 'platform\jrei-v5\windows-worker'
 $sync=Join-Path $scripts 'jrei-repo-auto-sync.ps1'
 $app=Join-Path $scripts 'jrei-windows-app-auto-update.ps1'
-$model=Join-Path $scripts 'jrei-independent-granite-startup.ps1'
 function InvokeStep([string]$file,[string]$task,[bool]$approved){
  if(-not (Test-Path -LiteralPath $file -PathType Leaf)){
   throw 'JREI_STEP_NOT_IN_CANONICAL_REPOSITORY'
@@ -35,7 +34,7 @@ function InvokeStep([string]$file,[string]$task,[bool]$approved){
 }
 if($Mode -eq 'Status'){
  InvokeStep $app 'Check' $false
- InvokeStep $model 'Status' $false
+ Write-Output '[JREI] NATIVE_LANGUAGE_MODEL_NOT_TRAINED'
  return
 }
 if(-not $OwnerApproved){throw 'JREI_OWNER_APPROVAL_REQUIRED'}
@@ -65,10 +64,12 @@ if(ExistingPanelReady){
  InvokeStep $app 'Install' $true
  if(-not (ExistingPanelReady)){throw 'JREI_EXISTING_PRIVATE_APP_NOT_READY'}
 }
-# The official GGUF download is >=2GB; the installer blocks until its actual
-# SHA256 matches the official IBM model repository revision.
-InvokeStep $model 'Install' $true
-Write-Output '[JREI] OWNER_PRIVATE_INSTALL_SEQUENCE_COMPLETED'
-Write-Output '[JREI] GRANITE_INFERENCE_QUALITY_NOT_INDEPENDENTLY_ACCEPTED'
-Write-Output '[JREI] SECOND_PC_IS_NOT_REMOTELY_INSTALLED_BY_THIS_COMMAND'
-Write-Output '[JREI] NO_BERTINA_DEPLOY_OR_GITHUB_CREDENTIAL_CREATED'
+# Source libraries, infrastructure and the owner dashboard do not constitute
+# a trained native language model. Never fetch or activate any other vendor's
+# pretrained weights through this installer. JREI-owned, provenance-verified
+# training and an approved native checkpoint are separate future stages.
+Write-Output '[JREI] NO_THIRD_PARTY_MODEL_DOWNLOADS_OR_RUNTIME_ACTIVATION'
+Write-Output '[JREI] JREI_NATIVE_MODEL_WEIGHTS_NOT_YET_TRAINED'
+Write-Output '[JREI] OWNER_DASHBOARD_AND_SOURCE_STEPS_COMPLETED'
+Write-Output '[JREI] SECOND_PC_NOT_REMOTE_INSTALLED'
+Write-Output '[JREI] WEBSITE_BERTINA_DEPLOY_UNCHANGED'
