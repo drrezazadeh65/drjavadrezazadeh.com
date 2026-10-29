@@ -15,7 +15,7 @@
   .\jrei-managed-startup.ps1 -Mode install -WorkerMode pilot -ConfigPath "C:\Private\jrei-worker.json" -OwnerApproved
   .\jrei-managed-startup.ps1 -Mode remove -WorkerMode pilot -OwnerApproved
 
-  Script registration is no proof of real Bertina worker connectivity.
+  Existing task registrations are NOT silently replaced by this source update.\n  Recurring retry is only for a task registered through this revised script;\n  it does not bypass owner/node authorization or prove Bertina connectivity.
 #>
 [CmdletBinding()]
 param(
@@ -126,14 +126,21 @@ if($WorkerMode -eq 'model'){
     '"' + $escapedWorker + '" ' + $runMode + ' "' + $escapedConfig + '"'
   ) -WorkingDirectory $PSScriptRoot
 }
+# A logon trigger alone cannot recover a worker which exits later. The
+# recurring trigger makes a missed/terminated task eligible for restart while
+# IgnoreNew prevents a second worker instance when the first is still running.
+# Both triggers use the SAME original signed identity/config/action.
 $trigger=New-ScheduledTaskTrigger -AtLogOn -User $user
+$recoveryTrigger=New-ScheduledTaskTrigger -Once -At (Get-Date).AddMinutes(2) `
+  -RepetitionInterval (New-TimeSpan -Minutes 5) `
+  -RepetitionDuration (New-TimeSpan -Days 3650)
 $settings=New-ScheduledTaskSettingsSet -ExecutionTimeLimit (New-TimeSpan -Hours 0) `
   -MultipleInstances IgnoreNew -StartWhenAvailable:$true `
   -RestartCount 3 -RestartInterval (New-TimeSpan -Minutes 2)
 $principal=New-ScheduledTaskPrincipal -UserId $user -LogonType Interactive -RunLevel Limited
-Register-ScheduledTask -TaskName $taskName -Action $action -Trigger $trigger `
+Register-ScheduledTask -TaskName $taskName -Action $action -Trigger @($trigger,$recoveryTrigger) `
   -Settings $settings -Principal $principal -Description (
     'JREI outgoing-only approved worker; local chat requires an independently running localhost language model.'
   ) -ErrorAction Stop | Out-Null
-Write-Output 'JREI task registered for the current user AT NEXT LOGON only.'
+Write-Output 'JREI task registered for owner logon and 5-minute crash recovery checks.'
 Write-Output 'This does not enable the Bertina private backend or prove inference.'
