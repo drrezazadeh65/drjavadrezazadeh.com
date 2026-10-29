@@ -1,4 +1,4 @@
-# JREI owner universal Windows installation — v0.1.12 source candidate
+# JREI owner universal Windows installation — v0.1.13 source candidate
 
 **Status: v0.1.11 passed its GitHub builder, but on an owner PC its program files staged while its engine setup failed with JREI_ENGINE_SETUP_FAILED. Version 0.1.12 is a SOURCE-ONLY correction. No v0.1.12 build or real-device acceptance has been verified.**
 
@@ -93,3 +93,14 @@ The owner provided a screenshot in which `JREI-Setup-Windows-x64-v0.1.11.exe` ha
 Source inspection found a concrete diagnostic/design flaw: a write failure in the optional installer `install-receipts` directory could propagate into the outer handler as `JREI_ENGINE_SETUP_FAILED`, masking the actual engine initialization state. The process-launch error handler also substituted an unrelated generic code when stderr capture could not be created. The **v0.1.12 source** makes receipt writing best-effort, preserves all existing private data, redirects temporary bounded engine stderr to the owner-writable versioned installation directory, and produces a stable setup stage code `JREI_SETUP_<STAGE>_FAILED` instead of a contextless error. It removes that diagnostic coupling, but the actual root cause on the owner's Windows PC remains unverified until the new binary runs. The one-click workflow still does no real Windows owner-device acceptance testing.
 
 **Do not uninstall/delete existing owner files or forcibly stop an unidentified 8092 process.** A successful GitHub build proves artifact packaging, not private engine authentication or a working conversational model.
+
+
+## Owner screenshot: 0.1.12 install is NOT engine-ready
+
+The owner's Windows screenshot from 29 October 2026 proves the v0.1.12 Go installer staged the EXE, then showed **"Program installed, shortcut unavailable"** with engine status `JREI_FROZEN_RUNTIME_NO_WRITABLE_PRIVATE_STORE`. The engine did not authenticate; the shortcut failed independently. NO further inference about the owner PC's security product or exact Windows denial is justified.
+
+The source-only 0.1.13 repair makes **engine authentication the primary installation acceptance gate** in the Go popup and marks any unverified engine as failure, even when a shortcut is available. Windows shortcut creation attempts Desktop and Start Menu independently; if one path is blocked, it can still use the other. Existing unrelated shortcuts or reparse targets are preserved.
+
+The Python private-store probe also no longer requests write access to an **already existing owner-token**, because the original engine reads and preserves it rather than rewriting it. File-specific SQLite write capability is still required. If the frozen process remains blocked from writing all available private roots, it fails closed and returns a bounded cause code, without disabling security, changing ACLs, inventing a successful engine, or deleting existing user data.
+
+**Status: v0.1.13 is a source-only candidate, not an owner-tested or built release.** The established owner-only one-click GitHub workflow is manually dispatched; no deploy and no live-site change. Do not request another install on either owner PC until the evidence and release gates are satisfied.
