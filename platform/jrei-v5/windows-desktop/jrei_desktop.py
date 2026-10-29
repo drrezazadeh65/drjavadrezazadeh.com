@@ -196,7 +196,7 @@ class Desktop:
         self._build()
         self.root.after(90, self._drain)
         self.root.after(1100, self._start_poll)
-        self.fetch("connect", self._bootstrap)
+        self.fetch("connect", self._bootstrap_with_local_engine)
 
     def _font(self, size=10, bold=False):
         key = (int(size), bool(bold))
@@ -683,6 +683,51 @@ class Desktop:
     def _bootstrap(self):
         return self.api.request("/api/status")
 
+    def _start_bundled_local_engine(self):
+        """Start the ORIGINAL private 8092 core from this signed-release layout.
+
+        No new agent, elevated rights, task overwrite or server enrollment.
+        Only the installed, matching-version helper is eligible. A local
+        Windows legacy task may remain untouched even when its action is stale.
+        """
+        if sys.platform != "win32" or not getattr(sys, "frozen", False):
+            raise RuntimeError("JREI_BUNDLED_WINDOWS_INSTALL_REQUIRED")
+        app = Path(sys.executable).resolve().parent
+        script = app / "jrei-engine-setup.ps1"
+        if script.is_symlink() or not script.is_file() or script.stat().st_size > 35_000:
+            raise RuntimeError("JREI_BUNDLED_ENGINE_CONTROLLER_MISSING")
+        ps = Path(os.environ.get("SystemRoot", r"C:\Windows")) / (
+            "System32/WindowsPowerShell/v1.0/powershell.exe")
+        if not ps.is_file():
+            raise RuntimeError("JREI_WINDOWS_POWERSHELL_NOT_FOUND")
+        completed = subprocess.run(
+            [str(ps), "-NoProfile", "-NonInteractive", "-ExecutionPolicy",
+             "Bypass", "-File", str(script), "-Mode", "Start"],
+            shell=False, stdin=subprocess.DEVNULL, capture_output=True,
+            timeout=55, check=False,
+            creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
+        if completed.returncode != 0:
+            # Copy only a fixed machine-safe reason code; never show tokens,
+            # user path or arbitrary shell output in the popup.
+            reason = re.findall(
+                r"JREI_[A-Z0-9_]{4,110}",
+                (completed.stdout + completed.stderr).decode(
+                    "utf-8", errors="replace"))
+            raise RuntimeError(
+                reason[0] if reason else "JREI_PRIVATE_ENGINE_START_FAILED")
+        return {"state": "LOCAL_ENGINE_START_EXIT_ZERO_NOT_INDEPENDENT_ACCEPTANCE"}
+
+    def _bootstrap_with_local_engine(self):
+        try:
+            return self._bootstrap()
+        except (ConnectionError, FileNotFoundError, OSError):
+            if not getattr(sys, "frozen", False):
+                raise
+        # On first desktop launch or after restart, start the bundled core
+        # once, on the background thread, and then demand genuine API status.
+        self._start_bundled_local_engine()
+        return self._bootstrap()
+
     def _invalidate_conversation_reads(self):
         """Fence old chat/job HTTP responses when changing local views."""
         for key in ("thread", "task_list", "job", "approvals"):
@@ -736,7 +781,7 @@ class Desktop:
         self.root.after(1800, self._start_poll)
 
     def refresh(self):
-        self.fetch("connect", self._bootstrap)
+        self.fetch("connect", self._bootstrap_with_local_engine)
         if self.conversation:
             current = self.conversation
             self.fetch("thread", lambda: self.api.request(
@@ -1608,43 +1653,16 @@ class Desktop:
             "\n".join(parts), parent=self.root)
 
     def start_existing_engine(self):
-        """Only request the ORIGINAL owner Scheduled Task, never install/replace it."""
+        """Owner click: start only the bundled original private JREI core."""
         if sys.platform != "win32":
             self.status_text.set("راه‌اندازی موتور فقط در ویندوز پشتیبانی می‌شود.")
             return
-        if not messagebox.askyesno(
-            "JREI", "سرویس خصوصی JREI که قبلاً روی همین ویندوز ثبت شده، اجرا شود؟ "
-                    "هیچ برنامه یا مدل تازه‌ای نصب نمی‌شود.", parent=self.root):
-            return
         def invoke():
-            # Delegate validation to the existing JREI owner-only task
-            # controller, never run an arbitrary or replaced scheduled task.
-            # Prefer the bundled program controller; no Python install or
-            # source checkout is needed to restart a legitimately registered
-            # owner-only 8092 task. A separate existing Python task remains
-            # supported by its original source controller.
-            app = Path(sys.executable).resolve().parent
-            bundled = app / "jrei-engine-setup.ps1"
-            legacy = (Path(os.environ.get("LOCALAPPDATA", str(Path.home())))
-                / "JREI-Python" / "repo" / "platform" / "jrei-v5"
-                / "windows-worker" / "jrei-command-center-startup.ps1")
-            script = bundled if bundled.is_file() and not bundled.is_symlink() else legacy
-            if not script.is_file() or script.is_symlink():
-                raise RuntimeError("کنترل‌کنندهٔ امن موتور JREI در این رایانه یافت نشد.")
-            controller = os.path.join(
-                os.environ.get("SystemRoot", r"C:\Windows"), "System32",
-                "WindowsPowerShell", "v1.0", "powershell.exe")
-            completed = subprocess.run(
-                [controller, "-NoProfile", "-NonInteractive", "-ExecutionPolicy",
-                 "Bypass", "-File", str(script), "-Mode", "Start"],
-                shell=False, stdin=subprocess.DEVNULL,
-                capture_output=True, timeout=35, check=False,
-                creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
-            if completed.returncode != 0:
-                raise RuntimeError(
-                    "سرویس ثبت‌شدهٔ JREI قابل اجرا نیست. نصب و پذیرش موتور "
-                    "اصلی ویندوز باید جداگانه تکمیل شود.")
-            return {"state": "EXISTING_JREI_TASK_START_REQUESTED"}
+            result = self._start_bundled_local_engine()
+            status = self._bootstrap()
+            if status.get("schema") != "jr.jrei.windows-command-center.v2":
+                raise RuntimeError("JREI_PRIVATE_ENGINE_STATUS_UNVERIFIED")
+            return result
         self.fetch("service", invoke)
 
     def cancel_job(self):
