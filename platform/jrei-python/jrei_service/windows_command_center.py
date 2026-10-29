@@ -54,6 +54,7 @@ from jrei_service import windows_open_source_study as open_source_study
 from jrei_service import windows_oss_evidence as oss_evidence
 from jrei_service import windows_oss_multiforge as oss_multiforge
 from jrei_service import windows_language_backend as language_backend
+from jrei_service import windows_gpu_pilot as gpu_pilot
 from jrei_service import windows_native_inference as native_inference
 from jrei_service import windows_private_storage as private_storage
 from jrei_service import windows_resource_envelope as resource_envelope
@@ -285,14 +286,20 @@ def reply(messages, max_tokens=320):
             result = language_backend.complete(
                 PRIVATE, clean, max_tokens=max_tokens)
         except (OSError, RuntimeError, ValueError, urllib.error.URLError):
-            # No other vendor weights: optionally use an independently
-            # reviewed JREI-from-scratch checkpoint in this same 8092
-            # process, never a new sidecar or alternate chatbot.
-            # No native approval => fail closed and let existing RAG return
-            # cited evidence rather than hallucinating an LLM response.
-            result = native_inference.complete(
-                db_path=DB_PATH, private=PRIVATE, messages=clean,
-                max_tokens=min(256, max_tokens))
+            # The owner may explicitly opt in to a DISTINCT, third-party
+            # private Qwen GPU pilot. Its independently pinned local consent
+            # and artifact hashes default to OFF; it is never called a native
+            # JREI-trained checkpoint or promoted to the public website.
+            try:
+                result = gpu_pilot.complete(
+                    PRIVATE, clean, max_tokens=min(850, max_tokens))
+            except (OSError, ValueError, RuntimeError, KeyError, TypeError,
+                    UnicodeError, urllib.error.URLError,
+                    json.JSONDecodeError):
+                # No eligible pilot => original native/grounded fallback.
+                result = native_inference.complete(
+                    db_path=DB_PATH, private=PRIVATE, messages=clean,
+                    max_tokens=min(256, max_tokens))
     if not has_repetition_loop(result["answer"]):
         result["quality"] = ("NATIVE_DRAFT_SCREENED_NOT_FACT_VERIFIED"
             if result.get("backend") == "JREI_OWN_TRAINED_SOURCE_CODE"
@@ -1070,6 +1077,8 @@ def windows_app_source_commit():
 
 def status():
     base, model = local_model()
+    pilot = gpu_pilot.snapshot(PRIVATE)
+    pilot_ready = not base and pilot["state"] == "PRIVATE_PILOT_RESPONDING"
     with closing(sqlite3.connect(DB_PATH, timeout=8)) as db:
         total = db.execute("SELECT COUNT(*) FROM events WHERE state='PROPOSED_NOT_VERIFIED'").fetchone()[0]
     return {
@@ -1096,10 +1105,13 @@ def status():
         "repository_search_and_read": "BOUNDED_READ_ONLY",
         "code_edits": "CONFIRMED_ISOLATED_WORKSPACE_ONLY",
         "owner_private": True,
-        "model_connected": bool(base),
+        "model_connected": bool(base) or pilot_ready,
         "gpu_recovery": "LEGACY_QWEN_DISABLED",
-        "inference_backend": "JREI_LOCAL" if base else "OFFLINE",
-        "model_alias": model,
+        "inference_backend": ("JREI_LOCAL" if base else
+                              "QWEN_GPU_PILOT_UNVERIFIED" if pilot_ready else
+                              "OFFLINE"),
+        "model_alias": model if base else "Qwen3-4B (private GPU pilot)" if pilot_ready else None,
+        "optional_gpu_pilot": pilot,
         "native_language_backend": language_backend.snapshot(PRIVATE),
         "native_evidence_answering": "AVAILABLE_NO_EXTERNAL_WEIGHTS",
         "native_language_model_training": "NOT_STARTED",
