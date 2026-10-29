@@ -54,7 +54,7 @@ jobs:
           }
           # Parse Python text only: do not import, create owner directories,
           # initialize DB, run a neural model or access the public website.
-          python -c "import ast,pathlib; root=pathlib.Path('platform'); paths=[root/'jrei-v5/windows-desktop/jrei_embedded_engine.py',root/'jrei-v5/windows-desktop/jrei_owner_python_bootstrap.py',root/'jrei-v5/windows-desktop/jrei_desktop.py',root/'jrei-python/jrei_service/windows_private_storage.py',root/'jrei-python/jrei_service/windows_command_center.py']; [ast.parse(p.read_text(encoding='utf-8'),filename=str(p)) for p in paths]"
+          python -c "import ast,pathlib; root=pathlib.Path('platform'); paths=[root/'jrei-v5/windows-desktop/jrei_embedded_engine.py',root/'jrei-v5/windows-desktop/jrei_owner_python_bootstrap.py',root/'jrei-v5/windows-desktop/jrei_desktop.py',root/'jrei-v5/windows-desktop/jrei_desktop_features.py',root/'jrei-python/jrei_service/windows_private_storage.py',root/'jrei-python/jrei_service/windows_command_center.py']; [ast.parse(p.read_text(encoding='utf-8'),filename=str(p)) for p in paths]"
           if($LASTEXITCODE -ne 0){throw 'JREI_FROZEN_PYTHON_SOURCE_SYNTAX_INVALID'}
 
       - name: Install packaging utilities on isolated GitHub runner only
@@ -74,7 +74,7 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference='Stop'
-          $version='0.1.18'
+          $version='0.1.19'
           $desktop='platform/jrei-v5/windows-desktop'
           $build="$desktop/build"
           $source="$desktop/jrei_desktop.py"
@@ -93,7 +93,7 @@ jobs:
 
           # Onedir GUI: no PyInstaller onefile _MEI* extraction in Windows TEMP
           # on EITHER owner device, including the machine affected by Error 5.
-          python -m PyInstaller --noconfirm --clean --onedir --windowed --noupx --name JREI --add-data "$stamp;." --distpath "$build/ui" --workpath "$env:RUNNER_TEMP/jrei-ui-work" --specpath "$env:RUNNER_TEMP/jrei-ui-spec" "$source"
+          python -m PyInstaller --noconfirm --clean --onedir --windowed --noupx --name JREI --hidden-import jrei_desktop_features --add-data "$stamp;." --distpath "$build/ui" --workpath "$env:RUNNER_TEMP/jrei-ui-work" --specpath "$env:RUNNER_TEMP/jrei-ui-spec" "$source"
           if($LASTEXITCODE -ne 0){throw 'JREI_GUI_BUNDLE_FAILED'}
           $uiDir="$build/ui/JREI"
           if(-not (Test-Path -LiteralPath "$uiDir/JREI.exe" -PathType Leaf)){throw 'JREI_GUI_EXE_MISSING'}
@@ -107,13 +107,39 @@ jobs:
           # are intentionally excluded. The READ-ONLY source is built from
           # immutable HEAD in the canonical checkout.
           $snapshot=Join-Path $env:RUNNER_TEMP 'jrei-tracked-source.zip'
-          git archive --format=zip --output="$snapshot" HEAD platform/jrei-python platform/jrei-v5 platform/news-intelligence scripts assets/css api
+          git archive --format=zip --output="$snapshot" HEAD platform/jrei-python platform/jrei-v5 platform/news-intelligence scripts assets/css api docs/governance/JREI_FINAL_OPEN_SOURCE_ADOPTION_MATRIX.md docs/governance/JREI_NATIVE_AI_CODING_AND_TRAINING_STACK_20261028.md docs/governance/JREI_WINDOWS_TWO_PC_RELEASE_CANDIDATE_20261028.md docs/governance/JREI_FINAL_IMPLEMENTATION_CHECKLIST_20261028.md
           if($LASTEXITCODE -ne 0){throw 'JREI_GIT_ARCHIVE_FAILED'}
           $sourceDir="$build/source"
           New-Item -ItemType Directory -Path $sourceDir -Force|Out-Null
           Expand-Archive -LiteralPath $snapshot -DestinationPath $sourceDir -Force
           if(-not (Test-Path -LiteralPath "$sourceDir/platform/jrei-python/jrei_service/windows_command_center.py" -PathType Leaf)){
             throw 'JREI_READ_ONLY_SOURCE_NOT_PACKAGED'
+          }
+          # Build only when ALL key JREI modules, original OSS licences and
+          # source-research ledgers are physically present in the same snapshot.
+          $requiredSources=@(
+            'platform/jrei-v5/windows-desktop/jrei_desktop_features.py',
+            'platform/jrei-python/jrei_service/windows_self_development.py',
+            'platform/jrei-python/jrei_service/windows_open_source_study.py',
+            'platform/jrei-python/jrei_service/windows_oss_multiforge.py',
+            'platform/jrei-python/jrei_service/windows_oss_evidence.py',
+            'platform/jrei-python/jrei_service/windows_code_experience.py',
+            'platform/jrei-python/jrei_service/windows_site_image_studio.py',
+            'platform/jrei-python/jrei_service/windows_native_visual.py',
+            'platform/jrei-python/jrei_service/windows_visual_learning.py',
+            'platform/jrei-python/jrei_service/windows_continuous_learning.py',
+            'platform/jrei-python/jrei_service/windows_native_code_evaluation.py',
+            'platform/jrei-python/jrei_service/windows_peft_training.py',
+            'platform/jrei-python/jrei_service/_vendor/minbpe/LICENSE',
+            'platform/jrei-python/jrei_service/_vendor/nanogpt/LICENSE',
+            'platform/jrei-python/jrei_service/_vendor/AIDER_APACHE_LICENSE.txt',
+            'docs/governance/JREI_FINAL_OPEN_SOURCE_ADOPTION_MATRIX.md',
+            'docs/governance/JREI_NATIVE_AI_CODING_AND_TRAINING_STACK_20261028.md'
+          )
+          foreach($relative in $requiredSources){
+            if(-not (Test-Path -LiteralPath (Join-Path $sourceDir $relative) -PathType Leaf)){
+              throw ('JREI_INTEGRATED_SOURCE_ABSENT: ' + $relative)
+            }
           }
 
           # Staging directory maps 1:1 to the final per-user release folder.
@@ -234,16 +260,16 @@ jobs:
 
           $out="$desktop/output"
           New-Item -ItemType Directory -Path $out -Force|Out-Null
-          $installer="$out/JREI-Setup-Windows-x64-v0.1.18.exe"
+          $installer="$out/JREI-Setup-Windows-x64-v0.1.19.exe"
           go build -trimpath '-ldflags=-H windowsgui -s -w' -o $installer "$desktop/jrei_universal_setup_windows.go"
           if($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath $installer -PathType Leaf)){
             throw 'JREI_GO_NO_TEMP_INSTALLER_BUILD_FAILED'
           }
           $hash=(Get-FileHash -LiteralPath $installer -Algorithm SHA256).Hash.ToLowerInvariant()
           New-Item -ItemType Directory -Path 'JREI-OWNER-DOWNLOAD' -Force|Out-Null
-          Copy-Item -LiteralPath $installer -Destination 'JREI-OWNER-DOWNLOAD/JREI-Setup-Windows-x64-v0.1.18.exe'
+          Copy-Item -LiteralPath $installer -Destination 'JREI-OWNER-DOWNLOAD/JREI-Setup-Windows-x64-v0.1.19.exe'
           @(
-            '## JREI 0.1.18 - universal offline NO-TEMP Windows setup'
+            '## JREI 0.1.19 - JREI integrated source candidate; unaccepted universal offline NO-TEMP setup'
             ''
             '- Exactly ONE user-facing EXE (within the GitHub artifact ZIP).'
             '- Native Windows Go bootstrap selects a writable user-profile release folder without elevation.'
@@ -254,6 +280,9 @@ jobs:
             '- Unrecognized legacy Windows task is preserved; independent local core can start on free 8092.'
             '- The native desktop rechecks and starts the same original 8092 engine through the bundled Python interpreter.'
             '- Existing private DB, user conversations, worker node IDs, keys and models are preserved.'
+            '- Includes locally callable OSS research, code draft/evidence learning and owner-queued geometric illustration modules.'
+            '- Research audit/third-party license evidence is included; unreviewed upstream code and pretrained model weights are NOT silently installed.'
+            '- Self-coding is approval-gated; local neural text/image model quality is NOT established.'
             '- Does not assert independent model quality, GPU compute or signed remote-node enrollment.'
             '- Does NOT deploy the website, run training or perform integrated Windows acceptance.'
             "- Source commit: $sha"
@@ -268,7 +297,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: JREI-WINDOWS-DESKTOP-INSTALLER
-          path: JREI-OWNER-DOWNLOAD/JREI-Setup-Windows-x64-v0.1.18.exe
+          path: JREI-OWNER-DOWNLOAD/JREI-Setup-Windows-x64-v0.1.19.exe
           retention-days: 30
           compression-level: 0
           if-no-files-found: error
