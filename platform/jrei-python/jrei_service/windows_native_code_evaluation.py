@@ -74,6 +74,14 @@ def initialize(db_path: Path) -> None:
           generated_sha256 TEXT NOT NULL,
           reference_sha256 TEXT NOT NULL,
           PRIMARY KEY(run_id,split_name,lesson_id))""")
+        # Forward-only optional-column migration. Legacy score rows do not
+        # acquire invented order; their digest remains unverified until an
+        # explicit fresh benchmark is recorded for another model run.
+        present={row[1] for row in db.execute(
+            "PRAGMA table_info(jrei_code_ability_example_scores)")}
+        if "ordinal" not in present:
+            db.execute("""ALTER TABLE jrei_code_ability_example_scores
+                ADD COLUMN ordinal INTEGER NOT NULL DEFAULT -1""")
         db.commit()
 
 
