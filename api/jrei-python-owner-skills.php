@@ -15,7 +15,7 @@ function jrOwnerJreiPythonSkillDispatch(array $privateConfig, array $body, ?stri
     if (!is_string($action) ||
         !in_array($action,['catalog','triage-evidence','heldout-review','calculate',
           'evidence-graph','knowledge-correction','answer-grounding-review','metacognitive-plan','learning-value-plan','capacity-plan','exam-blueprint-review','news-editorial-preflight','strategy-propose','mission-bind','method-feedback','grounded-retrieval','source-extract',
-          'self-improvement','language-growth','model-portfolio','model-draft','memory-save','memory-read','memory-list','memory-revoke'],true)) {
+          'self-improvement','language-growth','model-portfolio','engine-compat','rcas-evidence','bahar-coverage','konkur-calibration','model-draft','memory-save','memory-read','memory-list','memory-revoke'],true)) {
         throw new InvalidArgumentException('python_skill_action_invalid');
     }
 
@@ -118,6 +118,37 @@ function jrOwnerJreiPythonSkillDispatch(array $privateConfig, array $body, ?stri
             'grounded-retrieval'=>'jr.jrei.grounded-retrieval-result.v1',
             'source-extract'=>'jr.jrei.knowledge-extract-result.v1',
             'news-editorial-preflight'=>'jr.jrei.news-editorial-preflight-result.v1'
+        };
+    } elseif (in_array($action,
+        ['engine-compat','rcas-evidence','bahar-coverage','konkur-calibration'],true)) {
+        // New educational analysis routes require their OWN independent
+        // site authorization switch in addition to the original MFA/CSRF.
+        // Never grant access to public learners from this owner-only router.
+        if (($privateConfig['jrei_python_education_compute_enabled']??false)!==true) {
+            throw new RuntimeException('JREI_EDUCATION_API_DISABLED');
+        }
+        if (count($body)!==2 || !isset($body['payload']) ||
+            !is_array($body['payload']) || array_is_list($body['payload'])) {
+            throw new InvalidArgumentException('jrei_education_payload_invalid');
+        }
+        $raw=json_encode($body['payload'],
+            JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);
+        if (!is_string($raw) || strlen($raw)>52000 ||
+            count($body['payload'])>12) {
+            throw new InvalidArgumentException('jrei_education_payload_oversize');
+        }
+        $payload=$body['payload'];
+        $route=match($action) {
+            'engine-compat'=>'/internal/v1/engines/compat/compute',
+            'rcas-evidence'=>'/internal/v1/education/rcas/evidence-projection',
+            'bahar-coverage'=>'/internal/v1/education/bahar/coverage',
+            'konkur-calibration'=>'/internal/v1/education/konkur/aggregate-calibration'
+        };
+        $expected=match($action) {
+            'engine-compat'=>'jr.jrei.engine-compat-result.v1',
+            'rcas-evidence'=>'jr.jrei.rcas-evidence-projection.v1',
+            'bahar-coverage'=>'jr.jrei.bahar-coverage.v1',
+            'konkur-calibration'=>'jr.jrei.konkur-aggregate-audit-result.v1'
         };
     } elseif ($action==='model-draft') {
         // Source-only private owner tool, wholly separate from public Qwen
