@@ -13,12 +13,13 @@ param(
 )
 Set-StrictMode -Version Latest
 $ErrorActionPreference='Stop'
-$version='0.1.14'
+$version='0.1.15'
 $taskName='JREI-Owner-Windows-Command-Center'
 $private=Join-Path $env:LOCALAPPDATA 'JREI\command-center'
 $receipts=Join-Path $private 'install-receipts'
 $engine=Join-Path $PSScriptRoot ('python-v'+$version+'\python.exe')
 $launcher=Join-Path $PSScriptRoot ('source-v'+$version+'\platform\jrei-v5\windows-desktop\jrei_embedded_engine.py')
+$systemBootstrap=Join-Path $PSScriptRoot ('source-v'+$version+'\platform\jrei-v5\windows-desktop\jrei_owner_python_bootstrap.py')
 $runtimePth=Join-Path $PSScriptRoot ('python-v'+$version+'\python313._pth')
 $runtimeSite=Join-Path $PSScriptRoot ('python-v'+$version+'\Lib\site-packages\fastapi\__init__.py')
 $source=Join-Path $PSScriptRoot ('source-v'+$version+'\platform\jrei-python\jrei_service\windows_command_center.py')
@@ -39,6 +40,7 @@ function SafeFile([string]$path,[long]$limit) {
 function VerifyPackage {
  if(-not (SafeFile $engine 450MB) -or
     -not (SafeFile $launcher 200000) -or
+    -not (SafeFile $systemBootstrap 200000) -or
     -not (SafeFile $runtimePth 2000) -or
     -not (SafeFile $runtimeSite 200000) -or
     -not (SafeFile $source 1000000) -or
@@ -167,27 +169,31 @@ function WaitOwner {
  return $false
 }
 $script:LastPrivateEngineError='JREI_ENGINE_START_NOT_VERIFIED'
-function LaunchBundled {
- if(PortBusy){return $false}
- $wd=Split-Path -Path $engine -Parent
- # The original private directory may be unwritable specifically to the
- # frozen Python executable. Diagnostics use the owner-writable VERSIONED
- # program directory and are deleted after parsing a fixed error code.
+function SystemPython313Launcher {
+ # Optional working owner-installed CPython, never an online dependency.
+ $candidate=Get-Command 'py.exe' -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1
+ if($null -eq $candidate){return $null}
+ $path=[string]$candidate.Source
+ if(-not (SafeFile $path 35000000)){return $null}
+ try{
+  $answer=@(& $path -3.13 -I -B -c "import sys;print('JREI_SYSTEM_PYTHON_3_13_READY' if sys.version_info[:2]==(3,13) else 'INCOMPATIBLE')" 2>$null)
+  if($LASTEXITCODE -eq 0 -and $answer.Count -eq 1 -and $answer[0] -ceq 'JREI_SYSTEM_PYTHON_3_13_READY'){return $path}
+ }catch{}
+ return $null
+}
+function LaunchCandidate([string]$program,[string[]]$argumentList) {
  $stderr=Join-Path $PSScriptRoot ('.jrei-engine-'+[guid]::NewGuid().ToString('N')+'.stderr')
- try {
-  # Launch PSF CPython, rather than the PyInstaller executable blocked
-  # by this owner's Windows security configuration during SQLite writes.
-  $cmdArgs=@('-I','-B',('"'+$launcher+'"'),'--serve')
-  $proc=Start-Process -FilePath $engine -ArgumentList $cmdArgs -WorkingDirectory $wd -WindowStyle Hidden -PassThru -RedirectStandardError $stderr -ErrorAction Stop
-  if($null -eq $proc){return $false}
+ try{
+  $proc=Start-Process -FilePath $program -ArgumentList $argumentList -WorkingDirectory $PSScriptRoot -WindowStyle Hidden -PassThru -RedirectStandardError $stderr -ErrorAction Stop
+  if($null -eq $proc){return 'FAILED'}
   for($n=0;$n -lt 30;$n++){
-   if(OwnerReady){return $true}
+   if(OwnerReady){return 'AUTHENTICATED'}
    if($proc.HasExited){break}
    Start-Sleep -Seconds 2
   }
+  if(-not $proc.HasExited){return 'RUNNING_UNVERIFIED'}
   if(Test-Path -LiteralPath $stderr -PathType Leaf){
-   $lines=Get-Content -LiteralPath $stderr -Encoding UTF8 -ErrorAction SilentlyContinue
-   foreach($line in $lines){
+   foreach($line in (Get-Content -LiteralPath $stderr -Encoding UTF8 -ErrorAction SilentlyContinue)){
     $clean=[string]$line
     if($clean.StartsWith('[JREI] ')){
      $code=$clean.Substring(7).Trim()
@@ -198,12 +204,29 @@ function LaunchBundled {
     }
    }
   }
-  return $false
- } finally {
+  return 'EXITED'
+ }catch{
+  $script:LastPrivateEngineError='JREI_ENGINE_PROCESS_LAUNCH_DENIED'
+  return 'FAILED'
+ }finally{
   if(Test-Path -LiteralPath $stderr -PathType Leaf){
    Remove-Item -LiteralPath $stderr -Force -ErrorAction SilentlyContinue
   }
  }
+}
+function LaunchBundled {
+ if(PortBusy){return $false}
+ $system=SystemPython313Launcher
+ if($system){
+  $arguments=@('-3.13','-I','-B',('"'+$systemBootstrap+'"'),'--serve')
+  $result=LaunchCandidate $system $arguments
+  if($result -ceq 'AUTHENTICATED'){return $true}
+  # Never launch another engine while an earlier process is still alive.
+  if($result -ceq 'RUNNING_UNVERIFIED' -or (PortBusy)){return $false}
+ }
+ $arguments=@('-I','-B',('"'+$launcher+'"'),'--serve')
+ $result=LaunchCandidate $engine $arguments
+ return ($result -ceq 'AUTHENTICATED')
 }
 function HasExistingTask {
  try{
