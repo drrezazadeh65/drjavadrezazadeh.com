@@ -36,6 +36,9 @@ if((Get-Item -LiteralPath $expected).Attributes -band
   [IO.FileAttributes]::ReparsePoint){
  throw 'JREI_SHORTCUT_EXE_REPARSE_POINT'
 }
+# Each shortcut is an independent OPTIONAL convenience. Desktop/OneDrive
+# protection or blocked WScript.Shell must never disguise engine status or
+# prevent the owner from opening the versioned JREI.exe directly.
 $links=@()
 $desktop=[Environment]::GetFolderPath('Desktop')
 if($desktop -and (Test-Path -LiteralPath $desktop -PathType Container)){
@@ -43,26 +46,54 @@ if($desktop -and (Test-Path -LiteralPath $desktop -PathType Container)){
 }
 $start=[Environment]::GetFolderPath('Programs')
 if($start -and (Test-Path -LiteralPath $start -PathType Container)){
- $group=Join-Path $start 'JREI'
- if(-not (Test-Path -LiteralPath $group -PathType Container)){
-  New-Item -ItemType Directory -Path $group -ErrorAction Stop|Out-Null
- }
- $links+=Join-Path $group 'JREI Personal AI.lnk'
+ try{
+  $group=Join-Path $start 'JREI'
+  if(-not (Test-Path -LiteralPath $group -PathType Container)){
+   New-Item -ItemType Directory -Path $group -ErrorAction Stop|Out-Null
+  }
+  $links+=Join-Path $group 'JREI Personal AI.lnk'
+ }catch{}
 }
-if($links.Count -eq 0){throw 'JREI_SHORTCUT_TARGETS_NOT_AVAILABLE'}
-$shell=New-Object -ComObject WScript.Shell
-foreach($path in $links){
- if(Test-Path -LiteralPath $path){
-  if((Get-Item -LiteralPath $path).Attributes -band
-    [IO.FileAttributes]::ReparsePoint){
-   throw 'JREI_SHORTCUT_LINK_REPARSE_POINT'
+if($links.Count -eq 0){throw 'JREI_SHORTCUT_TARGETS_UNAVAILABLE'}
+$created=0
+$existingPreserved=0
+try{
+ $shell=New-Object -ComObject WScript.Shell -ErrorAction Stop
+ foreach($path in $links){
+  # Do not overwrite a shortcut whose target is not a prior JREI launch.
+  # Incomplete/invalid existing .lnk files are preserved untouched.
+  try {
+   if(Test-Path -LiteralPath $path){
+    $item=Get-Item -LiteralPath $path -Force -ErrorAction Stop
+    if($item.Attributes -band [IO.FileAttributes]::ReparsePoint){
+     $existingPreserved++
+     continue
+    }
+    $old=$shell.CreateShortcut($path)
+    $target=[string]$old.TargetPath
+    if($target -and
+       ([IO.Path]::GetFileName($target) -ine 'JREI.exe')){
+     $existingPreserved++
+     continue
+    }
+   }
+   $shortcut=$shell.CreateShortcut($path)
+   $shortcut.TargetPath=$expected
+   $shortcut.WorkingDirectory=$base
+   $shortcut.IconLocation=$expected+',0'
+   $shortcut.Description='JREI private educational intelligence'
+   $shortcut.Save()
+   $created++
+  }catch{
+   # The two destination folders are independent; never throw before trying
+   # the other. A failed shortcut must not be claimed as successfully saved.
   }
  }
- $shortcut=$shell.CreateShortcut($path)
- $shortcut.TargetPath=$expected
- $shortcut.WorkingDirectory=$base
- $shortcut.IconLocation=$expected+',0'
- $shortcut.Description='JREI private educational intelligence'
- $shortcut.Save()
+}catch{
+ throw 'JREI_SHORTCUT_WINDOWS_SHELL_UNAVAILABLE'
 }
-Write-Output '[JREI] PROGRAM_SHORTCUTS_READY'
+if($created -gt 0){
+ Write-Output '[JREI] PROGRAM_SHORTCUTS_READY'
+}else{
+ throw 'JREI_SHORTCUT_TARGETS_WRITE_DENIED'
+}
