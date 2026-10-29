@@ -1,4 +1,4 @@
-# JREI owner universal Windows installation — v0.1.15 source candidate
+# JREI owner universal Windows installation — v0.1.16 source candidate
 
 **Status: the owner observed the 0.1.14 installer stage program files but fail the original 8092 private-store fallback with JREI_PRIVATE_FALLBACK_FILESYSTEM_ACCESS_DENIED on the 16-GB Windows PC. Version 0.1.15 is new source code only; NO 0.1.15 EXE, owner install, or two-device acceptance has been verified.**
 
@@ -128,3 +128,12 @@ Before this, the owner successfully ran **system-installed Python 3.13** to crea
 - In the GitHub packaging workflow require the offline bootstrap source and confirm all Python dependencies are bundled. Keep one version-specific EXE, with no website deploy, model training or background distribution.
 
 **Owner device gate remains mandatory.** System Python access previously succeeded as a standalone probe; it is plausible but NOT proven that the original 8092 engine can now initialize its complete private database and authenticate. A green GitHub artifact build only proves packaging. Stop with a concrete error on runtime failure rather than stating that JREI is installed and intelligent. Never suggest deleting old data or disabling antivirus to pass a gate.
+
+
+## Owner Windows v0.1.15: specific denied target directory, v0.1.16 response
+
+The user's screenshot of the 0.1.15 universal installer shows **JREI_PRIVATE_TARGET_DIRECTORY_ACCESS_DENIED** and that program files were installed but the local engine was NOT authenticated. It does not establish that the official system Python 3.13 was actually used; that earlier installed interpreter had independently demonstrated working exclusive file creation and SQLite DDL on this machine. Conversely, the 0.1.15 bundled interpreter attempted to copy the owner store into a new same-user directory and Windows denied creating the target parent. This is a real error; GPU configuration cannot explain filesystem permission denial.
+
+The existing 0.1.15 startup controller discovered a system CPython interpreter ONLY through `Get-Command py.exe` and `py -3.13`. An installed interpreter may be missing from a desktop process's PATH. The v0.1.16 source expands bounded offline discovery to the launcher, known installed Python 3.13 locations and PEP-514 Windows PythonCore registry entries, and checks each **direct python.exe** is x64 Python 3.13 with isolated, site-free `-I -S -B`. It then executes the SAME immutable original 8092 backend from the released source and bundled vendor dependencies. Neither a network download nor pip command is permitted on the owner's PC. If that runtime fails, the bundled CPython fallback is still attempted, without killing existing services, and a specific owner-interpreter error is retained when relevant.
+
+The user's exact Windows restriction remains unconfirmed until the engine starts and an authenticated loopback status succeeds. Do not describe a GitHub green build as a working installation. v0.1.16 is a **SOURCE-ONLY CANDIDATE** until its manually dispatched workflow completes and real owner-device acceptance is recorded. Do not delete previous `owner-token`, SQLite, worker signing keys, or install folders.
