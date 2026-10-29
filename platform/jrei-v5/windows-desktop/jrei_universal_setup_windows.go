@@ -408,9 +408,12 @@ func main() {
     "فایل‌های برنامه نصب شدند، اما راه‌اندازی موتور هنوز تأیید نشده است.\n"+
     "اطلاعات خصوصی و سرویس‌های موجود حفظ شدند.", false)
  default:
-  dialog("JREI | Program installed; status not accepted",
-    "فایل‌های JREI نصب شدند، اما رسید وضعیت موتور شناخته‌شده نیست.\n"+
-    "پیش از استفاده از قابلیت‌های هوش مصنوعی، موتور باید تأیید شود.", true)
+  // PowerShell and the frozen Python entry point return only short, named
+  // codes. Display that code, NEVER raw private path or Python traceback.
+  dialog("JREI | Files installed; engine requires attention",
+    "فایل‌های برنامه نصب شدند، اما موتور تأیید نشده است.\n"+
+    "کد دقیق: "+engineState+"\n"+
+    "اطلاعات قدیمی محفوظ‌اند؛ این نتیجه نصب موفق هوش مصنوعی نیست.", true)
   os.Exit(4)
  }
 }
