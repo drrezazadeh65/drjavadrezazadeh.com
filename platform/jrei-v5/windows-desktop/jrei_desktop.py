@@ -270,7 +270,7 @@ class JREIClient:
         """Fetch one integrity-checked owner image through existing loopback."""
         if (not re.fullmatch(r"[0-9a-f]{32}", ident) or
                 not re.fullmatch(
-                    r"jrei-[0-9a-f]{12}-[0-9]{3,4}x[0-9]{3,4}\\.webp", name)):
+                    r"jrei-[0-9a-f]{12}-[0-9]{3,4}x[0-9]{3,4}\.webp", name)):
             raise ValueError("JREI_IMAGE_PREVIEW_NAME_INVALID")
         token_file = _owner_token_file()
         if not token_file.is_file() or token_file.is_symlink():
