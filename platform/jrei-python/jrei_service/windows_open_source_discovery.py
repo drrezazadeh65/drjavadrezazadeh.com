@@ -123,23 +123,24 @@ def find_repositories(query: str) -> dict:
         _LAST_REQUEST = now
     # User supplies keywords, not paths, URLs, tokens, arbitrary operators,
     # or executable code. GitHub metadata is untrusted data.
+    # Default relevance ranking, rather than star count, lets small and
+    # obscure repositories compete. Archived repositories and forks also
+    # remain discoverable: useful ideas can survive in either category.
     params = urllib.parse.urlencode({
-        "q": search + " in:name,description archived:false fork:false",
-        "per_page": "12", "sort": "stars", "order": "desc"
+        "q": search + " in:name,description",
+        "per_page": "20"
     })
     obj = _get_json("/search/repositories?" + params)
     accepted = []
     rejected = 0
-    for entry in obj["items"][:12]:
+    for entry in obj["items"][:20]:
         if not isinstance(entry, dict):
             continue
         license_info = entry.get("license")
         spdx = license_info.get("spdx_id") if isinstance(license_info, dict) else None
         name = entry.get("full_name")
         if (not isinstance(name, str)
-                or not re.fullmatch(r"[\w.-]{1,80}/[\w.-]{1,100}", name)
-                or entry.get("archived") is True
-                or entry.get("fork") is True):
+                or not re.fullmatch(r"[\w.-]{1,80}/[\w.-]{1,100}", name)):
             rejected += 1
             continue
         # A missing or uncommon license does not block DISCOVERY. It does
@@ -156,6 +157,8 @@ def find_repositories(query: str) -> dict:
             "url": "https://github.com/" + name,
             "license_verified_at_exact_code_revision": False,
             "license_needs_review_before_reuse": True,
+            "archived_metadata": entry.get("archived") is True,
+            "fork_metadata": entry.get("fork") is True,
             "model_weights_not_downloaded": True,
             "source_integration_approved": False,
         })
