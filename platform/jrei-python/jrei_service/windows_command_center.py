@@ -73,15 +73,22 @@ def _installed_source_root() -> Path:
     offline Inno package stages immutable-version app source separately.
     """
     app_engine = Path(sys.executable).resolve().parent
-    match = re.fullmatch(r"engine-v(\d+\.\d+\.\d+)", app_engine.name)
+    match = re.fullmatch(r"(?:engine|python)-v(\d+\.\d+\.\d+)", app_engine.name)
     if match is None:
-        raise RuntimeError("JREI_FROZEN_ENGINE_PATH_NOT_VERSIONED")
-    return app_engine.parent / ("source-v" + match.group(1))
+        raise RuntimeError("JREI_BUNDLED_PYTHON_PATH_NOT_VERSIONED")
+    source = app_engine.parent / ("source-v" + match.group(1))
+    if (not source.is_dir() or source.is_symlink() or not
+            (source / "platform" / "jrei-python" / "jrei_service" /
+             "windows_command_center.py").is_file()):
+        raise RuntimeError("JREI_VERSIONED_SOURCE_MISSING")
+    return source
 
 
+_BUNDLED_PORTABLE = bool(re.fullmatch(
+    r"python-v\d+\.\d+\.\d+", Path(sys.executable).resolve().parent.name))
 REPO = (
     _installed_source_root()
-    if getattr(sys, "frozen", False) else
+    if getattr(sys, "frozen", False) or _BUNDLED_PORTABLE else
     Path(os.environ.get("LOCALAPPDATA", Path.home())) / "JREI-Python" / "repo"
 )
 JOBS = {
