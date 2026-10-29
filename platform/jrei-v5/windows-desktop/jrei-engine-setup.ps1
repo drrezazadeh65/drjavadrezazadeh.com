@@ -108,7 +108,7 @@ function Record([string]$state,[string]$taskMode) {
  $scratch=Join-Path $receipts ('.install-'+[guid]::NewGuid().ToString('N')+'.tmp')
  try{
   [IO.File]::WriteAllText($scratch,($document|ConvertTo-Json -Compress),
-    (New-Object Text.UTF8Encoding($false)))
+    ([Text.UTF8Encoding]::new($false)))
   Move-Item -LiteralPath $scratch -Destination $destination -Force -ErrorAction Stop
  }finally{
   if(Test-Path -LiteralPath $scratch){Remove-Item -LiteralPath $scratch -Force}
