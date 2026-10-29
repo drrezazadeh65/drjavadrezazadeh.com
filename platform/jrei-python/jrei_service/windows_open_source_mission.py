@@ -233,6 +233,8 @@ def _seed_problem_topics(db) -> int:
             "python module import side effects analysis",
         "EXCEPTION_CATCH_BEHAVIOR_CHANGED":
             "python bare except exception compatibility",
+        "SILENT_EXCEPTION_BEHAVIOR_CHANGED":
+            "python exception propagation behavior compatibility",
         "ORIGINAL_SHA_MISMATCH":
             "python content addressed patch conflict detection",
         "CANONICAL_SOURCE_CHANGED":
