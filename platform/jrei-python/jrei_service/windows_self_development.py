@@ -168,10 +168,47 @@ def _inspect(target: str, source: str) -> tuple[list[dict], str | None]:
                     else:
                         if changed != source and len(changed.encode("utf-8")) <= 32000:
                             candidate = changed
-        elif isinstance(node, ast.Call) and isinstance(node.func, ast.Name):
-            if node.func.id in ("eval", "exec"):
-                findings.append({"kind": "DYNAMIC_CODE_CALL",
-                                 "line": getattr(node, "lineno", 0)})
+        elif isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            defaults = list(node.args.defaults) + [
+                item for item in node.args.kw_defaults if item is not None
+            ]
+            if any(isinstance(item, (ast.List, ast.Dict, ast.Set))
+                   for item in defaults):
+                findings.append({
+                    "kind": "MUTABLE_DEFAULT_ARGUMENT",
+                    "line": node.lineno,
+                    "certainty": "AST_OBSERVATION_NOT_FUNCTIONAL_PROOF",
+                })
+        elif isinstance(node, ast.ExceptHandler):
+            if (len(node.body) == 1 and
+                    isinstance(node.body[0], ast.Pass)):
+                findings.append({
+                    "kind": "SILENT_EXCEPTION_PASS", "line": node.lineno,
+                    "certainty": "AST_OBSERVATION_NOT_FUNCTIONAL_PROOF",
+                })
+        elif isinstance(node, ast.Call):
+            if (isinstance(node.func, ast.Name) and
+                    node.func.id in ("eval", "exec")):
+                findings.append({
+                    "kind": "DYNAMIC_CODE_CALL",
+                    "line": getattr(node, "lineno", 0),
+                })
+            elif isinstance(node.func, ast.Attribute):
+                try:
+                    name = ast.unparse(node.func)
+                except (ValueError, TypeError, RecursionError):
+                    name = ""
+                timeout_given = any(
+                    kw.arg == "timeout" for kw in node.keywords)
+                if (name in ("subprocess.run", "urllib.request.urlopen")
+                        and not timeout_given):
+                    findings.append({
+                        "kind": "PROCESS_CALL_NO_TIMEOUT" if
+                        name == "subprocess.run" else
+                        "NETWORK_CALL_NO_TIMEOUT",
+                        "line": getattr(node, "lineno", 0),
+                        "certainty": "AST_OBSERVATION_NOT_FUNCTIONAL_PROOF",
+                    })
         if len(findings) >= MAX_RECORDED_FINDINGS:
             break
     return findings, candidate
