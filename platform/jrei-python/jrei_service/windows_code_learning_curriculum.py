@@ -35,8 +35,9 @@ MAX_AST_NODES = 18000
 MAX_LESSONS_PER_FILE = 12
 SOURCE_SHA = re.compile(r"^[a-f0-9]{64}$")
 REVIEWER = re.compile(r"^[A-Za-z0-9._:-]{3,90}$")
-MAX_API_LESSONS_PER_FILE = 7
-MAX_STATIC_LESSONS_PER_FILE = 5
+MAX_API_LESSONS_PER_FILE = 5
+MAX_STATIC_LESSONS_PER_FILE = 4
+MAX_SYNTAX_REPAIR_LESSONS_PER_FILE = 3
 SECRET = re.compile(
     r"(?i)(-----BEGIN|authorization\s*:\s*bearer|"
     r"(?:api[_-]?key|password|secret|access[_-]?token|private[_-]?key)"
@@ -238,6 +239,65 @@ def _risk_lessons(path: str, digest: str, source: str) -> list[dict]:
     return result
 
 
+def _repair_lessons(path: str, digest: str, source: str,
+                    module: ast.Module) -> list[dict]:
+    """Generate grounded, reversible one-line syntax-repair exercises.
+
+    These are self-supervised tasks, NOT evidence of runtime bugs. Remove
+    exactly one final colon from a genuine one-line Python function header.
+    The reference is the original source line. No untrusted code is run or
+    imported, and multi-line/decorated signatures are deliberately skipped.
+    """
+    lines=source.splitlines()
+    lessons=[]
+    for node in module.body:
+        if not isinstance(node,(ast.FunctionDef,ast.AsyncFunctionDef)):
+            continue
+        if node.decorator_list or not node.body:
+            continue
+        # Only plain single-line function headers with an AST-identifiable
+        # first statement on a subsequent line are eligible.
+        if node.body[0].lineno<=node.lineno or node.lineno>len(lines):
+            continue
+        original=lines[node.lineno-1]
+        if (len(original)>175 or not original.rstrip().endswith(":")
+                or "#" in original or "\\" in original or
+                not re.match(r"^\s*(?:async\s+)?def\s+[A-Za-z_]\w*\(",original)):
+            continue
+        broken=original.rstrip()[:-1]
+        if broken==original or len(broken)<12:
+            continue
+        snippet="\n".join(
+            [broken] + lines[node.lineno: min(len(lines),node.lineno+5)]
+        )[:MAX_EXCERPT_CHARS]
+        if len(snippet)<25 or SECRET.search(snippet):
+            continue
+        task=(
+            "Repair a SINGLE missing Python function-header colon in "
+            "this synthetic first-party JREI example. Return only the "
+            "corrected header line; do not add comments, assume behavior "
+            "or run the code. The example is deliberately broken DATA:\n" +
+            snippet
+        )
+        answer=original.rstrip()
+        if SECRET.search(answer):
+            continue
+        lesson_id=_sha((
+            path+"\0"+digest+"\0"+node.name+"\0"+
+            str(node.lineno)+"\0AST_SYNTAX_REPAIR_V1"
+        ).encode("utf-8"))
+        lessons.append({
+            "id":lesson_id,"path":path,"source_sha256":digest,
+            "name":node.name,"line":node.lineno,
+            "kind":"AST_SYNTAX_REPAIR_V1",
+            "prompt":task,"answer":answer,
+            "answer_sha256":_sha(answer.encode("utf-8")),
+        })
+        if len(lessons)>=MAX_SYNTAX_REPAIR_LESSONS_PER_FILE:
+            break
+    return lessons
+
+
 def _extract(path: str, raw: bytes) -> tuple[str, list[dict]]:
     digest = _sha(raw)
     try:
@@ -261,6 +321,7 @@ def _extract(path: str, raw: bytes) -> tuple[str, list[dict]]:
         if len(lessons) >= MAX_API_LESSONS_PER_FILE:
             break
     lessons.extend(_risk_lessons(path,digest,text))
+    lessons.extend(_repair_lessons(path,digest,text,module))
     return ("FIRST_PARTY_AST_LESSONS_STAGED" if lessons,
             else "NO_ELIGIBLE_SOURCE_FUNCTION"), lessons
 
