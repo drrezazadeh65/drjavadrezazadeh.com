@@ -25,7 +25,7 @@ import (
  "unsafe"
 )
 
-const version = "0.1.7"
+const version = "0.1.8"
 const maxEntries = 24000
 const maxSingleFile = int64(450 << 20)
 const maxTotalBytes = int64(1200 << 20)
