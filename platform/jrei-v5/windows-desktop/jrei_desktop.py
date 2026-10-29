@@ -612,6 +612,15 @@ class Desktop:
                     "/api/conversation?id=" + cid))
 
     def _error(self, key, error):
+        if key == "task_list":
+            # A previously installed backend can answer conversations yet
+            # incorrectly 404 the optional conversation-scoped task list.
+            # Do not relabel an authenticated, running 8092 service as down,
+            # and never treat an unread history as an empty verified history.
+            self.status_text.set(
+                "موتور محلی متصل است؛ تاریخچهٔ وظایف در این نسخهٔ موتور در دسترس نیست."
+                if self.online else "تاریخچهٔ وظایف در دسترس نیست.")
+            return
         if key == "windows_installer":
             # An unavailable GitHub check is not an application failure;
             # never claim an update exists without a real artifact.
@@ -700,12 +709,15 @@ class Desktop:
             "System32/WindowsPowerShell/v1.0/powershell.exe")
         if not ps.is_file():
             raise RuntimeError("JREI_WINDOWS_POWERSHELL_NOT_FOUND")
-        completed = subprocess.run(
-            [str(ps), "-NoProfile", "-NonInteractive", "-ExecutionPolicy",
-             "Bypass", "-File", str(script), "-Mode", "Start"],
-            shell=False, stdin=subprocess.DEVNULL, capture_output=True,
-            timeout=55, check=False,
-            creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
+        try:
+            completed = subprocess.run(
+                [str(ps), "-NoProfile", "-NonInteractive", "-ExecutionPolicy",
+                 "Bypass", "-File", str(script), "-Mode", "Start"],
+                shell=False, stdin=subprocess.DEVNULL, capture_output=True,
+                timeout=55, check=False,
+                creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
+        except subprocess.TimeoutExpired as exc:
+            raise RuntimeError("JREI_PRIVATE_ENGINE_START_TIMEOUT_UNVERIFIED") from exc
         if completed.returncode != 0:
             # Copy only a fixed machine-safe reason code; never show tokens,
             # user path or arbitrary shell output in the popup.
@@ -722,6 +734,15 @@ class Desktop:
             return self._bootstrap()
         except (ConnectionError, FileNotFoundError, OSError):
             if not getattr(sys, "frozen", False):
+                raise
+        except RuntimeError as exc:
+            # A new owner's machine does not yet HAVE an owner token until
+            # the original local 8092 service initializes it. Permit that
+            # one well-defined first-run case to start the bundled engine.
+            # Do NOT restart on authenticated 401, model errors, or a stale
+            # database, and never reset an existing owner's credentials.
+            if (not getattr(sys, "frozen", False)
+                    or "توکن مالک JREI روی این ویندوز یافت نشد" not in str(exc)):
                 raise
         # On first desktop launch or after restart, start the bundled core
         # once, on the background thread, and then demand genuine API status.
