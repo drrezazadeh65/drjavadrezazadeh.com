@@ -459,6 +459,8 @@ const required=[
   'api/internal/operations-page-quality.json',
   'api/internal/jrei-reviewed-ddl-v1.json',
   'assets/js/operations-control.js','assets/css/operations-control.css',
+  'api/jrei-remote-api-client.php','api/jrei-admin-ai-report-client.php',
+  'assets/js/operations-jrei-ai-api-reports-v1.js',
   // These runtime modules must ship together with api/index.php; publishing
   // routes without their bound PHP source would cause an immediate 500.
   'api/service-files.php','api/service-buyer-receipt.php','api/operations-service-delivery.php',
