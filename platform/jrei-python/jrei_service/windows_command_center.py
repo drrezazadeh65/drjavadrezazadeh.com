@@ -43,6 +43,7 @@ from jrei_service import windows_evidence_memory as memory_graph
 from jrei_service import windows_code_experience as code_experience
 from jrei_service import windows_self_development as self_development
 from jrei_service import windows_candidate_static_review as static_review
+from jrei_service import windows_self_improvement_progress as improvement_progress
 from jrei_service import windows_site_image_studio as image_studio
 from jrei_service import windows_visual_learning as visual_learning
 from jrei_service import windows_github_operator as github_operator
@@ -1100,6 +1101,8 @@ def status():
             self_development.snapshot(DB_PATH),
         "independent_candidate_static_review":
             static_review.snapshot(DB_PATH),
+        "self_improvement_evidence_pipeline":
+            improvement_progress.snapshot(DB_PATH),
         "standing_mission_ai_self_development_only":
             AI_SELF_DEVELOPMENT_ONLY,
         "independent_github_operator": "OWNER_SCOPED_API_AVAILABLE_IF_CONFIGURED",
@@ -1245,6 +1248,8 @@ class OwnerHTTP(BaseHTTPRequestHandler):
             return self._send(200, oss_evidence.snapshot(DB_PATH))
         if self.path == "/api/open-source/static-reviews":
             return self._send(200, static_review.snapshot(DB_PATH))
+        if self.path == "/api/open-source/improvement-progress":
+            return self._send(200, improvement_progress.snapshot(DB_PATH))
         if self.path == "/api/open-source/draft-priorities":
             # Read-only, grounded in actual source hashes and local findings.
             # No model call, candidate generation or job dispatch.
