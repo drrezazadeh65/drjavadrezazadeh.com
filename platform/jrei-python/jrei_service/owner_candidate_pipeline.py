@@ -17,6 +17,8 @@ import subprocess
 import time
 import uuid
 
+from jrei_service.windows_python_code_review import inspect_change
+
 SUPPORTED = (".py", ".mjs", ".js", ".css", ".html", ".php")
 # HTML/CSS/PHP remain LOCAL DRAFT ONLY until separate language-specific
 # review/acceptance; no execution, syntax-validation assertion or deployment.
@@ -116,6 +118,7 @@ def stage_candidate(*, repo: Path, sandbox: Path, target: str,
     target_file = folder / ("candidate" + name.suffix)
     target_file.write_bytes(candidate_bytes)
     syntactic = "NOT_AVAILABLE"
+    impact = None
     if name.suffix == ".py":
         try:
             ast.parse(candidate, filename=target, mode="exec")
@@ -123,6 +126,14 @@ def stage_candidate(*, repo: Path, sandbox: Path, target: str,
             syntactic = "FAILED"
         else:
             syntactic = "PASS"
+            # No execution or tests: detect changed public APIs, imports,
+            # and module-import-time calls before any owner review.
+            try:
+                impact = inspect_change(
+                    target=target, before=source_text, after=candidate)
+            except (ValueError, MemoryError):
+                impact = {"state": "SOURCE_IMPACT_UNAVAILABLE",
+                          "tests_run": False, "automatically_approved": False}
     elif name.suffix in (".js", ".mjs"):
         try:
             done = subprocess.run(
@@ -147,6 +158,10 @@ def stage_candidate(*, repo: Path, sandbox: Path, target: str,
         "state": "SYNTAX_CHECKED_NOT_FUNCTIONALLY_VERIFIED" if syntactic == "PASS"
                  else "NOT_VALIDATED",
         "syntax": syntactic,
+        "static_source_impact": impact,
+        "source_impact_review_required": bool(
+            impact is not None and
+            impact.get("state") != "STATIC_STRUCTURE_OBSERVED_NOT_VERIFIED"),
         "functional_tests_run": False,
         "independent_scientific_review": False,
         "canonical_checkout_modified": False,
