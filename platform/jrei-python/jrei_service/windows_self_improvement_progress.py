@@ -130,6 +130,8 @@ def snapshot(db_path: Path) -> dict:
         phase = "PINNED_PUBLIC_SOURCE_READS_OBSERVED"
     elif research_attempts:
         phase = "PUBLIC_RESEARCH_IN_PROGRESS"
+    elif native_scanned:
+        phase = "FIRST_PARTY_STATIC_SOURCE_STUDY_OBSERVED"
     else:
         phase = "NO_ACTUAL_SELF_DEVELOPMENT_EVIDENCE_YET"
     return {
