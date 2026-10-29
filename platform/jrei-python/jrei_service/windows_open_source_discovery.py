@@ -111,7 +111,12 @@ def find_repositories(query: str) -> dict:
     with LOCK:
         cached = CACHE.get(search.casefold())
         if cached and now - cached[0] <= 600:
-            return dict(cached[1])
+            # Reusing a previous upstream response must not count as a
+            # NEW live GitHub request in JREI's learning telemetry.
+            result = dict(cached[1])
+            result["actual_live_search_performed"] = False
+            result["served_from_cache"] = True
+            return result
         if now - _LAST_REQUEST < RATE_SECONDS:
             return {
                 "schema": "jr.jrei.windows-open-source-search.v1",
@@ -173,6 +178,7 @@ def find_repositories(query: str) -> dict:
         "candidates_not_assumed_safe": rejected,
         "source_credibility_is_not_a_discovery_gate": True,
         "actual_live_search_performed": True,
+        "served_from_cache": False,
         "site_changed": False,
         "external_app_installed": False,
         "pretrained_weights_used": False,
