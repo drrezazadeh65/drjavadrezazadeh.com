@@ -15,6 +15,7 @@ import (
  _ "embed"
  "crypto/sha256"
  "errors"
+ "fmt"
  "io"
  "os"
  "os/exec"
@@ -25,7 +26,7 @@ import (
  "unsafe"
 )
 
-const version = "0.1.8"
+const version = "0.1.9"
 const maxEntries = 24000
 const maxSingleFile = int64(450 << 20)
 const maxTotalBytes = int64(1200 << 20)
@@ -83,36 +84,78 @@ func candidates() ([]installCandidate,error) {
  },nil
 }
 
+// Writable-path discovery has TWO different failure modes: Windows denied
+// creating the directory, or Windows accepted the directory but denied a file
+// write from THIS installer executable. Distinguish these from invalid paths,
+// and preserve the failure categories without disclosing the user's path.
 func writableInstallLocation() (string,error) {
  options,err:=candidates()
- if err!=nil { return "",err }
- for _,option:=range options {
+ if err!=nil {return "",err}
+ var rejected []string
+ for index,option:=range options {
   target:=filepath.Join(option.root,option.relative)
   if err=checkDirectoryChain(target);err!=nil {
-   // A forbidden junction/symlink in the program area must not
-   // be silently worked around via an alternate destination.
-   return "",err
-  }
-  if err=safeDirectory(option.root,option.relative);err!=nil {
-   if err.Error()!="JREI_PROGRAM_DIRECTORY_NOT_WRITABLE" {
-    return "",err
-   }
+   rejected=append(rejected,fmt.Sprintf("R%d_UNSAFE_ROOT",index+1))
    continue
   }
-  // Check actual write permission under the target, not merely successful
-  // creation of intermediate directories. Delete only our unique probe.
+  if err=safeDirectory(option.root,option.relative);err!=nil {
+   switch err.Error() {
+   case "JREI_PROGRAM_DIRECTORY_NOT_WRITABLE":
+    rejected=append(rejected,fmt.Sprintf("R%d_CREATE_DENIED",index+1))
+    continue
+   default:
+    rejected=append(rejected,fmt.Sprintf("R%d_PATH_REJECTED",index+1))
+    continue
+   }
+  }
+  // A CreateTemp probe and a close/remove probe are necessary because
+  // a created directory is not sufficient evidence the same EXE can write.
   probe,e:=os.CreateTemp(target,".jrei-install-probe-*")
-  if e!=nil {continue}
+  if e!=nil {
+   rejected=append(rejected,fmt.Sprintf("R%d_WRITE_DENIED",index+1))
+   continue
+  }
   name:=probe.Name()
   closeErr:=probe.Close()
   removeErr:=os.Remove(name)
-  if closeErr!=nil || removeErr!=nil {
-   return "",errors.New("JREI_PROGRAM_WRITE_PROBE_UNSAFE")
+  if closeErr!=nil||removeErr!=nil {
+   rejected=append(rejected,fmt.Sprintf("R%d_CLEANUP_DENIED",index+1))
+   continue
   }
   return target,nil
  }
- // Exhaustion is a permission condition, not a request for elevation.
- return "",errors.New("JREI_ALL_THREE_OWNER_INSTALL_LOCATIONS_DENIED")
+ // The owner launches the setup from an extracted folder in Downloads.
+ // Where a managed Windows profile blocks standard AppData locations,
+ // a portable fallback beside the downloaded installer can be used, but
+ // ONLY if the installer is under this user's own profile and the
+ // destination is not a symlink/junction. No system or shared paths.
+ executable,exeErr:=os.Executable()
+ profile:=os.Getenv("USERPROFILE")
+ if exeErr==nil && profile!="" {
+  exeDir:=filepath.Dir(executable)
+  p:=filepath.Clean(profile)+string(filepath.Separator)
+  if strings.HasPrefix(strings.ToLower(exeDir+string(filepath.Separator)),strings.ToLower(p)) &&
+     !strings.Contains(strings.ToLower(exeDir),"\\windowsapps\\") {
+   relative:=filepath.Join("JREI-Installed","releases","v"+version)
+   fallback:=filepath.Join(exeDir,relative)
+   if st,statErr:=os.Lstat(exeDir);statErr==nil && st.IsDir() && st.Mode()&os.ModeSymlink==0 {
+    if e:=checkDirectoryChain(fallback);e==nil {
+     if e=safeDirectory(exeDir,relative);e==nil {
+      probe,writeErr:=os.CreateTemp(fallback,".jrei-install-probe-*")
+      if writeErr==nil {
+       name:=probe.Name()
+       closeErr:=probe.Close()
+       removeErr:=os.Remove(name)
+       if closeErr==nil && removeErr==nil {return fallback,nil}
+      }
+     }
+    }
+   }
+  }
+ }
+ // Short, machine-safe per-root codes; no raw username, home path or ACLs
+ // in any displayed error. The same code identifies the actual failed stage.
+ return "",errors.New("JREI_INSTALL_NO_WRITABLE_ROOT_"+strings.Join(rejected,"_"))
 }
 
 func safeDirectory(root, part string) error {
