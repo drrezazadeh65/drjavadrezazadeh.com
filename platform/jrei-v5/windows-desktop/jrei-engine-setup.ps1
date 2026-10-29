@@ -47,6 +47,7 @@ function VerifyPackage {
  }
  $info=Get-Content -LiteralPath $manifest -Raw -Encoding UTF8|ConvertFrom-Json
  if($info.schema -cne 'jr.jrei.offline-engine-package.v1' -or
+    $info.engine_runtime -cne 'BUNDLED_CPYTHON_3_13' -or
     $info.source_branch -cne 'migration/bertina-linux6' -or
     [string]$info.source_commit -cnotmatch '^[0-9a-f]{40}$' -or
     [string]$info.engine_sha256 -cnotmatch '^[0-9a-f]{64}$'){
