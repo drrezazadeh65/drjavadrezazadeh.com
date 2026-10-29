@@ -94,6 +94,39 @@ function operationsAiVisibilityFromDocument(?array $data): array {
         'limitation'=>'Five provider-reported OpenAI samples are not comprehensive AI coverage. Unmeasured providers, website citations, raw responses, rankings and index state remain unknown. Read-only dated evidence, not live Ubersuggest polling.'];
 }
 function operationsAiVisibilitySnapshot(): array {
+    // Owner-controlled cutover: JREI computes the report, not website PHP.
+    // Until the central API has been accepted, the default remains the original
+    // owner-gated compatibility snapshot; the switch is OFF by default.
+    $settings=function_exists('cfg')?cfg():[];
+    if (is_array($settings) && ($settings['jrei_ai_geo_report_api_enabled']??false)===true) {
+        try {
+            $source=@file_get_contents(__DIR__.'/internal/ai-search-visibility-baseline-20261020.json');
+            if (!is_string($source) || strlen($source)>60000)
+                throw new RuntimeException('jrei_geo_evidence_missing');
+            $observation=json_decode($source,true,32,JSON_THROW_ON_ERROR);
+            if (!is_array($observation))
+                throw new RuntimeException('jrei_geo_evidence_invalid');
+            require_once __DIR__.'/jrei-remote-api-client.php';
+            $report=jrJreiPythonInternalPropose(
+                $settings, '/internal/v1/admin/ai-visibility/report',
+                ['observation'=>$observation]
+            );
+            if (($report['schema_version']??null)!=='jr.jrei.ai-visibility-report.v1' ||
+                ($report['schema']??null)!=='jr-owner-aisv-snapshot-v1' ||
+                ($report['ok']??false)!==true ||
+                !in_array($report['status']??null,
+                    ['unavailable','provider_report_snapshot'],true)) {
+                throw new RuntimeException('jrei_geo_contract_invalid');
+            }
+            return $report;
+        } catch (Throwable $error) {
+            // NEVER silently return legacy locally computed AI numbers after
+            // the independent API-only switch has been deliberately enabled.
+            $missing=operationsAiVisibilityFromDocument(null);
+            $missing['limitation']='Independent JREI GEO API unavailable; no legacy AI data fallback.';
+            return $missing;
+        }
+    }
     $raw=@file_get_contents(__DIR__.'/internal/ai-search-visibility-baseline-20261020.json');
     if(!is_string($raw)||strlen($raw)>60000)
         return operationsAiVisibilityFromDocument(null);
