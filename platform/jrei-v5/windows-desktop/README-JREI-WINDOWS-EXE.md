@@ -203,9 +203,12 @@ one-click workflow is not used or modified for Windows packaging.
    engine must report the same pinned commit as the GUI package. The installer
    may attempt an idle, user-approved handover ONLY when the old Python is
    provably owned by the same account and belongs to a recognized older
-   immutable JREI release. Unknown processes, task-supervised workers and
-   busy or recently active sessions are preserved. A bounded previous-release
-   restart is attempted if a recognized handover fails.
+   immutable JREI release. A running original JREI Scheduled Task can also
+   be upgraded ONLY after original owner SID, action, process and idle state
+   match; the exact prior action is preserved and restored on failure.
+   Unknown processes, differently owned tasks and busy or recently active
+   sessions are preserved. A bounded previous-release restart is attempted
+   if a recognized standalone handover fails.
 3. If a safe handover is held, the native GUI has an explicit
    **Activate current engine release** action within the capability center;
    the same on-machine checks and original installer apply. No repeated
