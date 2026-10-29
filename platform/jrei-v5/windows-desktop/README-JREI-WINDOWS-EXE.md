@@ -1,6 +1,6 @@
-# JREI owner universal Windows installation — v0.1.14 source candidate
+# JREI owner universal Windows installation — v0.1.15 source candidate
 
-**Status: the previously built v0.1.12 package could stage program files but the frozen PyInstaller engine was not writable on the owner Windows PC. Version 0.1.14 is a source-only architectural change to bundle PSF CPython and site dependencies; no v0.1.14 EXE is built, installed or owner-device accepted.**
+**Status: the owner observed the 0.1.14 installer stage program files but fail the original 8092 private-store fallback with JREI_PRIVATE_FALLBACK_FILESYSTEM_ACCESS_DENIED on the 16-GB Windows PC. Version 0.1.15 is new source code only; NO 0.1.15 EXE, owner install, or two-device acceptance has been verified.**
 
 Repository: drrezazadeh65/drjavadrezazadeh.com
 Canonical branch: migration/bertina-linux6
@@ -114,3 +114,17 @@ Version 0.1.14 removes the frozen engine from the ONE universal Go setup payload
 The native Go loader validates exact bundled runtime files before staging; the PowerShell controller hashes the bundled `python.exe` and checks the explicit `BUNDLED_CPYTHON_3_13` manifest. Old versioned binaries, database, owner-token, private documents, DPAPI worker identities and unrelated scheduled tasks are never deleted or rewritten. Unknown port-8092 listeners remain untouched. The existing desktop discovers/starts its matching private engine via the existing controller.
 
 **Limitations and acceptance:** a source change and even a green packaging workflow are not proof the user's Windows security environment will allow this bundled interpreter to write. The original 32-GB PC may still run an older authenticated service; an installer must not silently replace it. The fresh offline package is larger because the complete Python runtime travels inside it. Do not claim local model weights, GPU, signed remote PC enrollment, website deployment or background autonomous upgrading are completed. First perform source integrity checks in CI, then one owner-controlled real-device install and authenticated `/api/status` before calling the release accepted. The user should not be required to execute new Python or PowerShell repair commands.
+
+## Owner evidence: v0.1.14 still fails private-store fallback (29 October 2026)
+
+The owner's screenshot shows one offline installer EXE `JREI-Setup-Windows-x64-v0.1.14`, a created `JREI-Installed` folder, and the explicit dialog `JREI_PRIVATE_FALLBACK_FILESYSTEM_ACCESS_DENIED`. This is a failure of the owner-local private store selection; it is **NOT** evidence of a successful backend, GPU defect, missing SDK, or broken SQLite library. The private-store source reports this final code when an attempted fallback produces a `PermissionError`; it does not disclose which source or destination operation failed. Existing identities, data and previous owner installation are still to be preserved.
+
+Before this, the owner successfully ran **system-installed Python 3.13** to create exclusive files and write SQLite under the existing private directory. Frozen PyInstaller (0.1.10+) and the copied app-local Python process (0.1.14) did not establish a writable engine on that PC. Therefore v0.1.15 introduces a narrow automatic retry at the existing PowerShell owner-local setup controller, without any owner typing, downloads or system changes:
+
+- Check for an already installed `py.exe` launcher and verify that its isolated `-3.13` interpreter really reports Python 3.13. If unavailable, use the included Python 3.13.
+- If installed Python 3.13 is available, start an explicit version-matched `jrei_owner_python_bootstrap.py` from the installed source, run with `-I -B`, add ONLY the pinned offline JREI source and vendored library paths, then invoke the **original** 8092 command center. It uses the same source snapshot and same original per-PC SQLite/token. No second AI engine is installed.
+- Do not launch the bundled fallback if the first child is still alive or 8092 is occupied; never stop a task, reset a token, reuse another PC's node identity or override Windows security. Only a stopped child may be followed by the bundled interpreter.
+- Add an authenticated status field describing whether the running interpreter is owner-installed, bundled or development, without revealing absolute paths or any credential.
+- In the GitHub packaging workflow require the offline bootstrap source and confirm all Python dependencies are bundled. Keep one version-specific EXE, with no website deploy, model training or background distribution.
+
+**Owner device gate remains mandatory.** System Python access previously succeeded as a standalone probe; it is plausible but NOT proven that the original 8092 engine can now initialize its complete private database and authenticate. A green GitHub artifact build only proves packaging. Stop with a concrete error on runtime failure rather than stating that JREI is installed and intelligent. Never suggest deleting old data or disabling antivirus to pass a gate.
