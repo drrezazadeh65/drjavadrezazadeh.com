@@ -45,17 +45,34 @@ _RELEVANCE_TERMS = frozenset({
     "worker", "queue", "gpu", "checkpoint", "retrieval", "parser",
     "static", "source", "llm", "language",
 })
+# Match the actual vocabulary used in JREI's standing self-research
+# topics. This mapping is a research HYPOTHESIS, not licence clearance or
+# proof that an upstream algorithm is compatible with the selected file.
 COMPONENTS = (
-    ("train", "platform/jrei-python/jrei_service/windows_native_neural.py"),
+    ("tokenizer", "platform/jrei-python/jrei_service/windows_native_corpus.py"),
     ("token", "platform/jrei-python/jrei_service/windows_native_corpus.py"),
+    ("training", "platform/jrei-python/jrei_service/windows_native_neural.py"),
+    ("train", "platform/jrei-python/jrei_service/windows_native_neural.py"),
+    ("transformer", "platform/jrei-python/jrei_service/windows_native_neural.py"),
     ("inference", "platform/jrei-python/jrei_service/windows_native_inference.py"),
     ("gpu", "platform/jrei-python/jrei_service/windows_resource_envelope.py"),
+    ("cpu", "platform/jrei-python/jrei_service/windows_resource_envelope.py"),
+    ("directml", "platform/jrei-python/jrei_service/windows_resource_envelope.py"),
     ("worker", "platform/jrei-v5/windows-worker/jrei-worker.mjs"),
+    ("distributed", "platform/jrei-v5/windows-worker/jrei-worker.mjs"),
     ("queue", "platform/jrei-v5/windows-worker/jrei-worker.mjs"),
     ("memory", "platform/jrei-python/jrei_service/windows_evidence_memory.py"),
-    ("code", "platform/jrei-python/jrei_service/windows_workspace.py"),
+    ("retrieval", "platform/jrei-python/jrei_service/windows_evidence_memory.py"),
     ("repair", "platform/jrei-python/jrei_service/windows_workspace.py"),
+    ("code", "platform/jrei-python/jrei_service/windows_workspace.py"),
+    ("agent", "platform/jrei-python/jrei_service/windows_workspace.py"),
+    ("evaluation", "platform/jrei-python/jrei_learning/method_feedback.py"),
+    ("benchmark", "platform/jrei-python/jrei_learning/method_feedback.py"),
+    ("learning", "platform/jrei-python/jrei_learning/strategy_optimizer.py"),
+    ("metacognitive", "platform/jrei-python/jrei_learning/metacognitive_cycle.py"),
+    ("static", "platform/jrei-python/jrei_service/windows_self_development.py"),
     ("source", "platform/jrei-python/jrei_service/windows_open_source_mission.py"),
+    ("research", "platform/jrei-python/jrei_learning/value_of_information.py"),
 )
 MAX_JSON = 210000
 MAX_SOURCE_BYTES = 50000
