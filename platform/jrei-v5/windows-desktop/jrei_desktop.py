@@ -70,6 +70,46 @@ def _packaged_workflow_run_id() -> int | None:
     return None
 
 
+def _request_owner_approved_source_update() -> None:
+    """Request the ORIGINAL owner's scheduled sync once when JREI opens.
+
+    This is a non-blocking request, not a new installer or an assertion that
+    an update succeeded. Without the existing per-user opt-in marker, do
+    nothing. The existing scheduled task enforces Git origin/fast-forward,
+    guarded app promotion, idle checks and rollback. Never use the network
+    share or touch models, private owner files or the production website.
+    """
+    if sys.platform != "win32":
+        return
+    local = os.environ.get("LOCALAPPDATA", "")
+    system = os.environ.get("SystemRoot", "")
+    if not local or not system:
+        return
+    root = Path(local)
+    marker = root / "JREI-Python" / "windows-owner-app-auto-update.json"
+    scheduler = Path(system) / "System32" / "schtasks.exe"
+    try:
+        if (not root.is_absolute() or not marker.is_file()
+                or marker.is_symlink() or marker.stat().st_size > 4096
+                or not scheduler.is_file()):
+            return
+        consent = json.loads(marker.read_text(encoding="utf-8-sig"))
+        if (not isinstance(consent, dict)
+                or consent.get("schema") !=
+                    "jr.jrei.windows-app-auto-update.v1"
+                or consent.get("enabled") is not True):
+            return
+        subprocess.run(
+            [str(scheduler), "/Run", "/TN", "JREI-Repo-Auto-Sync"],
+            stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL, shell=False, timeout=12,
+            creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
+            check=False)
+    except (OSError, ValueError, UnicodeError, subprocess.TimeoutExpired):
+        # Opening JREI must not fail because Git, a task or consent is missing.
+        return
+
+
 def _owner_token_file() -> Path:
     """Locate the ORIGINAL owner token, including a validated same-PC copy.
 
@@ -268,6 +308,11 @@ class Desktop:
         # while Windows tried to initialize the embedded original engine.
         # Make the in-flight phase explicit without claiming a live backend.
         self.root.after(18000, self._connection_watchdog)
+        # Every native-app launch requests the ALREADY owner-approved sync.
+        # The job runs outside Tk, so chat startup is not blocked by Git.
+        self.root.after(1400, lambda: threading.Thread(
+            target=_request_owner_approved_source_update,
+            name="jrei-startup-owner-approved-sync", daemon=True).start())
         self.fetch("connect", self._bootstrap_with_local_engine)
 
     def _connection_watchdog(self):
