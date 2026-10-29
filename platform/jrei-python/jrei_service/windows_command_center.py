@@ -132,6 +132,17 @@ CANDIDATE_FILES = (
     "platform/jrei-python/jrei_learning/method_feedback.py",
     "platform/jrei-python/jrei_learning/value_of_information.py",
     "platform/jrei-python/jrei_learning/metacognitive_cycle.py",
+    "platform/jrei-python/jrei_service/windows_native_neural.py",
+    "platform/jrei-python/jrei_service/windows_native_corpus.py",
+    "platform/jrei-python/jrei_service/windows_native_inference.py",
+    "platform/jrei-python/jrei_service/windows_resource_envelope.py",
+    "platform/jrei-python/jrei_service/windows_evidence_memory.py",
+    "platform/jrei-python/jrei_service/windows_open_source_mission.py",
+    "platform/jrei-python/jrei_service/windows_oss_evidence.py",
+    "platform/jrei-python/jrei_service/windows_oss_multiforge.py",
+    "platform/jrei-python/jrei_service/windows_self_development.py",
+    "platform/jrei-python/jrei_service/windows_code_experience.py",
+    "platform/jrei-python/jrei_service/windows_workspace.py",
 )
 _candidate_index = 0
 _autonomy_tick = 0
@@ -399,11 +410,24 @@ def patch_candidate():
     global _candidate_index
     if not REPO.is_dir():
         return "BLOCKED", "Canonical repository unavailable"
-    target = CANDIDATE_FILES[_candidate_index % len(CANDIDATE_FILES)]
+    # The source selector uses real, local evidence and rotates all targets;
+    # an oversized or absent file must not stall the entire 32GB draft lane.
+    try:
+        ranked = oss_evidence.rank_draft_targets(DB_PATH, CANDIDATE_FILES)
+    except (OSError, ValueError, sqlite3.Error) as exc:
+        return "HELD", "RESEARCH_PRIORITY_UNAVAILABLE:" + exc.__class__.__name__
+    eligible = [
+        item for item in ranked
+        if (REPO / item["target"]).is_file()
+        and not (REPO / item["target"]).is_symlink()
+        and (REPO / item["target"]).stat().st_size <= 26000
+    ]
+    if not eligible:
+        return "SKIPPED", "NO_BOUNDED_JREI_CODING_TARGET"
+    selection = eligible[_candidate_index % len(eligible)]
     _candidate_index += 1
+    target = selection["target"]
     path = REPO / target
-    if not path.is_file() or path.is_symlink() or path.stat().st_size > 26000:
-        return "SKIPPED", "Reviewed source not available in allowed scope: " + target
     raw = path.read_bytes()
     original = raw.decode("utf-8")
     expected = hashlib.sha256(raw).hexdigest()
@@ -454,6 +478,8 @@ def patch_candidate():
             linked = "PROVENANCE_LINK_UNAVAILABLE"
     return receipt["state"], (
         "SOURCE=" + target + "; MODEL=" + draft["model"] +
+        "; OBSERVED_RESEARCH_SOURCES=" +
+        str(selection["pinned_oss_sources"]) +
         "; RESEARCH=" + linked +
         "; CANDIDATE_ID=" + receipt["candidate_id"] +
         "; ORIGINAL_SHA256=" + receipt["source_sha256"] +
