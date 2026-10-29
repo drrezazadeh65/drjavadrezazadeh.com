@@ -304,6 +304,42 @@ def _seed_problem_topics(db) -> int:
                     (domain,"small language model code understanding evaluation"))
                 if db.total_changes>before:
                     inserted+=1
+    # AST task categories are learned from DEVELOPMENT data only. The
+    # SEALED_TEST set remains hidden from topic choice and model tuning.
+    if (db.execute("""SELECT 1 FROM sqlite_master WHERE
+            type='table' AND name='jrei_code_ability_example_scores'
+            """).fetchone() and
+        db.execute("""SELECT 1 FROM sqlite_master WHERE
+            type='table' AND name='jrei_code_curriculum_lessons'
+            """).fetchone()):
+        category_queries = {
+            "AST_API_READING_V1":
+                "python function signatures code language models",
+            "AST_RISK_INTERPRETATION_V1":
+                "python static analysis vulnerability explanation",
+        }
+        per_type=db.execute("""SELECT l.lesson_kind,
+            COUNT(*),SUM(s.normalized_exact)
+            FROM jrei_code_ability_example_scores s
+            JOIN jrei_code_curriculum_lessons l ON l.id=s.lesson_id
+            JOIN jrei_code_ability_evaluations e
+              ON e.run_id=s.run_id AND e.split_name=s.split_name
+            WHERE s.split_name='DEVELOPMENT'
+              AND e.state='INDEPENDENT_AST_ANSWER_SCORING_RECORDED'
+            GROUP BY l.lesson_kind""").fetchall()
+        for kind,total,correct in per_type:
+            if (kind not in category_queries or total<4 or
+                    2*(correct or 0)>=total):
+                continue
+            domain="problem_"+hashlib.sha256(
+                ("LOW_DEV_CATEGORY_"+kind).encode("ascii")
+            ).hexdigest()[:18]
+            before=db.total_changes
+            db.execute("""INSERT OR IGNORE INTO jrei_oss_topics
+                (domain,query) VALUES(?,?)""",
+                (domain,category_queries[kind]))
+            if db.total_changes>before:
+                inserted+=1
     return inserted
 
 
