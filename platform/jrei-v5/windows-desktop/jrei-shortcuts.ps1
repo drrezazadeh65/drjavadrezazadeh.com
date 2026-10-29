@@ -73,8 +73,25 @@ try{
     $target=[string]$old.TargetPath
     if((-not $target) -or
        ([IO.Path]::GetFileName($target) -ine 'JREI.exe')){
-     # An unknown or unreadable existing target is NOT ours to replace.
+     # An unknown existing shortcut is not ours to overwrite.
+     # Use a version-qualified name in the SAME permitted user directory.
      $existingPreserved++
+     $path=Join-Path (Split-Path -Path $path -Parent) ('JREI Personal AI v'+$version+'.lnk')
+     if(Test-Path -LiteralPath $path){
+      $alternate=Get-Item -LiteralPath $path -Force -ErrorAction Stop
+      if($alternate.Attributes -band [IO.FileAttributes]::ReparsePoint){continue}
+      $previous=$shell.CreateShortcut($path)
+      $previousTarget=[string]$previous.TargetPath
+      if((-not $previousTarget) -or
+         ([IO.Path]::GetFileName($previousTarget) -ine 'JREI.exe')){
+       continue
+      }
+     }
+    }elseif([IO.Path]::GetFullPath($target) -ieq $expected){
+     # Existing working shortcut is already pointed at the correct release.
+     # Updating it may be denied on a managed desktop: do not call that a
+     # failed installation merely because the save is prohibited.
+     $created++
      continue
     }
    }
