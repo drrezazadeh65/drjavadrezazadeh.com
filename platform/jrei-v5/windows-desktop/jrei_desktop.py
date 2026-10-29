@@ -871,7 +871,7 @@ class Desktop(FeatureHubMixin):
             raise RuntimeError("JREI_OWNER_PRIVATE_STATUS_NOT_AUTHENTICATED")
         return status
 
-    def _start_bundled_local_engine(self):
+    def _start_bundled_local_engine(self, *, approve_upgrade=False):
         """Start the ORIGINAL private 8092 core from this signed-release layout.
 
         No new agent, elevated rights, task overwrite or server enrollment.
@@ -891,9 +891,11 @@ class Desktop(FeatureHubMixin):
         try:
             completed = subprocess.run(
                 [str(ps), "-NoProfile", "-NonInteractive", "-ExecutionPolicy",
-                 "Bypass", "-File", str(script), "-Mode", "Start"],
+                 "Bypass", "-File", str(script), "-Mode",
+                 "Install" if approve_upgrade else "Start",
+                 *(["-OwnerApproved"] if approve_upgrade else [])],
                 shell=False, stdin=subprocess.DEVNULL, capture_output=True,
-                timeout=90, check=False,
+                timeout=165 if approve_upgrade else 90, check=False,
                 creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
         except subprocess.TimeoutExpired as exc:
             raise RuntimeError("JREI_PRIVATE_ENGINE_START_TIMEOUT_UNVERIFIED") from exc
@@ -906,7 +908,19 @@ class Desktop(FeatureHubMixin):
                     "utf-8", errors="replace"))
             raise RuntimeError(
                 reason[0] if reason else "JREI_PRIVATE_ENGINE_START_FAILED")
-        return {"state": "LOCAL_ENGINE_START_EXIT_ZERO_NOT_INDEPENDENT_ACCEPTANCE"}
+        output = completed.stdout.decode("utf-8", errors="replace")
+        events = re.findall(r"\\[JREI\\] (JREI_[A-Z0-9_]{4,110})", output)
+        if not events or events[-1] not in (
+                "JREI_ENGINE_AUTHENTICATED_EXISTING",
+                "JREI_ENGINE_AUTHENTICATED_BUNDLED"):
+            raise RuntimeError(events[-1] if events else
+                               "JREI_PRIVATE_ENGINE_NOT_AUTHENTICATED")
+        status = self._bootstrap()
+        if (self.packaged_source_commit and
+                status.get("windows_app_source_commit") != self.packaged_source_commit):
+            raise RuntimeError("JREI_BUNDLED_ENGINE_SOURCE_COMMIT_MISMATCH")
+        return {"state": "MATCHED_RELEASE_8092_AUTHENTICATED",
+                "source_commit": status.get("windows_app_source_commit")}
 
     def _bootstrap_with_local_engine(self):
         try:
