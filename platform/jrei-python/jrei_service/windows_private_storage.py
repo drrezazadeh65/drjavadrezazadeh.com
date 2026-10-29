@@ -114,6 +114,45 @@ def _probe(folder: Path) -> None:
                 pass
 
 
+def _probe_real_owner_files(root: Path) -> None:
+    """Check actual token and DB paths, not just random test filenames.
+
+    An existing token is never overwritten; an existing DB is touched only
+    within a rolled-back SQLite transaction. On a fresh store, the legitimate
+    token and empty database are initialized here by the same runtime that
+    later operates the engine.
+    """
+    token = root / "owner-token"
+    database = root / "missions.sqlite3"
+    if token.is_symlink() or database.is_symlink():
+        raise PrivateStorageError("JREI_PRIVATE_FILE_LINK_REJECTED")
+    try:
+        if token.exists():
+            # Verify that THIS process can open the named file for writing,
+            # without changing its bytes or disclosing the credential.
+            with token.open("r+b") as stream:
+                if stream.read(1) == b"":
+                    raise PrivateStorageError("JREI_EXISTING_OWNER_TOKEN_EMPTY")
+        else:
+            with token.open("x", encoding="ascii") as stream:
+                stream.write(secrets.token_urlsafe(48))
+                stream.flush()
+                os.fsync(stream.fileno())
+        # The DDL statement forces a real SQLite write attempt to the exact
+        # database path. ROLLBACK guarantees the probe table is not retained.
+        with closing(sqlite3.connect(str(database), timeout=3)) as conn:
+            try:
+                conn.execute("BEGIN IMMEDIATE")
+                conn.execute(
+                    "CREATE TABLE _jrei_preflight_never_persist (n INTEGER)")
+            finally:
+                conn.rollback()
+    except PrivateStorageError:
+        raise
+    except (OSError, sqlite3.Error) as exc:
+        raise PrivateStorageError("JREI_FROZEN_RUNTIME_OWNER_FILES_WRITE_DENIED") from exc
+
+
 def _marked(root: Path) -> bool:
     marker = root / _MARKER
     if not marker.is_file() or marker.is_symlink():
@@ -162,12 +201,14 @@ def _copy_preserving_original(original: Path, dest: Path) -> None:
                 shutil.copyfileobj(reader, writer, length=1024 * 1024)
             if _digest(target) != expected or _digest(source) != expected:
                 raise PrivateStorageError("JREI_PRIVATE_COPY_VERIFICATION_FAILED")
+        _probe_real_owner_files(stage)
         _write_marker(stage)
         # Refuse a race in which another owner process claimed destination.
         if dest.exists():
             raise PrivateStorageError("JREI_PRIVATE_FALLBACK_RACE")
         stage.rename(dest)
         _probe(dest)
+        _probe_real_owner_files(dest)
     finally:
         if stage.exists():
             shutil.rmtree(stage)
@@ -190,12 +231,14 @@ def select_private_storage() -> Path:
         root = selected[0]
         try:
             _probe(root)
+            _probe_real_owner_files(root)
         except PrivateStorageError as exc:
             raise PrivateStorageError("JREI_SELECTED_PRIVATE_STORAGE_INACCESSIBLE") from exc
         return root
     try:
         primary.mkdir(mode=0o700, parents=True, exist_ok=True)
         _probe(primary)
+        _probe_real_owner_files(primary)
         return primary
     except (OSError, PrivateStorageError):
         pass
