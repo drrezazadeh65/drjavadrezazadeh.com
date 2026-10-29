@@ -17,6 +17,9 @@ $runtime=Join-Path $root 'gpu-owner-16gb.json'
 $model=Join-Path $root 'models\Qwen3-4B-Q4_K_M.gguf'
 $binaryDir=Join-Path $root 'llama-b11932-vulkan'
 $alias='jrei-gpu-lab'
+$secureManifestPath=Join-Path $root 'secure-approved\secure-runtime-v1.json'
+$secureLauncher=Join-Path $root 'secure-approved\jrei-gpu-secure-runtime-v1.ps1'
+$keyPath=Join-Path $private 'gpu-pilot-api-key.txt'
 $digest='7485fe6f11af29433bc51cab58009521f205840f5b4ae3a32fa7f92e8534fdf5'
 $schema='jr.jrei.owner-private-gpu-pilot.v1'
 function Require([bool]$ok,[string]$reason){if(-not $ok){throw $reason}}
@@ -66,8 +69,46 @@ Require ($exes.Count -eq 1) 'JREI_GPU_RUNTIME_EXE_AMBIGUOUS'
 Require ((Get-FileHash -LiteralPath $exes[0].FullName -Algorithm SHA256).Hash.ToLowerInvariant() -ceq [string]$r.exeSha256) 'JREI_GPU_RUNTIME_HASH_MISMATCH'
 $conn=@(Get-NetTCPConnection -State Listen -LocalPort 8082 -ErrorAction SilentlyContinue)
 Require ($conn.Count -eq 1 -and $conn[0].LocalAddress -eq '127.0.0.1') 'JREI_GPU_SERVER_NOT_EXCLUSIVE_LOOPBACK'
-$models=Invoke-RestMethod -Uri 'http://127.0.0.1:8082/v1/models' -TimeoutSec 5
-Require (@($models.data | Where-Object {$_.id -ceq $alias}).Count -gt 0) 'JREI_GPU_MODEL_API_NOT_READY'
+$secure=ReadJson $secureManifestPath
+Require ($secure.schema -ceq 'jr.jrei.gpu-secure-staging.v1' -and
+  $secure.owner -ceq $owner -and $secure.endpoint -ceq 'http://127.0.0.1:8082' -and
+  $secure.corsOrigin -ceq 'http://127.0.0.1:8092' -and
+  [string]$secure.keyFile -ceq $keyPath -and
+  $secure.modelSha256 -ceq $digest) 'JREI_GPU_SECURE_STAGING_REQUIRED'
+Require (Test-Path -LiteralPath $secureLauncher -PathType Leaf) 'JREI_GPU_SECURE_LAUNCHER_MISSING'
+Require ((Get-FileHash -LiteralPath $secureLauncher -Algorithm SHA256).Hash.ToLowerInvariant() -ceq
+  [string]$secure.secureLauncherSha256) 'JREI_GPU_SECURE_LAUNCHER_HASH_MISMATCH'
+Require (Test-Path -LiteralPath $keyPath -PathType Leaf) 'JREI_GPU_OWNER_SECRET_MISSING'
+$token=(Get-Content -LiteralPath $keyPath -Encoding ASCII -Raw).Trim()
+Require ($token -cmatch '^[a-f0-9]{64}
+$payload=[ordered]@{
+ schema=$schema;enabled=$true;external_model_acknowledged=$true
+ owner_approved=$true;model_sha256=$digest
+} | ConvertTo-Json -Depth 3
+$f=[IO.File]::Open($consent,[IO.FileMode]::CreateNew,[IO.FileAccess]::Write,[IO.FileShare]::None)
+try{
+ $b=[Text.UTF8Encoding]::new($false).GetBytes($payload)
+ $f.Write($b,0,$b.Length)
+}finally{$f.Dispose()}
+Write-Output 'JREI_GPU_PILOT_PRIVATE_CONSENT_STAGED'
+Write-Output 'THIRD_PARTY_QWEN_EXPLICITLY_LABELLED_NOT_JREI_NATIVE'
+Write-Output 'NO_RESTART_NO_MODEL_DOWNLOAD_NO_WEBSITE_DEPLOYMENT'
+Write-Output 'REQUIRES_FINAL_INTEGRATED_WINDOWS_RELEASE_APPROVAL'
+) 'JREI_GPU_OWNER_SECRET_INVALID'
+# The original unsecured V4 server must NEVER count as an approved pilot.
+# In the pinned llama.cpp server /v1/models must reject unauthenticated GET.
+$unauthDenied=$false
+try {
+  $null=Invoke-WebRequest -UseBasicParsing -Uri 'http://127.0.0.1:8082/v1/models' -TimeoutSec 5 -ErrorAction Stop
+}catch{
+  try {$unauthDenied=([int]$_.Exception.Response.StatusCode -eq 401)}catch{}
+}
+Require $unauthDenied 'JREI_GPU_SERVER_AUTH_NOT_ENFORCED'
+$models=Invoke-RestMethod -Uri 'http://127.0.0.1:8082/v1/models' -TimeoutSec 5 -Headers @{
+  Authorization=('Bearer '+$token)
+}
+Require (@($models.data | Where-Object {$_.id -ceq $alias}).Count -gt 0) 'JREI_GPU_SECURE_MODEL_API_NOT_READY'
+$token=$null
 $null=New-Item -ItemType Directory -Path $private -Force
 # File creation is atomic against another enabler; refuse existing consent.
 $payload=[ordered]@{
