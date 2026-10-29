@@ -98,47 +98,45 @@ try{
    $record=Get-Content -LiteralPath $receiptPath -Encoding UTF8 -Raw |
      ConvertFrom-Json -ErrorAction Stop
    if($record.schema -in @('jr.jrei.offline-owner-install.v1',
-                              'jr.jrei.offline-owner-install.v2') -and
-      [string]$record.state -cmatch '^[A-Z0-9_]{4,110}
-  }
- }
-}catch{$lastSetupState='INSTALL_RECEIPT_UNREADABLE'}
-$report=[ordered]@{
- schema='jr.jrei.windows-dynamic-node-inventory.v1'
- state=$state
- machine_id=$node
- node_slots_fixed=$false
- installer_enforces_node_ceiling=$false
- server_side_node_capacity_not_verified=$true
- ram_gb_observed=$ramGB
- cpu_threads_observed=$cpuThreads
- gpu_adapter_names_observed=$gpuNames
- gpu_adapter_names_are_unverified_windows_claims=$true
- ram_is_not_node_identity=$true
- gpu_compute_verified=$false
- existing_private_config_present=$configPresent
- signing_key_file_present=$keyPresent
- owner_token_file_present=(Test-Path -LiteralPath $tokenPath -PathType Leaf)
- original_repo_present=(Test-Path -LiteralPath $repoPath -PathType Container)
- original_python_present=(Test-Path -LiteralPath $pythonPath -PathType Leaf)
- original_command_center_task_present=$taskPresent
- offline_engine_installer_state=$lastSetupState
- real_signed_server_registration_verified=$false
- real_signed_worker_heartbeat_verified=$false
- new_node_requires_server_side_owner_registration=(
-   $state -eq 'NEW_NODE_OWNER_ENROLLMENT_REQUIRED')
- user_data_modified=$false
- read_only_inventory_script_executed=$true
- untrusted_code_executed=$false
- installation_performed=$false
-}
-$report | ConvertTo-Json -Depth 4 -Compress
-){
+                           'jr.jrei.offline-owner-install.v2') -and
+      [string]$record.state -cmatch '^[A-Z0-9_]{4,110}$'){
     $lastSetupState=[string]$record.state
    }
   }
  }
 }catch{$lastSetupState='INSTALL_RECEIPT_UNREADABLE'}
+
+# v0.1.11 can preserve existing owner files in a same-user, SHA-verified
+# alternate private store when the frozen exe cannot write at the old path.
+# Inventory is read-only. Never print owner token, worker key or DB contents.
+$privateStore='ORIGINAL_OWNER_LOCALAPPDATA'
+$alternateRoots=@(
+ (Join-Path $homePath 'JREI-Owner\command-center'),
+ (Join-Path $env:USERPROFILE 'JREI-Owner\command-center')
+)
+$verifiedFallbacks=@()
+foreach($candidate in $alternateRoots){
+ $marker=Join-Path $candidate '.jrei-active-private-store-v1.json'
+ try{
+  if(-not (Test-Path -LiteralPath $marker -PathType Leaf)){continue}
+  $markFile=Get-Item -LiteralPath $marker -ErrorAction Stop
+  if(($markFile.Attributes -band [IO.FileAttributes]::ReparsePoint) -or
+     $markFile.Length -gt 2048 -or $markFile.Length -le 0){continue}
+  $info=Get-Content -LiteralPath $marker -Raw -Encoding UTF8 |
+    ConvertFrom-Json -ErrorAction Stop
+  if($info.schema -ceq 'jr.jrei.owner-private-storage-selection.v1' -and
+     $info.selected -eq $true){
+   $verifiedFallbacks+=,$candidate
+  }
+ }catch{}
+}
+if($verifiedFallbacks.Count -eq 1){
+ $privateStore='VERIFIED_SAME_USER_FALLBACK'
+ $tokenPath=Join-Path $verifiedFallbacks[0] 'owner-token'
+}elseif($verifiedFallbacks.Count -gt 1){
+ $privateStore='AMBIGUOUS_PRIVATE_STORE_OWNER_REVIEW_REQUIRED'
+ $tokenPath=''
+}
 $report=[ordered]@{
  schema='jr.jrei.windows-dynamic-node-inventory.v1'
  state=$state
@@ -154,7 +152,8 @@ $report=[ordered]@{
  gpu_compute_verified=$false
  existing_private_config_present=$configPresent
  signing_key_file_present=$keyPresent
- owner_token_file_present=(Test-Path -LiteralPath $tokenPath -PathType Leaf)
+ owner_token_file_present=($tokenPath -ne '' -and (Test-Path -LiteralPath $tokenPath -PathType Leaf))
+ private_store_class=$privateStore
  original_repo_present=(Test-Path -LiteralPath $repoPath -PathType Container)
  original_python_present=(Test-Path -LiteralPath $pythonPath -PathType Leaf)
  original_command_center_task_present=$taskPresent
