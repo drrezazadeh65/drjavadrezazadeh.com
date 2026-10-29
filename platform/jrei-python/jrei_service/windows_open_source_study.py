@@ -235,7 +235,9 @@ def _read_one(repository: str, query: str) -> dict:
     if not REPOSITORY.fullmatch(repository):
         raise ValueError("JREI_OSS_REPOSITORY_INVALID")
     info = _request("/repos/" + repository)
-    if not isinstance(info, dict) or info.get("full_name", "").casefold() != repository.casefold():
+    if (not isinstance(info, dict) or
+            not isinstance(info.get("full_name"), str) or
+            info["full_name"].casefold() != repository.casefold()):
         raise ValueError("JREI_OSS_REPOSITORY_IDENTITY_MISMATCH")
     branch = info.get("default_branch")
     if not isinstance(branch, str) or not 1 <= len(branch) <= 150:
@@ -254,16 +256,19 @@ def _read_one(repository: str, query: str) -> dict:
                     and str(x.get("name", "")).lower() in
                     ("license", "license.md", "license.txt", "licence",
                      "licence.md", "copying")), None)
-    if root_file is None:
+    if root_file is None or Path(root_file).name.lower() in (
+            "setup.py", "__init__.py", "conftest.py", "manage.py"):
         folders = [x for x in root if x.get("type") == "dir" and
                    str(x.get("name", "")).lower() in
                    ("src", "lib", "source", "python", "pkg", "app", "core", "model")]
         if folders:
             folders.sort(key=lambda x: (str(x.get("name", "")) not in
                                         ("src", "lib", "source"), x.get("path", "")))
-            root_file = _choose(_contents(repository, revision,
-                                          str(folders[0]["path"])),
-                                query=query, suffixes=CODE_SUFFIXES)
+            nested = _choose(_contents(repository, revision,
+                                      str(folders[0]["path"])),
+                             query=query, suffixes=CODE_SUFFIXES)
+            if nested is not None:
+                root_file = nested
     source_sha = None
     signatures: list[dict] = []
     if root_file:
