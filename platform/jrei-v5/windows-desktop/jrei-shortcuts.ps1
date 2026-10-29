@@ -71,8 +71,9 @@ try{
     }
     $old=$shell.CreateShortcut($path)
     $target=[string]$old.TargetPath
-    if($target -and
+    if((-not $target) -or
        ([IO.Path]::GetFileName($target) -ine 'JREI.exe')){
+     # An unknown or unreadable existing target is NOT ours to replace.
      $existingPreserved++
      continue
     }
