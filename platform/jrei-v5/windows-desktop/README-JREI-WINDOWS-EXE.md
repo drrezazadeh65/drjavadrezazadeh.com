@@ -1,6 +1,6 @@
-# JREI owner universal Windows installation — v0.1.11 source candidate
+# JREI owner universal Windows installation — v0.1.12 source candidate
 
-**Status: v0.1.10 was built and installed only in part on an owner PC; v0.1.11 is new source code only. The 0.1.11 frozen EXE and two-PC acceptance are NOT verified.**
+**Status: v0.1.11 passed its GitHub builder, but on an owner PC its program files staged while its engine setup failed with JREI_ENGINE_SETUP_FAILED. Version 0.1.12 is a SOURCE-ONLY correction. No v0.1.12 build or real-device acceptance has been verified.**
 
 Repository: drrezazadeh65/drjavadrezazadeh.com
 Canonical branch: migration/bertina-linux6
@@ -84,3 +84,12 @@ v0.1.11 adds **`jrei_service.windows_private_storage`** to the ORIGINAL 8092 ser
 The native Tk owner client and Windows setup helper discover the same fixed store marker before authenticating to the ORIGINAL local 8092 engine. The helper captures only sanitized fatal codes from the frozen engine and removes temporary diagnostic stderr, while leaving old processes and Windows tasks alone. Authenticated `/api/status` reports whether the current private store is original or a verified same-user fallback, without exposing local profile paths.
 
 **Important remaining limitation:** if a Windows security product prohibits the frozen EXE from writing to *all* three private roots, the source-level fallback cannot defeat that policy and must report `JREI_FROZEN_RUNTIME_NO_WRITABLE_PRIVATE_STORE`. A correct source patch does NOT establish a successful new EXE or actual private-store access. Only real Windows acceptance can establish that; preserve the owner's current 0.1.10 files and source private data until then. The site and server are unchanged.
+
+
+## Owner Windows v0.1.11 failed engine setup after successful GitHub build
+
+The owner provided a screenshot in which `JREI-Setup-Windows-x64-v0.1.11.exe` had extracted files into an `JREI-Installed` release folder but displayed `JREI_ENGINE_SETUP_FAILED`. The screenshot does NOT establish which Windows API or program operation failed. Do not infer that source-only permission changes were accepted or that the 8092 engine started.
+
+Source inspection found a concrete diagnostic/design flaw: a write failure in the optional installer `install-receipts` directory could propagate into the outer handler as `JREI_ENGINE_SETUP_FAILED`, masking the actual engine initialization state. The process-launch error handler also substituted an unrelated generic code when stderr capture could not be created. The **v0.1.12 source** makes receipt writing best-effort, preserves all existing private data, redirects temporary bounded engine stderr to the owner-writable versioned installation directory, and produces a stable setup stage code `JREI_SETUP_<STAGE>_FAILED` instead of a contextless error. It removes that diagnostic coupling, but the actual root cause on the owner's Windows PC remains unverified until the new binary runs. The one-click workflow still does no real Windows owner-device acceptance testing.
+
+**Do not uninstall/delete existing owner files or forcibly stop an unidentified 8092 process.** A successful GitHub build proves artifact packaging, not private engine authentication or a working conversational model.
