@@ -70,7 +70,40 @@ def _packaged_workflow_run_id() -> int | None:
     return None
 
 
-TOKEN_FILE = Path(os.environ.get("LOCALAPPDATA", Path.home())) / "JREI" / "command-center" / "owner-token"
+def _owner_token_file() -> Path:
+    """Locate the ORIGINAL owner token, including a validated same-PC copy.
+
+    The original SQLite/token stay in place. A frozen 8092 runtime unable to
+    write to LocalAppData\\JREI may have promoted a SHA-verified, copy-only
+    private store under the SAME user's profile. Do not pick an unmarked
+    random directory or silently use an ambiguous multiple selection.
+    """
+    local = Path(os.environ.get("LOCALAPPDATA", str(Path.home())))
+    profile = Path(os.environ.get("USERPROFILE", str(Path.home())))
+    initial = local / "JREI" / "command-center"
+    choices = (
+        local / "JREI-Owner" / "command-center",
+        profile / "JREI-Owner" / "command-center",
+    )
+    marked = []
+    for candidate in choices:
+        marker = candidate / ".jrei-active-private-store-v1.json"
+        try:
+            if (marker.is_file() and not marker.is_symlink()
+                    and marker.stat().st_size <= 2048):
+                info = json.loads(marker.read_text(encoding="utf-8"))
+                if info == {
+                    "schema": "jr.jrei.owner-private-storage-selection.v1",
+                    "selected": True,
+                }:
+                    marked.append(candidate)
+        except (OSError, UnicodeError, ValueError):
+            continue
+    if len(marked) > 1:
+        raise RuntimeError("JREI_MULTIPLE_ACTIVE_PRIVATE_STORES")
+    return (marked[0] if marked else initial) / "owner-token"
+
+
 FINAL = {"SUCCEEDED", "FAILED", "CANCELLED", "INTERRUPTED",
          "SUCCEEDED_AFTER_CANCEL_REQUEST", "FAILED_AFTER_CANCEL_REQUEST"}
 PHASE = {
@@ -121,9 +154,10 @@ class JREIClient:
     def request(self, route: str, data: dict | None = None) -> dict:
         if not route.startswith("/api/") or "://" in route or "#" in route:
             raise ValueError("JREI_LOCAL_ROUTE_REQUIRED")
-        if not TOKEN_FILE.is_file() or TOKEN_FILE.is_symlink():
+        token_file = _owner_token_file()
+        if not token_file.is_file() or token_file.is_symlink():
             raise RuntimeError("توکن مالک JREI روی این ویندوز یافت نشد. موتور خصوصی باید قبلاً راه‌اندازی شده باشد.")
-        token = TOKEN_FILE.read_text(encoding="ascii").strip()
+        token = token_file.read_text(encoding="ascii").strip()
         if not re.fullmatch(r"[A-Za-z0-9_-]{50,128}", token):
             raise ValueError("JREI_OWNER_TOKEN_FORMAT_INVALID")
         payload = json.dumps(data, ensure_ascii=False).encode("utf-8") if data is not None else None
