@@ -13,7 +13,7 @@ param(
 )
 Set-StrictMode -Version Latest
 $ErrorActionPreference='Stop'
-$version='0.1.8'
+$version='0.1.9'
 $taskName='JREI-Owner-Windows-Command-Center'
 $private=Join-Path $env:LOCALAPPDATA 'JREI\command-center'
 $receipts=Join-Path $private 'install-receipts'
