@@ -790,6 +790,13 @@ def status():
         "windows_app_source_commit": windows_app_source_commit(),
         "personal_assistant": "WINDOWS_LOCAL_CHAT_AND_EXECUTION",
         "conversation_history": "PRIVATE_SQLITE",
+        "owner_private_storage": (
+            "SAME_USER_VERIFIED_FALLBACK"
+            if PRIVATE != private_storage.candidates()[0]
+            else "ORIGINAL_OWNER_LOCALAPPDATA"
+        ),
+        "owner_private_storage_write_verified_at_start": True,
+        "existing_private_files_deleted_by_storage_selection": False,
         "document_drafts": "LOCAL_PRIVATE_ONLY",
         "repository_search_and_read": "BOUNDED_READ_ONLY",
         "code_edits": "CONFIRMED_ISOLATED_WORKSPACE_ONLY",
