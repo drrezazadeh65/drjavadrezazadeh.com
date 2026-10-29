@@ -63,6 +63,15 @@ def initialize(db_path: Path) -> None:
           code_execution_performed INTEGER NOT NULL DEFAULT 0,
           model_activated INTEGER NOT NULL DEFAULT 0,
           PRIMARY KEY(run_id,split_name))""")
+        db.execute("""CREATE TABLE IF NOT EXISTS jrei_code_ability_example_scores(
+          run_id TEXT NOT NULL,
+          split_name TEXT NOT NULL,
+          lesson_id TEXT NOT NULL,
+          normalized_exact INTEGER NOT NULL,
+          word_f1 REAL NOT NULL,
+          generated_sha256 TEXT NOT NULL,
+          reference_sha256 TEXT NOT NULL,
+          PRIMARY KEY(run_id,split_name,lesson_id))""")
         db.commit()
 
 
@@ -277,6 +286,18 @@ def evaluate_once(*, db_path: Path,private: Path,run_id: str,
         state="INDEPENDENT_EVALUATION_UNAVAILABLE"
         error_code=exc.__class__.__name__
     with closing(_db(db_path)) as db:
+        db.execute("BEGIN IMMEDIATE")
+        if details is not None:
+            db.executemany("""INSERT OR IGNORE INTO
+                jrei_code_ability_example_scores(
+                run_id,split_name,lesson_id,normalized_exact,word_f1,
+                generated_sha256,reference_sha256)
+                VALUES(?,?,?,?,?,?,?)""",[
+                (run_id,split,item["lesson_id"],
+                 int(item["normalized_exact"]),item["word_f1"],
+                 item["answer_sha256"],item["reference_sha256"])
+                for item in details["examples"]
+            ])
         db.execute("""UPDATE jrei_code_ability_evaluations SET
             state=?,scored_examples=?,normalized_exact_matches=?,
             average_word_f1=?,evidence_sha256=?,error_code=?
@@ -311,12 +332,15 @@ def snapshot(db_path: Path) -> dict:
             FROM jrei_code_ability_evaluations
             GROUP BY split_name,state
             ORDER BY split_name,state""").fetchall()
+        evidence_count=db.execute("""SELECT COUNT(*) FROM
+            jrei_code_ability_example_scores""").fetchone()[0]
     return {
         "schema":SCHEMA,
         "recorded_evaluation_states":[{
             "split":part,"state":state,"runs":count,
             "scored_examples":scored,"exact_matches":exact,
         } for part,state,count,scored,exact in rows],
+        "individual_hash_only_score_receipts":evidence_count,
         "independent_ast_reference_scoring_available_in_source":True,
         "sealed_data_not_trainable_by_this_module":True,
         "generated_code_never_executed":True,
