@@ -174,8 +174,8 @@ function SystemPython313Launcher {
  $candidate=Get-Command 'py.exe' -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1
  if($null -eq $candidate){return $null}
  $path=[string]$candidate.Source
- if(-not (SafeFile $path 35000000)){return $null}
  try{
+  if(-not (SafeFile $path 35000000)){return $null}
   # Query the existing launcher ONLY to resolve the verified interpreter.
   # Run python.exe itself thereafter; the py.exe launcher may spawn a child
   # and exit early, which is unsuitable for our one-engine-only lifetime gate.
