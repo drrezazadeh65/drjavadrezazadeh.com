@@ -101,7 +101,10 @@ def snapshot(db_path: Path) -> dict:
     stages = {
         "research_questions_registered": int(topics),
         "public_github_search_attempts": int(research_attempts),
-        "actual_github_search_successes": int(successful_searches),
+        # Historic pre-fix cache receipts may have been counted as live.
+        # Do not retroactively relabel all recorded successes as confirmed
+        # network API invocations without per-request transport evidence.
+        "recorded_github_search_success_receipts": int(successful_searches),
         "github_discovered_repositories": int(github_candidates),
         "github_source_file_receipts": int(github_sources),
         "gitlab_codeberg_discovered_repository_rows": int(forge_candidates),
@@ -133,6 +136,7 @@ def snapshot(db_path: Path) -> dict:
         "schema": SCHEMA, "phase": phase,
         "recorded_stages": stages,
         "counts_not_claimed_to_be_distinct_across_all_sources": True,
+        "historic_cache_counts_may_include_pre_fix_receipts": True,
         "candidate_static_review_is_not_functional_test": True,
         "observed_functional_tests_from_this_pipeline": 0,
         "verified_functional_gains_from_this_pipeline": 0,
