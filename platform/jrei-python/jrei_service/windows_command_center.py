@@ -1343,6 +1343,16 @@ class OwnerHTTP(BaseHTTPRequestHandler):
                               scratch_training.snapshot_code_runs(PRIVATE))
         if self.path == "/api/learning/native-code/evaluations":
             return self._send(200,code_evaluation.snapshot(DB_PATH))
+        if urlsplit(self.path).path == "/api/learning/native-code/compare":
+            query=parse_qs(urlsplit(self.path).query)
+            try:
+                return self._send(200,
+                    code_evaluation.compare_development_runs(
+                        DB_PATH,baseline_id=query.get("baseline",[""])[0],
+                        candidate_id=query.get("candidate",[""])[0]))
+            except (ValueError,OSError,sqlite3.Error):
+                return self._send(400,{
+                    "error":"JREI_CODE_DEVELOPMENT_COMPARISON_INVALID"})
         if self.path == "/api/open-source/draft-priorities":
             # Read-only, grounded in actual source hashes and local findings.
             # No model call, candidate generation or job dispatch.
