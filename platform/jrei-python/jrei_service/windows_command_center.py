@@ -567,7 +567,7 @@ def scheduler():
     next_open_source_mission = now + 45
     next_open_source_code_study = now + 90
     next_multiforge_discovery = now + 135
-    next_gitlab_code_study = now + 185
+    next_multiforge_code_study = now + 185
     next_self_code_audit = now + 8
     next_self_code_candidate = now + 60
     next_observation = now
@@ -645,7 +645,7 @@ def scheduler():
                 record("multiforge_oss", "RESEARCH_HELD",
                        exc.__class__.__name__)
             next_multiforge_discovery = time.monotonic() + 540
-        if (time.monotonic() >= next_gitlab_code_study and
+        if (time.monotonic() >= next_multiforge_code_study and
                 not _BUSY.locked()):
             try:
                 read = oss_multiforge.read_once(
@@ -655,13 +655,13 @@ def scheduler():
                     owner_active=(_activity_at > 0 and
                                   time.monotonic() - _activity_at < 180))
                 if read.get("state") == "PINNED_PUBLIC_CODE_STUDIED":
-                    record("gitlab_oss_code", "PINNED_SOURCE_OBSERVED",
+                    record("multiforge_oss_code", "PINNED_SOURCE_OBSERVED",
                            str(read.get("repository", ""))[:130])
             except (OSError,ValueError,TypeError,RuntimeError,
                     sqlite3.Error,urllib.error.URLError) as exc:
-                record("gitlab_oss_code", "RESEARCH_HELD",
+                record("multiforge_oss_code", "RESEARCH_HELD",
                        exc.__class__.__name__)
-            next_gitlab_code_study = time.monotonic() + 660
+            next_multiforge_code_study = time.monotonic() + 660
         if (not AI_SELF_DEVELOPMENT_ONLY and
                 time.monotonic() >= next_visual_day and not _BUSY.locked()):
             # One read/write receipt per UTC day. The loop never invents
@@ -719,7 +719,8 @@ def scheduler():
         # until explicitly authorized in the local owner control. The
         # Windows resource sensor enforces CPU/RAM/disk headroom; source
         # permission, robots and rate spacing govern every exact URL.
-        if time.monotonic() >= next_fts_index and not _BUSY.locked():
+        if (not AI_SELF_DEVELOPMENT_ONLY and
+                time.monotonic() >= next_fts_index and not _BUSY.locked()):
             fts_state = "DEFER_OWNER_ACTIVITY"
             if _activity_at == 0 or time.monotonic() - _activity_at >= 180:
                 try:
@@ -739,7 +740,8 @@ def scheduler():
         # No autonomous neural/statistical weight training is triggered from
         # this always-on study loop. That operation requires separate owner
         # approval and final evaluation after source development is complete.
-        if time.monotonic() >= next_learning and not _BUSY.locked():
+        if (not AI_SELF_DEVELOPMENT_ONLY and
+                time.monotonic() >= next_learning and not _BUSY.locked()):
             crawl_state = "LOOP_ERROR"
             try:
                 outcome = knowledge.tick(
@@ -756,7 +758,8 @@ def scheduler():
                 record("windows_learning","LOOP_ERROR",exc.__class__.__name__)
             next_learning = time.monotonic() + resource_policy.continuous_probe_delay(
                 "APPROVED_SOURCE", crawl_state)
-        if time.monotonic() >= next_memory and not _BUSY.locked():
+        if (not AI_SELF_DEVELOPMENT_ONLY and
+                time.monotonic() >= next_memory and not _BUSY.locked()):
             memory_state = "DEFER_OWNER_ACTIVITY"
             if _activity_at == 0 or time.monotonic() - _activity_at >= 180:
                 try:
@@ -774,7 +777,8 @@ def scheduler():
                     record("windows_evidence_memory","HELD",exc.__class__.__name__)
             next_memory = time.monotonic() + resource_policy.continuous_probe_delay(
                 "SOURCE_MEMORY", memory_state)
-        if time.monotonic() >= next_auto_topics and not _BUSY.locked():
+        if (not AI_SELF_DEVELOPMENT_ONLY and
+                time.monotonic() >= next_auto_topics and not _BUSY.locked()):
             topic_state = "DEFER_OWNER_ACTIVITY"
             if _activity_at == 0 or time.monotonic() - _activity_at >= 180:
                 try:
@@ -793,7 +797,8 @@ def scheduler():
                     record("windows_auto_topics","HELD",exc.__class__.__name__)
             next_auto_topics = time.monotonic() + resource_policy.continuous_probe_delay(
                 "AUTO_TOPICS", topic_state)
-        if time.monotonic() >= next_agenda and not _BUSY.locked():
+        if (not AI_SELF_DEVELOPMENT_ONLY and
+                time.monotonic() >= next_agenda and not _BUSY.locked()):
             agenda_state = "DEFER_OWNER_ACTIVITY"
             if _activity_at == 0 or time.monotonic() - _activity_at >= 180:
                 try:
@@ -814,7 +819,8 @@ def scheduler():
                     record("windows_agenda","HELD",exc.__class__.__name__)
             next_agenda = time.monotonic() + resource_policy.continuous_probe_delay(
                 "LEARNING_AGENDA", agenda_state)
-        if time.monotonic() >= next_curriculum and not _BUSY.locked():
+        if (not AI_SELF_DEVELOPMENT_ONLY and
+                time.monotonic() >= next_curriculum and not _BUSY.locked()):
             curriculum_state = "DEFER_OWNER_ACTIVITY"
             if (_activity_at == 0 or time.monotonic()-_activity_at >= 180):
                 try:
