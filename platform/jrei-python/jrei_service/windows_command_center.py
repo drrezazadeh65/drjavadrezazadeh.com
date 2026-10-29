@@ -84,13 +84,36 @@ def _installed_source_root() -> Path:
     return source
 
 
-_BUNDLED_PORTABLE = bool(re.fullmatch(
-    r"python-v\d+\.\d+\.\d+", Path(sys.executable).resolve().parent.name))
+def _versioned_source_from_module() -> Path | None:
+    """Use a matching immutable release regardless of which Python EXE runs.
+
+    Optional owner-installed CPython uses the SAME packaged source/deps. Do
+    not accidentally fall back to the owner's older live Git checkout.
+    Non-versioned development source continues to use the original repo.
+    """
+    module = Path(__file__).resolve()
+    source_root = module.parents[3]
+    match = re.fullmatch(r"source-v(\d+\.\d+\.\d+)", source_root.name)
+    if match is None:
+        return None
+    exact = (source_root / "platform" / "jrei-python" / "jrei_service" /
+             "windows_command_center.py")
+    runtime = source_root.parent / ("python-v" + match.group(1))
+    if (not runtime.is_dir() or runtime.is_symlink()
+            or exact.resolve() != module
+            or not (runtime / "python313._pth").is_file()
+            or not (source_root.parent / "jrei-engine-manifest.json").is_file()):
+        raise RuntimeError("JREI_VERSIONED_SOURCE_LAYOUT_UNVERIFIED")
+    return source_root
+
+
+_BUNDLED_SOURCE = _versioned_source_from_module()
 REPO = (
-    _installed_source_root()
-    if getattr(sys, "frozen", False) or _BUNDLED_PORTABLE else
-    Path(os.environ.get("LOCALAPPDATA", Path.home())) / "JREI-Python" / "repo"
+    _BUNDLED_SOURCE or
+    (_installed_source_root() if getattr(sys, "frozen", False)
+     else Path(os.environ.get("LOCALAPPDATA", Path.home())) / "JREI-Python" / "repo")
 )
+
 JOBS = {
     "seo_audit": ("SEO audit", ["node", "scripts/seo-regression.mjs"], 105),
     "geo_audit": ("GEO audit", ["node", "scripts/master-semantic-geo-audit.mjs"], 75),
