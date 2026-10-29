@@ -417,6 +417,22 @@ function operationsRoute(string $path, string $verb): never {
         }
         if (!$fresh) fail('admin_mfa_required',403);
 
+        // JREI-owned intelligence reporting: site is an authenticated API
+        // consumer only. No local AI computation or invented fallback.
+        if ($path==='/admin/operations/jrei-ai-reports' && $verb==='GET') {
+            if (($configuration['operations_admins'][$accountId]['role']??'')!=='SUPER_ADMIN')
+                fail('super_admin_required',403);
+            if (!rateAllowed($pdo,'jrei_ai_report_api_read',$accountId,12,300))
+                fail('rate_limited',429);
+            try {
+                require_once __DIR__.'/jrei-admin-ai-report-client.php';
+                respond(jrJreiAdminAiReportViaApi($configuration));
+            } catch (Throwable $e) {
+                fail('jrei_admin_ai_api_unavailable',503);
+            }
+        }
+
+
         // APEX owner durable mission ledger. Same original session and
         // current MFA with SUPER_ADMIN role, CSRF and rate limits; never a
         // model-driven command executor or implicit worker permission.
