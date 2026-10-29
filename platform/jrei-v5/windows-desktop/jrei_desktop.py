@@ -748,7 +748,7 @@ class Desktop:
                 [str(ps), "-NoProfile", "-NonInteractive", "-ExecutionPolicy",
                  "Bypass", "-File", str(script), "-Mode", "Start"],
                 shell=False, stdin=subprocess.DEVNULL, capture_output=True,
-                timeout=55, check=False,
+                timeout=90, check=False,
                 creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0))
         except subprocess.TimeoutExpired as exc:
             raise RuntimeError("JREI_PRIVATE_ENGINE_START_TIMEOUT_UNVERIFIED") from exc
