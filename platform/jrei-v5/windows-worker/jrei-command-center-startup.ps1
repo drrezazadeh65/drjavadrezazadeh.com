@@ -64,6 +64,37 @@ function OpenOwnerConsole {
  Write-Output '[JREI] NATIVE_WINDOWS_DESKTOP_APP_OPENED_NO_BROWSER'
 }
 
+function RequestOwnerApprovedSyncOnOpen {
+ # Reuse the ORIGINAL repo-sync task only after per-owner local opt-in.
+ # The task performs a guarded fast-forward and delegates source promotion
+ # to the existing idle-aware, rollback-capable 8092 updater.
+ $consentFile=Join-Path $env:LOCALAPPDATA 'JREI-Python\windows-owner-app-auto-update.json'
+ try{
+  if(-not (Test-Path -LiteralPath $consentFile -PathType Leaf)){return}
+  $item=Get-Item -LiteralPath $consentFile -ErrorAction Stop
+  if(($item.Attributes -band [IO.FileAttributes]::ReparsePoint) -or
+     $item.Length -gt 4096 -or $item.Length -lt 2){return}
+  $approval=Get-Content -LiteralPath $consentFile -Raw -Encoding UTF8 |
+    ConvertFrom-Json -ErrorAction Stop
+  if($approval.schema -cne 'jr.jrei.windows-app-auto-update.v1' -or
+     $approval.enabled -ne $true -or
+     $approval.ownerSid -cne $ownerIdentity.User.Value){return}
+  $syncTask=Get-ScheduledTask -TaskName 'JREI-Repo-Auto-Sync' -ErrorAction SilentlyContinue
+  if($null -eq $syncTask -or -not (IsCurrentOwner ([string]$syncTask.Principal.UserId)) -or
+     $syncTask.Actions.Count -ne 1){return}
+  $expectedShell=Join-Path $env:SystemRoot 'System32\WindowsPowerShell\v1.0\powershell.exe'
+  $expectedScript=Join-Path $repo 'platform\jrei-v5\windows-worker\jrei-repo-auto-sync.ps1'
+  $expectedArgs='-NoProfile -NonInteractive -ExecutionPolicy Bypass -File "'+$expectedScript+'" -Mode Sync'
+  if($syncTask.Actions[0].Execute -ine $expectedShell -or
+     $syncTask.Actions[0].Arguments -cne $expectedArgs){return}
+  Start-ScheduledTask -TaskName 'JREI-Repo-Auto-Sync' -ErrorAction Stop
+  Write-Output '[JREI] OWNER_APPROVED_UPDATE_CHECK_REQUESTED'
+ }catch{
+  # Neither update service nor network availability may block owner chat.
+  Write-Output '[JREI] OWNER_APPROVED_UPDATE_CHECK_UNAVAILABLE'
+ }
+}
+
 if($Mode -eq 'Status'){
  $registered=Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue
  Write-Output ('[JREI] WINDOWS_COMMAND_TASK='+$(if($null -eq $registered){'NOT_REGISTERED'}else{$registered.State.ToString()}))
@@ -76,6 +107,7 @@ if($Mode -eq 'Status'){
 }
 if($Mode -eq 'Open'){
  OpenOwnerConsole
+ RequestOwnerApprovedSyncOnOpen
  return
 }
 if($Mode -eq 'Start'){
@@ -105,12 +137,14 @@ if($Mode -eq 'Start'){
  }
  if(Ready){
    Write-Output '[JREI] DESKTOP_EXISTING_OWNER_TASK_RESPONDING'
+   RequestOwnerApprovedSyncOnOpen
    return
  }
  Start-ScheduledTask -TaskName $taskName -ErrorAction Stop
  for($i=0;$i -lt 12;$i++){
   if(Ready){
    Write-Output '[JREI] DESKTOP_PRIVATE_ENGINE_STARTED_WITHOUT_BROWSER'
+   RequestOwnerApprovedSyncOnOpen
    return
   }
   Start-Sleep -Seconds 2
