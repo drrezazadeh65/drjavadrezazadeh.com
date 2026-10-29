@@ -346,6 +346,417 @@ function HasExistingTask {
   return ($null -ne $task)
  }catch{return $false}
 }
+function TryOwnerApprovedTaskHandover {
+ # The original same-account Windows Task Scheduler record is the only
+ # authority. Preserve its trigger, principal, prior action and user files.
+ $task=$null
+ $original=$null
+ $changed=$false
+ try{
+  $task=Get-ScheduledTask -TaskName $taskName -ErrorAction Stop
+  if($null -eq $task -or $task.State -ne 'Running' -or
+     $task.Actions.Count -ne 1){return $false}
+  $owner=[Security.Principal.WindowsIdentity]::GetCurrent().User.Value
+  $registered=[string]$task.Principal.UserId
+  if($registered -notmatch '^S-1-[0-9]+(-[0-9]+)+
+ # The current installer was explicitly opened by this owner. Only an
+ # authenticated, idle, SAME USER Python launched from a previous JREI
+ # immutable Go release may be stopped. No arbitrary Python/Windows tasks.
+ if($Mode -cne 'Install' -or -not $OwnerApproved){return $false}
+ $status=$script:LastOwnerStatus
+ if($null -eq $status -or $status.busy -ne $false -or
+    $status.owner_activity_recent -ne $false){return $false}
+ $prior=$null
+ $stopped=$false
+ try{
+  $task=Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue
+  if($null -ne $task -and $task.State -eq 'Running'){
+   return (TryOwnerApprovedTaskHandover)
+  }
+  $ids=@(Get-NetTCPConnection -LocalPort 8092 -State Listen -ErrorAction Stop |
+    Where-Object {$_.LocalAddress -eq '127.0.0.1'} |
+    Select-Object -ExpandProperty OwningProcess -Unique)
+  if($ids.Count -ne 1 -or [int]$ids[0] -le 4){return $false}
+  $oldPid=[int]$ids[0]
+  $proc=Get-CimInstance Win32_Process -Filter ("ProcessId="+$oldPid) -ErrorAction Stop
+  if($null -eq $proc -or
+     [IO.Path]::GetFileName([string]$proc.ExecutablePath) -ine 'python.exe'){
+   return $false
+  }
+  $identity=Invoke-CimMethod -InputObject $proc -MethodName GetOwnerSid -ErrorAction Stop
+  $currentSid=[Security.Principal.WindowsIdentity]::GetCurrent().User.Value
+  if($identity.ReturnValue -ne 0 -or [string]$identity.Sid -cne $currentSid){
+   return $false
+  }
+  $command=[string]$proc.CommandLine
+  if(-not $command.Contains('--serve')){return $false}
+  $roots=@(
+    (Join-Path $env:LOCALAPPDATA 'Programs\JREI\releases'),
+    (Join-Path $env:LOCALAPPDATA 'JREI-Applications\releases'),
+    (Join-Path $env:USERPROFILE 'JREI-Applications\releases'),
+    (Join-Path $env:USERPROFILE 'JREI-Installed\releases')
+  )
+  foreach($root in $roots){
+   if(-not (Test-Path -LiteralPath $root -PathType Container)){continue}
+   $versions=@(Get-ChildItem -LiteralPath $root -Directory -ErrorAction Stop |
+     Where-Object {$_.Name -match '^v[0-9]+\.[0-9]+\.[0-9]+
+ $script:Stage='ENVIRONMENT'
+ if($env:OS -cne 'Windows_NT' -or
+    -not [Environment]::Is64BitOperatingSystem){
+  throw 'JREI_WINDOWS_X64_REQUIRED'
+ }
+ $script:Stage='PACKAGE'
+ VerifyPackage
+ $script:Stage='APPROVAL'
+ if($Mode -eq 'Install' -and -not $OwnerApproved){
+  throw 'JREI_OWNER_INSTALL_APPROVAL_REQUIRED'
+ }
+ $script:Stage='LOOPBACK'
+ if(ReadyForThisRelease){
+  if($Mode -eq 'Install'){TryRecord 'ENGINE_AUTHENTICATED_EXISTING' 'TASK_UNCHANGED'}
+  Emit 'JREI_ENGINE_AUTHENTICATED_EXISTING'
+  return
+ }
+ if(OwnerReady){
+  if(TryOwnerApprovedBundledHandover){
+   if($Mode -eq 'Install'){TryRecord 'ENGINE_AUTHENTICATED_BUNDLED' 'OWNER_APPROVED_IDLE_HANDOVER'}
+   Emit 'JREI_ENGINE_AUTHENTICATED_BUNDLED'
+   return
+  }
+  if($Mode -eq 'Install'){
+   TryRecord 'ENGINE_PENDING_PREVIOUS_VERSION_8092_PRESERVED' 'HANDOVER_HELD'
+  }
+  Emit 'JREI_ENGINE_PENDING_PREVIOUS_VERSION_8092_PRESERVED'
+  return
+ }
+ if(PortBusy){
+  if($Mode -eq 'Install'){
+   TryRecord 'ENGINE_PENDING_UNVERIFIED_8092_LISTENER' 'TASK_UNCHANGED'
+   Emit 'JREI_ENGINE_PENDING_UNVERIFIED_8092_LISTENER'
+   return
+  }
+  if($Mode -eq 'Status'){
+   Emit 'JREI_ENGINE_PENDING_UNVERIFIED_8092_LISTENER'
+   return
+  }
+  throw 'JREI_8092_LISTENER_UNVERIFIED_PRESERVED'
+ }
+ if($Mode -eq 'Status'){
+  Emit 'JREI_ENGINE_NOT_RUNNING'
+  return
+ }
+ $script:Stage='OLD_TASK_READ'
+ $auto='ON_DEMAND_NO_TASK_CHANGES'
+ if($Mode -eq 'Install' -and (HasExistingTask)){
+  $auto='EXISTING_TASK_PRESERVED'
+ }
+ $script:Stage='ENGINE_PROCESS'
+ $running=$false
+ try{$running=LaunchBundled}catch{
+  $script:LastPrivateEngineError='JREI_ENGINE_PROCESS_LAUNCH_DENIED'
+ }
+ if($running){
+  if($Mode -eq 'Install'){TryRecord 'ENGINE_AUTHENTICATED_BUNDLED' $auto}
+  Emit 'JREI_ENGINE_AUTHENTICATED_BUNDLED'
+  return
+ }
+ if($Mode -eq 'Install'){
+  TryRecord $script:LastPrivateEngineError $auto
+  Emit $script:LastPrivateEngineError
+  return
+ }
+ throw $script:LastPrivateEngineError
+}catch{
+ $code=[string]$_.Exception.Message
+ if($code -cnotmatch '^JREI_[A-Z0-9_]{4,110}$'){
+  $code='JREI_SETUP_'+$script:Stage+'_FAILED'
+ }
+ if($Mode -eq 'Install'){
+  TryRecord $code 'FAILED_NO_TASK_OR_DATA_CHANGES'
+ }
+ # Only bounded diagnostic identifier is visible outside the owner PC.
+ # No stack trace, signed worker keys, bearer tokens, or profile paths.
+ [Console]::Error.WriteLine($code)
+ exit 1
+}
+} |
+     Select-Object -First 35)
+   foreach($folder in $versions){
+    if($folder.Attributes -band [IO.FileAttributes]::ReparsePoint){continue}
+    if($folder.FullName -ieq $PSScriptRoot){continue}
+    $v=$folder.Name.Substring(1)
+    $source=Join-Path $folder.FullName ('source-v'+$v+'\platform\jrei-v5\windows-desktop')
+    $a=Join-Path $source 'jrei_embedded_engine.py'
+    $b=Join-Path $source 'jrei_owner_python_bootstrap.py'
+    $controller=Join-Path $folder.FullName 'jrei-engine-setup.ps1'
+    $manifest=Join-Path $folder.FullName 'jrei-engine-manifest.json'
+    if(-not (SafeFile $controller 60000) -or -not (SafeFile $manifest 10000)){
+     continue
+    }
+    $launchedFromA=((SafeFile $a 200000) -and
+      $command.IndexOf($a,[StringComparison]::OrdinalIgnoreCase) -ge 0)
+    $launchedFromB=((SafeFile $b 200000) -and
+      $command.IndexOf($b,[StringComparison]::OrdinalIgnoreCase) -ge 0)
+    if(-not ($launchedFromA -or $launchedFromB)){continue}
+    $previous=Get-Content -LiteralPath $manifest -Raw -Encoding UTF8 |
+      ConvertFrom-Json -ErrorAction Stop
+    if($previous.schema -cne 'jr.jrei.offline-engine-package.v1' -or
+       $previous.source_branch -cne 'migration/bertina-linux6' -or
+       [string]$previous.source_commit -cnotmatch '^[a-f0-9]{40}
+ $script:Stage='ENVIRONMENT'
+ if($env:OS -cne 'Windows_NT' -or
+    -not [Environment]::Is64BitOperatingSystem){
+  throw 'JREI_WINDOWS_X64_REQUIRED'
+ }
+ $script:Stage='PACKAGE'
+ VerifyPackage
+ $script:Stage='APPROVAL'
+ if($Mode -eq 'Install' -and -not $OwnerApproved){
+  throw 'JREI_OWNER_INSTALL_APPROVAL_REQUIRED'
+ }
+ $script:Stage='LOOPBACK'
+ if(ReadyForThisRelease){
+  if($Mode -eq 'Install'){TryRecord 'ENGINE_AUTHENTICATED_EXISTING' 'TASK_UNCHANGED'}
+  Emit 'JREI_ENGINE_AUTHENTICATED_EXISTING'
+  return
+ }
+ if(OwnerReady){
+  # An authenticated old JREI must not be mistaken for the new package.
+  if($Mode -eq 'Install'){
+   TryRecord 'ENGINE_PENDING_PREVIOUS_VERSION_8092_PRESERVED' 'TASK_UNCHANGED'
+  }
+  Emit 'JREI_ENGINE_PENDING_PREVIOUS_VERSION_8092_PRESERVED'
+  return
+ }
+ if(PortBusy){
+  if($Mode -eq 'Install'){
+   TryRecord 'ENGINE_PENDING_UNVERIFIED_8092_LISTENER' 'TASK_UNCHANGED'
+   Emit 'JREI_ENGINE_PENDING_UNVERIFIED_8092_LISTENER'
+   return
+  }
+  if($Mode -eq 'Status'){
+   Emit 'JREI_ENGINE_PENDING_UNVERIFIED_8092_LISTENER'
+   return
+  }
+  throw 'JREI_8092_LISTENER_UNVERIFIED_PRESERVED'
+ }
+ if($Mode -eq 'Status'){
+  Emit 'JREI_ENGINE_NOT_RUNNING'
+  return
+ }
+ $script:Stage='OLD_TASK_READ'
+ $auto='ON_DEMAND_NO_TASK_CHANGES'
+ if($Mode -eq 'Install' -and (HasExistingTask)){
+  $auto='EXISTING_TASK_PRESERVED'
+ }
+ $script:Stage='ENGINE_PROCESS'
+ $running=$false
+ try{$running=LaunchBundled}catch{
+  $script:LastPrivateEngineError='JREI_ENGINE_PROCESS_LAUNCH_DENIED'
+ }
+ if($running){
+  if($Mode -eq 'Install'){TryRecord 'ENGINE_AUTHENTICATED_BUNDLED' $auto}
+  Emit 'JREI_ENGINE_AUTHENTICATED_BUNDLED'
+  return
+ }
+ if($Mode -eq 'Install'){
+  TryRecord $script:LastPrivateEngineError $auto
+  Emit $script:LastPrivateEngineError
+  return
+ }
+ throw $script:LastPrivateEngineError
+}catch{
+ $code=[string]$_.Exception.Message
+ if($code -cnotmatch '^JREI_[A-Z0-9_]{4,110}$'){
+  $code='JREI_SETUP_'+$script:Stage+'_FAILED'
+ }
+ if($Mode -eq 'Install'){
+  TryRecord $code 'FAILED_NO_TASK_OR_DATA_CHANGES'
+ }
+ # Only bounded diagnostic identifier is visible outside the owner PC.
+ # No stack trace, signed worker keys, bearer tokens, or profile paths.
+ [Console]::Error.WriteLine($code)
+ exit 1
+}
+){
+     continue
+    }
+    $prior=$controller
+    break
+   }
+   if($prior){break}
+  }
+  if(-not $prior){return $false}
+  # Repeat authenticated idle check immediately before switching.
+  if(-not (OwnerReady) -or $script:LastOwnerStatus.busy -ne $false -or
+     $script:LastOwnerStatus.owner_activity_recent -ne $false){return $false}
+  Stop-Process -Id $oldPid -ErrorAction Stop
+  $stopped=$true
+  $freed=$false
+  for($n=0;$n -lt 20;$n++){
+   if(-not (PortBusy)){$freed=$true;break}
+   Start-Sleep -Milliseconds 500
+  }
+  if(-not $freed){return $false}
+  if((LaunchBundled) -and (ReadyForThisRelease)){
+   return $true
+  }
+  return $false
+ }catch{
+  return $false
+ }finally{
+  # If the new core did not become verified, attempt to restore the exact
+  # previous owner's release, never an unrelated system process.
+  if($stopped -and $prior -and -not (ReadyForThisRelease) -and
+     -not (PortBusy)){
+   try{
+    $ps=Join-Path $env:SystemRoot 'System32\WindowsPowerShell\v1.0\powershell.exe'
+    if(SafeFile $ps 3000000){
+     & $ps -NoProfile -NonInteractive -ExecutionPolicy Bypass -File $prior -Mode Start 2>$null | Out-Null
+    }
+   }catch{}
+  }
+ }
+}
+$script:Stage='START'
+try{
+ $script:Stage='ENVIRONMENT'
+ if($env:OS -cne 'Windows_NT' -or
+    -not [Environment]::Is64BitOperatingSystem){
+  throw 'JREI_WINDOWS_X64_REQUIRED'
+ }
+ $script:Stage='PACKAGE'
+ VerifyPackage
+ $script:Stage='APPROVAL'
+ if($Mode -eq 'Install' -and -not $OwnerApproved){
+  throw 'JREI_OWNER_INSTALL_APPROVAL_REQUIRED'
+ }
+ $script:Stage='LOOPBACK'
+ if(ReadyForThisRelease){
+  if($Mode -eq 'Install'){TryRecord 'ENGINE_AUTHENTICATED_EXISTING' 'TASK_UNCHANGED'}
+  Emit 'JREI_ENGINE_AUTHENTICATED_EXISTING'
+  return
+ }
+ if(OwnerReady){
+  # An authenticated old JREI must not be mistaken for the new package.
+  if($Mode -eq 'Install'){
+   TryRecord 'ENGINE_PENDING_PREVIOUS_VERSION_8092_PRESERVED' 'TASK_UNCHANGED'
+  }
+  Emit 'JREI_ENGINE_PENDING_PREVIOUS_VERSION_8092_PRESERVED'
+  return
+ }
+ if(PortBusy){
+  if($Mode -eq 'Install'){
+   TryRecord 'ENGINE_PENDING_UNVERIFIED_8092_LISTENER' 'TASK_UNCHANGED'
+   Emit 'JREI_ENGINE_PENDING_UNVERIFIED_8092_LISTENER'
+   return
+  }
+  if($Mode -eq 'Status'){
+   Emit 'JREI_ENGINE_PENDING_UNVERIFIED_8092_LISTENER'
+   return
+  }
+  throw 'JREI_8092_LISTENER_UNVERIFIED_PRESERVED'
+ }
+ if($Mode -eq 'Status'){
+  Emit 'JREI_ENGINE_NOT_RUNNING'
+  return
+ }
+ $script:Stage='OLD_TASK_READ'
+ $auto='ON_DEMAND_NO_TASK_CHANGES'
+ if($Mode -eq 'Install' -and (HasExistingTask)){
+  $auto='EXISTING_TASK_PRESERVED'
+ }
+ $script:Stage='ENGINE_PROCESS'
+ $running=$false
+ try{$running=LaunchBundled}catch{
+  $script:LastPrivateEngineError='JREI_ENGINE_PROCESS_LAUNCH_DENIED'
+ }
+ if($running){
+  if($Mode -eq 'Install'){TryRecord 'ENGINE_AUTHENTICATED_BUNDLED' $auto}
+  Emit 'JREI_ENGINE_AUTHENTICATED_BUNDLED'
+  return
+ }
+ if($Mode -eq 'Install'){
+  TryRecord $script:LastPrivateEngineError $auto
+  Emit $script:LastPrivateEngineError
+  return
+ }
+ throw $script:LastPrivateEngineError
+}catch{
+ $code=[string]$_.Exception.Message
+ if($code -cnotmatch '^JREI_[A-Z0-9_]{4,110}$'){
+  $code='JREI_SETUP_'+$script:Stage+'_FAILED'
+ }
+ if($Mode -eq 'Install'){
+  TryRecord $code 'FAILED_NO_TASK_OR_DATA_CHANGES'
+ }
+ # Only bounded diagnostic identifier is visible outside the owner PC.
+ # No stack trace, signed worker keys, bearer tokens, or profile paths.
+ [Console]::Error.WriteLine($code)
+ exit 1
+}
+){
+   $nt=New-Object -TypeName System.Security.Principal.NTAccount -ArgumentList $registered
+   $registered=$nt.Translate([Security.Principal.SecurityIdentifier]).Value
+  }
+  if($registered -cne $owner){return $false}
+  $original=$task.Actions[0]
+  if([IO.Path]::GetFileName([string]$original.Execute) -ine 'python.exe'){
+   return $false
+  }
+  $args=[string]$original.Arguments
+  if($args -cne '-B -m jrei_service.windows_command_center --serve' -and
+     ($args -notmatch 'jrei_(?:embedded_engine|owner_python_bootstrap)\.py' -or
+      $args -notmatch '\-\-serve')){return $false}
+  $working=[IO.Path]::GetFullPath([string]$original.WorkingDirectory)
+  $profile=[IO.Path]::GetFullPath($env:USERPROFILE).TrimEnd('\')
+  if(-not $working.StartsWith($profile+'\',
+      [StringComparison]::OrdinalIgnoreCase)){return $false}
+  $ids=@(Get-NetTCPConnection -LocalPort 8092 -State Listen -ErrorAction Stop |
+    Where-Object {$_.LocalAddress -eq '127.0.0.1'} |
+    Select-Object -ExpandProperty OwningProcess -Unique)
+  if($ids.Count -ne 1){return $false}
+  $proc=Get-CimInstance Win32_Process -Filter ("ProcessId="+[int]$ids[0]) -ErrorAction Stop
+  if($null -eq $proc -or
+     [string]$proc.ExecutablePath -ine [string]$original.Execute -or
+     -not ([string]$proc.CommandLine).Contains('--serve')){return $false}
+  $actual=Invoke-CimMethod -InputObject $proc -MethodName GetOwnerSid -ErrorAction Stop
+  if($actual.ReturnValue -ne 0 -or [string]$actual.Sid -cne $owner){
+   return $false
+  }
+  # Repeat authenticated idle check immediately before task mutation.
+  if(-not (OwnerReady) -or $script:LastOwnerStatus.busy -ne $false -or
+     $script:LastOwnerStatus.owner_activity_recent -ne $false){return $false}
+  $newArgs='-I -B "'+$launcher+'" --serve'
+  $nextAction=New-ScheduledTaskAction -Execute $engine -WorkingDirectory $PSScriptRoot -Argument $newArgs
+  Stop-ScheduledTask -TaskName $taskName -ErrorAction Stop
+  for($n=0;$n -lt 24;$n++){
+   if(-not (PortBusy)){break}
+   Start-Sleep -Milliseconds 500
+  }
+  if(PortBusy){return $false}
+  Set-ScheduledTask -TaskName $taskName -Action $nextAction -ErrorAction Stop | Out-Null
+  $changed=$true
+  Start-ScheduledTask -TaskName $taskName -ErrorAction Stop
+  for($n=0;$n -lt 45;$n++){
+   if(ReadyForThisRelease){return $true}
+   Start-Sleep -Seconds 1
+  }
+  return $false
+ }catch{return $false}
+ finally{
+  if($changed -and -not (ReadyForThisRelease) -and $null -ne $original){
+   try{
+    Stop-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue
+    Set-ScheduledTask -TaskName $taskName -Action $original -ErrorAction Stop | Out-Null
+    Start-ScheduledTask -TaskName $taskName -ErrorAction Stop
+   }catch{}
+  }elseif(-not $changed -and $null -ne $task -and
+          $task.State -eq 'Running' -and -not (PortBusy)){
+   try{Start-ScheduledTask -TaskName $taskName -ErrorAction Stop}catch{}
+  }
+ }
+}
 function TryOwnerApprovedBundledHandover {
  # The current installer was explicitly opened by this owner. Only an
  # authenticated, idle, SAME USER Python launched from a previous JREI
