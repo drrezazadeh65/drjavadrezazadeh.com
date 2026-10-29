@@ -56,4 +56,21 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except (RuntimeError, OSError, ImportError, ValueError) as exc:
+        # Print ONLY a known bounded code. No traceback, username, Windows
+        # path, credentials or internal package contents escape to setup logs.
+        code = str(exc)
+        if not re.fullmatch(r"JREI_[A-Z0-9_]{4,110}", code):
+            code = "JREI_OWNER_PYTHON_BOOTSTRAP_EXECUTION_FAILED"
+        print("[JREI] " + code, file=sys.stderr, flush=True)
+        raise SystemExit(23) from None
+    except SystemExit as exc:
+        if isinstance(exc.code, str):
+            code = exc.code
+            if not re.fullmatch(r"JREI_[A-Z0-9_]{4,110}", code):
+                code = "JREI_OWNER_PYTHON_BOOTSTRAP_MODE_FAILED"
+            print("[JREI] " + code, file=sys.stderr, flush=True)
+            raise SystemExit(24) from None
+        raise
