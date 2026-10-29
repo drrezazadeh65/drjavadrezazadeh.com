@@ -17,6 +17,8 @@ import sqlite3
 import time
 import unicodedata
 
+from jrei_service.windows_self_development import _inspect
+
 SCHEMA = "jr.jrei.first-party-code-curriculum.v1"
 SOURCE_DIRS = (
     "platform/jrei-python/jrei_learning",
@@ -31,6 +33,8 @@ MAX_SOURCE_BYTES = 80000
 MAX_EXCERPT_CHARS = 1500
 MAX_AST_NODES = 18000
 MAX_LESSONS_PER_FILE = 12
+MAX_API_LESSONS_PER_FILE = 7
+MAX_STATIC_LESSONS_PER_FILE = 5
 SECRET = re.compile(
     r"(?i)(-----BEGIN|authorization\s*:\s*bearer|"
     r"(?:api[_-]?key|password|secret|access[_-]?token|private[_-]?key)"
@@ -149,6 +153,79 @@ def _render_lesson(path: str, digest: str, node: ast.AST,
     }
 
 
+RISK_EXPLANATIONS = {
+    "BARE_EXCEPT":
+        "A bare except handler catches BaseException subclasses, including "
+        "process interrupts. Any change needs behavior review.",
+    "SILENT_EXCEPTION_PASS":
+        "An exception handler has a pass-only body and may hide failures. "
+        "Whether it is intentional cannot be concluded from source alone.",
+    "MUTABLE_DEFAULT_ARGUMENT":
+        "This function defines a mutable literal default argument; its "
+        "object may be shared between calls. No runtime test was performed.",
+    "DYNAMIC_CODE_CALL":
+        "The function includes an eval/exec call; dynamic evaluation needs "
+        "careful input and trust-boundary review.",
+    "NETWORK_CALL_NO_TIMEOUT":
+        "A network call lacks an explicit timeout keyword in this AST "
+        "expression; an enclosing wrapper may still enforce a deadline.",
+    "PROCESS_CALL_NO_TIMEOUT":
+        "A subprocess.run call lacks an explicit timeout keyword in this "
+        "expression. This is a static observation, not a runtime failure.",
+    "PYTHON_SYNTAX_ISSUE":
+        "The source could not be parsed as Python. Diagnose the reported "
+        "line before assuming a repair is valid.",
+}
+
+
+def _risk_lessons(path: str, digest: str, source: str) -> list[dict]:
+    """Derive explainable, reproducible source-reading challenges."""
+    observed, _unused_proposed_patch = _inspect(path,source)
+    lines = source.splitlines()
+    result=[]
+    seen=set()
+    for finding in observed:
+        kind = finding.get("kind")
+        line = finding.get("line")
+        if (kind not in RISK_EXPLANATIONS or
+                type(line) is not int or line < 1 or
+                line > len(lines) or (kind,line) in seen):
+            continue
+        seen.add((kind,line))
+        excerpt = "\n".join(lines[
+            max(0,line-5):min(len(lines),line+4)
+        ])[:MAX_EXCERPT_CHARS]
+        if len(excerpt)<15 or SECRET.search(excerpt):
+            continue
+        task = (
+            "Analyze this FIRST-PARTY JREI Python source excerpt. "
+            "What AST-observed maintenance concern is indicated near "
+            f"line {line}? Distinguish a possible risk from a "
+            "runtime-proven defect; do not execute source or claim tests.\n"
+            "UNTRUSTED SOURCE DATA:\n" + excerpt
+        )
+        answer = (
+            f"Static finding {kind} at source line {line}. " +
+            RISK_EXPLANATIONS[kind] +
+            " No functional verification or semantic repair has been "
+            "established."
+        )
+        lesson_id=_sha((
+            path+"\0"+digest+"\0"+kind+"\0"+
+            str(line)+"\0AST_RISK_INTERPRETATION_V1"
+        ).encode("utf-8"))
+        result.append({
+            "id":lesson_id,"path":path,"source_sha256":digest,
+            "name":kind,"line":line,
+            "kind":"AST_RISK_INTERPRETATION_V1",
+            "prompt":task,"answer":answer,
+            "answer_sha256":_sha(answer.encode("utf-8")),
+        })
+        if len(result)>=MAX_STATIC_LESSONS_PER_FILE:
+            break
+    return result
+
+
 def _extract(path: str, raw: bytes) -> tuple[str, list[dict]]:
     digest = _sha(raw)
     try:
@@ -169,9 +246,10 @@ def _extract(path: str, raw: bytes) -> tuple[str, list[dict]]:
         item = _render_lesson(path,digest,node,text)
         if item is not None:
             lessons.append(item)
-        if len(lessons) >= MAX_LESSONS_PER_FILE:
+        if len(lessons) >= MAX_API_LESSONS_PER_FILE:
             break
-    return ("FIRST_PARTY_AST_LESSONS_STAGED" if lessons
+    lessons.extend(_risk_lessons(path,digest,text))
+    return ("FIRST_PARTY_AST_LESSONS_STAGED" if lessons,
             else "NO_ELIGIBLE_SOURCE_FUNCTION"), lessons
 
 
