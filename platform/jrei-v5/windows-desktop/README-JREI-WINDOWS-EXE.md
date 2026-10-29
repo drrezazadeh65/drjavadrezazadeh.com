@@ -1,6 +1,6 @@
-# JREI owner universal Windows installation — v0.1.8 candidate
+# JREI owner universal Windows installation — v0.1.9 candidate
 
-**Status: source committed; NO v0.1.8 Windows build or real-device installation has been verified.**
+**Status: source committed; NO v0.1.9 Windows build or real-device installation has been verified.**
 
 Repository: drrezazadeh65/drjavadrezazadeh.com
 Canonical branch: migration/bertina-linux6
@@ -9,18 +9,26 @@ Canonical branch: migration/bertina-linux6
 
 The original Inno Setup owner EXEs v0.1.2–0.1.4 could show their Tk client without a working 8092 private engine. On the owner's signed **NODE_A (15.9 GB RAM)**, Inno Setup repeatedly failed **BEFORE its normal log was created** while making an is-...tmp folder with Windows error 5. The owner could create independent test folders in the same TEMP root. On signed **NODE_B (31.8 GB RAM)** the GUI launched but **8092 was not responding**; during installation the owner skipped one locked/unavailable file. None of these observations proves the earlier installer completed successfully.
 
-**New observation on NODE_A using v0.1.6:** the native setup itself launched, but stopped with `JREI_PROGRAM_DIRECTORY_NOT_WRITABLE` while attempting its fixed `%LOCALAPPDATA%\\Programs\\JREI\\releases` program directory. This is distinct from the earlier Inno TEMP error. The subsequent **v0.1.8 source candidate** checks write access and selects from three explicitly bounded per-user destinations: the standard LocalAppData Programs directory, a separate LocalAppData JREI-Applications directory, and a UserProfile JREI-Applications directory. There is **no administrator elevation, permission reset, antivirus bypass or private-user-data migration**. If all three locations fail, setup reports a fixed error and stops rather than silently claiming success.
+**New observation on NODE_A using v0.1.6:** the native setup itself launched, but stopped with `JREI_PROGRAM_DIRECTORY_NOT_WRITABLE` while attempting its fixed `%LOCALAPPDATA%\\Programs\\JREI\\releases` program directory. This is distinct from the earlier Inno TEMP error. The subsequent **v0.1.9 source candidate** checks write access and selects from three explicitly bounded per-user destinations: the standard LocalAppData Programs directory, a separate LocalAppData JREI-Applications directory, and a UserProfile JREI-Applications directory. There is **no administrator elevation, permission reset, antivirus bypass or private-user-data migration**. If all three locations fail, setup reports a fixed error and stops rather than silently claiming success.
 
-On an owner device with a pre-existing unrecognized `JREI-Owner-Windows-Command-Center` task, v0.1.8 preserves that task and, if port 8092 is unoccupied, starts the packaged **original** engine on demand. The desktop reconnects on startup even without a scheduled auto-start task. This does not claim autonomous background operation while Windows is logged out, and does not enroll a new device with the remote server.
+On an owner device with a pre-existing unrecognized `JREI-Owner-Windows-Command-Center` task, v0.1.9 preserves that task and, if port 8092 is unoccupied, starts the packaged **original** engine on demand. The desktop reconnects on startup even without a scheduled auto-start task. This does not claim autonomous background operation while Windows is logged out, and does not enroll a new device with the remote server.
 
 The **canonical existing manual GitHub workflow** has been reworked to use a **native Go Windows x64 setup EXE** instead of Inno's self-extracting setup loader. The builder also changed **both PyInstaller components to onedir** to eliminate the common PyInstaller _MEI... TEMP extraction on user machines. This is a source-level design change, **not a verified cure** until it runs on both real devices.
 
+## Evidence from the owner 32 GB PC after the 0.1.8 build
+
+The console now shows `OWNER_CONSOLE_LISTENING_8092`, which confirms that the local JREI command-center **bound to loopback port 8092**. It does **not** prove a trained neural language model, connected remote worker, or functional GitHub/site changes. The old installer popup `JREI_UNKNOWN_TASK_ACTION_PRESERVED` was from a controller that rejected an unrecognized legacy Windows Scheduled Task; that legacy error name does not exist in the v0.1.8 source controller. The installer error and the current listening process can therefore coexist, and installation must not be marked accepted based only on the console.
+
+The Tk desktop's `JREI HTTP 404: NOT_FOUND` was traced to `GET /api/tasks?conversation_id=...`: the Python backend originally checked the **full request target** for literal equality with `/api/tasks`, so any query string produced a 404. The v0.1.9 source now checks the parsed URL path and the Tk GUI handles task-list read errors without claiming the main JREI engine is down. A new machine's initial missing owner-token is also treated as a controlled **first-start** condition, rather than aborting engine launch.
+
+A running older 8092 backend may continue serving the old route after a new installer stages program files. The installer intentionally does not forcibly terminate an active owner process or scheduled task. **Source commits alone do not replace a live in-memory service.** Confirm the running backend build identity before accepting the upgrade, and perform an owner-controlled handover only when no jobs or important sessions are active.
+
 ## Exactly ONE user-facing file for all present and future PCs
 
-At the next successful, explicitly owner-dispatched build, GitHub Actions' JREI-WINDOWS-DESKTOP-INSTALLER artifact will contain **one file**, JREI-Setup-Windows-x64-v0.1.8.exe (the GitHub artifact download itself is wrapped as a ZIP). It is a native standard-library Go EXE with a build-time embedded ZIP payload. The EXE:
+At the next successful, explicitly owner-dispatched build, GitHub Actions' JREI-WINDOWS-DESKTOP-INSTALLER artifact will contain **one file**, JREI-Setup-Windows-x64-v0.1.9.exe (the GitHub artifact download itself is wrapped as a ZIP). It is a native standard-library Go EXE with a build-time embedded ZIP payload. The EXE:
 
 1. Opens without running Inno Setup or asking for elevation.
-2. Extracts the payload DIRECTLY into a **write-probed, versioned per-user folder**; preferred location is %LOCALAPPDATA%\Programs\JREI\releases\v0.1.8\, with the two approved fallbacks if local policy denies creation. Does not use %TEMP% for its own extraction. Checks entry paths, archive CRC, limits and duplicate files; refuses unsafe links or unexpected mismatching files instead of Skip.
+2. Extracts the payload DIRECTLY into a **write-probed, versioned per-user folder**; preferred location is %LOCALAPPDATA%\Programs\JREI\releases\v0.1.9\, with the two approved fallbacks if local policy denies creation. Does not use %TEMP% for its own extraction. Checks entry paths, archive CRC, limits and duplicate files; refuses unsafe links or unexpected mismatching files instead of Skip.
 3. Installs the version-matched native Tk client, **original** 8092 JREI Python service compiled with Python 3.13 in a PyInstaller onedir layout, owner-only setup script and hardware inventory. There is no dependency installation/download on target Windows PCs.
 4. Uses the **original** JREI-Owner-Windows-Command-Center task if the current owner is verified. A new machine may register this owner-private task. An existing live verified 8092 engine is preserved. If a known, idle original action must be changed, the previous action is saved and restored upon startup failure. A running but nonresponsive owner task is NOT forcibly stopped or replaced; it becomes an explicit unresolved error.
 5. Creates/repoints the per-user Desktop and Start-menu JREI Personal AI shortcuts to the **versioned** client. Old installations and old executable versions are retained for recovery.
