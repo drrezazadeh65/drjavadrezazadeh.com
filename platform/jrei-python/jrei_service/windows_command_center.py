@@ -130,9 +130,13 @@ JOBS = {
     "robots_audit": ("Robots and sitemap", ["node", "scripts/seo-robots-sitemap-audit.mjs"], 45),
     "source_audit": ("Site source", ["git", "status", "--short"], 20),
 }
-# The standing research/coding mission concerns JREI itself, not site CMS,
-# news, SEO, publishing or graphics. Manual owner tools remain registered.
-AI_SELF_DEVELOPMENT_ONLY = True
+# Full owner-requested JREI local capabilities: keep continuous evidence learning
+# and explicitly queued, owner-reviewed conceptual image generation available.
+# Neither mode grants model training, source promotion or site publication.
+AI_SELF_DEVELOPMENT_ONLY = False
+# Windows JREI must NEVER run automatic website CI/tests as a side-effect of
+# enabling the AI. Website deployment uses the owner's frozen GitHub workflow.
+AUTOMATIC_SITE_CI_DISABLED = True
 CANDIDATE_FILES = (
     "platform/jrei-python/jrei_learning/strategy_optimizer.py",
     "platform/jrei-python/jrei_learning/method_feedback.py",
@@ -786,7 +790,7 @@ def scheduler():
             except (OSError, ValueError, RuntimeError, sqlite3.Error) as exc:
                 record("site_image", "HELD", exc.__class__.__name__)
             next_image = time.monotonic() + 240
-        if (not AI_SELF_DEVELOPMENT_ONLY and
+        if (not AUTOMATIC_SITE_CI_DISABLED and
                 time.monotonic() >= next_ci_check and not _BUSY.locked()):
             run_job("ci_health", background=True)
             next_ci_check = time.monotonic() + 1800
@@ -1051,6 +1055,28 @@ def recent(limit: int = 25):
 
 
 def windows_app_source_commit():
+    # A one-EXE offline install starts the original Python files via its
+    # versioned bundled CPython (NOT a PyInstaller-frozen Python backend).
+    # The prior code incorrectly skipped this case and returned UNKNOWN even
+    # though an exact source-commit manifest was packaged alongside Python.
+    # This is provenance of the running VERSIONED SOURCE, not acceptance of a
+    # trained model, successful learning, hardware or a signed installer.
+    if _BUNDLED_SOURCE is not None:
+        manifest = _BUNDLED_SOURCE.parent / 'jrei-engine-manifest.json'
+        try:
+            if (manifest.is_file() and not manifest.is_symlink()
+                    and manifest.stat().st_size <= 10000):
+                info = json.loads(manifest.read_text(encoding='utf-8-sig'))
+                sha = info.get('source_commit')
+                if (info.get('schema') == 'jr.jrei.offline-engine-package.v1'
+                        and info.get('engine_runtime') == 'BUNDLED_CPYTHON_3_13'
+                        and info.get('source_branch') == 'migration/bertina-linux6'
+                        and isinstance(sha, str)
+                        and re.fullmatch(r'[0-9a-f]{40}', sha)):
+                    return sha
+        except (OSError, ValueError, UnicodeError, TypeError):
+            pass
+        return None
     # A real frozen distribution has a pinned BUILD source manifest, which is
     # distinct from independent functional acceptance or signed publication.
     if getattr(sys, "frozen", False):
