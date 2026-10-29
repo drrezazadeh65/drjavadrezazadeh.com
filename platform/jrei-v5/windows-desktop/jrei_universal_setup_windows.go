@@ -271,9 +271,15 @@ func extractPayload(target string) error {
   "jrei-shortcuts.ps1",
   "jrei-engine-manifest.json",
   "python-v"+version+"/python.exe",
-   "python-v"+version+"/python313._pth",
-   "python-v"+version+"/Lib/site-packages/fastapi/__init__.py",
+  "python-v"+version+"/python3.dll",
+  "python-v"+version+"/python313.dll",
+  "python-v"+version+"/python313._pth",
+  "python-v"+version+"/LICENSE.txt",
+  "python-v"+version+"/DLLs/_sqlite3.pyd",
+  "python-v"+version+"/Lib/site-packages/fastapi/__init__.py",
+  "python-v"+version+"/Lib/site-packages/cryptography/__init__.py",
   "source-v"+version+"/platform/jrei-python/jrei_service/windows_command_center.py",
+  "source-v"+version+"/platform/jrei-v5/windows-desktop/jrei_embedded_engine.py",
  }
  for _, required := range expectedFiles {
   if !seen[strings.ToLower(filepath.FromSlash(required))] {
