@@ -1,6 +1,6 @@
-# JREI owner universal Windows installation — v0.1.10 candidate
+# JREI owner universal Windows installation — v0.1.11 source candidate
 
-**Status: source committed; NO v0.1.10 Windows build or real-device installation has been verified.**
+**Status: v0.1.10 was built and installed only in part on an owner PC; v0.1.11 is new source code only. The 0.1.11 frozen EXE and two-PC acceptance are NOT verified.**
 
 Repository: drrezazadeh65/drjavadrezazadeh.com
 Canonical branch: migration/bertina-linux6
@@ -27,10 +27,10 @@ A running older 8092 backend may continue serving the old route after a new inst
 
 ## Exactly ONE user-facing file for all present and future PCs
 
-At the next successful, explicitly owner-dispatched build, GitHub Actions' JREI-WINDOWS-DESKTOP-INSTALLER artifact will contain **one file**, JREI-Setup-Windows-x64-v0.1.10.exe (the GitHub artifact download itself is wrapped as a ZIP). It is a native standard-library Go EXE with a build-time embedded ZIP payload. The EXE:
+At the next successful, explicitly owner-dispatched build, GitHub Actions' JREI-WINDOWS-DESKTOP-INSTALLER artifact will contain **one file**, JREI-Setup-Windows-x64-v0.1.11.exe (the GitHub artifact download itself is wrapped as a ZIP). It is a native standard-library Go EXE with a build-time embedded ZIP payload. The EXE:
 
 1. Opens without running Inno Setup or asking for elevation.
-2. Extracts the payload DIRECTLY into a **write-probed, versioned per-user folder**; preferred location is %LOCALAPPDATA%\Programs\JREI\releases\v0.1.10\, with the two approved fallbacks if local policy denies creation. Does not use %TEMP% for its own extraction. Checks entry paths, archive CRC, limits and duplicate files; refuses unsafe links or unexpected mismatching files instead of Skip.
+2. Extracts the payload DIRECTLY into a **write-probed, versioned per-user folder**; preferred location is %LOCALAPPDATA%\Programs\JREI\releases\v0.1.11\, with the two approved fallbacks if local policy denies creation. Does not use %TEMP% for its own extraction. Checks entry paths, archive CRC, limits and duplicate files; refuses unsafe links or unexpected mismatching files instead of Skip.
 3. Installs the version-matched native Tk client, **original** 8092 JREI Python service compiled with Python 3.13 in a PyInstaller onedir layout, owner-only setup script and hardware inventory. There is no dependency installation/download on target Windows PCs.
 4. Uses the **original** JREI-Owner-Windows-Command-Center task if the current owner is verified. A new machine may register this owner-private task. An existing live verified 8092 engine is preserved. If a known, idle original action must be changed, the previous action is saved and restored upon startup failure. A running but nonresponsive owner task is NOT forcibly stopped or replaced; it becomes an explicit unresolved error.
 5. Creates/repoints the per-user Desktop and Start-menu JREI Personal AI shortcuts to the **versioned** client. Old installations and old executable versions are retained for recovery.
@@ -73,3 +73,14 @@ The 0.1.10 source replaces a duplicated/corrupted PowerShell controller. The rev
 The Go installer explicitly reads that state and distinguishes installed program files from an authenticated engine; it never claims model readiness. The shortcut writer was also replaced wholesale after finding duplicated text. No signed remote-node registration, image-model training, server deploy or live website update is part of this owner install.
 
 **Release gate:** source changes alone are not a successfully built EXE. Use the existing one-click workflow only after coherent source inspection; the resulting owner-built artifact must still be accepted on both real PCs. The older listening engine does not become the new binary merely because a newer program folder was staged.
+
+
+## Owner-proven root cause and v0.1.11 bounded response (2026-10-29)
+
+The user directly ran the frozen v0.1.10 Python engine on a Windows owner PC. The GUI program payload and its `JREI-Engine.exe` were present. The frozen engine could not write `%LOCALAPPDATA%\\JREI\\command-center\\owner-token` (`PermissionError`); after the owner created an owner-token using the system Python 3.13, SQLite opening failed; after a real database was created, the frozen engine failed `attempt to write a readonly database`. The DB's `IsReadOnly` was `False` and the user's ACL was full access, while the normal Python executable could perform exclusive-file creation and SQLite writes in the same directory. Controlled Folder Access reported disabled. This supports **process-specific or path-specific file-write interference**, but does not identify its Windows security root cause. Do not assert a successful engine just because a system Python probe passed.
+
+v0.1.11 adds **`jrei_service.windows_private_storage`** to the ORIGINAL 8092 service. Unlike earlier standalone test commands, **the actual frozen Python executable** checks exclusive write and transaction-capable SQLite writes, including the exact existing owner-token and missions.sqlite3 paths (rolling back probe DDL). On failure it attempts TWO bounded alternate private roots under the SAME Windows user: LocalAppData/JREI-Owner/command-center and UserProfile/JREI-Owner/command-center. It does not change Windows ACLs, elevate, disable protection or delete source data. Where old token/DB/evidence exist, they are copied (not moved) to a staging directory, file hashes are checked, and only an intact private copy with an explicit active-store marker is promoted. An inaccessible, locked, ambiguous or unsafe store fails closed with a short stable `JREI_...` error instead of inventing a healthy model. A previously selected valid same-device store is preferred at later starts. Cross-PC identity is **never** cloned.
+
+The native Tk owner client and Windows setup helper discover the same fixed store marker before authenticating to the ORIGINAL local 8092 engine. The helper captures only sanitized fatal codes from the frozen engine and removes temporary diagnostic stderr, while leaving old processes and Windows tasks alone. Authenticated `/api/status` reports whether the current private store is original or a verified same-user fallback, without exposing local profile paths.
+
+**Important remaining limitation:** if a Windows security product prohibits the frozen EXE from writing to *all* three private roots, the source-level fallback cannot defeat that policy and must report `JREI_FROZEN_RUNTIME_NO_WRITABLE_PRIVATE_STORE`. A correct source patch does NOT establish a successful new EXE or actual private-store access. Only real Windows acceptance can establish that; preserve the owner's current 0.1.10 files and source private data until then. The site and server are unchanged.
