@@ -34,6 +34,7 @@ SHA = re.compile(r"^[a-f0-9]{64}$")
 MAX_RUN_MANIFEST = 18000
 MAX_EVAL_EXAMPLES = 16
 MAX_OUTPUT_TOKENS = 144
+MAX_EVALUATION_SECONDS = 600
 EVAL_MODES = ("DEVELOPMENT", "SEALED_TEST")
 MODEL_FAMILY = "JREI_FROM_SCRATCH_NANOGPT_CODE_SPECIALIST"
 
@@ -190,7 +191,12 @@ def _run_evaluation(run: dict, checkpoint: Path, tokenizer_path: Path,
     if len(tokenizer.vocab)!=dims["vocab_size"]:
         raise ValueError("JREI_CODE_EVAL_TOKENIZER_VOCAB_MISMATCH")
     scores=[]
+    started=time.monotonic()
     for example in selected:
+        # A per-run safety budget is not a daily learning quota. The
+        # standalone local request should never monopolize a Windows PC.
+        if time.monotonic()-started>MAX_EVALUATION_SECONDS:
+            raise RuntimeError("JREI_CODE_EVAL_RESOURCE_TIME_BUDGET")
         answer=_generate(model,tokenizer,torch,example["prompt"],
                          max_new_tokens,dims["block_size"])
         expected=example["reference_answer"]
@@ -321,6 +327,35 @@ def evaluate_once(*, db_path: Path,private: Path,run_id: str,
         "functional_code_ability_proven":False,
         "weight_updates_performed":False,
         "model_promoted":False,
+    }
+
+
+def preflight(*, db_path: Path, private: Path, run_id: str) -> dict:
+    """Read-only eligibility report; never scores or consumes sealed items."""
+    run,_checkpoint=_validated_run(private,run_id)
+    code=load_verified_candidate(
+        db_path,private,run.get("source_candidate_id",""))
+    cohort=_cohort(db_path,private,
+                   code["manifest"]["source_cohort_sha256"])
+    with closing(_db(db_path)) as db:
+        prior=dict(db.execute("""SELECT split_name,state FROM
+            jrei_code_ability_evaluations WHERE run_id=?""",
+            (run_id,)).fetchall())
+    return {
+        "schema":SCHEMA,
+        "state":"CHECKPOINT_AND_CODE_COHORT_HASHES_VERIFIED",
+        "run_id":run_id,
+        "model_family":MODEL_FAMILY,
+        "code_source_cohort_sha256":
+            code["manifest"]["source_cohort_sha256"],
+        "available_examples":{split:len(cohort["partitions"][split])
+                              for split in EVAL_MODES},
+        "prior_recorded_split_states":prior,
+        "sealed_split_not_previously_reserved":
+            "SEALED_TEST" not in prior,
+        "read_only":True,
+        "weight_updates_performed":False,
+        "code_generation_correctness_not_proven":True,
     }
 
 
