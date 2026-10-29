@@ -341,6 +341,10 @@ def review_rule_once(*, db_path: Path, repo: Path, private: Path,
                 flags.append("EXCEPTION_CATCH_BEHAVIOR_CHANGED")
                 if state == "PYTHON_STATIC_REVIEW_RECORDED_UNTESTED":
                     state = "SEMANTIC_CHANGE_OWNER_REVIEW_REQUIRED"
+            elif kind == "SILENT_EXCEPTION_PASS_TO_RAISE":
+                flags.append("SILENT_EXCEPTION_BEHAVIOR_CHANGED")
+                if state == "PYTHON_STATIC_REVIEW_RECORDED_UNTESTED":
+                    state = "SEMANTIC_CHANGE_OWNER_REVIEW_REQUIRED"
         except (ValueError,OSError,UnicodeError,TypeError,
                 json.JSONDecodeError) as exc:
             state = "RULE_REVIEW_INPUT_REJECTED"
