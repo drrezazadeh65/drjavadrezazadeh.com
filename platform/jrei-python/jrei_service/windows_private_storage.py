@@ -57,7 +57,7 @@ def _install_adjacent_private(profile_root: Path) -> Path | None:
     module = Path(__file__).absolute()
     try:
         source = module.parents[3]
-        match = __import__("re").fullmatch(r"source-v(\\d+\\.\\d+\\.\\d+)", source.name)
+        match = __import__("re").fullmatch(r"source-v(\d+\.\d+\.\d+)", source.name)
         release = source.parent
         if (not match or release.name != "v" + match.group(1)
                 or release.parent.name != "releases"
