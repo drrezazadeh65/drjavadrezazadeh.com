@@ -128,10 +128,12 @@ def _probe_real_owner_files(root: Path) -> None:
         raise PrivateStorageError("JREI_PRIVATE_FILE_LINK_REJECTED")
     try:
         if token.exists():
-            # Verify that THIS process can open the named file for writing,
-            # without changing its bytes or disclosing the credential.
-            with token.open("r+b") as stream:
-                if stream.read(1) == b"":
+            # Existing owner credentials are read-only for engine startup.
+            # Requiring 'r+b' needlessly rejects a valid protected token:
+            # setup() creates ONLY missing tokens and must never overwrite.
+            with token.open("rb") as stream:
+                prefix = stream.read(1)
+                if prefix == b"":
                     raise PrivateStorageError("JREI_EXISTING_OWNER_TOKEN_EMPTY")
         else:
             with token.open("x", encoding="ascii") as stream:
@@ -264,4 +266,13 @@ def select_private_storage() -> Path:
             return alternative
         except (OSError, sqlite3.Error, PrivateStorageError) as exc:
             last_error = exc
+    # Return the final stable, path-free root reason rather than hiding
+    # every distinct source-copy or target-access failure in a generic code.
+    # This never prints an owner's profile name, token or SQLite contents.
+    if isinstance(last_error, PrivateStorageError):
+        raise PrivateStorageError(str(last_error)) from last_error
+    if isinstance(last_error, PermissionError):
+        raise PrivateStorageError("JREI_PRIVATE_FALLBACK_FILESYSTEM_ACCESS_DENIED") from last_error
+    if isinstance(last_error, sqlite3.Error):
+        raise PrivateStorageError("JREI_PRIVATE_FALLBACK_SQLITE_UNAVAILABLE") from last_error
     raise PrivateStorageError("JREI_FROZEN_RUNTIME_NO_WRITABLE_PRIVATE_STORE") from last_error
