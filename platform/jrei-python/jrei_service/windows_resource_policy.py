@@ -66,12 +66,16 @@ def _plan():
     if available<reserve or disk<_MIN_DISK_GB or cpu>=.72:
         generic["reason"]="CAPACITY_GUARD_BLOCKED"
         return generic
+    # Cheap first-party AST inspection can proceed during foreground use,
+    # provided measured RAM/disk/CPU guards are satisfied. Heavy model
+    # training, patch synthesis and indexing still require owner idle.
+    generic["permitted_work"].append("SELF_STATIC_REVIEW")
+    generic["cpu_only_background_slots"]=1
     if idle<180:
-        generic["reason"]="OWNER_FOREGROUND_ACTIVE"
+        generic["reason"]="OWNER_FOREGROUND_STATIC_ONLY"
         return generic
     generic["permitted_work"]+=["APPROVED_NETWORK_STUDY",
                                 "FTS_REBUILD","MEMORY_CURATION"]
-    generic["cpu_only_background_slots"]=1
     generic["reason"]="LIGHT_BACKGROUND_ELIGIBLE"
     if (idle>=420 and profile=="NODE_32GB_HEAVY"
             and available>=max(reserve,12288) and cpu<.45):
