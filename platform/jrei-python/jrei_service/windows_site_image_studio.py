@@ -22,6 +22,7 @@ import sqlite3
 import time
 
 from jrei_service import windows_native_visual as native_visual
+from jrei_service import windows_private_storage as private_storage
 from jrei_service import windows_visual_learning as visual_learning
 
 SCHEMA = "jr.jrei.site-image-studio.v1"
@@ -341,7 +342,7 @@ def render_one(db_path: Path, private: Path, ident: str) -> dict:
     if not isinstance(image, Image.Image):
         raise RuntimeError("JREI_IMAGE_RENDERER_RETURNED_NO_IMAGE")
     output_dir = _folder(private, ident)
-    output_dir.mkdir(mode=0o700, parents=True, exist_ok=False)
+    private_storage._mkdir_owner(output_dir, parents=True, exist_ok=False)
     files = {}
     try:
         for w, h in variants:
@@ -522,7 +523,11 @@ def main():
     if not args.owner_queued:
         parser.error("JREI_IMAGE_OWNER_QUEUED_JOB_REQUIRED")
     private = args.private.resolve(strict=True)
-    if private.name != "command-center" or private.parent.name != "JREI":
+    # The original owner-private storage selector may have moved to an
+    # explicitly marked same-PC fallback after Windows ACL failures. Accept
+    # ONLY a candidate in that existing owner-profile trust boundary.
+    allowed = {p.absolute() for p in private_storage.candidates()}
+    if private not in allowed or private.name != "command-center":
         parser.error("JREI_IMAGE_PRIVATE_ROOT_INVALID")
     db_path = private / "missions.sqlite3"
     try:
