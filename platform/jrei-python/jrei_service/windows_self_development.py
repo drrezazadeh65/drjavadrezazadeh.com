@@ -14,7 +14,6 @@ import ast
 from contextlib import closing
 import hashlib
 import json
-import os
 from pathlib import Path
 import sqlite3
 import time
@@ -36,6 +35,36 @@ TARGETS = (
 )
 MAX_SOURCE_BYTES = 26000
 MAX_RECORDED_FINDINGS = 32
+# One scan is bounded for responsiveness, but previously unseen modules can
+# enter the next cycle. This is not a lifetime or daily research quota.
+SOURCE_DIRS = (
+    "platform/jrei-python/jrei_core",
+    "platform/jrei-python/jrei_learning",
+    "platform/jrei-python/jrei_orchestrator",
+    "platform/jrei-python/jrei_service",
+)
+
+
+def _targets(repo: Path):
+    """Discover first-party Python code without a permanent hardcoded list."""
+    known = set()
+    root = repo.resolve(strict=True)
+    for relative in _targets(repo):
+        known.add(relative)
+        yield relative
+    for folder in SOURCE_DIRS:
+        directory = root.joinpath(*folder.split("/"))
+        if not directory.is_dir() or directory.is_symlink():
+            continue
+        for entry in sorted(directory.rglob("*.py")):
+            if (entry.is_symlink() or not entry.is_file()
+                    or not entry.resolve(strict=True).is_relative_to(root)
+                    or entry.stat().st_size > MAX_SOURCE_BYTES):
+                continue
+            relative = entry.relative_to(root).as_posix()
+            if relative not in known:
+                known.add(relative)
+                yield relative
 
 
 def _db(path: Path):
@@ -56,6 +85,13 @@ def initialize(db_path: Path) -> None:
           finding_count INTEGER NOT NULL,
           candidate_sha256 TEXT,
           candidate_state TEXT NOT NULL)""")
+        db.execute("""CREATE TABLE IF NOT EXISTS jrei_self_code_findings(
+          source_path TEXT NOT NULL,
+          source_sha256 TEXT NOT NULL,
+          finding_kind TEXT NOT NULL,
+          occurrences INTEGER NOT NULL,
+          observed INTEGER NOT NULL,
+          PRIMARY KEY(source_path,finding_kind))""")
         db.commit()
 
 
@@ -211,6 +247,17 @@ def audit_once(*, db_path: Path, repo: Path, private: Path,
                 candidate_state=excluded.candidate_state""",
                 (relative, current_sha, now, state, finding_sha,
                  len(findings), candidate_sha, candidate_state))
+            counts: dict[str, int] = {}
+            for finding in findings:
+                kind = finding["kind"]
+                counts[kind] = counts.get(kind, 0) + 1
+            db.execute("DELETE FROM jrei_self_code_findings WHERE source_path=?",
+                       (relative,))
+            db.executemany("""INSERT INTO jrei_self_code_findings(
+                source_path,source_sha256,finding_kind,occurrences,observed)
+                VALUES(?,?,?,?,?)""",
+                [(relative,current_sha,kind,number,now)
+                 for kind,number in sorted(counts.items())])
             db.commit()
         return {
             "schema": SCHEMA, "state": state,
@@ -231,8 +278,13 @@ def snapshot(db_path: Path) -> dict:
                 COALESCE(SUM(CASE WHEN candidate_sha256 IS NOT NULL
                           THEN 1 ELSE 0 END),0)
             FROM jrei_self_code_audit""").fetchone()
+        categories = db.execute("""SELECT finding_kind,SUM(occurrences)
+            FROM jrei_self_code_findings GROUP BY finding_kind
+            ORDER BY finding_kind""").fetchall()
     return {
         "schema": SCHEMA, "audited_files": count,
+        "finding_categories": {kind:int(count or 0)
+                               for kind,count in categories},
         "static_findings": finding, "isolated_drafts": drafts,
         "first_party_only": True, "models_required": False,
         "tests_run": False, "deployed": False,
