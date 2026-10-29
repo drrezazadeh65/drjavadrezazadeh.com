@@ -56,10 +56,10 @@ SKIP_PARTS = frozenset(("node_modules", "vendor", "_vendor", "dist",
 
 
 def _targets(repo: Path):
-    """Discover first-party Python code without a permanent hardcoded list."""
+    """Discover first-party JREI Python/JS/TS without a fixed file list."""
     known = set()
     root = repo.resolve(strict=True)
-    for relative in _targets(repo):
+    for relative in TARGETS:
         known.add(relative)
         yield relative
     for folder, extensions in SOURCE_DIRS:
@@ -127,9 +127,9 @@ def _inspect(target: str, source: str) -> tuple[list[dict], str | None]:
         findings = []
         patterns = (
             ("DYNAMIC_CODE_CALL_PATTERN",
-             re.compile(r"\\b(?:eval|Function)\\s*\\(")),
+             re.compile(r"\b(?:eval|Function)\s*\(")),
             ("CHILD_PROCESS_REFERENCE_PATTERN",
-             re.compile(r"\\b(?:child_process|execSync|spawnSync)\\b")),
+             re.compile(r"\b(?:child_process|execSync|spawnSync)\b")),
         )
         for number, line in enumerate(source.splitlines(), start=1):
             for kind, pattern in patterns:
@@ -239,7 +239,7 @@ def audit_once(*, db_path: Path, repo: Path, private: Path,
         previous = dict(db.execute(
             "SELECT source_path,source_sha256 FROM jrei_self_code_audit"
         ).fetchall())
-    for relative in TARGETS:
+    for relative in _targets(repo):
         try:
             raw = _read_source(repo, relative)
         except (OSError, ValueError):
