@@ -69,7 +69,7 @@ function OwnerReady {
   $response=$request.GetResponse()
   try{
    if([int]$response.StatusCode -ne 200){return $false}
-   $reader=New-Object IO.StreamReader($response.GetResponseStream())
+   $reader=[IO.StreamReader]::new($response.GetResponseStream())
    try{
     $payload=$reader.ReadToEnd()
     if($payload.Length -gt 130000){return $false}
