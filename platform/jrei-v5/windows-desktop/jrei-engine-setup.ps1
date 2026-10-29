@@ -176,8 +176,16 @@ function SystemPython313Launcher {
  $path=[string]$candidate.Source
  if(-not (SafeFile $path 35000000)){return $null}
  try{
-  $answer=@(& $path -3.13 -I -B -c "import sys;print('JREI_SYSTEM_PYTHON_3_13_READY' if sys.version_info[:2]==(3,13) else 'INCOMPATIBLE')" 2>$null)
-  if($LASTEXITCODE -eq 0 -and $answer.Count -eq 1 -and $answer[0] -ceq 'JREI_SYSTEM_PYTHON_3_13_READY'){return $path}
+  # Query the existing launcher ONLY to resolve the verified interpreter.
+  # Run python.exe itself thereafter; the py.exe launcher may spawn a child
+  # and exit early, which is unsuitable for our one-engine-only lifetime gate.
+  $answer=@(& $path -3.13 -I -B -c "import sys;print(sys.executable if sys.version_info[:2]==(3,13) else '')" 2>$null)
+  if($LASTEXITCODE -ne 0 -or $answer.Count -ne 1){return $null}
+  $python=[string]$answer[0]
+  if([IO.Path]::GetFileName($python) -cne 'python.exe' -or
+     -not [IO.Path]::IsPathRooted($python) -or
+     -not (SafeFile $python 35000000)){return $null}
+  return $python
  }catch{}
  return $null
 }
@@ -218,7 +226,7 @@ function LaunchBundled {
  if(PortBusy){return $false}
  $system=SystemPython313Launcher
  if($system){
-  $arguments=@('-3.13','-I','-B',('"'+$systemBootstrap+'"'),'--serve')
+  $arguments=@('-I','-B',('"'+$systemBootstrap+'"'),'--serve')
   $result=LaunchCandidate $system $arguments
   if($result -ceq 'AUTHENTICATED'){return $true}
   # Never launch another engine while an earlier process is still alive.
