@@ -317,14 +317,23 @@ def load_verified_candidate(db_path: Path, private: Path, ident: str) -> dict:
 
 
 def snapshot(private: Path) -> dict:
+    """No model import and no training; tolerate inaccessible private dirs."""
     root=private/"native-code-neural-candidates"
     seen=0
-    if root.is_dir() and not root.is_symlink():
-        for folder in root.iterdir():
-            if folder.is_dir() and not folder.is_symlink() and
-                    IDENT.fullmatch(folder.name):
-                seen+=1
-    return {"schema":SCHEMA,"code_dataset_candidates_observed":seen,
+    state="CODE_DATASET_CANDIDATES_OBSERVED"
+    try:
+        if root.is_symlink():
+            state="CODE_DATASET_PRIVATE_DIRECTORY_LINKED"
+        elif root.is_dir():
+            for folder in root.iterdir():
+                if (folder.is_dir() and not folder.is_symlink() and
+                        IDENT.fullmatch(folder.name)):
+                    seen+=1
+    except (OSError,ValueError):
+        state="CODE_DATASET_STATUS_UNAVAILABLE"
+    return {"schema":SCHEMA,"state":state,
+            "code_dataset_candidates_observed":seen,
+            "candidates_not_confirmed_usable_by_status_only":True,
             "model_training_started_here":False,
             "weights_trained_here":False,
             "general_bilingual_acceptance_claimed":False}
