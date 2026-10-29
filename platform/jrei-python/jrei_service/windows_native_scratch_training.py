@@ -309,6 +309,68 @@ def train(*, db_path: Path, private: Path, config_file: Path,
 
 
 
+def train_owner_reviewed_code(*, db_path: Path, private: Path,
+                              candidate_id: str, settings: dict,
+                              owner_confirmed: bool) -> dict:
+    """One explicit owner-local CODE training job on the ORIGINAL trainer.
+
+    Build a fixed, bounded config from typed settings; never accept a
+    caller-provided shell command, config path, dataset path or source URL.
+    The existing nanoGPT training function and resource checks are reused.
+    """
+    from jrei_service.windows_native_code_preparation import (
+        IDENT as CODE_IDENT)
+    if owner_confirmed is not True:
+        raise ValueError("JREI_CODE_TRAIN_OWNER_APPROVAL_REQUIRED")
+    if (not isinstance(candidate_id,str) or
+            not CODE_IDENT.fullmatch(candidate_id) or
+            not isinstance(settings,dict)):
+        raise ValueError("JREI_CODE_TRAIN_CANDIDATE_OR_SETTINGS_INVALID")
+    selected={
+        "layers":settings.get("layers",2),
+        "heads":settings.get("heads",4),
+        "embedding":settings.get("embedding",128),
+        "block_size":settings.get("block_size",128),
+        "batch_size":settings.get("batch_size",4),
+        "steps":settings.get("steps",200),
+        "max_seconds":settings.get("max_seconds",3600),
+        "device":settings.get("device","cpu"),
+        "learning_rate":settings.get("learning_rate",0.0003),
+        "seed":settings.get("seed",701),
+    }
+    if set(settings)-set(selected):
+        raise ValueError("JREI_CODE_TRAIN_UNKNOWN_SETTING")
+    config={
+        "schema":"jr.jrei.native-scratch-training-job.v1",
+        "owner_approved":True,"no_network":True,
+        "train_from_random_initialization":True,
+        "external_pretrained_models":False,
+        "owner_understands_unverified_quality":True,
+        "data_mode":"first_party_code",
+        "code_source_rights_reviewed":True,
+        "candidate_id":candidate_id,
+        **selected,
+    }
+    # The source code/data and owner approval are revalidated inside train()
+    # before any gradient update and again before checkpoint persistence.
+    directory=private/"native-code-training-jobs"
+    if directory.is_symlink() or private.name!="command-center":
+        raise ValueError("JREI_CODE_TRAIN_PRIVATE_DIR_INVALID")
+    directory.mkdir(parents=True,mode=0o700,exist_ok=True)
+    identifier=secrets.token_hex(16)
+    cfg=directory/(identifier+".json")
+    with cfg.open("x",encoding="utf-8") as stream:
+        json.dump(config,stream,sort_keys=True,indent=2)
+    # Validate the exact config shape before calling the shared trainer.
+    _load_settings(cfg,private)
+    result=train(db_path=db_path,private=private,
+                 config_file=cfg,owner_approved=True)
+    return {**result,
+            "training_mode":"OWNER_REVIEWED_FIRST_PARTY_CODE",
+            "native_bilingual_model_promoted":False,
+            "independent_code_generation_accepted":False}
+
+
 def snapshot_code_runs(private: Path) -> dict:
     """Observe *recorded* source-pinned code-model training candidates.
 
