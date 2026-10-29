@@ -13,7 +13,7 @@ param(
 )
 Set-StrictMode -Version Latest
 $ErrorActionPreference='Stop'
-$version='0.1.11'
+$version='0.1.12'
 $taskName='JREI-Owner-Windows-Command-Center'
 $private=Join-Path $env:LOCALAPPDATA 'JREI\command-center'
 $receipts=Join-Path $private 'install-receipts'
@@ -116,10 +116,12 @@ function PortBusy {
  }catch{return $false}
  finally{$client.Dispose()}
 }
-function Record([string]$state,[string]$taskMode) {
- # Never persist owner tokens, process command lines, signed node identity,
- # personal documents or the contents of the private database in receipts.
- New-Item -ItemType Directory -Path $receipts -Force -ErrorAction Stop|Out-Null
+function TryRecord([string]$state,[string]$taskMode) {
+ # A receipt is useful evidence, NOT a prerequisite for engine startup.
+ # The original private folder may be access-denied on this very PC.
+ # Failure to record is explicitly tracked, not converted to a fake
+ # successful engine state or a blanket JREI_ENGINE_SETUP_FAILED.
+ $script:ReceiptWritten=$false
  $document=[ordered]@{
   schema='jr.jrei.offline-owner-install.v2'
   installed_version=$version
@@ -132,14 +134,22 @@ function Record([string]$state,[string]$taskMode) {
   server_enrollment_verified=$false
   model_weight_readiness_verified=$false
  }
- $destination=Join-Path $receipts 'latest-native-setup-receipt.json'
- $scratch=Join-Path $receipts ('.install-'+[guid]::NewGuid().ToString('N')+'.tmp')
- try{
-  [IO.File]::WriteAllText($scratch,($document|ConvertTo-Json -Compress),
-    ([Text.UTF8Encoding]::new($false)))
-  Move-Item -LiteralPath $scratch -Destination $destination -Force -ErrorAction Stop
- }finally{
-  if(Test-Path -LiteralPath $scratch){Remove-Item -LiteralPath $scratch -Force}
+ try {
+  New-Item -ItemType Directory -Path $receipts -Force -ErrorAction Stop|Out-Null
+  $destination=Join-Path $receipts 'latest-native-setup-receipt.json'
+  $scratch=Join-Path $receipts ('.install-'+[guid]::NewGuid().ToString('N')+'.tmp')
+  try {
+   [IO.File]::WriteAllText($scratch,($document|ConvertTo-Json -Compress),
+     ([Text.UTF8Encoding]::new($false)))
+   Move-Item -LiteralPath $scratch -Destination $destination -Force -ErrorAction Stop
+   $script:ReceiptWritten=$true
+  } finally {
+   if(Test-Path -LiteralPath $scratch -PathType Leaf){
+    Remove-Item -LiteralPath $scratch -Force -ErrorAction SilentlyContinue
+   }
+  }
+ } catch {
+  $script:ReceiptWritten=$false
  }
 }
 function WaitOwner {
@@ -153,9 +163,11 @@ $script:LastPrivateEngineError='JREI_ENGINE_START_NOT_VERIFIED'
 function LaunchBundled {
  if(PortBusy){return $false}
  $wd=Split-Path -Path $engine -Parent
- New-Item -ItemType Directory -Path $receipts -Force -ErrorAction Stop|Out-Null
- $stderr=Join-Path $receipts ('.startup-'+[guid]::NewGuid().ToString('N')+'.err')
- try{
+ # The original private directory may be unwritable specifically to the
+ # frozen Python executable. Diagnostics use the owner-writable VERSIONED
+ # program directory and are deleted after parsing a fixed error code.
+ $stderr=Join-Path $PSScriptRoot ('.jrei-engine-'+[guid]::NewGuid().ToString('N')+'.stderr')
+ try {
   $proc=Start-Process -FilePath $engine -ArgumentList '--serve' -WorkingDirectory $wd -WindowStyle Hidden -PassThru -RedirectStandardError $stderr -ErrorAction Stop
   if($null -eq $proc){return $false}
   for($n=0;$n -lt 14;$n++){
@@ -177,8 +189,8 @@ function LaunchBundled {
    }
   }
   return $false
- }finally{
-  if(Test-Path -LiteralPath $stderr){
+ } finally {
+  if(Test-Path -LiteralPath $stderr -PathType Leaf){
    Remove-Item -LiteralPath $stderr -Force -ErrorAction SilentlyContinue
   }
  }
@@ -189,23 +201,28 @@ function HasExistingTask {
   return ($null -ne $task)
  }catch{return $false}
 }
+$script:Stage='START'
 try{
+ $script:Stage='ENVIRONMENT'
  if($env:OS -cne 'Windows_NT' -or
     -not [Environment]::Is64BitOperatingSystem){
   throw 'JREI_WINDOWS_X64_REQUIRED'
  }
+ $script:Stage='PACKAGE'
  VerifyPackage
+ $script:Stage='APPROVAL'
  if($Mode -eq 'Install' -and -not $OwnerApproved){
   throw 'JREI_OWNER_INSTALL_APPROVAL_REQUIRED'
  }
+ $script:Stage='LOOPBACK'
  if(OwnerReady){
-  if($Mode -eq 'Install'){Record 'ENGINE_AUTHENTICATED_EXISTING' 'TASK_UNCHANGED'}
+  if($Mode -eq 'Install'){TryRecord 'ENGINE_AUTHENTICATED_EXISTING' 'TASK_UNCHANGED'}
   Emit 'JREI_ENGINE_AUTHENTICATED_EXISTING'
   return
  }
  if(PortBusy){
   if($Mode -eq 'Install'){
-   Record 'ENGINE_PENDING_UNVERIFIED_8092_LISTENER' 'TASK_UNCHANGED'
+   TryRecord 'ENGINE_PENDING_UNVERIFIED_8092_LISTENER' 'TASK_UNCHANGED'
    Emit 'JREI_ENGINE_PENDING_UNVERIFIED_8092_LISTENER'
    return
   }
@@ -219,21 +236,23 @@ try{
   Emit 'JREI_ENGINE_NOT_RUNNING'
   return
  }
+ $script:Stage='OLD_TASK_READ'
  $auto='ON_DEMAND_NO_TASK_CHANGES'
  if($Mode -eq 'Install' -and (HasExistingTask)){
   $auto='EXISTING_TASK_PRESERVED'
  }
+ $script:Stage='ENGINE_PROCESS'
  $running=$false
  try{$running=LaunchBundled}catch{
-  $script:LastPrivateEngineError='JREI_ENGINE_LAUNCH_FAILED'
+  $script:LastPrivateEngineError='JREI_ENGINE_PROCESS_LAUNCH_DENIED'
  }
  if($running){
-  if($Mode -eq 'Install'){Record 'ENGINE_AUTHENTICATED_BUNDLED' $auto}
+  if($Mode -eq 'Install'){TryRecord 'ENGINE_AUTHENTICATED_BUNDLED' $auto}
   Emit 'JREI_ENGINE_AUTHENTICATED_BUNDLED'
   return
  }
  if($Mode -eq 'Install'){
-  Record $script:LastPrivateEngineError $auto
+  TryRecord $script:LastPrivateEngineError $auto
   Emit $script:LastPrivateEngineError
   return
  }
@@ -241,11 +260,13 @@ try{
 }catch{
  $code=[string]$_.Exception.Message
  if($code -cnotmatch '^JREI_[A-Z0-9_]{4,110}$'){
-  $code='JREI_ENGINE_SETUP_FAILED'
+  $code='JREI_SETUP_'+$script:Stage+'_FAILED'
  }
  if($Mode -eq 'Install'){
-  try{Record $code 'FAILED_NO_TASK_OR_DATA_CHANGES'}catch{}
+  TryRecord $code 'FAILED_NO_TASK_OR_DATA_CHANGES'
  }
- Write-Error $code
+ # Only bounded diagnostic identifier is visible outside the owner PC.
+ # No stack trace, signed worker keys, bearer tokens, or profile paths.
+ [Console]::Error.WriteLine($code)
  exit 1
 }
