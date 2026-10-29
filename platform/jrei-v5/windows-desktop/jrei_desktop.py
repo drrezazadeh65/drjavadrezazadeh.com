@@ -23,6 +23,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 import webbrowser
+from jrei_desktop_features import FeatureHubMixin
 
 BASE = "http://127.0.0.1:8092"
 
@@ -265,7 +266,33 @@ class JREIClient:
             raise ConnectionError("موتور خصوصی JREI روی 127.0.0.1:8092 پاسخ نمی‌دهد.") from exc
 
 
-class Desktop:
+    def request_image(self, ident: str, name: str) -> bytes:
+        """Fetch one integrity-checked owner image through existing loopback."""
+        if (not re.fullmatch(r"[0-9a-f]{32}", ident) or
+                not re.fullmatch(
+                    r"jrei-[0-9a-f]{12}-[0-9]{3,4}x[0-9]{3,4}\\.webp", name)):
+            raise ValueError("JREI_IMAGE_PREVIEW_NAME_INVALID")
+        token_file = _owner_token_file()
+        if not token_file.is_file() or token_file.is_symlink():
+            raise RuntimeError("JREI_OWNER_TOKEN_UNAVAILABLE")
+        token = token_file.read_text(encoding="ascii").strip()
+        if not re.fullmatch(r"[A-Za-z0-9_-]{50,128}", token):
+            raise ValueError("JREI_OWNER_TOKEN_FORMAT_INVALID")
+        req = urllib.request.Request(
+            BASE + "/api/site-images/asset?id=" + ident + "&name=" + name,
+            headers={"Authorization": "Bearer " + token,
+                     "Accept": "image/webp"})
+        with self.http.open(req, timeout=12) as response:
+            if (response.status != 200 or response.headers.get(
+                    "Content-Type", "").split(";")[0] != "image/webp"):
+                raise RuntimeError("JREI_PRIVATE_IMAGE_RESPONSE_INVALID")
+            data = response.read(8_000_001)
+            if not data or len(data) > 8_000_000:
+                raise ValueError("JREI_PRIVATE_IMAGE_SIZE_INVALID")
+            return data
+
+
+class Desktop(FeatureHubMixin):
     def __init__(self):
         self.api = JREIClient()
         self.root = tk.Tk()
@@ -374,6 +401,9 @@ class Desktop:
                      foreground=GOLD).pack(fill="x", padx=13, pady=(0, 7))
         self._button(self.side, "تشخیص و افزودن رایانه",
                      self.show_device_inventory, color=SIDE,
+                     foreground=GOLD).pack(fill="x", padx=13, pady=(0, 7))
+        self._button(self.side, "✦  مرکز قابلیت‌های JREI",
+                     self.open_capability_center, color="#423624",
                      foreground=GOLD).pack(fill="x", padx=13, pady=(0, 7))
         self._label(self.side, "خصوصی · فقط روی رایانهٔ شما", fg=MUTED, bg=SIDE, size=9).pack(pady=12)
 
@@ -702,6 +732,19 @@ class Desktop:
             self._display_local_bundle(data)
         elif key == "hardware_inventory":
             self._display_local_hardware(data)
+        elif key == "jrei_feature_report":
+            self._display_feature_report(data)
+        elif key == "jrei_image_enqueue":
+            self.status_text.set("درخواست تصویرسازی ثبت شد؛ پردازش در صف خصوصی JREI است.")
+            messagebox.showinfo("JREI | تصویرسازی",
+                "درخواست ثبت شد. شناسه: " + str(data.get("id", "")) +
+                "\nوضعیت: " + str(data.get("state", "UNKNOWN")) +
+                "\nاین تصویر هنوز ساخته یا منتشر نشده است.",
+                parent=self.root)
+        elif key == "jrei_image_jobs":
+            self._display_image_jobs(data)
+        elif key == "jrei_image_preview":
+            self._display_image_preview(data)
         elif key == "device_inventory":
             self._display_device_inventory(data)
         elif key == "native_acceptance":
@@ -750,6 +793,11 @@ class Desktop:
             # never claim an update exists without a real artifact.
             return
         self.status_text.set(str(error)[:170])
+        if key in ("jrei_feature_report", "jrei_image_enqueue",
+                   "jrei_image_jobs", "jrei_image_preview"):
+            messagebox.showerror("JREI | عملیات خصوصی",
+                "عملیات کامل نشد و هیچ محتوایی منتشر نشده است.\n" +
+                str(error)[:230], parent=self.root)
         if key == "connect":
             self.online = False
         if key == "sent":
@@ -894,6 +942,7 @@ class Desktop:
             "draft_diff", "draft_bundle", "github_preflight",
             "native_acceptance", "hardware_inventory",
             "device_inventory", "windows_installer",
+            "jrei_feature_report", "jrei_image_jobs", "jrei_image_preview",
         }
         if name in read_views:
             serial = self._request_versions.get(name, 0) + 1
