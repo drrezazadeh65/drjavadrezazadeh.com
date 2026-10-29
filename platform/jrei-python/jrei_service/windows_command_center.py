@@ -826,6 +826,14 @@ def status():
             else "ORIGINAL_OWNER_LOCALAPPDATA"
         ),
         "owner_private_storage_write_verified_at_start": True,
+        "owner_python_runtime": (
+            "BUNDLED_CPYTHON_3_13"
+            if re.fullmatch(r"python-v\d+\.\d+\.\d+",
+                            Path(sys.executable).resolve().parent.name)
+            else "OWNER_SYSTEM_CPYTHON_3_13"
+            if _BUNDLED_SOURCE is not None
+            else "LOCAL_DEVELOPMENT_PYTHON"
+        ),
         "existing_private_files_deleted_by_storage_selection": False,
         "document_drafts": "LOCAL_PRIVATE_ONLY",
         "repository_search_and_read": "BOUNDED_READ_ONLY",
