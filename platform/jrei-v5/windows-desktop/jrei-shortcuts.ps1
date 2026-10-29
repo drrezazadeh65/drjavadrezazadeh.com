@@ -1,10 +1,10 @@
 #Requires -Version 5.1
-<# Owner-only JREI 0.1.10 shortcut writer. No network, services or keys. #>
+<# Owner-only JREI 0.1.11 shortcut writer. No network, services or keys. #>
 [CmdletBinding()]
 param([Parameter(Mandatory=$true)][string]$AppExe)
 Set-StrictMode -Version Latest
 $ErrorActionPreference='Stop'
-$version='0.1.10'
+$version='0.1.11'
 if($env:OS -cne 'Windows_NT'){throw 'JREI_SHORTCUT_WINDOWS_REQUIRED'}
 $base=[IO.Path]::GetFullPath($PSScriptRoot)
 $expected=[IO.Path]::GetFullPath((Join-Path $base 'JREI.exe'))
