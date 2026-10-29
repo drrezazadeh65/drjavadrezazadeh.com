@@ -932,7 +932,10 @@ class OwnerHTTP(BaseHTTPRequestHandler):
                     DB_PATH, params.get("conversation_id", [""])[0])})
             except ValueError:
                 return self._send(404, {"error": "JREI_CONVERSATION_NOT_FOUND"})
-        if self.path == "/api/tasks":
+        if urlsplit(self.path).path == "/api/tasks":
+            # The desktop calls /api/tasks?conversation_id=<private-id>.
+            # Match the PATH independently of the query string; otherwise
+            # every populated chat silently produced HTTP 404 NOT_FOUND.
             params = parse_qs(urlsplit(self.path).query)
             conversation_id = params.get("conversation_id", [None])[0]
             try:
