@@ -116,6 +116,40 @@ $alternateRoots=@(
  (Join-Path $homePath 'JREI-Private-v2\command-center'),
  (Join-Path $env:USERPROFILE '.jrei-owner\command-center')
 )
+if($env:APPDATA -and -not $env:APPDATA.StartsWith('\\')){
+ try{
+  $roaming=Get-Item -LiteralPath $env:APPDATA -ErrorAction Stop
+  if($roaming.PSIsContainer -and -not (
+     $roaming.Attributes -band [IO.FileAttributes]::ReparsePoint)){
+   $alternateRoots+=,(Join-Path $env:APPDATA 'JREI-Owner\command-center')
+  }
+ }catch{}
+}
+try{
+ $app=Get-Item -LiteralPath $PSScriptRoot -ErrorAction Stop
+ $releases=$app.Parent
+ $container=$releases.Parent
+ $profileRoot=[IO.Path]::GetFullPath($env:USERPROFILE).TrimEnd('\')
+ $containerRoot=[IO.Path]::GetFullPath($container.FullName)
+ if($app.Name -cmatch '^v[0-9]+\.[0-9]+\.[0-9]+$' -and
+    $releases.Name -ceq 'releases' -and
+    (Test-Path -LiteralPath (Join-Path $PSScriptRoot 'jrei-engine-manifest.json') -PathType Leaf) -and
+    $containerRoot.StartsWith(($profileRoot+'\'),[StringComparison]::OrdinalIgnoreCase)){
+  $current=$container
+  $trusted=$true
+  while($current.FullName -ine $profileRoot){
+   if($current.Attributes -band [IO.FileAttributes]::ReparsePoint){
+    $trusted=$false
+    break
+   }
+   if($null -eq $current.Parent){$trusted=$false;break}
+   $current=$current.Parent
+  }
+  if($trusted){
+   $alternateRoots+=,(Join-Path $container.FullName 'JREI-Owner-Private\command-center')
+  }
+ }
+}catch{}
 $verifiedFallbacks=@()
 foreach($candidate in $alternateRoots){
  $marker=Join-Path $candidate '.jrei-active-private-store-v1.json'
