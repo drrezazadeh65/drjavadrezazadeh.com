@@ -42,6 +42,16 @@ def main() -> None:
     # -I prevents PYTHONPATH and user-site injection; imports below are the
     # exact on-disk package dependencies from the versioned setup.
     sys.path[:0] = [str(native_source), str(vendor)]
+    if sys.argv[1:] == ["--verify-packaging"]:
+        # Source-only check used by the isolated GitHub packaging runner:
+        # exercise this exact entrypoint and the original command center's
+        # immutable release-layout validation; do NOT start port 8092,
+        # initialize the owner's database or read the token.
+        from jrei_service import windows_command_center  # noqa: F401
+        print("JREI_OWNER_OFFLINE_BOOTSTRAP_VERIFIED")
+        return
+    if sys.argv[1:] != ["--serve"]:
+        raise SystemExit("JREI_OWNER_BOOTSTRAP_MODE_UNSUPPORTED")
     runpy.run_path(str(original), run_name="__main__")
 
 
