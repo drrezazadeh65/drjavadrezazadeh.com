@@ -543,7 +543,10 @@ def run_job(job: str, background: bool = False):
                 "source": "LOCAL_EXECUTION", "production_changed": False,
                 "background": background}
     finally:
-        _activity_at = time.monotonic()
+        # Only an explicit owner mission updates the foreground-idle timer.
+        # Automatically executed research/code study must never refresh it.
+        if not background:
+            _activity_at = time.monotonic()
         _BUSY.release()
 
 
