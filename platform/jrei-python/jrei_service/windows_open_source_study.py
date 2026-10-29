@@ -102,6 +102,19 @@ def initialize(db_path: Path) -> None:
           PRIMARY KEY(domain,repository))""")
         db.execute("""CREATE INDEX IF NOT EXISTS jrei_oss_code_studies_due
           ON jrei_oss_code_studies(next_due,lease_until)""")
+        # Existing owner-private ledgers can predate the excerpt/comparison
+        # columns. Add missing columns without replacing the table or data.
+        present = {row[1] for row in db.execute(
+            "PRAGMA table_info(jrei_oss_code_studies)").fetchall()}
+        additions = (
+            ("research_notes_json", "TEXT NOT NULL DEFAULT '{}'"),
+            ("local_source_sha256", "TEXT"),
+            ("candidate_api_differences_json", "TEXT NOT NULL DEFAULT '[]'"),
+        )
+        for column, sql_type in additions:
+            if column not in present:
+                db.execute("ALTER TABLE jrei_oss_code_studies ADD COLUMN " +
+                           column + " " + sql_type)
         db.commit()
 
 
@@ -449,29 +462,46 @@ def tick(db_path: Path, *, repo: Path,
     next_due = now + (REFRESH if receipt else RETRY)
     with closing(_open(db_path)) as db:
         db.execute("""UPDATE jrei_oss_code_studies
-          SET next_due=?,lease_until=0,revision=?,
+          SET next_due=?,lease_until=0,
+              revision=CASE WHEN ? THEN ? ELSE revision END,
               last_state=?,last_success=CASE WHEN ? THEN ?
                   ELSE last_success END,
-              studies=studies+?,license_sha256=?,readme_sha256=?,
-              source_sha256=?,source_path=?,source_signatures_json=?,
-              research_notes_json=?,adaptation_target=?,local_source_sha256=?,
-              candidate_api_differences_json=?,receipt_sha256=?
+              studies=studies+?,
+              license_sha256=CASE WHEN ? THEN ? ELSE license_sha256 END,
+              readme_sha256=CASE WHEN ? THEN ? ELSE readme_sha256 END,
+              source_sha256=CASE WHEN ? THEN ? ELSE source_sha256 END,
+              source_path=CASE WHEN ? THEN ? ELSE source_path END,
+              source_signatures_json=CASE WHEN ? THEN ?
+                  ELSE source_signatures_json END,
+              research_notes_json=CASE WHEN ? THEN ?
+                  ELSE research_notes_json END,
+              adaptation_target=CASE WHEN ? THEN ?
+                  ELSE adaptation_target END,
+              local_source_sha256=CASE WHEN ? THEN ?
+                  ELSE local_source_sha256 END,
+              candidate_api_differences_json=CASE WHEN ? THEN ?
+                  ELSE candidate_api_differences_json END,
+              receipt_sha256=CASE WHEN ? THEN ? ELSE receipt_sha256 END
           WHERE domain=? AND repository=?""",
-          (next_due,receipt["revision"] if receipt else None,
+          (next_due,
+           int(receipt is not None), receipt["revision"] if receipt else None,
            state,int(receipt is not None),now,int(receipt is not None),
-           receipt["license_sha256"] if receipt else None,
-           receipt["readme_sha256"] if receipt else None,
-           receipt["source_sha256"] if receipt else None,
-           receipt["source_path"] if receipt else None,
+           int(receipt is not None),receipt["license_sha256"] if receipt else None,
+           int(receipt is not None),receipt["readme_sha256"] if receipt else None,
+           int(receipt is not None),receipt["source_sha256"] if receipt else None,
+           int(receipt is not None),receipt["source_path"] if receipt else None,
+           int(receipt is not None),
            json.dumps(receipt["source_signatures"],ensure_ascii=False)
-               if receipt else "[]",
+               if receipt else None,
+           int(receipt is not None),
            json.dumps(receipt["research_notes"],ensure_ascii=False)
-               if receipt else "{}",
-           receipt["target"] if receipt else None,
-           receipt["local_sha256"] if receipt else None,
+               if receipt else None,
+           int(receipt is not None),receipt["target"] if receipt else None,
+           int(receipt is not None),receipt["local_sha256"] if receipt else None,
+           int(receipt is not None),
            json.dumps(receipt["candidate_api_differences"],
-                      ensure_ascii=False) if receipt else "[]",
-           receipt["receipt_sha256"] if receipt else None,
+                      ensure_ascii=False) if receipt else None,
+           int(receipt is not None),receipt["receipt_sha256"] if receipt else None,
            domain,repository))
         db.commit()
     return {
