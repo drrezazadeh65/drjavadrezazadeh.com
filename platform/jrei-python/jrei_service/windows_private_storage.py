@@ -24,6 +24,23 @@ _MAX_FILES = 40000
 _MAX_BYTES = 2 * 1024**3
 
 
+def _mkdir_owner(path: Path, *, parents: bool = False, exist_ok: bool = False) -> None:
+    """Create a directory using the existing OWNER-profile ACL on Windows.
+
+    CPython 3.13 gives mode=0o700 a special Windows DACL. When a process is
+    elevated, the owner can become BUILTIN\\Administrators; later non-elevated
+    engine processes then cannot create children. Windows mode=0o777 has no
+    chmod-like 'world readable' meaning: the directory INHERITS the ACL of its
+    existing per-user profile parent. POSIX must still use private 0o700.
+    Never chmod, take ownership, reset ACLs, or touch an existing directory.
+    Actual token/SQLite writes must pass independent preflight afterward.
+    """
+    path.mkdir(
+        mode=(0o777 if os.name == "nt" else 0o700),
+        parents=parents, exist_ok=exist_ok,
+    )
+
+
 class PrivateStorageError(RuntimeError):
     """Stable diagnostics only; do not print sensitive paths or credentials."""
 
@@ -39,6 +56,10 @@ def candidates() -> tuple[Path, ...]:
         local_root / "JREI" / "command-center",
         local_root / "JREI-Owner" / "command-center",
         profile_root / "JREI-Owner" / "command-center",
+        # Fresh same-user locations avoid old staging parents that an earlier
+        # elevated CPython 3.13 may have created with a non-inheriting DACL.
+        local_root / "JREI-Private-v2" / "command-center",
+        profile_root / ".jrei-owner" / "command-center",
     )
 
 
@@ -199,17 +220,17 @@ def _copy_preserving_original(original: Path, dest: Path) -> None:
         if dest.exists():
             raise PrivateStorageError("JREI_PRIVATE_FALLBACK_ALREADY_OCCUPIED")
         phase = "TARGET_DIRECTORY"
-        dest.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
+        _mkdir_owner(dest.parent, parents=True, exist_ok=True)
         _safe_directory(dest.parent)
         phase = "STAGING_DIRECTORY"
         stage = dest.parent / (".jrei-private-stage-" + secrets.token_hex(12))
-        stage.mkdir(mode=0o700)
+        _mkdir_owner(stage)
         phase = "STAGING_WRITE_PROBE"
         _probe(stage)
         for relative, source in files:
             phase = "STAGING_FILE_DIRECTORY"
             target = stage / relative
-            target.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
+            _mkdir_owner(target.parent, parents=True, exist_ok=True)
             _safe_directory(target.parent)
             phase = "SOURCE_FILE_READ"
             expected = _digest(source)
@@ -268,7 +289,7 @@ def select_private_storage() -> Path:
             raise PrivateStorageError("JREI_SELECTED_PRIVATE_STORAGE_INACCESSIBLE") from exc
         return root
     try:
-        primary.mkdir(mode=0o700, parents=True, exist_ok=True)
+        _mkdir_owner(primary, parents=True, exist_ok=True)
         _probe(primary)
         _probe_real_owner_files(primary)
         return primary
