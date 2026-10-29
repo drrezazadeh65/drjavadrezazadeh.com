@@ -186,40 +186,64 @@ def _write_marker(root: Path) -> None:
 
 
 def _copy_preserving_original(original: Path, dest: Path) -> None:
-    """Same-user, same-PC copy with SHA verification and atomic promotion.
+    """Preserve the exact original credentials and DB; never silently reset.
 
-    The original private data remains untouched, even if a copy fails.
-    Refuse any preexisting destination without an exact selection marker.
+    Distinguish read-denied originals from write-denied destinations without
+    exposing user paths. Cleanup must not mask the earlier root failure.
     """
-    files = _files(original)
-    if dest.exists():
-        raise PrivateStorageError("JREI_PRIVATE_FALLBACK_ALREADY_OCCUPIED")
-    dest.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
-    _safe_directory(dest.parent)
-    stage = dest.parent / (".jrei-private-stage-" + secrets.token_hex(12))
-    stage.mkdir(mode=0o700)
+    phase = "SOURCE_INVENTORY"
+    stage: Path | None = None
     try:
+        files = _files(original)
+        phase = "TARGET_ALREADY_OCCUPIED"
+        if dest.exists():
+            raise PrivateStorageError("JREI_PRIVATE_FALLBACK_ALREADY_OCCUPIED")
+        phase = "TARGET_DIRECTORY"
+        dest.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
+        _safe_directory(dest.parent)
+        phase = "STAGING_DIRECTORY"
+        stage = dest.parent / (".jrei-private-stage-" + secrets.token_hex(12))
+        stage.mkdir(mode=0o700)
+        phase = "STAGING_WRITE_PROBE"
         _probe(stage)
         for relative, source in files:
+            phase = "STAGING_FILE_DIRECTORY"
             target = stage / relative
             target.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
             _safe_directory(target.parent)
+            phase = "SOURCE_FILE_READ"
             expected = _digest(source)
-            with source.open("rb") as reader, target.open("xb") as writer:
-                shutil.copyfileobj(reader, writer, length=1024 * 1024)
+            phase = "SOURCE_COPY_OPEN"
+            with source.open("rb") as reader:
+                phase = "STAGING_COPY_WRITE"
+                with target.open("xb") as writer:
+                    shutil.copyfileobj(reader, writer, length=1024 * 1024)
+            phase = "SOURCE_COPY_VERIFY"
             if _digest(target) != expected or _digest(source) != expected:
                 raise PrivateStorageError("JREI_PRIVATE_COPY_VERIFICATION_FAILED")
+        phase = "STAGING_OWNER_FILE_CHECK"
         _probe_real_owner_files(stage)
+        phase = "STAGING_MARKER"
         _write_marker(stage)
-        # Refuse a race in which another owner process claimed destination.
         if dest.exists():
             raise PrivateStorageError("JREI_PRIVATE_FALLBACK_RACE")
+        phase = "STAGING_PROMOTION"
         stage.rename(dest)
+        phase = "PROMOTED_STORE_CHECK"
         _probe(dest)
         _probe_real_owner_files(dest)
+    except PermissionError as exc:
+        raise PrivateStorageError(
+            "JREI_PRIVATE_" + phase + "_ACCESS_DENIED"
+        ) from exc
     finally:
-        if stage.exists():
-            shutil.rmtree(stage)
+        if stage is not None and stage.exists():
+            try:
+                shutil.rmtree(stage)
+            except OSError:
+                # Original is never touched. A denied cleanup must not
+                # replace the precise earlier read/write failure.
+                pass
 
 
 def select_private_storage() -> Path:
