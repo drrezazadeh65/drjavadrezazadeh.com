@@ -12,6 +12,7 @@ import hashlib
 from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.concurrency import run_in_threadpool
 from jrei_core.auth import require_internal_gateway
+from jrei_core.portability import source_portability_snapshot
 from jrei_core.contracts import (
     LearningBatch, MissionProposal, MissionRequest, PrioritizedGoals,
 )
@@ -158,6 +159,22 @@ async def capabilities():
         "promotion_enabled": False,
         "public_chat_enabled": False,
     }
+
+
+@app.get(
+    "/internal/v1/architecture/portability",
+    dependencies=[Depends(require_internal_gateway)],
+)
+async def private_portability_readiness():
+    """Source-only status for a future independent AI domain.
+
+    The future hostname comes only from locally owned service configuration;
+    no request parameter changes routing or authorizes a migration. The
+    existing authenticated internal gateway is required.
+    """
+    return source_portability_snapshot(
+        os.environ.get("JREI_FUTURE_AI_PUBLIC_ORIGIN")
+    )
 
 
 @app.post(
