@@ -385,35 +385,35 @@ func main() {
     "هیچ سرویس قبلی متوقف یا بازنویسی نشده است.", true)
   os.Exit(2)
  }
- if shortcutError != nil || shortcutState != "PROGRAM_SHORTCUTS_READY" {
-  dialog("JREI | Program installed, shortcut unavailable",
-    "فایل‌های JREI نصب شدند، اما میان‌بر ویندوز ایجاد نشد.\n"+
-    "وضعیت موتور: "+engineState+"\n"+
-    "پوشهٔ نصب و اطلاعات شخصی حفظ شده‌اند.", true)
-  os.Exit(3)
+ shortcutReady := shortcutError == nil && shortcutState == "PROGRAM_SHORTCUTS_READY"
+ // The state of the private, authenticated 8092 engine is the primary
+ // acceptance gate. Never call a failed engine setup merely "shortcut
+ // unavailable"; that was exactly the misleading 0.1.12 owner popup.
+ engineReady := engineState == "JREI_ENGINE_AUTHENTICATED_EXISTING" ||
+    engineState == "JREI_ENGINE_AUTHENTICATED_BUNDLED"
+ if !engineReady {
+   shortcutMessage := "میان‌بر ویندوز ایجاد شد."
+   if !shortcutReady { shortcutMessage = "میان‌بر ویندوز نیز ایجاد نشد." }
+   explanation := "موتور خصوصی هنوز احراز نشده است."
+   if engineState == "JREI_ENGINE_PENDING_UNVERIFIED_8092_LISTENER" {
+      explanation = "پورت 8092 اشغال است اما سرویس آن احراز نشده؛ فرایند موجود محفوظ است."
+   }
+   dialog("JREI | Program files installed; local engine NOT ready",
+      "فایل‌های نسخهٔ جدید روی این رایانه نصب شدند.\n"+
+      "کد وضعیت موتور: "+engineState+"\n"+
+      explanation+"\n"+shortcutMessage+"\n"+
+      "پایگاه داده، توکن و سرویس‌های قبلی عمداً حذف نشده‌اند.",true)
+   os.Exit(4)
  }
- switch engineState {
- case "JREI_ENGINE_AUTHENTICATED_EXISTING", "JREI_ENGINE_AUTHENTICATED_BUNDLED":
-  dialog("JREI | Program installed, local engine authenticated",
-    "نصب فایل‌های برنامه موفق بود. موتور JREI به‌صورت محلی احراز شد.\n"+
-    "این نتیجه تأیید مدل هوش مصنوعی، اتصال گره‌ها یا آخرین نسخهٔ موتور نیست.", false)
- case "JREI_ENGINE_PENDING_UNVERIFIED_8092_LISTENER":
-  dialog("JREI | Program installed; existing 8092 listener preserved",
-    "فایل‌های برنامه و میان‌بر نصب شدند.\n"+
-    "پورت 8092 اشغال است اما سرویس آن احراز نشده است.\n"+
-    "برای حفاظت از اطلاعات شما، سرویس موجود متوقف یا جایگزین نشد.\n"+
-    "فعال‌سازی موتور هنوز نیازمند بررسی است.", false)
- case "JREI_ENGINE_PENDING_START_NOT_VERIFIED":
-  dialog("JREI | Program installed; engine pending",
-    "فایل‌های برنامه نصب شدند، اما راه‌اندازی موتور هنوز تأیید نشده است.\n"+
-    "اطلاعات خصوصی و سرویس‌های موجود حفظ شدند.", false)
- default:
-  // PowerShell and the frozen Python entry point return only short, named
-  // codes. Display that code, NEVER raw private path or Python traceback.
-  dialog("JREI | Files installed; engine requires attention",
-    "فایل‌های برنامه نصب شدند، اما موتور تأیید نشده است.\n"+
-    "کد دقیق: "+engineState+"\n"+
-    "اطلاعات قدیمی محفوظ‌اند؛ این نتیجه نصب موفق هوش مصنوعی نیست.", true)
-  os.Exit(4)
+ if !shortcutReady {
+   dialog("JREI | Engine authenticated; shortcut unavailable",
+     "موتور خصوصی JREI به‌صورت محلی احراز شد، اما میان‌بر ویندوز ساخته نشد.\n"+
+     "برنامه از مسیر نصب نسخهٔ جدید قابل اجراست.\n"+
+     "تأیید مدل آموزشی یا ارتباط دو رایانه از این نتیجه به دست نمی‌آید.",true)
+   os.Exit(3)
  }
+ dialog("JREI | Program installed, local engine authenticated",
+   "نصب فایل‌های برنامه و میان‌بر موفق بود. موتور خصوصی JREI به‌صورت محلی احراز شد.\n"+
+   "این نتیجه تأیید مدل هوش مصنوعی، اتصال گره‌ها یا آخرین نسخهٔ موتور نیست.",false)
+
 }
