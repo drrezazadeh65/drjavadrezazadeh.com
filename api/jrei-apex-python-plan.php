@@ -88,7 +88,7 @@ function jrApexPythonPrepare(PDO $pdo, array $cfg, string $accountId, array $bod
     $id=jrApexMissionUuid();
     $policyHash=hash('sha256','jr.apex.planning.v1|'.$control['revision']);
     $nodes=jrApexPythonNodesForIntent($intent);
-    $adapter=dirname(__DIR__).'/platform/jrei-python/php/jrei-python-internal-client.php';
+    $adapter=__DIR__.'/jrei-remote-api-client.php';
     if (!is_readable($adapter)) throw new RuntimeException('apex_python_client_missing');
     require_once $adapter;
     if (!function_exists('jrJreiPythonInternalPropose')) {
