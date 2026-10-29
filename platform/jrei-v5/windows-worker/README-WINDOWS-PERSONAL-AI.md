@@ -60,6 +60,29 @@ One-time owner installation on the PC where JREI-Python / Git and its validated 
 5. Every subsequent eligible source update is checked by the **same existing** JREI-Repo-Auto-Sync (30-minute) task. Deferred updates retry later. Updates do not overwrite local owner history, passwords, documents, source edits, model weights or either outbound signed Windows worker. No second updater task or additional control server is registered.
 6. Owners can check status with jrei-windows-app-auto-update.ps1 -Mode Check, or stop automatic app upgrades using -Mode Disable -OwnerApproved. Disabling leaves the last working Windows app, its history and source snapshots untouched.
 
+### Startup update request (source change, 2026-10-29)
+
+The existing native Tk GUI and the original command-center launcher now
+request an immediate run of the **already installed** `JREI-Repo-Auto-Sync`
+Windows Scheduled Task when opened. The request is conditional on the private
+`windows-owner-app-auto-update.json` owner opt-in and never blocks the user
+interface. It does not register a new task, run an installer, fetch a new EXE,
+open a LAN port, overwrite private data, restart a busy mission, or deploy
+Bertina. Missing consent, task, network or Git simply leaves the current
+application working.
+
+The existing sync task continues to enforce canonical-origin fast-forward
+and delegates guarded source promotion to the original updater. The Windows
+app updater's source/idle/rollback checks remain authoritative; a requested
+check is not proof of a downloaded update or a changed running engine.
+
+**Delivery boundary:** These startup hooks are source-only until incorporated
+into a newly built and installed native EXE or an updated canonical local
+launcher script. The existing installed EXE cannot magically gain new launch
+code from a Git commit. A native EXE *binary* upgrade still requires a verified
+build artifact and per-device acceptance. Nothing in this change records
+the final integrated acceptance as passed.
+
 **Important limitations:** App updates are permitted after a one-time owner opt-in on that PC; each source revision still must pass the final independent acceptance/release process before being considered fit for production. The updater implements a loopback readiness gate and preserves a reversible task-action snapshot; this is NOT a functional regression test or proof of model quality. Git pull alone does not prove an active process has updated. There is no direct remote-installation channel from this GitHub chat to the owner's two Windows PCs; installation and live synchronization are NOT CONFIRMED until Windows reports real task and revision evidence. The owner now requires native JREI language-model weights only. The source includes a lightweight local evidence-only fallback that cites the existing approved source index even without pretrained weights. This is not open-ended generative LLM chat: genuinely trained native neural weights remain future work. No independent chatbot, LM Studio, Granite or third-party model installation is part of the owner installer.
 
 The source-only install/updater was committed with [skip ci] and no tests, Windows service restarts or Bertina publication were performed as part of development.
