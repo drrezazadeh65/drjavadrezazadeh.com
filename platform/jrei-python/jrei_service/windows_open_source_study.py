@@ -526,11 +526,14 @@ def snapshot(db_path: Path) -> dict:
         summary = db.execute("""SELECT COUNT(*),
             COALESCE(SUM(attempts),0),COALESCE(SUM(studies),0),
             COALESCE(SUM(CASE WHEN source_sha256 IS NOT NULL
+                THEN 1 ELSE 0 END),0),
+            COALESCE(SUM(CASE WHEN source_sha256 IS NOT NULL
+                AND source_signatures_json NOT IN ('[]','')
                 THEN 1 ELSE 0 END),0)
             FROM jrei_oss_code_studies""").fetchone()
         latest = db.execute("""SELECT repository,revision,last_state,
             source_path,source_sha256,readme_sha256,license_sha256,
-            adaptation_target,last_success
+            adaptation_target,last_attempt,last_success
             FROM jrei_oss_code_studies
             ORDER BY COALESCE(last_attempt,0) DESC LIMIT 1""").fetchone()
     return {
@@ -538,12 +541,15 @@ def snapshot(db_path: Path) -> dict:
         "repositories_attempted": int(summary[0] or 0),
         "reading_attempts": int(summary[1] or 0),
         "recorded_successes": int(summary[2] or 0),
-        "repositories_with_source_signatures": int(summary[3] or 0),
+        "source_files_read": int(summary[3] or 0),
+        "repositories_with_source_signatures": int(summary[4] or 0),
         "most_recent": dict(zip(
             ("repository","revision","state","source_path","source_sha256",
-             "readme_sha256","license_sha256","adaptation_target","observed_at"),
+             "readme_sha256","license_sha256","adaptation_target",
+             "last_attempt_at","last_success_at"),
             latest)) if latest else None,
         "source_revision_pinned": True,
+        "attempt_count_is_not_model_learning": True,
         "local_code_comparison_is_only_hypothesis": True,
         "third_party_code_executed": False,
         "automatic_source_promotion": False,
