@@ -170,6 +170,23 @@ jobs:
           if(-not (Test-Path -LiteralPath (Join-Path $site 'fastapi/__init__.py') -PathType Leaf)){
             throw 'JREI_PORTABLE_SITE_PACKAGES_MISSING'
           }
+          $license=Join-Path $pythonHome 'LICENSE.txt'
+          if(-not (Test-Path -LiteralPath $license -PathType Leaf)){
+            throw 'JREI_PORTABLE_PSF_LICENSE_MISSING'
+          }
+          Copy-Item -LiteralPath $license -Destination $portable -ErrorAction Stop
+          # Isolated RUNNER-ONLY packaging validation: use the actual copied
+          # interpreter to import all ORIGINAL command-center dependencies.
+          # Never create owner tokens, initialize owner DB, contact server or
+          # dispatch model jobs. Real Windows-PC acceptance remains separate.
+          & (Join-Path $portable 'python.exe') -I -B -c "import sys, sqlite3, PIL, fastapi, cryptography; from jrei_service import windows_command_center; assert sys.version_info[:2] == (3,13); print('JREI_PORTABLE_RUNTIME_IMPORTS_READY')"
+          if($LASTEXITCODE -ne 0){
+            throw 'JREI_PORTABLE_RUNTIME_IMPORTS_NOT_READY'
+          }
+          $packagedFileCount=@(Get-ChildItem -LiteralPath $bundle -File -Recurse).Count
+          if($packagedFileCount -gt 24000){
+            throw 'JREI_BUNDLED_RUNTIME_TOO_MANY_FILES'
+          }
           $engineSha=(Get-FileHash -LiteralPath (Join-Path $portable 'python.exe') -Algorithm SHA256).Hash.ToLowerInvariant()
           @{
             schema='jr.jrei.offline-engine-package.v1'
