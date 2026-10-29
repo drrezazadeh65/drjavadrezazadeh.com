@@ -195,6 +195,14 @@ def _seed_problem_topics(db) -> int:
                 "javascript static analysis dynamic code calls",
             "CHILD_PROCESS_REFERENCE_PATTERN":
                 "nodejs child process static analysis safety",
+            "MUTABLE_DEFAULT_ARGUMENT":
+                "python mutable default arguments code analysis",
+            "SILENT_EXCEPTION_PASS":
+                "python exception silent failure recovery",
+            "NETWORK_CALL_NO_TIMEOUT":
+                "python network timeout retry practices",
+            "PROCESS_CALL_NO_TIMEOUT":
+                "python subprocess timeout process isolation",
         }
         problems = db.execute("""SELECT finding_kind,COUNT(*)
             FROM jrei_self_code_findings
