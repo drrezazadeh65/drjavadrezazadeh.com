@@ -13,6 +13,7 @@ from pathlib import Path
 import re
 import threading
 import urllib.error
+import urllib.request
 
 from jrei_service import windows_language_backend as transport
 
@@ -100,9 +101,82 @@ def _owner_gate(private: Path) -> tuple[str, str]:
     return ENDPOINT, MODEL_ID
 
 
+def _api_key(private: Path) -> str:
+    """Read one owner-private key; no key material appears in responses/logs."""
+    path = private / "gpu-pilot-api-key.txt"
+    if path.is_symlink() or not path.is_file() or path.stat().st_size > 128:
+        raise ValueError("JREI_GPU_PILOT_AUTH_KEY_NOT_STAGED")
+    token = path.read_text(encoding="ascii").strip()
+    if not re.fullmatch(r"[a-f0-9]{64}", token):
+        raise ValueError("JREI_GPU_PILOT_AUTH_KEY_INVALID")
+    return token
+
+
+def _client():
+    # No system proxy or redirect may intercept owner-private inference.
+    class NoRedirect(urllib.request.HTTPRedirectHandler):
+        def redirect_request(self, request, fp, code, msg, headers, newurl):
+            raise ValueError("JREI_GPU_PILOT_REDIRECT_BLOCKED")
+    return urllib.request.build_opener(urllib.request.ProxyHandler({}), NoRedirect())
+
+
+def _exchange(url: str, private: Path, *, payload: dict | None = None,
+              timeout: float = 5) -> dict:
+    if url not in ("http://127.0.0.1:8082/v1/models", ENDPOINT):
+        raise ValueError("JREI_GPU_PILOT_ENDPOINT_NOT_ALLOWED")
+    key = _api_key(private)
+    data = None if payload is None else json.dumps(
+        payload, ensure_ascii=False).encode("utf-8")
+    if data is not None and len(data) > 48000:
+        raise ValueError("JREI_GPU_PILOT_REQUEST_TOO_LARGE")
+    request = urllib.request.Request(url, data=data,
+        method="POST" if data is not None else "GET",
+        headers={"Authorization": "Bearer " + key, "Accept": "application/json",
+                 **({"Content-Type": "application/json"} if data is not None else {})})
+    with _client().open(request, timeout=timeout) as response:
+        if response.status != 200 or not (response.headers.get("content-type") or "").lower().startswith("application/json"):
+            raise ValueError("JREI_GPU_PILOT_RESPONSE_UNTRUSTED")
+        raw = response.read(180001)
+    if len(raw) > 180000:
+        raise ValueError("JREI_GPU_PILOT_RESPONSE_TOO_LARGE")
+    document = json.loads(raw)
+    if not isinstance(document, dict):
+        raise ValueError("JREI_GPU_PILOT_RESPONSE_SCHEMA")
+    return document
+
+
+def _secure_server_attested() -> None:
+    """Fail closed until server really enforces key auth and restricted CORS.
+
+    We send no inference or owner text in these probes.
+    /v1/models is protected in the pinned llama.cpp b11932 server.
+    """
+    opener = _client()
+    unauth = urllib.request.Request("http://127.0.0.1:8082/v1/models",
+                                   method="GET", headers={"Accept": "application/json"})
+    try:
+        with opener.open(unauth, timeout=3):
+            raise ValueError("JREI_GPU_PILOT_SERVER_ALLOWS_UNAUTHENTICATED_API")
+    except urllib.error.HTTPError as error:
+        if error.code != 401:
+            raise ValueError("JREI_GPU_PILOT_AUTH_NOT_CONFIRMED") from None
+
+    hostile_origin = "https://gpu-pilot-origin-check.invalid"
+    cors = urllib.request.Request("http://127.0.0.1:8082/v1/models",
+        method="OPTIONS", headers={"Origin": hostile_origin,
+            "Access-Control-Request-Method": "POST",
+            "Access-Control-Request-Headers": "authorization"})
+    with opener.open(cors, timeout=3) as response:
+        allowed = (response.headers.get("Access-Control-Allow-Origin") or "").strip()
+        creds = (response.headers.get("Access-Control-Allow-Credentials") or "").lower()
+    if allowed in ("*", hostile_origin) or creds == "true":
+        raise ValueError("JREI_GPU_PILOT_CORS_NOT_RESTRICTED")
+
+
 def discover(private: Path) -> tuple[str, str]:
     endpoint, alias = _owner_gate(private)
-    data = transport._exchange("http://127.0.0.1:8082/v1/models", timeout=3)
+    _secure_server_attested()
+    data = _exchange("http://127.0.0.1:8082/v1/models", private, timeout=3)
     rows = data.get("data")
     if not isinstance(rows, list) or not any(
             isinstance(row, dict) and row.get("id") == alias for row in rows):
@@ -128,9 +202,7 @@ def complete(private: Path, messages: list[dict], *, max_tokens: int = 320,
         "max_tokens": max_tokens, "temperature": temperature,
         "chat_template_kwargs": {"enable_thinking": False},
     }
-    response = transport._exchange(
-        endpoint, body=json.dumps(payload, ensure_ascii=False).encode("utf-8"),
-        timeout=90)
+    response = _exchange(endpoint, private, payload=payload, timeout=90)
     choices = response.get("choices")
     message = choices[0].get("message") if isinstance(choices, list) and choices and isinstance(choices[0], dict) else None
     answer = message.get("content") if isinstance(message, dict) else None
