@@ -22,23 +22,25 @@ from jrei_service import windows_open_source_discovery as discovery
 SCHEMA = "jr.jrei.continuous-code-research.v1"
 REPO_RE = re.compile(r"^[A-Za-z0-9_.-]{1,80}/[A-Za-z0-9_.-]{1,100}$")
 ID_RE = re.compile(r"^[a-z][a-z0-9_]{3,48}$")
-TOPICS = (
-    ("python_architecture", "python static refactoring analysis"),
-    ("js_typescript", "javascript typescript codemod"),
-    ("css_accessibility", "css html accessibility parser"),
-    ("php_site", "php static analysis security"),
-    ("github_workflows", "github actions workflow automation"),
-    ("image_native", "python image synthesis graphics"),
-    ("image_quality", "image quality assessment python"),
-    ("neural_models", "pytorch language model training"),
-    ("bilingual", "multilingual evaluation benchmark"),
-    ("memory_evidence", "python knowledge graph retrieval"),
-    ("ethical_crawling", "web crawler robots python"),
-    ("seo_geo", "seo structured data python"),
-    ("windows_ui", "python windows desktop ui"),
-    ("cybersecurity", "python security source scanning"),
-    ("compute_resources", "gpu memory resource profiling"),
+SELF_DEVELOPMENT_TOPICS = (
+    ("self_native_model", "tiny transformer training from scratch python"),
+    ("self_code_generation", "python code synthesis local agent"),
+    ("self_code_repair", "python automatic program repair"),
+    ("self_source_analysis", "python ast static analysis refactoring"),
+    ("self_eval", "python code generation benchmark evaluation"),
+    ("self_learning", "continual learning catastrophic forgetting python"),
+    ("self_memory", "sqlite local knowledge graph retrieval"),
+    ("self_tokenizer", "persian english byte pair tokenizer"),
+    ("self_gpu", "windows amd gpu pytorch directml"),
+    ("self_cpu", "cpu efficient transformer inference python"),
+    ("self_fleet", "distributed worker queue fault tolerant python"),
+    ("self_security", "python sandbox source code security review"),
+    ("self_checkpoint", "pytorch checkpoint recovery training"),
+    ("self_research", "autonomous software engineering research agent"),
 )
+# Old rows remain stored for audit history; only self_* and problem_*
+# research topics are selected while the owner's AI-only mission applies.
+
 NORMAL_REFRESH = 15 * 3600
 FAIL_BACKOFF_MAX = 6 * 3600
 MIN_ATTEMPT_SPACING = 150
@@ -96,7 +98,7 @@ def initialize(db_path: Path) -> None:
            name,enabled,changed) VALUES('public_github_research',1,?)""",
            (int(time.time()),))
         db.executemany("""INSERT OR IGNORE INTO jrei_oss_topics(
-           domain,query) VALUES(?,?)""", TOPICS)
+           domain,query) VALUES(?,?)""", SELF_DEVELOPMENT_TOPICS)
         db.commit()
 
 
@@ -146,16 +148,26 @@ def _seed_problem_topics(db) -> int:
         if domain in seen:
             continue
         seen.add(domain)
-        terms = re.findall(r"[a-z]{3,}", signature.lower())
-        # Exclude generic lifecycle words; retain the underlying failure
-        # terms as a search problem rather than a preselected solution.
-        ignored = {"jrei", "started", "unavailable", "failed", "error",
-                   "blocked", "missing", "rejected", "deferred",
-                   "invalid", "model", "study", "health"}
-        topic_terms = [term for term in terms if term not in ignored]
-        query = " ".join(["python", *topic_terms[:5], "troubleshooting"])
-        if len(query) > 75:
-            query = query[:75].rsplit(" ", 1)[0]
+        # Diagnosed failures, not source reputation, define the question.
+        # No external/source-provided strings are executed or trusted here.
+        intent = (
+            "python small language model training from scratch"
+            if "MODEL_UNAVAILABLE" in signature else
+            "python gpu compute directml compatibility"
+            if "GPU" in signature or "CUDA" in signature else
+            "python distributed job queue worker recovery"
+            if "WORKER" in signature or "LEASE" in signature else
+            "python sqlite transaction concurrency recovery"
+            if "SQLITE" in signature or "DATABASE" in signature else
+            "python native model checkpoint validation"
+            if "CHECKPOINT" in signature or "TRAIN" in signature else
+            "python automatic program repair code agent"
+            if "CODE" in signature or "PATCH" in signature else
+            "python evidence retrieval source provenance"
+            if "SOURCE" in signature or "EVIDENCE" in signature else
+            "python fault diagnosis runtime recovery"
+        )
+        query = intent
         if not discovery.QUERY.fullmatch(query) or len(query.split()) > 7:
             continue
         before = db.total_changes
@@ -173,8 +185,9 @@ def tick(db_path: Path, *, resources_available: bool,
          owner_active: bool = False) -> dict:
     """One bounded GitHub search per eligible scheduler invocation.
 
-    The 15-hour topic refresh prevents redundant rate-limited searches;
-    all 15 research areas rotate indefinitely while JREI actually runs.
+    Rate-aware refresh is per topic, never a global daily activity cap.
+    Only AI self-development and observed runtime problems are scheduled;
+    unrelated website or content topics remain in the ledger but stay idle.
     """
     if type(resources_available) is not bool:
         raise ValueError("JREI_OSS_RESOURCE_GUARD_INVALID")
@@ -190,6 +203,7 @@ def tick(db_path: Path, *, resources_available: bool,
         _seed_problem_topics(db)
         row=db.execute("""SELECT domain,query,errors
             FROM jrei_oss_topics WHERE next_due<=? AND lease_until<=?
+              AND (domain LIKE 'self_%' OR domain LIKE 'problem_%')
             ORDER BY next_due,COALESCE(last_attempt,0),domain LIMIT 1""",
             (now,now)).fetchone()
         if row is None:
@@ -280,17 +294,22 @@ def snapshot(db_path: Path) -> dict:
         enabled=_enabled(db)
         totals=db.execute("""SELECT COUNT(*),SUM(attempts),
             SUM(successes),SUM(CASE WHEN last_success IS NOT NULL
-                THEN 1 ELSE 0 END) FROM jrei_oss_topics""").fetchone()
+                THEN 1 ELSE 0 END) FROM jrei_oss_topics
+            WHERE domain LIKE 'self_%' OR domain LIKE 'problem_%'""").fetchone()
         candidates=db.execute("""SELECT COUNT(*) FROM jrei_oss_candidates
             WHERE owner_review='DISCOVERED_UNVERIFIED'""").fetchone()[0]
         topics=db.execute("""SELECT domain,last_state,last_attempt,last_success,
-            next_due FROM jrei_oss_topics ORDER BY domain""").fetchall()
+            next_due FROM jrei_oss_topics
+            WHERE domain LIKE 'self_%' OR domain LIKE 'problem_%'
+            ORDER BY domain""").fetchall()
         latest=db.execute("""SELECT observed,domain,state,candidate_count
             FROM jrei_oss_observations ORDER BY id DESC LIMIT 1""").fetchone()
     return {
         "schema":SCHEMA, "enabled":enabled,
         "permanent_mission_in_source":True,
         "problem_driven_runtime_topics":True,
+        "exclusive_ai_self_development_research":True,
+        "legacy_site_topics_retained_but_not_scheduled":True,
         "reputation_not_required_for_discovery":True,
         "service_must_actually_run":True,
         "domain_count":int(totals[0] or 0),
