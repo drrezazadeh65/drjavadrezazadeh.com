@@ -1567,6 +1567,25 @@ class OwnerHTTP(BaseHTTPRequestHandler):
                     rights_reviewed=data.get("rights_reviewed"),
                     lesson_quality_reviewed=data.get("quality_reviewed"),
                     owner_confirmed=data.get("confirm")))
+            if self.path == "/api/learning/native-code/train":
+                # The existing from-scratch nanoGPT trainer is used with
+                # an explicitly rights-reviewed first-party code candidate.
+                # No remote model, independent trainer, automatic model
+                # activation or arbitrary path / shell invocation.
+                if data.get("confirm") is not True:
+                    raise ValueError("JREI_CODE_TRAIN_OWNER_CONFIRM_REQUIRED")
+                if not _BUSY.acquire(blocking=False):
+                    return self._send(409,{
+                        "error":"JREI_NATIVE_CODE_TRAIN_ALREADY_BUSY"})
+                try:
+                    result=scratch_training.train_owner_reviewed_code(
+                        db_path=DB_PATH,private=PRIVATE,
+                        candidate_id=data.get("candidate_id"),
+                        settings=data.get("settings",{}),
+                        owner_confirmed=True)
+                finally:
+                    _BUSY.release()
+                return self._send(200,result)
             if self.path == "/api/learning/native-code/prepare":
                 # One explicitly owner-reviewed code cohort is tokenized
                 # using the existing MIT minBPE. This is NOT neural
@@ -1577,6 +1596,9 @@ class OwnerHTTP(BaseHTTPRequestHandler):
                     return self._send(409,{
                         "error":"JREI_CODE_PREPARATION_BUSY"})
                 try:
+                    if not resource_policy.permits("MEMORY_CURATION"):
+                        return self._send(409,{
+                            "error":"JREI_CODE_PREPARATION_RESOURCES_DEFERRED"})
                     prepared=code_preparation.prepare(
                         db_path=DB_PATH,private=PRIVATE,
                         cohort_id=data.get("cohort_sha256"),
