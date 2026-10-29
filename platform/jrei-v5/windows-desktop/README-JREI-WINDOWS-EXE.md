@@ -1,6 +1,6 @@
-# JREI owner universal Windows installation — v0.1.17 source candidate
+# JREI owner universal Windows installation — v0.1.18 source candidate
 
-**Status: The owner installed 0.1.16 program files on the 16-GB PC but the private engine failed at `JREI_PRIVATE_STAGING_DIRECTORY_ACCESS_DENIED`. Version 0.1.17 is SOURCE ONLY; no build, device acceptance or authenticated 8092 startup is claimed.**
+**Status: The owner's screenshot shows JREI 0.1.17 program files installed but local engine NOT ready (`JREI_PRIVATE_TARGET_DIRECTORY_ACCESS_DENIED`). Version 0.1.18 is a source-only bounded storage-recovery change; no build, real-device installation, authenticated 8092 startup, or accepted release has yet been verified.**
 
 Repository: drrezazadeh65/drjavadrezazadeh.com
 Canonical branch: migration/bertina-linux6
@@ -150,3 +150,16 @@ The 0.1.17 source therefore calls a common `_mkdir_owner()` helper for primary, 
 The Windows Tk client, owner setup controller and read-only inventory all use **the same exact candidate list and original selection marker**, so a local authenticated 8092 response can locate the token after selection. The original source database, owner tokens, old program folders, and previous node identities are never deleted. No Windows ACL rewriting, owner take-over, forced killing, privilege escalation, GPU reconfiguration, or production deploy is permitted.
 
 **Acceptance gate:** A Python directory-mode code change cannot prove that a security product or an already denied profile directory will permit writes. The 0.1.17 EXE still needs an actual manual GitHub build and a real-device authenticated response; it has not been accepted merely by these source commits.
+
+## 0.1.18 — owner-local private store recovery after 0.1.17 failure
+
+The owner showed a genuine failed **0.1.17** Windows install: a Go installer EXE was on disk, program files were installed, but the engine's `JREI_PRIVATE_TARGET_DIRECTORY_ACCESS_DENIED` prevented local authentication. This error identifies only the **last tried fallback's parent-directory creation** as denied. It does **not** prove that GPU setup is missing, nor conclusively identify the Windows security product, identity or ACL.
+
+The existing engine tried five fixed candidate locations from the original per-user LocalAppData root and UserProfile. **0.1.18 adds two controlled, durable candidates**, without introducing arbitrary or admin-selected paths:
+
+* An existing, local, non-reparse `%APPDATA%/JREI-Owner/command-center` when Roaming AppData is locally available (UNC roaming redirection is excluded).
+* A `JREI-Owner-Private/command-center` directory **beside `releases`, outside any vX program directory**, only when the installed version, source snapshot, manifest and whole directory chain are verified to reside under the current owner's user profile with no junctions/symlinks. This mirrors a parent location where the Go installer already demonstrated direct file writes. Since this data remains in its original owner-local installation container, **do not delete that container** in later upgrades; a new downloaded ZIP in a different folder must not be claimed to migrate this private store automatically.
+
+All seven roots are inspected by the **same ORIGINAL 8092 engine** and the owner-token lookup in Tk, PowerShell setup and read-only inventory. Valid private data are copied from the previous source only with file-by-file SHA-256 verification and retained at the original location. The active marker selects one owner store; multiple markers fail closed. Windows ACLs are neither reset nor bypassed, no elevated process is required, and arbitrary network or shared paths are not accepted. An existing owner token, SQLite DB or worker key must not be silently regenerated.
+
+**Release gates:** even a green GitHub build does not demonstrate the Windows installer can write into either new candidate on the owner's 16-GB computer. The exact file access policy is device-specific. Source-only changes here have not been tested or deployed. Require one-click owner-authorized GitHub packaging and a real authenticated local status before claiming working installation; otherwise preserve all files and report the actual stable error code.
