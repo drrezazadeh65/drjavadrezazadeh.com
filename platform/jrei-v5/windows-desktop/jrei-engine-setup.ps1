@@ -358,7 +358,9 @@ function TryOwnerApprovedBundledHandover {
  $stopped=$false
  try{
   $task=Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue
-  if($null -ne $task -and $task.State -eq 'Running'){return $false}
+  if($null -ne $task -and $task.State -eq 'Running'){
+   return (TryOwnerApprovedTaskHandover)
+  }
   $ids=@(Get-NetTCPConnection -LocalPort 8092 -State Listen -ErrorAction Stop |
     Where-Object {$_.LocalAddress -eq '127.0.0.1'} |
     Select-Object -ExpandProperty OwningProcess -Unique)
