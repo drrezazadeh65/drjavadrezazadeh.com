@@ -45,22 +45,75 @@ class PrivateStorageError(RuntimeError):
     """Stable diagnostics only; do not print sensitive paths or credentials."""
 
 
+def _install_adjacent_private(profile_root: Path) -> Path | None:
+    """A stable, same-owner fallback beside the *versioned* release family.
+
+    The Go installer already verified it can create files at its owner-local
+    program destination. The engine must not guess Downloads or arbitrary
+    writable directories. This directory is sibling of `releases`, NOT
+    inside a disposable vX release. Refuse other users, reparse points,
+    unversioned developer checkouts and network/UNC roots.
+    """
+    module = Path(__file__).absolute()
+    try:
+        source = module.parents[3]
+        match = __import__("re").fullmatch(r"source-v(\\d+\\.\\d+\\.\\d+)", source.name)
+        release = source.parent
+        if (not match or release.name != "v" + match.group(1)
+                or release.parent.name != "releases"
+                or not (release / "jrei-engine-manifest.json").is_file()):
+            return None
+        container = release.parent.parent
+        user = profile_root.absolute()
+        if os.name == "nt" and (
+                os.path.commonpath((str(container), str(user))).casefold()
+                != str(user).casefold()):
+            return None
+        if os.name != "nt":
+            return None
+        path = container
+        while path != user:
+            if path.is_symlink() or (
+                    hasattr(path, "is_junction") and path.is_junction()):
+                return None
+            if path == path.parent:
+                return None
+            path = path.parent
+        if user.is_symlink() or (
+                hasattr(user, "is_junction") and user.is_junction()):
+            return None
+        return container / "JREI-Owner-Private" / "command-center"
+    except (OSError, ValueError, IndexError):
+        return None
+
+
 def candidates() -> tuple[Path, ...]:
     local = os.environ.get("LOCALAPPDATA")
     profile = os.environ.get("USERPROFILE")
+    roaming = os.environ.get("APPDATA")
     if os.name == "nt" and (not local or not profile):
         raise PrivateStorageError("JREI_WINDOWS_OWNER_PROFILE_MISSING")
-    local_root = Path(local or Path.home()).resolve()
-    profile_root = Path(profile or Path.home()).resolve()
-    return (
+    local_root = Path(local or Path.home()).absolute()
+    profile_root = Path(profile or Path.home()).absolute()
+    options = [
         local_root / "JREI" / "command-center",
         local_root / "JREI-Owner" / "command-center",
         profile_root / "JREI-Owner" / "command-center",
-        # Fresh same-user locations avoid old staging parents that an earlier
-        # elevated CPython 3.13 may have created with a non-inheriting DACL.
         local_root / "JREI-Private-v2" / "command-center",
         profile_root / ".jrei-owner" / "command-center",
-    )
+    ]
+    if roaming and os.path.isabs(roaming):
+        roaming_root = Path(roaming).absolute()
+        if not roaming_root.is_symlink() and not (
+                hasattr(roaming_root, "is_junction")
+                and roaming_root.is_junction()):
+            # Do not select UNC roaming folders for private SQLite storage.
+            if os.name != "nt" or not str(roaming_root).startswith("\\\\"):
+                options.append(roaming_root / "JREI-Owner" / "command-center")
+    adjacent = _install_adjacent_private(profile_root)
+    if adjacent is not None:
+        options.append(adjacent)
+    return tuple(dict.fromkeys(options))
 
 
 def _safe_directory(path: Path) -> None:
