@@ -36,19 +36,6 @@ jobs:
         with:
           go-version: '1.23.6'
 
-      - name: Install packaging utilities on isolated GitHub runner only
-        shell: pwsh
-        run: |
-          $ErrorActionPreference = 'Stop'
-          python -m pip install --disable-pip-version-check --no-input 'pyinstaller==6.16.0' 'Pillow==11.3.0'
-          if ($LASTEXITCODE -ne 0) { throw 'JREI_PACKAGING_PYINSTALLER_UNAVAILABLE' }
-          # Resolve pinned runtime dependencies on THE GITHUB RUNNER only.
-          # The Windows owner device never connects to PyPI for installation.
-          python -m pip install --disable-pip-version-check --no-input './platform/jrei-python'
-          if ($LASTEXITCODE -ne 0) { throw 'JREI_PACKAGING_PRIVATE_PYTHON_DEPS_UNAVAILABLE' }
-          # The native Go bootstrap replaces Inno Setup entirely.
-          # Do NOT install Inno or any unnecessary tool on the runner.
-
       - name: Validate bundled setup source syntax only (no tests or startup)
         shell: pwsh
         run: |
@@ -69,6 +56,19 @@ jobs:
           # initialize DB, run a neural model or access the public website.
           python -c "import ast,pathlib; root=pathlib.Path('platform'); paths=[root/'jrei-v5/windows-desktop/jrei_embedded_engine.py',root/'jrei-v5/windows-desktop/jrei_desktop.py',root/'jrei-python/jrei_service/windows_private_storage.py',root/'jrei-python/jrei_service/windows_command_center.py']; [ast.parse(p.read_text(encoding='utf-8'),filename=str(p)) for p in paths]"
           if($LASTEXITCODE -ne 0){throw 'JREI_FROZEN_PYTHON_SOURCE_SYNTAX_INVALID'}
+
+      - name: Install packaging utilities on isolated GitHub runner only
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          python -m pip install --disable-pip-version-check --no-input 'pyinstaller==6.16.0' 'Pillow==11.3.0'
+          if ($LASTEXITCODE -ne 0) { throw 'JREI_PACKAGING_PYINSTALLER_UNAVAILABLE' }
+          # Resolve pinned runtime dependencies on THE GITHUB RUNNER only.
+          # The Windows owner device never connects to PyPI for installation.
+          python -m pip install --disable-pip-version-check --no-input './platform/jrei-python'
+          if ($LASTEXITCODE -ne 0) { throw 'JREI_PACKAGING_PRIVATE_PYTHON_DEPS_UNAVAILABLE' }
+          # The native Go bootstrap replaces Inno Setup entirely.
+          # Do NOT install Inno or any unnecessary tool on the runner.
 
       - name: Package original GUI and original 8092 Python engine without runtime downloads
         shell: pwsh
