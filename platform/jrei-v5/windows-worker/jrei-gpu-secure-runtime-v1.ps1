@@ -66,7 +66,7 @@ function TaskIdentity {
  $t=Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue
  Require ($null -ne $t) 'JREI_GPU_EXISTING_TASK_MISSING'
  Require ($t.Principal.UserId -ceq $owner -and $t.Principal.RunLevel -eq 'Limited') 'JREI_GPU_TASK_PRINCIPAL_MISMATCH'
- Require ($t.Actions.Count -eq 1) 'JREI_GPU_TASK_ACTION_COUNT_CHANGED'
+ Require (@($t.Actions).Count -eq 1) 'JREI_GPU_TASK_ACTION_COUNT_CHANGED'
  $cmd=[string]$t.Actions[0].Arguments
  Require ($cmd.Contains($oldRunner) -or $cmd.Contains($launcher)) 'JREI_GPU_TASK_ACTION_NOT_RECOGNIZED'
  return $t
@@ -93,7 +93,7 @@ if($Mode -eq 'Stage'){
  Require (-not (Test-Path -LiteralPath $keyPath)) 'JREI_GPU_EXISTING_AUTH_KEY_REVIEW_REQUIRED'
  Require (-not (Test-Path -LiteralPath $launcher)) 'JREI_GPU_EXISTING_SECURE_LAUNCHER_REVIEW_REQUIRED'
  Require (-not (Test-Path -LiteralPath $manifestPath)) 'JREI_GPU_EXISTING_STAGING_MANIFEST_REVIEW_REQUIRED'
- Require (PathEquals $PSCommandPath $launcher -eq $false) 'JREI_GPU_SOURCE_NOT_STAGING_SNAPSHOT'
+ Require (-not (PathEquals $PSCommandPath $launcher)) 'JREI_GPU_SOURCE_NOT_STAGING_SNAPSHOT'
  $null=New-Item -ItemType Directory -Path $private -Force
  $null=New-Item -ItemType Directory -Path $stageDir -Force
  # Cryptographic key never appears in console output, Git or task arguments.
@@ -111,7 +111,10 @@ if($Mode -eq 'Stage'){
  $icacls=Join-Path $env:WINDIR 'System32\icacls.exe'
  Require (Test-Path -LiteralPath $icacls -PathType Leaf) 'JREI_GPU_WINDOWS_ACL_TOOL_MISSING'
  & $icacls $keyPath '/inheritance:r' '/grant:r' ("*{0}:(F)" -f $sid) | Out-Null
- Require ($LASTEXITCODE -eq 0) 'JREI_GPU_KEY_ACL_REQUIRES_OWNER_REVIEW'
+ if($LASTEXITCODE -ne 0){
+   Remove-Item -LiteralPath $keyPath -Force -ErrorAction SilentlyContinue
+   throw 'JREI_GPU_KEY_ACL_REQUIRES_OWNER_REVIEW'
+ }
  Copy-Item -LiteralPath $PSCommandPath -Destination $launcher -ErrorAction Stop
  $payload=[ordered]@{
    schema=$schema
