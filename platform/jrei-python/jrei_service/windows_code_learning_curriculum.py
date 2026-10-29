@@ -73,6 +73,15 @@ def initialize(db_path: Path) -> None:
             model_training_performed INTEGER NOT NULL DEFAULT 0)""")
         db.execute("""CREATE INDEX IF NOT EXISTS jrei_code_curriculum_path
             ON jrei_code_curriculum_lessons(source_path,source_sha256)""")
+        db.execute("""CREATE TABLE IF NOT EXISTS jrei_code_curriculum_cohorts(
+            cohort_sha256 TEXT PRIMARY KEY,
+            created INTEGER NOT NULL,
+            source_file_count INTEGER NOT NULL,
+            lesson_count INTEGER NOT NULL,
+            manifest_metadata_sha256 TEXT NOT NULL,
+            state TEXT NOT NULL,
+            training_started INTEGER NOT NULL DEFAULT 0,
+            model_weights_modified INTEGER NOT NULL DEFAULT 0)""")
         db.commit()
 
 
@@ -341,6 +350,50 @@ def preflight(db_path: Path) -> dict:
     }
 
 
+def _source_sha_current(repo: Path, relative: str, expected: str) -> bool:
+    """Prove a code lesson still corresponds to real, local first-party code."""
+    root = repo.resolve(strict=True)
+    location = root.joinpath(*relative.split("/"))
+    if (location.is_symlink() or not location.is_file() or
+            not location.resolve(strict=True).is_relative_to(root) or
+            location.stat().st_size > MAX_SOURCE_BYTES):
+        return False
+    return _sha(location.read_bytes()) == expected
+
+
+def _verify_existing_cohort(dest: Path, identity: str,
+                            refs: dict) -> bool:
+    """Read a candidate's receipt and rehash streams; no training occurs."""
+    manifest = dest/"manifest.json"
+    if (dest.is_symlink() or not dest.is_dir() or
+            manifest.is_symlink() or not manifest.is_file() or
+            manifest.stat().st_size > 18000):
+        return False
+    try:
+        info=json.loads(manifest.read_text(encoding="utf-8"))
+    except (ValueError,OSError,UnicodeError,TypeError):
+        return False
+    if (not isinstance(info,dict) or
+            info.get("cohort_sha256")!=identity or
+            info.get("schema")!=
+                "jr.jrei.first-party-coding-dataset-candidate.v1" or
+            info.get("partitions")!=refs or
+            info.get("model_weights_trained") is not False):
+        return False
+    for name,metadata in refs.items():
+        source=dest/(name.lower()+".jsonl")
+        if (source.is_symlink() or not source.is_file() or
+                source.stat().st_size > 64_000_000):
+            return False
+        checksum=hashlib.sha256()
+        with source.open("rb") as stream:
+            for block in iter(lambda:stream.read(1_048_576),b""):
+                checksum.update(block)
+        if checksum.hexdigest()!=metadata["sha256"]:
+            return False
+    return True
+
+
 def stage_candidate(*, db_path: Path, repo: Path, private: Path,
                     resources_available: bool) -> dict:
     """Write an immutable, owner-private JSONL study CANDIDATE.
@@ -364,6 +417,16 @@ def stage_candidate(*, db_path: Path, repo: Path, private: Path,
     if "partitions" not in plan:
         return {"schema":SCHEMA,**plan,
                 "training_started":False}
+    # The local code may have changed AFTER the AST lessons were recorded.
+    # Never stage text from stale source revisions as a current training
+    # candidate. This is source verification, not an executable test.
+    for items in plan["partitions"].values():
+        for item in items:
+            if not _source_sha_current(repo,item["source_path"],
+                                       item["source_sha256"]):
+                return {"schema":SCHEMA,
+                        "state":"CURRICULUM_SOURCE_REVISION_STALE",
+                        "training_started":False}
     partition_data:dict[str,bytes]={}
     manifest_refs={}
     for name,examples in plan["partitions"].items():
@@ -399,10 +462,9 @@ def stage_candidate(*, db_path: Path, repo: Path, private: Path,
     if dest.exists():
         if dest.is_symlink():
             raise ValueError("JREI_CODE_CURRICULUM_COHORT_LINK")
-        manifest=dest/"manifest.json"
-        if not manifest.is_file() or manifest.is_symlink():
+        if not _verify_existing_cohort(dest, identity, manifest_refs):
             return {"schema":SCHEMA,
-                    "state":"INCOMPLETE_EXISTING_COHORT_REVIEW_REQUIRED",
+                    "state":"EXISTING_COHORT_INCOMPLETE_OR_TAMPERED",
                     "cohort_sha256":identity,"training_started":False}
         return {"schema":SCHEMA,
                 "state":"EXISTING_CODE_CURRICULUM_CANDIDATE_PRESERVED",
@@ -430,6 +492,16 @@ def stage_candidate(*, db_path: Path, repo: Path, private: Path,
     }
     with (dest/"manifest.json").open("x",encoding="utf-8") as out:
         json.dump(receipt,out,ensure_ascii=False,sort_keys=True,indent=2)
+    manifest_bytes=json.dumps(receipt,ensure_ascii=False,sort_keys=True,
+                              separators=(",",":")).encode("utf-8")
+    with closing(_db(db_path)) as db:
+        db.execute("""INSERT OR IGNORE INTO jrei_code_curriculum_cohorts(
+            cohort_sha256,created,source_file_count,lesson_count,
+            manifest_metadata_sha256,state)
+            VALUES(?,?,?,?,?,?)""",
+            (identity,receipt["created"],plan["source_files"],
+             plan["total_lessons"],_sha(manifest_bytes),receipt["state"]))
+        db.commit()
     return {"schema":SCHEMA,"state":receipt["state"],
             "cohort_sha256":identity,
             "candidate_examples":plan["total_lessons"],
@@ -452,11 +524,15 @@ def snapshot(db_path: Path) -> dict:
             FROM jrei_code_curriculum_lessons WHERE
             ownership_reviewed=1 AND human_quality_reviewed=1
             AND model_training_permitted=1""").fetchone()[0]
+        cohorts,last_cohort = db.execute("""SELECT COUNT(*),
+            MAX(created) FROM jrei_code_curriculum_cohorts""").fetchone()
     return {
         "schema":SCHEMA,"first_party_source_files_observed":files,
         "total_structural_lesson_versions":lessons,
         "current_source_lesson_candidates":current,
         "approved_training_examples":approved,
+        "immutable_private_dataset_candidate_cohorts":cohorts,
+        "last_candidate_cohort_created_at":last_cohort,
         "source_ownership_assumed":False,
         "public_forge_code_used_as_training_text":False,
         "model_training_started_by_curriculum":False,
