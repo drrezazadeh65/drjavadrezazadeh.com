@@ -41,6 +41,7 @@ from jrei_service import windows_autonomous_topics as auto_topics
 from jrei_service import windows_learning_fts as learning_fts
 from jrei_service import windows_evidence_memory as memory_graph
 from jrei_service import windows_code_experience as code_experience
+from jrei_service import windows_self_development as self_development
 from jrei_service import windows_site_image_studio as image_studio
 from jrei_service import windows_visual_learning as visual_learning
 from jrei_service import windows_github_operator as github_operator
@@ -120,21 +121,26 @@ JOBS = {
     "robots_audit": ("Robots and sitemap", ["node", "scripts/seo-robots-sitemap-audit.mjs"], 45),
     "source_audit": ("Site source", ["git", "status", "--short"], 20),
 }
+# The standing research/coding mission concerns JREI itself, not site CMS,
+# news, SEO, publishing or graphics. Manual owner tools remain registered.
+AI_SELF_DEVELOPMENT_ONLY = True
 CANDIDATE_FILES = (
-    "platform/jrei-v5/jrei-autonomous-site-governor.mjs",
-    "platform/news-intelligence/official-publication-policy.mjs",
     "platform/jrei-python/jrei_learning/strategy_optimizer.py",
+    "platform/jrei-python/jrei_learning/method_feedback.py",
+    "platform/jrei-python/jrei_learning/value_of_information.py",
+    "platform/jrei-python/jrei_learning/metacognitive_cycle.py",
 )
 _candidate_index = 0
 _autonomy_tick = 0
 STUDY = [
-    "platform/jrei-v5/jrei-learning-loop.mjs",
-    "platform/news-intelligence/official-publication-policy.mjs",
-    "platform/jrei-python/jrei_orchestrator/standing_discovery.py",
-    "platform/jrei-v5/jrei-autonomous-site-governor.mjs",
-    "scripts/jrei-autonomous-seo-repair.mjs",
+    "platform/jrei-python/jrei_service/windows_native_inference.py",
+    "platform/jrei-python/jrei_service/windows_native_neural.py",
+    "platform/jrei-python/jrei_service/windows_open_source_mission.py",
+    "platform/jrei-python/jrei_service/windows_code_experience.py",
     "platform/jrei-python/jrei_learning/strategy_optimizer.py",
+    "platform/jrei-python/jrei_learning/metacognitive_cycle.py",
 ]
+
 _STOP = threading.Event()
 _BUSY = threading.Lock()
 _INFERENCE_LOCK = threading.Lock()
@@ -191,6 +197,7 @@ def setup() -> str:
     auto_topics.initialize(DB_PATH)
     memory_graph.initialize(DB_PATH)
     code_experience.initialize(DB_PATH)
+    self_development.initialize(DB_PATH)
     image_studio.initialize(DB_PATH)
     open_source_mission.initialize(DB_PATH)
     github_operator.initialize(DB_PATH)
@@ -554,6 +561,8 @@ def scheduler():
     next_image = now + 10
     next_visual_day = now + 15
     next_open_source_mission = now + 45
+    next_self_code_audit = now + 8
+    next_self_code_candidate = now + 60
     next_observation = now
     while not _STOP.is_set():
         _CONTINUUM_LAST_HEARTBEAT = time.monotonic()
@@ -586,7 +595,8 @@ def scheduler():
                 record("open_source_study", "RESEARCH_HELD",
                        exc.__class__.__name__)
             next_open_source_mission=time.monotonic() + 240
-        if time.monotonic() >= next_visual_day and not _BUSY.locked():
+        if (not AI_SELF_DEVELOPMENT_ONLY and
+                time.monotonic() >= next_visual_day and not _BUSY.locked()):
             # One read/write receipt per UTC day. The loop never invents
             # images, user ratings, model training or constant quality gains.
             try:
@@ -595,7 +605,8 @@ def scheduler():
                 record("native_visual_daily", "RECEIPT_UNAVAILABLE",
                        exc.__class__.__name__)
             next_visual_day = time.monotonic() + 1800
-        if time.monotonic() >= next_image and not _BUSY.locked():
+        if (not AI_SELF_DEVELOPMENT_ONLY and
+                time.monotonic() >= next_image and not _BUSY.locked()):
             # Render only explicit owner-queued draft images with a configured
             # local licensed model. The child process never edits the site.
             try:
@@ -633,7 +644,8 @@ def scheduler():
             except (OSError, ValueError, RuntimeError, sqlite3.Error) as exc:
                 record("site_image", "HELD", exc.__class__.__name__)
             next_image = time.monotonic() + 240
-        if time.monotonic() >= next_ci_check and not _BUSY.locked():
+        if (not AI_SELF_DEVELOPMENT_ONLY and
+                time.monotonic() >= next_ci_check and not _BUSY.locked()):
             run_job("ci_health", background=True)
             next_ci_check = time.monotonic() + 1800
         # Learning is a separate owner-private loop. Network mode is OFF
@@ -764,6 +776,38 @@ def scheduler():
             else:
                 next_study = time.monotonic() + resource_policy.continuous_probe_delay(
                     "CODE_STUDY", "DEFER_OWNER_ACTIVITY", resource_available=False)
+        # A local, model-independent code-quality study survives even when
+        # the native language model has no trained checkpoint. It writes
+        # bounded source-only findings and reviewable isolated code DRAFTS,
+        # never replaces running Python or touches GitHub/production.
+        if time.monotonic() >= next_self_code_audit and not _BUSY.locked():
+            try:
+                observed = self_development.audit_once(
+                    db_path=DB_PATH, repo=REPO, private=PRIVATE,
+                    resources_available=resource_policy.permits(
+                        "SELF_STATIC_REVIEW"))
+                if observed["state"] in ("REVIEWABLE_FINDINGS", "NO_FINDINGS"):
+                    record("self_code_audit", observed["state"],
+                           str(observed.get("source_path", ""))[:120],
+                           str(observed.get("source_sha256", ""))[:64])
+            except (OSError, ValueError, RuntimeError,
+                    sqlite3.Error, UnicodeError) as exc:
+                record("self_code_audit", "HELD",
+                       exc.__class__.__name__)
+            # A bounded recurring scan, NOT a daily quota or a time limit.
+            next_self_code_audit = time.monotonic() + 150
+        # The 32GB node has the conditional heavy-draft lane; the 16GB node
+        # remains free for acquisition and static diagnosis. Independent PCs
+        # retain independent stores and are NOT falsely described as a
+        # shared-memory or distributed-training cluster.
+        if time.monotonic() >= next_self_code_candidate and not _BUSY.locked():
+            plan = resource_policy.snapshot()
+            if (plan.get("profile") == "NODE_32GB_HEAVY"
+                    and resource_policy.permits("MEMORY_CURATION")
+                    and (_activity_at == 0 or
+                         time.monotonic() - _activity_at >= 180)):
+                run_job("patch_candidate", background=True)
+            next_self_code_candidate = time.monotonic() + 1200
         # The one-second wake is purely a cancellation/resource signal probe,
         # not a study start time, a daily quota or a forced stop.
         if _STOP.wait(1.0):
@@ -881,6 +925,10 @@ def status():
         "native_visual_learning": visual_learning.snapshot(DB_PATH),
         "permanent_open_source_research":
             open_source_mission.snapshot(DB_PATH),
+        "local_self_code_study":
+            self_development.snapshot(DB_PATH),
+        "standing_mission_ai_self_development_only":
+            AI_SELF_DEVELOPMENT_ONLY,
         "independent_github_operator": "OWNER_SCOPED_API_AVAILABLE_IF_CONFIGURED",
         "open_source_code_research": "OWNER_REQUEST_ONLY_NO_CODE_DOWNLOAD",
         "independent_site_governor": "EXISTING_GITHUB_WORKFLOW_NOT_DUPLICATED",
