@@ -1,6 +1,6 @@
-# JREI owner universal Windows installation — v0.1.13 source candidate
+# JREI owner universal Windows installation — v0.1.14 source candidate
 
-**Status: v0.1.11 passed its GitHub builder, but on an owner PC its program files staged while its engine setup failed with JREI_ENGINE_SETUP_FAILED. Version 0.1.12 is a SOURCE-ONLY correction. No v0.1.12 build or real-device acceptance has been verified.**
+**Status: the previously built v0.1.12 package could stage program files but the frozen PyInstaller engine was not writable on the owner Windows PC. Version 0.1.14 is a source-only architectural change to bundle PSF CPython and site dependencies; no v0.1.14 EXE is built, installed or owner-device accepted.**
 
 Repository: drrezazadeh65/drjavadrezazadeh.com
 Canonical branch: migration/bertina-linux6
@@ -104,3 +104,13 @@ The source-only 0.1.13 repair makes **engine authentication the primary installa
 The Python private-store probe also no longer requests write access to an **already existing owner-token**, because the original engine reads and preserves it rather than rewriting it. File-specific SQLite write capability is still required. If the frozen process remains blocked from writing all available private roots, it fails closed and returns a bounded cause code, without disabling security, changing ACLs, inventing a successful engine, or deleting existing user data.
 
 **Status: v0.1.13 is a source-only candidate, not an owner-tested or built release.** The established owner-only one-click GitHub workflow is manually dispatched; no deploy and no live-site change. Do not request another install on either owner PC until the evidence and release gates are satisfied.
+
+## v0.1.14: app-local normal Python replaces the frozen engine
+
+Owner evidence shows the normal installed CPython 3.13 on the 16-GB Windows PC could create an exclusive private file, create and modify SQLite, and keep owner permissions intact. The original PyInstaller-frozen `JREI-Engine.exe` returned access denied and readonly SQLite against the same per-user location. Source-only changes to diagnostics and private storage did not repair that process-specific failure.
+
+Version 0.1.14 removes the frozen engine from the ONE universal Go setup payload entirely. Instead, GitHub's Windows runner bundles the original `setup-python` **Python 3.13 x64 executable, Python DLLs, standard library, isolated `python313._pth` and vendored packages** from the project's pinned Python requirements. No Python, pip or third-party package is downloaded or installed on either owner Windows PC at runtime. The GUI stays the original onedir Tk desktop. The original command center executes from the immutable `source-v0.1.14` snapshot using `python-v0.1.14/python.exe -I -B .../jrei_embedded_engine.py --serve`; it is NOT replaced with a second AI engine or pre-trained model. The service detects the versioned source root and continues to use the existing guarded same-user private storage selection and SQLite. No GPU setup is needed for an initial CPU start.
+
+The native Go loader validates exact bundled runtime files before staging; the PowerShell controller hashes the bundled `python.exe` and checks the explicit `BUNDLED_CPYTHON_3_13` manifest. Old versioned binaries, database, owner-token, private documents, DPAPI worker identities and unrelated scheduled tasks are never deleted or rewritten. Unknown port-8092 listeners remain untouched. The existing desktop discovers/starts its matching private engine via the existing controller.
+
+**Limitations and acceptance:** a source change and even a green packaging workflow are not proof the user's Windows security environment will allow this bundled interpreter to write. The original 32-GB PC may still run an older authenticated service; an installer must not silently replace it. The fresh offline package is larger because the complete Python runtime travels inside it. Do not claim local model weights, GPU, signed remote PC enrollment, website deployment or background autonomous upgrading are completed. First perform source integrity checks in CI, then one owner-controlled real-device install and authenticated `/api/status` before calling the release accepted. The user should not be required to execute new Python or PowerShell repair commands.
