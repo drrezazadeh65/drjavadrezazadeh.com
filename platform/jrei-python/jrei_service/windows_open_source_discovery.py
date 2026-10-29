@@ -138,10 +138,14 @@ def find_repositories(query: str) -> dict:
         name = entry.get("full_name")
         if (not isinstance(name, str)
                 or not re.fullmatch(r"[\w.-]{1,80}/[\w.-]{1,100}", name)
-                or spdx not in SUPPORTED or entry.get("archived") is True
+                or entry.get("archived") is True
                 or entry.get("fork") is True):
             rejected += 1
             continue
+        # A missing or uncommon license does not block DISCOVERY. It does
+        # still block automatic copying, execution or source promotion.
+        if not isinstance(spdx, str) or not spdx.strip():
+            spdx = "UNKNOWN"
         # Full licence/NOTICE and dependency review is still necessary.
         accepted.append({
             "repository": name,
@@ -151,6 +155,7 @@ def find_repositories(query: str) -> dict:
             "updated_at": str(entry.get("pushed_at") or "")[:30],
             "url": "https://github.com/" + name,
             "license_verified_at_exact_code_revision": False,
+            "license_needs_review_before_reuse": True,
             "model_weights_not_downloaded": True,
             "source_integration_approved": False,
         })
@@ -163,6 +168,7 @@ def find_repositories(query: str) -> dict:
         "observed_at": datetime.now(timezone.utc).isoformat(),
         "items": accepted,
         "candidates_not_assumed_safe": rejected,
+        "source_credibility_is_not_a_discovery_gate": True,
         "actual_live_search_performed": True,
         "site_changed": False,
         "external_app_installed": False,
