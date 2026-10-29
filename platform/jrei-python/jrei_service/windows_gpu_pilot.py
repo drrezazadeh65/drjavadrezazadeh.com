@@ -103,8 +103,9 @@ def _owner_gate(private: Path) -> tuple[str, str]:
 def discover(private: Path) -> tuple[str, str]:
     endpoint, alias = _owner_gate(private)
     data = transport._exchange("http://127.0.0.1:8082/v1/models", timeout=3)
-    if not any(isinstance(row, dict) and row.get("id") == alias
-               for row in data.get("data", []) if isinstance(data.get("data"), list)):
+    rows = data.get("data")
+    if not isinstance(rows, list) or not any(
+            isinstance(row, dict) and row.get("id") == alias for row in rows):
         raise RuntimeError("JREI_GPU_PILOT_SERVER_NOT_READY")
     return endpoint, alias
 
