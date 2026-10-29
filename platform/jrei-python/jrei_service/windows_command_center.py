@@ -48,6 +48,7 @@ from jrei_service import windows_github_operator as github_operator
 from jrei_service import windows_open_source_discovery as source_discovery
 from jrei_service import windows_open_source_mission as open_source_mission
 from jrei_service import windows_open_source_study as open_source_study
+from jrei_service import windows_oss_multiforge as oss_multiforge
 from jrei_service import windows_language_backend as language_backend
 from jrei_service import windows_native_inference as native_inference
 from jrei_service import windows_private_storage as private_storage
@@ -202,6 +203,7 @@ def setup() -> str:
     image_studio.initialize(DB_PATH)
     open_source_mission.initialize(DB_PATH)
     open_source_study.initialize(DB_PATH)
+    oss_multiforge.initialize(DB_PATH)
     github_operator.initialize(DB_PATH)
     token = TOKEN_PATH.read_text(encoding="ascii").strip()
     if len(token) < 48:
@@ -564,6 +566,8 @@ def scheduler():
     next_visual_day = now + 15
     next_open_source_mission = now + 45
     next_open_source_code_study = now + 90
+    next_multiforge_discovery = now + 135
+    next_gitlab_code_study = now + 185
     next_self_code_audit = now + 8
     next_self_code_candidate = now + 60
     next_observation = now
@@ -620,6 +624,44 @@ def scheduler():
                 record("open_source_code_study", "RESEARCH_HELD",
                        exc.__class__.__name__)
             next_open_source_code_study = time.monotonic() + 360
+        # Two additional independent public OSS hosts, using the same
+        # standing research permission and per-PC resource admission.
+        # These lanes cannot install, execute or promote upstream code.
+        if (time.monotonic() >= next_multiforge_discovery and
+                not _BUSY.locked()):
+            try:
+                found = oss_multiforge.discover_once(
+                    DB_PATH,
+                    resources_available=resource_policy.permits(
+                        "APPROVED_NETWORK_STUDY"),
+                    owner_active=(_activity_at > 0 and
+                                  time.monotonic() - _activity_at < 180))
+                if found.get("state") == (
+                        "PUBLIC_REPOSITORIES_DISCOVERED_UNVERIFIED"):
+                    record("multiforge_oss", "PUBLIC_METADATA_OBSERVED",
+                           str(found.get("provider", ""))[:20])
+            except (OSError,ValueError,TypeError,RuntimeError,
+                    sqlite3.Error,urllib.error.URLError) as exc:
+                record("multiforge_oss", "RESEARCH_HELD",
+                       exc.__class__.__name__)
+            next_multiforge_discovery = time.monotonic() + 540
+        if (time.monotonic() >= next_gitlab_code_study and
+                not _BUSY.locked()):
+            try:
+                read = oss_multiforge.read_once(
+                    DB_PATH,
+                    resources_available=resource_policy.permits(
+                        "APPROVED_NETWORK_STUDY"),
+                    owner_active=(_activity_at > 0 and
+                                  time.monotonic() - _activity_at < 180))
+                if read.get("state") == "PINNED_PUBLIC_CODE_STUDIED":
+                    record("gitlab_oss_code", "PINNED_SOURCE_OBSERVED",
+                           str(read.get("repository", ""))[:130])
+            except (OSError,ValueError,TypeError,RuntimeError,
+                    sqlite3.Error,urllib.error.URLError) as exc:
+                record("gitlab_oss_code", "RESEARCH_HELD",
+                       exc.__class__.__name__)
+            next_gitlab_code_study = time.monotonic() + 660
         if (not AI_SELF_DEVELOPMENT_ONLY and
                 time.monotonic() >= next_visual_day and not _BUSY.locked()):
             # One read/write receipt per UTC day. The loop never invents
@@ -952,6 +994,8 @@ def status():
             open_source_mission.snapshot(DB_PATH),
         "pinned_open_source_code_study":
             open_source_study.snapshot(DB_PATH),
+        "multiforge_open_source_research":
+            oss_multiforge.snapshot(DB_PATH),
         "local_self_code_study":
             self_development.snapshot(DB_PATH),
         "standing_mission_ai_self_development_only":
@@ -1093,6 +1137,8 @@ class OwnerHTTP(BaseHTTPRequestHandler):
             return self._send(200, open_source_mission.snapshot(DB_PATH))
         if self.path == "/api/open-source/studies":
             return self._send(200, open_source_study.snapshot(DB_PATH))
+        if self.path == "/api/open-source/multiforge":
+            return self._send(200, oss_multiforge.snapshot(DB_PATH))
         if urlsplit(self.path).path == "/api/open-source/search":
             params = parse_qs(urlsplit(self.path).query)
             try:
