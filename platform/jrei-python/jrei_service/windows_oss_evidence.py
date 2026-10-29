@@ -188,6 +188,58 @@ def research_context(db_path: Path, target: str) -> dict:
     }
 
 
+def rank_draft_targets(db_path: Path, targets: tuple[str, ...]) -> list[dict]:
+    """Prioritize original JREI files by observed OSS reads and local findings.
+
+    This is scheduling information, not an assertion of capability, code
+    quality or licence. Each eligible file remains revisitable indefinitely.
+    """
+    if (not isinstance(targets, tuple) or not 1 <= len(targets) <= 80
+            or any(not isinstance(p, str) or not TARGET.fullmatch(p)
+                   for p in targets)):
+        raise ValueError("JREI_OSS_DRAFT_TARGETS_INVALID")
+    records = {
+        p: {"target": p, "pinned_oss_sources": 0,
+            "static_findings": 0, "priority": 0}
+        for p in targets
+    }
+    with closing(_db(db_path)) as db:
+        if _has_table(db, "jrei_oss_code_studies"):
+            rows = db.execute("""SELECT adaptation_target,COUNT(*)
+                FROM jrei_oss_code_studies
+                WHERE source_sha256 IS NOT NULL AND last_success IS NOT NULL
+                GROUP BY adaptation_target""").fetchall()
+            for target, count in rows:
+                if target in records:
+                    records[target]["pinned_oss_sources"] += int(count or 0)
+        if _has_table(db, "jrei_oss_forge_candidates"):
+            rows = db.execute("""SELECT t.query
+                FROM jrei_oss_forge_candidates f
+                JOIN jrei_oss_topics t ON t.domain=f.domain
+                WHERE f.source_sha256 IS NOT NULL""").fetchall()
+            for (query,) in rows:
+                target = _target_for(query)
+                if target in records:
+                    records[target]["pinned_oss_sources"] += 1
+        if _has_table(db, "jrei_self_code_audit"):
+            rows = db.execute("""SELECT source_path,finding_count
+                FROM jrei_self_code_audit
+                WHERE finding_count > 0""").fetchall()
+            for target, count in rows:
+                if target in records:
+                    records[target]["static_findings"] = max(
+                        0, int(count or 0))
+    # Weights only prioritize which source to inspect first. Evidence counts
+    # alone never establish a functional improvement or a learned skill.
+    for item in records.values():
+        item["priority"] = (
+            3 * min(12, item["pinned_oss_sources"]) +
+            min(8, item["static_findings"])
+        )
+    return sorted(records.values(),
+                  key=lambda item: (-item["priority"], item["target"]))
+
+
 def record_candidate(db_path: Path, *, candidate_id: str, target: str,
                      source_sha256: str, evidence: dict) -> dict:
     """Associate a candidate with observed sources, never approve an edit."""
