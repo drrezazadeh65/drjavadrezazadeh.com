@@ -178,6 +178,30 @@ def _seed_problem_topics(db) -> int:
         # Per-iteration work budget, not a permanent limit on topics.
         if inserted >= 24:
             break
+    # Static source review produces problem statements without a language
+    # model. Inspect types, not source text; no private code goes to GitHub.
+    table = db.execute("""SELECT 1 FROM sqlite_master
+        WHERE type='table' AND name='jrei_self_code_findings'""").fetchone()
+    if table:
+        learning_queries = {
+            "BARE_EXCEPT": "python exception handling static analysis refactoring",
+            "DYNAMIC_CODE_CALL": "python dynamic code execution risk analysis",
+            "PYTHON_SYNTAX_ISSUE": "python ast syntax automated repair",
+        }
+        problems = db.execute("""SELECT finding_kind,COUNT(*)
+            FROM jrei_self_code_findings
+            GROUP BY finding_kind ORDER BY COUNT(*) DESC""").fetchall()
+        for issue, count in problems:
+            if count <= 0 or issue not in learning_queries:
+                continue
+            domain = "problem_" + hashlib.sha256(
+                ("SELF_CODE_" + issue).encode("ascii")).hexdigest()[:18]
+            before = db.total_changes
+            db.execute("""INSERT OR IGNORE INTO jrei_oss_topics(
+                domain,query) VALUES(?,?)""",
+                (domain, learning_queries[issue]))
+            if db.total_changes > before:
+                inserted += 1
     return inserted
 
 
