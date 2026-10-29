@@ -149,12 +149,102 @@ function WaitOwner {
  }
  return $false
 }
+$script:LastPrivateEngineError='JREI_ENGINE_START_NOT_VERIFIED'
 function LaunchBundled {
  if(PortBusy){return $false}
  $wd=Split-Path -Path $engine -Parent
- $p=Start-Process -FilePath $engine -ArgumentList '--serve' -WorkingDirectory $wd -WindowStyle Hidden -PassThru -ErrorAction Stop
- if($null -eq $p){return $false}
- return (WaitOwner)
+ # Captured ONLY in the owner's restricted local receipt folder. Never show
+ # raw traceback/profile paths in the installer or GitHub build logs.
+ New-Item -ItemType Directory -Path $receipts -Force -ErrorAction Stop|Out-Null
+ $stderr=Join-Path $receipts ('.startup-'+[guid]::NewGuid().ToString('N')+'.err')
+ try{
+  $p=Start-Process -FilePath $engine -ArgumentList '--serve' -WorkingDirectory $wd -WindowStyle Hidden -PassThru -RedirectStandardError $stderr -ErrorAction Stop
+  if($null -eq $p){return $false}
+  for($i=0;$i -lt 14;$i++){
+   if(OwnerReady){return $true}
+   if($p.HasExited){break}
+   Start-Sleep -Seconds 2
+  }
+  if(Test-Path -LiteralPath $stderr -PathType Leaf){
+   $log=Get-Content -LiteralPath $stderr -Raw -Encoding UTF8 -ErrorAction SilentlyContinue
+   if($log -match '(?m)^\[JREI\] (JREI_[A-Z0-9_]{4,110})\s*
+function HasExistingTask {
+ try{
+  $task=Get-ScheduledTask -TaskName $taskName -ErrorAction Stop
+  return ($null -ne $task)
+ }catch{return $false}
+}
+try{
+ if($env:OS -cne 'Windows_NT' -or
+    -not [Environment]::Is64BitOperatingSystem){
+  throw 'JREI_WINDOWS_X64_REQUIRED'
+ }
+ VerifyPackage
+ if($Mode -eq 'Install' -and -not $OwnerApproved){
+  throw 'JREI_OWNER_INSTALL_APPROVAL_REQUIRED'
+ }
+ if(OwnerReady){
+  if($Mode -eq 'Install'){Record 'ENGINE_AUTHENTICATED_EXISTING' 'TASK_UNCHANGED'}
+  Emit 'JREI_ENGINE_AUTHENTICATED_EXISTING'
+  return
+ }
+ if(PortBusy){
+  if($Mode -eq 'Install'){
+   Record 'ENGINE_PENDING_UNVERIFIED_8092_LISTENER' 'TASK_UNCHANGED'
+   Emit 'JREI_ENGINE_PENDING_UNVERIFIED_8092_LISTENER'
+   return
+  }
+  if($Mode -eq 'Status'){
+   Emit 'JREI_ENGINE_PENDING_UNVERIFIED_8092_LISTENER'
+   return
+  }
+  throw 'JREI_8092_LISTENER_UNVERIFIED_PRESERVED'
+ }
+ if($Mode -eq 'Status'){
+  Emit 'JREI_ENGINE_NOT_RUNNING'
+  return
+ }
+ # On fresh owners' computers, preserve any existing Task Scheduler item,
+ # including unknown actions. Do not auto-run obsolete task actions.
+ # The GUI can relaunch the bundled core when the owner signs in.
+ $auto='ON_DEMAND_NO_TASK_CHANGES'
+ if($Mode -eq 'Install' -and (HasExistingTask)){
+  $auto='EXISTING_TASK_PRESERVED'
+ }
+ $running=$false
+ try{$running=LaunchBundled}catch{}
+ if($running){
+  if($Mode -eq 'Install'){Record 'ENGINE_AUTHENTICATED_BUNDLED' $auto}
+  Emit 'JREI_ENGINE_AUTHENTICATED_BUNDLED'
+  return
+ }
+ if($Mode -eq 'Install'){
+  Record $script:LastPrivateEngineError $auto
+  Emit $script:LastPrivateEngineError
+  return
+ }
+ throw $script:LastPrivateEngineError
+}catch{
+ $code=[string]$_.Exception.Message
+ if($code -cnotmatch '^JREI_[A-Z0-9_]{4,110}$'){
+  $code='JREI_ENGINE_SETUP_FAILED'
+ }
+ if($Mode -eq 'Install'){
+  try{Record $code 'FAILED_NO_TASK_OR_DATA_CHANGES'}catch{}
+ }
+ Write-Error $code
+ exit 1
+}
+){
+    $script:LastPrivateEngineError=[string]$Matches[1]
+   }
+  }
+  return $false
+ }finally{
+  if(Test-Path -LiteralPath $stderr){
+   Remove-Item -LiteralPath $stderr -Force -ErrorAction SilentlyContinue
+  }
+ }
 }
 function HasExistingTask {
  try{
