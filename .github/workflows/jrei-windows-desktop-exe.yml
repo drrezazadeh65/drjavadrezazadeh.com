@@ -204,6 +204,22 @@ jobs:
           if($LASTEXITCODE -ne 0){
             throw 'JREI_PORTABLE_RUNTIME_IMPORTS_NOT_READY'
           }
+          # Validate the ACTUAL launcher script using both interpreter
+          # transports without starting the owner server or opening SQLite.
+          # This would catch a wrong source-v parent path or missing manifest
+          # before a user downloads an EXE, without any owner-device tests.
+          $bootstrap=Join-Path $packagedSource 'platform/jrei-v5/windows-desktop/jrei_owner_python_bootstrap.py'
+          if(-not (Test-Path -LiteralPath $bootstrap -PathType Leaf)){
+            throw 'JREI_OWNER_PYTHON_BOOTSTRAP_MISSING'
+          }
+          & (Join-Path $portable 'python.exe') -I -B $bootstrap --verify-packaging
+          if($LASTEXITCODE -ne 0){
+            throw 'JREI_BUNDLED_PYTHON_BOOTSTRAP_UNVERIFIED'
+          }
+          & python -I -B $bootstrap --verify-packaging
+          if($LASTEXITCODE -ne 0){
+            throw 'JREI_SYSTEM_PYTHON_BOOTSTRAP_UNVERIFIED'
+          }
           # This archive is a build-time input embedded inside ONE Go EXE.
           # It is not a separate owner download or a Windows temp archive.
           $goPayload="$desktop/payload.zip"
