@@ -3,7 +3,7 @@
  JREI Windows installed app and updater. Reuses existing startup and repo-sync tasks.
  Install is OWNER EXPLICIT, Auto is opt-in, snapshots immutable, rollback restores
  previous task action. Does not modify web hosting, language model or Python 8091.
- Code-only until installed by its Windows owner; no tests performed here.
+ Source-only changes are staged and parsed before any opt-in promotion; health rollback remains required.
 #>
 [CmdletBinding()]
 param(
@@ -18,6 +18,7 @@ $repo=Join-Path $root 'repo'
 $versions=Join-Path $root 'windows-owner-app-versions'
 $marker=Join-Path $root 'windows-owner-app-auto-update.json'
 $installed=Join-Path $root 'windows-owner-app-current.json'
+$failed=Join-Path $root 'windows-owner-app-failed-source.json'
 $py=Join-Path $root 'venv\Scripts\python.exe'
 $tokenFile=Join-Path $env:LOCALAPPDATA 'JREI\command-center\owner-token'
 $taskName='JREI-Owner-Windows-Command-Center'
@@ -72,7 +73,52 @@ function CurrentHead{
  }
  $sha=Git -argsList @('rev-parse','HEAD')
  if($sha -cnotmatch '^[0-9a-f]{40}$'){throw 'JREI_APP_HEAD_INVALID'}
+ # Never activate local-only or diverged commits, only the pinned origin.
+ $synced=Git -argsList @('rev-parse',
+     'refs/remotes/origin/migration/bertina-linux6')
+ if($sha -cne $synced){throw 'JREI_APP_HEAD_NOT_CANONICAL_REMOTE'}
  return $sha
+}
+function SourceTree([string]$sha){
+ if($sha -cnotmatch '^[a-f0-9]{40}$'){throw 'JREI_APP_SOURCE_SHA_INVALID'}
+ $spec=$sha+':platform/jrei-python'
+ $tree=Git -argsList @('rev-parse',$spec)
+ if($tree -cnotmatch '^[a-f0-9]{40}$'){throw 'JREI_APP_SOURCE_TREE_INVALID'}
+ return $tree
+}
+function InstalledTree([object]$state){
+ if($null -eq $state){return ''}
+ if($state.sourceTree -cmatch '^[a-f0-9]{40}$'){return [string]$state.sourceTree}
+ $prior=[string]$state.sourceCommit
+ if($prior -notmatch '^[a-f0-9]{40}$'){return ''}
+ try{return SourceTree $prior}catch{return ''}
+}
+function StaticPreflight([string]$snapshot){
+ if(-not (Test-Path -LiteralPath $py -PathType Leaf)){throw 'JREI_APP_PYTHON_MISSING'}
+ # Parse staged Python source as data, never importing new JREI modules.
+ $validator=@'
+import ast,pathlib,sys
+root=pathlib.Path(sys.argv[1]).resolve(strict=True)
+if not root.is_dir() or not (root/'jrei_service'/'windows_command_center.py').is_file():
+    raise SystemExit(15)
+files=sorted(root.rglob('*.py'))
+if not files or len(files)>2000:
+    raise SystemExit(16)
+for candidate in files:
+    if (candidate.is_symlink() or not candidate.is_file() or
+        not candidate.resolve(strict=True).is_relative_to(root) or
+        candidate.stat().st_size>1000000):
+        raise SystemExit(17)
+    ast.parse(candidate.read_text(encoding='utf-8-sig'),filename=str(candidate))
+'@
+ $oldPreference=$ErrorActionPreference
+ try{
+  $ErrorActionPreference='Continue'
+  & $py -I -B -c $validator $snapshot 1>$null 2>$null
+  $result=$LASTEXITCODE
+ }finally{$ErrorActionPreference=$oldPreference}
+ if($result -ne 0){throw 'JREI_APP_SOURCE_STATIC_PREFLIGHT_REJECTED'}
+ Report 'WINDOWS_APP_SOURCE_STATIC_PREFLIGHT_PASSED'
 }
 function OwnerTask{
  $task=Get-ScheduledTask -TaskName $taskName -ErrorAction Stop
