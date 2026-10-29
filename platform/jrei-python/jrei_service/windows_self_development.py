@@ -34,7 +34,10 @@ TARGETS = (
     "platform/jrei-python/jrei_service/windows_workspace.py",
     "platform/jrei-python/jrei_service/windows_learning_agenda.py",
 )
-MAX_SOURCE_BYTES = 26000
+# Large native JREI modules (including the 8092 controller) are studied
+# without truncating their AST. Draft writing still has its own smaller
+# independent file and delta ceilings.
+MAX_SOURCE_BYTES = 320000
 MAX_RECORDED_FINDINGS = 32
 # One scan is bounded for responsiveness, but previously unseen modules can
 # enter the next cycle. This is not a lifetime or daily research quota.
