@@ -67,6 +67,11 @@ def initialize(path):
             research_notes_json TEXT NOT NULL DEFAULT '[]',
             source_state TEXT NOT NULL DEFAULT 'NEVER_READ',
             PRIMARY KEY(provider,domain,repository));""")
+        columns = {column[1] for column in db.execute(
+            "PRAGMA table_info(jrei_oss_forge_candidates)").fetchall()}
+        if "research_notes_json" not in columns:
+            db.execute("""ALTER TABLE jrei_oss_forge_candidates
+                ADD COLUMN research_notes_json TEXT NOT NULL DEFAULT '[]'""")
         db.commit()
 
 
@@ -405,18 +410,30 @@ def read_once(path, *, resources_available, owner_active=False):
     except (ValueError, OSError, TypeError, KeyError, OverflowError,
             json.JSONDecodeError, urllib.error.URLError):
         pass
+    # A transient network failure or a revision without suitable code does
+    # not destroy previously authenticated public code observations.
+    source_verified = bool(info and info["sha"])
     with closing(_db(path)) as db:
         db.execute("""UPDATE jrei_oss_forge_candidates SET
-            source_next_due=?,source_revision=?,source_path=?,
-            source_sha256=?,signatures_json=?,research_notes_json=?,
+            source_next_due=?,
+            source_revision=CASE WHEN ? THEN ? ELSE source_revision END,
+            source_path=CASE WHEN ? THEN ? ELSE source_path END,
+            source_sha256=CASE WHEN ? THEN ? ELSE source_sha256 END,
+            signatures_json=CASE WHEN ? THEN ? ELSE signatures_json END,
+            research_notes_json=CASE WHEN ? THEN ?
+                ELSE research_notes_json END,
             source_state=?
             WHERE provider=? AND domain=? AND repository=?""",
-            (now+(SOURCE_REFRESH if info else RETRY),
-             info["revision"] if info else None,
-             info["source"] if info else None,
-             info["sha"] if info else None,
-             json.dumps(info["functions"],sort_keys=True) if info else "[]",
-             json.dumps(info["notes"],ensure_ascii=False) if info else "[]",
+            (now+(SOURCE_REFRESH if source_verified else RETRY),
+             int(source_verified),info["revision"] if source_verified else None,
+             int(source_verified),info["source"] if source_verified else None,
+             int(source_verified),info["sha"] if source_verified else None,
+             int(source_verified),
+             json.dumps(info["functions"],sort_keys=True)
+                 if source_verified else None,
+             int(source_verified),
+             json.dumps(info["notes"],ensure_ascii=False)
+                 if source_verified else None,
              state,provider,domain,repository))
         db.commit()
     return {"schema":SCHEMA,"provider":provider,"state":state,
