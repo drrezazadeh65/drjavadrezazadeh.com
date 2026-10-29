@@ -81,12 +81,44 @@ def _owner_token_file() -> Path:
     local = Path(os.environ.get("LOCALAPPDATA", str(Path.home())))
     profile = Path(os.environ.get("USERPROFILE", str(Path.home())))
     initial = local / "JREI" / "command-center"
-    choices = (
+    choices = [
         local / "JREI-Owner" / "command-center",
         profile / "JREI-Owner" / "command-center",
         local / "JREI-Private-v2" / "command-center",
         profile / ".jrei-owner" / "command-center",
-    )
+    ]
+    roaming = os.environ.get("APPDATA", "")
+    if roaming and os.path.isabs(roaming) and not roaming.startswith("\\\\"):
+        roam = Path(roaming)
+        if not roam.is_symlink() and not (
+                hasattr(roam, "is_junction") and roam.is_junction()):
+            choices.append(roam / "JREI-Owner" / "command-center")
+    if sys.platform == "win32" and getattr(sys, "frozen", False):
+        # The installer proved this versioned program container writable.
+        # A private data folder beside "releases" survives future versions.
+        # Never accept a moved/unversioned EXE or another user's profile.
+        app = Path(sys.executable).absolute().parent
+        container = app.parent.parent
+        try:
+            if (re.fullmatch(r"v\\d+\\.\\d+\\.\\d+", app.name)
+                    and app.parent.name == "releases"
+                    and os.path.commonpath((str(container), str(profile))).casefold()
+                    == str(profile.absolute()).casefold()
+                    and (app / "jrei-engine-manifest.json").is_file()):
+                current = container
+                safe = True
+                while current != profile.absolute():
+                    if current == current.parent or current.is_symlink() or (
+                            hasattr(current, "is_junction") and
+                            current.is_junction()):
+                        safe = False
+                        break
+                    current = current.parent
+                if safe:
+                    choices.append(
+                        container / "JREI-Owner-Private" / "command-center")
+        except (ValueError, OSError):
+            pass
     marked = []
     for candidate in choices:
         marker = candidate / ".jrei-active-private-store-v1.json"
