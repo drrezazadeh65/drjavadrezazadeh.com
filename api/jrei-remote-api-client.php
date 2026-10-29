@@ -19,6 +19,10 @@ function jrJreiPythonInternalPropose(array $privateConfig, string $route, array 
 {
     $allowed = [
         '/internal/v1/admin/ai-reports/snapshot',
+        '/internal/v1/education/konkur/aggregate-calibration',
+        '/internal/v1/education/bahar/coverage',
+        '/internal/v1/education/rcas/evidence-projection',
+        '/internal/v1/engines/compat/compute',
         '/internal/v1/admin/ai-visibility/report',
         '/internal/v1/learning/prioritize',
         '/internal/v1/model/owner-draft',
