@@ -320,6 +320,10 @@ def reply(messages, max_tokens=320):
                     db_path=DB_PATH, private=PRIVATE,
                     messages=retry_messages,
                     max_tokens=min(256, max_tokens))
+            elif result.get("backend") == "QWEN_GPU_PILOT_UNVERIFIED":
+                regenerated = gpu_pilot.complete(
+                    PRIVATE, retry_messages, max_tokens=min(520, max_tokens),
+                    temperature=0.2)
             else:
                 regenerated = language_backend.complete(
                     PRIVATE, retry_messages, max_tokens=min(max_tokens, 520),
