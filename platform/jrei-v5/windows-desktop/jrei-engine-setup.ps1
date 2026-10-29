@@ -59,6 +59,7 @@ function VerifyPackage {
  if($hash -cne [string]$info.engine_sha256){
   throw 'JREI_OFFLINE_ENGINE_HASH_MISMATCH'
  }
+ $script:ExpectedCommit=[string]$info.source_commit
 }
 function OwnerTokenFile {
  # Same explicit private-store marker as Python/Tk; no arbitrary paths from
@@ -148,11 +149,21 @@ function OwnerReady {
     $payload=$reader.ReadToEnd()
     if($payload.Length -gt 130000){return $false}
     $status=$payload|ConvertFrom-Json
-    return ($status.schema -ceq 'jr.jrei.windows-command-center.v2' -and
-      $status.owner_private -eq $true)
+    if($status.schema -ceq 'jr.jrei.windows-command-center.v2' -and
+       $status.owner_private -eq $true){
+      $script:LastOwnerStatus=$status
+      return $true
+    }
+    return $false
    }finally{$reader.Dispose()}
   }finally{$response.Dispose()}
  }catch{return $false}
+}
+function ReadyForThisRelease {
+ # Previous authenticated JREI code is NOT the new packaged source.
+ if(-not (OwnerReady)){return $false}
+ return ($script:LastOwnerStatus.windows_app_source_commit -ceq
+         $script:ExpectedCommit)
 }
 function PortBusy {
  $client=New-Object Net.Sockets.TcpClient
@@ -200,7 +211,7 @@ function TryRecord([string]$state,[string]$taskMode) {
 }
 function WaitOwner {
  for($n=0;$n -lt 10;$n++){
-  if(OwnerReady){return $true}
+  if(ReadyForThisRelease){return $true}
   Start-Sleep -Seconds 2
  }
  return $false
@@ -275,7 +286,7 @@ function LaunchCandidate([string]$program,[string[]]$argumentList) {
   $proc=Start-Process -FilePath $program -ArgumentList $argumentList -WorkingDirectory $PSScriptRoot -WindowStyle Hidden -PassThru -RedirectStandardError $stderr -ErrorAction Stop
   if($null -eq $proc){return 'FAILED'}
   for($n=0;$n -lt 30;$n++){
-   if(OwnerReady){return 'AUTHENTICATED'}
+   if(ReadyForThisRelease){return 'AUTHENTICATED'}
    if($proc.HasExited){break}
    Start-Sleep -Seconds 2
   }
@@ -349,9 +360,17 @@ try{
   throw 'JREI_OWNER_INSTALL_APPROVAL_REQUIRED'
  }
  $script:Stage='LOOPBACK'
- if(OwnerReady){
+ if(ReadyForThisRelease){
   if($Mode -eq 'Install'){TryRecord 'ENGINE_AUTHENTICATED_EXISTING' 'TASK_UNCHANGED'}
   Emit 'JREI_ENGINE_AUTHENTICATED_EXISTING'
+  return
+ }
+ if(OwnerReady){
+  # An authenticated old JREI must not be mistaken for the new package.
+  if($Mode -eq 'Install'){
+   TryRecord 'ENGINE_PENDING_PREVIOUS_VERSION_8092_PRESERVED' 'TASK_UNCHANGED'
+  }
+  Emit 'JREI_ENGINE_PENDING_PREVIOUS_VERSION_8092_PRESERVED'
   return
  }
  if(PortBusy){
