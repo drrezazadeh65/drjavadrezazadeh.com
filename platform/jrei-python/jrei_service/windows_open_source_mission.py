@@ -37,6 +37,10 @@ SELF_DEVELOPMENT_TOPICS = (
     ("self_security", "python sandbox source code security review"),
     ("self_checkpoint", "pytorch checkpoint recovery training"),
     ("self_research", "autonomous software engineering research agent"),
+    ("self_metacognition", "metacognitive agent self evaluation learning"),
+    ("self_code_provenance", "open source evidence provenance software code"),
+    ("self_corpus_review", "multilingual dataset provenance duplicate detection"),
+    ("self_selftest_design", "python code review evaluation methodology"),
 )
 # Old rows remain stored for audit history; only self_* and problem_*
 # research topics are selected while the owner's AI-only mission applies.
