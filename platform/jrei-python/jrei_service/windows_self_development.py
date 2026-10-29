@@ -186,6 +186,26 @@ def _inspect(target: str, source: str) -> tuple[list[dict], str | None]:
                     "kind": "SILENT_EXCEPTION_PASS", "line": node.lineno,
                     "certainty": "AST_OBSERVATION_NOT_FUNCTIONAL_PROOF",
                 })
+                # Model-free Python source draft: never auto-activate a
+                # silent-handler -> re-raise change. It changes behavior and
+                # must be reviewed as an explicit semantic hypothesis.
+                if candidate is None:
+                    line_number = node.body[0].lineno
+                    if 0 < line_number <= len(lines):
+                        original_line = lines[line_number - 1]
+                        if original_line.strip() == "pass":
+                            proposed = list(lines)
+                            proposed[line_number - 1] = original_line.replace(
+                                "pass", "raise", 1)
+                            changed = "".join(proposed)
+                            try:
+                                ast.parse(changed, filename=target, mode="exec")
+                            except (SyntaxError, ValueError, MemoryError):
+                                pass
+                            else:
+                                if (changed != source and
+                                        len(changed.encode("utf-8")) <= 32000):
+                                    candidate = changed
         elif isinstance(node, ast.Call):
             if (isinstance(node.func, ast.Name) and
                     node.func.id in ("eval", "exec")):
@@ -232,6 +252,20 @@ def _write_draft(*, repo: Path, private: Path, target: str,
         target.encode("utf-8") + b"\x00" + hashlib.sha256(source).digest()
     ).hexdigest()
     output = candidate.encode("utf-8")
+    original_lines = source.decode("utf-8").splitlines()
+    candidate_lines = candidate.splitlines()
+    changes = [(before.strip(), after.strip())
+               for before,after in zip(original_lines,candidate_lines)
+               if before != after]
+    if len(original_lines) != len(candidate_lines) or len(changes) != 1:
+        return "MECHANICAL_EDIT_NOT_SINGLE_LINE", None
+    before, after = changes[0]
+    if before == "except:" and after == "except Exception:":
+        change_kind = "BARE_EXCEPT_TO_EXCEPTION"
+    elif before == "pass" and after == "raise":
+        change_kind = "SILENT_EXCEPTION_PASS_TO_RAISE"
+    else:
+        return "MECHANICAL_CHANGE_KIND_UNKNOWN", None
     target_file = drafts / (identity + ".py")
     receipt_file = drafts / (identity + ".json")
     if target_file.exists() or receipt_file.exists():
@@ -245,7 +279,7 @@ def _write_draft(*, repo: Path, private: Path, target: str,
             "source_path": target,
             "source_sha256": hashlib.sha256(source).hexdigest(),
             "candidate_sha256": hashlib.sha256(output).hexdigest(),
-            "change_kind": "BARE_EXCEPT_TO_EXCEPTION",
+            "change_kind": change_kind,
             "semantic_equivalence_confirmed": False,
             "parser_check_only": True,
             "tests_run": False,
