@@ -18,6 +18,7 @@ if (!defined('BERTINA_API_BOOTSTRAPPED')) { http_response_code(404); exit; }
 function jrJreiPythonInternalPropose(array $privateConfig, string $route, array $payload): array
 {
     $allowed = [
+        '/internal/v1/admin/ai-reports/snapshot',
         '/internal/v1/learning/prioritize',
         '/internal/v1/model/owner-draft',
         '/internal/v1/learning/heldout/review',
