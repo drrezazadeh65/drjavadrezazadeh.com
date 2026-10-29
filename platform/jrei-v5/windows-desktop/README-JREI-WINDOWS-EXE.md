@@ -1,6 +1,6 @@
-# JREI owner universal Windows installation — v0.1.16 source candidate
+# JREI owner universal Windows installation — v0.1.17 source candidate
 
-**Status: the owner observed the 0.1.14 installer stage program files but fail the original 8092 private-store fallback with JREI_PRIVATE_FALLBACK_FILESYSTEM_ACCESS_DENIED on the 16-GB Windows PC. Version 0.1.15 is new source code only; NO 0.1.15 EXE, owner install, or two-device acceptance has been verified.**
+**Status: The owner installed 0.1.16 program files on the 16-GB PC but the private engine failed at `JREI_PRIVATE_STAGING_DIRECTORY_ACCESS_DENIED`. Version 0.1.17 is SOURCE ONLY; no build, device acceptance or authenticated 8092 startup is claimed.**
 
 Repository: drrezazadeh65/drjavadrezazadeh.com
 Canonical branch: migration/bertina-linux6
@@ -137,3 +137,16 @@ The user's screenshot of the 0.1.15 universal installer shows **JREI_PRIVATE_TAR
 The existing 0.1.15 startup controller discovered a system CPython interpreter ONLY through `Get-Command py.exe` and `py -3.13`. An installed interpreter may be missing from a desktop process's PATH. The v0.1.16 source expands bounded offline discovery to the launcher, known installed Python 3.13 locations and PEP-514 Windows PythonCore registry entries, and checks each **direct python.exe** is x64 Python 3.13 with isolated, site-free `-I -S -B`. It then executes the SAME immutable original 8092 backend from the released source and bundled vendor dependencies. Neither a network download nor pip command is permitted on the owner's PC. If that runtime fails, the bundled CPython fallback is still attempted, without killing existing services, and a specific owner-interpreter error is retained when relevant.
 
 The user's exact Windows restriction remains unconfirmed until the engine starts and an authenticated loopback status succeeds. Do not describe a GitHub green build as a working installation. v0.1.16 is a **SOURCE-ONLY CANDIDATE** until its manually dispatched workflow completes and real owner-device acceptance is recorded. Do not delete previous `owner-token`, SQLite, worker signing keys, or install folders.
+
+
+## 0.1.17 — Windows CPython 3.13 private-directory ACL correction
+
+The owner's screenshot of `JREI-Setup-Windows-x64-v0.1.16.exe` confirms the installer staged program files but the engine was NOT ready; the specific bounded error was `JREI_PRIVATE_STAGING_DIRECTORY_ACCESS_DENIED`. The fallback path selected by the engine attempted to make a child staging directory and Windows denied that operation. It does not identify whether the candidate parent had a stale DACL, whether an elevated previous process owned it, or which security policy applied.
+
+The original `windows_private_storage.py` created new owner-profile directories and migration staging directories using `Path.mkdir(mode=0o700)`. In **Windows Python 3.13**, unlike traditional POSIX semantics, this mode applies a special non-inherited Windows DACL. CPython upstream has documented a potential lockout when this call runs under an elevated token that gives ownership to `BUILTIN\\Administrators`. Source of semantics: [Python 3.13 os.mkdir documentation](https://docs.python.org/3.13/library/os.html#os.mkdir); related [CPython issue 157876](https://github.com/python/cpython/issues/157876). This is a credible, **not device-proven**, explanation for the repeated staging-directory error.
+
+The 0.1.17 source therefore calls a common `_mkdir_owner()` helper for primary, parent, temporary staging and copied subdirectories. On POSIX it preserves private `0o700`. On Windows it requests normal **ACL inheritance from the existing owner-profile directory** (with `mode=0o777` ignored by Windows as a chmod-like grant; it does NOT invoke chmod or grant Everyone access). Existing folders are never modified. To avoid two previously-created, possibly inaccessible fallback parents, **two additional bounded roots** under the same account are examined: `%LOCALAPPDATA%\\JREI-Private-v2\\command-center` and `%USERPROFILE%\\.jrei-owner\\command-center`. The original root and earlier valid fallback roots remain first; the original credential/DB/source is SHA-verified before any read-only-origin copy becomes active. Two active markers still cause an explicit failure rather than guessing.
+
+The Windows Tk client, owner setup controller and read-only inventory all use **the same exact candidate list and original selection marker**, so a local authenticated 8092 response can locate the token after selection. The original source database, owner tokens, old program folders, and previous node identities are never deleted. No Windows ACL rewriting, owner take-over, forced killing, privilege escalation, GPU reconfiguration, or production deploy is permitted.
+
+**Acceptance gate:** A Python directory-mode code change cannot prove that a security product or an already denied profile directory will permit writes. The 0.1.17 EXE still needs an actual manual GitHub build and a real-device authenticated response; it has not been accepted merely by these source commits.
