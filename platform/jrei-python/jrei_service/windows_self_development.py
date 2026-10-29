@@ -14,6 +14,7 @@ import ast
 from contextlib import closing
 import hashlib
 import json
+import re
 from pathlib import Path
 import sqlite3
 import time
@@ -38,11 +39,17 @@ MAX_RECORDED_FINDINGS = 32
 # One scan is bounded for responsiveness, but previously unseen modules can
 # enter the next cycle. This is not a lifetime or daily research quota.
 SOURCE_DIRS = (
-    "platform/jrei-python/jrei_core",
-    "platform/jrei-python/jrei_learning",
-    "platform/jrei-python/jrei_orchestrator",
-    "platform/jrei-python/jrei_service",
+    ("platform/jrei-python/jrei_core", (".py",)),
+    ("platform/jrei-python/jrei_learning", (".py",)),
+    ("platform/jrei-python/jrei_orchestrator", (".py",)),
+    ("platform/jrei-python/jrei_service", (".py",)),
+    ("platform/jrei-v5", (".js", ".mjs", ".ts", ".py")),
 )
+# Some vendored open-source code is already in the repository. Study native
+# first-party JREI logic, not vendor files, generated releases or secrets.
+SKIP_PARTS = frozenset(("node_modules", "vendor", "_vendor", "dist",
+                        "build", "backups", "private", "secrets",
+                        "__pycache__", ".git"))
 
 
 def _targets(repo: Path):
@@ -52,12 +59,14 @@ def _targets(repo: Path):
     for relative in _targets(repo):
         known.add(relative)
         yield relative
-    for folder in SOURCE_DIRS:
+    for folder, extensions in SOURCE_DIRS:
         directory = root.joinpath(*folder.split("/"))
         if not directory.is_dir() or directory.is_symlink():
             continue
-        for entry in sorted(directory.rglob("*.py")):
-            if (entry.is_symlink() or not entry.is_file()
+        for entry in sorted(directory.rglob("*")):
+            if (entry.suffix.lower() not in extensions
+                    or any(p in SKIP_PARTS for p in entry.relative_to(root).parts)
+                    or entry.is_symlink() or not entry.is_file()
                     or not entry.resolve(strict=True).is_relative_to(root)
                     or entry.stat().st_size > MAX_SOURCE_BYTES):
                 continue
@@ -106,7 +115,27 @@ def _read_source(repo: Path, relative: str) -> bytes | None:
 
 
 def _inspect(target: str, source: str) -> tuple[list[dict], str | None]:
-    """One AST-only inspection; never import or execute the subject source."""
+    """Model-free static diagnosis, never execute the inspected source.
+
+    Python findings are AST-grounded. JS/TS findings are explicitly heuristic
+    pattern observations, not syntax validation or proof of vulnerabilities.
+    """
+    if target.endswith((".js", ".mjs", ".ts")):
+        findings = []
+        patterns = (
+            ("DYNAMIC_CODE_CALL_PATTERN",
+             re.compile(r"\\b(?:eval|Function)\\s*\\(")),
+            ("CHILD_PROCESS_REFERENCE_PATTERN",
+             re.compile(r"\\b(?:child_process|execSync|spawnSync)\\b")),
+        )
+        for number, line in enumerate(source.splitlines(), start=1):
+            for kind, pattern in patterns:
+                if pattern.search(line):
+                    findings.append({"kind":kind, "line":number,
+                                     "certainty":"UNVERIFIED_TEXT_PATTERN"})
+                    if len(findings) >= MAX_RECORDED_FINDINGS:
+                        return findings, None
+        return findings, None
     try:
         tree = ast.parse(source, filename=target, mode="exec")
     except (SyntaxError, ValueError, MemoryError) as exc:
