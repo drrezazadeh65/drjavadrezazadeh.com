@@ -11,7 +11,7 @@ $ErrorActionPreference='Stop'
 if($env:OS -cne 'Windows_NT'){
  throw 'JREI_SHORTCUT_WINDOWS_REQUIRED'
 }
-$version='0.1.8'
+$version='0.1.9'
 $base=[IO.Path]::GetFullPath($PSScriptRoot)
 $allowed=@(
  (Join-Path $env:LOCALAPPDATA ('Programs\JREI\releases\v'+$version)),
