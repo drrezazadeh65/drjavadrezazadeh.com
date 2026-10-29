@@ -1343,6 +1343,15 @@ class OwnerHTTP(BaseHTTPRequestHandler):
                               scratch_training.snapshot_code_runs(PRIVATE))
         if self.path == "/api/learning/native-code/evaluations":
             return self._send(200,code_evaluation.snapshot(DB_PATH))
+        if urlsplit(self.path).path == "/api/learning/native-code/audit":
+            query=parse_qs(urlsplit(self.path).query)
+            try:
+                return self._send(200,code_evaluation.audit_score_receipt(
+                    DB_PATH,run_id=query.get("run_id",[""])[0],
+                    split=query.get("split",[""])[0]))
+            except (ValueError,OSError,sqlite3.Error,TypeError):
+                return self._send(400,{
+                    "error":"JREI_NATIVE_CODE_EVALUATION_AUDIT_INVALID"})
         if urlsplit(self.path).path == (
                 "/api/learning/native-code/evaluation-preflight"):
             params=parse_qs(urlsplit(self.path).query)
