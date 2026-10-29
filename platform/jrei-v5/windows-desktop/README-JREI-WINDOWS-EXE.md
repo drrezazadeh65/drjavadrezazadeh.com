@@ -1,4 +1,4 @@
-# JREI owner universal Windows installation — v0.1.18 source candidate
+# JREI owner universal Windows installation — v0.1.19 integrated source candidate
 
 **Status: The owner's screenshot shows JREI 0.1.17 program files installed but local engine NOT ready (`JREI_PRIVATE_TARGET_DIRECTORY_ACCESS_DENIED`). Version 0.1.18 is a source-only bounded storage-recovery change; no build, real-device installation, authenticated 8092 startup, or accepted release has yet been verified.**
 
@@ -163,3 +163,79 @@ The existing engine tried five fixed candidate locations from the original per-u
 All seven roots are inspected by the **same ORIGINAL 8092 engine** and the owner-token lookup in Tk, PowerShell setup and read-only inventory. Valid private data are copied from the previous source only with file-by-file SHA-256 verification and retained at the original location. The active marker selects one owner store; multiple markers fail closed. Windows ACLs are neither reset nor bypassed, no elevated process is required, and arbitrary network or shared paths are not accepted. An existing owner token, SQLite DB or worker key must not be silently regenerated.
 
 **Release gates:** even a green GitHub build does not demonstrate the Windows installer can write into either new candidate on the owner's 16-GB computer. The exact file access policy is device-specific. Source-only changes here have not been tested or deployed. Require one-click owner-authorized GitHub packaging and a real authenticated local status before claiming working installation; otherwise preserve all files and report the actual stable error code.
+
+
+## 2026-10-29 — v0.1.19 integrated JREI source candidate (manual build only)
+
+This entry supersedes the **source package version** described above, but
+preserves the factual prior Windows attempts, failures and historical source.
+The one-EXE Go no-TEMP installer is still the only supported owner build path.
+The legacy Inno `JREI.iss` is not in that workflow. The existing Bertina site
+one-click workflow is not used or modified for Windows packaging.
+
+### Included in the ONE versioned EXE source snapshot
+
+- Original authenticated 8092 command center, owner SQLite and selected
+  private-store recovery; no new server, database, model manager or port.
+- One Tk native UI plus `jrei_desktop_features.py`: capabilities dashboard,
+  owner-gated coding draft entrypoint, public OSS search, status of GitHub /
+  GitLab / Codeberg code studies, reviewed improvement evidence and the local
+  image studio/gallery. All routes reuse the existing owner-token API.
+- Continuous evidence/learning engines, native-code training source, model
+  readiness/evaluation source, first-party project editing, source review,
+  OSS study and provenance modules in the checked-in Python package.
+- Geometric conceptual WebP renderer with four source-owned styles, queue,
+  owner-side review ledger and no people/faces; NOT a trained text-to-image AI.
+  A local optional licensed model remains a separate, **not bundled** weight.
+- Vendored MIT nanoGPT/minbpe and Aider-derived *existing source* with
+  original licence/attribution files as required package members. Research
+  ledgers describe Aider, SWE-agent, Transformers, PEFT and IBM Granite;
+  research-only upstream systems/weights are NOT silently downloaded or
+  installed under the label of JREI.
+
+### Three activation rules
+
+1. GitHub fast-forward or LAN source ACK alone is SOURCE RECEIVED, never a
+   running engine upgrade.
+2. In the one-EXE installer, a 200 response from an **older** 8092 engine is
+   now a **HOLD**, not a successful upgrade. Versioned bundled Python reports
+   its own source commit from the exact matching installer manifest. A newer
+   engine must report the same pinned commit as the GUI package. The installer
+   may attempt an idle, user-approved handover ONLY when the old Python is
+   provably owned by the same account and belongs to a recognized older
+   immutable JREI release. Unknown processes, task-supervised workers and
+   busy or recently active sessions are preserved. A bounded previous-release
+   restart is attempted if a recognized handover fails.
+3. If a safe handover is held, the native GUI has an explicit
+   **Activate current engine release** action within the capability center;
+   the same on-machine checks and original installer apply. No repeated
+   manual PowerShell, transfer of private tokens or uninstall is expected.
+
+### Startup update and independent approval
+
+The desktop requests the already approved local source-sync task on launch if
+that exact task and same-owner opt-in are present. It also queries the existing
+owner-authenticated GitHub package observer on opening. A new source commit
+without a successful, unexpired Windows workflow artifact is NOT a new EXE.
+EXE upgrades remain owner-controlled, per-device operations. Windows cannot
+be silently reached or installed onto by committing to GitHub or pushing code.
+
+### What this release candidate does NOT establish
+
+- No 0.1.19 EXE was built, installed, code-signed, exercised on either owner's
+  Windows device, regression-tested or approved by this source commit.
+- No proven ChatGPT-class language model, pretrained/pinned new model weights,
+  Persian-English/coding evaluation pass, trained neural image weights or
+  distributed GPU training. Open-source *research* is not a substitute for
+  working, licensed or quality-evaluated weights.
+- LAN source-sharing is distinct from signed, bidirectional compute jobs.
+  GPU capabilities and 16GB/32GB hardware admissions require live evidence.
+- No changes to Bertina production URLs, payments or the existing user-only
+  website GitHub one-click publishing workflow.
+
+**Owner path:** after code completion, final integrated Windows acceptance
+must be performed on both actual PCs. The existing manual-only workflow
+`.github/workflows/jrei-windows-desktop-exe.yml` then produces exactly one
+`JREI-Setup-Windows-x64-v0.1.19.exe` artifact (inside the GitHub artifact ZIP),
+whose SHA-256 is printed in its own build Summary. A successful packaging
+build alone is not successful installation or trained model performance.
