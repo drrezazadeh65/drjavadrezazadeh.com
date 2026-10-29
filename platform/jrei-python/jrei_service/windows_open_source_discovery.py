@@ -88,12 +88,12 @@ def _get_json(path: str) -> dict:
                     response.headers.get("Content-Type", "").split(";")[0]
                     != "application/json"):
                 raise ValueError("JREI_SOURCE_DISCOVERY_GITHUB_RESPONSE_INVALID")
-            raw = response.read(90_001)
+            raw = response.read(300_001)
     except urllib.error.HTTPError as exc:
         if exc.code in (401, 403, 429):
             raise ValueError("JREI_SOURCE_DISCOVERY_PUBLIC_GITHUB_RATE_LIMIT") from exc
         raise ValueError("JREI_SOURCE_DISCOVERY_GITHUB_UNAVAILABLE") from exc
-    if len(raw) > 90_000:
+    if len(raw) > 300_000:
         raise ValueError("JREI_SOURCE_DISCOVERY_METADATA_OVERSIZE")
     obj = json.loads(raw.decode("utf-8"))
     if not isinstance(obj, dict) or not isinstance(obj.get("items"), list):
