@@ -15,8 +15,6 @@ import threading
 import urllib.error
 import urllib.request
 
-from jrei_service import windows_language_backend as transport
-
 MODEL_SHA = "7485fe6f11af29433bc51cab58009521f205840f5b4ae3a32fa7f92e8534fdf5"
 CONSENT_SCHEMA = "jr.jrei.owner-private-gpu-pilot.v1"
 OWNER_SCHEMA = "jr.jrei.owner-gpu-model.v4"
