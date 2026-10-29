@@ -127,7 +127,8 @@ def snapshot(db_path: Path) -> dict:
         if _exists(db,"jrei_code_curriculum_cohorts"):
             private_code_cohorts=db.execute("""SELECT COUNT(*)
                 FROM jrei_code_curriculum_cohorts
-                WHERE state='UNREVIEWED_CODE_TRAINING_CANDIDATE_ONLY'
+                WHERE state IN ('UNREVIEWED_CODE_TRAINING_CANDIDATE_ONLY',
+                    'OWNER_ATTESTED_CODE_DATASET_CANDIDATE_ONLY')
                 """).fetchone()[0]
 
     stages = {
