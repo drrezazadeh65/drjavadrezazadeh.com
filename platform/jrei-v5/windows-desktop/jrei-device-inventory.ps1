@@ -112,7 +112,9 @@ try{
 $privateStore='ORIGINAL_OWNER_LOCALAPPDATA'
 $alternateRoots=@(
  (Join-Path $homePath 'JREI-Owner\command-center'),
- (Join-Path $env:USERPROFILE 'JREI-Owner\command-center')
+ (Join-Path $env:USERPROFILE 'JREI-Owner\command-center'),
+ (Join-Path $homePath 'JREI-Private-v2\command-center'),
+ (Join-Path $env:USERPROFILE '.jrei-owner\command-center')
 )
 $verifiedFallbacks=@()
 foreach($candidate in $alternateRoots){
