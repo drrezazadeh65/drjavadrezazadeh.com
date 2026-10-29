@@ -230,7 +230,18 @@ class Desktop:
         self._build()
         self.root.after(90, self._drain)
         self.root.after(1100, self._start_poll)
+        # The owner previously saw an indefinite-looking "connecting" label
+        # while Windows tried to initialize the embedded original engine.
+        # Make the in-flight phase explicit without claiming a live backend.
+        self.root.after(18000, self._connection_watchdog)
         self.fetch("connect", self._bootstrap_with_local_engine)
+
+    def _connection_watchdog(self):
+        if self.online:
+            return
+        if self.status_text.get().startswith("در حال اتصال"):
+            self.status_text.set(
+                "موتور خصوصی هنوز احراز نشده؛ بررسی راه‌اندازی در جریان است…")
 
     def _font(self, size=10, bold=False):
         key = (int(size), bool(bold))
@@ -724,7 +735,14 @@ class Desktop:
                 self.approval_status.set("درخواست‌ها دریافت نشد: " + str(error)[:100])
 
     def _bootstrap(self):
-        return self.api.request("/api/status")
+        status = self.api.request("/api/status")
+        # Any JSON on loopback is not sufficient evidence. The native Tk GUI
+        # only calls itself connected when it has authenticated to the
+        # ORIGINAL owner-private JREI schema. It cannot prove a neural model.
+        if (status.get("schema") != "jr.jrei.windows-command-center.v2"
+                or status.get("owner_private") is not True):
+            raise RuntimeError("JREI_OWNER_PRIVATE_STATUS_NOT_AUTHENTICATED")
+        return status
 
     def _start_bundled_local_engine(self):
         """Start the ORIGINAL private 8092 core from this signed-release layout.
