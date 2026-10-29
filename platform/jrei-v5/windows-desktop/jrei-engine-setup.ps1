@@ -268,16 +268,29 @@ function LaunchCandidate([string]$program,[string[]]$argumentList) {
 function LaunchBundled {
  if(PortBusy){return $false}
  $system=SystemPython313Launcher
+ $ownerFailure=''
  if($system){
-  $arguments=@('-I','-B',('"'+$systemBootstrap+'"'),'--serve')
+  # -S avoids importing any independently installed site packages.
+  # All JREI dependencies come from the ONE offline setup's vendor tree.
+  $arguments=@('-I','-S','-B',('"'+$systemBootstrap+'"'),'--serve')
   $result=LaunchCandidate $system $arguments
   if($result -ceq 'AUTHENTICATED'){return $true}
   # Never launch another engine while an earlier process is still alive.
   if($result -ceq 'RUNNING_UNVERIFIED' -or (PortBusy)){return $false}
+  $ownerFailure=$script:LastPrivateEngineError
+  if($ownerFailure -ceq 'JREI_ENGINE_START_NOT_VERIFIED'){
+   $ownerFailure='JREI_OWNER_SYSTEM_PYTHON_EXITED_UNVERIFIED'
+  }
  }
+ $script:LastPrivateEngineError='JREI_ENGINE_START_NOT_VERIFIED'
  $arguments=@('-I','-B',('"'+$launcher+'"'),'--serve')
  $result=LaunchCandidate $engine $arguments
- return ($result -ceq 'AUTHENTICATED')
+ if($result -ceq 'AUTHENTICATED'){return $true}
+ # The known-working OS Python path provides more relevant evidence than
+ # the package-local interpreter when both fail on the same Windows PC.
+ # Preserve its specific code; do not hide it with an unrelated fallback.
+ if($ownerFailure){$script:LastPrivateEngineError=$ownerFailure}
+ return $false
 }
 function HasExistingTask {
  try{
