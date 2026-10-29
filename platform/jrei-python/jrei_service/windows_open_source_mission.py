@@ -244,13 +244,18 @@ def tick(db_path: Path, *, resources_available: bool,
         db.commit()
     items=[]
     live=False
+    cached=False
+    processed=False
     state="NETWORK_UNAVAILABLE"
     detail="UPSTREAM_UNREACHABLE"
     try:
         response=discovery.find_repositories(query)
         live=response.get("actual_live_search_performed") is True
+        cached=response.get("served_from_cache") is True
         state=response.get("state","INVALID_RESPONSE")
-        if state=="READ_ONLY_UNVERIFIED_GITHUB_REPO_CANDIDATES" and live:
+        processed=(state=="READ_ONLY_UNVERIFIED_GITHUB_REPO_CANDIDATES"
+                   and (live or cached))
+        if processed:
             raw=response.get("items")
             if not isinstance(raw,list):
                 raise ValueError("JREI_OSS_RESULT_SHAPE_INVALID")
@@ -270,7 +275,8 @@ def tick(db_path: Path, *, resources_available: bool,
                         entry.get("stars_reported_by_github") or 0))),
                     "pushed_at_metadata":str(entry.get("updated_at") or "")[:30],
                 })
-            detail="PUBLIC_METADATA_ONLY_NO_LICENSE_CLEARANCE"
+            detail=("PUBLIC_CACHED_METADATA_NO_NEW_NETWORK_REQUEST"
+                    if cached else "PUBLIC_METADATA_ONLY_NO_LICENSE_CLEARANCE")
         elif state=="GITHUB_PUBLIC_RATE_BUDGET_DEFERRED":
             detail="RATE_BUDGET_DEFERRED"
         else:
@@ -278,14 +284,14 @@ def tick(db_path: Path, *, resources_available: bool,
     except (OSError,ValueError,TypeError,RuntimeError,OverflowError) as exc:
         state="RESEARCH_HELD"
         detail=exc.__class__.__name__
-    success=(state=="READ_ONLY_UNVERIFIED_GITHUB_REPO_CANDIDATES" and live)
+    success=(processed and live)
     retry=min(FAIL_BACKOFF_MAX,MIN_ATTEMPT_SPACING*2**min(6,errors+1))
-    next_due=now+(NORMAL_REFRESH if success else retry)
+    next_due=now+(NORMAL_REFRESH if processed else retry)
     packed=json.dumps(items,sort_keys=True,separators=(",",":"),
                       ensure_ascii=False).encode("utf-8")
     with closing(_db(db_path)) as db:
         db.execute("BEGIN IMMEDIATE")
-        if success:
+        if processed:
             for entry in items:
                 db.execute("""INSERT INTO jrei_oss_candidates(
                     domain,repository,description,license_metadata,
@@ -304,7 +310,7 @@ def tick(db_path: Path, *, resources_available: bool,
             next_due=?,last_state=?,errors=?,last_success=
             CASE WHEN ? THEN ? ELSE last_success END,
             successes=successes+? WHERE domain=?""",
-            (next_due,state,0 if success else min(99,errors+1),
+            (next_due,state,0 if processed else min(99,errors+1),
              int(success),now,int(success),domain))
         db.execute("""INSERT INTO jrei_oss_observations(
             observed,domain,state,candidate_count,metadata_sha256,error_code)
@@ -314,6 +320,7 @@ def tick(db_path: Path, *, resources_available: bool,
         db.commit()
     return {"schema":SCHEMA,"state":state,"domain":domain,
             "candidate_count":len(items),"live_search":live,
+            "served_from_cache":cached,"metadata_processed":processed,
             "next_due_unix":next_due,**SCHEMA_FLAGS}
 
 
