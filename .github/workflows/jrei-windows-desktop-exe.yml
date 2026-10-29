@@ -74,7 +74,7 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference='Stop'
-          $version='0.1.15'
+          $version='0.1.16'
           $desktop='platform/jrei-v5/windows-desktop'
           $build="$desktop/build"
           $source="$desktop/jrei_desktop.py"
@@ -234,16 +234,16 @@ jobs:
 
           $out="$desktop/output"
           New-Item -ItemType Directory -Path $out -Force|Out-Null
-          $installer="$out/JREI-Setup-Windows-x64-v0.1.15.exe"
+          $installer="$out/JREI-Setup-Windows-x64-v0.1.16.exe"
           go build -trimpath '-ldflags=-H windowsgui -s -w' -o $installer "$desktop/jrei_universal_setup_windows.go"
           if($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath $installer -PathType Leaf)){
             throw 'JREI_GO_NO_TEMP_INSTALLER_BUILD_FAILED'
           }
           $hash=(Get-FileHash -LiteralPath $installer -Algorithm SHA256).Hash.ToLowerInvariant()
           New-Item -ItemType Directory -Path 'JREI-OWNER-DOWNLOAD' -Force|Out-Null
-          Copy-Item -LiteralPath $installer -Destination 'JREI-OWNER-DOWNLOAD/JREI-Setup-Windows-x64-v0.1.15.exe'
+          Copy-Item -LiteralPath $installer -Destination 'JREI-OWNER-DOWNLOAD/JREI-Setup-Windows-x64-v0.1.16.exe'
           @(
-            '## JREI 0.1.15 - universal offline NO-TEMP Windows setup'
+            '## JREI 0.1.16 - universal offline NO-TEMP Windows setup'
             ''
             '- Exactly ONE user-facing EXE (within the GitHub artifact ZIP).'
             '- Native Windows Go bootstrap selects a writable user-profile release folder without elevation.'
@@ -268,7 +268,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: JREI-WINDOWS-DESKTOP-INSTALLER
-          path: JREI-OWNER-DOWNLOAD/JREI-Setup-Windows-x64-v0.1.15.exe
+          path: JREI-OWNER-DOWNLOAD/JREI-Setup-Windows-x64-v0.1.16.exe
           retention-days: 30
           compression-level: 0
           if-no-files-found: error
