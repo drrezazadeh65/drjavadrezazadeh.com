@@ -1192,6 +1192,27 @@ class OwnerHTTP(BaseHTTPRequestHandler):
             return self._send(200, open_source_study.snapshot(DB_PATH))
         if self.path == "/api/open-source/multiforge":
             return self._send(200, oss_multiforge.snapshot(DB_PATH))
+        if self.path == "/api/open-source/draft-provenance":
+            return self._send(200, oss_evidence.snapshot(DB_PATH))
+        if self.path == "/api/open-source/draft-priorities":
+            # Read-only, grounded in actual source hashes and local findings.
+            # No model call, candidate generation or job dispatch.
+            return self._send(200, {
+                "schema": "jr.jrei.oss-draft-priorities.v1",
+                "items": oss_evidence.rank_draft_targets(
+                    DB_PATH, CANDIDATE_FILES),
+                "scores_are_scheduling_only": True,
+                "code_activated": False,
+            })
+        if urlsplit(self.path).path == "/api/open-source/evidence":
+            params = parse_qs(urlsplit(self.path).query)
+            target = params.get("target", [""])[0]
+            if not isinstance(target, str) or len(target) > 230:
+                return self._send(400, {
+                    "error": "JREI_OSS_TARGET_INVALID"})
+            # Only public research notes; bearer-authenticated and loopback.
+            return self._send(200, oss_evidence.research_context(
+                DB_PATH, target))
         if urlsplit(self.path).path == "/api/open-source/search":
             params = parse_qs(urlsplit(self.path).query)
             try:
