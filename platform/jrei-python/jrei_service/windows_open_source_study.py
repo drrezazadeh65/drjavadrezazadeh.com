@@ -119,6 +119,17 @@ def initialize(db_path: Path) -> None:
           PRIMARY KEY(domain,repository))""")
         db.execute("""CREATE INDEX IF NOT EXISTS jrei_oss_code_studies_due
           ON jrei_oss_code_studies(next_due,lease_until)""")
+        db.execute("""CREATE TABLE IF NOT EXISTS jrei_oss_license_observations(
+            domain TEXT NOT NULL,
+            repository TEXT NOT NULL,
+            revision TEXT NOT NULL,
+            observed INTEGER NOT NULL,
+            license_spdx_metadata_claim TEXT,
+            license_blob_sha256 TEXT,
+            state TEXT NOT NULL,
+            reuse_authorization_verified INTEGER NOT NULL DEFAULT 0,
+            training_rights_verified INTEGER NOT NULL DEFAULT 0,
+            PRIMARY KEY(domain,repository,revision))""")
         # Existing owner-private ledgers can predate the excerpt/comparison
         # columns. Add missing columns without replacing the table or data.
         present = {row[1] for row in db.execute(
@@ -310,6 +321,17 @@ def _read_one(repository: str, query: str) -> dict:
             not isinstance(info.get("full_name"), str) or
             info["full_name"].casefold() != repository.casefold()):
         raise ValueError("JREI_OSS_REPOSITORY_IDENTITY_MISMATCH")
+    # GitHub's public SPDX field is a repository-owner metadata claim,
+    # NOT a licence conclusion for every nested source file. Its provenance
+    # is recorded separately from the pinned commit's source blob SHA.
+    license_field = info.get("license")
+    claimed_spdx = None
+    if isinstance(license_field,dict):
+        raw_spdx=license_field.get("spdx_id")
+        if (isinstance(raw_spdx,str) and
+                re.fullmatch(r"[A-Za-z0-9.+-]{2,60}",raw_spdx)
+                and raw_spdx not in ("NOASSERTION","None")):
+            claimed_spdx=raw_spdx
     branch = info.get("default_branch")
     if not isinstance(branch, str) or not 1 <= len(branch) <= 150:
         raise ValueError("JREI_OSS_BRANCH_INVALID")
@@ -367,6 +389,9 @@ def _read_one(repository: str, query: str) -> dict:
         "schema": SCHEMA, "repository": repository, "revision": revision,
         "source_path": root_file, "source_sha256": source_sha,
         "readme_sha256": readme_sha, "license_sha256": licence_sha,
+        "license_spdx_metadata_claim":claimed_spdx,
+        "license_metadata_unverified":True,
+        "license_metadata_commit_pinned":False,
         "source_signatures": signatures,
         "research_notes": {"code":code_notes,"readme":readme_notes},
         "target": _target_for(query),
@@ -520,6 +545,23 @@ def tick(db_path: Path, *, repo: Path,
                       ensure_ascii=False) if receipt else None,
            int(receipt is not None),receipt["receipt_sha256"] if receipt else None,
            domain,repository))
+        if receipt is not None:
+            db.execute("""INSERT INTO jrei_oss_license_observations(
+                domain,repository,revision,observed,
+                license_spdx_metadata_claim,license_blob_sha256,state)
+                VALUES(?,?,?,?,?,?,?)
+                ON CONFLICT(domain,repository,revision) DO UPDATE SET
+                    observed=excluded.observed,
+                    license_spdx_metadata_claim=
+                        excluded.license_spdx_metadata_claim,
+                    license_blob_sha256=excluded.license_blob_sha256,
+                    state=excluded.state""",
+                (domain,repository,receipt["revision"],now,
+                 receipt["license_spdx_metadata_claim"],
+                 receipt["license_sha256"],
+                 "DECLARED_SPDX_UNVERIFIED" if
+                    receipt["license_spdx_metadata_claim"] else
+                 "NO_DECLARED_SPDX_REVIEW_REQUIRED"))
         db.commit()
     return {
         "schema": SCHEMA, "state": state, "repository": repository,
@@ -527,6 +569,9 @@ def tick(db_path: Path, *, repo: Path,
         "source_read": bool(receipt and receipt["source_sha256"]),
         "readme_read": bool(receipt and receipt["readme_sha256"]),
         "license_text_observed": bool(receipt and receipt["license_sha256"]),
+        "claimed_spdx_metadata":receipt["license_spdx_metadata_claim"]
+            if receipt else None,
+        "code_training_rights_verified":False,
         "candidate_change_applied": False,
         "local_api_compared": bool(receipt and receipt["local_sha256"]),
         "adaptation_hypotheses": len(
@@ -548,6 +593,10 @@ def snapshot(db_path: Path) -> dict:
                 AND source_signatures_json NOT IN ('[]','')
                 THEN 1 ELSE 0 END),0)
             FROM jrei_oss_code_studies""").fetchone()
+        license_summary=db.execute("""SELECT COUNT(*),
+            COALESCE(SUM(CASE WHEN license_spdx_metadata_claim IS NOT NULL
+                THEN 1 ELSE 0 END),0)
+            FROM jrei_oss_license_observations""").fetchone()
         latest = db.execute("""SELECT repository,revision,last_state,
             source_path,source_sha256,readme_sha256,license_sha256,
             adaptation_target,last_attempt,last_success
@@ -559,6 +608,10 @@ def snapshot(db_path: Path) -> dict:
         "reading_attempts": int(summary[1] or 0),
         "recorded_successes": int(summary[2] or 0),
         "source_files_read": int(summary[3] or 0),
+        "revision_license_metadata_observations":
+            int(license_summary[0] or 0),
+        "claimed_spdx_metadata_observations_unverified":
+            int(license_summary[1] or 0),
         "repositories_with_source_signatures": int(summary[4] or 0),
         "most_recent": dict(zip(
             ("repository","revision","state","source_path","source_sha256",
