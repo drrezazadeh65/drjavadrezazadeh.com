@@ -73,6 +73,12 @@ def _load_settings(path: Path, private: Path) -> dict:
         raise ValueError("JREI_SCRATCH_HEAD_DIMENSION_MISMATCH")
     if cfg.get("device") not in ("cpu", "cuda"):
         raise ValueError("JREI_SCRATCH_DEVICE_INVALID")
+    mode=cfg.get("data_mode","bilingual_foundation")
+    if mode not in ("bilingual_foundation","first_party_code"):
+        raise ValueError("JREI_SCRATCH_DATA_MODE_INVALID")
+    if (mode=="first_party_code" and
+            cfg.get("code_source_rights_reviewed") is not True):
+        raise ValueError("JREI_SCRATCH_FIRST_PARTY_CODE_RIGHTS_REQUIRED")
     lr = cfg.get("learning_rate")
     if type(lr) not in (int, float) or not 0 < lr <= 0.003:
         raise ValueError("JREI_SCRATCH_LEARNING_RATE_INVALID")
@@ -87,7 +93,18 @@ def train(*, db_path: Path, private: Path, config_file: Path,
     if (db_path.parent.resolve() != private.resolve()
             or db_path.is_symlink() or not db_path.is_file()):
         raise ValueError("JREI_SCRATCH_ORIGINAL_DATABASE_REQUIRED")
-    candidate = load_verified_candidate(db_path, private, cfg.get("candidate_id", ""))
+    code_mode=cfg.get("data_mode","bilingual_foundation")=="first_party_code"
+    if code_mode:
+        # Reuse this exact native GPT trainer, optimizer and resource sensor
+        # for a separately approved code-specialist dataset. This does NOT
+        # bypass the first-party rights or source-disjoint evaluation checks.
+        from jrei_service.windows_native_code_preparation import (
+            load_verified_candidate as load_code_candidate)
+        candidate=load_code_candidate(
+            db_path,private,cfg.get("candidate_id",""))
+    else:
+        candidate=load_verified_candidate(
+            db_path,private,cfg.get("candidate_id",""))
     folder, provenance = candidate["path"], candidate["manifest"]
     if shutil.disk_usage(private).free < 4 * 1024 ** 3:
         raise ValueError("JREI_SCRATCH_INSUFFICIENT_DISK_HEADROOM")
@@ -211,8 +228,12 @@ def train(*, db_path: Path, private: Path, config_file: Path,
     post = validation_loss()
     # Revalidate source consent before persisting new weights. Revoked
     # sources must not silently generate new training artifacts.
-    load_verified_candidate(db_path, private, cfg["candidate_id"])
-    output_root = private / "native-foundation-runs"
+    if code_mode:
+        load_code_candidate(db_path,private,cfg["candidate_id"])
+    else:
+        load_verified_candidate(db_path, private, cfg["candidate_id"])
+    output_root = private / (
+        "native-code-runs" if code_mode else "native-foundation-runs")
     if output_root.is_symlink():
         raise ValueError("JREI_SCRATCH_OUTPUT_DIR_LINKED")
     output_root.mkdir(parents=True, mode=0o700, exist_ok=True)
@@ -226,20 +247,33 @@ def train(*, db_path: Path, private: Path, config_file: Path,
     receipt = {
         "schema": "jr.jrei.native-from-scratch-run.v1",
         "state": "LOCAL_NATIVE_WEIGHTS_TRAINED_UNVERIFIED",
-        "model_id": "jrei-native-scratch-" + run_id[:12],
+        "model_id": (
+            "jrei-native-code-" if code_mode
+            else "jrei-native-scratch-") + run_id[:12],
         "run_id": run_id, "created": int(time.time()),
         "source_candidate_id": cfg["candidate_id"],
         "source_manifest_sha256": _sha_file(folder / "manifest.json"),
         "source_license_review": provenance["source_training_rights"],
-        "source_partition_policy": provenance["partition_policy"],
-        "publishers_disjoint_at_corpus_preparation": provenance["source_publishers_disjoint"],
-        "bilingual_script_coverage_at_preparation": provenance["bilingual_script_coverage"],
+        "source_partition_policy": provenance.get(
+            "source_partition_policy",provenance.get("partition_policy")),
+        "publishers_disjoint_at_corpus_preparation":
+            provenance["source_publishers_disjoint"],
+        "bilingual_script_coverage_at_preparation":
+            provenance["bilingual_script_coverage"],
+        "data_mode": "first_party_code" if code_mode else "bilingual_foundation",
+        "code_specialist_not_general_chat":
+            bool(code_mode),
+        "code_source_files_disjoint_at_preparation":
+            provenance.get("source_modules_disjoint",False) if code_mode
+            else False,
         "train_sha256": provenance["train_sha256"],
         "heldout_sha256": provenance["heldout_sha256"],
         "tokenizer_sha256": provenance["tokenizer_sha256"],
         "weights_sha256": weights_sha,
         "model_architecture": {
-            "family": "JREI_FROM_SCRATCH_NANOGPT_MIT_CODE",
+            "family": ("JREI_FROM_SCRATCH_NANOGPT_CODE_SPECIALIST"
+                       if code_mode
+                       else "JREI_FROM_SCRATCH_NANOGPT_MIT_CODE"),
             "layers": cfg["layers"], "heads": cfg["heads"],
             "embedding": cfg["embedding"], "block_size": context,
             "vocab_size": vocab_size
@@ -254,6 +288,8 @@ def train(*, db_path: Path, private: Path, config_file: Path,
         "development_validation_only_not_sealed_test": True,
         "heldout_independently_evaluated": False,
         "persian_english_quality_validated": False,
+        "code_generation_quality_validated": False,
+        "functional_code_evaluation_performed": False,
         "trained_from_random_initialization": True,
         "external_pretrained_weights_used": False,
         "production_promoted": False,
@@ -266,7 +302,9 @@ def train(*, db_path: Path, private: Path, config_file: Path,
     return {"state": receipt["state"], "run_id": run_id,
             "weight_sha256": weights_sha, "steps": steps_done,
             "heldout_loss_before": baseline, "heldout_loss_after": post,
-            "serving_activated": False, "independent_quality_proven": False}
+            "serving_activated": False, "independent_quality_proven": False,
+            "data_mode": ("first_party_code" if code_mode
+                          else "bilingual_foundation")}
 
 
 
