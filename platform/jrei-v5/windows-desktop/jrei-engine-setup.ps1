@@ -1,6 +1,6 @@
 #Requires -Version 5.1
 <#
-Original JREI owner-local 8092 engine setup, v0.1.11.
+Original JREI owner-local 8092 engine setup, bundled CPython.
 The EXE ships the original private command center and its libraries.
 Installation of PROGRAM FILES is independent of the health of a process
 already occupying 8092. Never kill a process, hijack a listener, disable
@@ -13,11 +13,14 @@ param(
 )
 Set-StrictMode -Version Latest
 $ErrorActionPreference='Stop'
-$version='0.1.13'
+$version='0.1.14'
 $taskName='JREI-Owner-Windows-Command-Center'
 $private=Join-Path $env:LOCALAPPDATA 'JREI\command-center'
 $receipts=Join-Path $private 'install-receipts'
-$engine=Join-Path $PSScriptRoot ('engine-v'+$version+'\JREI-Engine.exe')
+$engine=Join-Path $PSScriptRoot ('python-v'+$version+'\python.exe')
+$launcher=Join-Path $PSScriptRoot ('source-v'+$version+'\platform\jrei-v5\windows-desktop\jrei_embedded_engine.py')
+$runtimePth=Join-Path $PSScriptRoot ('python-v'+$version+'\python313._pth')
+$runtimeSite=Join-Path $PSScriptRoot ('python-v'+$version+'\Lib\site-packages\fastapi\__init__.py')
 $source=Join-Path $PSScriptRoot ('source-v'+$version+'\platform\jrei-python\jrei_service\windows_command_center.py')
 $manifest=Join-Path $PSScriptRoot 'jrei-engine-manifest.json'
 
@@ -35,6 +38,9 @@ function SafeFile([string]$path,[long]$limit) {
 }
 function VerifyPackage {
  if(-not (SafeFile $engine 450MB) -or
+    -not (SafeFile $launcher 200000) -or
+    -not (SafeFile $runtimePth 2000) -or
+    -not (SafeFile $runtimeSite 200000) -or
     -not (SafeFile $source 1000000) -or
     -not (SafeFile $manifest 10000)){
   throw 'JREI_OFFLINE_RUNTIME_MISSING'
@@ -168,7 +174,10 @@ function LaunchBundled {
  # program directory and are deleted after parsing a fixed error code.
  $stderr=Join-Path $PSScriptRoot ('.jrei-engine-'+[guid]::NewGuid().ToString('N')+'.stderr')
  try {
-  $proc=Start-Process -FilePath $engine -ArgumentList '--serve' -WorkingDirectory $wd -WindowStyle Hidden -PassThru -RedirectStandardError $stderr -ErrorAction Stop
+  # Launch PSF CPython, rather than the PyInstaller executable blocked
+  # by this owner's Windows security configuration during SQLite writes.
+  $cmdArgs=@('-I','-B',('"'+$launcher+'"'),'--serve')
+  $proc=Start-Process -FilePath $engine -ArgumentList $cmdArgs -WorkingDirectory $wd -WindowStyle Hidden -PassThru -RedirectStandardError $stderr -ErrorAction Stop
   if($null -eq $proc){return $false}
   for($n=0;$n -lt 14;$n++){
    if(OwnerReady){return $true}
