@@ -49,6 +49,27 @@ jobs:
           # The native Go bootstrap replaces Inno Setup entirely.
           # Do NOT install Inno or any unnecessary tool on the runner.
 
+      - name: Validate bundled setup source syntax only (no tests or startup)
+        shell: pwsh
+        run: |
+          $ErrorActionPreference='Stop'
+          $desktop='platform/jrei-v5/windows-desktop'
+          foreach($name in @('jrei-engine-setup.ps1','jrei-shortcuts.ps1','jrei-device-inventory.ps1')){
+            $path=Join-Path $desktop $name
+            $tokens=$null
+            $parseErrors=$null
+            [System.Management.Automation.Language.Parser]::ParseFile(
+              (Resolve-Path -LiteralPath $path).Path,
+              [ref]$tokens,[ref]$parseErrors) | Out-Null
+            if($parseErrors.Count -ne 0){
+              throw ('JREI_SETUP_POWERSHELL_SYNTAX_INVALID: '+$name)
+            }
+          }
+          # Parse Python text only: do not import, create owner directories,
+          # initialize DB, run a neural model or access the public website.
+          python -c "import ast,pathlib; root=pathlib.Path('platform'); paths=[root/'jrei-v5/windows-desktop/jrei_embedded_engine.py',root/'jrei-v5/windows-desktop/jrei_desktop.py',root/'jrei-python/jrei_service/windows_private_storage.py',root/'jrei-python/jrei_service/windows_command_center.py']; [ast.parse(p.read_text(encoding='utf-8'),filename=str(p)) for p in paths]"
+          if($LASTEXITCODE -ne 0){throw 'JREI_FROZEN_PYTHON_SOURCE_SYNTAX_INVALID'}
+
       - name: Package original GUI and original 8092 Python engine without runtime downloads
         shell: pwsh
         run: |
