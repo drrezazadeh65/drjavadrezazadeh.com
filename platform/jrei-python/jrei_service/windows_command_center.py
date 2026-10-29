@@ -47,6 +47,7 @@ from jrei_service import windows_visual_learning as visual_learning
 from jrei_service import windows_github_operator as github_operator
 from jrei_service import windows_open_source_discovery as source_discovery
 from jrei_service import windows_open_source_mission as open_source_mission
+from jrei_service import windows_open_source_study as open_source_study
 from jrei_service import windows_language_backend as language_backend
 from jrei_service import windows_native_inference as native_inference
 from jrei_service import windows_private_storage as private_storage
@@ -200,6 +201,7 @@ def setup() -> str:
     self_development.initialize(DB_PATH)
     image_studio.initialize(DB_PATH)
     open_source_mission.initialize(DB_PATH)
+    open_source_study.initialize(DB_PATH)
     github_operator.initialize(DB_PATH)
     token = TOKEN_PATH.read_text(encoding="ascii").strip()
     if len(token) < 48:
@@ -561,6 +563,7 @@ def scheduler():
     next_image = now + 10
     next_visual_day = now + 15
     next_open_source_mission = now + 45
+    next_open_source_code_study = now + 90
     next_self_code_audit = now + 8
     next_self_code_candidate = now + 60
     next_observation = now
@@ -595,6 +598,28 @@ def scheduler():
                 record("open_source_study", "RESEARCH_HELD",
                        exc.__class__.__name__)
             next_open_source_mission=time.monotonic() + 240
+        # Research beyond metadata: inspect exact public OSS source commits,
+        # README/licence records and relevant function signatures without
+        # executing dependencies or promoting the code to this JREI runtime.
+        if (time.monotonic() >= next_open_source_code_study and
+                not _BUSY.locked()):
+            try:
+                source_result = open_source_study.tick(
+                    DB_PATH,
+                    resources_available=resource_policy.permits(
+                        "APPROVED_NETWORK_STUDY"),
+                    owner_active=(_activity_at > 0 and
+                                  time.monotonic() - _activity_at < 180))
+                if source_result.get("state") == (
+                        "SOURCE_REVISION_STUDIED_UNREVIEWED"):
+                    record("open_source_code_study",
+                           "PINNED_SOURCE_OBSERVED",
+                           str(source_result.get("repository", ""))[:130])
+            except (OSError,ValueError,TypeError,RuntimeError,
+                    sqlite3.Error,urllib.error.URLError) as exc:
+                record("open_source_code_study", "RESEARCH_HELD",
+                       exc.__class__.__name__)
+            next_open_source_code_study = time.monotonic() + 360
         if (not AI_SELF_DEVELOPMENT_ONLY and
                 time.monotonic() >= next_visual_day and not _BUSY.locked()):
             # One read/write receipt per UTC day. The loop never invents
@@ -925,12 +950,15 @@ def status():
         "native_visual_learning": visual_learning.snapshot(DB_PATH),
         "permanent_open_source_research":
             open_source_mission.snapshot(DB_PATH),
+        "pinned_open_source_code_study":
+            open_source_study.snapshot(DB_PATH),
         "local_self_code_study":
             self_development.snapshot(DB_PATH),
         "standing_mission_ai_self_development_only":
             AI_SELF_DEVELOPMENT_ONLY,
         "independent_github_operator": "OWNER_SCOPED_API_AVAILABLE_IF_CONFIGURED",
-        "open_source_code_research": "OWNER_REQUEST_ONLY_NO_CODE_DOWNLOAD",
+        "open_source_code_research":
+            "CONTINUOUS_PINNED_PUBLIC_CODE_READING_NO_EXECUTION",
         "independent_site_governor": "EXISTING_GITHUB_WORKFLOW_NOT_DUPLICATED",
         "autonomous_study_scheduler": "RUNNING",
         "python_port": 8091, "gpu_port": None,
@@ -1063,6 +1091,8 @@ class OwnerHTTP(BaseHTTPRequestHandler):
             return self._send(200, source_discovery.catalog())
         if self.path == "/api/open-source/mission":
             return self._send(200, open_source_mission.snapshot(DB_PATH))
+        if self.path == "/api/open-source/studies":
+            return self._send(200, open_source_study.snapshot(DB_PATH))
         if urlsplit(self.path).path == "/api/open-source/search":
             params = parse_qs(urlsplit(self.path).query)
             try:
