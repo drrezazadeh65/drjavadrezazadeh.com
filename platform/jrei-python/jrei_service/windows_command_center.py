@@ -609,7 +609,7 @@ def scheduler():
                 not _BUSY.locked()):
             try:
                 source_result = open_source_study.tick(
-                    DB_PATH,
+                    DB_PATH, repo=REPO,
                     resources_available=resource_policy.permits(
                         "APPROVED_NETWORK_STUDY"),
                     owner_active=(_activity_at > 0 and
