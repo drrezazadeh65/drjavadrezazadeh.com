@@ -74,7 +74,7 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference='Stop'
-          $version='0.1.13'
+          $version='0.1.14'
           $desktop='platform/jrei-v5/windows-desktop'
           $build="$desktop/build"
           $source="$desktop/jrei_desktop.py"
@@ -98,14 +98,10 @@ jobs:
           $uiDir="$build/ui/JREI"
           if(-not (Test-Path -LiteralPath "$uiDir/JREI.exe" -PathType Leaf)){throw 'JREI_GUI_EXE_MISSING'}
 
-          # The actual original Python command-center service, not an external
-          # pretrained chatbot. All dependencies resolved on CI runner ONLY.
-          $pythonProject='platform/jrei-python'
-          python -m PyInstaller --noconfirm --clean --onedir --console --noupx --name JREI-Engine --paths "$pythonProject" --collect-data jrei_service --collect-submodules jrei_service --collect-submodules jrei_core --collect-submodules jrei_learning --collect-submodules jrei_memory --collect-submodules jrei_orchestrator --collect-submodules jrei_skills --collect-submodules PIL --distpath "$build/engines" --workpath "$env:RUNNER_TEMP/jrei-engine-work" --specpath "$env:RUNNER_TEMP/jrei-engine-spec" "$desktop/jrei_embedded_engine.py"
-          if($LASTEXITCODE -ne 0){throw 'JREI_PRIVATE_ENGINE_BUNDLE_FAILED'}
-          $engineDir="$build/engines/JREI-Engine"
-          $engineFile="$engineDir/JREI-Engine.exe"
-          if(-not (Test-Path -LiteralPath $engineFile -PathType Leaf)){throw 'JREI_PRIVATE_ENGINE_EXE_MISSING'}
+          # The previous PyInstaller-frozen command center could not write to
+          # owner-private SQLite although normal CPython 3.13 on the same PC could.
+          # Instead ship app-local PSF CPython and runtime packages OFFLINE.
+          # Runtime is bundled below after the verified source snapshot.
 
           # Private/user data, credentials, keys, models, clone and Git metadata
           # are intentionally excluded. The READ-ONLY source is built from
@@ -129,18 +125,58 @@ jobs:
           foreach($name in @('jrei-device-inventory.ps1','jrei-engine-setup.ps1','jrei-shortcuts.ps1')){
             Copy-Item -LiteralPath (Join-Path $desktop $name) -Destination (Join-Path $bundle $name) -ErrorAction Stop
           }
-          $packagedEngine=Join-Path $bundle ("engine-v"+$version)
-          New-Item -ItemType Directory -Path $packagedEngine -Force|Out-Null
-          Get-ChildItem -LiteralPath $engineDir -Force|Copy-Item -Destination $packagedEngine -Recurse -Force
           $packagedSource=Join-Path $bundle ("source-v"+$version)
           New-Item -ItemType Directory -Path $packagedSource -Force|Out-Null
           Get-ChildItem -LiteralPath $sourceDir -Force|Copy-Item -Destination $packagedSource -Recurse -Force
-          $engineSha=(Get-FileHash -LiteralPath $engineFile -Algorithm SHA256).Hash.ToLowerInvariant()
+          $launchSource=Join-Path $packagedSource 'platform/jrei-v5/windows-desktop/jrei_embedded_engine.py'
+          if(-not (Test-Path -LiteralPath $launchSource -PathType Leaf)){throw 'JREI_PORTABLE_ENTRYPOINT_MISSING'}
+
+          # A normal, app-local CPython interpreter, never the PyInstaller
+          # engine. The owner Windows device never fetches Python or packages.
+          # We copy exactly the official x64 runtime installed by setup-python
+          # on this isolated runner, including DLLs and stdlib.
+          $pythonHome=(python -c "import sys; print(sys.base_prefix)").Trim()
+          if(-not (Test-Path -LiteralPath (Join-Path $pythonHome 'python313.dll') -PathType Leaf)){
+            throw 'JREI_PSF_PYTHON313_RUNTIME_NOT_FOUND'
+          }
+          $portable=Join-Path $bundle ("python-v"+$version)
+          New-Item -ItemType Directory -Path $portable -Force|Out-Null
+          foreach($name in @('python.exe','python3.dll','python313.dll')){
+            Copy-Item -LiteralPath (Join-Path $pythonHome $name) -Destination $portable -ErrorAction Stop
+          }
+          Get-ChildItem -LiteralPath $pythonHome -File -Filter '*.dll' | ForEach-Object {
+            Copy-Item -LiteralPath $_.FullName -Destination $portable -Force -ErrorAction Stop
+          }
+          Copy-Item -LiteralPath (Join-Path $pythonHome 'DLLs') -Destination $portable -Recurse -Force -ErrorAction Stop
+          Copy-Item -LiteralPath (Join-Path $pythonHome 'Lib') -Destination $portable -Recurse -Force -ErrorAction Stop
+          $site=Join-Path $portable 'Lib/site-packages'
+          if(Test-Path -LiteralPath $site){Remove-Item -LiteralPath $site -Recurse -Force -ErrorAction Stop}
+          New-Item -ItemType Directory -Path $site -Force|Out-Null
+          foreach($exclude in @('test','idlelib','ensurepip','turtledemo','tkinter')){
+            $path=Join-Path $portable ("Lib/"+$exclude)
+            if(Test-Path -LiteralPath $path){Remove-Item -LiteralPath $path -Recurse -Force -ErrorAction Stop}
+          }
+          Get-ChildItem -LiteralPath $portable -Directory -Filter '__pycache__' -Recurse -ErrorAction SilentlyContinue |
+            Sort-Object FullName -Descending | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
+          # Vendor runtime dependencies on GitHub runner, not owner's PC.
+          python -m pip install --disable-pip-version-check --no-input --target "$site" './platform/jrei-python' 'Pillow==11.3.0'
+          if($LASTEXITCODE -ne 0){throw 'JREI_PORTABLE_RUNTIME_DEPENDENCIES_UNAVAILABLE'}
+          @(
+            'Lib'
+            'DLLs'
+            ('..\source-v'+$version+'\platform\jrei-python')
+            'Lib\site-packages'
+          )|Set-Content -LiteralPath (Join-Path $portable 'python313._pth') -Encoding ascii
+          if(-not (Test-Path -LiteralPath (Join-Path $site 'fastapi/__init__.py') -PathType Leaf)){
+            throw 'JREI_PORTABLE_SITE_PACKAGES_MISSING'
+          }
+          $engineSha=(Get-FileHash -LiteralPath (Join-Path $portable 'python.exe') -Algorithm SHA256).Hash.ToLowerInvariant()
           @{
             schema='jr.jrei.offline-engine-package.v1'
             source_branch='migration/bertina-linux6'
             source_commit=$sha
             engine_sha256=$engineSha
+            engine_runtime='BUNDLED_CPYTHON_3_13'
             model_weights_embedded=$false
             private_node_keys_embedded=$false
             tests_performed=$false
@@ -159,25 +195,25 @@ jobs:
 
           $out="$desktop/output"
           New-Item -ItemType Directory -Path $out -Force|Out-Null
-          $installer="$out/JREI-Setup-Windows-x64-v0.1.13.exe"
+          $installer="$out/JREI-Setup-Windows-x64-v0.1.14.exe"
           go build -trimpath '-ldflags=-H windowsgui -s -w' -o $installer "$desktop/jrei_universal_setup_windows.go"
           if($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath $installer -PathType Leaf)){
             throw 'JREI_GO_NO_TEMP_INSTALLER_BUILD_FAILED'
           }
           $hash=(Get-FileHash -LiteralPath $installer -Algorithm SHA256).Hash.ToLowerInvariant()
           New-Item -ItemType Directory -Path 'JREI-OWNER-DOWNLOAD' -Force|Out-Null
-          Copy-Item -LiteralPath $installer -Destination 'JREI-OWNER-DOWNLOAD/JREI-Setup-Windows-x64-v0.1.13.exe'
+          Copy-Item -LiteralPath $installer -Destination 'JREI-OWNER-DOWNLOAD/JREI-Setup-Windows-x64-v0.1.14.exe'
           @(
-            '## JREI 0.1.13 - universal offline NO-TEMP Windows setup'
+            '## JREI 0.1.14 - universal offline NO-TEMP Windows setup'
             ''
             '- Exactly ONE user-facing EXE (within the GitHub artifact ZIP).'
             '- Native Windows Go bootstrap selects a writable user-profile release folder without elevation.'
             '- Tries standard LocalAppData Programs, then LocalAppData JREI-Applications, then UserProfile JREI-Applications.'
             '- Each location is checked for unsafe links and actual write access, without bypassing Windows security.'
-            '- No Inno is-*.tmp; no PyInstaller onefile temp unpack; no destination pip/PyPI.'
-            '- Contains native GUI, original frozen 8092 Python command center, and tracked source.'
+            '- No Inno is-*.tmp; no Python frozen engine, destination pip/PyPI or runtime downloads.'
+            '- Contains Tk GUI plus original Python command center on app-local PSF CPython, packaged libraries and tracked source.'
             '- Unrecognized legacy Windows task is preserved; independent local core can start on free 8092.'
-            '- The native desktop rechecks and starts its own bundled engine when opened.'
+            '- The native desktop rechecks and starts the same original 8092 engine through the bundled Python interpreter.'
             '- Existing private DB, user conversations, worker node IDs, keys and models are preserved.'
             '- Does not assert independent model quality, GPU compute or signed remote-node enrollment.'
             '- Does NOT deploy the website, run training or perform integrated Windows acceptance.'
@@ -193,7 +229,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: JREI-WINDOWS-DESKTOP-INSTALLER
-          path: JREI-OWNER-DOWNLOAD/JREI-Setup-Windows-x64-v0.1.13.exe
+          path: JREI-OWNER-DOWNLOAD/JREI-Setup-Windows-x64-v0.1.14.exe
           retention-days: 30
           compression-level: 0
           if-no-files-found: error
