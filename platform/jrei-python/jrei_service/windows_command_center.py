@@ -46,6 +46,7 @@ from jrei_service import windows_candidate_static_review as static_review
 from jrei_service import windows_self_improvement_progress as improvement_progress
 from jrei_service import windows_code_learning_curriculum as code_curriculum
 from jrei_service import windows_native_code_preparation as code_preparation
+from jrei_service import windows_native_code_evaluation as code_evaluation
 from jrei_service import windows_site_image_studio as image_studio
 from jrei_service import windows_visual_learning as visual_learning
 from jrei_service import windows_github_operator as github_operator
@@ -219,6 +220,7 @@ def setup() -> str:
     self_development.initialize(DB_PATH)
     static_review.initialize(DB_PATH)
     code_curriculum.initialize(DB_PATH)
+    code_evaluation.initialize(DB_PATH)
     image_studio.initialize(DB_PATH)
     open_source_mission.initialize(DB_PATH)
     open_source_study.initialize(DB_PATH)
@@ -1173,6 +1175,8 @@ def status():
             code_preparation.snapshot(PRIVATE),
         "native_code_model_training_receipts":
             scratch_training.snapshot_code_runs(PRIVATE),
+        "native_code_ability_evaluation_receipts":
+            code_evaluation.snapshot(DB_PATH),
         "standing_mission_ai_self_development_only":
             AI_SELF_DEVELOPMENT_ONLY,
         "independent_github_operator": "OWNER_SCOPED_API_AVAILABLE_IF_CONFIGURED",
@@ -1337,6 +1341,8 @@ class OwnerHTTP(BaseHTTPRequestHandler):
         if self.path == "/api/learning/native-code/training-runs":
             return self._send(200,
                               scratch_training.snapshot_code_runs(PRIVATE))
+        if self.path == "/api/learning/native-code/evaluations":
+            return self._send(200,code_evaluation.snapshot(DB_PATH))
         if self.path == "/api/open-source/draft-priorities":
             # Read-only, grounded in actual source hashes and local findings.
             # No model call, candidate generation or job dispatch.
@@ -1567,6 +1573,27 @@ class OwnerHTTP(BaseHTTPRequestHandler):
                     rights_reviewed=data.get("rights_reviewed"),
                     lesson_quality_reviewed=data.get("quality_reviewed"),
                     owner_confirmed=data.get("confirm")))
+            if self.path == "/api/learning/native-code/evaluate":
+                # Owner-triggered independent AST-answer agreement measure.
+                # SEALED_TEST is reserved once per run; no tuning, generated
+                # code execution, weight updates or production activation.
+                if data.get("confirm") is not True:
+                    raise ValueError("JREI_CODE_EVAL_OWNER_CONFIRM_REQUIRED")
+                if not _BUSY.acquire(blocking=False):
+                    return self._send(409,{"error":"JREI_CODE_EVAL_BUSY"})
+                try:
+                    evaluated=code_evaluation.evaluate_once(
+                        db_path=DB_PATH,private=PRIVATE,
+                        run_id=data.get("run_id"),
+                        split=data.get("split"),
+                        owner_confirmed=True,
+                        resources_available=resource_policy.permits(
+                            "NATIVE_NEURAL_TRAIN_CPU",fresh=True),
+                        max_examples=data.get("max_examples",8),
+                        max_new_tokens=data.get("max_new_tokens",96))
+                finally:
+                    _BUSY.release()
+                return self._send(200,evaluated)
             if self.path == "/api/learning/native-code/train":
                 # The existing from-scratch nanoGPT trainer is used with
                 # an explicitly rights-reviewed first-party code candidate.
