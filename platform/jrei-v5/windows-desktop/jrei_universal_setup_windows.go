@@ -27,7 +27,7 @@ import (
  "unsafe"
 )
 
-const version = "0.1.14"
+const version = "0.1.15"
 const maxEntries = 24000
 const maxSingleFile = int64(450 << 20)
 const maxTotalBytes = int64(1200 << 20)
@@ -280,6 +280,7 @@ func extractPayload(target string) error {
   "python-v"+version+"/Lib/site-packages/cryptography/__init__.py",
   "source-v"+version+"/platform/jrei-python/jrei_service/windows_command_center.py",
   "source-v"+version+"/platform/jrei-v5/windows-desktop/jrei_embedded_engine.py",
+  "source-v"+version+"/platform/jrei-v5/windows-desktop/jrei_owner_python_bootstrap.py",
  }
  for _, required := range expectedFiles {
   if !seen[strings.ToLower(filepath.FromSlash(required))] {
@@ -396,7 +397,7 @@ func main() {
  shortcutReady := shortcutError == nil && shortcutState == "PROGRAM_SHORTCUTS_READY"
  // The state of the private, authenticated 8092 engine is the primary
  // acceptance gate. Never call a failed engine setup merely "shortcut
- // unavailable"; that was exactly the misleading 0.1.14 owner popup.
+ // unavailable"; that was exactly the misleading 0.1.15 owner popup.
  engineReady := engineState == "JREI_ENGINE_AUTHENTICATED_EXISTING" ||
     engineState == "JREI_ENGINE_AUTHENTICATED_BUNDLED"
  if !engineReady {
