@@ -1,6 +1,6 @@
 #Requires -Version 5.1
 <#
-Original JREI owner-local 8092 engine setup, v0.1.10.
+Original JREI owner-local 8092 engine setup, v0.1.11.
 The EXE ships the original private command center and its libraries.
 Installation of PROGRAM FILES is independent of the health of a process
 already occupying 8092. Never kill a process, hijack a listener, disable
@@ -13,7 +13,7 @@ param(
 )
 Set-StrictMode -Version Latest
 $ErrorActionPreference='Stop'
-$version='0.1.10'
+$version='0.1.11'
 $taskName='JREI-Owner-Windows-Command-Center'
 $private=Join-Path $env:LOCALAPPDATA 'JREI\command-center'
 $receipts=Join-Path $private 'install-receipts'
