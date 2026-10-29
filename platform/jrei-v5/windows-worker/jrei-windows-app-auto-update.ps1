@@ -179,11 +179,15 @@ function IsReady([string]$expectedSha=''){
 }
 function Stage([string]$sha){
  if($sha -cnotmatch '^[a-f0-9]{40}$'){throw 'JREI_APP_SHA_INVALID'}
+ $tree=SourceTree $sha
  $target=Join-Path $versions $sha
  $snapshot=Join-Path $target 'source\platform\jrei-python'
  $receipt=Join-Path $target 'receipt.json'
  $prior=ReadJson $receipt
- if($prior -and $prior.sourceCommit -ceq $sha -and $prior.schema -ceq 'jr.jrei.owner-app-snapshot.v1' -and
+ if($prior -and $prior.sourceCommit -ceq $sha -and
+    $prior.sourceTree -ceq $tree -and
+    $prior.staticPreflightPassed -eq $true -and
+    $prior.schema -ceq 'jr.jrei.owner-app-snapshot.v1' -and
     (Test-Path -LiteralPath (Join-Path $snapshot 'jrei_service\windows_command_center.py') -PathType Leaf)){
   return $snapshot
  }
@@ -205,11 +209,18 @@ function Stage([string]$sha){
    throw 'JREI_APP_SNAPSHOT_INCOMPLETE'
   }
  }
+ # Successful static parsing is a preflight, NOT integrated functional QA.
+ # A syntax-failed snapshot is left untouched for owner diagnosis.
+ StaticPreflight $snapshot
+ if((CurrentHead) -cne $sha -or (SourceTree $sha) -cne $tree){
+  throw 'JREI_APP_SOURCE_CHANGED_DURING_STAGING'
+ }
  WriteJson (Join-Path $snapshot 'jrei-app-release.json') @{
   schema='jr.jrei.owner-windows-app-release.v1';sourceCommit=$sha
  }
  WriteJson $receipt @{
   schema='jr.jrei.owner-app-snapshot.v1';sourceCommit=$sha
+  sourceTree=$tree;staticPreflightPassed=$true
   testsRun=$false;websiteDeployed=$false
   createdUtc=[DateTimeOffset]::UtcNow.ToUnixTimeSeconds()
  }
@@ -225,9 +236,18 @@ function Promote([string]$sha){
   return
  }
  $work=Stage $sha
+ # No process swap if an owner task began during the source preflight.
+ if((CurrentHead) -cne $sha -or -not (IsIdle)){
+  Report 'WINDOWS_APP_UPDATE_DEFERRED_BUSY'
+  return
+ }
  $oldAction=$task.Actions[0]
  if([string]$oldAction.WorkingDirectory -ieq $work){
-  WriteJson $installed @{schema='jr.jrei.owner-app-installed.v1';sourceCommit=$sha;sourcePath=$work}
+  if(-not (IsReady $sha)){throw 'JREI_APP_EXISTING_SNAPSHOT_NOT_RESPONDING'}
+  WriteJson $installed @{
+   schema='jr.jrei.owner-app-installed.v1';sourceCommit=$sha
+   sourceTree=(SourceTree $sha);sourcePath=$work
+  }
   Report 'WINDOWS_APP_ALREADY_UPDATED'
   return
  }
@@ -246,6 +266,7 @@ function Promote([string]$sha){
   if(-not $healthy){throw 'JREI_APP_NEW_VERSION_NOT_READY'}
   WriteJson $installed @{
    schema='jr.jrei.owner-app-installed.v1';sourceCommit=$sha
+   sourceTree=(SourceTree $sha)
    sourcePath=$work;previousPath=[string]$oldAction.WorkingDirectory
    testsRun=$false;websiteDeployed=$false
   }
