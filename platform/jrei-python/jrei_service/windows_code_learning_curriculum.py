@@ -322,7 +322,7 @@ def _extract(path: str, raw: bytes) -> tuple[str, list[dict]]:
             break
     lessons.extend(_risk_lessons(path,digest,text))
     lessons.extend(_repair_lessons(path,digest,text,module))
-    return ("FIRST_PARTY_AST_LESSONS_STAGED" if lessons,
+    return ("FIRST_PARTY_AST_LESSONS_STAGED" if lessons
             else "NO_ELIGIBLE_SOURCE_FUNCTION"), lessons
 
 
