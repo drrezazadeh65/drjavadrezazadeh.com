@@ -573,7 +573,11 @@ def stage_candidate(*, db_path: Path, repo: Path, private: Path,
         "unsafe_rows_excluded":plan["unsafe_rows"],
         "training_rights_and_quality_approved":
             plan["every_example_training_approved"],
-        "state":"UNREVIEWED_CODE_TRAINING_CANDIDATE_ONLY",
+        "state":(
+            "OWNER_ATTESTED_CODE_DATASET_CANDIDATE_ONLY"
+            if plan["every_example_training_approved"]
+            else "UNREVIEWED_CODE_TRAINING_CANDIDATE_ONLY"
+        ),
         "public_oss_code_used_for_training":False,
         "published_model_training_started":False,
         "model_weights_trained":False,
