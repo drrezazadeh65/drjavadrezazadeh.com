@@ -526,7 +526,11 @@ def run_job(job: str, background: bool = False):
     if not _BUSY.acquire(blocking=False):
         return {"state": "BUSY", "detail": "Existing mission active"}
     try:
-        _activity_at = time.monotonic()
+        # Background AI study is NOT a human-owner interaction.
+        # Treating it as one would keep the owner-active backpressure
+        # permanently engaged and starve continuous OSS research.
+        if not background:
+            _activity_at = time.monotonic()
         record(job, "STARTED")
         try:
             state, detail = execute(job)
@@ -888,9 +892,11 @@ def scheduler():
                 # Continuously study current first-party source and suggest
                 # changes. Do not run/generated syntax checks, alter the
                 # canonical checkout or install self-written code unattended.
-                run_job("study", background=True)
+                proposal = run_job("study", background=True)
+                # Use the real outcome: an unavailable local model should
+                # back off instead of waking in a tight 2.5-second cycle.
                 next_study = time.monotonic() + resource_policy.continuous_probe_delay(
-                    "CODE_STUDY", "PROPOSED_NOT_VERIFIED")
+                    "CODE_STUDY", str(proposal.get("state", "UNKNOWN")))
             else:
                 next_study = time.monotonic() + resource_policy.continuous_probe_delay(
                     "CODE_STUDY", "DEFER_OWNER_ACTIVITY", resource_available=False)
