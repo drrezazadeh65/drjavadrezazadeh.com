@@ -11,6 +11,7 @@ foundation dataset and MUST NEVER automatically activate a chat model.
 """
 from __future__ import annotations
 
+from contextlib import closing
 import hashlib
 import json
 from pathlib import Path
@@ -124,7 +125,7 @@ def _cohort(db_path: Path, private: Path,
         raise ValueError("JREI_CODE_CORPUS_LESSON_DUPLICATED")
     # Verify CURRENT SQLite review decisions; a later rights revocation
     # invalidates the candidate without deleting research history.
-    with _db(db_path) as db:
+    with closing(_db(db_path)) as db:
         for part in PARTS:
             for entry in partitions[part]:
                 row=db.execute("""SELECT source_sha256,
