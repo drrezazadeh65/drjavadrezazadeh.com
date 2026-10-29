@@ -277,7 +277,13 @@ function Promote([string]$sha){
     Stop-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue
     Set-ScheduledTask -TaskName $taskName -Action $oldAction -ErrorAction Stop|Out-Null
     Start-ScheduledTask -TaskName $taskName -ErrorAction Stop
-    Report 'WINDOWS_APP_OLD_VERSION_RESTORED'
+    $restored=$false
+    for($j=0;$j -lt 12;$j++){
+     if(IsReady){$restored=$true;break}
+     Start-Sleep -Seconds 2
+    }
+    if($restored){Report 'WINDOWS_APP_OLD_VERSION_RESTORED_RESPONDING'}
+    else{Report 'WINDOWS_APP_ROLLBACK_NEEDS_OWNER_REVIEW'}
    }catch{Report 'WINDOWS_APP_ROLLBACK_NEEDS_OWNER_REVIEW'}
   }else{
    Start-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue
@@ -393,15 +399,26 @@ if($bad -and $bad.schema -ceq 'jr.jrei.windows-app-failed-source.v1' -and
 try{
  Promote $head
 }catch{
- # Do not endlessly restart/rollback the SAME failing source tree every
- # 30 minutes. A new source tree is eligible on the next successful sync.
+ # Transient environment/source-race failures do not blacklist code:
+ # the same tree may be tried once an existing runtime is healthy/idle.
+ $reason=[string]$_.Exception.Message
+ if($reason -in @(
+    'JREI_APP_COMMAND_CENTER_TASK_NOT_RUNNING',
+    'JREI_APP_PYTHON_MISSING',
+    'JREI_APP_SOURCE_CHANGED_DURING_STAGING',
+    'JREI_APP_HEAD_NOT_CANONICAL_REMOTE',
+    'JREI_APP_GIT_FAILURE')){
+  Report 'WINDOWS_APP_UPDATE_DEFERRED_ENVIRONMENT_OR_REPO_CHANGE'
+  return
+ }
+ # A static-preflight failure or failed live switch must not be repeated
+ # forever on the SAME source tree. Never overwrite owner mission data.
  WriteJson $failed @{
   schema='jr.jrei.windows-app-failed-source.v1'
   sourceTree=$tree;sourceCommit=$head
   failedUtc=[DateTimeOffset]::UtcNow.ToUnixTimeSeconds()
   state='HELD_FOR_REVIEW_UNVERIFIED'
  }
- Report 'WINDOWS_APP_UPDATE_FAILED_OLD_RUNTIME_PRESERVED'
- # The source was not activated; surface a failed updater result.
+ Report 'WINDOWS_APP_UPDATE_FAILED_CHECK_ROLLBACK_STATUS'
  exit 23
 }
