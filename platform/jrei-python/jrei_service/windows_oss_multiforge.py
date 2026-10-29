@@ -280,12 +280,92 @@ def _gitlab_source(project_id, query):
             "functions": _source_signatures(raw, str(source["path"]))}
 
 
-def read_once(path, *, resources_available, owner_active=False):
-    """Read an actual GitLab code blob, not just repository metadata.
+def _codeberg_source(repository, query):
+    """Read Forgejo public content at the exact latest commit.
 
-    Codeberg discovery participates in the same research agenda. Its code
-    adapter must be independently specified before claiming source reads.
+    Codeberg uses the Forgejo/Gitea repository contents interface. If this
+    instance cannot provide a revision-pinned content receipt, return a
+    recorded unavailable outcome rather than falling back to an unpinned URL.
     """
+    if not isinstance(repository, str) or not PROJECT.fullmatch(repository):
+        raise ValueError("JREI_CODEBERG_REPOSITORY_INVALID")
+    if repository.count("/") != 1:
+        # This Forgejo API uses one owner and one repository path.
+        raise ValueError("JREI_CODEBERG_NESTED_PATH_UNSUPPORTED")
+    base = "/api/v1/repos/" + repository
+    metadata = _transport("codeberg", base)
+    if (not isinstance(metadata, dict) or
+            metadata.get("full_name") != repository):
+        raise ValueError("JREI_CODEBERG_REPOSITORY_MISMATCH")
+    branch = metadata.get("default_branch")
+    if not isinstance(branch, str) or not 1 <= len(branch) <= 130:
+        raise ValueError("JREI_CODEBERG_DEFAULT_BRANCH_UNKNOWN")
+    history = _transport("codeberg", base + "/commits?" +
+                         urllib.parse.urlencode({"sha":branch,"limit":"1"}))
+    if not isinstance(history, list) or not history:
+        raise ValueError("JREI_CODEBERG_HEAD_UNAVAILABLE")
+    revision = history[0].get("sha") if isinstance(history[0],dict) else None
+    if not isinstance(revision,str) or not SHA.fullmatch(revision):
+        raise ValueError("JREI_CODEBERG_COMMIT_UNPINNED")
+    tree = _transport("codeberg", base + "/contents?" +
+                      urllib.parse.urlencode({"ref":revision}))
+    if not isinstance(tree,list):
+        raise ValueError("JREI_CODEBERG_TREE_INVALID")
+    files = [v for v in tree if isinstance(v,dict) and
+             v.get("type") == "file" and
+             str(v.get("path","")).lower().endswith(CODE)]
+    if not files:
+        folders = [v for v in tree if isinstance(v,dict) and
+                   v.get("type") == "dir" and
+                   v.get("name") in ("src","lib","core","app","python")]
+        if folders:
+            folder = str(folders[0].get("path",""))
+            if re.fullmatch(r"[A-Za-z0-9._/-]{1,170}",folder):
+                more = _transport("codeberg",base+"/contents/"+
+                    urllib.parse.quote(folder,safe="/")+"?"+
+                    urllib.parse.urlencode({"ref":revision}))
+                if isinstance(more,list):
+                    files = [v for v in more if isinstance(v,dict) and
+                             v.get("type") == "file" and
+                             str(v.get("path","")).lower().endswith(CODE)]
+    if not files:
+        return {"revision":revision,"source":None,"sha":None,"functions":[]}
+    terms = set(re.findall(r"[a-z]{3,}",query.lower()))
+    files.sort(key=lambda item:(
+        -len(terms & set(re.findall(
+            r"[a-z]{3,}",str(item.get("path","")).lower()))),
+        str(item.get("path",""))))
+    source_path = str(files[0].get("path",""))
+    if not re.fullmatch(r"[A-Za-z0-9._/+@-]{1,190}",source_path):
+        raise ValueError("JREI_CODEBERG_SOURCE_PATH_INVALID")
+    obj = _transport("codeberg",base+"/contents/"+
+        urllib.parse.quote(source_path,safe="/")+"?"+
+        urllib.parse.urlencode({"ref":revision}))
+    if not isinstance(obj,dict) or obj.get("encoding") != "base64":
+        raise ValueError("JREI_CODEBERG_FILE_FORMAT_INVALID")
+    import base64
+    import binascii
+    encoded = obj.get("content")
+    if not isinstance(encoded,str):
+        raise ValueError("JREI_CODEBERG_FILE_CONTENT_MISSING")
+    try:
+        raw = base64.b64decode(encoded,validate=False)
+    except (ValueError,binascii.Error) as exc:
+        raise ValueError("JREI_CODEBERG_BASE64_INVALID") from exc
+    if len(raw) > MAX_BLOB:
+        raise ValueError("JREI_CODEBERG_BLOB_TOO_LARGE")
+    reported = obj.get("sha")
+    calculated = hashlib.sha1(
+        b"blob "+str(len(raw)).encode("ascii")+b"\x00"+raw).hexdigest()
+    if reported != calculated:
+        raise ValueError("JREI_CODEBERG_BLOB_MISMATCH")
+    return {"revision":revision,"source":source_path,
+            "sha":hashlib.sha256(raw).hexdigest(),
+            "functions":_source_signatures(raw,source_path)}
+
+
+def read_once(path, *, resources_available, owner_active=False):
+    """Read one GitLab/Codeberg source file at an independently pinned SHA."""
     if not resources_available or owner_active:
         return {"schema":SCHEMA,"state":"HELD_RESOURCES"}
     now = int(time.time())
@@ -294,26 +374,28 @@ def read_once(path, *, resources_available, owner_active=False):
         if not _enabled(db):
             db.rollback()
             return {"schema":SCHEMA,"state":"RESEARCH_DISABLED"}
-        row = db.execute("""SELECT c.domain,c.repository,c.project_id,t.query
+        row = db.execute("""SELECT c.provider,c.domain,c.repository,
+                c.project_id,t.query
             FROM jrei_oss_forge_candidates c JOIN jrei_oss_topics t
                 ON t.domain=c.domain
-            WHERE c.provider='gitlab' AND c.project_id IS NOT NULL
+            WHERE c.provider IN ('gitlab','codeberg')
               AND c.source_next_due<=?
             ORDER BY COALESCE(c.source_last_attempt,0),
                 c.last_seen DESC LIMIT 1""",(now,)).fetchone()
         if not row:
             db.rollback()
-            return {"schema":SCHEMA,"state":"NO_GITLAB_SOURCE_DUE"}
-        domain,repository,project_id,query=row
+            return {"schema":SCHEMA,"state":"NO_FORGE_SOURCE_DUE"}
+        provider,domain,repository,project_id,query=row
         db.execute("""UPDATE jrei_oss_forge_candidates
             SET source_last_attempt=?,source_next_due=?
-            WHERE provider='gitlab' AND domain=? AND repository=?""",
-            (now,now+RETRY,domain,repository))
+            WHERE provider=? AND domain=? AND repository=?""",
+            (now,now+RETRY,provider,domain,repository))
         db.commit()
     info = None
     state = "UPSTREAM_SOURCE_UNAVAILABLE"
     try:
-        info = _gitlab_source(project_id,query)
+        info = (_gitlab_source(project_id,query) if provider == 'gitlab'
+                else _codeberg_source(repository,query))
         state = ("PINNED_PUBLIC_CODE_STUDIED" if info["sha"]
                  else "REVISION_READ_NO_SMALL_CODE_FILE")
     except (ValueError, OSError, TypeError, KeyError, OverflowError,
@@ -323,15 +405,15 @@ def read_once(path, *, resources_available, owner_active=False):
         db.execute("""UPDATE jrei_oss_forge_candidates SET
             source_next_due=?,source_revision=?,source_path=?,
             source_sha256=?,signatures_json=?,source_state=?
-            WHERE provider='gitlab' AND domain=? AND repository=?""",
+            WHERE provider=? AND domain=? AND repository=?""",
             (now+(SOURCE_REFRESH if info else RETRY),
              info["revision"] if info else None,
              info["source"] if info else None,
              info["sha"] if info else None,
              json.dumps(info["functions"],sort_keys=True) if info else "[]",
-             state,domain,repository))
+             state,provider,domain,repository))
         db.commit()
-    return {"schema":SCHEMA,"provider":"gitlab","state":state,
+    return {"schema":SCHEMA,"provider":provider,"state":state,
             "repository":repository,
             "source_read":bool(info and info["sha"]),
             "code_executed":False}
@@ -353,7 +435,7 @@ def snapshot(path):
                       for p,n,c in sources},
         "gitlab_public_pinned_code_reading":True,
         "codeberg_repository_discovery":True,
-        "codeberg_code_reading_implemented":False,
+        "codeberg_code_reading_implemented":True,
         "external_code_executed":False,
         "external_license_assumed":False,
         "production_changed":False,
