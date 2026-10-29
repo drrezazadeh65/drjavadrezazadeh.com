@@ -427,6 +427,11 @@ func main() {
    if engineState == "JREI_ENGINE_PENDING_UNVERIFIED_8092_LISTENER" {
       explanation = "پورت 8092 اشغال است اما سرویس آن احراز نشده؛ فرایند موجود محفوظ است."
    }
+   if engineState == "JREI_ENGINE_PENDING_PREVIOUS_VERSION_8092_PRESERVED" {
+      explanation = "موتور قبلی هنوز فعال است. جابه‌جایی ایمن در این لحظه ممکن نبود. "+
+        "وقتی کارهای جاری تمام شد، در مرکز قابلیت‌های برنامه، "+
+        "«فعال‌سازی کنترل‌شدهٔ همین نسخهٔ موتور» را انتخاب کنید."
+   }
    dialog("JREI | Program files installed; local engine NOT ready",
       "فایل‌های نسخهٔ جدید روی این رایانه نصب شدند.\n"+
       "کد وضعیت موتور: "+engineState+"\n"+
