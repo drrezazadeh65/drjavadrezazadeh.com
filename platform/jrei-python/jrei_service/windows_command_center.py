@@ -629,6 +629,7 @@ def scheduler():
     next_candidate_static_review = now + 25
     next_rule_static_review = now + 40
     next_first_party_curriculum = now + 55
+    next_code_curriculum_stage = now + 960
     next_self_code_candidate = now + 60
     next_observation = now
     while not _STOP.is_set():
@@ -984,6 +985,30 @@ def scheduler():
                 record("first_party_code_curriculum","HELD",
                        exc.__class__.__name__)
             next_first_party_curriculum = time.monotonic() + 180
+        # Source-disjoint, immutable first-party code-learning data
+        # CANDIDATE. Staging JSONL is not PyTorch training or permission to
+        # reuse an external source. Preserve older cohorts without overwrites.
+        if (time.monotonic() >= next_code_curriculum_stage and
+                not _BUSY.locked()):
+            try:
+                policy = resource_policy.snapshot()
+                if (policy.get("profile") == "NODE_32GB_HEAVY"
+                        and resource_policy.permits("MEMORY_CURATION")
+                        and (_activity_at == 0 or
+                             time.monotonic()-_activity_at >= 180)):
+                    prepared = code_curriculum.stage_candidate(
+                        db_path=DB_PATH, repo=REPO, private=PRIVATE,
+                        resources_available=True)
+                    if prepared.get("state") == (
+                            "UNREVIEWED_CODE_TRAINING_CANDIDATE_ONLY"):
+                        record("native_code_curriculum",
+                               "SOURCE_DISJOINT_CANDIDATE_STAGED_UNTRAINED",
+                               str(prepared.get("cohort_sha256",""))[:64])
+            except (OSError,ValueError,TypeError,RuntimeError,
+                    sqlite3.Error) as exc:
+                record("native_code_curriculum","HELD",
+                       exc.__class__.__name__)
+            next_code_curriculum_stage = time.monotonic() + 3600
         # The 32GB node has the conditional heavy-draft lane; the 16GB node
         # remains free for acquisition and static diagnosis. Independent PCs
         # retain independent stores and are NOT falsely described as a
@@ -1276,6 +1301,8 @@ class OwnerHTTP(BaseHTTPRequestHandler):
             return self._send(200, improvement_progress.snapshot(DB_PATH))
         if self.path == "/api/learning/code-curriculum":
             return self._send(200, code_curriculum.snapshot(DB_PATH))
+        if self.path == "/api/learning/code-curriculum/preflight":
+            return self._send(200, code_curriculum.preflight(DB_PATH))
         if self.path == "/api/open-source/draft-priorities":
             # Read-only, grounded in actual source hashes and local findings.
             # No model call, candidate generation or job dispatch.
