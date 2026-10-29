@@ -27,7 +27,7 @@ import (
  "unsafe"
 )
 
-const version = "0.1.18"
+const version = "0.1.19"
 const maxEntries = 24000
 const maxSingleFile = int64(450 << 20)
 const maxTotalBytes = int64(1200 << 20)
@@ -281,6 +281,26 @@ func extractPayload(target string) error {
   "source-v"+version+"/platform/jrei-python/jrei_service/windows_command_center.py",
   "source-v"+version+"/platform/jrei-v5/windows-desktop/jrei_embedded_engine.py",
   "source-v"+version+"/platform/jrei-v5/windows-desktop/jrei_owner_python_bootstrap.py",
+  // The 0.1.19 installer must actually carry the whole JREI research,
+  // learning, owner-gated coding and private image pipeline: not just the UI.
+  "source-v"+version+"/platform/jrei-v5/windows-desktop/jrei_desktop_features.py",
+  "source-v"+version+"/platform/jrei-python/jrei_service/windows_site_image_studio.py",
+  "source-v"+version+"/platform/jrei-python/jrei_service/windows_native_visual.py",
+  "source-v"+version+"/platform/jrei-python/jrei_service/windows_visual_learning.py",
+  "source-v"+version+"/platform/jrei-python/jrei_service/windows_self_development.py",
+  "source-v"+version+"/platform/jrei-python/jrei_service/windows_open_source_mission.py",
+  "source-v"+version+"/platform/jrei-python/jrei_service/windows_open_source_study.py",
+  "source-v"+version+"/platform/jrei-python/jrei_service/windows_oss_multiforge.py",
+  "source-v"+version+"/platform/jrei-python/jrei_service/windows_oss_evidence.py",
+  "source-v"+version+"/platform/jrei-python/jrei_service/windows_continuous_learning.py",
+  "source-v"+version+"/platform/jrei-python/jrei_service/windows_code_experience.py",
+  "source-v"+version+"/platform/jrei-python/jrei_service/windows_native_code_evaluation.py",
+  "source-v"+version+"/platform/jrei-python/jrei_service/windows_peft_training.py",
+  "source-v"+version+"/platform/jrei-python/jrei_service/_vendor/minbpe/LICENSE",
+  "source-v"+version+"/platform/jrei-python/jrei_service/_vendor/nanogpt/LICENSE",
+  "source-v"+version+"/platform/jrei-python/jrei_service/_vendor/AIDER_APACHE_LICENSE.txt",
+  "source-v"+version+"/docs/governance/JREI_FINAL_OPEN_SOURCE_ADOPTION_MATRIX.md",
+  "source-v"+version+"/docs/governance/JREI_NATIVE_AI_CODING_AND_TRAINING_STACK_20261028.md",
  }
  for _, required := range expectedFiles {
   if !seen[strings.ToLower(filepath.FromSlash(required))] {
@@ -397,7 +417,7 @@ func main() {
  shortcutReady := shortcutError == nil && shortcutState == "PROGRAM_SHORTCUTS_READY"
  // The state of the private, authenticated 8092 engine is the primary
  // acceptance gate. Never call a failed engine setup merely "shortcut
- // unavailable"; that was exactly the misleading 0.1.18 owner popup.
+ // unavailable"; that was exactly the misleading 0.1.19 owner popup.
  engineReady := engineState == "JREI_ENGINE_AUTHENTICATED_EXISTING" ||
     engineState == "JREI_ENGINE_AUTHENTICATED_BUNDLED"
  if !engineReady {
