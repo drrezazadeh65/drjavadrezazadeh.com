@@ -187,6 +187,10 @@ def _seed_problem_topics(db) -> int:
             "BARE_EXCEPT": "python exception handling static analysis refactoring",
             "DYNAMIC_CODE_CALL": "python dynamic code execution risk analysis",
             "PYTHON_SYNTAX_ISSUE": "python ast syntax automated repair",
+            "DYNAMIC_CODE_CALL_PATTERN":
+                "javascript static analysis dynamic code calls",
+            "CHILD_PROCESS_REFERENCE_PATTERN":
+                "nodejs child process static analysis safety",
         }
         problems = db.execute("""SELECT finding_kind,COUNT(*)
             FROM jrei_self_code_findings
