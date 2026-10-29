@@ -51,8 +51,36 @@ function VerifyPackage {
   throw 'JREI_OFFLINE_ENGINE_HASH_MISMATCH'
  }
 }
+function OwnerTokenFile {
+ # Same explicit private-store marker as Python/Tk; no arbitrary paths from
+ # environment variables, network services or imported configuration.
+ $fallbacks=@(
+  (Join-Path $env:LOCALAPPDATA 'JREI-Owner\command-center'),
+  (Join-Path $env:USERPROFILE 'JREI-Owner\command-center')
+ )
+ $active=@()
+ foreach($folder in $fallbacks){
+  $marker=Join-Path $folder '.jrei-active-private-store-v1.json'
+  if(-not (SafeFile $marker 2048)){continue}
+  try{
+   $info=Get-Content -LiteralPath $marker -Encoding UTF8 -Raw |
+     ConvertFrom-Json -ErrorAction Stop
+   if($info.schema -ceq 'jr.jrei.owner-private-storage-selection.v1' -and
+      $info.selected -eq $true){
+    $active+=,$folder
+   }
+  }catch{}
+ }
+ if($active.Count -gt 1){
+  throw 'JREI_MULTIPLE_ACTIVE_PRIVATE_STORES'
+ }
+ if($active.Count -eq 1){
+  return (Join-Path $active[0] 'owner-token')
+ }
+ return (Join-Path $private 'owner-token')
+}
 function OwnerReady {
- $tokenFile=Join-Path $private 'owner-token'
+ $tokenFile=OwnerTokenFile
  if(-not (SafeFile $tokenFile 256)){return $false}
  try{
   $token=(Get-Content -LiteralPath $tokenFile -Raw -Encoding Ascii).Trim()
