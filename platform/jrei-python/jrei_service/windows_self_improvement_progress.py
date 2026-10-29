@@ -41,6 +41,11 @@ def snapshot(db_path: Path) -> dict:
         code_ast_lessons = code_lessons_current = code_lessons_approved = 0
         owner_reviewed_sources = private_code_cohorts = 0
         unverified_oss_spdx_claims = 0
+        code_evaluation_runs=0
+        code_development_scored=0
+        code_sealed_scored=0
+        code_exact_matches=0
+        code_reservations=0
 
         if _exists(db,"jrei_oss_topics"):
             topics,research_attempts,successful_searches = db.execute("""
@@ -130,6 +135,23 @@ def snapshot(db_path: Path) -> dict:
                 WHERE state IN ('UNREVIEWED_CODE_TRAINING_CANDIDATE_ONLY',
                     'OWNER_ATTESTED_CODE_DATASET_CANDIDATE_ONLY')
                 """).fetchone()[0]
+        if _exists(db,"jrei_code_ability_evaluations"):
+            (code_evaluation_runs,code_development_scored,
+             code_sealed_scored,code_exact_matches,
+             code_reservations)=db.execute("""SELECT
+                 COUNT(*),
+                 COALESCE(SUM(CASE WHEN split_name='DEVELOPMENT'
+                   AND state='INDEPENDENT_AST_ANSWER_SCORING_RECORDED'
+                   THEN scored_examples ELSE 0 END),0),
+                 COALESCE(SUM(CASE WHEN split_name='SEALED_TEST'
+                   AND state='INDEPENDENT_AST_ANSWER_SCORING_RECORDED'
+                   THEN scored_examples ELSE 0 END),0),
+                 COALESCE(SUM(CASE WHEN
+                   state='INDEPENDENT_AST_ANSWER_SCORING_RECORDED'
+                   THEN normalized_exact_matches ELSE 0 END),0),
+                 COALESCE(SUM(CASE WHEN state='RESERVED_NOT_YET_SCORED'
+                   THEN 1 ELSE 0 END),0)
+                 FROM jrei_code_ability_evaluations""").fetchone()
 
     stages = {
         "research_questions_registered": int(topics),
@@ -154,6 +176,11 @@ def snapshot(db_path: Path) -> dict:
             int(owner_reviewed_sources),
         "private_untrained_code_dataset_cohorts":
             int(private_code_cohorts),
+        "recorded_code_ast_evaluation_runs":int(code_evaluation_runs),
+        "development_ast_examples_scored":int(code_development_scored),
+        "sealed_ast_examples_scored":int(code_sealed_scored),
+        "ast_reference_exact_matches":int(code_exact_matches),
+        "evaluation_reservations_not_yet_scored":int(code_reservations),
         "first_party_modules_static_inspected": int(native_scanned),
         "first_party_static_findings": int(native_diagnostics),
         "model_free_isolated_draft_receipts": int(native_drafts),
@@ -165,7 +192,11 @@ def snapshot(db_path: Path) -> dict:
         "oss_grounded_drafts_static_reviewed":
             int(independent_reviewed_source_drafts),
     }
-    if independent_reviewed_source_drafts:
+    if code_sealed_scored:
+        phase = "SEALED_AST_ANSWER_AGREEMENT_OBSERVED_NOT_CODE_SKILL"
+    elif code_development_scored:
+        phase = "DEVELOPMENT_AST_ANSWER_AGREEMENT_OBSERVED"
+    elif independent_reviewed_source_drafts:
         phase = "OSS_TO_DRAFT_TO_STATIC_REVIEW_OBSERVED"
     elif candidate_reviews or rule_reviews:
         phase = "CANDIDATE_STATIC_REVIEWS_OBSERVED"
@@ -189,6 +220,7 @@ def snapshot(db_path: Path) -> dict:
         "counts_not_claimed_to_be_distinct_across_all_sources": True,
         "historic_cache_counts_may_include_pre_fix_receipts": True,
         "candidate_static_review_is_not_functional_test": True,
+        "ast_answer_exact_match_is_not_program_correctness": True,
         "public_spdx_claim_is_not_training_permission": True,
         "code_corpus_candidate_is_not_trained_weights": True,
         "observed_functional_tests_from_this_pipeline": 0,
