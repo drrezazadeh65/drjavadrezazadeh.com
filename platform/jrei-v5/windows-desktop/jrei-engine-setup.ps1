@@ -13,7 +13,7 @@ param(
 )
 Set-StrictMode -Version Latest
 $ErrorActionPreference='Stop'
-$version='0.1.15'
+$version='0.1.16'
 $taskName='JREI-Owner-Windows-Command-Center'
 $private=Join-Path $env:LOCALAPPDATA 'JREI\command-center'
 $receipts=Join-Path $private 'install-receipts'
@@ -169,24 +169,67 @@ function WaitOwner {
  return $false
 }
 $script:LastPrivateEngineError='JREI_ENGINE_START_NOT_VERIFIED'
-function SystemPython313Launcher {
- # Optional working owner-installed CPython, never an online dependency.
- $candidate=Get-Command 'py.exe' -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1
- if($null -eq $candidate){return $null}
- $path=[string]$candidate.Source
+function ConfirmPython313([string]$path) {
+ if(-not $path -or -not (SafeFile $path 35000000)){return $null}
  try{
-  if(-not (SafeFile $path 35000000)){return $null}
-  # Query the existing launcher ONLY to resolve the verified interpreter.
-  # Run python.exe itself thereafter; the py.exe launcher may spawn a child
-  # and exit early, which is unsuitable for our one-engine-only lifetime gate.
-  $answer=@(& $path -3.13 -I -B -c "import sys;print(sys.executable if sys.version_info[:2]==(3,13) else '')" 2>$null)
-  if($LASTEXITCODE -ne 0 -or $answer.Count -ne 1){return $null}
-  $python=[string]$answer[0]
-  if([IO.Path]::GetFileName($python) -cne 'python.exe' -or
-     -not [IO.Path]::IsPathRooted($python) -or
-     -not (SafeFile $python 35000000)){return $null}
-  return $python
+  # This matches the successful CPython 3.13 owner probes, not a random
+  # python.exe on PATH. -I -S exclude PYTHONPATH and user/global site code.
+  $output=@(& $path -I -S -B -c "import sys;print('JREI_PY313_X64' if sys.version_info[:2]==(3,13) and sys.maxsize>2**32 else 'UNSUPPORTED')" 2>$null)
+  if($LASTEXITCODE -eq 0 -and $output.Count -eq 1 -and
+     [string]$output[0] -ceq 'JREI_PY313_X64'){
+   return $path
+  }
  }catch{}
+ return $null
+}
+function SystemPython313Launcher {
+ # A device that has already demonstrated successful CPython SQLite writes
+ # should NOT be forced through the package-local Python.exe. The py.exe
+ # launcher can be absent from the desktop app's PATH, hence check typical
+ # per-user/system installations and PEP-514 registry locations as well.
+ $potential=New-Object 'System.Collections.Generic.List[string]'
+ foreach($launch in @('py.exe','py')){
+  $cmd=Get-Command $launch -CommandType Application -ErrorAction SilentlyContinue |
+    Select-Object -First 1
+  if($null -eq $cmd){continue}
+  $py=[string]$cmd.Source
+  if(-not (SafeFile $py 35000000)){continue}
+  try{
+   $output=@(& $py -3.13 -I -S -B -c "import sys; print(sys.executable if sys.version_info[:2]==(3,13) and sys.maxsize>2**32 else '')" 2>$null)
+   if($LASTEXITCODE -eq 0 -and $output.Count -eq 1){
+    $potential.Add([string]$output[0])
+   }
+  }catch{}
+ }
+ foreach($path in @(
+  (Join-Path $env:LOCALAPPDATA 'Programs\Python\Python313\python.exe'),
+  (Join-Path $env:ProgramFiles 'Python313\python.exe'),
+  (Join-Path $env:SystemDrive 'Python313\python.exe')
+  )){
+  $potential.Add($path)
+ }
+ foreach($key in @(
+  'HKCU:\Software\Python\PythonCore\3.13\InstallPath',
+  'HKLM:\Software\Python\PythonCore\3.13\InstallPath',
+  'HKLM:\Software\WOW6432Node\Python\PythonCore\3.13\InstallPath'
+  )){
+  try{
+   $item=Get-Item -LiteralPath $key -ErrorAction Stop
+   $path=[string]$item.GetValue('ExecutablePath','')
+   if(-not $path){
+    $dir=[string]$item.GetValue('','')
+    if($dir){$path=Join-Path $dir 'python.exe'}
+   }
+   if($path){$potential.Add($path)}
+  }catch{}
+ }
+ $visited=@{}
+ foreach($path in $potential){
+  if(-not $path -or $visited.ContainsKey($path)){continue}
+  $visited[$path]=$true
+  $resolved=ConfirmPython313 $path
+  if($resolved){return $resolved}
+ }
  return $null
 }
 function LaunchCandidate([string]$program,[string[]]$argumentList) {
