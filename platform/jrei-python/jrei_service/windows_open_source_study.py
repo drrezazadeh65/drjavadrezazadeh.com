@@ -95,6 +95,8 @@ def initialize(db_path: Path) -> None:
           source_path TEXT,
           source_signatures_json TEXT NOT NULL DEFAULT '[]',
           adaptation_target TEXT,
+          local_source_sha256 TEXT,
+          candidate_api_differences_json TEXT NOT NULL DEFAULT '[]',
           receipt_sha256 TEXT,
           PRIMARY KEY(domain,repository))""")
         db.execute("""CREATE INDEX IF NOT EXISTS jrei_oss_code_studies_due
@@ -305,8 +307,48 @@ def _read_one(repository: str, query: str) -> dict:
     return receipt
 
 
-def tick(db_path: Path, *, resources_available: bool,
-         owner_active: bool = False) -> dict:
+def _local_comparison(repo: Path, receipt: dict) -> dict:
+    """Cross-reference upstream public API identifiers with JREI's own code.
+
+    Missing/extra names are research *leads*, not missing features or
+    established compatibility. Nothing is installed, executed or copied.
+    """
+    target = receipt.get("target")
+    if not isinstance(target, str):
+        return {"local_sha256":None,"candidate_api_differences":[]}
+    try:
+        root = repo.resolve(strict=True)
+        file = root.joinpath(*target.split("/"))
+        if (not file.is_file() or file.is_symlink()
+                or not file.resolve(strict=True).is_relative_to(root)
+                or file.stat().st_size > 320000):
+            return {"local_sha256":None,"candidate_api_differences":[]}
+        data = file.read_bytes()
+    except (OSError,ValueError):
+        return {"local_sha256":None,"candidate_api_differences":[]}
+    existing = _source_signatures(data,target)
+    own_names = {str(item.get("name") or item.get("signature","")).lower()
+                 for item in existing}
+    upstream = receipt.get("source_signatures") or []
+    hypotheses = []
+    for item in upstream:
+        name = str(item.get("name") or item.get("signature","")).lower()
+        if not name or name in own_names:
+            continue
+        hypotheses.append({
+            "upstream_symbol":str(item.get("name") or
+                                  item.get("signature",""))[:130],
+            "upstream_line":item.get("line"),
+            "status":"POTENTIAL_PATTERN_TO_RESEARCH_NOT_A_CODE_GAP",
+        })
+        if len(hypotheses) >= 12:
+            break
+    return {"local_sha256":hashlib.sha256(data).hexdigest(),
+            "candidate_api_differences":hypotheses}
+
+
+def tick(db_path: Path, *, repo: Path,
+         resources_available: bool, owner_active: bool = False) -> dict:
     """Advance one permitted, source-pinned OSS reading task."""
     if type(resources_available) is not bool:
         raise ValueError("JREI_OSS_CODE_RESOURCE_FLAG_INVALID")
@@ -347,6 +389,12 @@ def tick(db_path: Path, *, resources_available: bool,
     state = "UPSTREAM_UNAVAILABLE"
     try:
         receipt = _read_one(repository, query)
+        comparison = _local_comparison(repo,receipt)
+        receipt.update(comparison)
+        receipt["receipt_sha256"] = hashlib.sha256(json.dumps(
+            {k:v for k,v in receipt.items() if k != "receipt_sha256"},
+            sort_keys=True,separators=(",",":")).encode("utf-8")
+        ).hexdigest()
         state = "SOURCE_REVISION_STUDIED_UNREVIEWED"
     except (OSError, ValueError, RuntimeError, TypeError, UnicodeError,
             json.JSONDecodeError, urllib.error.URLError) as exc:
@@ -361,7 +409,8 @@ def tick(db_path: Path, *, resources_available: bool,
                   ELSE last_success END,
               studies=studies+?,license_sha256=?,readme_sha256=?,
               source_sha256=?,source_path=?,source_signatures_json=?,
-              adaptation_target=?,receipt_sha256=?
+              adaptation_target=?,local_source_sha256=?,
+              candidate_api_differences_json=?,receipt_sha256=?
           WHERE domain=? AND repository=?""",
           (next_due,receipt["revision"] if receipt else None,
            state,int(receipt is not None),now,int(receipt is not None),
@@ -372,6 +421,9 @@ def tick(db_path: Path, *, resources_available: bool,
            json.dumps(receipt["source_signatures"],ensure_ascii=False)
                if receipt else "[]",
            receipt["target"] if receipt else None,
+           receipt["local_sha256"] if receipt else None,
+           json.dumps(receipt["candidate_api_differences"],
+                      ensure_ascii=False) if receipt else "[]",
            receipt["receipt_sha256"] if receipt else None,
            domain,repository))
         db.commit()
@@ -382,6 +434,9 @@ def tick(db_path: Path, *, resources_available: bool,
         "readme_read": bool(receipt and receipt["readme_sha256"]),
         "license_text_observed": bool(receipt and receipt["license_sha256"]),
         "candidate_change_applied": False,
+        "local_api_compared": bool(receipt and receipt["local_sha256"]),
+        "adaptation_hypotheses": len(
+            receipt["candidate_api_differences"]) if receipt else 0,
         "language_model_used": False,
     }
 
@@ -410,6 +465,7 @@ def snapshot(db_path: Path) -> dict:
              "readme_sha256","license_sha256","adaptation_target","observed_at"),
             latest)) if latest else None,
         "source_revision_pinned": True,
+        "local_code_comparison_is_only_hypothesis": True,
         "third_party_code_executed": False,
         "automatic_source_promotion": False,
         "independent_quality_gain_verified": False,
