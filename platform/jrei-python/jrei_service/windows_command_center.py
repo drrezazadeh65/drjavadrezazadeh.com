@@ -45,6 +45,7 @@ from jrei_service import windows_self_development as self_development
 from jrei_service import windows_candidate_static_review as static_review
 from jrei_service import windows_self_improvement_progress as improvement_progress
 from jrei_service import windows_code_learning_curriculum as code_curriculum
+from jrei_service import windows_native_code_preparation as code_preparation
 from jrei_service import windows_site_image_studio as image_studio
 from jrei_service import windows_visual_learning as visual_learning
 from jrei_service import windows_github_operator as github_operator
@@ -1168,6 +1169,10 @@ def status():
             improvement_progress.snapshot(DB_PATH),
         "first_party_code_curriculum":
             code_curriculum.snapshot(DB_PATH),
+        "native_code_dataset_preparation":
+            code_preparation.snapshot(PRIVATE),
+        "native_code_model_training_receipts":
+            scratch_training.snapshot_code_runs(PRIVATE),
         "standing_mission_ai_self_development_only":
             AI_SELF_DEVELOPMENT_ONLY,
         "independent_github_operator": "OWNER_SCOPED_API_AVAILABLE_IF_CONFIGURED",
@@ -1319,6 +1324,19 @@ class OwnerHTTP(BaseHTTPRequestHandler):
             return self._send(200, code_curriculum.snapshot(DB_PATH))
         if self.path == "/api/learning/code-curriculum/preflight":
             return self._send(200, code_curriculum.preflight(DB_PATH))
+        if urlsplit(self.path).path == "/api/learning/code-curriculum/preview":
+            params=parse_qs(urlsplit(self.path).query)
+            try:
+                return self._send(200, code_curriculum.preview_source(
+                    DB_PATH,params.get("source",[""])[0]))
+            except (ValueError,OSError,sqlite3.Error):
+                return self._send(400,{
+                    "error":"JREI_CODE_CURRICULUM_PREVIEW_INVALID"})
+        if self.path == "/api/learning/native-code/preparation":
+            return self._send(200, code_preparation.snapshot(PRIVATE))
+        if self.path == "/api/learning/native-code/training-runs":
+            return self._send(200,
+                              scratch_training.snapshot_code_runs(PRIVATE))
         if self.path == "/api/open-source/draft-priorities":
             # Read-only, grounded in actual source hashes and local findings.
             # No model call, candidate generation or job dispatch.
@@ -1540,6 +1558,33 @@ class OwnerHTTP(BaseHTTPRequestHandler):
                     outcome=data.get("outcome"), reviewer=data.get("reviewer"),
                     evidence_sha256=data.get("evidence_sha256"),
                     owner_confirmed=data.get("confirm")))
+            if self.path == "/api/learning/code-curriculum/review":
+                return self._send(200, code_curriculum.review_source(
+                    db_path=DB_PATH,repo=REPO,
+                    source_path=data.get("source_path"),
+                    expected_sha256=data.get("expected_sha256"),
+                    reviewer=data.get("reviewer"),
+                    rights_reviewed=data.get("rights_reviewed"),
+                    lesson_quality_reviewed=data.get("quality_reviewed"),
+                    owner_confirmed=data.get("confirm")))
+            if self.path == "/api/learning/native-code/prepare":
+                # One explicitly owner-reviewed code cohort is tokenized
+                # using the existing MIT minBPE. This is NOT neural
+                # training and never activates the language model.
+                if data.get("confirm") is not True:
+                    raise ValueError("JREI_CODE_PREPARATION_APPROVAL_REQUIRED")
+                if not _BUSY.acquire(blocking=False):
+                    return self._send(409,{
+                        "error":"JREI_CODE_PREPARATION_BUSY"})
+                try:
+                    prepared=code_preparation.prepare(
+                        db_path=DB_PATH,private=PRIVATE,
+                        cohort_id=data.get("cohort_sha256"),
+                        owner_approved=True,
+                        vocab_size=data.get("vocab_size",384))
+                finally:
+                    _BUSY.release()
+                return self._send(200,prepared)
             if self.path == "/api/learning/lesson/review":
                 return self._send(200,curriculum.review_lesson(
                     DB_PATH,lesson_id=data.get("id"),role=data.get("role"),
