@@ -309,6 +309,70 @@ def train(*, db_path: Path, private: Path, config_file: Path,
 
 
 
+def snapshot_code_runs(private: Path) -> dict:
+    """Observe *recorded* source-pinned code-model training candidates.
+
+    This read-only report does not import torch, unpickle weights or
+    equate a lower heldout loss with successful program synthesis.
+    Bilingual assistant activation remains in its separate pipeline.
+    """
+    root=private/"native-code-runs"
+    default={
+        "schema":"jr.jrei.native-code-training-runs.v1",
+        "state":"NO_CODE_MODEL_TRAINING_MANIFEST",
+        "recorded_run_count_sample":0,
+        "latest_run_id":None,
+        "code_checkpoint_integrity_verified_now":False,
+        "functional_code_quality_verified":False,
+        "native_code_model_activated":False,
+    }
+    if root.is_symlink() or not root.is_dir():
+        return default
+    observed=[]
+    try:
+        for folder in root.iterdir():
+            if (folder.is_symlink() or not folder.is_dir()
+                    or len(folder.name)!=32 or
+                    any(c not in "0123456789abcdef" for c in folder.name)):
+                continue
+            receipt=folder/"training-manifest.json"
+            if (receipt.is_symlink() or not receipt.is_file() or
+                    receipt.stat().st_size>16000):
+                continue
+            data=json.loads(receipt.read_text(encoding="utf-8"))
+            if (not isinstance(data,dict) or data.get("run_id")!=folder.name
+                    or data.get("schema")!=
+                        "jr.jrei.native-from-scratch-run.v1"
+                    or data.get("data_mode")!="first_party_code"
+                    or data.get("state")!=
+                        "LOCAL_NATIVE_WEIGHTS_TRAINED_UNVERIFIED"):
+                continue
+            observed.append((int(data.get("created",0)),folder.name,data))
+        if not observed:
+            return default
+        _created,ident,data=max(
+            observed,key=lambda v:(v[0],v[1]))
+        return {
+            **default,
+            "state":"CODE_MODEL_CHECKPOINT_RECEIPT_RECORDED_UNVERIFIED",
+            "recorded_run_count_sample":len(observed),
+            "latest_run_id":ident,
+            "registered_weights_sha256":str(
+                data.get("weights_sha256",""))[:64],
+            "training_steps_reported":data.get("training_steps"),
+            "heldout_cross_entropy_before":data.get(
+                "heldout_cross_entropy_before"),
+            "heldout_cross_entropy_after":data.get(
+                "heldout_cross_entropy_after"),
+            "code_checkpoint_integrity_verified_now":False,
+            "functional_code_quality_verified":False,
+            "native_code_model_activated":False,
+        }
+    except (OSError,ValueError,TypeError,UnicodeError,
+            json.JSONDecodeError):
+        return {**default,"state":"CODE_MODEL_RUN_STATUS_UNAVAILABLE"}
+
+
 def snapshot(private: Path) -> dict:
     """Read only unverified private run manifests; no torch/checkpoint load.
 
