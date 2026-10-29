@@ -75,9 +75,9 @@ function TaskOwned($task){
  try{
   $value=[string]$task.Principal.UserId
   if($value -match '^S-1-[0-9]+(-[0-9]+)+$'){
-   $sid=(New-Object System.Security.Principal.SecurityIdentifier($value)).Value
+   $sid=(New-Object -TypeName System.Security.Principal.SecurityIdentifier -ArgumentList $value).Value
   }else{
-   $sid=(New-Object System.Security.Principal.NTAccount($value)).
+   $sid=(New-Object -TypeName System.Security.Principal.NTAccount -ArgumentList $value).
     Translate([Security.Principal.SecurityIdentifier]).Value
   }
   return ($sid -ceq $owner.User.Value)
@@ -150,8 +150,8 @@ function StartBundled {
  # Start-Process creates a child of the current user that outlives setup.
  # Never attempts to stop or overwrite an old owner task.
  if(PortBusy){throw 'JREI_8092_LISTENER_UNVERIFIED_PRESERVED'}
- $proc=Start-Process -FilePath $engine -ArgumentList '--serve' -WorkingDirectory
-  (Split-Path -Path $engine -Parent) -WindowStyle Hidden -PassThru -ErrorAction Stop
+ $wd=Split-Path -Path $engine -Parent
+ $proc=Start-Process -FilePath $engine -ArgumentList '--serve' -WorkingDirectory $wd -WindowStyle Hidden -PassThru -ErrorAction Stop
  if($null -eq $proc){throw 'JREI_BUNDLED_ENGINE_START_FAILED'}
  if(-not (AwaitOwnerReady)){
   throw 'JREI_BUNDLED_ENGINE_HEALTH_NOT_CONFIRMED'
@@ -160,11 +160,8 @@ function StartBundled {
 function ExistingTask{
  try{return Get-ScheduledTask -TaskName $taskName -ErrorAction Stop}
  catch{
-  if($_.Exception -is [Microsoft.PowerShell.Cmdletization.Cim.CimJobException]){
-   return $null
-  }
-  # Some machines deny Task Scheduler inspection; on-demand local startup
-  # remains available, and no other task is modified.
+  # Missing/blocked Task Scheduler enumeration does not block local JREI.
+  # We never delete or alter an unknown scheduled task.
   return $null
  }
 }
@@ -222,8 +219,8 @@ try{
  $registered=$false
  if($Mode -eq 'Install'){
   try{
-   $action=New-ScheduledTaskAction -Execute $engine -Argument '--serve' -WorkingDirectory
-    (Split-Path -Path $engine -Parent)
+   $wd=Split-Path -Path $engine -Parent
+   $action=New-ScheduledTaskAction -Execute $engine -Argument '--serve' -WorkingDirectory $wd
    $trigger=New-ScheduledTaskTrigger -AtLogOn -User $owner.Name
    $principal=New-ScheduledTaskPrincipal -UserId $owner.Name -LogonType Interactive -RunLevel Limited
    $settings=New-ScheduledTaskSettingsSet -ExecutionTimeLimit (New-TimeSpan -Seconds 0) -MultipleInstances IgnoreNew -StartWhenAvailable
