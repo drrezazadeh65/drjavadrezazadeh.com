@@ -143,12 +143,18 @@ def _probe_real_owner_files(root: Path) -> None:
         with closing(sqlite3.connect(str(database), timeout=3)) as conn:
             try:
                 conn.execute("BEGIN IMMEDIATE")
-                conn.execute(
-                    "CREATE TABLE _jrei_preflight_never_persist (n INTEGER)")
+                # A unique table ensures a real write even if an earlier
+                # abandoned probe left a similarly named schema entry.
+                table = "_jrei_preflight_" + secrets.token_hex(8)
+                conn.execute(f"CREATE TABLE {table} (n INTEGER)")
             finally:
                 conn.rollback()
     except PrivateStorageError:
         raise
+    except sqlite3.OperationalError as exc:
+        if "locked" in str(exc).lower() or "busy" in str(exc).lower():
+            raise PrivateStorageError("JREI_PRIVATE_DB_BUSY_PRESERVE_CURRENT_ENGINE") from exc
+        raise PrivateStorageError("JREI_FROZEN_RUNTIME_OWNER_FILES_WRITE_DENIED") from exc
     except (OSError, sqlite3.Error) as exc:
         raise PrivateStorageError("JREI_FROZEN_RUNTIME_OWNER_FILES_WRITE_DENIED") from exc
 
@@ -240,7 +246,14 @@ def select_private_storage() -> Path:
         _probe(primary)
         _probe_real_owner_files(primary)
         return primary
-    except (OSError, PrivateStorageError):
+    except PrivateStorageError as exc:
+        if str(exc) in (
+            "JREI_PRIVATE_DB_BUSY_PRESERVE_CURRENT_ENGINE",
+            "JREI_EXISTING_OWNER_TOKEN_EMPTY",
+            "JREI_PRIVATE_FILE_LINK_REJECTED",
+        ):
+            raise
+    except OSError:
         pass
     # Existing owner identities and databases must not be dropped in an
     # empty fallback. Copy the original atomically, verify and retain it.
