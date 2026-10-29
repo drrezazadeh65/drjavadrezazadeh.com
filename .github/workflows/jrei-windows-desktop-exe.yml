@@ -177,14 +177,9 @@ jobs:
             throw 'JREI_PORTABLE_PSF_LICENSE_MISSING'
           }
           Copy-Item -LiteralPath $license -Destination $portable -ErrorAction Stop
-          # Isolated RUNNER-ONLY packaging validation: use the actual copied
-          # interpreter to import all ORIGINAL command-center dependencies.
-          # Never create owner tokens, initialize owner DB, contact server or
-          # dispatch model jobs. Real Windows-PC acceptance remains separate.
-          & (Join-Path $portable 'python.exe') -I -B -c "import sys, sqlite3, PIL, fastapi, cryptography; from jrei_service import windows_command_center; assert sys.version_info[:2] == (3,13); print('JREI_PORTABLE_RUNTIME_IMPORTS_READY')"
-          if($LASTEXITCODE -ne 0){
-            throw 'JREI_PORTABLE_RUNTIME_IMPORTS_NOT_READY'
-          }
+          # Importing windows_command_center verifies the immutable source
+          # root and requires the matching release manifest already present.
+          # Emit the complete manifest before the runner-only import attempt.
           $packagedFileCount=@(Get-ChildItem -LiteralPath $bundle -File -Recurse).Count
           if($packagedFileCount -gt 24000){
             throw 'JREI_BUNDLED_RUNTIME_TOO_MANY_FILES'
@@ -200,6 +195,15 @@ jobs:
             private_node_keys_embedded=$false
             tests_performed=$false
           }|ConvertTo-Json -Compress|Set-Content -LiteralPath "$bundle/jrei-engine-manifest.json" -Encoding utf8NoBOM
+
+          # Isolated RUNNER-ONLY packaging validation: use the actual copied
+          # interpreter to import all ORIGINAL command-center dependencies.
+          # Never create owner tokens, initialize owner DB, contact server or
+          # dispatch model jobs. Real Windows-PC acceptance remains separate.
+          & (Join-Path $portable 'python.exe') -I -B -c "import sys, sqlite3, PIL, fastapi, cryptography; from jrei_service import windows_command_center; assert sys.version_info[:2] == (3,13); print('JREI_PORTABLE_RUNTIME_IMPORTS_READY')"
+          if($LASTEXITCODE -ne 0){
+            throw 'JREI_PORTABLE_RUNTIME_IMPORTS_NOT_READY'
+          }
           # This archive is a build-time input embedded inside ONE Go EXE.
           # It is not a separate owner download or a Windows temp archive.
           $goPayload="$desktop/payload.zip"
