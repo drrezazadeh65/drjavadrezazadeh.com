@@ -624,6 +624,7 @@ def scheduler():
     next_multiforge_code_study = now + 185
     next_self_code_audit = now + 8
     next_candidate_static_review = now + 25
+    next_rule_static_review = now + 40
     next_self_code_candidate = now + 60
     next_observation = now
     while not _STOP.is_set():
@@ -944,6 +945,22 @@ def scheduler():
                 record("candidate_static_review", "HELD",
                        exc.__class__.__name__)
             next_candidate_static_review = time.monotonic() + 180
+        # Model-free first-party draft reviews use the very same static
+        # reviewer and SQLite store as model-assisted patch candidates.
+        if (time.monotonic() >= next_rule_static_review and
+                not _BUSY.locked()):
+            try:
+                rule_review = static_review.review_rule_once(
+                    db_path=DB_PATH, repo=REPO, private=PRIVATE,
+                    resources_available=resource_policy.permits(
+                        "SELF_STATIC_REVIEW"))
+                if rule_review.get("draft_id"):
+                    record("rule_code_review", rule_review["state"],
+                           str(rule_review["draft_id"])[:64])
+            except (OSError,ValueError,RuntimeError,sqlite3.Error) as exc:
+                record("rule_code_review", "HELD",
+                       exc.__class__.__name__)
+            next_rule_static_review = time.monotonic() + 210
         # The 32GB node has the conditional heavy-draft lane; the 16GB node
         # remains free for acquisition and static diagnosis. Independent PCs
         # retain independent stores and are NOT falsely described as a
