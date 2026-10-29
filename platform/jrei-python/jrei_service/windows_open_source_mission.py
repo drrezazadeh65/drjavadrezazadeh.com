@@ -276,6 +276,34 @@ def _seed_problem_topics(db) -> int:
                     (domain,review_queries[issue]))
                 if db.total_changes > before:
                     inserted += 1
+    # Development-set feedback is eligible for future research and
+    # improvements. The SEALED_TEST partition is never used to select
+    # methods, generate training prompts, or choose coding strategies.
+    if db.execute("""SELECT 1 FROM sqlite_master WHERE
+        type='table' AND name='jrei_code_ability_evaluations'""").fetchone():
+        dev_rows = db.execute("""SELECT scored_examples,
+            normalized_exact_matches,average_word_f1
+            FROM jrei_code_ability_evaluations
+            WHERE split_name='DEVELOPMENT'
+              AND state='INDEPENDENT_AST_ANSWER_SCORING_RECORDED'
+              AND scored_examples>0
+            ORDER BY created DESC LIMIT 40""").fetchall()
+        if dev_rows:
+            total = sum(row[0] for row in dev_rows)
+            matched = sum(row[1] for row in dev_rows)
+            # A low normalized exact-agreement rate signals that the tiny
+            # scratch code model needs better source comprehension. It does
+            # not prove why the model failed or justify a checkpoint update.
+            if total>=4 and 4*matched<total:
+                domain = "problem_" + hashlib.sha256(
+                    b"CODE_DEV_AST_LOW_EXACT_ANSWER_MATCH_V1"
+                ).hexdigest()[:18]
+                before = db.total_changes
+                db.execute("""INSERT OR IGNORE INTO jrei_oss_topics(
+                    domain,query) VALUES(?,?)""",
+                    (domain,"small language model code understanding evaluation"))
+                if db.total_changes>before:
+                    inserted+=1
     return inserted
 
 
