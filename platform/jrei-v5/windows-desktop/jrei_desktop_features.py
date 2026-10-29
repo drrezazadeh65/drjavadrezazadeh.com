@@ -17,6 +17,21 @@ from urllib.parse import quote
 class FeatureHubMixin:
     """Methods mixed into the ORIGINAL JREI desktop class."""
 
+    def activate_new_engine(self):
+        """One explicit owner click, never an unconsented process restart."""
+        if not messagebox.askyesno(
+                "JREI | فعال‌سازی موتور بسته",
+                "اگر موتور قبلی روشن باشد، فقط در حالت بیکار و پس از "
+                "تأیید هویت فرایند، جابه‌جایی امتحان می‌شود. "
+                "گفتگوها، کلیدها و مدل‌ها حذف نمی‌شوند.\n"
+                "آیا این نسخه از موتور خصوصی JREI فعال شود؟",
+                icon="warning", parent=self.root):
+            return
+        self.status_text.set(
+            "فعال‌سازی نسخهٔ جدید درخواست شد؛ بررسی اصالت و بیکاری در جریان است…")
+        self.fetch("service", lambda: self._start_bundled_local_engine(
+            approve_upgrade=True))
+
     def open_capability_center(self):
         dlg = tk.Toplevel(self.root)
         dlg.title("JREI | مرکز قابلیت‌های یکپارچه")
@@ -65,6 +80,10 @@ class FeatureHubMixin:
         self._button(actions, "پیشنویس کد",
                      self._prefill_code_request, color="#423624",
                      foreground="#d7b577").pack(side="left", padx=4)
+        self._button(dlg, "فعال‌سازی کنترل‌شدهٔ همین نسخهٔ موتور",
+                     self.activate_new_engine, color="#423624",
+                     foreground="#d7b577").pack(fill="x", padx=28,
+                                                 pady=(8, 6))
         self._label(dlg,
             "کد پژوهش‌شده یا تصویر تولیدشده هرگز خودکار منتشر نمی‌شود.",
             fg="#a7abb4", bg="#111319").pack(pady=(0, 6))
