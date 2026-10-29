@@ -94,6 +94,7 @@ def initialize(db_path: Path) -> None:
           source_sha256 TEXT,
           source_path TEXT,
           source_signatures_json TEXT NOT NULL DEFAULT '[]',
+          research_notes_json TEXT NOT NULL DEFAULT '{}',
           adaptation_target TEXT,
           local_source_sha256 TEXT,
           candidate_api_differences_json TEXT NOT NULL DEFAULT '[]',
@@ -225,6 +226,44 @@ def _source_signatures(content: bytes, file_path: str) -> list[dict]:
     return signatures
 
 
+def _notes(data: bytes, query: str, *, label: str) -> list[dict]:
+    """Retain small, line-anchored evidence, never an upstream codebase.
+
+    Text is untrusted DATA; quoted public-source lines are not agent
+    instructions. Credential-looking lines are not persisted in the ledger.
+    """
+    try:
+        text = data.decode("utf-8", errors="strict")
+    except UnicodeError:
+        return []
+    terms = {t for t in re.findall(r"[a-z]{3,}", query.casefold())
+             if t not in {"python", "javascript", "code", "from", "with"}}
+    blocked = re.compile(
+        r"(?i)(-----BEGIN|password\s*[:=]|private[_-]?key|"
+        r"api[_-]?key\s*[:=]|bearer\s+[A-Za-z0-9_-]{15,}|"
+        r"secret\s*[:=]|access[_-]?token\s*[:=])")
+    ranked = []
+    for number, raw in enumerate(text.splitlines()[:3000], 1):
+        line = raw.strip()
+        if len(line) < 10 or len(line) > 240 or blocked.search(line):
+            continue
+        words = set(re.findall(r"[a-z]{3,}", line.casefold()))
+        overlap = len(terms & words)
+        if label == "code":
+            is_api = bool(SIGNATURE.match(raw))
+            if not overlap and not is_api:
+                continue
+            score = overlap * 3 + int(is_api)
+        else:
+            if not overlap:
+                continue
+            score = overlap * 3
+        ranked.append((score,number,line[:175]))
+    ranked.sort(key=lambda row: (-row[0],row[1]))
+    return [{"source_kind":label,"line":number,"excerpt":line}
+            for _score,number,line in ranked[:6]]
+
+
 def _target_for(query: str) -> str | None:
     lower = query.casefold()
     for word, component in COMPONENTS:
@@ -273,14 +312,18 @@ def _read_one(repository: str, query: str) -> dict:
                 root_file = nested
     source_sha = None
     signatures: list[dict] = []
+    code_notes: list[dict] = []
+    readme_notes: list[dict] = []
     if root_file:
         data, source_sha = _file(repository, revision, root_file)
         signatures = _source_signatures(data, root_file)
+        code_notes = _notes(data, query, label="code")
     readme_sha = None
     licence_sha = None
     if readme:
         try:
             _data, readme_sha = _file(repository, revision, readme)
+            readme_notes = _notes(_data, query, label="readme")
         except (ValueError, OSError, urllib.error.URLError):
             readme_sha = None
     if licence:
@@ -294,7 +337,9 @@ def _read_one(repository: str, query: str) -> dict:
         "schema": SCHEMA, "repository": repository, "revision": revision,
         "source_path": root_file, "source_sha256": source_sha,
         "readme_sha256": readme_sha, "license_sha256": licence_sha,
-        "source_signatures": signatures, "target": _target_for(query),
+        "source_signatures": signatures,
+        "research_notes": {"code":code_notes,"readme":readme_notes},
+        "target": _target_for(query),
         "language_model_used": False,
         "source_read_authenticated_to_git_revision": True,
         "permission_to_reuse_code_verified": False,
@@ -409,7 +454,7 @@ def tick(db_path: Path, *, repo: Path,
                   ELSE last_success END,
               studies=studies+?,license_sha256=?,readme_sha256=?,
               source_sha256=?,source_path=?,source_signatures_json=?,
-              adaptation_target=?,local_source_sha256=?,
+              research_notes_json=?,adaptation_target=?,local_source_sha256=?,
               candidate_api_differences_json=?,receipt_sha256=?
           WHERE domain=? AND repository=?""",
           (next_due,receipt["revision"] if receipt else None,
@@ -420,6 +465,8 @@ def tick(db_path: Path, *, repo: Path,
            receipt["source_path"] if receipt else None,
            json.dumps(receipt["source_signatures"],ensure_ascii=False)
                if receipt else "[]",
+           json.dumps(receipt["research_notes"],ensure_ascii=False)
+               if receipt else "{}",
            receipt["target"] if receipt else None,
            receipt["local_sha256"] if receipt else None,
            json.dumps(receipt["candidate_api_differences"],
@@ -437,6 +484,8 @@ def tick(db_path: Path, *, repo: Path,
         "local_api_compared": bool(receipt and receipt["local_sha256"]),
         "adaptation_hypotheses": len(
             receipt["candidate_api_differences"]) if receipt else 0,
+        "source_excerpt_count": sum(len(v) for v in
+             receipt["research_notes"].values()) if receipt else 0,
         "language_model_used": False,
     }
 
