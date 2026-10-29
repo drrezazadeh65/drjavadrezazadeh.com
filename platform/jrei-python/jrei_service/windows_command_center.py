@@ -44,6 +44,7 @@ from jrei_service import windows_code_experience as code_experience
 from jrei_service import windows_self_development as self_development
 from jrei_service import windows_candidate_static_review as static_review
 from jrei_service import windows_self_improvement_progress as improvement_progress
+from jrei_service import windows_code_learning_curriculum as code_curriculum
 from jrei_service import windows_site_image_studio as image_studio
 from jrei_service import windows_visual_learning as visual_learning
 from jrei_service import windows_github_operator as github_operator
@@ -215,6 +216,7 @@ def setup() -> str:
     code_experience.initialize(DB_PATH)
     self_development.initialize(DB_PATH)
     static_review.initialize(DB_PATH)
+    code_curriculum.initialize(DB_PATH)
     image_studio.initialize(DB_PATH)
     open_source_mission.initialize(DB_PATH)
     open_source_study.initialize(DB_PATH)
@@ -626,6 +628,7 @@ def scheduler():
     next_self_code_audit = now + 8
     next_candidate_static_review = now + 25
     next_rule_static_review = now + 40
+    next_first_party_curriculum = now + 55
     next_self_code_candidate = now + 60
     next_observation = now
     while not _STOP.is_set():
@@ -962,6 +965,25 @@ def scheduler():
                 record("rule_code_review", "HELD",
                        exc.__class__.__name__)
             next_rule_static_review = time.monotonic() + 210
+        # From real JREI Python source, derive one bounded AST-verified
+        # code-reading lesson per pass. No external snippets enter training,
+        # and neither candidate preparation nor model training is triggered.
+        if (time.monotonic() >= next_first_party_curriculum and
+                not _BUSY.locked()):
+            try:
+                lesson = code_curriculum.tick(
+                    db_path=DB_PATH, repo=REPO,
+                    resources_available=resource_policy.permits(
+                        "SELF_STATIC_REVIEW"))
+                if lesson.get("state") == "FIRST_PARTY_AST_LESSONS_STAGED":
+                    record("first_party_code_curriculum",
+                           "AST_LESSONS_CANDIDATE_ONLY",
+                           str(lesson.get("source_path",""))[:120])
+            except (OSError,ValueError,TypeError,RuntimeError,
+                    sqlite3.Error) as exc:
+                record("first_party_code_curriculum","HELD",
+                       exc.__class__.__name__)
+            next_first_party_curriculum = time.monotonic() + 180
         # The 32GB node has the conditional heavy-draft lane; the 16GB node
         # remains free for acquisition and static diagnosis. Independent PCs
         # retain independent stores and are NOT falsely described as a
@@ -1103,6 +1125,8 @@ def status():
             static_review.snapshot(DB_PATH),
         "self_improvement_evidence_pipeline":
             improvement_progress.snapshot(DB_PATH),
+        "first_party_code_curriculum":
+            code_curriculum.snapshot(DB_PATH),
         "standing_mission_ai_self_development_only":
             AI_SELF_DEVELOPMENT_ONLY,
         "independent_github_operator": "OWNER_SCOPED_API_AVAILABLE_IF_CONFIGURED",
@@ -1250,6 +1274,8 @@ class OwnerHTTP(BaseHTTPRequestHandler):
             return self._send(200, static_review.snapshot(DB_PATH))
         if self.path == "/api/open-source/improvement-progress":
             return self._send(200, improvement_progress.snapshot(DB_PATH))
+        if self.path == "/api/learning/code-curriculum":
+            return self._send(200, code_curriculum.snapshot(DB_PATH))
         if self.path == "/api/open-source/draft-priorities":
             # Read-only, grounded in actual source hashes and local findings.
             # No model call, candidate generation or job dispatch.
