@@ -324,6 +324,102 @@ def evaluate_once(*, db_path: Path,private: Path,run_id: str,
     }
 
 
+def compare_development_runs(db_path: Path, *, baseline_id: str,
+                             candidate_id: str) -> dict:
+    """Pairwise exact-reference comparison on IDENTICAL development items.
+
+    The paired sample is an observation about a specific fixed AST exercise
+    set. Even a positive delta is not proof of coding ability or permission
+    to activate the candidate checkpoint. SEALED_TEST is never consulted.
+    """
+    if (not isinstance(baseline_id,str) or not IDENT.fullmatch(baseline_id)
+            or not isinstance(candidate_id,str) or
+            not IDENT.fullmatch(candidate_id) or
+            baseline_id==candidate_id):
+        raise ValueError("JREI_CODE_COMPARE_RUN_IDS_INVALID")
+    with closing(_db(db_path)) as db:
+        rows=db.execute("""SELECT run_id,dataset_sha256,
+            checkpoint_sha256,selected_examples,scored_examples,
+            normalized_exact_matches,average_word_f1
+            FROM jrei_code_ability_evaluations
+            WHERE split_name='DEVELOPMENT'
+              AND state='INDEPENDENT_AST_ANSWER_SCORING_RECORDED'
+              AND run_id IN (?,?)""",
+              (baseline_id,candidate_id)).fetchall()
+        per_run={}
+        for entry in rows:
+            identifier=entry[0]
+            per_run[identifier]={
+                "dataset":entry[1],"checkpoint":entry[2],
+                "selected":entry[3],"scored":entry[4],
+                "exact":entry[5],"f1":entry[6],
+            }
+        if len(per_run)!=2:
+            return {"schema":SCHEMA,
+                    "state":"TWO_COMPLETED_DEVELOPMENT_EVALUATIONS_REQUIRED",
+                    "code_activated":False}
+        a,b=per_run[baseline_id],per_run[candidate_id]
+        if (a["dataset"]!=b["dataset"] or
+                a["scored"]!=b["scored"] or
+                a["selected"]!=b["selected"] or
+                a["checkpoint"]==b["checkpoint"]):
+            return {"schema":SCHEMA,
+                    "state":"PAIRED_BENCHMARK_NOT_COMPARABLE",
+                    "same_dataset":a["dataset"]==b["dataset"],
+                    "distinct_weights":a["checkpoint"]!=b["checkpoint"],
+                    "code_activated":False}
+        pairs=db.execute("""SELECT old.lesson_id,
+            old.normalized_exact,new.normalized_exact,
+            old.word_f1,new.word_f1,
+            old.reference_sha256,new.reference_sha256
+            FROM jrei_code_ability_example_scores AS old
+            JOIN jrei_code_ability_example_scores AS new
+              ON new.lesson_id=old.lesson_id
+             AND new.split_name=old.split_name
+            WHERE old.run_id=? AND new.run_id=?
+              AND old.split_name='DEVELOPMENT'
+            ORDER BY old.lesson_id""",
+            (baseline_id,candidate_id)).fetchall()
+    if (len(pairs)!=a["scored"] or
+            any(previous!=current
+                for _id,_ok_old,_ok_new,_f1old,_f1new,
+                    previous,current in pairs)):
+        return {"schema":SCHEMA,
+                "state":"PAIRED_QUESTION_EVIDENCE_INCOMPLETE",
+                "code_activated":False}
+    improved=sum(int(not old and new)
+                 for _id,old,new,*_unused in pairs)
+    regressed=sum(int(old and not new)
+                  for _id,old,new,*_unused in pairs)
+    unchanged=sum(int(old==new) for _id,old,new,*_unused in pairs)
+    before=sum(old for _id,old,*_rest in pairs)
+    after=sum(new for _id,_old,new,*_rest in pairs)
+    old_f1=sum(f1old for _id,_old,_new,f1old,*_rest in pairs)/len(pairs)
+    new_f1=sum(f1new for _id,_old,_new,_f1old,f1new,*_rest
+               in pairs)/len(pairs)
+    return {
+        "schema":SCHEMA,
+        "state":"PAIRWISE_DEVELOPMENT_AST_SCORES_OBSERVED",
+        "baseline_run":baseline_id,
+        "candidate_run":candidate_id,
+        "shared_development_dataset_sha256":a["dataset"],
+        "paired_questions":len(pairs),
+        "baseline_exact_matches":before,
+        "candidate_exact_matches":after,
+        "new_correct_answers":improved,
+        "formerly_correct_now_wrong":regressed,
+        "unchanged_exact_status":unchanged,
+        "normalized_exact_match_change":after-before,
+        "mean_word_f1_change":round(new_f1-old_f1,6),
+        "evidence_scope":"AST_REFERENCE_AGREEMENT_ONLY",
+        "sealed_test_data_queried":False,
+        "hypothesis_selection_from_sealed_test":False,
+        "statistical_significance_asserted":False,
+        "functional_code_skill_proven":False,
+        "candidate_checkpoint_activated":False,
+    }
+
+
 def snapshot(db_path: Path) -> dict:
     with closing(_db(db_path)) as db:
         rows=db.execute("""SELECT split_name,state,COUNT(*),
