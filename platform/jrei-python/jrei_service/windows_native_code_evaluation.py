@@ -430,6 +430,18 @@ def snapshot(db_path: Path) -> dict:
             ORDER BY split_name,state""").fetchall()
         evidence_count=db.execute("""SELECT COUNT(*) FROM
             jrei_code_ability_example_scores""").fetchone()[0]
+        categories=db.execute("""SELECT COALESCE(l.lesson_kind,'UNKNOWN'),
+            COUNT(*),COALESCE(SUM(s.normalized_exact),0),
+            ROUND(AVG(s.word_f1),6)
+            FROM jrei_code_ability_example_scores AS s
+            JOIN jrei_code_ability_evaluations AS e
+              ON e.run_id=s.run_id AND e.split_name=s.split_name
+            LEFT JOIN jrei_code_curriculum_lessons AS l
+              ON l.id=s.lesson_id
+            WHERE s.split_name='DEVELOPMENT'
+              AND e.state='INDEPENDENT_AST_ANSWER_SCORING_RECORDED'
+            GROUP BY COALESCE(l.lesson_kind,'UNKNOWN')
+            ORDER BY COALESCE(l.lesson_kind,'UNKNOWN')""").fetchall()
     return {
         "schema":SCHEMA,
         "recorded_evaluation_states":[{
@@ -437,6 +449,12 @@ def snapshot(db_path: Path) -> dict:
             "scored_examples":scored,"exact_matches":exact,
         } for part,state,count,scored,exact in rows],
         "individual_hash_only_score_receipts":evidence_count,
+        "development_per_task_type":[{
+            "lesson_kind":kind,"scored":count,
+            "normalized_exact":matches,
+            "mean_word_f1":mean_f1,
+        } for kind,count,matches,mean_f1 in categories],
+        "sealed_per_task_type_metrics_excluded_from_strategy":True,
         "independent_ast_reference_scoring_available_in_source":True,
         "sealed_data_not_trainable_by_this_module":True,
         "generated_code_never_executed":True,
