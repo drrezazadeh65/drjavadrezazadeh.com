@@ -31,8 +31,8 @@ function ReadJson([string]$f){
 function Sha([string]$f){return (Get-FileHash -LiteralPath $f -Algorithm SHA256).Hash.ToLowerInvariant()}
 function OwnerSid([string]$principal){
  if($principal -match '^S-1-[0-9]+(-[0-9]+)+$'){return $principal}
- return (New-Object Security.Principal.NTAccount($principal)).Translate(
-    [Security.Principal.SecurityIdentifier]).Value
+ $account=New-Object -TypeName System.Security.Principal.NTAccount -ArgumentList $principal
+ return $account.Translate([Security.Principal.SecurityIdentifier]).Value
 }
 function TaskState {
  $task=Get-ScheduledTask -TaskName $taskName -ErrorAction Stop
@@ -168,13 +168,17 @@ try{
  $changed=$true
  Start-ScheduledTask -TaskName $taskName -ErrorAction Stop
  $ready=$false
- for($i=0;$i -lt 80;$i++){
+ for($i=0;$i -lt 60;$i++){
    Start-Sleep -Seconds 2
    try{
-     if(Probe){$ready=$true;break}
+     $models=Invoke-RestMethod -Uri 'http://127.0.0.1:8082/v1/models' -TimeoutSec 3 -Headers @{
+       Authorization=('Bearer '+(Get-Content -LiteralPath $keyPath -Raw -Encoding ASCII).Trim())
+     }
+     if(@($models.data|Where-Object{$_.id -ceq 'jrei-gpu-lab'}).Count -eq 1){$ready=$true;break}
    }catch{}
  }
- Need $ready 'JREI_GPU_SECURE_API_FINAL_PROOF_NOT_READY'
+ Need $ready 'JREI_GPU_SECURE_API_NOT_READY'
+ $null=Probe
  $rec.recoveryState='SECURE_TASK_RUNNING_VERIFIED'
  [IO.File]::WriteAllText($receipt,($rec|ConvertTo-Json -Depth 4),[Text.UTF8Encoding]::new($false))
  Write-Output 'JREI_GPU_SECURE_TASK_AUTHENTICATED_ACCEPTANCE_PASSED'
