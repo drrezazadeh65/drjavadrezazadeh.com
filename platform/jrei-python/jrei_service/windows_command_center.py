@@ -48,6 +48,7 @@ from jrei_service import windows_open_source_discovery as source_discovery
 from jrei_service import windows_open_source_mission as open_source_mission
 from jrei_service import windows_language_backend as language_backend
 from jrei_service import windows_native_inference as native_inference
+from jrei_service import windows_private_storage as private_storage
 from jrei_service import windows_resource_envelope as resource_envelope
 from jrei_service.windows_response_quality import has_repetition_loop
 from jrei_service.windows_project_generator import read_generated
@@ -127,6 +128,15 @@ def record(kind: str, state: str, detail: str = "", digest: str = "") -> None:
 
 
 def setup() -> str:
+    global PRIVATE, TOKEN_PATH, DB_PATH
+    # The frozen interpreter itself must prove it can create an exclusive
+    # file AND write a SQLite transaction. The owner previously demonstrated
+    # that normal Python could write but a PyInstaller engine could not.
+    # A validated same-PC fallback preserves (copies, never deletes) the
+    # previous owner token, SQLite DB and private evidence before startup.
+    PRIVATE = private_storage.select_private_storage()
+    TOKEN_PATH = PRIVATE / "owner-token"
+    DB_PATH = PRIVATE / "missions.sqlite3"
     PRIVATE.mkdir(parents=True, exist_ok=True)
     if not TOKEN_PATH.exists():
         # Exclusive create; the Windows user's LOCALAPPDATA is the local trust boundary.
