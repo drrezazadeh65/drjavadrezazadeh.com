@@ -25,6 +25,16 @@ ALLOWED = (
     "platform/news-intelligence/",
     "platform/jrei-python/jrei_learning/",
     "platform/jrei-python/jrei_orchestrator/",
+    # Additional JREI-native sources are available as ISOLATED DRAFT targets.
+    # This never authorizes a live service edit or an automatic GitHub push.
+    "platform/jrei-python/jrei_service/windows_native_",
+    "platform/jrei-python/jrei_service/windows_resource_",
+    "platform/jrei-python/jrei_service/windows_open_source_",
+    "platform/jrei-python/jrei_service/windows_oss_",
+    "platform/jrei-python/jrei_service/windows_self_development.py",
+    "platform/jrei-python/jrei_service/windows_workspace.py",
+    "platform/jrei-python/jrei_service/windows_code_experience.py",
+    "platform/jrei-python/jrei_service/windows_evidence_memory.py",
     "assets/css/",
 )
 SENSITIVE = re.compile(
