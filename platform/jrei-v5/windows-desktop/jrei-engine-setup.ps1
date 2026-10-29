@@ -65,7 +65,9 @@ function OwnerTokenFile {
  # environment variables, network services or imported configuration.
  $fallbacks=@(
   (Join-Path $env:LOCALAPPDATA 'JREI-Owner\command-center'),
-  (Join-Path $env:USERPROFILE 'JREI-Owner\command-center')
+  (Join-Path $env:USERPROFILE 'JREI-Owner\command-center'),
+  (Join-Path $env:LOCALAPPDATA 'JREI-Private-v2\command-center'),
+  (Join-Path $env:USERPROFILE '.jrei-owner\command-center')
  )
  $active=@()
  foreach($folder in $fallbacks){
