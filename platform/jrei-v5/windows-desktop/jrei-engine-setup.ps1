@@ -180,7 +180,7 @@ function LaunchBundled {
   $cmdArgs=@('-I','-B',('"'+$launcher+'"'),'--serve')
   $proc=Start-Process -FilePath $engine -ArgumentList $cmdArgs -WorkingDirectory $wd -WindowStyle Hidden -PassThru -RedirectStandardError $stderr -ErrorAction Stop
   if($null -eq $proc){return $false}
-  for($n=0;$n -lt 14;$n++){
+  for($n=0;$n -lt 30;$n++){
    if(OwnerReady){return $true}
    if($proc.HasExited){break}
    Start-Sleep -Seconds 2
