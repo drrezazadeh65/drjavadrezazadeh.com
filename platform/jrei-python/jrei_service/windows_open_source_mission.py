@@ -317,6 +317,8 @@ def _seed_problem_topics(db) -> int:
                 "python function signatures code language models",
             "AST_RISK_INTERPRETATION_V1":
                 "python static analysis vulnerability explanation",
+            "AST_SYNTAX_REPAIR_V1":
+                "python program repair syntax constrained generation",
         }
         per_type=db.execute("""SELECT l.lesson_kind,
             COUNT(*),SUM(s.normalized_exact)
