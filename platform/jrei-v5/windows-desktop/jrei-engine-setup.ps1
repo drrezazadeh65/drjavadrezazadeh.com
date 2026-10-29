@@ -1,12 +1,10 @@
 #Requires -Version 5.1
 <#
-JREI original private 8092 — offline Go-embedded Windows install, x64.
-Packaged inside ONE owner-approved native Windows installer (no Inno Temp).
-No Python, pip, GitHub or PyPI downloads on the target machine.
-Program files may be updated; owner-private SQLite, token, existing chat,
-DPAPI worker key, node identity, models, site and customized Git repos
-are not overwritten or copied between machines.
-Existing live owner-private engines are never interrupted by setup.
+ JREI 0.1.8 owner-private Windows installation/start controller.
+ Bundled with the original JREI 8092 command center and native desktop.
+ NO PyPI, Git, network install, elevation, node identity reassignment,
+ website publish, task deletion, credential cloning or private DB deletion.
+ Legacy Windows tasks are NOT prerequisites for a functional local core.
 #>
 [CmdletBinding()]
 param(
@@ -15,7 +13,7 @@ param(
 )
 Set-StrictMode -Version Latest
 $ErrorActionPreference='Stop'
-$version='0.1.7'
+$version='0.1.8'
 $taskName='JREI-Owner-Windows-Command-Center'
 $private=Join-Path $env:LOCALAPPDATA 'JREI\command-center'
 $receipts=Join-Path $private 'install-receipts'
@@ -23,230 +21,236 @@ $engine=Join-Path $PSScriptRoot ('engine-v'+$version+'\JREI-Engine.exe')
 $source=Join-Path $PSScriptRoot ('source-v'+$version+'\platform\jrei-python\jrei_service\windows_command_center.py')
 $manifest=Join-Path $PSScriptRoot 'jrei-engine-manifest.json'
 $owner=[Security.Principal.WindowsIdentity]::GetCurrent()
-
-function Emit([string]$code) {
- if($code -cnotmatch '^[A-Z0-9_]{4,100}$'){
-  throw 'JREI_OFFLINE_SETUP_INVALID_EVENT'
+function Emit([string]$value){
+ if($value -cnotmatch '^[A-Z0-9_]{4,100}$'){throw 'JREI_DIAGNOSTIC_INVALID'}
+ Write-Output ('[JREI] '+$value)
+}
+function SafeFile([string]$path,[long]$limit){
+ if(-not (Test-Path -LiteralPath $path -PathType Leaf)){return $false}
+ $item=Get-Item -LiteralPath $path -ErrorAction Stop
+ return ($item.Length -gt 0 -and $item.Length -le $limit -and
+  -not ($item.Attributes -band [IO.FileAttributes]::ReparsePoint))
+}
+function VerifyPackage{
+ if(-not (SafeFile $engine 450MB) -or
+    -not (SafeFile $source 1000000) -or
+    -not (SafeFile $manifest 10000)){
+  throw 'JREI_OFFLINE_RUNTIME_MISSING'
  }
- Write-Output ('[JREI] '+$code)
+ $m=Get-Content -LiteralPath $manifest -Raw -Encoding UTF8|ConvertFrom-Json
+ if($m.schema -cne 'jr.jrei.offline-engine-package.v1' -or
+    $m.source_branch -cne 'migration/bertina-linux6' -or
+    [string]$m.source_commit -cnotmatch '^[0-9a-f]{40}$' -or
+    [string]$m.engine_sha256 -cnotmatch '^[0-9a-f]{64}$'){
+  throw 'JREI_OFFLINE_BUNDLE_MANIFEST_INVALID'
+ }
+ if((Get-FileHash -LiteralPath $engine -Algorithm SHA256).Hash.ToLowerInvariant() -cne
+   [string]$m.engine_sha256){
+  throw 'JREI_OFFLINE_ENGINE_HASH_MISMATCH'
+ }
 }
-function SafeFile([string]$file,[long]$max) {
- if(-not (Test-Path -LiteralPath $file -PathType Leaf)){return $false}
- $stat=Get-Item -LiteralPath $file -ErrorAction Stop
- return (($stat.Attributes -band [IO.FileAttributes]::ReparsePoint) -eq 0 -and
-         $stat.Length -gt 0 -and $stat.Length -le $max)
-}
-function TaskOwned($task) {
- if($null -eq $task){return $false}
+function OwnerReady{
+ $file=Join-Path $private 'owner-token'
+ if(-not (SafeFile $file 256)){return $false}
  try{
-  $identity=[string]$task.Principal.UserId
-  if($identity -match '^S-1-[0-9]+(-[0-9]+)+$'){
-   $sid=(New-Object -TypeName System.Security.Principal.SecurityIdentifier -ArgumentList $identity).Value
-  }else{
-   $sid=(New-Object -TypeName System.Security.Principal.NTAccount -ArgumentList $identity).Translate(
-      [Security.Principal.SecurityIdentifier]).Value
-  }
-  return ($sid -ceq $owner.User.Value)
- }catch{return $false}
-}
-function TaskActionRecognized($action) {
- if($null -eq $action){return $false}
- try{
-  $actual=[IO.Path]::GetFullPath(
-    [Environment]::ExpandEnvironmentVariables([string]$action.Execute))
-  $home=[IO.Path]::GetFullPath($PSScriptRoot)+[IO.Path]::DirectorySeparatorChar
-  # Upgrade the pre-existing v0.1.4 Inno program path and future versioned
-  # releases without renaming or replacing the original owner task.
-  $oldHome=[IO.Path]::GetFullPath(
-    (Join-Path $env:LOCALAPPDATA 'Programs\JREI'))+[IO.Path]::DirectorySeparatorChar
-  $localAlternate=[IO.Path]::GetFullPath(
-    (Join-Path $env:LOCALAPPDATA 'JREI-Applications\releases'))+[IO.Path]::DirectorySeparatorChar
-  $profileAlternate=[IO.Path]::GetFullPath(
-    (Join-Path $env:USERPROFILE 'JREI-Applications\releases'))+[IO.Path]::DirectorySeparatorChar
-  $args=[string]$action.Arguments
-  $oldPython=[IO.Path]::GetFullPath(
-    (Join-Path $env:LOCALAPPDATA 'JREI-Python\venv\Scripts\python.exe'))
-  $isOriginalPy=($actual -ieq $oldPython -and
-    $args -ceq '-B -m jrei_service.windows_command_center --serve')
-  $isOriginalFrozen=(
-    ($actual.StartsWith($home,[StringComparison]::OrdinalIgnoreCase) -or
-     $actual.StartsWith($oldHome,[StringComparison]::OrdinalIgnoreCase) -or
-     $actual.StartsWith($localAlternate,[StringComparison]::OrdinalIgnoreCase) -or
-     $actual.StartsWith($profileAlternate,[StringComparison]::OrdinalIgnoreCase)) -and
-    $actual -imatch '[\\/]engine-v[0-9]+\.[0-9]+\.[0-9]+[\\/]JREI-Engine\.exe$' -and
-    $args -ceq '--serve'
-  )
-  return ($isOriginalPy -or $isOriginalFrozen)
- }catch{return $false}
-}
-function OwnerReady {
- $tokenPath=Join-Path $private 'owner-token'
- if(-not (SafeFile $tokenPath 256)){return $false}
- try{
-  $secret=(Get-Content -LiteralPath $tokenPath -Encoding Ascii -Raw).Trim()
+  $secret=(Get-Content -LiteralPath $file -Raw -Encoding Ascii).Trim()
   if($secret -cnotmatch '^[A-Za-z0-9_-]{50,128}$'){return $false}
-  $state=Invoke-RestMethod -Method Get -Uri 'http://127.0.0.1:8092/api/status' -TimeoutSec 3 -Headers @{
+  $state=Invoke-RestMethod -Method Get -TimeoutSec 3 -Uri 'http://127.0.0.1:8092/api/status' -Headers @{
    Authorization=('Bearer '+$secret)
   }
   return ($state.schema -ceq 'jr.jrei.windows-command-center.v2' -and
           $state.owner_private -eq $true)
  }catch{return $false}
 }
-function PortBusy {
+function PortBusy{
  $client=New-Object System.Net.Sockets.TcpClient
  try{
   $async=$client.BeginConnect('127.0.0.1',8092,$null,$null)
-  return ($async.AsyncWaitHandle.WaitOne(850) -and $client.Connected)
+  return ($async.AsyncWaitHandle.WaitOne(650) -and $client.Connected)
  }catch{return $false}
  finally{$client.Dispose()}
 }
-function VerifyPackage {
- if(-not (SafeFile $engine 450MB) -or
-    -not (SafeFile $manifest 10000) -or
-    -not (SafeFile $source 1000000)){
-  throw 'JREI_OFFLINE_INSTALL_REQUIRED_PROGRAM_FILES_MISSING'
- }
- $meta=Get-Content -LiteralPath $manifest -Encoding UTF8 -Raw |
-  ConvertFrom-Json -ErrorAction Stop
- if($meta.schema -cne 'jr.jrei.offline-engine-package.v1' -or
-    $meta.source_branch -cne 'migration/bertina-linux6' -or
-    [string]$meta.source_commit -cnotmatch '^[a-f0-9]{40}$' -or
-    [string]$meta.engine_sha256 -cnotmatch '^[a-f0-9]{64}$'){
-  throw 'JREI_OFFLINE_INSTALL_PROVENANCE_INVALID'
- }
- $realHash=(Get-FileHash -LiteralPath $engine -Algorithm SHA256).Hash.ToLowerInvariant()
- if($realHash -cne [string]$meta.engine_sha256){
-  throw 'JREI_OFFLINE_INSTALL_ENGINE_SHA256_MISMATCH'
- }
-}
-function Receipt([string]$state) {
- New-Item -ItemType Directory -Path $receipts -Force -ErrorAction Stop | Out-Null
- $value=[ordered]@{
-  schema='jr.jrei.offline-owner-install.v1'
-  state=$state
-  recorded_utc=(Get-Date).ToUniversalTime().ToString('o')
-  installer_version=$version
-  owner_sid=$owner.User.Value
-  code_from_exact_bundle=$true
-  private_database_replaced=$false
-  private_token_replaced=$false
-  worker_private_key_replaced=$false
-  signed_node_reassigned=$false
-  model_weights_installed=$false
-  website_deployed=$false
-  integrated_tests_run_by_installer=$false
- }
- $path=Join-Path $receipts 'latest-native-setup-receipt.json'
- $temp=$path+'.'+[guid]::NewGuid().ToString('N')+'.tmp'
+function TaskOwned($task){
+ if($null -eq $task){return $false}
  try{
-  [IO.File]::WriteAllText($temp,
-    ($value|ConvertTo-Json -Depth 4 -Compress),
+  $value=[string]$task.Principal.UserId
+  if($value -match '^S-1-[0-9]+(-[0-9]+)+$'){
+   $sid=(New-Object System.Security.Principal.SecurityIdentifier($value)).Value
+  }else{
+   $sid=(New-Object System.Security.Principal.NTAccount($value)).
+    Translate([Security.Principal.SecurityIdentifier]).Value
+  }
+  return ($sid -ceq $owner.User.Value)
+ }catch{return $false}
+}
+function RecognizedTask($task){
+ if($null -eq $task -or -not (TaskOwned $task) -or
+    $task.Actions.Count -ne 1){return $false}
+ try{
+  $action=$task.Actions[0]
+  $exe=[IO.Path]::GetFullPath(
+    [Environment]::ExpandEnvironmentVariables([string]$action.Execute))
+  $args=[string]$action.Arguments
+  $oldPy=[IO.Path]::GetFullPath(
+    (Join-Path $env:LOCALAPPDATA 'JREI-Python\venv\Scripts\python.exe'))
+  if($exe -ieq $oldPy -and
+     $args -ceq '-B -m jrei_service.windows_command_center --serve'){
+   return $true
+  }
+  $safeRoots=@(
+    (Join-Path $env:LOCALAPPDATA 'Programs\JREI'),
+    (Join-Path $env:LOCALAPPDATA 'JREI-Applications\releases'),
+    (Join-Path $env:USERPROFILE 'JREI-Applications\releases')
+  )
+  foreach($prefix in $safeRoots){
+   $full=[IO.Path]::GetFullPath($prefix)+[IO.Path]::DirectorySeparatorChar
+   if($exe.StartsWith($full,[StringComparison]::OrdinalIgnoreCase) -and
+      $exe -imatch '[\\/]engine-v[0-9]+\.[0-9]+\.[0-9]+[\\/]JREI-Engine\.exe$' -and
+      $args -ceq '--serve'){
+    return $true
+   }
+  }
+ }catch{}
+ return $false
+}
+function Record([string]$state,[string]$taskMode){
+ # Receipts only; no token, key, logs or personal file content.
+ New-Item -ItemType Directory -Path $receipts -Force|Out-Null
+ $data=[ordered]@{
+  schema='jr.jrei.offline-owner-install.v2'
+  installed_version=$version
+  recorded_utc=(Get-Date).ToUniversalTime().ToString('o')
+  state=$state
+  task_mode=$taskMode
+  private_database_replaced=$false
+  owner_token_replaced=$false
+  worker_identity_changed=$false
+  website_published=$false
+  windows_integration_test_performed=$false
+ }
+ $file=Join-Path $receipts 'latest-native-setup-receipt.json'
+ $temp=Join-Path $receipts ('.setup-'+[guid]::NewGuid().ToString('N')+'.tmp')
+ try{
+  [IO.File]::WriteAllText($temp,($data|ConvertTo-Json -Compress),
     [Text.UTF8Encoding]::new($false))
-  Move-Item -LiteralPath $temp -Destination $path -Force
+  Move-Item -LiteralPath $temp -Destination $file -Force -ErrorAction Stop
  }finally{
   if(Test-Path -LiteralPath $temp){Remove-Item -LiteralPath $temp -Force}
  }
 }
-function CurrentOwnerTask {
- $existing=Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue
- if($null -ne $existing -and -not (TaskOwned $existing)){
-  throw 'JREI_UNRELATED_OWNER_TASK_PRESERVED'
- }
- return $existing
-}
-function WaitPrivateHealthy {
- for($i=0;$i -lt 14;$i++){
+function AwaitOwnerReady{
+ for($n=0;$n -lt 12;$n++){
   if(OwnerReady){return $true}
   Start-Sleep -Seconds 2
  }
  return $false
 }
-
-try {
- if($env:OS -cne 'Windows_NT' -or
-    -not [Environment]::Is64BitOperatingSystem){
-  throw 'JREI_OFFLINE_WINDOWS_X64_REQUIRED'
+function StartBundled {
+ # Called only if neither authenticated JREI nor any other process is bound.
+ # Start-Process creates a child of the current user that outlives setup.
+ # Never attempts to stop or overwrite an old owner task.
+ if(PortBusy){throw 'JREI_8092_LISTENER_UNVERIFIED_PRESERVED'}
+ $proc=Start-Process -FilePath $engine -ArgumentList '--serve' -WorkingDirectory
+  (Split-Path -Path $engine -Parent) -WindowStyle Hidden -PassThru -ErrorAction Stop
+ if($null -eq $proc){throw 'JREI_BUNDLED_ENGINE_START_FAILED'}
+ if(-not (AwaitOwnerReady)){
+  throw 'JREI_BUNDLED_ENGINE_HEALTH_NOT_CONFIRMED'
+ }
+}
+function ExistingTask{
+ try{return Get-ScheduledTask -TaskName $taskName -ErrorAction Stop}
+ catch{
+  if($_.Exception -is [Microsoft.PowerShell.Cmdletization.Cim.CimJobException]){
+   return $null
+  }
+  # Some machines deny Task Scheduler inspection; on-demand local startup
+  # remains available, and no other task is modified.
+  return $null
+ }
+}
+try{
+ if($env:OS -cne 'Windows_NT' -or -not [Environment]::Is64BitOperatingSystem){
+  throw 'JREI_WINDOWS_X64_REQUIRED'
  }
  VerifyPackage
- $task=CurrentOwnerTask
+ $task=ExistingTask
  if($Mode -eq 'Status'){
-  Emit $(if(OwnerReady){'ORIGINAL_PRIVATE_8092_AUTHENTICATED'}else{
-     'ORIGINAL_PRIVATE_8092_NOT_VERIFIED'})
-  Emit $(if($null -eq $task){'ORIGINAL_TASK_NOT_REGISTERED'}else{
-     'ORIGINAL_OWNER_TASK_PRESENT'})
-  Emit 'NO_INSTALL_OR_RUNTIME_CHANGE'
+  Emit $(if(OwnerReady){'JREI_ORIGINAL_ENGINE_AUTHENTICATED'}else{'JREI_PRIVATE_ENGINE_OFFLINE'})
+  Emit $(if($null -eq $task){'OWNER_AUTOSTART_TASK_NOT_FOUND'}elseif(RecognizedTask $task){
+   'OWNER_AUTOSTART_TASK_RECOGNIZED'}else{'LEGACY_TASK_PRESERVED_UNRECOGNIZED'})
   return
  }
- if($Mode -eq 'Start'){
-  # Desktop button: only start a previously installed original owner task.
-  if($null -eq $task){throw 'JREI_OWNER_ORIGINAL_TASK_MISSING'}
-  if($task.Actions.Count -ne 1 -or
-     -not (TaskActionRecognized $task.Actions[0])){
-   throw 'JREI_OWNER_TASK_ACTION_NOT_RECOGNIZED'
-  }
-  if(OwnerReady){Emit 'ORIGINAL_PRIVATE_JREI_ALREADY_RUNNING';return}
-  if(PortBusy){throw 'JREI_8092_UNKNOWN_PROCESS_PRESERVED'}
-  Start-ScheduledTask -TaskName $taskName -ErrorAction Stop
-  if(-not (WaitPrivateHealthy)){throw 'JREI_PRIVATE_TASK_START_NOT_VERIFIED'}
-  Emit 'ORIGINAL_PRIVATE_JREI_STARTED'
-  return
- }
- if(-not $OwnerApproved){
-  throw 'JREI_EXPLICIT_INSTALL_PERMISSION_REQUIRED'
+ if($Mode -eq 'Install' -and -not $OwnerApproved){
+  throw 'JREI_OWNER_INSTALL_APPROVAL_REQUIRED'
  }
  if(OwnerReady){
-  Receipt 'EXISTING_OWNER_ENGINE_LIVE_UPGRADE_DEFERRED'
-  Emit 'EXISTING_OWNER_ENGINE_LIVE_PRESERVED'
+  if($Mode -eq 'Install'){Record 'EXISTING_PRIVATE_ENGINE_PRESERVED' 'UNCHANGED'}
+  Emit 'JREI_ORIGINAL_ENGINE_ALREADY_RUNNING'
   return
  }
- if(PortBusy){throw 'JREI_8092_UNKNOWN_PROCESS_PRESERVED'}
- $newAction=New-ScheduledTaskAction -Execute $engine -Argument '--serve' -WorkingDirectory (Split-Path -Path $engine -Parent)
- $created=$false
- $oldAction=$null
- if($null -eq $task){
-  $trigger=New-ScheduledTaskTrigger -AtLogOn -User $owner.Name
-  $principal=New-ScheduledTaskPrincipal -UserId $owner.Name -LogonType Interactive -RunLevel Limited
-  $options=New-ScheduledTaskSettingsSet -ExecutionTimeLimit (New-TimeSpan -Seconds 0) -MultipleInstances IgnoreNew -StartWhenAvailable -RestartCount 3 -RestartInterval (New-TimeSpan -Minutes 1)
-  Register-ScheduledTask -TaskName $taskName -Action $newAction -Trigger $trigger -Settings $options -Principal $principal -Description 'JREI original owner-private localhost 8092 command center' -ErrorAction Stop | Out-Null
-  $created=$true
-  Emit 'OWNER_PRIVATE_TASK_REGISTERED_OFFLINE'
- }else{
-  if($task.Actions.Count -ne 1 -or
-     -not (TaskActionRecognized $task.Actions[0])){
-   throw 'JREI_UNKNOWN_TASK_ACTION_PRESERVED'
-  }
-  if((Get-ScheduledTask -TaskName $taskName).State -eq 'Running'){
-   Receipt 'EXISTING_OWNER_TASK_RUNNING_NOT_INTERRUPTED'
-   throw 'JREI_OWNER_TASK_RUNNING_NOT_RESPONDING_MANUAL_REVIEW_REQUIRED'
-  }
-  $oldAction=$task.Actions[0]
-  Set-ScheduledTask -TaskName $taskName -Action $newAction -ErrorAction Stop | Out-Null
-  Emit 'ORIGINAL_OWNER_TASK_ACTION_UPDATED'
+ if(PortBusy){throw 'JREI_8092_LISTENER_UNVERIFIED_PRESERVED'}
+ # Existing task may point to a different legacy entry point; it MUST NOT
+ # prevent installation or be auto-replaced on an owner's Windows account.
+ if($null -ne $task -and -not (RecognizedTask $task)){
+  StartBundled
+  if($Mode -eq 'Install'){Record 'JREI_ON_DEMAND_RUNNING_LEGACY_TASK_PRESERVED' 'OLD_TASK_UNCHANGED'}
+  Emit 'JREI_ENGINE_RUNNING_EXISTING_TASK_UNCHANGED'
+  return
  }
- try{
-  Start-ScheduledTask -TaskName $taskName -ErrorAction Stop
-  if(-not (WaitPrivateHealthy)){
-   throw 'JREI_OFFLINE_8092_START_NOT_RESPONDING'
-  }
-  Receipt 'ORIGINAL_JREI_OFFLINE_ENGINE_8092_RUNNING'
-  Emit 'ORIGINAL_JREI_OFFLINE_ENGINE_8092_RUNNING'
- }catch{
-  # Preserve previous task and all data on failure, with bounded rollback.
-  if($created){
-   Unregister-ScheduledTask -TaskName $taskName -Confirm:$false -ErrorAction SilentlyContinue
-  }elseif($null -ne $oldAction){
-   Set-ScheduledTask -TaskName $taskName -Action $oldAction -ErrorAction SilentlyContinue | Out-Null
-  }
-  throw
+ # For a recognized task we can try its existing start action first, but
+ # the installer can still start the bundled original engine without
+ # modifying/deleting the old task if that old action no longer works.
+ if($null -ne $task){
+  try{
+   if($task.State -ne 'Running'){
+    Start-ScheduledTask -TaskName $taskName -ErrorAction Stop
+    if(AwaitOwnerReady){
+     if($Mode -eq 'Install'){Record 'RECOGNIZED_ORIGINAL_TASK_RUNNING' 'REUSED'}
+     Emit 'JREI_ORIGINAL_REUSED_TASK_RUNNING'
+     return
+    }
+   }
+  }catch{}
+  if(PortBusy){throw 'JREI_LEGACY_TASK_RUNNING_UNRESPONSIVE_PRESERVED'}
+  StartBundled
+  if($Mode -eq 'Install'){Record 'JREI_ON_DEMAND_RUNNING_OLD_TASK_PRESERVED' 'OLD_TASK_UNCHANGED'}
+  Emit 'JREI_ENGINE_RUNNING_OLD_TASK_PRESERVED'
+  return
  }
+ # Clean PC: use the original task name. Lack of registration privileges
+ # must not prevent a locally functioning engine; fall back to on-demand.
+ $registered=$false
+ if($Mode -eq 'Install'){
+  try{
+   $action=New-ScheduledTaskAction -Execute $engine -Argument '--serve' -WorkingDirectory
+    (Split-Path -Path $engine -Parent)
+   $trigger=New-ScheduledTaskTrigger -AtLogOn -User $owner.Name
+   $principal=New-ScheduledTaskPrincipal -UserId $owner.Name -LogonType Interactive -RunLevel Limited
+   $settings=New-ScheduledTaskSettingsSet -ExecutionTimeLimit (New-TimeSpan -Seconds 0) -MultipleInstances IgnoreNew -StartWhenAvailable
+   Register-ScheduledTask -TaskName $taskName -Action $action -Trigger $trigger -Principal $principal -Settings $settings -ErrorAction Stop|Out-Null
+   $registered=$true
+  }catch{
+   # A concurrent or managed Task Scheduler entry is never overwritten.
+   $registered=$false
+  }
+ }
+ StartBundled
+ if($Mode -eq 'Install'){
+  if($registered){
+   Record 'JREI_PRIVATE_ENGINE_RUNNING' 'ORIGINAL_AUTOSTART_REGISTERED'
+  }else{
+   Record 'JREI_PRIVATE_ENGINE_RUNNING' 'ON_DEMAND_NO_AUTOSTART'
+  }
+ }
+ Emit 'JREI_PRIVATE_ENGINE_RUNNING'
 }catch{
- # This receipt remains on the owner PC even if installer UI hides script
- # output; never include tokens or private document contents in diagnostics.
  $code=[string]$_.Exception.Message
- if($code -notmatch '^JREI_[A-Z0-9_]{4,110}$'){
-  $code='JREI_OFFLINE_WINDOWS_INSTALL_FAILED'
+ if($code -cnotmatch '^JREI_[A-Z0-9_]{4,110}$'){
+  $code='JREI_PRIVATE_ENGINE_SETUP_FAILED'
  }
- try{Receipt $code}catch{}
+ if($Mode -eq 'Install'){
+  try{Record $code 'SETUP_FAILED_PRESERVED'}catch{}
+ }
  Write-Error $code
  exit 1
 }
