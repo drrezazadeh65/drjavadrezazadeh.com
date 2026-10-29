@@ -42,6 +42,7 @@ from jrei_service import windows_learning_fts as learning_fts
 from jrei_service import windows_evidence_memory as memory_graph
 from jrei_service import windows_code_experience as code_experience
 from jrei_service import windows_self_development as self_development
+from jrei_service import windows_candidate_static_review as static_review
 from jrei_service import windows_site_image_studio as image_studio
 from jrei_service import windows_visual_learning as visual_learning
 from jrei_service import windows_github_operator as github_operator
@@ -212,6 +213,7 @@ def setup() -> str:
     memory_graph.initialize(DB_PATH)
     code_experience.initialize(DB_PATH)
     self_development.initialize(DB_PATH)
+    static_review.initialize(DB_PATH)
     image_studio.initialize(DB_PATH)
     open_source_mission.initialize(DB_PATH)
     open_source_study.initialize(DB_PATH)
@@ -621,6 +623,7 @@ def scheduler():
     next_multiforge_discovery = now + 135
     next_multiforge_code_study = now + 185
     next_self_code_audit = now + 8
+    next_candidate_static_review = now + 25
     next_self_code_candidate = now + 60
     next_observation = now
     while not _STOP.is_set():
@@ -923,6 +926,24 @@ def scheduler():
                        exc.__class__.__name__)
             # A bounded recurring scan, NOT a daily quota or a time limit.
             next_self_code_audit = time.monotonic() + 150
+        # Independent source-only review of isolated proposed patches.
+        # This never runs a candidate, calls pytest/node or deploys code.
+        # Failed source pinning and API/dependency changes remain explicitly
+        # unresolved rather than being counted as "successful learning".
+        if (time.monotonic() >= next_candidate_static_review and
+                not _BUSY.locked()):
+            try:
+                reviewed = static_review.review_once(
+                    db_path=DB_PATH, repo=REPO, private=PRIVATE,
+                    resources_available=resource_policy.permits(
+                        "SELF_STATIC_REVIEW"))
+                if reviewed.get("candidate_id"):
+                    record("candidate_static_review", reviewed["state"],
+                           reviewed["candidate_id"])
+            except (OSError, ValueError, RuntimeError, sqlite3.Error) as exc:
+                record("candidate_static_review", "HELD",
+                       exc.__class__.__name__)
+            next_candidate_static_review = time.monotonic() + 180
         # The 32GB node has the conditional heavy-draft lane; the 16GB node
         # remains free for acquisition and static diagnosis. Independent PCs
         # retain independent stores and are NOT falsely described as a
@@ -1060,6 +1081,8 @@ def status():
             oss_multiforge.snapshot(DB_PATH),
         "local_self_code_study":
             self_development.snapshot(DB_PATH),
+        "independent_candidate_static_review":
+            static_review.snapshot(DB_PATH),
         "standing_mission_ai_self_development_only":
             AI_SELF_DEVELOPMENT_ONLY,
         "independent_github_operator": "OWNER_SCOPED_API_AVAILABLE_IF_CONFIGURED",
@@ -1203,6 +1226,8 @@ class OwnerHTTP(BaseHTTPRequestHandler):
             return self._send(200, oss_multiforge.snapshot(DB_PATH))
         if self.path == "/api/open-source/draft-provenance":
             return self._send(200, oss_evidence.snapshot(DB_PATH))
+        if self.path == "/api/open-source/static-reviews":
+            return self._send(200, static_review.snapshot(DB_PATH))
         if self.path == "/api/open-source/draft-priorities":
             # Read-only, grounded in actual source hashes and local findings.
             # No model call, candidate generation or job dispatch.
