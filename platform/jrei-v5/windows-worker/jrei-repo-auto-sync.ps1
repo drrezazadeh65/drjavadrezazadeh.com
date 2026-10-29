@@ -185,8 +185,28 @@ try{
      (Test-Path -LiteralPath $appUpdater -PathType Leaf)){
     $shell=Join-Path $env:SystemRoot 'System32\WindowsPowerShell\v1.0\powershell.exe'
     try{
-      & $shell -NoProfile -NonInteractive -ExecutionPolicy Bypass -File $appUpdater -Mode Auto
-      if($LASTEXITCODE -eq 0){Report 'WINDOWS_APP_UPDATE_CYCLE_COMPLETE'}
+      # Forward bounded, known-safe child status codes to the durable
+      # 30-minute sync ledger. A successful updater exit is NOT proof that
+      # the newly fetched source was activated.
+      $appMessages=@(& $shell -NoProfile -NonInteractive -ExecutionPolicy Bypass -File $appUpdater -Mode Auto)
+      $appResult=$LASTEXITCODE
+      foreach($message in @($appMessages | Select-Object -Last 16)){
+        $line=[string]$message
+        if($line -cmatch '^\[JREI\] ([A-Z0-9_]{4,90})
+    }catch{Report 'WINDOWS_APP_UPDATE_REQUIRES_REVIEW'}
+  }else{
+    Report 'WINDOWS_APP_AUTO_UPDATE_NOT_OPTED_IN'
+  }
+}catch{
+  # Avoid writing untrusted exception strings to a persistent log.
+  Report 'REPO_SYNC_BLOCKED_NO_SERVICE_CHANGE'
+  throw
+}
+){
+          Report $Matches[1]
+        }
+      }
+      if($appResult -eq 0){Report 'WINDOWS_APP_UPDATE_HANDLER_COMPLETED'}
       else{Report 'WINDOWS_APP_UPDATE_REQUIRES_REVIEW'}
     }catch{Report 'WINDOWS_APP_UPDATE_REQUIRES_REVIEW'}
   }else{
