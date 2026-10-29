@@ -97,8 +97,43 @@ try{
      $file.Length -gt 0 -and $file.Length -le 5000){
    $record=Get-Content -LiteralPath $receiptPath -Encoding UTF8 -Raw |
      ConvertFrom-Json -ErrorAction Stop
-   if($record.schema -ceq 'jr.jrei.offline-owner-install.v1' -and
-      [string]$record.state -cmatch '^[A-Z0-9_]{4,110}$'){
+   if($record.schema -in @('jr.jrei.offline-owner-install.v1',
+                              'jr.jrei.offline-owner-install.v2') -and
+      [string]$record.state -cmatch '^[A-Z0-9_]{4,110}
+  }
+ }
+}catch{$lastSetupState='INSTALL_RECEIPT_UNREADABLE'}
+$report=[ordered]@{
+ schema='jr.jrei.windows-dynamic-node-inventory.v1'
+ state=$state
+ machine_id=$node
+ node_slots_fixed=$false
+ installer_enforces_node_ceiling=$false
+ server_side_node_capacity_not_verified=$true
+ ram_gb_observed=$ramGB
+ cpu_threads_observed=$cpuThreads
+ gpu_adapter_names_observed=$gpuNames
+ gpu_adapter_names_are_unverified_windows_claims=$true
+ ram_is_not_node_identity=$true
+ gpu_compute_verified=$false
+ existing_private_config_present=$configPresent
+ signing_key_file_present=$keyPresent
+ owner_token_file_present=(Test-Path -LiteralPath $tokenPath -PathType Leaf)
+ original_repo_present=(Test-Path -LiteralPath $repoPath -PathType Container)
+ original_python_present=(Test-Path -LiteralPath $pythonPath -PathType Leaf)
+ original_command_center_task_present=$taskPresent
+ offline_engine_installer_state=$lastSetupState
+ real_signed_server_registration_verified=$false
+ real_signed_worker_heartbeat_verified=$false
+ new_node_requires_server_side_owner_registration=(
+   $state -eq 'NEW_NODE_OWNER_ENROLLMENT_REQUIRED')
+ user_data_modified=$false
+ read_only_inventory_script_executed=$true
+ untrusted_code_executed=$false
+ installation_performed=$false
+}
+$report | ConvertTo-Json -Depth 4 -Compress
+){
     $lastSetupState=[string]$record.state
    }
   }
