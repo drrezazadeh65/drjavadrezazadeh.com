@@ -207,7 +207,7 @@ function jrOwnerJreiPythonSkillDispatch(array $privateConfig, array $body, ?stri
     // fixtures when this optional Python service is disabled. Never require
     // a source-only adapter while bootstrapping PHP routes. Fail CLOSED if
     // explicitly enabled on a host missing the verified private adapter.
-    $adapter=dirname(__DIR__).'/platform/jrei-python/php/jrei-python-internal-client.php';
+    $adapter=__DIR__.'/jrei-remote-api-client.php';
     if (!is_file($adapter) || !is_readable($adapter)) {
         throw new RuntimeException('JREI_PYTHON_PRIVATE_ADAPTER_NOT_INSTALLED');
     }
