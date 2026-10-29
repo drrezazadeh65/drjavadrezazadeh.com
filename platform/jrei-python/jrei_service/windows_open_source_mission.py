@@ -119,6 +119,56 @@ def _enabled(db) -> bool:
     return bool(rec and rec[0] == 1)
 
 
+def _seed_problem_topics(db) -> int:
+    """Turn real runtime failure signatures into research problems.
+
+    Topics are generated from LOCAL diagnostic codes, never from retrieved
+    source instructions or arbitrary network text. They accumulate over time
+    instead of being limited to the initial list of technical domains.
+    Adding a topic does not grant network, source-copy or execution rights.
+    """
+    failures = ("ERROR", "FAILED", "UNAVAILABLE", "BLOCKED",
+                "MISSING", "REJECTED", "INVALID", "DEFERRED")
+    rows = db.execute("""SELECT kind,state FROM events
+        ORDER BY id DESC LIMIT 240""").fetchall()
+    inserted = 0
+    seen = set()
+    for kind, state in rows:
+        if not isinstance(kind, str) or not isinstance(state, str):
+            continue
+        signature = (kind + "_" + state).upper()
+        if not any(flag in signature for flag in failures):
+            continue
+        if not re.fullmatch(r"[A-Za-z0-9_ -]{4,150}", signature):
+            continue
+        domain = "problem_" + hashlib.sha256(
+            signature.encode("ascii")).hexdigest()[:18]
+        if domain in seen:
+            continue
+        seen.add(domain)
+        terms = re.findall(r"[a-z]{3,}", signature.lower())
+        # Exclude generic lifecycle words; retain the underlying failure
+        # terms as a search problem rather than a preselected solution.
+        ignored = {"jrei", "started", "unavailable", "failed", "error",
+                   "blocked", "missing", "rejected", "deferred",
+                   "invalid", "model", "study", "health"}
+        topic_terms = [term for term in terms if term not in ignored]
+        query = " ".join(["python", *topic_terms[:5], "troubleshooting"])
+        if len(query) > 75:
+            query = query[:75].rsplit(" ", 1)[0]
+        if not discovery.QUERY.fullmatch(query) or len(query.split()) > 7:
+            continue
+        before = db.total_changes
+        db.execute("""INSERT OR IGNORE INTO jrei_oss_topics
+            (domain,query) VALUES(?,?)""", (domain,query))
+        if db.total_changes > before:
+            inserted += 1
+        # Per-iteration work budget, not a permanent limit on topics.
+        if inserted >= 24:
+            break
+    return inserted
+
+
 def tick(db_path: Path, *, resources_available: bool,
          owner_active: bool = False) -> dict:
     """One bounded GitHub search per eligible scheduler invocation.
@@ -137,6 +187,7 @@ def tick(db_path: Path, *, resources_available: bool,
         if not _enabled(db):
             db.rollback()
             return {"schema":SCHEMA,"state":"DISABLED","live_search":False}
+        _seed_problem_topics(db)
         row=db.execute("""SELECT domain,query,errors
             FROM jrei_oss_topics WHERE next_due<=? AND lease_until<=?
             ORDER BY next_due,COALESCE(last_attempt,0),domain LIMIT 1""",
@@ -167,7 +218,7 @@ def tick(db_path: Path, *, resources_available: bool,
                 name=entry.get("repository")
                 license_id=entry.get("license_reported_by_github")
                 if (not isinstance(name,str) or not REPO_RE.fullmatch(name)
-                    or license_id not in discovery.SUPPORTED):
+                    or not isinstance(license_id,str) or not license_id.strip()):
                     continue
                 items.append({
                     "repository":name,
@@ -239,6 +290,8 @@ def snapshot(db_path: Path) -> dict:
     return {
         "schema":SCHEMA, "enabled":enabled,
         "permanent_mission_in_source":True,
+        "problem_driven_runtime_topics":True,
+        "reputation_not_required_for_discovery":True,
         "service_must_actually_run":True,
         "domain_count":int(totals[0] or 0),
         "search_attempts_recorded":int(totals[1] or 0),
