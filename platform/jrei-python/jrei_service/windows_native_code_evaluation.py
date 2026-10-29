@@ -68,6 +68,7 @@ def initialize(db_path: Path) -> None:
           run_id TEXT NOT NULL,
           split_name TEXT NOT NULL,
           lesson_id TEXT NOT NULL,
+          ordinal INTEGER NOT NULL,
           normalized_exact INTEGER NOT NULL,
           word_f1 REAL NOT NULL,
           generated_sha256 TEXT NOT NULL,
@@ -296,13 +297,14 @@ def evaluate_once(*, db_path: Path,private: Path,run_id: str,
         if details is not None:
             db.executemany("""INSERT OR IGNORE INTO
                 jrei_code_ability_example_scores(
-                run_id,split_name,lesson_id,normalized_exact,word_f1,
+                run_id,split_name,lesson_id,ordinal,
+                normalized_exact,word_f1,
                 generated_sha256,reference_sha256)
-                VALUES(?,?,?,?,?,?,?)""",[
-                (run_id,split,item["lesson_id"],
+                VALUES(?,?,?,?,?,?,?,?)""",[
+                (run_id,split,item["lesson_id"],index,
                  int(item["normalized_exact"]),item["word_f1"],
                  item["answer_sha256"],item["reference_sha256"])
-                for item in details["examples"]
+                for index,item in enumerate(details["examples"])
             ])
         db.execute("""UPDATE jrei_code_ability_evaluations SET
             state=?,scored_examples=?,normalized_exact_matches=?,
@@ -327,6 +329,83 @@ def evaluate_once(*, db_path: Path,private: Path,run_id: str,
         "functional_code_ability_proven":False,
         "weight_updates_performed":False,
         "model_promoted":False,
+    }
+
+
+def audit_score_receipt(db_path: Path, *, run_id: str,
+                        split: str) -> dict:
+    """Recalculate the final score digest from stored per-question hashes.
+
+    This cannot establish that a model generated those hashes and is not a
+    substitute for independent functional code evaluation. It detects
+    inconsistent or modified local evaluation receipts without importing
+    PyTorch, retraining, executing candidates, or reopening sealed prompts.
+    """
+    if (not isinstance(run_id,str) or not IDENT.fullmatch(run_id)
+            or split not in EVAL_MODES):
+        raise ValueError("JREI_CODE_EVAL_AUDIT_SELECTION_INVALID")
+    with closing(_db(db_path)) as db:
+        record=db.execute("""SELECT state,scored_examples,
+            normalized_exact_matches,average_word_f1,evidence_sha256
+            FROM jrei_code_ability_evaluations WHERE run_id=?
+            AND split_name=?""",(run_id,split)).fetchone()
+        if record is None:
+            return {"schema":SCHEMA,
+                    "state":"EVALUATION_RECEIPT_NOT_FOUND",
+                    "model_executed":False}
+        state,n,exact,f1,claimed=record
+        if state!="INDEPENDENT_AST_ANSWER_SCORING_RECORDED":
+            return {"schema":SCHEMA,
+                    "state":"EVALUATION_NOT_COMPLETED",
+                    "recorded_state":state,"model_executed":False}
+        rows=db.execute("""SELECT lesson_id,ordinal,normalized_exact,
+            word_f1,generated_sha256,reference_sha256
+            FROM jrei_code_ability_example_scores
+            WHERE run_id=? AND split_name=? ORDER BY ordinal""",
+            (run_id,split)).fetchall()
+    if (not isinstance(n,int) or not n or len(rows)!=n or
+            not isinstance(claimed,str) or not SHA.fullmatch(claimed)):
+        return {"schema":SCHEMA,"state":"EVALUATION_EVIDENCE_INCOMPLETE",
+                "model_executed":False}
+    receipt=[]
+    for index,(ident,ordinal,success,score,generated,reference) in enumerate(rows):
+        if (not isinstance(ident,str) or not SHA.fullmatch(ident) or
+                ordinal!=index or type(success) is not int or
+                success not in (0,1) or not isinstance(score,(int,float))
+                or not math.isfinite(score) or not 0<=score<=1 or
+                not isinstance(generated,str) or
+                not SHA.fullmatch(generated) or
+                not isinstance(reference,str) or
+                not SHA.fullmatch(reference)):
+            return {"schema":SCHEMA,
+                    "state":"EVALUATION_SCORE_RECORD_INVALID",
+                    "model_executed":False}
+        receipt.append({
+            "lesson_id":ident,"normalized_exact":bool(success),
+            "word_f1":float(score),"answer_sha256":generated,
+            "reference_sha256":reference,
+        })
+    actual=hashlib.sha256(json.dumps(
+        receipt,sort_keys=True,separators=(",",":")
+    ).encode("utf-8")).hexdigest()
+    total=sum(int(item["normalized_exact"]) for item in receipt)
+    mean=round(sum(item["word_f1"] for item in receipt)/n,6)
+    consistent=(actual==claimed and total==exact and
+                isinstance(f1,(int,float)) and
+                math.isfinite(f1) and abs(f1-mean)<=0.000001)
+    return {
+        "schema":SCHEMA,
+        "state":("HASHED_SCORE_RECEIPT_INTERNALLY_CONSISTENT"
+                 if consistent else "HASHED_SCORE_RECEIPT_MISMATCH"),
+        "run_id":run_id,"split":split,
+        "recorded_scored_examples":n,
+        "recomputed_evidence_sha256":actual,
+        "recorded_evidence_sha256":claimed,
+        "score_receipt_consistent":consistent,
+        "sealed_test_prompts_read":False,
+        "model_executed":False,
+        "source_code_executed":False,
+        "functional_code_skill_proven":False,
     }
 
 
