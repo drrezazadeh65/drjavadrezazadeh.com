@@ -100,7 +100,7 @@ def _owner_token_file() -> Path:
         app = Path(sys.executable).absolute().parent
         container = app.parent.parent
         try:
-            if (re.fullmatch(r"v\\d+\\.\\d+\\.\\d+", app.name)
+            if (re.fullmatch(r"v\d+\.\d+\.\d+", app.name)
                     and app.parent.name == "releases"
                     and os.path.commonpath((str(container), str(profile))).casefold()
                     == str(profile.absolute()).casefold()
