@@ -206,7 +206,7 @@ function jrMetaJournalPropose(PDO $pdo,array $cfg,string $owner,array $body): ar
     }
     // The existing private HMAC client binds a fixed route and does not
     // accept arbitrary model-selected URLs or executable commands.
-    $adapter=dirname(__DIR__).'/platform/jrei-python/php/jrei-python-internal-client.php';
+    $adapter=__DIR__.'/jrei-remote-api-client.php';
     if (!is_file($adapter) || !is_readable($adapter)) {
         throw new RuntimeException('JREI_METACOGNITIVE_PRIVATE_ADAPTER_MISSING');
     }
