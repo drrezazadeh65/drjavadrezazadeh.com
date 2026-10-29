@@ -15,6 +15,7 @@ from pathlib import Path
 import re
 import sqlite3
 import time
+import unicodedata
 
 SCHEMA = "jr.jrei.first-party-code-curriculum.v1"
 SOURCE_DIRS = (
@@ -213,6 +214,227 @@ def tick(*, db_path: Path, repo: Path,
             "training_started":False,
         }
     return {"schema":SCHEMA,"state":"FIRST_PARTY_SOURCES_UP_TO_DATE",
+            "training_started":False}
+
+
+def _current_lesson_rows(db_path: Path) -> list[tuple]:
+    """Only source versions still matching the local code inventory."""
+    with closing(_db(db_path)) as db:
+        return db.execute("""SELECT l.id,l.source_path,l.source_sha256,
+                l.lesson_kind,l.prompt,l.reference_answer,l.answer_sha256,
+                l.ownership_reviewed,l.human_quality_reviewed,
+                l.model_training_permitted
+            FROM jrei_code_curriculum_lessons AS l
+            JOIN jrei_code_curriculum_inventory AS i
+              ON i.source_path=l.source_path
+             AND i.source_sha256=l.source_sha256
+            WHERE i.state='FIRST_PARTY_AST_LESSONS_STAGED'
+            ORDER BY l.source_path,l.id
+            LIMIT 25000""").fetchall()
+
+
+def _canonical_text(value: str) -> str:
+    return " ".join(unicodedata.normalize(
+        "NFKC", value).casefold().split())
+
+
+def _split_plan(rows: list[tuple]) -> dict:
+    """Plan file-disjoint TRAIN / DEVELOPMENT / SEALED_TEST partitions.
+
+    These are candidate data partitions, not proof that the code examples
+    generalize or that the owner has licensed every source for model training.
+    """
+    by_file: dict[str,list[dict]] = {}
+    seen: set[str] = set()
+    unsafe = 0
+    for (identifier,path,sha,kind,prompt,answer,answer_sha,
+         ownership,reviewed,allowed) in rows:
+        if (not isinstance(identifier,str) or len(identifier)!=64 or
+                not isinstance(path,str) or not path.startswith(
+                    "platform/jrei-python/") or
+                not isinstance(sha,str) or len(sha)!=64 or
+                not isinstance(prompt,str) or not isinstance(answer,str) or
+                not isinstance(answer_sha,str) or
+                _sha(answer.encode("utf-8"))!=answer_sha or
+                SECRET.search(prompt) or SECRET.search(answer)):
+            unsafe += 1
+            continue
+        normalized = _canonical_text(prompt)
+        fingerprint = _sha(normalized.encode("utf-8"))
+        if fingerprint in seen:
+            continue
+        seen.add(fingerprint)
+        by_file.setdefault(path,[]).append({
+            "id":identifier,"source_path":path,"source_sha256":sha,
+            "kind":kind,"prompt":prompt,"reference_answer":answer,
+            "rights_reviewed":bool(ownership),
+            "quality_reviewed":bool(reviewed),
+            "training_permitted":bool(allowed),
+        })
+    files = sorted(by_file,key=lambda path: _sha(path.encode("utf-8")))
+    if len(files) < 6:
+        return {"state":"NEEDS_SIX_DISTINCT_FIRST_PARTY_FILES",
+                "source_files":len(files),"total_lessons":sum(
+                    map(len,by_file.values())),"unsafe_rows":unsafe}
+    heldout_count = max(1,len(files)//6)
+    dev_count = max(1,len(files)//5)
+    sealed_files = files[:heldout_count]
+    development_files = files[heldout_count:heldout_count+dev_count]
+    train_files = files[heldout_count+dev_count:]
+    if not train_files or not development_files or not sealed_files:
+        return {"state":"CODE_CURRICULUM_FILE_PARTITIONS_INSUFFICIENT"}
+    partitions = {
+        "TRAIN":[item for path in train_files for item in by_file[path]],
+        "DEVELOPMENT":[item for path in development_files
+                       for item in by_file[path]],
+        "SEALED_TEST":[item for path in sealed_files
+                       for item in by_file[path]],
+    }
+    if any(not items for items in partitions.values()):
+        return {"state":"CODE_CURRICULUM_EMPTY_PARTITION"}
+    # Source files are disjoint. Also fence repeated canonical question text
+    # across partitions; an exact duplicate must be rejected, not hidden.
+    hashes = [
+        {_sha(_canonical_text(i["prompt"]).encode("utf-8")) for i in items}
+        for items in partitions.values()
+    ]
+    if any(hashes[i] & hashes[j]
+           for i in range(len(hashes))
+           for j in range(i+1,len(hashes))):
+        return {"state":"CODE_CURRICULUM_CROSS_PARTITION_DUPLICATE"}
+    # A public repository and a model-generated patch never acquire a
+    # training-rights flag because they appeared in a source audit.
+    approved = all(
+        item["rights_reviewed"] and item["quality_reviewed"] and
+        item["training_permitted"]
+        for items in partitions.values() for item in items
+    )
+    return {
+        "state":"FIRST_PARTY_CODING_PARTITIONS_STAGED_UNAPPROVED",
+        "partitions":partitions,
+        "source_files":len(files),
+        "total_lessons":sum(map(len,partitions.values())),
+        "unsafe_rows":unsafe,"every_example_training_approved":approved,
+        "source_file_partitions_disjoint":True,
+        "semantic_generalization_measured":False,
+    }
+
+
+def preflight(db_path: Path) -> dict:
+    """Read-only readiness; not a model training trigger."""
+    plan = _split_plan(_current_lesson_rows(db_path))
+    if "partitions" not in plan:
+        return {"schema":SCHEMA,**plan,
+                "training_started":False}
+    parts = plan["partitions"]
+    return {
+        "schema":SCHEMA,"state":plan["state"],
+        "first_party_files":plan["source_files"],
+        "candidate_lessons":plan["total_lessons"],
+        "unsafe_rows_excluded":plan["unsafe_rows"],
+        "partition_example_counts":{k:len(v) for k,v in parts.items()},
+        "all_training_rights_and_quality_reviewed":
+            plan["every_example_training_approved"],
+        "source_file_partitions_disjoint":True,
+        "public_oss_copied_into_candidate":False,
+        "training_started":False,"weights_changed":False,
+    }
+
+
+def stage_candidate(*, db_path: Path, repo: Path, private: Path,
+                    resources_available: bool) -> dict:
+    """Write an immutable, owner-private JSONL study CANDIDATE.
+
+    This creates neither a training job nor activation metadata. It uses
+    the existing JREI-private location, never site media directories or
+    the current production checkout. Each new data cohort gets a new hash
+    address; unchanged cohorts are not rewritten.
+    """
+    if type(resources_available) is not bool:
+        raise ValueError("JREI_CODE_CURRICULUM_RESOURCE_FLAG_INVALID")
+    if not resources_available:
+        return {"schema":SCHEMA,"state":"HELD_RESOURCES"}
+    root=repo.resolve(strict=True)
+    storage=private.resolve(strict=True)
+    if (storage==root or storage.is_relative_to(root) or
+            root.is_relative_to(storage) or
+            storage.name!="command-center"):
+        raise ValueError("JREI_CODE_CURRICULUM_STORAGE_NOT_ISOLATED")
+    plan=_split_plan(_current_lesson_rows(db_path))
+    if "partitions" not in plan:
+        return {"schema":SCHEMA,**plan,
+                "training_started":False}
+    partition_data:dict[str,bytes]={}
+    manifest_refs={}
+    for name,examples in plan["partitions"].items():
+        data=b"".join(
+            (json.dumps({
+                "schema":"jr.jrei.source-code-reading-example.v1",
+                "id":item["id"],
+                "prompt":item["prompt"],
+                "reference_answer":item["reference_answer"],
+                "source_path":item["source_path"],
+                "source_sha256":item["source_sha256"],
+                "lesson_kind":item["kind"],
+                "human_quality_reviewed":item["quality_reviewed"],
+                "model_training_permitted":item["training_permitted"],
+            },ensure_ascii=False,sort_keys=True,separators=(",",":"))+"\n"
+            ).encode("utf-8") for item in examples
+        )
+        partition_data[name]=data
+        manifest_refs[name]={
+            "count":len(examples),
+            "sha256":_sha(data),
+            "source_files":sorted(set(
+                item["source_path"] for item in examples)),
+        }
+    identity=_sha(json.dumps(
+        manifest_refs,sort_keys=True,separators=(",",":")
+    ).encode("utf-8"))
+    target_dir=storage/"native-code-curriculum-candidates"
+    if target_dir.is_symlink():
+        raise ValueError("JREI_CODE_CURRICULUM_FOLDER_LINK")
+    target_dir.mkdir(parents=True,exist_ok=True)
+    dest=target_dir/identity
+    if dest.exists():
+        if dest.is_symlink():
+            raise ValueError("JREI_CODE_CURRICULUM_COHORT_LINK")
+        manifest=dest/"manifest.json"
+        if not manifest.is_file() or manifest.is_symlink():
+            return {"schema":SCHEMA,
+                    "state":"INCOMPLETE_EXISTING_COHORT_REVIEW_REQUIRED",
+                    "cohort_sha256":identity,"training_started":False}
+        return {"schema":SCHEMA,
+                "state":"EXISTING_CODE_CURRICULUM_CANDIDATE_PRESERVED",
+                "cohort_sha256":identity,"training_started":False}
+    # A failed write leaves visible evidence; no deletion or overwriting
+    # of an existing cohort, including after power loss.
+    dest.mkdir(mode=0o700)
+    for name,bytes_ in partition_data.items():
+        with (dest/(name.lower()+".jsonl")).open("xb") as out:
+            out.write(bytes_)
+    receipt={
+        "schema":"jr.jrei.first-party-coding-dataset-candidate.v1",
+        "cohort_sha256":identity,"created":int(time.time()),
+        "source_grouping":"WHOLE_FIRST_PARTY_MODULE_DISJOINT_V1",
+        "partitions":manifest_refs,
+        "unsafe_rows_excluded":plan["unsafe_rows"],
+        "training_rights_and_quality_approved":
+            plan["every_example_training_approved"],
+        "state":"UNREVIEWED_CODE_TRAINING_CANDIDATE_ONLY",
+        "public_oss_code_used_for_training":False,
+        "published_model_training_started":False,
+        "model_weights_trained":False,
+        "independent_evaluation_completed":False,
+        "owner_activation_granted":False,
+    }
+    with (dest/"manifest.json").open("x",encoding="utf-8") as out:
+        json.dump(receipt,out,ensure_ascii=False,sort_keys=True,indent=2)
+    return {"schema":SCHEMA,"state":receipt["state"],
+            "cohort_sha256":identity,
+            "candidate_examples":plan["total_lessons"],
+            "source_files":plan["source_files"],
+            "train_dev_sealed_source_disjoint":True,
             "training_started":False}
 
 
