@@ -20,6 +20,7 @@ import unicodedata
 from jrei_service.windows_self_development import _inspect
 
 SCHEMA = "jr.jrei.first-party-code-curriculum.v1"
+GENERATOR_REVISION = "JREI_AST_CODE_CURRICULUM_V2_COMPACT"
 SOURCE_DIRS = (
     "platform/jrei-python/jrei_learning",
     "platform/jrei-python/jrei_orchestrator",
@@ -62,7 +63,8 @@ def initialize(db_path: Path) -> None:
             source_sha256 TEXT NOT NULL,
             observed INTEGER NOT NULL,
             state TEXT NOT NULL,
-            lesson_count INTEGER NOT NULL DEFAULT 0)""")
+            lesson_count INTEGER NOT NULL DEFAULT 0,
+            generator_revision TEXT NOT NULL DEFAULT 'LEGACY')""")
         db.execute("""CREATE TABLE IF NOT EXISTS jrei_code_curriculum_lessons(
             id TEXT PRIMARY KEY,
             source_path TEXT NOT NULL,
@@ -74,6 +76,7 @@ def initialize(db_path: Path) -> None:
             reference_answer TEXT NOT NULL,
             answer_sha256 TEXT NOT NULL,
             created INTEGER NOT NULL,
+            generator_revision TEXT NOT NULL DEFAULT 'LEGACY',
             ownership_reviewed INTEGER NOT NULL DEFAULT 0,
             human_quality_reviewed INTEGER NOT NULL DEFAULT 0,
             model_training_permitted INTEGER NOT NULL DEFAULT 0,
@@ -98,7 +101,17 @@ def initialize(db_path: Path) -> None:
             lesson_quality_claimed INTEGER NOT NULL,
             approved_lesson_count INTEGER NOT NULL,
             attestation_sha256 TEXT NOT NULL,
+            generator_revision TEXT NOT NULL DEFAULT 'LEGACY',
             PRIMARY KEY(source_path,source_sha256))""")
+        for table in ("jrei_code_curriculum_inventory",
+                      "jrei_code_curriculum_lessons",
+                      "jrei_code_curriculum_reviews"):
+            columns={row[1] for row in db.execute(
+                "PRAGMA table_info(" + table + ")")}
+            if "generator_revision" not in columns:
+                db.execute("ALTER TABLE " + table +
+                           " ADD COLUMN generator_revision TEXT NOT NULL"
+                           " DEFAULT 'LEGACY'")
         db.commit()
 
 
@@ -156,7 +169,8 @@ def _render_lesson(path: str, digest: str, node: ast.AST,
     )
     fingerprint = _sha((
         path + "\0" + digest + "\0" +
-        node.name + "\0" + str(node.lineno) + "\0" + "AST_API_READING_V1"
+        node.name + "\0" + str(node.lineno) + "\0" +
+        "AST_API_READING_V1" + "\0" + GENERATOR_REVISION
     ).encode("utf-8"))
     return {
         "id": fingerprint, "path": path, "source_sha256": digest,
@@ -226,6 +240,7 @@ def _risk_lessons(path: str, digest: str, source: str) -> list[dict]:
         lesson_id=_sha((
             path+"\0"+digest+"\0"+kind+"\0"+
             str(line)+"\0AST_RISK_INTERPRETATION_V1"
+            +"\0"+GENERATOR_REVISION
         ).encode("utf-8"))
         result.append({
             "id":lesson_id,"path":path,"source_sha256":digest,
@@ -285,6 +300,7 @@ def _repair_lessons(path: str, digest: str, source: str,
         lesson_id=_sha((
             path+"\0"+digest+"\0"+node.name+"\0"+
             str(node.lineno)+"\0AST_SYNTAX_REPAIR_V1"
+            +"\0"+GENERATOR_REVISION
         ).encode("utf-8"))
         lessons.append({
             "id":lesson_id,"path":path,"source_sha256":digest,
@@ -334,15 +350,16 @@ def tick(*, db_path: Path, repo: Path,
     if not resources_available:
         return {"schema":SCHEMA,"state":"HELD_RESOURCES"}
     with closing(_db(db_path)) as db:
-        known = dict(db.execute("""SELECT source_path,source_sha256
-            FROM jrei_code_curriculum_inventory""").fetchall())
+        known = {name:(sha,rev) for name,sha,rev in db.execute(
+            """SELECT source_path,source_sha256,generator_revision
+            FROM jrei_code_curriculum_inventory""").fetchall()}
     for name, file in _candidates(repo):
         try:
             raw = file.read_bytes()
         except (OSError,ValueError):
             continue
         digest = _sha(raw)
-        if known.get(name) == digest:
+        if known.get(name) == (digest,GENERATOR_REVISION):
             continue
         state, lessons = _extract(name,raw)
         now = int(time.time())
@@ -350,21 +367,25 @@ def tick(*, db_path: Path, repo: Path,
             db.execute("BEGIN IMMEDIATE")
             db.executemany("""INSERT OR IGNORE INTO jrei_code_curriculum_lessons(
               id,source_path,source_sha256,function_name,function_line,
-              lesson_kind,prompt,reference_answer,answer_sha256,created)
-              VALUES(?,?,?,?,?,?,?,?,?,?)""", [
+              lesson_kind,prompt,reference_answer,answer_sha256,created,
+              generator_revision)
+              VALUES(?,?,?,?,?,?,?,?,?,?,?)""", [
                 (item["id"],item["path"],item["source_sha256"],
                  item["name"],item["line"],item["kind"],item["prompt"],
-                 item["answer"],item["answer_sha256"],now)
+                 item["answer"],item["answer_sha256"],now,
+                 GENERATOR_REVISION)
                 for item in lessons
             ])
             db.execute("""INSERT INTO jrei_code_curriculum_inventory(
-              source_path,source_sha256,observed,state,lesson_count)
-              VALUES(?,?,?,?,?)
+              source_path,source_sha256,observed,state,lesson_count,
+              generator_revision)
+              VALUES(?,?,?,?,?,?)
               ON CONFLICT(source_path) DO UPDATE SET
                 source_sha256=excluded.source_sha256,
                 observed=excluded.observed,state=excluded.state,
-                lesson_count=excluded.lesson_count""",
-                (name,digest,now,state,len(lessons)))
+                lesson_count=excluded.lesson_count,
+                generator_revision=excluded.generator_revision""",
+                (name,digest,now,state,len(lessons),GENERATOR_REVISION))
             db.commit()
         return {
             "schema":SCHEMA,"state":state,"source_path":name,
@@ -388,9 +409,11 @@ def _current_lesson_rows(db_path: Path) -> list[tuple]:
             JOIN jrei_code_curriculum_inventory AS i
               ON i.source_path=l.source_path
              AND i.source_sha256=l.source_sha256
+             AND i.generator_revision=l.generator_revision
             WHERE i.state='FIRST_PARTY_AST_LESSONS_STAGED'
+              AND i.generator_revision=?
             ORDER BY l.source_path,l.id
-            LIMIT 25000""").fetchall()
+            LIMIT 25000""",(GENERATOR_REVISION,)).fetchall()
 
 
 def _canonical_text(value: str) -> str:
