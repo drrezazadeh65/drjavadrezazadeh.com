@@ -909,7 +909,7 @@ class Desktop(FeatureHubMixin):
             raise RuntimeError(
                 reason[0] if reason else "JREI_PRIVATE_ENGINE_START_FAILED")
         output = completed.stdout.decode("utf-8", errors="replace")
-        events = re.findall(r"\\[JREI\\] (JREI_[A-Z0-9_]{4,110})", output)
+        events = re.findall(r"\[JREI\] (JREI_[A-Z0-9_]{4,110})", output)
         if not events or events[-1] not in (
                 "JREI_ENGINE_AUTHENTICATED_EXISTING",
                 "JREI_ENGINE_AUTHENTICATED_BUNDLED"):
