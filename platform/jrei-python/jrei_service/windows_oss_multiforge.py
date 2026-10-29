@@ -19,7 +19,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
-from jrei_service.windows_open_source_study import _source_signatures
+from jrei_service.windows_open_source_study import _source_signatures, _notes
 
 SCHEMA = "jr.jrei.multiforge-source-research.v1"
 PROVIDERS = ("gitlab", "codeberg")
@@ -64,6 +64,7 @@ def initialize(path):
             source_last_attempt INTEGER, source_next_due INTEGER NOT NULL DEFAULT 0,
             source_revision TEXT, source_path TEXT, source_sha256 TEXT,
             signatures_json TEXT NOT NULL DEFAULT '[]',
+            research_notes_json TEXT NOT NULL DEFAULT '[]',
             source_state TEXT NOT NULL DEFAULT 'NEVER_READ',
             PRIMARY KEY(provider,domain,repository));""")
         db.commit()
@@ -260,7 +261,8 @@ def _gitlab_source(project_id, query):
                      str(item.get("path","")).lower().endswith(CODE) and
                      SHA.fullmatch(str(item.get("id","")))]
     if not blobs:
-        return {"revision":revision,"source":None,"sha":None,"functions":[]}
+        return {"revision":revision,"source":None,"sha":None,"functions":[],
+                "notes":[]}
     terms = set(re.findall(r"[a-z]{3,}", query.lower()))
     blobs.sort(key=lambda item: (
         -len(terms & set(re.findall(
@@ -277,7 +279,8 @@ def _gitlab_source(project_id, query):
     return {"revision": revision,
             "source": str(source["path"])[:190],
             "sha": hashlib.sha256(raw).hexdigest(),
-            "functions": _source_signatures(raw, str(source["path"]))}
+            "functions": _source_signatures(raw, str(source["path"])),
+            "notes": _notes(raw, query, label="code")}
 
 
 def _codeberg_source(repository, query):
@@ -361,7 +364,8 @@ def _codeberg_source(repository, query):
         raise ValueError("JREI_CODEBERG_BLOB_MISMATCH")
     return {"revision":revision,"source":source_path,
             "sha":hashlib.sha256(raw).hexdigest(),
-            "functions":_source_signatures(raw,source_path)}
+            "functions":_source_signatures(raw,source_path),
+            "notes":_notes(raw,query,label="code")}
 
 
 def read_once(path, *, resources_available, owner_active=False):
@@ -404,18 +408,21 @@ def read_once(path, *, resources_available, owner_active=False):
     with closing(_db(path)) as db:
         db.execute("""UPDATE jrei_oss_forge_candidates SET
             source_next_due=?,source_revision=?,source_path=?,
-            source_sha256=?,signatures_json=?,source_state=?
+            source_sha256=?,signatures_json=?,research_notes_json=?,
+            source_state=?
             WHERE provider=? AND domain=? AND repository=?""",
             (now+(SOURCE_REFRESH if info else RETRY),
              info["revision"] if info else None,
              info["source"] if info else None,
              info["sha"] if info else None,
              json.dumps(info["functions"],sort_keys=True) if info else "[]",
+             json.dumps(info["notes"],ensure_ascii=False) if info else "[]",
              state,provider,domain,repository))
         db.commit()
     return {"schema":SCHEMA,"provider":provider,"state":state,
             "repository":repository,
             "source_read":bool(info and info["sha"]),
+            "source_excerpt_count":len(info["notes"]) if info else 0,
             "code_executed":False}
 
 
