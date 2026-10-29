@@ -72,10 +72,43 @@ function SecureAction {
 function PortFree {
  return @(Get-NetTCPConnection -LocalPort 8082 -State Listen -ErrorAction SilentlyContinue).Count -eq 0
 }
+function StopVerifiedModelChild {
+ # Windows Task Scheduler can leave the child llama-server alive after
+ # ending its owner PowerShell task. Never stop a foreign port occupant.
+ $listeners=@(Get-NetTCPConnection -LocalPort 8082 -State Listen -ErrorAction SilentlyContinue)
+ if($listeners.Count -ne 1 -or $listeners[0].LocalAddress -cne '127.0.0.1'){return $false}
+ $processId=[int]$listeners[0].OwningProcess
+ $proc=Get-CimInstance Win32_Process -Filter ("ProcessId="+$processId) -ErrorAction SilentlyContinue
+ if($null -eq $proc -or [string]::IsNullOrWhiteSpace([string]$proc.ExecutablePath)){return $false}
+ $cfg=ReadJson $originalSettings
+ $runtime=Join-Path $root 'llama-b11932-vulkan'
+ $exes=@(Get-ChildItem -LiteralPath $runtime -Filter llama-server.exe -File -Recurse -ErrorAction SilentlyContinue)
+ if($exes.Count -ne 1 -or
+    -not [IO.Path]::GetFullPath([string]$proc.ExecutablePath).Equals(
+      [IO.Path]::GetFullPath($exes[0].FullName),[StringComparison]::OrdinalIgnoreCase)){return $false}
+ if((Sha $exes[0].FullName) -cne [string]$cfg.exeSha256){return $false}
+ $command=[string]$proc.CommandLine
+ if(-not $command.Contains('--port 8082') -or
+    -not $command.Contains('--alias jrei-gpu-lab') -or
+    -not $command.Contains('Qwen3-4B-Q4_K_M.gguf')){return $false}
+ try{
+   $processOwner=Invoke-CimMethod -InputObject $proc -MethodName GetOwner -ErrorAction Stop
+   if(($processOwner.Domain+'\'+$processOwner.User) -ine $owner.Name){return $false}
+ }catch{return $false}
+ Stop-Process -Id $processId -Force -ErrorAction Stop
+ return $true
+}
 function WaitFree([int]$seconds=25){
  for($i=0;$i -lt $seconds;$i++){
   if(PortFree){return $true}
   Start-Sleep -Seconds 1
+ }
+ # Only the approved model subprocess may be stopped, never another listener.
+ if(StopVerifiedModelChild){
+   for($j=0;$j -lt 10;$j++){
+      if(PortFree){return $true}
+      Start-Sleep -Seconds 1
+   }
  }
  return (PortFree)
 }
