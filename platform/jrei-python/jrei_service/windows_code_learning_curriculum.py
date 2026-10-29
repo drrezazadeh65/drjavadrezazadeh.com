@@ -33,6 +33,8 @@ MAX_SOURCE_BYTES = 80000
 MAX_EXCERPT_CHARS = 1500
 MAX_AST_NODES = 18000
 MAX_LESSONS_PER_FILE = 12
+SOURCE_SHA = re.compile(r"^[a-f0-9]{64}$")
+REVIEWER = re.compile(r"^[A-Za-z0-9._:-]{3,90}$")
 MAX_API_LESSONS_PER_FILE = 7
 MAX_STATIC_LESSONS_PER_FILE = 5
 SECRET = re.compile(
@@ -86,6 +88,16 @@ def initialize(db_path: Path) -> None:
             state TEXT NOT NULL,
             training_started INTEGER NOT NULL DEFAULT 0,
             model_weights_modified INTEGER NOT NULL DEFAULT 0)""")
+        db.execute("""CREATE TABLE IF NOT EXISTS jrei_code_curriculum_reviews(
+            source_path TEXT NOT NULL,
+            source_sha256 TEXT NOT NULL,
+            reviewer TEXT NOT NULL,
+            reviewed_at INTEGER NOT NULL,
+            source_rights_claimed INTEGER NOT NULL,
+            lesson_quality_claimed INTEGER NOT NULL,
+            approved_lesson_count INTEGER NOT NULL,
+            attestation_sha256 TEXT NOT NULL,
+            PRIMARY KEY(source_path,source_sha256))""")
         db.commit()
 
 
@@ -588,6 +600,112 @@ def stage_candidate(*, db_path: Path, repo: Path, private: Path,
             "training_started":False}
 
 
+def preview_source(db_path: Path, source_path: str) -> dict:
+    """Owner-readable sample with immutable source identity, no writes."""
+    if (not isinstance(source_path,str) or
+            not any(source_path.startswith(folder+"/")
+                    for folder in SOURCE_DIRS) or
+            ".." in source_path.split("/") or
+            "\\" in source_path or len(source_path)>230):
+        raise ValueError("JREI_CODE_CURRICULUM_SOURCE_PATH_INVALID")
+    with closing(_db(db_path)) as db:
+        inventory=db.execute("""SELECT source_sha256,state FROM
+            jrei_code_curriculum_inventory WHERE source_path=?""",
+            (source_path,)).fetchone()
+        if inventory is None:
+            return {"schema":SCHEMA,"state":"SOURCE_NOT_STUDIED"}
+        items=db.execute("""SELECT id,lesson_kind,function_line,prompt,
+            reference_answer,ownership_reviewed,human_quality_reviewed,
+            model_training_permitted FROM jrei_code_curriculum_lessons
+            WHERE source_path=? AND source_sha256=?
+            ORDER BY function_line,lesson_kind LIMIT 12""",
+            (source_path,inventory[0])).fetchall()
+    return {
+        "schema":SCHEMA,
+        "state":"CURRENT_FIRST_PARTY_SOURCE_LESSONS_UNREVIEWED",
+        "source_path":source_path,
+        "source_sha256":inventory[0],
+        "items":[{
+            "id":id_,"kind":kind,"source_line":line,
+            "prompt":prompt[:1800],"reference_answer":answer[:700],
+            "rights_reviewed":bool(rights),
+            "human_quality_reviewed":bool(quality),
+            "training_permitted":bool(permitted)
+        } for id_,kind,line,prompt,answer,rights,quality,permitted
+             in items],
+        "training_started":False,
+    }
+
+
+def review_source(*, db_path: Path, repo: Path, source_path: str,
+                  expected_sha256: str, reviewer: str,
+                  rights_reviewed: bool, lesson_quality_reviewed: bool,
+                  owner_confirmed: bool) -> dict:
+    """One explicit owner-local review per source revision, not per lesson.
+
+    Never accept the coding model's own claim of accuracy as a human
+    attestation. Reviewed first-party source identity is content-addressed.
+    A changed file requires a NEW source-specific review.
+    """
+    if (owner_confirmed is not True or rights_reviewed is not True or
+            lesson_quality_reviewed is not True):
+        raise ValueError("JREI_CODE_CURRICULUM_RIGHTS_QA_REVIEW_REQUIRED")
+    if not isinstance(reviewer,str) or not REVIEWER.fullmatch(reviewer):
+        raise ValueError("JREI_CODE_CURRICULUM_REVIEWER_INVALID")
+    if (not isinstance(expected_sha256,str) or
+            not SOURCE_SHA.fullmatch(expected_sha256)):
+        raise ValueError("JREI_CODE_CURRICULUM_REVIEW_SHA_INVALID")
+    if (not isinstance(source_path,str) or
+            not any(source_path.startswith(folder+"/")
+                    for folder in SOURCE_DIRS) or
+            ".." in source_path.split("/") or
+            "\\" in source_path or len(source_path)>230):
+        raise ValueError("JREI_CODE_CURRICULUM_SOURCE_INVALID")
+    if not _source_sha_current(repo,source_path,expected_sha256):
+        raise ValueError("JREI_CODE_CURRICULUM_SOURCE_REVISION_CHANGED")
+    reviewed_at=int(time.time())
+    with closing(_db(db_path)) as db:
+        db.execute("BEGIN IMMEDIATE")
+        inventory=db.execute("""SELECT source_sha256,state FROM
+            jrei_code_curriculum_inventory WHERE source_path=?""",
+            (source_path,)).fetchone()
+        if (inventory is None or inventory[0]!=expected_sha256 or
+                inventory[1]!="FIRST_PARTY_AST_LESSONS_STAGED"):
+            db.rollback()
+            raise ValueError("JREI_CODE_CURRICULUM_INVENTORY_STALE")
+        ids=[row[0] for row in db.execute("""SELECT id FROM
+            jrei_code_curriculum_lessons WHERE source_path=?
+            AND source_sha256=? ORDER BY id""",
+            (source_path,expected_sha256)).fetchall()]
+        if not ids:
+            db.rollback()
+            raise ValueError("JREI_CODE_CURRICULUM_NO_REVIEWABLE_LESSONS")
+        digest=_sha(json.dumps({
+            "source_path":source_path,"source_sha256":expected_sha256,
+            "ids":ids,"reviewer":reviewer,
+            "rights_reviewed":True,"lesson_quality_reviewed":True,
+        },sort_keys=True,separators=(",",":")).encode("utf-8"))
+        db.execute("""UPDATE jrei_code_curriculum_lessons
+            SET ownership_reviewed=1,human_quality_reviewed=1,
+                model_training_permitted=1
+            WHERE source_path=? AND source_sha256=?""",
+            (source_path,expected_sha256))
+        db.execute("""INSERT OR IGNORE INTO jrei_code_curriculum_reviews(
+            source_path,source_sha256,reviewer,reviewed_at,
+            source_rights_claimed,lesson_quality_claimed,
+            approved_lesson_count,attestation_sha256)
+            VALUES(?,?,?,?,1,1,?,?)""",
+            (source_path,expected_sha256,reviewer,reviewed_at,
+             len(ids),digest))
+        db.commit()
+    return {"schema":SCHEMA,
+            "state":"OWNER_ATTESTED_FIRST_PARTY_CODE_LESSONS",
+            "source_path":source_path,"source_sha256":expected_sha256,
+            "approved_lessons":len(ids),
+            "attestation_sha256":digest,
+            "training_started":False}
+
+
 def snapshot(db_path: Path) -> dict:
     with closing(_db(db_path)) as db:
         files = db.execute("""SELECT COUNT(*) FROM
@@ -604,11 +722,14 @@ def snapshot(db_path: Path) -> dict:
             AND model_training_permitted=1""").fetchone()[0]
         cohorts,last_cohort = db.execute("""SELECT COUNT(*),
             MAX(created) FROM jrei_code_curriculum_cohorts""").fetchone()
+        reviewed_sources=db.execute("""SELECT COUNT(*)
+            FROM jrei_code_curriculum_reviews""").fetchone()[0]
     return {
         "schema":SCHEMA,"first_party_source_files_observed":files,
         "total_structural_lesson_versions":lessons,
         "current_source_lesson_candidates":current,
         "approved_training_examples":approved,
+        "source_revisions_owner_attested":reviewed_sources,
         "immutable_private_dataset_candidate_cohorts":cohorts,
         "last_candidate_cohort_created_at":last_cohort,
         "source_ownership_assumed":False,
