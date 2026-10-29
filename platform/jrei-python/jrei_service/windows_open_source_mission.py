@@ -332,13 +332,16 @@ def snapshot(db_path: Path) -> dict:
                 THEN 1 ELSE 0 END) FROM jrei_oss_topics
             WHERE domain LIKE 'self_%' OR domain LIKE 'problem_%'""").fetchone()
         candidates=db.execute("""SELECT COUNT(*) FROM jrei_oss_candidates
-            WHERE owner_review='DISCOVERED_UNVERIFIED'""").fetchone()[0]
+            WHERE owner_review='DISCOVERED_UNVERIFIED'
+              AND (domain LIKE 'self_%' OR domain LIKE 'problem_%')""").fetchone()[0]
         topics=db.execute("""SELECT domain,last_state,last_attempt,last_success,
             next_due FROM jrei_oss_topics
             WHERE domain LIKE 'self_%' OR domain LIKE 'problem_%'
             ORDER BY domain""").fetchall()
         latest=db.execute("""SELECT observed,domain,state,candidate_count
-            FROM jrei_oss_observations ORDER BY id DESC LIMIT 1""").fetchone()
+            FROM jrei_oss_observations
+            WHERE domain LIKE 'self_%' OR domain LIKE 'problem_%'
+            ORDER BY id DESC LIMIT 1""").fetchone()
     return {
         "schema":SCHEMA, "enabled":enabled,
         "permanent_mission_in_source":True,
@@ -352,6 +355,7 @@ def snapshot(db_path: Path) -> dict:
         "successful_live_searches_recorded":int(totals[2] or 0),
         "domains_with_real_search":int(totals[3] or 0),
         "unreviewed_source_candidates":candidates,
+        "discovery_counts_exclude_legacy_site_topics":True,
         "latest_search":({"at":latest[0],"domain":latest[1],
                           "state":latest[2],"candidates":latest[3]}
                          if latest else None),
