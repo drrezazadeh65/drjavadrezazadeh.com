@@ -84,6 +84,8 @@ def _owner_token_file() -> Path:
     choices = (
         local / "JREI-Owner" / "command-center",
         profile / "JREI-Owner" / "command-center",
+        local / "JREI-Private-v2" / "command-center",
+        profile / ".jrei-owner" / "command-center",
     )
     marked = []
     for candidate in choices:
