@@ -218,6 +218,62 @@ def _seed_problem_topics(db) -> int:
                 (domain, learning_queries[issue]))
             if db.total_changes > before:
                 inserted += 1
+    # Close the loop: independent no-execution reviews of isolated code
+    # candidates generate new research questions. Only internal diagnostic
+    # labels enter this lookup; upstream excerpts and model replies cannot
+    # supply arbitrary GitHub queries or override the agenda.
+    review_queries = {
+        "PUBLIC_ENTRY_POINT_REMOVED_REVIEW_REQUIRED":
+            "python backward compatible api refactoring",
+        "PUBLIC_CALL_SIGNATURE_CHANGED_REVIEW_REQUIRED":
+            "python callable signature compatibility refactoring",
+        "NEW_DEPENDENCY_REVIEW_REQUIRED":
+            "python dependency isolation reproducible builds",
+        "MODULE_IMPORT_TIME_CALL_REVIEW_REQUIRED":
+            "python module import side effects analysis",
+        "EXCEPTION_CATCH_BEHAVIOR_CHANGED":
+            "python bare except exception compatibility",
+        "ORIGINAL_SHA_MISMATCH":
+            "python content addressed patch conflict detection",
+        "CANONICAL_SOURCE_CHANGED":
+            "python source pinning patch rebase strategy",
+        "PYTHON_STATIC_ANALYSIS_UNAVAILABLE":
+            "python ast static review complexity",
+        "STATIC_ANALYSIS_INCOMPLETE":
+            "python static analyzer bounded analysis",
+        "JAVASCRIPT_AST_NOT_INDEPENDENTLY_PARSED":
+            "javascript ast syntax review parser",
+    }
+    for table in ("jrei_candidate_static_reviews",
+                  "jrei_rule_static_reviews"):
+        exists = db.execute("""SELECT 1 FROM sqlite_master
+            WHERE type='table' AND name=?""", (table,)).fetchone()
+        if not exists:
+            continue
+        # The table identifier is a fixed string from the internal tuple;
+        # no SQL identifier originates from the user or external source.
+        samples = db.execute(
+            "SELECT static_risk_flags_json FROM " + table +
+            " ORDER BY reviewed_at DESC LIMIT 150").fetchall()
+        for (encoded,) in samples:
+            try:
+                flags = json.loads(encoded)
+            except (ValueError, TypeError):
+                continue
+            if not isinstance(flags, list):
+                continue
+            for issue in flags[:12]:
+                if not isinstance(issue, str) or issue not in review_queries:
+                    continue
+                domain = "problem_" + hashlib.sha256(
+                    ("STATIC_REVIEW_" + issue).encode("ascii")
+                ).hexdigest()[:18]
+                before = db.total_changes
+                db.execute("""INSERT OR IGNORE INTO jrei_oss_topics(
+                    domain,query) VALUES(?,?)""",
+                    (domain,review_queries[issue]))
+                if db.total_changes > before:
+                    inserted += 1
     return inserted
 
 
