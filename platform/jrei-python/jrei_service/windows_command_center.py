@@ -1343,6 +1343,17 @@ class OwnerHTTP(BaseHTTPRequestHandler):
                               scratch_training.snapshot_code_runs(PRIVATE))
         if self.path == "/api/learning/native-code/evaluations":
             return self._send(200,code_evaluation.snapshot(DB_PATH))
+        if urlsplit(self.path).path == (
+                "/api/learning/native-code/evaluation-preflight"):
+            params=parse_qs(urlsplit(self.path).query)
+            try:
+                return self._send(200,code_evaluation.preflight(
+                    db_path=DB_PATH,private=PRIVATE,
+                    run_id=params.get("run_id",[""])[0]))
+            except (ValueError,OSError,sqlite3.Error,
+                    RuntimeError,TypeError,KeyError):
+                return self._send(409,{
+                    "error":"JREI_NATIVE_CODE_EVAL_PREFLIGHT_UNAVAILABLE"})
         if urlsplit(self.path).path == "/api/learning/native-code/compare":
             query=parse_qs(urlsplit(self.path).query)
             try:
