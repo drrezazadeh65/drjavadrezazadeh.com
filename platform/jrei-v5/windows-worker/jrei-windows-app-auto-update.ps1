@@ -287,10 +287,28 @@ function Promote([string]$sha){
 }
 if($Mode -eq 'Check'){
  $head=CurrentHead
+ $tree=SourceTree $head
  $consent=ReadJson $marker
  $state=ReadJson $installed
- Report $(if($consent -and $consent.enabled -eq $true){'WINDOWS_APP_AUTO_UPDATE_ENABLED'}else{'WINDOWS_APP_AUTO_UPDATE_OFF'})
- Report $(if($state -and $state.sourceCommit -ceq $head){'WINDOWS_APP_CURRENT'}else{'WINDOWS_APP_UPDATE_PENDING'})
+ $running=$false
+ try{
+  $task=OwnerTask
+  if($state -and $task.State -eq 'Running' -and
+     [string]$task.Actions[0].WorkingDirectory -ieq [string]$state.sourcePath -and
+     (IsReady ([string]$state.sourceCommit))){$running=$true}
+ }catch{$running=$false}
+ Report $(if($consent -and $consent.enabled -eq $true -and
+      $consent.ownerSid -ceq $owner.User.Value){
+      'WINDOWS_APP_AUTO_UPDATE_ENABLED'}else{'WINDOWS_APP_AUTO_UPDATE_OFF'})
+ if($running -and (InstalledTree $state) -ceq $tree){
+  Report 'WINDOWS_APP_SOURCE_TREE_CURRENT'
+ }else{
+  Report 'WINDOWS_APP_UPDATE_PENDING'
+ }
+ $blocked=ReadJson $failed
+ if($blocked -and $blocked.sourceTree -ceq $tree){
+  Report 'WINDOWS_APP_SOURCE_REVIEW_HOLD_ACTIVE'
+ }
  return
 }
 if($Mode -eq 'Disable'){
@@ -337,23 +355,53 @@ if(-not $approved -or $approved.schema -cne 'jr.jrei.windows-app-auto-update.v1'
  return
 }
 $head=CurrentHead
+$tree=SourceTree $head
 $state=ReadJson $installed
-# Automatic promotion needs the exact previously reviewed Python source TREE.
-# A routine source commit or model-written patch does not authorize a running
-# code swap. The one-time explicit owner Install mode remains separate.
+# The owner has ALREADY opted into the original 30-minute app updater.
+# This local consent is sufficient for guarded source updates ONLY after
+# static validation of the immutable snapshot and rollback-capable health.
+# The repository governance JSON remains factually UNACCEPTED until a
+# genuine integrated Windows acceptance has been completed.
 $approval=ReadJson (Join-Path $repo 'docs\governance\JREI_WINDOWS_OWNER_APP_APPROVED_SOURCE_V1.json')
-$tree=Git -argsList @('rev-parse','HEAD:platform/jrei-python')
-if(-not $approval -or
-   $approval.schema -cne 'jr.jrei.windows-owner-app-approval.v1' -or
-   $approval.approvedSourceTree -cne $tree -or
-   $approval.integratedAcceptancePassed -ne $true -or
-   $approval.ownerApprovedAutomaticPromotion -ne $true){
- Report 'WINDOWS_APP_SOURCE_AWAITING_INTEGRATED_ACCEPTANCE'
+$integrated=($approval -and
+  $approval.schema -ceq 'jr.jrei.windows-owner-app-approval.v1' -and
+  $approval.approvedSourceTree -ceq $tree -and
+  $approval.integratedAcceptancePassed -eq $true -and
+  $approval.ownerApprovedAutomaticPromotion -eq $true)
+if(-not $integrated){
+ Report 'WINDOWS_APP_GUARDED_OWNER_OPT_IN_NO_INTEGRATED_QA'
+}
+# Compare PYTHON source trees rather than whole repository commits.
+# A website-only commit must never interrupt an unchanged Windows engine.
+$already=$false
+try{
+ $task=OwnerTask
+ if($state -and $task.State -eq 'Running' -and
+    [string]$task.Actions[0].WorkingDirectory -ieq [string]$state.sourcePath -and
+    (IsReady ([string]$state.sourceCommit))){$already=$true}
+}catch{$already=$false}
+if($already -and (InstalledTree $state) -ceq $tree){
+ Report 'WINDOWS_APP_SOURCE_TREE_ALREADY_CURRENT'
  return
 }
-if($state -and $state.sourceCommit -ceq $head){
- Report 'WINDOWS_APP_ALREADY_CURRENT'
+$bad=ReadJson $failed
+if($bad -and $bad.schema -ceq 'jr.jrei.windows-app-failed-source.v1' -and
+   $bad.sourceTree -ceq $tree){
+ Report 'WINDOWS_APP_FAILED_SOURCE_HELD_UNTIL_CODE_CHANGES'
  return
 }
-try{Promote $head}
-catch{Report 'WINDOWS_APP_UPDATE_HELD_PREVIOUS_RUNTIME_PRESERVED'}
+try{
+ Promote $head
+}catch{
+ # Do not endlessly restart/rollback the SAME failing source tree every
+ # 30 minutes. A new source tree is eligible on the next successful sync.
+ WriteJson $failed @{
+  schema='jr.jrei.windows-app-failed-source.v1'
+  sourceTree=$tree;sourceCommit=$head
+  failedUtc=[DateTimeOffset]::UtcNow.ToUnixTimeSeconds()
+  state='HELD_FOR_REVIEW_UNVERIFIED'
+ }
+ Report 'WINDOWS_APP_UPDATE_FAILED_OLD_RUNTIME_PRESERVED'
+ # The source was not activated; surface a failed updater result.
+ exit 23
+}
