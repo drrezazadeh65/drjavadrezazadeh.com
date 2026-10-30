@@ -123,6 +123,33 @@ fs.writeFileSync(path.join(out,'api/internal/jrei-news-reviewed-additive-ddl-v1.
     entries:newsCreateEntries})+'\n',{flag:'wx',mode:0o600});
 // End JREI News private reviewed DDL projection.
 
+// Signed JREI Chat News uses exactly two additive mother-DB gateway
+// tables. Keep their reviewed SQL inside the SAME existing HTTP-denied
+// private directory. The bundle is inert: no SQL execution, no separate
+// database, no automatic activation, and no new cron.
+const gatewayMigration='20261030_jrei_news_signed_chat_gateway_mother_mysql.sql';
+const gatewaySql=fs.readFileSync(path.join(root,'docs/migrations',gatewayMigration),'utf8');
+if(gatewaySql.length>14000)
+  throw Error('JREI News signed gateway DDL source oversized');
+const gatewayClean=gatewaySql.replace(/^\s*--[^\r\n]*$/gm,'')
+  .replace(/^\s*SET NAMES utf8mb4\s*;/gim,'');
+const gatewayStatements=gatewayClean.split(';').map(v=>v.trim()).filter(Boolean);
+const gatewayExpected=['jrei_news_site_nonces','jrei_news_site_packets'];
+if(gatewayStatements.length!==gatewayExpected.length)
+  throw Error('JREI News gateway DDL inventory changed');
+const gatewayEntries=gatewayExpected.map((table,i)=>{
+  const sql=gatewayStatements[i];
+  if(!sql.startsWith('CREATE TABLE IF NOT EXISTS '+table+' ')||
+     !sql.endsWith(') ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci')||
+     /\b(?:DROP|TRUNCATE|INSERT\s+INTO|DELETE\s+FROM|UPDATE\s+|GRANT|REVOKE|CREATE DATABASE)\b/i.test(sql))
+    throw Error('JREI News gateway DDL requires fresh review');
+  return {table,sha256:crypto.createHash('sha256').update(sql).digest('hex'),sql};
+});
+fs.writeFileSync(path.join(out,'api/internal/jrei-news-gateway-reviewed-ddl-v1.json'),
+  JSON.stringify({schema:'jr.jrei.news-gateway-reviewed-ddl.v1',
+    entries:gatewayEntries})+'\n',{flag:'wx',mode:0o600});
+
+
 /* Fail the future sanitized release rather than silently shipping a front
  * page whose original news engine, calendar or MFA newsroom module is absent.
  * This check does NOT install DB schema, activate Cron or publish a story.
