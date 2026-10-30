@@ -97,8 +97,18 @@ function jrJreiOriginalLicensedNewsMedia(array $request):array {
             $asset=$reference;$media=$probe;break;
         }
     }
-    if(!is_array($media)||!is_string($asset))
-        throw new RuntimeException('news_original_media_current_rights_missing');
+    if(!is_array($media)||!is_string($asset)) {
+        // Only images with documented ORIGINAL registry rights can be used.
+        // Lack of an eligible image is NOT a reason to suppress an otherwise
+        // independently reviewed official announcement. Never assign a fake
+        // image licence or a speculative third-party photo.
+        return [
+          'source'=>'ORIGINAL_TEXT_FIRST_NO_IMAGE',
+          'rightsCurrent'=>true, 'assetReference'=>'',
+          'textOnly'=>true, 'mediaBytesTransferred'=>0,
+          'illustrativeImageApproved'=>false
+        ];
+    }
     return [
        'source'=>'ORIGINAL_APPROVED_SITE_MEDIA_REGISTRY',
        'rightsCurrent'=>true,
