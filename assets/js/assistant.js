@@ -33,7 +33,7 @@
     notice:'اطلاعات حساس یا رمز عبور نفرستید. گفتگوها به‌طور خودکار به دانش یا آموزش مدل JREI تبدیل نمی‌شوند؛ فقط اطلاعات بررسی‌شده و دارای مجوز می‌توانند وارد حافظه شوند.',
     placeholder:'سؤال‌تان را بنویسید…',send:'ارسال',close:'بستن',reset:'گفت‌وگوی جدید',copy:'کپی پاسخ',copied:'کپی شد',stop:'توقف',stopped:'پاسخ به درخواست شما متوقف شد.',thinking:'در حال بررسی…',
     error:'ارتباط زنده با دستیار هنوز برقرار نیست. می‌توانید از راهنماهای زیر استفاده کنید یا دوباره تلاش کنید.',
-    reviewRequired:'پاسخ تولیدشده از کنترل کیفیت JREI عبور نکرد و برای جلوگیری از نمایش اطلاعات نامطمئن منتشر نشد. پرسش را دقیق‌تر مطرح کنید یا به منابع بررسی‌شده سایت مراجعه کنید.',
+    reviewRequired:'JREI هنوز پاسخ قابل انتشاری دریافت نکرده است؛ ممکن است تولید پاسخ کامل نشده یا کنترل کیفیت آن را رد کرده باشد. لطفاً دوباره تلاش کنید یا از منابع بررسی‌شدهٔ سایت کمک بگیرید.',
     retry:'تلاش دوباره',offline:'راهنمای سریع',leadOpen:'درخواست تماس',leadTitle:'اگر مایلید با شما تماس بگیریم',leadEmail:'ایمیل',leadMobile:'شماره موبایل',leadValue:'راه ارتباط',leadIntent:'موضوع اصلی',leadConsent:'با ذخیره این راه ارتباط برای پاسخ‌گویی به همین درخواست موافقم.',leadWhatsApp:'اگر واتس‌اپ بیزنس فعال شود، تماس در واتس‌اپ را هم می‌پذیرم.',leadSend:'ثبت درخواست تماس',leadSaved:'درخواست تماس ثبت شد.',leadError:'ثبت درخواست تماس انجام نشد؛ لطفاً بعداً دوباره تلاش کنید.',
     chips:['برای انتخاب رشته از کجا شروع کنم؟','Golden Talent چیست؟','چه خدمات تخصصی دارید؟']
   }:{
@@ -42,7 +42,7 @@
     notice:'Do not share sensitive information or passwords. Chats do not automatically train JREI; only reviewed and authorised knowledge may enter its memory.',
     placeholder:'Ask a question…',send:'Send',close:'Close',reset:'New chat',copy:'Copy answer',copied:'Copied',stop:'Stop',stopped:'Response stopped at your request.',thinking:'Checking…',
     error:'The live assistant is not connected yet. You can use the quick guidance below or try again.',
-    reviewRequired:'JREI withheld this answer because it did not pass the educational quality check. Try a more specific question or use the reviewed site information.',
+    reviewRequired:'JREI did not obtain a releasable answer. Generation may have been incomplete or the quality check may have rejected it. Please try again or consult reviewed site information.',
     retry:'Try again',offline:'Quick guidance',leadOpen:'Request contact',leadTitle:'Would you like us to contact you?',leadEmail:'Email',leadMobile:'Mobile',leadValue:'Contact detail',leadIntent:'Main topic',leadConsent:'I agree that this contact detail may be stored to respond to this request.',leadWhatsApp:'If WhatsApp Business is activated, I also consent to contact through WhatsApp.',leadSend:'Save contact request',leadSaved:'Your contact request has been saved.',leadError:'The contact request could not be saved. Please try again later.',
     chips:['Which service fits my needs?','What is Golden Talent?','What professional services do you offer?']
   };
