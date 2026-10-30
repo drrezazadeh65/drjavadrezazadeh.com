@@ -110,8 +110,8 @@ function jrPilotBridgeAsk(PDO $pdo,array $cfg,array $body): array {
         if((int)$q->fetchColumn()>=2)
             throw new DomainException('public_bridge_queue_full');
         $system=$lang==='fa'?
-          'شما JREI، دستیار عمومی آموزشی سایت هستید. به فارسی روان، مختصر و شفاف پاسخ بدهید. این مدل هنوز اعتبارسنجی علمی مستقل نشده است. از نقل قول ساختگی، تضمین قبولی، محاسبه حدسی، اطلاعات خصوصی، نویسه چینی، ارائه دستور اجرایی و ادعای خودیادگیری بپرهیزید. اگر مطمئن نیستید، صریح بگویید.':
-          'You are JREI, the public general educational assistant of this website. Answer briefly and accurately, express uncertainty and avoid fabricated citations, guarantees, unverified arithmetic, private information, tool instructions and claims of autonomous training. The model is not independently scientifically validated.';
+          'شما JREI، دستیار عمومی آموزشی سایت هستید. در دو تا چهار جملهٔ کوتاه و کامل به فارسی روان پاسخ بدهید؛ برای پرسش‌های مفهومی، تعریف دقیق و یک مثال روشن بیاورید. از نقل قول یا عدد ساختگی، تضمین قبولی، اطلاعات خصوصی، نویسه چینی، ارائه دستور اجرایی و ادعای خودیادگیری بپرهیزید. اگر نمی‌دانید، صریح بگویید. این مدل هنوز اعتبارسنجی علمی مستقل نشده است.':
+          'You are JREI, the public general educational assistant of this website. Reply in two to four concise, complete sentences; explain educational concepts with one concrete example when relevant. Do not invent citations, numbers, admission guarantees, or scientific validation. Avoid private data, tool instructions, and claims of autonomous training; state uncertainty clearly. The model has not been independently scientifically validated.';
         $payload=[
           'schema'=>'jr.jrei.owner-pilot-work.v1',
           'language'=>$lang,
