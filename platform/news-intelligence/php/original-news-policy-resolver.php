@@ -71,9 +71,18 @@ function jrNewsOriginalIndependentCmsPolicy(
            FROM jrei_news_editorial_versions v WHERE v.revision_id=?');
     $v->execute([$revision]);
     $draft=$v->fetch(PDO::FETCH_ASSOC);
-    $media=(!is_array($draft)||!is_string($draft['approved_image_ref']))?
-        ['rightsVerified'=>false]:
-        jrNewsOriginalLicensedMediaSnapshot($siteRoot,$draft['approved_image_ref']);
+    // Text-first stories have an explicit, QA-bound empty image reference.
+    // Do not conflate missing image rights for a nonempty asset with
+    // permission to publish without an illustration.
+    $textOnly=is_array($draft)&&
+        ($draft['approved_image_ref']??null)===''&&
+        is_string($draft['bilingual_editorial_json']??null);
+    $media=$textOnly?
+        ['rightsVerified'=>true,'textOnly'=>true,'assetReference'=>'']:
+        ((!is_array($draft)||!is_string($draft['approved_image_ref']))?
+            ['rightsVerified'=>false,'textOnly'=>false]:
+            jrNewsOriginalLicensedMediaSnapshot(
+                $siteRoot,$draft['approved_image_ref']));
     $original=jrNewsOriginalOfficialSourceSnapshot($pdo,$sourceId,$sourceUrl);
     $sourceOkay=$original['registryState']==='AUTHORITATIVE_REVIEWED'&&
         $original['issuerIdentityVerified']===true&&
@@ -122,6 +131,7 @@ function jrNewsOriginalIndependentCmsPolicy(
             'internalLinksChecked'=>$qaOkay,
             'seoAndCanonicalChecked'=>$qaOkay&&$routeFree,
             'imageRightsCurrent'=>$media['rightsVerified']??false,
+            'textOnlyVisualPolicyVerified'=>$textOnly,
             'assistantContextGrounded'=>$qaOkay
         ],
         'publisher'=>[
