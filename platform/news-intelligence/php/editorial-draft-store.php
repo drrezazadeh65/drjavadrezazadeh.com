@@ -55,9 +55,12 @@ function jrNewsStoreEvidenceReviewedDraft(
     $fa=jrNewsCleanEditorialLanguage((array)($draft['fa']??[]),'fa');
     $en=jrNewsCleanEditorialLanguage((array)($draft['en']??[]),'en');
     $image=$draft['imageAssetReference']??null;
+    // Empty string is the explicit, independently selected TEXT-FIRST
+    // visual policy. NULL and unverified asset references remain invalid.
+    // The signed draft/QA ledger binds this exact choice immutably.
     if (!is_string($image)||strlen($image)>500||
         $validateLicensedMedia($image)!==true) {
-        throw new RuntimeException('news_draft_media_not_licensed');
+        throw new RuntimeException('news_draft_visual_policy_not_verified');
     }
     $links=$draft['internalLinks']??[];
     if (!is_array($links)||count($links)>16) {
