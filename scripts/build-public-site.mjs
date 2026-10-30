@@ -129,6 +129,7 @@ fs.writeFileSync(path.join(out,'api/internal/jrei-news-reviewed-additive-ddl-v1.
  */
 for(const [relative,required] of [
   ['api/news-public-calendar.php','jrNewsOriginalPublicCalendarRoute'],
+  ['api/jrei-news-signed-gateway.php','jrNewsSignedGatewayRoute'],
   ['api/jrei-news-schema-caretaker.php','jrNewsAdditiveSchemaCaretaker'],
   ['api/internal/jrei-news-schema-caretaker-worker.php','PHP_SAPI'],
   ['assets/js/jrei-news-owner-panel-v1.mjs','mountNewsOwnerPanel']
