@@ -55,11 +55,15 @@ function jrNewsOriginalPublicNewsHtml(
        parse_url($official,PHP_URL_SCHEME)!=='https')
         throw new RuntimeException('news_verified_html_source_url_invalid');
     $originalImage=(string)($payload['imageAssetReference']??'');
+    $textOnly=$originalImage===''&&
+        ($originalCmsContext['verifiedTextOnly']??null)===true;
     $image=str_starts_with($originalImage,'assets/images/')?
        '/'.$originalImage:$originalImage;
-    if(!preg_match('#^/assets/images/[a-zA-Z0-9_./-]+\\.(?:webp|png|jpe?g|avif)$#D',$image)||
-       str_contains($image,'..')||
-       ($originalCmsContext['verifiedImageRef']??null)!==$originalImage)
+    if(($originalCmsContext['verifiedImageRef']??null)!==$originalImage||
+       (!$textOnly&&(
+         !preg_match('#^/assets/images/[a-zA-Z0-9_./-]+\\.(?:webp|png|jpe?g|avif)$#D',$image)||
+         str_contains($image,'..')))||
+       ($originalImage===''&&!$textOnly))
         throw new RuntimeException('news_verified_html_media_invalid');
     $originalAlt=$originalCmsContext[$language==='fa'?
         'verifiedImageAltFa':'verifiedImageAltEn']??null;
@@ -101,16 +105,19 @@ function jrNewsOriginalPublicNewsHtml(
     $related=$internal?'<aside aria-label="Related resources"><h2>'.
         ($language==='fa'?'مطالعه و راهنمای مرتبط':'Related reading and guidance').
         '</h2><ul>'.implode('',$internal).'</ul></aside>':'';
-    $jsonld=json_encode([
+    $structured=[
         '@context'=>'https://schema.org','@type'=>'NewsArticle',
         'headline'=>$texts['headline'],'description'=>$texts['description'],
         'inLanguage'=>$language,'mainEntityOfPage'=>$url,
         'datePublished'=>$date,'dateModified'=>$date,
-        'image'=>[$site.$image],'isAccessibleForFree'=>true,
+        'isAccessibleForFree'=>true,
         'publisher'=>['@type'=>'Organization',
            'name'=>'JREI Education News & Intelligence','url'=>$site],
         'citation'=>[$official]
-    ],JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR|
+    ];
+    if(!$textOnly)$structured['image']=[$site.$image];
+    $jsonld=json_encode($structured,
+        JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR|
         JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT);
     $home=$language==='fa'?'/fa/akhbar/':'/en/news-insights/';
     $nextLabel=$language==='fa'?'این خبر برای من چه معنایی دارد؟':'What does this mean for me?';
@@ -126,7 +133,8 @@ function jrNewsOriginalPublicNewsHtml(
       '<link rel="alternate" hreflang="'.$alt.'" href="'.$other.'">'.
       '<meta property="og:type" content="article"><meta property="og:title" content="'.$title.'">'.
       '<meta property="og:description" content="'.$description.'">'.
-      '<meta property="og:image" content="'.jrNewsHtmlEscape($site.$image).'">'.
+      ($textOnly?'':'<meta property="og:image" content="'.
+        jrNewsHtmlEscape($site.$image).'">').
       '<link rel="stylesheet" href="/assets/css/style.css">'.
       '<link rel="stylesheet" href="/assets/css/jrei-news-article-v1.css">'.
       '<meta name="jr-assistant-endpoint" content="/api/assistant/v1/chat">'.
@@ -143,7 +151,8 @@ function jrNewsOriginalPublicNewsHtml(
       '<div class="ni-story-provenance"><span>'.($language==='fa'?'منبع مستقل و تاریخ بررسی‌شده':'Source-checked publication').'</span>'.
       '<a href="'.$sourceUrl.'" rel="noopener noreferrer external" target="_blank">'.
       jrNewsHtmlEscape($sourceLabel).'</a></div></header>'.
-      '<figure><img src="'.jrNewsHtmlEscape($image).'" alt="'.jrNewsHtmlEscape($imageAlt).'" loading="lazy"></figure>'.
+      ($textOnly?'':'<figure><img src="'.jrNewsHtmlEscape($image).
+        '" alt="'.jrNewsHtmlEscape($imageAlt).'" loading="lazy"></figure>').
       '<section>'.$sections['body'].'</section>'.
       '<section aria-label="'.jrNewsHtmlEscape($nextLabel).'"><h2>'.
       jrNewsHtmlEscape($nextLabel).'</h2>'.$sections['nextSteps'].'</section>'.
