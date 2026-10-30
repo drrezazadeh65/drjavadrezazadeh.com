@@ -49,6 +49,7 @@ require_once __DIR__.'/original-private-publishing-pipeline.php';
 require_once __DIR__.'/original-public-index-runner.php';
 require_once __DIR__.'/original-news-syndication.php';
 require_once __DIR__.'/original-chat-news-signed-intake.php';
+require_once __DIR__.'/original-chat-news-receipt-proof.php';
 require_once __DIR__.'/original-news-owner-exceptions.php';
 require_once __DIR__.'/publication-dispatch.php';
 require_once __DIR__.'/publication-readiness.php';
