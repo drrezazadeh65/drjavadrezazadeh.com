@@ -142,6 +142,13 @@ function cfg(): array {
         'jrei_news_schema_backup_sha256' =>
             getenv('JR_JREI_NEWS_SCHEMA_BACKUP_SHA256') ?: null,
 
+        // Separate default-OFF machine-to-machine news gateway. The key
+        // belongs only in original server-private settings (never Git/JS).
+        // A signed intake is a held candidate, NOT QA or CMS authority.
+        'jrei_news_site_gateway_enabled' =>
+            getenv('JR_JREI_NEWS_SITE_GATEWAY_ENABLED') === 'true',
+        'jrei_news_site_gateway_hmac_key' =>
+            (string)(getenv('JR_JREI_NEWS_SITE_GATEWAY_HMAC_KEY') ?: ''),
         'jrei_news_publisher_receipts_accepted' => getenv('JR_JREI_NEWS_PUBLISHER_RECEIPTS_ACCEPTED') === 'true',
         'jrei_news_integrated_release_accepted' => getenv('JR_JREI_NEWS_INTEGRATED_RELEASE_ACCEPTED') === 'true',
         // A separate SUPER_ADMIN decision. Creating news monitors or
@@ -1056,6 +1063,12 @@ if ($path==='/publishing/offer' && $verb==='GET') {
 if (str_starts_with($path, '/publishing/')) jrPublishingAuthorRoute($path,$verb);
 // Credential-free public indicative rate only; never authorize an order or payment from this tick.
 if ($path==='/rates/usdt-irt') { require_once __DIR__.'/ramzinex-public-usdt-rate.php'; jrPublicUsdtRateRoute($verb); }
+// Exact source-stage HMAC API bridge: no per-article browser publishing,
+ // no original CMS writes, and no receiver activation without private policy.
+if($path==='/jrei/v1/news-intake'||$path==='/jrei/v1/news-receipt'){
+    require_once __DIR__.'/jrei-news-signed-gateway.php';
+    jrNewsSignedGatewayRoute($path,$verb);
+}
 // Public JREI News search: existing published-only index; disabled until both private release gates.
 if ($path==='/news/v1/search') {
     require_once __DIR__.'/news-public-search.php';
