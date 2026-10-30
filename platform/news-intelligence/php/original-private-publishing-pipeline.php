@@ -230,6 +230,7 @@ function jrNewsOriginalRecoverVerifiedCmsPages(
         'currentOfficialEvidenceAndClaimsReviewed'=>true,
         'mediaRightsVerified'=>true,'verifiedOriginalCmsPolicy'=>true,
         'verifiedImageRef'=>$row['approved_image_ref'],
+        'verifiedTextOnly'=>$row['approved_image_ref']==='',
         'originalSourceUrl'=>$row['source_url']
     ];
     $hashes=[];
