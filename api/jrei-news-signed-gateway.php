@@ -85,8 +85,11 @@ function jrNewsSignedGatewayReserve(PDO $pdo):callable {
  * Never turn a source-draft hash, a client flag or a filesystem guess into
  * a fabricated PUBLISHED_BILINGUAL_CMS_VERIFIED response.
  */
-function jrNewsSignedGatewayReceiptStatus(PDO $pdo,string $id,string $sha):array {
-    $q=$pdo->prepare('SELECT packet_sha256,state,verified_publication_id
+function jrNewsSignedGatewayReceiptStatus(
+    PDO $pdo,string $id,string $sha,string $key,string $host
+):array {
+    $q=$pdo->prepare('SELECT packet_sha256,state,
+        verified_publication_id,verified_revision_id
         FROM jrei_news_site_packets WHERE packet_id=? LIMIT 1');
     $q->execute([$id]);
     $row=$q->fetch(PDO::FETCH_ASSOC);
@@ -95,9 +98,22 @@ function jrNewsSignedGatewayReceiptStatus(PDO $pdo,string $id,string $sha):array
                 'published'=>false,'article_resubmitted'=>false];
     if(!hash_equals((string)$row['packet_sha256'],$sha))
         throw new RuntimeException('news_gateway_receipt_packet_hash_mismatch');
-    // Even a future ORIGINAL_CMS_VERIFIED ledger state cannot substitute for
-    // independent on-disk original CMS receipt verification. This source
-    // adapter deliberately does not sign until that service is connected.
+    // A binding in the original DB is necessary but never sufficient:
+    // source authority, signed independent QA, standing policy at publishing
+    // time, actual bilingual CMS bytes and original receipt hashes must all
+    // agree before this site can sign PUBLISHED.
+    if($row['state']==='ORIGINAL_CMS_VERIFIED'&&
+       is_string($row['verified_publication_id'])&&
+       is_string($row['verified_revision_id'])){
+        require_once __DIR__.'/internal/jrei-news/original-chat-news-receipt-proof.php';
+        $proof=jrNewsOriginalChatReceiptProof($pdo,dirname(__DIR__),[
+            'packet_id'=>$id,'packet_sha256'=>$sha,
+            'state'=>$row['state'],
+            'verified_publication_id'=>$row['verified_publication_id'],
+            'verified_revision_id'=>$row['verified_revision_id']
+        ],$key,$host,time());
+        if(is_array($proof))return $proof;
+    }
     return ['state'=>'ORIGINAL_INDEPENDENT_RECEIPT_VERIFICATION_PENDING',
             'published'=>false,'article_resubmitted'=>false,
             'original_mother_db_state'=>(string)$row['state']];
@@ -132,8 +148,11 @@ function jrNewsSignedGatewayRoute(string $path,string $verb):never {
         if($path===$receipt){
             $query=jrNewsChatVerifySignedReceiptQuery(
                 $verb,$exact,$headers,$raw,$exact,$key,time(),$claim);
+            $host=parse_url(SITE_ORIGIN,PHP_URL_HOST);
+            if(!is_string($host)||$host==='')
+                throw new RuntimeException('news_gateway_site_origin_invalid');
             $status=jrNewsSignedGatewayReceiptStatus(
-                $pdo,$query['packetId'],$query['packetSha256']);
+                $pdo,$query['packetId'],$query['packetSha256'],$key,$host);
             respond($status,200);
         }
         $verified=jrNewsChatVerifySignedIntake(
