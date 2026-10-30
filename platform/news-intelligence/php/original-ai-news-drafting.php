@@ -157,18 +157,28 @@ function jrNewsOriginalGenerateReviewedBilingualDraft(
         'sourceUrl'=>$r['source_url'],
         'newsHeadline'=>(string)$r['headline'],'qaReceipt'=>$audit
     ]);
-    if(!is_array($media)||
-       ($media['source']??null)!=='ORIGINAL_APPROVED_SITE_MEDIA_REGISTRY'||
-       ($media['rightsCurrent']??null)!==true||
-       !is_string($media['assetReference']??null))
-        throw new RuntimeException('news_original_ai_media_not_approved');
+    $licensedImage=is_array($media)&&
+        ($media['source']??null)==='ORIGINAL_APPROVED_SITE_MEDIA_REGISTRY'&&
+        ($media['rightsCurrent']??null)===true&&
+        is_string($media['assetReference']??null)&&
+        $media['assetReference']!=='';
+    $textOnly=is_array($media)&&
+        ($media['source']??null)==='ORIGINAL_TEXT_FIRST_NO_IMAGE'&&
+        ($media['rightsCurrent']??null)===true&&
+        ($media['textOnly']??null)===true&&
+        ($media['assetReference']??null)==='';
+    if(!$licensedImage&&!$textOnly)
+        throw new RuntimeException('news_original_ai_visual_policy_not_approved');
     $draft['imageAssetReference']=$media['assetReference'];
     $stored=jrNewsStoreEvidenceReviewedDraft(
         $pdo,$candidateId,$reviewId,$draft,
         static fn(string $task):bool=>$task==='NEWS_PRIVATE_DRAFT',
         static fn(string $asset):bool=>
             $asset===$media['assetReference']&&
-            ($media['rightsCurrent']??null)===true,
+            ($media['rightsCurrent']??null)===true&&
+            (($asset===''&&($media['textOnly']??false)===true)||
+             ($asset!==''&&($media['source']??null)===
+                'ORIGINAL_APPROVED_SITE_MEDIA_REGISTRY')),
         $nowEpoch
     );
     // Independent verification must bind precisely the persisted bilingual
