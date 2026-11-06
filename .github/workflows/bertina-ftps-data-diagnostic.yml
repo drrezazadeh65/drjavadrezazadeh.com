@@ -1,12 +1,21 @@
 name: Bertina FTPS Data Channel Diagnostic
 on:
   workflow_dispatch:
+    inputs:
+      mode:
+        description: "Read-only access audit by default; legacy mode writes and removes its original marker"
+        type: choice
+        required: true
+        default: read_only
+        options:
+          - read_only
+          - legacy_write_probe
 
 permissions:
   contents: read
 jobs:
   diagnose:
-    if: github.ref == 'refs/heads/migration/bertina-linux6'
+    if: github.event_name == 'workflow_dispatch' && github.actor == 'drrezazadeh65' && github.ref == 'refs/heads/migration/bertina-linux6' && inputs.mode == 'legacy_write_probe'
     runs-on: ubuntu-latest
     timeout-minutes: 6
     steps:
@@ -79,3 +88,28 @@ jobs:
             echo "No protected FTPS data-channel mode succeeded."
             exit 1
           fi
+
+  read-only-access:
+    if: github.event_name == 'workflow_dispatch' && github.actor == 'drrezazadeh65' && (inputs.mode == 'read_only' || inputs.mode == '') && (github.ref == 'refs/heads/migration/bertina-linux6' || github.ref == 'refs/heads/codex/jrei-ftps-readonly-20261106')
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Test bounded read-only, TLS and secret-redaction contracts
+        run: python3 -m unittest discover -s tests -p 'test_bertina_ftps_readonly_audit.py'
+      - name: Authenticate existing FTPS and read only approved files
+        env:
+          FTP_USER: ${{ secrets.BERTINA_FTP_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.BERTINA_FTP_PASSWORD }}
+          FTP_REMOTE_DIR: ${{ secrets.BERTINA_FTP_REMOTE_DIR }}
+        run: timeout 110s python3 scripts/bertina-ftps-readonly-audit.py --output "${{ runner.temp }}/jrei-ftps-readonly.json"
+      - name: Retain sanitized receipt only
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jrei-ftps-readonly-${{ github.run_id }}
+          path: ${{ runner.temp }}/jrei-ftps-readonly.json
+          retention-days: 7
+          if-no-files-found: warn
