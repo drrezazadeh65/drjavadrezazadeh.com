@@ -1,0 +1,31 @@
+name: JR Educational Intelligence V3 Internal Contract (No Deployment)
+
+on:
+  pull_request:
+    paths:
+      - "api/internal/educational-tool-contract-v3.php"
+      - "tests/educational-tool-contract-v3.php"
+      - "tests/fixtures/educational-tool-contract-v3.synthetic.json"
+      - ".github/workflows/educational-intelligence-v3-internal-ci.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  synthetic-boundary:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify private PHP contract and synthetic fixture boundary
+        run: |
+          php -l api/internal/educational-tool-contract-v3.php
+          php -l tests/educational-tool-contract-v3.php
+          php tests/educational-tool-contract-v3.php
+      - name: Confirm no public endpoint or migration is part of this contract
+        run: |
+          test -f api/internal/.htaccess
+          grep -Fqx 'Require all denied' api/internal/.htaccess
+          test -f api/konkur-admission.php
+          test -f api/konkur-public-search-guard.php

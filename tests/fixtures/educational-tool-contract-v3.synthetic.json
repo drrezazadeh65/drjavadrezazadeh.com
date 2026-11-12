@@ -1,0 +1,161 @@
+{
+  "fixtureOnly": true,
+  "warning": "ALL RECORDS AND REVIEW ASSERTIONS ARE SYNTHETIC. NOT SANJESH SOURCE EVIDENCE.",
+  "proposals": [
+    {
+      "name": "public_lookup",
+      "proposal": {
+        "tool": "SOURCE_REVIEWED_CATALOGUE_QUERY",
+        "arguments": {
+          "year": 1405,
+          "group": "HUMANITIES",
+          "q": "حقوق",
+          "limit": 10,
+          "page": 1
+        }
+      },
+      "expectStatus": "READY_FOR_PUBLIC_READ"
+    },
+    {
+      "name": "default_public_lookup",
+      "proposal": {
+        "tool": "SOURCE_REVIEWED_CATALOGUE_QUERY",
+        "arguments": {
+          "year": 1405
+        }
+      },
+      "expectStatus": "READY_FOR_PUBLIC_READ"
+    },
+    {
+      "name": "private_trend_disabled",
+      "proposal": {
+        "tool": "PROVIDER_NATIVE_TREND_ANALYSIS",
+        "arguments": {
+          "year": 1405,
+          "authorized": true
+        }
+      },
+      "expectReason": "TOOL_NOT_ACTIVATED"
+    },
+    {
+      "name": "eligibility_disabled",
+      "proposal": {
+        "tool": "DETERMINISTIC_ELIGIBILITY_ENGINE",
+        "arguments": {
+          "year": 1405,
+          "reviewed": true
+        }
+      },
+      "expectReason": "TOOL_NOT_ACTIVATED"
+    },
+    {
+      "name": "handoff_disabled",
+      "proposal": {
+        "tool": "PROFESSIONAL_REVIEW_HANDOFF",
+        "arguments": {
+          "year": 1405,
+          "consent": true
+        }
+      },
+      "expectReason": "TOOL_NOT_ACTIVATED"
+    },
+    {
+      "name": "probability_disabled",
+      "proposal": {
+        "tool": "ADMISSION_PROBABILITY",
+        "arguments": {
+          "year": 1405
+        }
+      },
+      "expectReason": "TOOL_NOT_ACTIVATED"
+    },
+    {
+      "name": "unknown_tool",
+      "proposal": {
+        "tool": "DELETE_STUDENT_DATA",
+        "arguments": {
+          "year": 1405
+        }
+      },
+      "expectReason": "UNKNOWN_TOOL"
+    },
+    {
+      "name": "private_input_rejected",
+      "proposal": {
+        "tool": "SOURCE_REVIEWED_CATALOGUE_QUERY",
+        "arguments": {
+          "year": 1405,
+          "studentId": "CI-DUMMY"
+        }
+      },
+      "expectReason": "INVALID_TOOL_ARGUMENT_SCHEMA"
+    },
+    {
+      "name": "unicode_phone_rejected",
+      "proposal": {
+        "tool": "SOURCE_REVIEWED_CATALOGUE_QUERY",
+        "arguments": {
+          "year": 1405,
+          "q": "۰۹۱۲-۰۰۰-۰۰۰۰"
+        }
+      },
+      "expectReason": "SEARCH_NOT_SUITABLE_FOR_PUBLIC_URL"
+    },
+    {
+      "name": "wrong_year_type",
+      "proposal": {
+        "tool": "SOURCE_REVIEWED_CATALOGUE_QUERY",
+        "arguments": {
+          "year": "1405"
+        }
+      },
+      "expectReason": "INVALID_ADMISSION_YEAR"
+    },
+    {
+      "name": "overflow_page",
+      "proposal": {
+        "tool": "SOURCE_REVIEWED_CATALOGUE_QUERY",
+        "arguments": {
+          "year": 1405,
+          "limit": 50,
+          "page": 102
+        }
+      },
+      "expectReason": "PAGE_OUT_OF_RANGE"
+    }
+  ],
+  "syntheticCatalogueResponse": {
+    "ok": true,
+    "year": 1405,
+    "status": "SOURCE_REVIEWED_CATALOGUE",
+    "sourceVerification": "HUMAN_REVIEWED",
+    "eligibilityAssessment": "NOT_PERFORMED",
+    "admissionProbabilityEnabled": false,
+    "officialApplicationSubmitted": false,
+    "limit": 10,
+    "page": 1,
+    "records": [
+      {
+        "programmeCode": "01234",
+        "examinationGroup": "HUMANITIES",
+        "admissionTrack": "CI_ONLY",
+        "university": "SYNTHETIC UNIVERSITY",
+        "campus": null,
+        "province": null,
+        "city": "SYNTHETIC CITY",
+        "programme": "SYNTHETIC LAW PROGRAMME",
+        "degree": "CI_ONLY",
+        "admissionMethod": "CI_ONLY",
+        "capacity": 20,
+        "tuitionStatus": null,
+        "year": 1405,
+        "sourceDocument": "CI_FAKE_PDF_NOT_REAL",
+        "sourceRevision": 1,
+        "sourcePdfPage": 12,
+        "sourcePrintedPage": null,
+        "eligibilityStatus": "NOT_ASSESSED",
+        "officialRegistration": false
+      }
+    ]
+  }
+}
