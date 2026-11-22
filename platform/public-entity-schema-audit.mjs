@@ -38,7 +38,14 @@ for(const surface of registry.schema_surfaces||[]){
  if(surface.requires_person_reference&&!reference&&!person) failures.push(surface.path+': canonical Person reference missing');
  if(person){
   if(person.name!==registry.public_names.schema_name) failures.push(surface.path+': Person name drift');
-  if(person.alternateName!==registry.public_names.fa_alternate) failures.push(surface.path+': Persian alternateName drift');
+  // Allow a verified set of *real* public name forms without weakening the
+  // canonical full-name rule or introducing unapproved identities.
+  const names=Array.isArray(person.alternateName)?person.alternateName:[person.alternateName];
+  const approved=registry.public_names.search_variants||[registry.public_names.fa_alternate];
+  if(!names.includes(registry.public_names.fa_alternate)||
+     names.some(n=>typeof n!=='string'||!approved.includes(n))||
+     new Set(names).size!==names.length)
+    failures.push(surface.path+': Persian alternateName drift or unapproved/duplicate variant');
   const same=new Set(person.sameAs||[]);
   for(const url of requiredSameAs) if(!same.has(url)) failures.push(surface.path+': scholarly identifier missing '+url);
   const knows=new Set(person.knowsAbout||[]);

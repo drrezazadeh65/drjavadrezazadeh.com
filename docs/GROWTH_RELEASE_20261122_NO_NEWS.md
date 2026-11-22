@@ -24,3 +24,6 @@ GSC clicks, impressions, CTR and keywords need real 30-day historical data; Ahre
 5. After launch, confirm news routes byte-equivalent where applicable, lead flow and checkout, mobile layouts, Core Web Vitals, and GSC indexing. Roll back through the pre-existing controlled recovery policy on verified failure.
 
 **Safety:** No third-party externally controlled provider, new paid service, fake AI ranking/citation, raw student data, automatic consent, renamed URL, finance change or news change.
+
+## Integrated QA findings and fixes
+The first PR run detected three shortened title variants and four Person alternateName contract mismatches; the full official Persian name was restored to all affected titles and the entity guard now validates each approved alias. Browser suites initially failed at browser installation because the runner moved to Ubuntu 26.04 while Playwright 1.56 expects a supported distribution; browser and production workflow runners are pinned to Ubuntu 24.04. These are QA fixes, not exceptions that skip tests.
