@@ -1,0 +1,116 @@
+{
+  "version": "2026-11-22",
+  "status": "SOURCE_READY_UNDEPLOYED",
+  "official_persian_name": "دکتر جواد رضازاده یزدلی",
+  "rules": [
+    "Canonical URL paths stay immutable",
+    "News and newsroom subsystem frozen by owner",
+    "No fabricated AI citations, search ranks, ratings or conversions",
+    "No keyword stuffing, doorway pages or fake FAQ",
+    "Do not change checkout or privacy policy without verification"
+  ],
+  "clusters": [
+    {
+      "intent": "branded",
+      "queries": [
+        "دکتر جواد رضازاده یزدلی",
+        "جواد رضازاده",
+        "دکتر رضازاده مشاوره تحصیلی"
+      ],
+      "landing": "/fa/",
+      "support": [
+        "/fa/darbare-man/",
+        "/fa/tamas/"
+      ],
+      "measure": "GSC clicks/impressions/CTR/position"
+    },
+    {
+      "intent": "talent",
+      "queries": [
+        "استعدادیابی دانش آموز",
+        "استعدادیابی تحصیلی",
+        "مشاوره استعدادیابی نوجوان"
+      ],
+      "landing": "/fa/estedaadyabi/",
+      "support": [
+        "/fa/services/talent_initial/",
+        "/fa/golden-talent/ravesh-shenasi/"
+      ],
+      "measure": "non-branded clicks and qualified enquiries"
+    },
+    {
+      "intent": "education_consulting",
+      "queries": [
+        "مشاوره تحصیلی",
+        "مشاوره انتخاب رشته",
+        "مشاوره تحصیلی دانش آموز"
+      ],
+      "landing": "/fa/moshavere-tahsili/",
+      "support": [
+        "/fa/entekhab-reshteh/",
+        "/fa/services/"
+      ],
+      "measure": "qualified enquiries, not merely traffic"
+    },
+    {
+      "intent": "exam",
+      "queries": [
+        "مشاوره کنکور",
+        "برنامه ریزی کنکور",
+        "تحلیل آزمون آزمایشی"
+      ],
+      "landing": "/fa/moshavere-konkur/",
+      "support": [
+        "/fa/services/konkur_consult_60/"
+      ],
+      "measure": "relevant leads"
+    },
+    {
+      "intent": "english_identity",
+      "queries": [
+        "Javad Rezazadeh Yazdeli",
+        "Dr Javad Rezazadeh academic",
+        "Javad Rezazadeh education"
+      ],
+      "landing": "/en/about/",
+      "support": [
+        "/en/",
+        "/en/publications/"
+      ],
+      "measure": "branded search appearances by geography"
+    }
+  ],
+  "ai_discovery": {
+    "scope": "monitoring_and_primary_source_clearness",
+    "prompts": [
+      "Who is Dr. Javad Rezazadeh Yazdeli, and where can I verify his research profile?",
+      "What is the Golden Talent developmental approach and what are its limitations?",
+      "What educational guidance does Dr. Javad Rezazadeh offer?"
+    ],
+    "acceptance": "An AI answer must be independently observed and must cite/identify the canonical source; schema alone does not prove AI discovery.",
+    "avoid": "No fake model endorsements, synthetic citation pages, or unsupported promises of placement."
+  },
+  "release": {
+    "branch": "release/20261122-brand-conversion-no-news",
+    "protected_sections": [
+      "fa/akhbar/",
+      "en/news-insights/",
+      "api/*news*",
+      "platform/news-intelligence/",
+      "sitemap-news.xml",
+      "feed.xml"
+    ],
+    "owner_action": "existing manual Deploy to Bertina workflow",
+    "safe_gate": "source/live news delta must be empty before manual deploy"
+  },
+  "verified_analytics_diagnostic": {
+    "provider": "Ubersuggest",
+    "project_state": "inactive_user_inactivity",
+    "tracking_region": "United States",
+    "tracking_language": "en",
+    "tracked_seo_keywords": 8,
+    "tracked_ai_prompts": 10,
+    "ai_answers_sampled_20261022_20261120": 0,
+    "interpretation": "No evidence for either positive or negative AI visibility. Persian/Iran measurement missing; GSC and first-party conversion records necessary."
+  }
+}

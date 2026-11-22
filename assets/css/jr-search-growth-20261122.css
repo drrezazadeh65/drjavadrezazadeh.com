@@ -1,0 +1,22 @@
+/* JR growth and identity discovery v1 (2026-11-22).
+ * Scoped to the new public guidance components. Mobile-first, no JS or tracking.
+ * The existing news, account, checkout and editorial layouts are untouched. */
+.jr-growth{box-sizing:border-box;position:relative;isolation:isolate;max-width:1120px;margin:clamp(24px,5vw,64px) auto;padding:clamp(20px,4vw,38px);border:1px solid rgba(209,180,112,.42);border-radius:22px;background:linear-gradient(150deg,#24231f 0%,#171715 65%,#211e18 100%);color:#f5f0e5;box-shadow:0 20px 45px rgba(0,0,0,.12);font-family:inherit}
+.jr-growth *, .jr-growth *::before,.jr-growth *::after{box-sizing:border-box}
+.jr-growth__eyebrow{font-size:.82rem;font-weight:750;letter-spacing:.05em;color:#e7c785;margin:0 0 10px}
+.jr-growth__title{font-size:clamp(1.35rem,3.8vw,2rem)!important;line-height:1.45!important;color:#f9f4e9!important;margin:0 0 14px!important}
+.jr-growth__intro{max-width:76ch;line-height:1.95;font-size:clamp(.99rem,2.5vw,1.08rem);color:#eee4d1;margin:0 0 20px}
+.jr-growth__grid{display:grid;grid-template-columns:minmax(0,1fr);gap:12px;margin:0 0 22px}
+.jr-growth__item{min-width:0;border:1px solid rgba(236,214,167,.24);border-radius:15px;background:rgba(255,255,255,.045);padding:18px}
+.jr-growth__item h3{font-size:1.04rem!important;line-height:1.6!important;color:#f1d599!important;margin:0 0 9px!important}
+.jr-growth__item p{font-size:.96rem;line-height:1.92;color:#eee7d9;margin:0}
+.jr-growth__actions{display:flex;flex-direction:column;align-items:stretch;gap:10px}
+.jr-growth__action{display:inline-flex;justify-content:center;align-items:center;min-height:48px;padding:12px 17px;border:1px solid #c5a96a;border-radius:12px;text-decoration:none!important;text-align:center;font-weight:750;line-height:1.5;color:#18150e!important;background:#e5c987;transition:background .12s ease}
+.jr-growth__action:hover{background:#f5da99}
+.jr-growth__action--secondary{color:#f8e9c3!important;background:transparent}
+.jr-growth__action--secondary:hover{background:rgba(229,201,135,.15)}
+.jr-growth__notice{font-size:.83rem;line-height:1.8;color:#cfc3a9;margin:15px 0 0}
+.jr-growth a:focus-visible{outline:3px solid #fff;outline-offset:4px}
+@media(min-width:650px){.jr-growth__grid{grid-template-columns:repeat(2,minmax(0,1fr))}.jr-growth__actions{flex-direction:row;align-items:center;flex-wrap:wrap}.jr-growth__action{min-width:185px}}
+@media(min-width:950px){.jr-growth__grid--three{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(prefers-reduced-motion:reduce){.jr-growth__action{transition:none}}

@@ -1,0 +1,38 @@
+name: Growth Release — Protected Live News Preflight (No Deployment)
+on:
+  pull_request:
+    branches: [migration/bertina-linux6]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: growth-frozen-news-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  compare-live-news:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Verify immutable live revision from the existing public release
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error --location --retry 2 --max-time 25 \
+            --header 'Cache-Control: no-cache' \
+            'https://drjavadrezazadeh.com/sw.js' -o /tmp/jr-growth-live-sw.js
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          import {execFileSync} from 'node:child_process';
+          const live=fs.readFileSync('/tmp/jr-growth-live-sw.js','utf8');
+          const match=live.match(/^const CACHE_VERSION='jr-site-bertina-([a-f0-9]{40})';$/m);
+          if(!match)throw Error('LIVE_NEWS_BASE_SHA_NOT_VERIFIABLE');
+          const sha=process.env.GITHUB_SHA||'';
+          if(!/^[a-f0-9]{40}$/.test(sha))throw Error('TARGET_SHA_INVALID');
+          execFileSync(process.execPath,['scripts/news-freeze-release-guard.mjs',match[1],sha],{stdio:'inherit'});
+          console.log('Live-news preservation gate passed before any owner deployment.');
+          NODE
+      - name: Release is still owner controlled
+        if: success()
+        run: echo "No deployment, backup, server mutation, content publication or search-engine submission occurred." >> "$GITHUB_STEP_SUMMARY"

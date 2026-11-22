@@ -11,7 +11,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   policy-contract:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
@@ -37,7 +37,7 @@ jobs:
         run: echo 'Source policy and build checks only. No deployment, no live data, no proof of user-visible improvement.' >> "$GITHUB_STEP_SUMMARY"
 
   full-preflight:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     services:
       mysql:

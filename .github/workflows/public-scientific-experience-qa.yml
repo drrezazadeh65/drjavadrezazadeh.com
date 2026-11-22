@@ -101,7 +101,7 @@ permissions:
 jobs:
   public-science:
     name: Active BAHAR and RCAS, design identity and zero-regression public artifact
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4

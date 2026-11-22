@@ -12,7 +12,16 @@
     "schema_name": "Javad Rezazadeh Yazdeli",
     "en_display": "Dr. Javad Rezazadeh Yazdeli",
     "fa_display": "دکتر جواد رضازاده یزدلی",
-    "fa_alternate": "دکتر جواد رضازاده یزدلی"
+    "fa_alternate": "دکتر جواد رضازاده یزدلی",
+    "search_variants": [
+      "دکتر جواد رضازاده یزدلی",
+      "جواد رضازاده یزدلی",
+      "دکتر جواد رضازاده",
+      "جواد رضازاده",
+      "Javad Rezazadeh Yazdeli",
+      "Dr. Javad Rezazadeh",
+      "Javad Rezazadeh"
+    ]
   },
   "roles": [
     "University Lecturer",
@@ -88,7 +97,14 @@
     "structured_name": "Javad Rezazadeh Yazdeli",
     "english_public_name": "Dr. Javad Rezazadeh Yazdeli",
     "persian_public_name": "دکتر جواد رضازاده یزدلی",
-    "alternate_name": "دکتر جواد رضازاده یزدلی",
+    "alternate_name": [
+      "دکتر جواد رضازاده یزدلی",
+      "جواد رضازاده یزدلی",
+      "دکتر جواد رضازاده",
+      "جواد رضازاده",
+      "Javad Rezazadeh",
+      "Dr. Javad Rezazadeh"
+    ],
     "roles": [
       "University Lecturer",
       "Education Researcher",
@@ -141,7 +157,8 @@
       "Academic Consulting"
     ],
     "connected_product": "Golden Talent",
-    "rule": "Relationships must be supported by public work/services/projects; semantic markup must not invent affiliations, awards or expertise."
+    "rule": "Relationships must be supported by public work/services/projects; semantic markup must not invent affiliations, awards or expertise.",
+    "discovery_note": "Use only the correctly spelled Persian family name رضازاده. Educational service and academic identity routes should cross-link to the canonical Person identity; never fabricate achievements or search rankings."
   },
   "required_knows_about": [
     "Talent Development",
