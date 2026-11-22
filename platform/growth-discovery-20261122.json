@@ -102,5 +102,15 @@
     ],
     "owner_action": "existing manual Deploy to Bertina workflow",
     "safe_gate": "source/live news delta must be empty before manual deploy"
+  },
+  "verified_analytics_diagnostic": {
+    "provider": "Ubersuggest",
+    "project_state": "inactive_user_inactivity",
+    "tracking_region": "United States",
+    "tracking_language": "en",
+    "tracked_seo_keywords": 8,
+    "tracked_ai_prompts": 10,
+    "ai_answers_sampled_20261022_20261120": 0,
+    "interpretation": "No evidence for either positive or negative AI visibility. Persian/Iran measurement missing; GSC and first-party conversion records necessary."
   }
 }
