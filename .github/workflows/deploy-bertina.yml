@@ -107,6 +107,16 @@ jobs:
           echo "live_sha=$live_sha" >> "$GITHUB_OUTPUT"
           echo "Verified target: $GITHUB_SHA; current live: $live_sha" >> "$GITHUB_STEP_SUMMARY"
 
+      - name: Guard frozen news subsystem against the current live release
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          LIVE_NEWS_BASE_SHA: ${{ steps.owner_release.outputs.live_sha }}
+        run: |
+          set -euo pipefail
+          node --check scripts/news-freeze-release-guard.mjs
+          node scripts/news-freeze-release-guard.mjs "$LIVE_NEWS_BASE_SHA" "$GITHUB_SHA"
+          echo "Frozen newsroom: source paths unchanged from live SHA." >> "$GITHUB_STEP_SUMMARY"
+
       - name: BLOCK PRODUCTION until full 100 percent masterplan acceptance
         if: inputs.release_scope == 'full_masterplan'
         env:
