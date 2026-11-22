@@ -255,7 +255,7 @@ jobs:
           echo 'DO NOT treat this job as recovery sign-off or permission to bypass any production gate.'
 
   browser:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 13
     steps:
       - uses: actions/checkout@v4
