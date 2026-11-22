@@ -39,3 +39,5 @@ GitHub's `ubuntu-latest` now resolves to Ubuntu 26.04 (2026-11), while pinned Pl
 
 ### Independent live-news preflight
 The read-only `Growth Release — Protected Live News Preflight` workflow also inspects the exact live `sw.js` SHA during PR validation and compares all news-related source paths to the proposed commit before the owner authorizes release. A missing live fingerprint or any news change causes this check to fail closed. The same check is repeated in the original owner release's existing package-stamp stage.
+
+Independent initial PR preflight revealed a false positive: the protect-news source files had `news` in their own *filenames*. Those two protective files are now explicitly excluded from the protected newsroom path set; real news routes, API code, publication queues, feeds and sitemaps remain protected. Live SW fingerprint identified the existing base commit `e32a6d9feea06e8a284a5592d396a45f6c71b319` at the time of the check.
