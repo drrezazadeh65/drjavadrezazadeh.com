@@ -10,7 +10,7 @@ if(!/^[a-f0-9]{40}$/.test(live||'')||!/^[a-f0-9]{40}$/.test(target||'')){
 let changes;
 try{changes=execFileSync('git',['diff','--name-only','-z',live,target],{encoding:'utf8',maxBuffer:10*1024*1024}).split('\0').filter(Boolean);}
 catch(e){console.error('NEWS_FREEZE_GUARD_UNABLE_TO_VERIFY_LIVE_DELTA');process.exit(2);}
-const protectedPath=p=>/(^|\/)(news|akhbar|news-insights|news-intelligence)(\/|\.|-|$)/i.test(p)||
+export const protectedPath=p=>/(^|\/)(news|akhbar|news-insights|news-intelligence)(\/|\.|-|$)/i.test(p)||
  /(?:^|\/)sitemap-news\.xml$/.test(p)||p==='feed.xml'||
  /(?:^|\/)[^/]*(?:news|akhbar)[^/]*\.(?:js|mjs|css|json|php|yml|yaml|xml)$/i.test(p);
 const hits=changes.filter(protectedPath);

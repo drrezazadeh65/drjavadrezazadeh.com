@@ -23,6 +23,8 @@ jobs:
           node-version: '22'
       - name: Verify 2026-11-22 bilingual identity and conversion guidance
         run: node scripts/growth-discovery-release-audit.mjs
+      - name: Verify frozen deployment contract and news source gate
+        run: node --test tests/growth-release-protection.test.mjs
       - name: Run source SEO/GEO regression audit
         run: node scripts/seo-regression.mjs
       - name: Validate all 54 bilingual service/VIP pages against canonical prices and crawl contracts
