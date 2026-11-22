@@ -22,7 +22,7 @@ Approved immutable blob fingerprints:
 
 | File | Git blob SHA-1 |
 | --- | --- |
-| `.github/workflows/deploy-bertina.yml` | `280c6ac95d534ef6db9b292ddbe7467053f0ba76` |
+| `.github/workflows/deploy-bertina.yml` | `8278e2e95af453fa3c5ce905db1b8e4d3964cfb5` (owner-authorized runner-only exception to prior `280c6ac95d534ef6db9b292ddbe7467053f0ba76`) |
 | `scripts/bertina-phased-release-gate.mjs` | `14a3641a43bf441ff56dcead5154dbc8bdd80237` |
 | `scripts/bertina-hosting-managed-release.php` | `0839f9e244da6eead0bac4526919f4b1dd7e4f40` |
 | `scripts/bertina-controlled-cpanel-gate.php` | `43f2a4eb28790baa4e657262e4ccb60aca99317e` |
@@ -36,13 +36,18 @@ Develop the website, publishing, journal, shop, dashboards, SEO, tests, content,
 
 **Owner's governing instruction:** The successful #395 deployment method is frozen permanently. No future website improvement is authorization to alter it.
 
-## Compatibility exception proposal — 22 November 2026 (NOT APPROVED)
+## Compatibility exception — 22 November 2026 (OWNER APPROVED AND MERGED)
 
-GitHub changed the runtime resolved by `ubuntu-latest` to Ubuntu 26.04, which fails the frozen Playwright 1.56.0 Chromium installer before any production upload. The existing independent browser CI successfully uses Ubuntu 24.04.
+The owner expressly authorized a constrained compatibility repair in this conversation, on the condition that the working website, its newsroom, and the one-click production safety flow remain intact. GitHub merged [PR #95](https://github.com/drrezazadeh65/drjavadrezazadeh.com/pull/95) as source commit `8685bc36aa0dd3ce574e281ddcff84fcfa24a3bd`.
 
-A narrowly scoped **proposed exception**, held in a separate unmerged PR pending the owner's **explicit approval of this specific frozen-workflow deviation**, would change only:
-`    runs-on: ubuntu-latest` → `    runs-on: ubuntu-24.04`
+**The ONLY executable production workflow modification is:**
+```diff
+-    runs-on: ubuntu-latest
++    runs-on: ubuntu-24.04
+```
 
-The candidate workflow Git blob would become `8278e2e95af453fa3c5ce905db1b8e4d3964cfb5`; its complete bytes after reversing the one label must SHA-1 hash exactly to the historical, owner-approved blob `280c6ac95d534ef6db9b292ddbe7467053f0ba76`. All four protected authorization, recovery and server gates retain their existing exact Git blobs and tests. Manual-only execution, release scope, SHA authorization, owner identity, backups, MySQL, TLS, payment and newsroom protection stay unchanged.
+This one-line change is necessary because the Ubuntu 26.04 runner reached through `ubuntu-latest` did not support the repository's pinned Playwright 1.56.0 browser installation. Ubuntu 24.04 was already validated by independent browser and visual CI. The new workflow blob is `8278e2e95af453fa3c5ce905db1b8e4d3964cfb5`, whose complete contents become exactly the original owner-frozen `280c6ac95d534ef6db9b292ddbe7467053f0ba76` when that one label is reversed. A dedicated source contract test enforces this byte-level guarantee.
 
-**This section is a PROPOSAL, not an owner approval. Do not merge or deploy the maintenance PR without an explicit exceptional owner instruction acknowledging the original freeze.** A successful CI on the proposal does not override this requirement.
+The four other protected authorization, recovery and host-control scripts retain all previous Git blob fingerprints. Owner-only manual dispatch, source/live SHA checks, explicit recovery acknowledgement, staging gates, public URL continuity, MySQL checks, TLS, receipts and newsroom freeze are not weakened or bypassed.
+
+**This exception authorizes only the compatible runner and its corresponding exact SHA assertions. It does NOT authorize further changes to the deployment machinery, and it is not a production release.** The owner must still initiate `Deploy to Bertina` manually, and its runtime gates may fail closed. No real payment or disaster-recovery restoration is certified by a source-only PR.
