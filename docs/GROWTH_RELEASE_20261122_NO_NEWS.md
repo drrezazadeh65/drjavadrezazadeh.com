@@ -36,3 +36,6 @@ The existing account-level drjavadrezazadeh.com project is **inactive** (user_in
 
 ## Runner compatibility
 GitHub's `ubuntu-latest` now resolves to Ubuntu 26.04 (2026-11), while pinned Playwright 1.56 browser installers reject it. Independent browser CI has been pinned to Ubuntu 24.04. The **owner deployment workflow remains unchanged and frozen**; its browser dependency/runner compatibility is an external release readiness blocker until independently verified or explicitly authorized to update. Do not claim ready-to-deploy solely because source CI passes.
+
+### Independent live-news preflight
+The read-only `Growth Release — Protected Live News Preflight` workflow also inspects the exact live `sw.js` SHA during PR validation and compares all news-related source paths to the proposed commit before the owner authorizes release. A missing live fingerprint or any news change causes this check to fail closed. The same check is repeated in the original owner release's existing package-stamp stage.
