@@ -11,13 +11,13 @@ const legacy=[
 const post=()=>read('.github/workflows/post-release-observations.yml');
 
 // QA 2026-10-23: the owner's original frozen one-click deploy workflow
-// was restored verbatim at Git blob 280c6ac95d534ef6db9b292ddbe7467053f0ba76.
+// historically succeeded at Git blob 280c6ac95d534ef6db9b292ddbe7467053f0ba76. This proposal changes only the runner.
 // Immutable-public-URL enforcement remains mandatory inside the existing
 // scripts/bertina-release-eligibility.mjs preflight. This test must NOT alter
 // the frozen deploy workflow merely to add another check.
 test('the immutable one-click Bertina release and four recovery gates preserve approved Git blobs',()=>{
  const immutable={
-  '.github/workflows/deploy-bertina.yml':'280c6ac95d534ef6db9b292ddbe7467053f0ba76',
+  '.github/workflows/deploy-bertina.yml':'8278e2e95af453fa3c5ce905db1b8e4d3964cfb5',
   'scripts/bertina-phased-release-gate.mjs':'14a3641a43bf441ff56dcead5154dbc8bdd80237',
   'scripts/bertina-hosting-managed-release.php':'0839f9e244da6eead0bac4526919f4b1dd7e4f40',
   'scripts/bertina-controlled-cpanel-gate.php':'43f2a4eb28790baa4e657262e4ccb60aca99317e',

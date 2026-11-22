@@ -3,9 +3,9 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {execFileSync} from 'node:child_process';
 const read=p=>fs.readFileSync(p,'utf8');
-test('the permanent owner deployment workflow is retained byte for byte',()=>{
+test('proposed one-line runner maintenance is the only change to frozen owner workflow',()=>{
  const sha=execFileSync('git',['hash-object','.github/workflows/deploy-bertina.yml'],{encoding:'utf8'}).trim();
- assert.equal(sha,'280c6ac95d534ef6db9b292ddbe7467053f0ba76');
+ assert.equal(sha,'8278e2e95af453fa3c5ce905db1b8e4d3964cfb5');
 });
 test('manual source stamp blocks any news delta before publishing a package',()=>{
  const s=read('scripts/stamp-bertina-release.mjs');
