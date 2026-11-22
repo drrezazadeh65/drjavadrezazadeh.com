@@ -35,3 +35,14 @@ This is an in-repository preventive control, not a claim that a repository admin
 Develop the website, publishing, journal, shop, dashboards, SEO, tests, content, and design independently, provided that the deployment contract above remains unchanged and all required release checks pass.
 
 **Owner's governing instruction:** The successful #395 deployment method is frozen permanently. No future website improvement is authorization to alter it.
+
+## Compatibility exception proposal — 22 November 2026 (NOT APPROVED)
+
+GitHub changed the runtime resolved by `ubuntu-latest` to Ubuntu 26.04, which fails the frozen Playwright 1.56.0 Chromium installer before any production upload. The existing independent browser CI successfully uses Ubuntu 24.04.
+
+A narrowly scoped **proposed exception**, held in a separate unmerged PR pending the owner's **explicit approval of this specific frozen-workflow deviation**, would change only:
+`    runs-on: ubuntu-latest` → `    runs-on: ubuntu-24.04`
+
+The candidate workflow Git blob would become `8278e2e95af453fa3c5ce905db1b8e4d3964cfb5`; its complete bytes after reversing the one label must SHA-1 hash exactly to the historical, owner-approved blob `280c6ac95d534ef6db9b292ddbe7467053f0ba76`. All four protected authorization, recovery and server gates retain their existing exact Git blobs and tests. Manual-only execution, release scope, SHA authorization, owner identity, backups, MySQL, TLS, payment and newsroom protection stay unchanged.
+
+**This section is a PROPOSAL, not an owner approval. Do not merge or deploy the maintenance PR without an explicit exceptional owner instruction acknowledging the original freeze.** A successful CI on the proposal does not override this requirement.

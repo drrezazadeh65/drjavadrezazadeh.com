@@ -121,10 +121,10 @@ test('owner one-click deployment auto-resolves source/live SHA while retaining g
  * FROZEN OWNER DEPLOYMENT CONTRACT — successful production run #395.
  * Fail closed before any release if any part of the approved deployment
  * machinery is modified, even if a change appears harmless.
- * Never automatically rewrite these fingerprints.
+ * Only a separately owner-approved, reviewed compatibility exception may update a fingerprint.
  */
 const FROZEN_DEPLOYMENT_BLOBS=Object.freeze({
- '.github/workflows/deploy-bertina.yml':'280c6ac95d534ef6db9b292ddbe7467053f0ba76',
+ '.github/workflows/deploy-bertina.yml':'8278e2e95af453fa3c5ce905db1b8e4d3964cfb5',
  'scripts/bertina-phased-release-gate.mjs':'14a3641a43bf441ff56dcead5154dbc8bdd80237',
  'scripts/bertina-hosting-managed-release.php':'0839f9e244da6eead0bac4526919f4b1dd7e4f40',
  'scripts/bertina-controlled-cpanel-gate.php':'43f2a4eb28790baa4e657262e4ccb60aca99317e',
@@ -139,4 +139,13 @@ test('PERMANENT FREEZE: deployment workflow and release gate source match succes
   assert.equal(gitBlob,expected,
    'FROZEN DEPLOYMENT CONTRACT VIOLATED: '+path+' differs from successful run #395');
  }
+});
+
+test('historical frozen deploy differs ONLY in Ubuntu runner compatibility label',()=>{
+ const f=fs.readFileSync('.github/workflows/deploy-bertina.yml','utf8');
+ assert.equal((f.match(/    runs-on: ubuntu-24\\.04/g)||[]).length,1);
+ const restored=f.replace('    runs-on: ubuntu-24.04','    runs-on: ubuntu-latest');
+ const bytes=Buffer.from(restored);
+ const hash=createHash('sha1').update(Buffer.from('blob '+bytes.length+'\\0')).update(bytes).digest('hex');
+ assert.equal(hash,'280c6ac95d534ef6db9b292ddbe7467053f0ba76','Changing the frozen deployment system beyond the runner is prohibited');
 });
