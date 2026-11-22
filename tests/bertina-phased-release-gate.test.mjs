@@ -143,9 +143,9 @@ test('PERMANENT FREEZE: deployment workflow and release gate source match succes
 
 test('historical frozen deploy differs ONLY in Ubuntu runner compatibility label',()=>{
  const f=fs.readFileSync('.github/workflows/deploy-bertina.yml','utf8');
- assert.equal((f.match(/    runs-on: ubuntu-24\\.04/g)||[]).length,1);
+ assert.equal(f.split('    runs-on: ubuntu-24.04').length-1,1);
  const restored=f.replace('    runs-on: ubuntu-24.04','    runs-on: ubuntu-latest');
  const bytes=Buffer.from(restored);
- const hash=createHash('sha1').update(Buffer.from('blob '+bytes.length+'\\0')).update(bytes).digest('hex');
+ const hash=createHash('sha1').update(Buffer.from('blob '+bytes.length)).update(Buffer.from([0])).update(bytes).digest('hex');
  assert.equal(hash,'280c6ac95d534ef6db9b292ddbe7467053f0ba76','Changing the frozen deployment system beyond the runner is prohibited');
 });
