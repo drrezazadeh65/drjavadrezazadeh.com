@@ -1,0 +1,105 @@
+{
+  "schema_version": "1.0",
+  "status": "SOURCE_PREVIEW_ONLY",
+  "default_locale": "fa",
+  "locales": [
+    "fa",
+    "ar",
+    "en"
+  ],
+  "identity_policy": "platform/identity-auth-policy.json",
+  "commerce_policy": "platform/commerce-operations-policy.json",
+  "existing_authority": {
+    "accounts": "customer_accounts",
+    "orders": "commerce_orders",
+    "payment_claims": "commerce_payment_claims",
+    "login": {
+      "fa": "/fa/login/",
+      "ar": "/fa/login/",
+      "en": "/en/login/"
+    },
+    "dashboard": {
+      "fa": "/fa/customer-dashboard/",
+      "ar": "/fa/customer-dashboard/",
+      "en": "/en/account/"
+    },
+    "orders_route": {
+      "fa": "/fa/app/account/orders/",
+      "ar": "/fa/app/account/orders/",
+      "en": "/en/app/account/orders/"
+    },
+    "arabic_account_fallback": "fa; explicit language label"
+  },
+  "products": [
+    {
+      "id": "jrei-academic",
+      "name": "Academic",
+      "routes": {
+        "fa": "/fa/jrei-academic/",
+        "ar": "/ar/jrei-academic/",
+        "en": "/en/jrei-academic/"
+      },
+      "status": "preview",
+      "engine_enabled": false,
+      "checkout_enabled": false,
+      "entitlement_grant_enabled": false,
+      "catalog_service_id": null,
+      "price": null,
+      "api_route": null
+    },
+    {
+      "id": "jrei-forge",
+      "name": "Forge",
+      "routes": {
+        "fa": "/fa/forge/",
+        "ar": "/ar/forge/",
+        "en": "/en/forge/"
+      },
+      "status": "preview",
+      "engine_enabled": false,
+      "checkout_enabled": false,
+      "entitlement_grant_enabled": false,
+      "catalog_service_id": null,
+      "price": null,
+      "api_route": null
+    },
+    {
+      "id": "jrei-seo",
+      "name": "SEO Intelligence",
+      "routes": {
+        "fa": "/fa/jrei/seo/",
+        "ar": "/ar/jrei/seo/",
+        "en": "/en/jrei/seo/"
+      },
+      "status": "preview",
+      "engine_enabled": false,
+      "checkout_enabled": false,
+      "entitlement_grant_enabled": false,
+      "catalog_service_id": null,
+      "price": null,
+      "api_route": null
+    }
+  ],
+  "activation_requirements": [
+    "Owner approval",
+    "Real JREI action registry and verified service transport",
+    "Server-side tenant authorization, job receipts and quotas",
+    "Existing canonical catalogue registration, approved prices and verified settlement",
+    "No entitlement before verified payment or approved contract",
+    "Private no-store routes; no sensitive data in localStorage",
+    "Full mobile, accessibility, localization, security and regression acceptance"
+  ],
+  "release": {
+    "workflow": ".github/workflows/deploy-bertina.yml",
+    "branch": "migration/bertina-linux6",
+    "automatic": false,
+    "owner_dispatch_only": true
+  },
+  "exclusions": [
+    "parallel accounts",
+    "parallel checkout",
+    "parallel customer database",
+    "public engine code",
+    "unverified payment or entitlement"
+  ]
+}
