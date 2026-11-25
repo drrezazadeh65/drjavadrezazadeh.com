@@ -19,7 +19,10 @@ const excludedTop=new Set(['.git','.github','docs','edge','payment-api','foundat
 const excludedRoot=new Set(['README.md','AGENTS.md','.bertina-deploy-trigger','.bertina-backup-trigger','.bertina-bootstrap-authorization.json','CACHE_STANDARD.md','CNAME','_headers','_redirects','_config.yml']);
 const excludedExact=new Set(['assets/media-registry.json','assets/release-v4.4.json',
   // Retired third-party journal stylesheet is archival source, never public release material.
-  'assets/css/jhela-ojs-theme.css']);
+  'assets/css/jhela-ojs-theme.css',
+  // Commercial Academic preview is source-only until owner-approved integrated release.
+  // Preserve the frozen 377-route baseline; noindex alone is not an exclusion.
+  'fa/jrei-academic/index.html']);
 const forbiddenReleasePath=/(?:^|\/)(?:\.env(?:\.[^/]*)?|config\.local\.php|[^/]+\.(?:pem|p12|pfx|key|sql|bak|dump))$/i;
 
 fs.rmSync(out,{recursive:true,force:true});
@@ -840,6 +843,8 @@ else if(!/<meta name="robots" content="noindex,nofollow,noarchive">/.test(fs.rea
 for(const route of approvedJhelaRoadmapRoutes){
   if(!fs.existsSync(path.join(out,route))) failures.push('Approved JHELA roadmap page missing: '+route);
 }
+if(fs.existsSync(path.join(out,'fa/jrei-academic/index.html')))
+  failures.push('Unapproved JREI Academic commercial preview leaked into sanitized artifact');
 if(html.length!==approvedPublicHtmlRoutes) failures.push(
   'Expected '+approvedPublicHtmlRoutes+' public HTML routes in sanitized artifact, found '+html.length
 );
