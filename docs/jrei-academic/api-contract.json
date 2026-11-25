@@ -1,0 +1,53 @@
+{
+  "version": "0.1",
+  "status": "proposed",
+  "base": "/api/academic/v1",
+  "routes": [
+    "GET /capabilities",
+    "GET /projects",
+    "POST /projects",
+    "POST /files",
+    "POST /jobs",
+    "GET /jobs/{id}",
+    "POST /jobs/{id}/cancel",
+    "GET /credits",
+    "POST /billing/checkout"
+  ],
+  "states": [
+    "queued",
+    "leased",
+    "running",
+    "succeeded",
+    "failed",
+    "cancelled"
+  ],
+  "capabilities": [
+    "research.search",
+    "assistant.chat",
+    "document.audit",
+    "research.synthesis",
+    "writing.edit",
+    "citation.audit",
+    "statistics.describe",
+    "qualitative.code",
+    "methodology.plan",
+    "translation.edit",
+    "integrity.audit",
+    "presentation.plan",
+    "document.compare",
+    "corpus.frequency",
+    "publication.check",
+    "education.practice"
+  ],
+  "security": [
+    "server derives tenant from session",
+    "server allowlist",
+    "no owner memory or email access",
+    "no shell",
+    "no public Qwen endpoint",
+    "idempotency and quotas",
+    "outbound worker TLS",
+    "payment disabled until verified"
+  ],
+  "note": "Aliases are proposed, not existing API IDs."
+}
