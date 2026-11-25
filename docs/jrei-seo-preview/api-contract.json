@@ -1,0 +1,186 @@
+{
+  "status": "DESIGN_ONLY_NOT_CONNECTED",
+  "version": "0.1",
+  "default_locale": "fa",
+  "locales": [
+    "fa",
+    "ar",
+    "en"
+  ],
+  "direction": {
+    "fa": "rtl",
+    "ar": "rtl",
+    "en": "ltr"
+  },
+  "routes": [
+    "/fa/jrei/seo/",
+    "/ar/jrei/seo/",
+    "/en/jrei/seo/"
+  ],
+  "execution_owner": "private JREI installation; no engines on public website repository",
+  "transport": "Future authenticated server-side same-origin gateway; never expose private JREI addresses or tokens to browser",
+  "planned_operations": [
+    "GET /api/jrei/seo/capabilities",
+    "POST /api/jrei/seo/jobs",
+    "GET /api/jrei/seo/jobs/{job_id}"
+  ],
+  "requirements": [
+    "Reuse existing account/email authentication and mother-site commerce; do not add parallel accounts.",
+    "Authorize tenant and action server-side, deny cross-tenant access, validate crawl URL and redirects against SSRF, rate limit, use scoped credentials and CSRF protection.",
+    "Obtain explicit authority for any website changes; audit-only by default.",
+    "Return status, source, collection time, observed/estimated/fixture provenance and errors; never generate fake metrics.",
+    "Keep preview noindex until explicit release approval and full acceptance."
+  ],
+  "catalog": [
+    {
+      "group": "foundation",
+      "actions": [
+        "crawl.enqueue",
+        "job.get",
+        "crawl.list",
+        "crawl.report",
+        "sitemap.parse",
+        "web.search",
+        "web.diff",
+        "links.graph",
+        "links.backlinks",
+        "keywords.gap",
+        "keywords.cluster",
+        "keywords.intent",
+        "keywords.terms",
+        "content.compare",
+        "seo.plan",
+        "market.scenario",
+        "gsc.import",
+        "rank.import",
+        "ai.import",
+        "observation.get"
+      ]
+    },
+    {
+      "group": "search",
+      "actions": [
+        "seo.advanced.search.difficulty",
+        "seo.advanced.search.keyword_clusters",
+        "seo.advanced.search.keyword_gap",
+        "seo.advanced.search.keyword_metrics",
+        "seo.advanced.search.keyword_suggestions",
+        "seo.advanced.search.rank_changes",
+        "seo.advanced.search.search_index",
+        "seo.advanced.search.serp_features",
+        "seo.advanced.search.serp_overview",
+        "seo.advanced.search.serp_volatility"
+      ]
+    },
+    {
+      "group": "technical",
+      "actions": [
+        "seo.advanced.technical.bot_analytics",
+        "seo.advanced.technical.canonical_chains",
+        "seo.advanced.technical.core_web_vitals",
+        "seo.advanced.technical.crawl_depth",
+        "seo.advanced.technical.ecommerce_audit",
+        "seo.advanced.technical.hreflang_check",
+        "seo.advanced.technical.page_changes",
+        "seo.advanced.technical.redirect_chains",
+        "seo.advanced.technical.render_diff",
+        "seo.advanced.technical.sitemap_generate",
+        "seo.advanced.technical.structured_data"
+      ]
+    },
+    {
+      "group": "graph",
+      "actions": [
+        "seo.advanced.graph.broken_links",
+        "seo.advanced.graph.internal_opportunities",
+        "seo.advanced.graph.link_changes",
+        "seo.advanced.graph.link_intersect",
+        "seo.advanced.graph.link_profile",
+        "seo.advanced.graph.link_risk",
+        "seo.advanced.graph.pagerank"
+      ]
+    },
+    {
+      "group": "ai",
+      "actions": [
+        "seo.advanced.ai.ai_gap",
+        "seo.advanced.ai.brand_radar",
+        "seo.advanced.ai.brand_sentiment",
+        "seo.advanced.ai.citation_gap",
+        "seo.advanced.ai.citation_graph",
+        "seo.advanced.ai.prompt_library"
+      ]
+    },
+    {
+      "group": "content",
+      "actions": [
+        "seo.advanced.content.cannibalization",
+        "seo.advanced.content.claims_review",
+        "seo.advanced.content.content_brief",
+        "seo.advanced.content.content_calendar",
+        "seo.advanced.content.content_decay",
+        "seo.advanced.content.content_grade",
+        "seo.advanced.content.duplicate_content",
+        "seo.advanced.content.multilingual_pairs",
+        "seo.advanced.content.topic_map"
+      ]
+    },
+    {
+      "group": "market",
+      "actions": [
+        "seo.advanced.market.ab_test",
+        "seo.advanced.market.ad_copy_analysis",
+        "seo.advanced.market.ad_gap",
+        "seo.advanced.market.audience_overlap",
+        "seo.advanced.market.audience_segments",
+        "seo.advanced.market.campaign_metrics",
+        "seo.advanced.market.funnel",
+        "seo.advanced.market.market_share",
+        "seo.advanced.market.scenario",
+        "seo.advanced.market.shopping_compare",
+        "seo.advanced.market.traffic_channels",
+        "seo.advanced.market.traffic_trends"
+      ]
+    },
+    {
+      "group": "outreach",
+      "actions": [
+        "seo.advanced.outreach.influencer_compare",
+        "seo.advanced.outreach.local_grid",
+        "seo.advanced.outreach.local_listings",
+        "seo.advanced.outreach.media_mentions",
+        "seo.advanced.outreach.media_prospects",
+        "seo.advanced.outreach.pr_campaign_metrics",
+        "seo.advanced.outreach.publication_plan",
+        "seo.advanced.outreach.review_analytics",
+        "seo.advanced.outreach.social_best_times",
+        "seo.advanced.outreach.social_metrics"
+      ]
+    },
+    {
+      "group": "engineering",
+      "actions": [
+        "seo.advanced.engineering.change_plan",
+        "seo.advanced.engineering.evaluation",
+        "seo.advanced.engineering.portfolio",
+        "seo.advanced.engineering.prioritize"
+      ]
+    },
+    {
+      "group": "analytics",
+      "actions": [
+        "seo.advanced.analytics.anomaly_alerts",
+        "seo.advanced.analytics.batch_domains",
+        "seo.advanced.analytics.csv_export",
+        "seo.advanced.analytics.ctr_opportunities",
+        "seo.advanced.analytics.domain_overview",
+        "seo.advanced.analytics.gsc_summary",
+        "seo.advanced.analytics.html_report",
+        "seo.advanced.analytics.segment_compare",
+        "seo.advanced.analytics.share_of_voice",
+        "seo.advanced.analytics.top_pages",
+        "seo.advanced.analytics.web_sessions"
+      ]
+    }
+  ]
+}
