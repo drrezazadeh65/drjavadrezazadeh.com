@@ -19,10 +19,7 @@ const excludedTop=new Set(['.git','.github','docs','edge','payment-api','foundat
 const excludedRoot=new Set(['README.md','AGENTS.md','.bertina-deploy-trigger','.bertina-backup-trigger','.bertina-bootstrap-authorization.json','CACHE_STANDARD.md','CNAME','_headers','_redirects','_config.yml']);
 const excludedExact=new Set(['assets/media-registry.json','assets/release-v4.4.json',
   // Retired third-party journal stylesheet is archival source, never public release material.
-  'assets/css/jhela-ojs-theme.css',
-  // Commercial Academic preview is source-only until owner-approved integrated release.
-  // Preserve the frozen 377-route baseline; noindex alone is not an exclusion.
-  'fa/jrei-academic/index.html']);
+  'assets/css/jhela-ojs-theme.css']);
 const forbiddenReleasePath=/(?:^|\/)(?:\.env(?:\.[^/]*)?|config\.local\.php|[^/]+\.(?:pem|p12|pfx|key|sql|bak|dump))$/i;
 
 fs.rmSync(out,{recursive:true,force:true});
@@ -833,7 +830,29 @@ for(const route of approvedBilingualCollectibleRoutes){
 // roadmap pages (320 legacy pages plus 2 approved journal roadmap routes).
 // Verify each route separately below; never double-count them here.
 const approvedJhelaRoadmapRoutes=['journal/roadmap/index.html','journal/fa/roadmap/index.html'];
-const approvedPublicHtmlRoutes=existingBaseHtmlRoutes+approvedEnglishServices.length+protectedNewRoutes.length+2+approvedEnglishVipRoutes.length+1+1+1+approvedBilingualEducationalRoutes.length*2+approvedPublicExamPages.length+approvedPrivateExamPages.length+approvedBilingualCollectibleRoutes.length;
+// 2026-11-25 owner-approved public introduction only; no live engines, accounts or checkout.
+const approvedJreiLaunchRoutes=[
+  "fa/jrei/index.html",
+  "fa/jrei-academic/index.html",
+  "fa/forge/index.html",
+  "fa/jrei/seo/index.html",
+  "ar/jrei/index.html",
+  "ar/jrei-academic/index.html",
+  "ar/forge/index.html",
+  "ar/jrei/seo/index.html",
+  "en/jrei/index.html",
+  "en/jrei-academic/index.html",
+  "en/forge/index.html",
+  "en/jrei/seo/index.html"
+];
+for(const route of approvedJreiLaunchRoutes){
+ const file=path.join(out,route);
+ if(!fs.existsSync(file)){failures.push('Approved JREI introduction missing: '+route);continue;}
+ const source=fs.readFileSync(file,'utf8');
+ const canonical='https://drjavadrezazadeh.com/'+route.replace(/index\.html$/,'');
+ if(!source.includes('data-jrei-launch="coming-soon"')||!source.includes('<meta name="robots" content="noindex,nofollow">')||!source.includes('<link rel="canonical" href="'+canonical+'">')||/<(?:form|script)\b/i.test(source))failures.push('JREI introduction must remain static, correctly scoped and noindex: '+route);
+}
+const approvedPublicHtmlRoutes=existingBaseHtmlRoutes+approvedEnglishServices.length+protectedNewRoutes.length+2+approvedEnglishVipRoutes.length+1+1+1+approvedBilingualEducationalRoutes.length*2+approvedPublicExamPages.length+approvedPrivateExamPages.length+approvedBilingualCollectibleRoutes.length+approvedJreiLaunchRoutes.length;
 
 const aiLabRoute='fa/konkur-ai-lab/index.html';
 const aiLabPath=path.join(out,aiLabRoute);
@@ -843,8 +862,12 @@ else if(!/<meta name="robots" content="noindex,nofollow,noarchive">/.test(fs.rea
 for(const route of approvedJhelaRoadmapRoutes){
   if(!fs.existsSync(path.join(out,route))) failures.push('Approved JHELA roadmap page missing: '+route);
 }
-if(fs.existsSync(path.join(out,'fa/jrei-academic/index.html')))
-  failures.push('Unapproved JREI Academic commercial preview leaked into sanitized artifact');
+for(const locale of ['fa','ar','en']){
+  if(fs.existsSync(path.join(out,locale,'forge/workspace/index.html')))
+    failures.push('Unapproved Forge workspace leaked into sanitized artifact: '+locale);
+}
+if(fs.existsSync(path.join(out,'docs/jrei-academic/source-preview/index.html')))
+  failures.push('Unapproved Academic source preview leaked into sanitized artifact');
 if(html.length!==approvedPublicHtmlRoutes) failures.push(
   'Expected '+approvedPublicHtmlRoutes+' public HTML routes in sanitized artifact, found '+html.length
 );
