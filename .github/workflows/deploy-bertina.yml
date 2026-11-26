@@ -307,6 +307,8 @@ jobs:
         run: |
           set -euo pipefail
           node scripts/build-public-data.mjs --check
+          node --check scripts/jr-business-contact-v1.mjs
+          node --test tests/jr-business-contact-v1.test.mjs
           node scripts/build-public-site.mjs
           node scripts/bookstore-release-audit.mjs
           node scripts/public-retired-commerce-audit.mjs
@@ -324,6 +326,15 @@ jobs:
           # main site's sanitized public release or its static /journal/ hub.
           test ! -e .public-site/journals
           test ! -e .public-site/journal/portal
+
+      - name: Retain public SEO and business contact audit
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jr-public-release-audit-${{ github.sha }}
+          path: test-results/jr-public-release-audit.json
+          if-no-files-found: ignore
+          retention-days: 30
 
       - name: Check Bertina repository secrets
         id: credentials

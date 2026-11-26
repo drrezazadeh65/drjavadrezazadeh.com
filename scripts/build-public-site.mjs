@@ -11,6 +11,7 @@ import {includeJreiAssistant} from './jrei-public-assistant-surface.mjs';
 import {fingerprintCoreStyles} from './release-fingerprint-core-styles.mjs';
 import {bundleOwnerStyles} from './release-bundle-owner-styles.mjs';
 import {validateArabicPublicRoutes,applyPublicLocaleNavigation} from './jr-public-locale-navigation.mjs';
+import {applyBusinessContact,auditPublicRelease} from './jr-business-contact-v1.mjs';
 
 checkStylesheetBundles();
 
@@ -929,6 +930,12 @@ if(!fs.existsSync(relayPath)) {
   }
 }
 
+const businessContactReport=applyBusinessContact(out,html,failures);
+console.log('Public WhatsApp Business contact:',JSON.stringify({enhanced:businessContactReport.enhanced,skipped:businessContactReport.skipped,byLanguage:businessContactReport.byLanguage}));
+const releaseAudit=auditPublicRelease(out,html);
+fs.mkdirSync(path.join(root,'test-results'),{recursive:true});
+fs.writeFileSync(path.join(root,'test-results/jr-public-release-audit.json'),JSON.stringify(releaseAudit,null,2)+'\n','utf8');
+console.log('Public release audit:',JSON.stringify({htmlRoutes:releaseAudit.htmlRoutes,sitemapUnique:releaseAudit.sitemapUnique,sitemapDuplicates:releaseAudit.sitemapDuplicates.length,issueCounts:releaseAudit.issueCounts}));
 const textExt=/\.(?:html|js|css|json|xml|txt|webmanifest)$/i;
 for(const file of all.filter(p=>textExt.test(p))){
   // The private API directory is denied by Apache (verified above). Those
