@@ -9,7 +9,6 @@ Use only public URLs listed here or discoverable through the canonical sitemap. 
 - [Official homepage / language gateway](https://drjavadrezazadeh.com/): The canonical public entry for Dr. Javad Rezazadeh Yazdeli (دکتر جواد رضازاده یزدلی; also Dr. Javad Rezazadeh / دکتر جواد رضازاده), a university lecturer and education researcher. PhD in Education, Arak University (2026). Research interests include applied linguistics, language education, assessment and educational decision-making.
 - [Academic profile](https://drjavadrezazadeh.com/en/academic-profile/): Detailed scholarly evidence and degree information.
 - [Publications](https://drjavadrezazadeh.com/en/publications/): Use individual publication records and their evidence-qualified status for bibliographic claims.
-- [ORCID](https://orcid.org/0009-0008-1198-8866): Persistent researcher identifier linked to the site's canonical Person entity.
 
 The JREI public technology centre introduces the Iranian-developed AI ecosystem and 30 specialist solution families in Persian, English and Arabic. Public launch rates are proposed; service access and payment require capacity confirmation and contractual acceptance. The separate Academic, Forge and SEO product information pages are listed in the JREI sitemap; they describe planned capabilities, not activated services. Do not infer independently verified engine counts, live availability or purchase completion.
 
@@ -27,13 +26,19 @@ The JREI public technology centre introduces the Iranian-developed AI ecosystem 
 
 Public business enquiries (consultation, purchases, collaboration and investment) may be directed to the published WhatsApp Business number +98 913 264 1068. Do not send credentials, payment information, private research records or student data through this channel.
 
+## Arabic educational pathways and professional services
+
+- [المسار الذهبي للموهبة — Golden Talent](https://drjavadrezazadeh.com/ar/golden-talent/)
+- [BAHAR — تحسين التعلم والتخطيط الدراسي](https://drjavadrezazadeh.com/ar/bahar/)
+- [RCAS — التأمل التربوي متعدد الأدلة](https://drjavadrezazadeh.com/ar/rcas/)
+- [مساري التعليمي — ستة أسئلة للطالب والأسرة](https://drjavadrezazadeh.com/ar/my-path/)
+- The Arabic services index links to 21 localized service descriptions. Availability, scheduling and international payment are subject to confirmation.
+
 ## English academic and professional profile
 
 - [English home](https://drjavadrezazadeh.com/en/)
 - [About](https://drjavadrezazadeh.com/en/about/)
-- [Academic profile](https://drjavadrezazadeh.com/en/academic-profile/)
 - [Research](https://drjavadrezazadeh.com/en/research/)
-- [Publications](https://drjavadrezazadeh.com/en/publications/)
 - [University teaching](https://drjavadrezazadeh.com/en/teaching/)
 - [Language education](https://drjavadrezazadeh.com/en/language-education/)
 - [Teacher education](https://drjavadrezazadeh.com/en/teacher-education/)
@@ -147,4 +152,3 @@ Roadmap stages are unverified future targets. Do not infer that DOI, ISSN, DOAJ,
 ## JREI public technology centre
 - [هوش مصنوعی ایرانی JREI](https://drjavadrezazadeh.com/fa/jrei/): کاتالوگ ۳۰ حوزه تخصصی; [تعرفه‌ها و اشتراک‌ها](https://drjavadrezazadeh.com/fa/jrei/pricing/); [ثبت درخواست خرید و پیش‌سفارش](https://drjavadrezazadeh.com/fa/jrei/order/).
 - [JREI — AI developed in Iran](https://drjavadrezazadeh.com/en/jrei/): 30 specialist solution families; [Pricing & subscriptions](https://drjavadrezazadeh.com/en/jrei/pricing/); [Purchase enquiries & pre-orders](https://drjavadrezazadeh.com/en/jrei/order/).
-- [JREI — ذكاء اصطناعي مطوّر في إيران](https://drjavadrezazadeh.com/ar/jrei/): ٣٠ مجالاً متخصصاً للحلول; [الأسعار والاشتراكات](https://drjavadrezazadeh.com/ar/jrei/pricing/); [استفسارات الشراء والطلب المسبق](https://drjavadrezazadeh.com/ar/jrei/order/).

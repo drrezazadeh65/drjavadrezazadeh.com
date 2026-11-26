@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import {validateArabicPublicRoutes,localeNavigationMarkup} from '../scripts/jr-public-locale-navigation.mjs';
 const routes=JSON.parse(fs.readFileSync('platform/jr-arabic-public-routes-v1.json','utf8')).routes;
 test('all approved Arabic pages have reciprocal equivalents, canonical metadata, Arabic text and valid local links',()=>{
- const failures=[];assert.equal(validateArabicPublicRoutes(process.cwd(),routes,failures),13);assert.deepEqual(failures,[]);
+ const failures=[];assert.equal(validateArabicPublicRoutes(process.cwd(),routes,failures),38);assert.deepEqual(failures,[]);
 });
 test('language menu preserves true equivalents and identifies fallback as homepage',()=>{
  const menu=localeNavigationMarkup('fa',{en:'/en/about/'});

@@ -1,7 +1,7 @@
 {
   "schema": "jr.locale-equivalence.v1",
   "source_commit": "d3e70bebb5f554d9d2d37aaa61eeb9ef5402f275",
-  "scope": "first editorial localization tranche; not full feature parity",
+  "scope": "Arabic editorial localization including 21 service descriptions and four educational pathways; no Arabic checkout or private feature parity",
   "routes": [
     {
       "ar": "/ar/",
@@ -80,6 +80,156 @@
       "en": "/en/golden-talent/methodology/",
       "fa": "/fa/golden-talent/ravesh-shenasi/",
       "xDefault": "/en/golden-talent/methodology/"
+    },
+    {
+      "ar": "/ar/services/academic_consult_60/",
+      "en": "/en/services/academic_consult_60/",
+      "fa": "/fa/services/academic_consult_60/",
+      "xDefault": "/en/services/academic_consult_60/"
+    },
+    {
+      "ar": "/ar/services/student_parent_90/",
+      "en": "/en/services/student_parent_90/",
+      "fa": "/fa/services/student_parent_90/",
+      "xDefault": "/en/services/student_parent_90/"
+    },
+    {
+      "ar": "/ar/services/konkur_consult_60/",
+      "en": "/en/services/konkur_consult_60/",
+      "fa": "/fa/services/konkur_consult_60/",
+      "xDefault": "/en/services/konkur_consult_60/"
+    },
+    {
+      "ar": "/ar/services/konkur_month/",
+      "en": "/en/services/konkur_month/",
+      "fa": "/fa/services/konkur_month/",
+      "xDefault": "/en/services/konkur_month/"
+    },
+    {
+      "ar": "/ar/services/transcript_analysis/",
+      "en": "/en/services/transcript_analysis/",
+      "fa": "/fa/services/transcript_analysis/",
+      "xDefault": "/en/services/transcript_analysis/"
+    },
+    {
+      "ar": "/ar/services/field_selection_standard/",
+      "en": "/en/services/field_selection_standard/",
+      "fa": "/fa/services/field_selection_standard/",
+      "xDefault": "/en/services/field_selection_standard/"
+    },
+    {
+      "ar": "/ar/services/field_selection_comprehensive/",
+      "en": "/en/services/field_selection_comprehensive/",
+      "fa": "/fa/services/field_selection_comprehensive/",
+      "xDefault": "/en/services/field_selection_comprehensive/"
+    },
+    {
+      "ar": "/ar/services/talent_initial/",
+      "en": "/en/services/talent_initial/",
+      "fa": "/fa/services/talent_initial/",
+      "xDefault": "/en/services/talent_initial/"
+    },
+    {
+      "ar": "/ar/services/golden_talent_comprehensive/",
+      "en": "/en/services/golden_talent_comprehensive/",
+      "fa": "/fa/services/golden_talent_comprehensive/",
+      "xDefault": "/en/services/golden_talent_comprehensive/"
+    },
+    {
+      "ar": "/ar/services/golden_talent_premium/",
+      "en": "/en/services/golden_talent_premium/",
+      "fa": "/fa/services/golden_talent_premium/",
+      "xDefault": "/en/services/golden_talent_premium/"
+    },
+    {
+      "ar": "/ar/services/teacher_consult_60/",
+      "en": "/en/services/teacher_consult_60/",
+      "fa": "/fa/services/teacher_consult_60/",
+      "xDefault": "/en/services/teacher_consult_60/"
+    },
+    {
+      "ar": "/ar/services/teacher_dev_90/",
+      "en": "/en/services/teacher_dev_90/",
+      "fa": "/fa/services/teacher_dev_90/",
+      "xDefault": "/en/services/teacher_dev_90/"
+    },
+    {
+      "ar": "/ar/services/manuscript_diagnostic/",
+      "en": "/en/services/manuscript_diagnostic/",
+      "fa": "/fa/services/manuscript_diagnostic/",
+      "xDefault": "/en/services/manuscript_diagnostic/"
+    },
+    {
+      "ar": "/ar/services/academic_editing/",
+      "en": "/en/services/academic_editing/",
+      "fa": "/fa/services/academic_editing/",
+      "xDefault": "/en/services/academic_editing/"
+    },
+    {
+      "ar": "/ar/services/research_consult_60/",
+      "en": "/en/services/research_consult_60/",
+      "fa": "/fa/services/research_consult_60/",
+      "xDefault": "/en/services/research_consult_60/"
+    },
+    {
+      "ar": "/ar/services/journal_strategy/",
+      "en": "/en/services/journal_strategy/",
+      "fa": "/fa/services/journal_strategy/",
+      "xDefault": "/en/services/journal_strategy/"
+    },
+    {
+      "ar": "/ar/services/reviewer_response/",
+      "en": "/en/services/reviewer_response/",
+      "fa": "/fa/services/reviewer_response/",
+      "xDefault": "/en/services/reviewer_response/"
+    },
+    {
+      "ar": "/ar/services/academic_cv/",
+      "en": "/en/services/academic_cv/",
+      "fa": "/fa/services/academic_cv/",
+      "xDefault": "/en/services/academic_cv/"
+    },
+    {
+      "ar": "/ar/services/academic_interview_90/",
+      "en": "/en/services/academic_interview_90/",
+      "fa": "/fa/services/academic_interview_90/",
+      "xDefault": "/en/services/academic_interview_90/"
+    },
+    {
+      "ar": "/ar/services/organization_consult_90/",
+      "en": "/en/services/organization_consult_90/",
+      "fa": "/fa/services/organization_consult_90/",
+      "xDefault": "/en/services/organization_consult_90/"
+    },
+    {
+      "ar": "/ar/services/specialist_workshop_120/",
+      "en": "/en/services/specialist_workshop_120/",
+      "fa": "/fa/services/specialist_workshop_120/",
+      "xDefault": "/en/services/specialist_workshop_120/"
+    },
+    {
+      "ar": "/ar/golden-talent/",
+      "en": "/en/golden-talent/",
+      "fa": "/fa/golden-talent/",
+      "xDefault": "/en/golden-talent/"
+    },
+    {
+      "ar": "/ar/bahar/",
+      "en": "/en/bahar/",
+      "fa": "/fa/bahar/",
+      "xDefault": "/en/bahar/"
+    },
+    {
+      "ar": "/ar/rcas/",
+      "en": "/en/rcas/",
+      "fa": "/fa/rcas/",
+      "xDefault": "/fa/rcas/"
+    },
+    {
+      "ar": "/ar/my-path/",
+      "en": "/en/my-path/",
+      "fa": "/fa/masir-man/",
+      "xDefault": "/en/my-path/"
     }
   ]
 }
