@@ -56,7 +56,7 @@ class WindowsCommandCenterTests(unittest.TestCase):
 
     def test_private_sqlite_events_persist_but_do_not_claim_approval(self):
         with tempfile.TemporaryDirectory() as directory:
-            path = Path(directory) / "mission.sqlite3"
+            path = Path(directory) / "missions.sqlite3"
             with patch.object(cc.private_storage, "select_private_storage", return_value=Path(directory)), \
                  patch.object(cc, "PRIVATE", Path(directory)), \
                  patch.object(cc, "TOKEN_PATH", Path(directory) / "owner-token"), \
