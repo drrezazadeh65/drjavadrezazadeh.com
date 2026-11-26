@@ -1,5 +1,5 @@
 /* Adaptive layout: preserve source reading order and narrow-screen design. */
-@media screen and (min-width:1500px){
+@media screen and (min-width:1500px), screen and (min-width:1100px) and (max-height:850px) and (min-aspect-ratio:16/9){
  body{--jr-wide-gutter:clamp(24px,2.1vw,84px);--jr-wide-width:calc(100% - 2 * var(--jr-wide-gutter))}
  body.public-home-page main,body.public-home-page footer,
  body.public-content-page :is(.breadcrumbs,.article-shell,.authority-shell),
