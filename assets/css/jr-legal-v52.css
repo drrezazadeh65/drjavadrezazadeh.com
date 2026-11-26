@@ -21,3 +21,9 @@
 @media(max-width:580px){.jr-legal-page .article-shell{width:calc(100% - 20px);padding:20px 0 100px}.jr-legal-page .article-hero{padding:25px 19px;border-radius:19px}.jr-legal-page .article-shell>section:not(.role-status-grid){padding:22px 18px}.jr-legal-page .role-status-grid{grid-template-columns:1fr 1fr;gap:8px}.jr-legal-page .role-status-card{padding:15px}.jr-legal-page .role-status-card strong{font-size:15px}.jr-legal-page .role-status-card span{font-size:13px}}
 @media(max-width:360px){.jr-legal-page .role-status-grid{grid-template-columns:1fr}}
 @media print{.jr-legal-page{background:#fff;color:#152434}.jr-legal-page .article-hero,.jr-legal-page .article-shell>section:not(.role-status-grid),.jr-legal-page .role-status-card{background:#fff;border-color:#aaa;color:#152434;box-shadow:none}.jr-legal-page :is(.article-hero h1,.article-hero .lead,.article-shell p,.article-shell h2,.role-status-card *){color:#152434!important}.jr-legal-page .site-header,.jr-legal-page footer{display:none}}
+
+/* Preserve readable line lengths while using the available legal-page shell on large screens. */
+@media screen and (min-width:1500px){
+ body.jr-legal-page.public-content-page .article-shell{width:calc(100% - 2 * clamp(24px,2.1vw,84px));max-width:none;margin-inline:auto}
+ body.jr-legal-page.public-content-page .article-shell :is(p,li){max-inline-size:78ch}
+}

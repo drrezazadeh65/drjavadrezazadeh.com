@@ -33,3 +33,13 @@ for(const l of ['fa','en','ar'])test('floating controls remain separated and res
  if(l==='ar'){await expect(panel).toHaveAttribute('aria-label','JREI | دليل الموقع');await panel.locator('textarea').fill('أسعار');await panel.locator('textarea').press('Enter');await expect(panel.locator('.jr-assistant-links a[href="http://127.0.0.1:4173/ar/jrei/pricing/"],.jr-assistant-links a[href$="/ar/jrei/pricing/"]')).toBeVisible();}
  await panel.locator('.jr-assistant-close').click();await expect(panel).toBeHidden();await expect(wa).toBeVisible();
 });
+
+test('legal page uses the wide shell without sacrificing reading measure',async({page})=>{
+ for(const width of [390,1500,3840,7680]){
+  await page.setViewportSize({width,height:width>=3840?2160:844});
+  await page.goto(base+'/terms/',{waitUntil:'load'});
+  const result=await page.locator('.article-shell').evaluate(el=>({shell:el.getBoundingClientRect().width,viewport:innerWidth,overflow:document.documentElement.scrollWidth-innerWidth}));
+  expect(result.overflow).toBeLessThanOrEqual(1);
+  if(width>=1500)expect(result.shell).toBeGreaterThanOrEqual(width*.8);
+ }
+});
