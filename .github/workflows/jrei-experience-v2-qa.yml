@@ -23,6 +23,7 @@ jobs:
           node-version: '22'
       - run: node --test tests/jrei-experience-v2.test.mjs tests/jrei-universal-public-chat-consent.test.mjs tests/jrei-chat-experience.test.mjs tests/jrei-offline-self-introduction.test.mjs
       - run: node --check assets/js/jrei-experience-v2.js
+      - run: node platform/assistant-runtime.test.mjs
       - run: node scripts/build-public-site.mjs
       - name: Verify exact reviewed SEO observations resolved
         run: node -e 'const r=require("./test-results/jr-public-release-audit.json"); if(r.issueCounts.description_review||r.issueCounts.image_dimensions_review) { console.error(r.issues);process.exit(1); }'

@@ -24,7 +24,8 @@ assert(client.includes("const chatEndpoint=providerMode==='JREI_LM_LOCAL_WINDOWS
 assert(client.includes("target.origin===location.origin"));
 assert(client.includes("target.pathname==='/api/assistant/v1/chat'"));
 assert(client.includes('const local=fallback(message.trim())'));
-assert(client.includes('if(!endpoint) leadBox.hidden=true'));
+assert(client.includes('if(isAr||!endpoint) leadBox.hidden=true'));
+assert.match(client,/async function discoverLiveAssistant\(\)\{\s*if\(isAr\)return/);
 assert(client.includes('PRIVATE_PREFIXES'));
 assert(!client.includes('assistant.drjavadrezazadeh.com/v1/chat'));
 assert(css.includes('@media(max-width:900px)'));

@@ -6,7 +6,7 @@ const origin='https://drjavadrezazadeh.com';
 const routes={'fa-home':'/fa/','fa-jrei':'/fa/jrei/','en-jrei':'/en/jrei/','ar-jrei':'/ar/jrei/'};
 const route=routes[process.env.LAB_ROUTE];
 if(!route)throw Error('INVALID_LAB_ROUTE');
-const url=validatedPublicUrl(origin+route),dir='.independent-lighthouse';
+const url=validatedPublicUrl(origin+route),dir='independent-lighthouse-results';
 fs.mkdirSync(dir,{recursive:true});
 async function fingerprint(){
  const res=await fetch(origin+'/sw.js',{redirect:'error',cache:'no-store',signal:AbortSignal.timeout(18000)});
@@ -26,7 +26,7 @@ for(const strategy of ['mobile','desktop']){
  if(result.status!==0||!fs.existsSync(file)){records.push({strategy,status:'unavailable',reason:'local_chrome_audit_failed',exit:result.status});continue;}
  try{
   const lhr=JSON.parse(fs.readFileSync(file,'utf8'));
-  const record=normalizePsi({lighthouseResult:lhr},url,strategy,new Date().toISOString());
+  const record=normalizePsi({lighthouseResult:{...lhr,finalUrl:lhr.finalDisplayedUrl||lhr.finalUrl}},url,strategy,new Date().toISOString());
   records.push({...record,source:'Independent Chrome Lighthouse laboratory; not Google PSI API or real-user field data'});
  }catch{records.push({strategy,status:'unavailable',reason:'invalid_lighthouse_report'});}
  finally{fs.rmSync(file,{force:true});}
