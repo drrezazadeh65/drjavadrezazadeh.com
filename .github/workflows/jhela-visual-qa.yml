@@ -31,7 +31,7 @@ concurrency:
 jobs:
   jhela-browser:
     name: JHELA 33 pages / 8 roles / A4 specimens
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 24
     env:
       PW_TEST_SCREENSHOT_NO_FONTS_READY: '1'

@@ -28,7 +28,7 @@ concurrency:
 
 jobs:
   article-browser:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 12
     env:
       PW_TEST_SCREENSHOT_NO_FONTS_READY: '1'

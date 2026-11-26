@@ -79,7 +79,7 @@ jobs:
   isolated-preview:
     needs: [source-acceptance, windows-supervisor-source]
     if: github.ref == 'refs/heads/migration/bertina-linux6'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 20
     steps:
       - name: Checkout pinned source without push credentials
