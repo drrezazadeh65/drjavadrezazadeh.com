@@ -89,7 +89,7 @@ function visualTheme(relative){
 
 function scene(l,c,theme){
  const nodes=c.nodes.map((x,i)=>'<a class="jx-node jx-node-'+i+'" href="/'+l+'/jrei/catalog/'+['language','memory','agents','distributed'][i]+'/"><span aria-hidden="true">'+['◈','◉','✳','▦'][i]+'</span>'+esc(x)+'</a>').join('');
- return '<figure class="jx-scene" data-jx-scene="'+esc(theme)+'"><div class="jx-scene-top"><span>JREI / SYSTEM MAP</span><span>01 — 04</span></div><div class="jx-network"><svg class="jx-lines" viewBox="0 0 400 320" preserveAspectRatio="none" aria-hidden="true"><g fill="none" stroke="#84dacf" stroke-width="1.2"><ellipse cx="200" cy="160" rx="144" ry="112" opacity=".28"/><ellipse cx="200" cy="160" rx="105" ry="78" opacity=".55"/><path d="M65 54L200 160 335 54M65 266L200 160 335 266" stroke-dasharray="5 7"/><path d="M200 12V308M12 160H388" opacity=".2"/></g><g fill="#d6fff7"><circle cx="132" cy="108" r="3"/><circle cx="269" cy="214" r="3"/><circle cx="200" cy="48" r="2"/></g></svg><div class="jx-core"><span aria-hidden="true">✦</span><strong>JREI</strong><small>'+esc(c.core)+'</small></div>'+nodes+'</div><figcaption>'+esc(c.map)+'</figcaption></figure>';
+ return '<figure class="jx-scene" data-jx-scene="'+esc(theme)+'"><div class="jx-scene-top"><span>JREI / SYSTEM MAP</span><span>01 — 04</span></div><div class="jx-network"><svg class="jx-lines" viewBox="0 0 400 320" preserveAspectRatio="none" aria-hidden="true"><g fill="none" stroke="#d6b77a" stroke-width="1.2"><ellipse cx="200" cy="160" rx="144" ry="112" opacity=".28"/><ellipse cx="200" cy="160" rx="105" ry="78" opacity=".55"/><path d="M65 54L200 160 335 54M65 266L200 160 335 266" stroke-dasharray="5 7"/><path d="M200 12V308M12 160H388" opacity=".2"/></g><g fill="#f5deb1"><circle cx="132" cy="108" r="3"/><circle cx="269" cy="214" r="3"/><circle cx="200" cy="48" r="2"/></g></svg><div class="jx-core"><span aria-hidden="true">✦</span><strong>JREI</strong><small>'+esc(c.core)+'</small></div>'+nodes+'</div><figcaption>'+esc(c.map)+'</figcaption></figure>';
 }
 function nav(l,c){return '<div class="jx-nav">'+['/jrei/','/jrei/pricing/','/jrei/order/'].map((p,i)=>'<a href="/'+l+p+'">'+esc(c.nav[i])+' <span aria-hidden="true">↗</span></a>').join('')+'</div>'}
 function stats(c){return '<div class="jx-stats">'+['30','52','3'].map((v,i)=>'<div><strong dir="ltr">'+v+'</strong><span>'+esc(c.stats[i])+'</span></div>').join('')+'</div>'}
@@ -100,7 +100,7 @@ export function projectExperience(relative,source){
  const l=m[1],c=locales[l],commercial=source.includes('data-jrei-public-centre="v1"');
  if(source.includes('/assets/css/jrei-experience-v2.css'))return source;
  if(!commercial&&!source.includes('data-jrei-launch="coming-soon"'))throw Error('Unexpected JREI route '+relative);
- let next=source.replace(/<\/head>/i,m=>'<link rel="stylesheet" href="/assets/css/jrei-experience-v2.css?v=4">'+m);
+ let next=source.replace(/<\/head>/i,m=>'<link rel="stylesheet" href="/assets/css/jrei-experience-v2.css?v=5">'+m);
  if(commercial){
   const hero=/<div class="hero"><div class="wrap">([\s\S]*?)<\/div><\/div><\/div>/;
   if(!hero.test(next))throw Error('JREI hero shape '+relative);

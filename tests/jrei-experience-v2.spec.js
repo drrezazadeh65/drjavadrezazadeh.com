@@ -73,3 +73,13 @@ for(const l of ['fa','en','ar'])test('private browser proposal, accessibility an
  await page.evaluate(()=>scrollTo(0,0));
  await page.screenshot({path:testInfo.outputPath(l+'-desktop.png')});
 });
+
+test('Obsidian Champagne visual identity uses local Persian typography across the JREI routes',async({page})=>{
+ await page.setViewportSize({width:390,height:844});
+ for(const route of ['fa/jrei/','fa/jrei/catalog/research/','fa/jrei/pricing/','fa/jrei-academic/','fa/forge/','fa/jrei/seo/','ar/jrei/']){
+  await page.goto(base+'/'+route);
+  const styles=await page.locator('h1').evaluate(async e=>{await document.fonts.ready;return {family:getComputedStyle(e).fontFamily,loaded:document.fonts.check('700 20px "JREI Persian"','هوش مصنوعی'),signal:getComputedStyle(document.body).getPropertyValue('--jx-signal').trim(),overflow:document.documentElement.scrollWidth-innerWidth}});
+  expect(styles.family).toContain('JREI Persian');expect(styles.loaded).toBeTruthy();expect(styles.signal).toMatch(/^#[0-9a-f]{6}$/i);
+  expect(styles.overflow).toBeLessThanOrEqual(1);
+ }
+});
