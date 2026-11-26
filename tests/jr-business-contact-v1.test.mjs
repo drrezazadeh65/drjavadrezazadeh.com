@@ -22,3 +22,5 @@ test('USDT manual invoice enquiry covers commerce and support without pretending
  assert.equal(invoiceRequestEligible('/fa/services/',fixture('/fa/services/','noindex,follow'),new Set([origin+'/fa/services/'])),false);
  for(const lang of ['fa','en']){const route='/'+lang+'/support-talented-students/';assert.equal(invoiceRequestEligible(route,fixture(route,'noindex,follow').replace('lang="fa"','lang="'+lang+'"'),new Set()),true);}
 });
+
+test('one icon-only WhatsApp launcher, accessible without displaying the number',()=>{for(const lang of ['fa','en','ar']){const markup=contactMarkup(lang,'/'+lang+'/jrei/');assert.equal((markup.match(/<a\b/g)||[]).length,1);assert.match(markup,/data-jr-business-float="v1"/);assert.match(markup,/<a[^>]+aria-label="[^"]+"/);assert.match(markup,/<svg[^>]*aria-hidden="true"/);assert.doesNotMatch(markup,/<bdi|<span|<p>|\+98\s|>\s*989132641068\s*</);}});

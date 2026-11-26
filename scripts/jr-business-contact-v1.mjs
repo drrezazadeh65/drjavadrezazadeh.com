@@ -29,8 +29,10 @@ export function businessHref(l,p,topic=topicFor(p)){
  if(!copy[l]||!copy[l].topics[topic]||!/^\/(?!\/)[^\s?#]*$/.test(p))throw Error('Invalid business contact context');
  const c=copy[l];return 'https://wa.me/'+BUSINESS_NUMBER+'?text='+encodeURIComponent(c.hello+'\n'+c.purpose+': '+c.topics[topic]+'\n'+c.page+': '+ORIGIN+p);
 }
-function anchor(l,p,topic,label){return '<a class="jr-wa-link" href="'+esc(businessHref(l,p,topic))+'" rel="noopener noreferrer" target="_blank">'+icon+'<span>'+esc(label||copy[l].label)+'</span> <bdi dir="ltr">+98 913 264 1068</bdi></a>';}
-export function contactMarkup(l,p,float=false){const c=copy[l],a=anchor(l,p,topicFor(p));return '<aside class="jr-wa-business" data-jr-business-contact="v1" aria-label="'+esc(c.label)+'"><p>'+esc(c.intro)+'</p>'+a+'</aside>'+(float?'<div class="jr-wa-float" data-jr-business-float="v1">'+a+'</div>':'');}
+export function contactMarkup(l,p){
+ const c=copy[l];
+ return '<aside class="jr-wa-float" data-jr-business-contact="v1" data-jr-business-float="v1" aria-label="'+esc(c.label)+'"><a class="jr-wa-link" href="'+esc(businessHref(l,p))+'" rel="noopener noreferrer" target="_blank" aria-label="'+esc(c.label)+'" title="'+esc(c.label)+'">'+icon+'</a></aside>';
+}
 function sitemapSet(out){
  const maps=['sitemap-core.xml','journal/sitemap.xml','sitemap-fa.xml','sitemap-en.xml','sitemap-news.xml','sitemap-services.xml','sitemap-jrei.xml','sitemap-ar.xml'];
  const seen=new Set(),duplicates=[];
@@ -43,14 +45,13 @@ export function applyBusinessContact(out,files,failures){
   const rel=path.relative(out,file).replaceAll(path.sep,'/'),p=route(rel),s=fs.readFileSync(file,'utf8');
   if(!isContactEligible(p,s,seen)){report.skipped++;continue;}
   const l=locale(s);
-  if(s.includes('data-jr-business-contact="v1"')){if(!s.includes('https://wa.me/'+BUSINESS_NUMBER))failures.push('Invalid business contact: '+p);continue;}
-  // Inline first, desktop floating shortcut only where no existing bottom-dock or assistant.
-  const float=!/jr-assistant|mobile-dock|bottom-nav|bottom-dock|fixed-bottom|sticky-bottom|customer-dashboard/i.test(s);
-  const block=contactMarkup(l,p,false),fixed=float?'<div class="jr-wa-float" data-jr-business-float="v1">'+anchor(l,p,topicFor(p))+'</div>':'';
   let next=s;
-  if(/<main\b[^>]*>/i.test(next))next=next.replace(/<main\b[^>]*>/i,m=>m+block);
-  else next=next.replace(/<\/body\s*>/i,block+'$&');
-  if(fixed)next=next.replace(/<\/body\s*>/i,fixed+'$&');
+  // One icon-only launcher, outside layout containers; CSS coordinates with the assistant.
+  if(s.includes('data-jr-business-contact="v1"')){
+   if(!s.includes('https://wa.me/'+BUSINESS_NUMBER))failures.push('Invalid business contact: '+p);
+   report.enhanced++;report.byLanguage[l]++;report.pages.push(p);continue;
+  }
+  next=next.replace(/<\/body\s*>/i,m=>contactMarkup(l,p)+m);
   if(!next.includes('/assets/css/jr-business-contact-v1.css'))next=next.replace(/<\/head\s*>/i,CSS+'$&');
   if(!next.includes('data-jr-business-contact="v1"')||!next.includes('https://wa.me/'+BUSINESS_NUMBER)||canonical(next)!==canonical(s)||meta(next,'robots')!==meta(s,'robots')){failures.push('Business contact invariant failed: '+p);continue;}
   fs.writeFileSync(file,next,'utf8');report.enhanced++;report.byLanguage[l]++;report.pages.push(p);
