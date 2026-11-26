@@ -20,26 +20,26 @@ const text={
 };
 const $=q=>root.querySelector(q),form=$('[data-usdt-form]'),status=$('[data-usdt-status]'),list=$('[data-usdt-invoices]');
 const E=(tag,value)=>{const e=document.createElement(tag);if(value!==undefined)e.textContent=value;return e;};
-let csrf='',ready=false,items=[],busy=false,request=null,requestBody=null;
+let csrf='',ready=false,items=[],offers=[],busy=false,request=null,requestBody=null;
 const say=v=>{status.textContent=v;};
 async function call(p,body){const opt={credentials:'same-origin',cache:'no-store',headers:{Accept:'application/json'}};if(body!==undefined){opt.method='POST';opt.headers['Content-Type']='application/json';opt.headers['X-JR-USDT-CSRF']=csrf;opt.body=JSON.stringify(body);}const r=await fetch('/api/crypto/usdt/'+p,opt);const j=await r.json();return {ok:r.ok&&j.ok===true,status:r.status,data:j};}
 function mode(){
- const donation=form.elements.purpose.value==='donation',selected=items.find(x=>x.sku===form.elements.sku.value),book=selected?.kind==='book';
- $('[data-usdt-purchase]').hidden=donation;$('[data-usdt-donation]').hidden=!donation;$('[data-usdt-shipping]').hidden=!book;
+ const donation=form.elements.purpose.value==='donation',authorized=form.elements.purpose.value==='authorized',selected=items.find(x=>x.sku===form.elements.sku.value),book=!authorized&&selected?.kind==='book';
+ $('[data-usdt-purchase]').hidden=donation;$('[data-usdt-donation]').hidden=!donation;$('[data-usdt-authorized]').hidden=!authorized;form.elements.offerId.disabled=!authorized;form.elements.offerId.required=authorized;$('[data-usdt-product-field]').hidden=authorized;$('[data-usdt-shipping]').hidden=!book;
  form.elements.quantity.disabled=!book; if(!book)form.elements.quantity.value='1';
- for(const k of ['name','phone','sku'])form.elements[k].disabled=donation;
+ for(const k of ['name','phone'])form.elements[k].disabled=donation;form.elements.sku.disabled=donation||authorized;
  form.elements.name.required=!donation;
  for(const k of ['address','postal']){form.elements[k].disabled=donation||!book;form.elements[k].required=!donation&&book;}
  for(const k of ['amountToman','focus'])form.elements[k].disabled=!donation;
 }
 function display(row){
- const card=E('article');card.append(E('h3',text.order+': '+row.orderId),E('p',text.amount+': '+row.amountUsdt),E('p',text.deadline+': '+new Date(row.expiresAt*1000).toLocaleString()),E('p',row.paymentVerified?text.verified:text.pending));
+ const card=E('article');card.append(E('h3',text.order+': '+row.orderId),E('p',text.amount+': '+row.amountUsdt),E('p',row.amountToman+' IRT'),E('p',text.deadline+': '+new Date(row.expiresAt*1000).toLocaleString()),E('p',row.paymentVerified?text.verified:text.pending));
  if(row.mayTransfer&&row.chainId===56&&/^0x[a-fA-F0-9]{40}$/.test(row.receiveAddress||'')&&/^0x[a-fA-F0-9]{40}$/.test(row.tokenContract||'')){
-   card.append(E('p',text.network));
+   const instructions=E('section');instructions.append(E('p',text.network));card.append(instructions);
    for(const [label,value] of [[text.receiver,row.receiveAddress],[text.contract,row.tokenContract],[text.amount,row.amountUsdt]]){
-     const p=E('p',label+': '),code=E('code',value),copy=E('button',text.copy);copy.type='button';copy.addEventListener('click',()=>navigator.clipboard?.writeText(value).catch(()=>{}));p.append(code,' ',copy);card.append(p);
+     const p=E('p',label+': '),code=E('code',value),copy=E('button',text.copy);copy.type='button';copy.addEventListener('click',()=>navigator.clipboard?.writeText(value).catch(()=>{}));p.append(code,' ',copy);instructions.append(p);
    }
-   setTimeout(()=>{if(!card.isConnected)return;card.replaceChildren(E('p',text.expired),E('p',text.order+': '+row.orderId));},Math.max(0,Math.min(900000,row.expiresAt*1000-Date.now())));
+   setTimeout(()=>{if(!card.isConnected)return;instructions.replaceChildren(E('p',text.expired));},Math.max(0,Math.min(900000,row.expiresAt*1000-Date.now())));
  }else if(row.status==='issued'){card.append(E('p',text.expired));}
  if(row.status==='issued'){
    const claim=E('form'),label=E('label',text.hash),input=E('input'),button=E('button',text.claim);
@@ -62,7 +62,9 @@ async function refresh(){
 }
 async function init(){
  await refresh();if(!ready||!csrf)return;
- try{const result=await call('catalog');if(!result.ok)throw Error('catalog');items=result.data.items||[];
+ try{const result=await call('catalog');if(!result.ok)throw Error('catalog');items=result.data.items||[];offers=result.data.approvedOffers||[];
+   form.elements.offerId.replaceChildren(...offers.map(x=>{const e=E('option',x.title+' — '+x.invoice_reference+' — '+x.amount_toman+' IRT');e.value=x.id;return e;}));
+   form.elements.purpose.querySelector('option[value=authorized]').disabled=offers.length===0;
    form.elements.sku.replaceChildren(...items.map(x=>{const e=E('option',x.title+' — '+x.sku+' — '+x.priceToman+' IRT');e.value=x.sku;return e;}));
    const query=new URLSearchParams(location.search);if(query.get('purpose')==='donation')form.elements.purpose.value='donation';
    const sku=query.get('sku');if(items.some(x=>x.sku===sku))form.elements.sku.value=sku;
@@ -74,7 +76,8 @@ $('[data-usdt-refresh]').addEventListener('click',refresh);
 form.addEventListener('submit',async e=>{
  e.preventDefault();if(!ready||!csrf||busy)return;
  const f=form.elements,donation=f.purpose.value==='donation';
- const b=donation?{purpose:'donation',amountToman:Number(f.amountToman.value),focus:f.focus.value}:{purpose:'purchase',items:[{sku:f.sku.value,quantity:Number(f.quantity.value)}],customer:{name:f.name.value,phone:f.phone.value,address:f.address.value,postal:f.postal.value}};
+ const customer={name:f.name.value,phone:f.phone.value,address:f.address.value,postal:f.postal.value};
+ const b=donation?{purpose:'donation',amountToman:Number(f.amountToman.value),focus:f.focus.value}:f.purpose.value==='authorized'?{purpose:'authorized',offerId:f.offerId.value,customer}:{purpose:'purchase',items:[{sku:f.sku.value,quantity:Number(f.quantity.value)}],customer};
  const body=JSON.stringify(b);
  if(requestBody!==null&&requestBody!==body){say(text.failed);await refresh();return;}
  if(!request){request=crypto.randomUUID();requestBody=body;}

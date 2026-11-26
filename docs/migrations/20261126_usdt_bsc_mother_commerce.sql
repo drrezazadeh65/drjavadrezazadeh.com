@@ -30,3 +30,22 @@ CREATE TABLE IF NOT EXISTS commerce_usdt_quotes (
  CONSTRAINT fk_usdt_order FOREIGN KEY(order_id) REFERENCES commerce_orders(id),
  CONSTRAINT fk_usdt_account FOREIGN KEY(account_id) REFERENCES customer_accounts(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Owner-confirmed contractual JREI offers, not public advertised starting prices.
+CREATE TABLE IF NOT EXISTS commerce_usdt_authorized_offers (
+ id CHAR(36) PRIMARY KEY,
+ account_id CHAR(36) NOT NULL,
+ sku VARCHAR(80) NOT NULL,
+ title VARCHAR(160) NOT NULL,
+ amount_toman BIGINT UNSIGNED NOT NULL,
+ invoice_reference VARCHAR(100) NOT NULL,
+ approved_by CHAR(36) NOT NULL,
+ approved_at BIGINT UNSIGNED NOT NULL,
+ expires_at BIGINT UNSIGNED NOT NULL,
+ consumed_order_id CHAR(36) NULL,
+ UNIQUE KEY uq_usdt_offer_invoice(account_id,invoice_reference),
+ UNIQUE KEY uq_usdt_offer_order(consumed_order_id),
+ KEY idx_usdt_offer_account(account_id,expires_at),
+ CONSTRAINT fk_usdt_offer_account FOREIGN KEY(account_id) REFERENCES customer_accounts(id),
+ CONSTRAINT fk_usdt_offer_order FOREIGN KEY(consumed_order_id) REFERENCES commerce_orders(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

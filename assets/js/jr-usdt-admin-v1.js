@@ -27,5 +27,26 @@ function render(row){
  });return box;
 }
 async function load(){try{await session();const j=await json('/api/admin/operations/usdt/invoices');list.replaceChildren(...j.invoices.map(render));say(t('فاکتورهای در انتظار: ','Pending invoices: ')+j.invoices.length);}catch(_){list.replaceChildren();say(t('دسترسی مدیر، MFA یا پایگاه داده تأیید نشد.','Admin access, MFA or schema could not be verified.'));}}
+
+const offer=E('form');offer.append(E('h3',t('صدور فاکتور قراردادی JREI','Authorize a JREI contractual invoice')));
+const fields={};
+for(const [key,label,type] of [
+ ['email',t('ایمیل حساب تأییدشده مشتری','Verified customer account email'),'email'],
+ ['serviceCode',t('کد خدمت (حروف لاتین و عدد)','Service code (ASCII slug)'),'text'],
+ ['title',t('عنوان قطعی خدمت یا اشتراک','Agreed service or subscription title'),'text'],
+ ['amountToman',t('مبلغ قطعی قرارداد (تومان)','Agreed contract amount (toman)'),'number'],
+ ['invoiceReference',t('شناسه یکتای فاکتور قرارداد','Unique contractual invoice reference'),'text'],
+ ['contractAndCapacityConfirmed',t('قرارداد و ظرفیت ارائه تأیید شده است','Contract and delivery capacity confirmed'),'checkbox']
+]){
+ const l=E('label',label),f=E('input');f.type=type;f.required=true;l.append(f);offer.append(l);fields[key]=f;
+}
+const create=E('button',t('ثبت فاکتور قطعی برای مشتری','Authorize invoice for customer'));offer.append(create);
+offer.addEventListener('submit',async e=>{e.preventDefault();if(create.disabled)return;create.disabled=true;try{
+ const csrf=await session(),body={};for(const [k,f] of Object.entries(fields))body[k]=f.type==='checkbox'?f.checked:f.type==='number'?Number(f.value):f.value;
+ const r=await json('/api/admin/operations/usdt/offer',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-Token':csrf},body:JSON.stringify(body)});
+ say(t('فاکتور برای حساب مشتری ثبت شد؛ وجهی دریافت نشده است. ','Invoice authorized for the customer; no payment received. ')+r.offerId);offer.reset();
+}catch(_){say(t('فاکتور تأیید نشد. حساب، مبلغ، ظرفیت و MFA را بررسی کنید.','Invoice not authorized. Check customer, amount, capacity and MFA.'));}finally{create.disabled=false;}});
+root.append(offer);
 root.querySelector('[data-usdt-admin-load]').addEventListener('click',load);
+
 })();

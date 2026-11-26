@@ -16,7 +16,7 @@ function jrUsdtParseAmount(string $value): int {
     return (int)$m[1]*1000000+(int)$m[2];
 }
 function jrUsdtCalculate(int $toman,int $rateIrr,int $observed,int $now): int {
-    if(PHP_INT_SIZE!==8||$toman<1000||$toman>1000000000||$rateIrr<1000||$rateIrr>9999999999||
+    if(PHP_INT_SIZE!==8||$toman<1000||$toman>10000000000||$rateIrr<1000||$rateIrr>9999999999||
        $observed<1||$observed>$now||$now-$observed>120)
         throw new InvalidArgumentException('invalid_quote_inputs');
     $n=$toman*10000000;
@@ -26,9 +26,14 @@ function jrUsdtCalculate(int $toman,int $rateIrr,int $observed,int $now): int {
 }
 function jrUsdtSchemaReady(PDO $pdo): bool {
     try{
+        $pdo->query('SELECT id,account_id,sku,title,amount_toman,invoice_reference,approved_by,approved_at,expires_at,consumed_order_id FROM commerce_usdt_authorized_offers LIMIT 0');
         $pdo->query('SELECT order_id,account_id,request_id,request_digest,amount_toman,rate_irr,rate_side,amount_micros,receiver,token_contract,rate_observed_at,issued_at,expires_at,status,claimed_hash,settled_hash,credit_reference_hash,transferred_at,credited_micros,reviewer_id,reviewed_at,review_note FROM commerce_usdt_quotes LIMIT 0');
-        $q=$pdo->query("SELECT ENGINE FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='commerce_usdt_quotes'");
-        if(strcasecmp((string)$q->fetchColumn(),'InnoDB')!==0)return false;
+        $q=$pdo->query("SELECT ENGINE FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME IN ('commerce_usdt_quotes','commerce_usdt_authorized_offers')");
+        $engines=$q->fetchAll(PDO::FETCH_COLUMN);if(count($engines)!==2||count(array_filter($engines,fn($x)=>strcasecmp((string)$x,'InnoDB')===0))!==2)return false;
+        $offerKeys=[];
+        foreach($pdo->query('SHOW INDEX FROM commerce_usdt_authorized_offers')->fetchAll(PDO::FETCH_ASSOC) as $idx){if((int)$idx['Non_unique']===0)$offerKeys[$idx['Key_name']][(int)$idx['Seq_in_index']]=$idx['Column_name'];}
+        foreach($offerKeys as &$k)ksort($k);unset($k);
+        if(array_values($offerKeys['uq_usdt_offer_invoice']??[])!==['account_id','invoice_reference']||array_values($offerKeys['uq_usdt_offer_order']??[])!==['consumed_order_id'])return false;
         $keys=[];
         foreach($pdo->query('SHOW INDEX FROM commerce_usdt_quotes')->fetchAll(PDO::FETCH_ASSOC) as $idx){
             if((int)$idx['Non_unique']===0)$keys[$idx['Key_name']][(int)$idx['Seq_in_index']]=$idx['Column_name'];
@@ -85,13 +90,25 @@ function jrUsdtQuoteView(array $r,bool $mayPay,?PDO $pdo=null): array {
     }
     return ['orderId'=>$r['order_id'],'status'=>$r['status'],'amountToman'=>(int)$r['amount_toman'],
       'amountUsdt'=>jrUsdtAmount((int)$r['amount_micros']),'rateIrr'=>(string)$r['rate_irr'],
-      'rateSide'=>$r['rate_side'],'issuedAt'=>(int)$r['issued_at'],'expiresAt'=>(int)$r['expires_at'],
+      'rateSide'=>$r['rate_side'],'transferredAt'=>$r['transferred_at']===null?null:(int)$r['transferred_at'],'reviewedAt'=>$r['reviewed_at']===null?null:(int)$r['reviewed_at'],'issuedAt'=>(int)$r['issued_at'],'expiresAt'=>(int)$r['expires_at'],
       'mayTransfer'=>$available,'chainId'=>56,'network'=>'BSC / BEP20','tokenDecimals'=>18,
       'receiveAddress'=>$available?$r['receiver']:null,'tokenContract'=>$available?$r['token_contract']:null,
       'transactionHash'=>$r['claimed_hash'],'paymentVerified'=>$verified];
 }
 function jrUsdtProductLines(array $b,array $account,PDO $pdo): array {
     $email=(string)$account['email_normalized'];
+    if(($b['purpose']??'')==='authorized'){
+        $id=$b['offerId']??null;if(!is_string($id)||!validUuid($id))fail('invalid_offer');
+        $q=$pdo->prepare('SELECT * FROM commerce_usdt_authorized_offers WHERE id=? AND account_id=? AND consumed_order_id IS NULL AND expires_at>=?');
+        $q->execute([$id,$account['id'],time()]);$offer=$q->fetch(PDO::FETCH_ASSOC);
+        if(!$offer||!preg_match('/^service:jrei_[a-z0-9_-]{1,40}$/D',(string)$offer['sku']))fail('offer_unavailable',409);
+        $total=(int)$offer['amount_toman'];if($total<1000||$total>10000000000)fail('invalid_total');
+        $raw=$b['customer']??null;if(!is_array($raw))fail('customer_required');$raw['email']=$email;
+        return [[['sku'=>$offer['sku'],'title'=>$offer['title'],'kind'=>'service','quantity'=>1,
+          'price'=>$total,'subtotal'=>$total,'approvedOfferId'=>$id,'invoiceReference'=>$offer['invoice_reference']]],
+          $total,normalizedServiceBuyer($raw),$offer];
+    }
+
     if(($b['purpose']??'')==='donation'){
         $amount=$b['amountToman']??null;$focus=(string)($b['focus']??'general');
         if(!is_int($amount)||$amount<1000||$amount>10000000||
@@ -99,7 +116,7 @@ function jrUsdtProductLines(array $b,array $account,PDO $pdo): array {
             fail('invalid_donation_amount');
         return [[['sku'=>'support:students','title'=>'Student educational support / حمایت تحصیلی',
           'kind'=>'donation','program'=>'talented-students-v1','focus'=>$focus,
-          'allocation'=>'pending_verified_need','quantity'=>1,'price'=>$amount,'subtotal'=>$amount]],$amount,null];
+          'allocation'=>'pending_verified_need','quantity'=>1,'price'=>$amount,'subtotal'=>$amount]],$amount,null,null];
     }
     $items=$b['items']??null;
     if(!is_array($items)||count($items)<1||count($items)>20)fail('invalid_items');
@@ -124,9 +141,9 @@ function jrUsdtProductLines(array $b,array $account,PDO $pdo): array {
         fail('inventory_not_reconciled',503);
     $raw=$b['customer']??null;if(!is_array($raw))fail('customer_required');
     $raw['email']=$email;
-    return [$lines,$total,$book?normalizedCustomer($raw):normalizedServiceBuyer($raw)];
+    return [$lines,$total,$book?normalizedCustomer($raw):normalizedServiceBuyer($raw),null];
 }
-function jrUsdtIssue(PDO $pdo,array $a,array $b): array {
+function jrUsdtIssue(PDO $pdo,array $a,array $b,?callable $fixtureRateReader=null): array {
     $request=$b['requestId']??null;
     if(!is_string($request)||!validUuid($request))fail('invalid_request_id');
     $account=(string)$a['id'];
@@ -135,11 +152,11 @@ function jrUsdtIssue(PDO $pdo,array $a,array $b): array {
     $q->execute([$account,$request]);$old=$q->fetch(PDO::FETCH_ASSOC);
     if($old){if(!hash_equals($old['request_digest'],$digest))fail('idempotency_conflict',409);return jrUsdtQuoteView($old,true,$pdo);}
     if(!rateAllowed($pdo,'usdt_quote',$account,5,3600))fail('rate_limited',429);
-    [$lines,$total,$customer]=jrUsdtProductLines($b,$a,$pdo);
-    require_once __DIR__.'/ramzinex-public-usdt-rate.php';
+    [$lines,$total,$customer,$offer]=jrUsdtProductLines($b,$a,$pdo);
+    if($fixtureRateReader===null)require_once __DIR__.'/ramzinex-public-usdt-rate.php';
     $side=cfg()['usdt_bsc_rate_side'];
     try{
-        $tick=jrReadPublicUsdtRate();$now=time();$observed=strtotime((string)$tick['receivedAt']);
+        $tick=$fixtureRateReader===null?jrReadPublicUsdtRate():$fixtureRateReader();$now=time();$observed=strtotime((string)$tick['receivedAt']);
         // The public reader normalizes exactly once to IRR. Only whole-rial
         // rate units are used; floor is disclosed and avoids underquoting.
         if($observed===false||!is_numeric($tick[$side]??null))throw new RuntimeException('rate_unavailable');
@@ -161,11 +178,23 @@ function jrUsdtIssue(PDO $pdo,array $a,array $b): array {
         }
         $open=$pdo->prepare("SELECT COUNT(*) FROM commerce_usdt_quotes WHERE account_id=? AND status IN ('issued','submitted')");
         $open->execute([$account]);if((int)$open->fetchColumn()>0)throw new RuntimeException('open_invoice_exists');
+        if($offer!==null){
+            $ol=$pdo->prepare('SELECT * FROM commerce_usdt_authorized_offers WHERE id=? AND account_id=? FOR UPDATE');
+            $ol->execute([$offer['id'],$account]);$current=$ol->fetch(PDO::FETCH_ASSOC);
+            if(!$current||$current['consumed_order_id']!==null||(int)$current['expires_at']<time()||
+               $current['sku']!==$offer['sku']||$current['title']!==$offer['title']||
+               (int)$current['amount_toman']!==$total||$current['invoice_reference']!==$offer['invoice_reference'])
+                throw new RuntimeException('offer_changed');
+        }
         stage9ReserveBooks($pdo,$order,$lines);
         $pdo->prepare("INSERT INTO commerce_orders(id,factor_id,amount_toman,provider_amount,currency,customer_email,customer_json,items_json,state,provider_id_get) VALUES(?,?,?,?,'IRT',?,?,?,'pending',?)")
            ->execute([$order,$factor,$total,$total*10,$a['email_normalized'],$customer===null?null:json_encode($customer,JSON_THROW_ON_ERROR|JSON_UNESCAPED_UNICODE),json_encode($lines,JSON_THROW_ON_ERROR|JSON_UNESCAPED_UNICODE),'usdt:'.$order]);
         $pdo->prepare('INSERT INTO commerce_usdt_quotes(order_id,account_id,request_id,request_digest,amount_toman,rate_irr,rate_side,amount_micros,receiver,token_contract,rate_observed_at,issued_at,expires_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)')
           ->execute([$order,$account,$request,$digest,$total,$rate,$side,$micros,JR_USDT_BSC_RECEIVER,JR_USDT_BSC_TOKEN,$observed,$now,$expires]);
+        if($offer!==null){
+            $u=$pdo->prepare('UPDATE commerce_usdt_authorized_offers SET consumed_order_id=? WHERE id=? AND consumed_order_id IS NULL');
+            $u->execute([$order,$offer['id']]);if($u->rowCount()!==1)throw new RuntimeException('offer_consumption_conflict');
+        }
         $pdo->commit();
     }catch(Throwable $e){
         if($pdo->inTransaction())$pdo->rollBack();
@@ -205,7 +234,9 @@ function jrUsdtRoute(string $path,string $verb): never {
     if($path==='/crypto/usdt/catalog'&&$verb==='GET'){
         $items=[];foreach(localCatalog() as $x){if(in_array($x['kind'],['book','service','vip','digital'],true))
             $items[]=['sku'=>$x['sku'],'title'=>$x['title'],'kind'=>$x['kind'],'priceToman'=>$x['price']];}
-        respond(['ok'=>true,'items'=>$items]);
+        $q=$pdo->prepare('SELECT id,title,amount_toman,invoice_reference,expires_at FROM commerce_usdt_authorized_offers WHERE account_id=? AND consumed_order_id IS NULL AND expires_at>=? ORDER BY approved_at DESC LIMIT 30');
+        $q->execute([$a['id'],time()]);
+        respond(['ok'=>true,'items'=>$items,'approvedOffers'=>$q->fetchAll(PDO::FETCH_ASSOC)]);
     }
     if($path==='/crypto/usdt/quote'&&$verb==='POST'){jrUsdtCustomerMutation($a);respond(['ok'=>true,'invoice'=>jrUsdtIssue($pdo,$a,jsonBody())],201);}
     fail('not_found',404);
@@ -278,6 +309,24 @@ function jrUsdtAdmin(PDO $pdo,string $account,string $path,string $verb,string $
     header('Cache-Control: private, no-store, max-age=0');
     if(($cfg['operations_admins'][$account]['role']??'')!=='SUPER_ADMIN')fail('super_admin_required',403);
     if(!jrUsdtSchemaReady($pdo)||!stage9SchemaReady($pdo))fail('usdt_schema_unavailable',503);
+    if($path==='/admin/operations/usdt/offer'&&$verb==='POST'){
+        if(!jrUsdtReady($pdo))fail('usdt_checkout_disabled',503);
+        if(!operationsMutationAllowed($_SERVER,(string)($_SERVER['HTTP_X_CSRF_TOKEN']??''),$csrf))fail('csrf_forbidden',403);
+        if(!rateAllowed($pdo,'usdt_admin_offer',$account,20,3600))fail('rate_limited',429);
+        $b=jsonBody();$email=emailNorm($b['email']??'');$slug=(string)($b['serviceCode']??'');
+        $title=trim((string)($b['title']??''));$amount=$b['amountToman']??null;$reference=trim((string)($b['invoiceReference']??''));
+        if(($b['contractAndCapacityConfirmed']??false)!==true||!validEmail($email)||!preg_match('/^[a-z0-9_-]{1,40}$/D',$slug)||
+          textLen($title)<3||textLen($title)>160||!is_int($amount)||$amount<1000||$amount>10000000000||
+          !preg_match('/^[A-Za-z0-9._\/-]{4,100}$/D',$reference))fail('invalid_authorized_offer');
+        $q=$pdo->prepare("SELECT id FROM customer_accounts WHERE email_normalized=? AND status='active' AND email_verified_at IS NOT NULL");
+        $q->execute([$email]);$id=$q->fetchColumn();if(!$id)fail('verified_customer_required',409);
+        $offer=uuidv4();$now=time();
+        try{
+            $pdo->prepare('INSERT INTO commerce_usdt_authorized_offers(id,account_id,sku,title,amount_toman,invoice_reference,approved_by,approved_at,expires_at) VALUES(?,?,?,?,?,?,?,?,?)')
+              ->execute([$offer,$id,'service:jrei_'.$slug,$title,$amount,$reference,$account,$now,$now+604800]);
+        }catch(Throwable $e){fail('authorized_offer_conflict',409);}
+        respond(['ok'=>true,'offerId'=>$offer,'expiresAt'=>$now+604800,'paymentVerified'=>false],201);
+    }
     if($path==='/admin/operations/usdt/invoices'&&$verb==='GET'){
         if(!rateAllowed($pdo,'usdt_admin_view',$account,20,300))fail('rate_limited',429);
         $q=$pdo->query("SELECT q.order_id,q.status,q.amount_toman,q.amount_micros,q.claimed_hash,q.receiver,q.token_contract,q.issued_at,q.expires_at,o.customer_email FROM commerce_usdt_quotes q JOIN commerce_orders o ON o.id=q.order_id WHERE q.status IN ('issued','submitted') ORDER BY q.issued_at ASC LIMIT 100");
