@@ -15,6 +15,7 @@ import {projectSearchIndex} from './project-search-index.mjs';
 import {projectPublicPresentation} from './jr-public-presentation-v1.mjs';
 import {applyUsdtInvoiceEnquiries} from './jr-usdt-invoice-enquiries.mjs';
 import {applyBusinessContact,auditPublicRelease} from './jr-business-contact-v1.mjs';
+import {applyJreiExperience} from './jrei-experience-v2.mjs';
 
 checkStylesheetBundles();
 
@@ -959,6 +960,7 @@ for(const file of html){
  }
 }
 console.log('Adaptive layout stylesheet added to '+adaptiveCount+' HTML routes');
+console.log('JREI experience coverage:',JSON.stringify(applyJreiExperience(out,html,failures)));
 console.log('Public sharing metadata enhanced:',projectPublicPresentation(out,html));
 projectSearchIndex(out);
 const businessContactReport=applyBusinessContact(out,html,failures);

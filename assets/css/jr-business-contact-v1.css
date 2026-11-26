@@ -5,3 +5,5 @@ body:has(.jr-assistant-launcher[aria-expanded="true"],.jr-assistant-panel:not([h
 @media(max-width:600px){.jr-wa-business{margin:.5rem .3rem;padding:.5rem;justify-content:flex-start}.jr-wa-business .jr-wa-link{flex:1 1 100%}.jr-wa-contact-actions .jr-wa-link{flex:1 1 100%}}@media print{.jr-wa-float,.jr-wa-business{display:none}}
 
 .gateway-shell>.jr-wa-business{width:100%;grid-column:1/-1;}
+
+@media(max-width:900px){html[dir=rtl] .jr-wa-float{left:auto;right:max(8px,env(safe-area-inset-right,0px))}}

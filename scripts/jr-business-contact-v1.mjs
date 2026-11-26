@@ -45,10 +45,11 @@ export function applyBusinessContact(out,files,failures){
   const rel=path.relative(out,file).replaceAll(path.sep,'/'),p=route(rel),s=fs.readFileSync(file,'utf8');
   if(!isContactEligible(p,s,seen)){report.skipped++;continue;}
   const l=locale(s);
-  let next=s;
+  let next=s.replace(/\s*·\s*<bdi dir="ltr">\+98 913 264 1068<\/bdi>/g,'');
   // One icon-only launcher, outside layout containers; CSS coordinates with the assistant.
   if(s.includes('data-jr-business-contact="v1"')){
    if(!s.includes('https://wa.me/'+BUSINESS_NUMBER))failures.push('Invalid business contact: '+p);
+   if(next!==s)fs.writeFileSync(file,next,'utf8');
    report.enhanced++;report.byLanguage[l]++;report.pages.push(p);continue;
   }
   next=next.replace(/<\/body\s*>/i,m=>contactMarkup(l,p)+m);
