@@ -129,3 +129,27 @@ class GscIndexationTriageContracts(TestCase):
             with mock.patch.object(triage, "request_google") as req:
                 self.assertEqual(triage.main(), 1)
                 req.assert_not_called()
+
+    def test_new_jrei_and_arabic_sections_are_prioritized(self):
+        origin = triage.EXPECTED_PROPERTY.rstrip("/")
+        urls = [origin + r for r in ["/", "/fa/", "/en/", "/fa/moshavere-konkur/", "/fa/jrei/", "/ar/jrei/", "/ar/"]]
+        self.assertEqual(set(triage.select_sample(urls, 24)), set(urls))
+        self.assertEqual(triage.section_for_url(origin + "/ar/jrei/"), "jrei")
+        self.assertEqual(triage.section_for_url(origin + "/ar/"), "arabic")
+        self.assertEqual(len(triage.JREI_SLUGS), 30)
+
+    def test_new_source_requires_self_canonical_and_no_noindex(self):
+        with tempfile.TemporaryDirectory() as directory:
+            page = Path(directory) / "index.html"
+            url = triage.EXPECTED_PROPERTY + "ar/jrei/"
+            page.write_text('<link href="' + url + '" rel="canonical"><meta name="robots" content="index,follow">', encoding="utf-8")
+            self.assertTrue(triage._new_public_source(page, url))
+            page.write_text('<link rel="canonical" href="' + url + '"><meta name="googlebot" content="noindex">', encoding="utf-8")
+            self.assertFalse(triage._new_public_source(page, url))
+            self.assertFalse(triage._new_public_source(page, triage.EXPECTED_PROPERTY))
+
+    def test_current_inventory_includes_all_108_commercial_pages(self):
+        urls = triage.sitemap_inventory(ROOT)
+        self.assertEqual(sum(triage.section_for_url(u) == "jrei" for u in urls), 108)
+        for route in ("fa/jrei/", "en/jrei/", "ar/jrei/", "fa/moshavere-konkur/", "fa/entekhab-reshteh/"):
+            self.assertIn(triage.EXPECTED_PROPERTY + route, urls)

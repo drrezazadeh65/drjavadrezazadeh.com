@@ -8,6 +8,7 @@ the property-wide Google Page Indexing report (there is no bulk coverage API).
 from __future__ import annotations
 
 from collections import Counter
+from html.parser import HTMLParser
 import json
 import os
 from pathlib import Path
@@ -24,11 +25,18 @@ SIZES = (24, 54, 90)
 MAX_SITEMAPS = 12
 MAX_XML_BYTES = 400_000
 ROOT = Path(__file__).resolve().parents[1]
-PUBLIC_PREFIXES = ("/fa/", "/en/", "/journal/")
+PUBLIC_PREFIXES = ("/fa/", "/en/", "/ar/", "/journal/")
+JREI_SLUGS = frozenset("architecture language memory adaptive-context knowledge agents education assessment talent research academic-writing coding data vision audio documents web api search search-visibility marketing news automation enterprise desktop distributed local-ai security recovery plugins".split())
 PRIORITY = (
-    "/", "/fa/", "/en/", "/fa/khadamat/", "/fa/services/", "/en/services/",
+    "/", "/fa/", "/en/", "/fa/darbare-man/", "/fa/moshavere-konkur/",
+    "/fa/moshavere-tahsili/", "/fa/exams/konkur/", "/fa/entekhab-reshteh/",
+    "/fa/services/konkur_consult_60/", "/fa/services/konkur_month/",
+    "/fa/services/transcript_analysis/", "/fa/services/field_selection_standard/",
+    "/fa/estedaadyabi/", "/fa/bahar/", "/fa/jrei/", "/en/jrei/", "/ar/jrei/",
+    "/fa/jrei/seo/", "/fa/jrei-academic/", "/fa/forge/", "/fa/jrei/catalog/education/",
+    "/fa/jrei/catalog/search-visibility/", "/ar/", "/fa/khadamat/", "/fa/services/", "/en/services/",
     "/fa/vip/", "/en/vip/", "/fa/golden-talent/", "/en/golden-talent/",
-    "/fa/entekhab-reshteh/", "/en/student-guidance/", "/fa/shop/", "/en/shop/",
+    "/en/student-guidance/", "/fa/shop/", "/en/shop/",
     "/fa/shop/authors/mehrab-mirkarimi/",
     "/en/shop/authors/mehrab-mirkarimi/", "/journal/",
     "/fa/akhbar/international-research-collaboration-2026/",
@@ -65,6 +73,24 @@ def _read_xml(root: Path, relative: str) -> ET.Element:
         raise ValueError("invalid_sitemap_xml") from exc
 
 
+class _PublicMetadata(HTMLParser):
+    def __init__(self):
+        super().__init__()
+        self.canonicals = []
+        self.robots = []
+
+    def handle_starttag(self, tag, attrs):
+        fields = dict(attrs)
+        if tag == "link" and "canonical" in (fields.get("rel") or "").lower().split():
+            self.canonicals.append(fields.get("href"))
+        if tag == "meta" and (fields.get("name") or "").lower() in ("robots", "googlebot"):
+            self.robots.extend((fields.get("content") or "").lower().replace(",", " ").split())
+
+def _new_public_source(file: Path, canonical: str) -> bool:
+    parser = _PublicMetadata()
+    parser.feed(file.read_text("utf-8"))
+    return parser.canonicals == [canonical] and not {"noindex", "none"}.intersection(parser.robots)
+
 def sitemap_inventory(root: Path = ROOT) -> list[str]:
     index = _read_xml(root, "sitemap.xml")
     ns = {"sm": "http://www.sitemaps.org/schemas/sitemap/0.9"}
@@ -94,6 +120,24 @@ def sitemap_inventory(root: Path = ROOT) -> list[str]:
                     allowed.add("/" + lang + "/" + family + "/" + item_id + "/")
         except (OSError, KeyError, TypeError, json.JSONDecodeError) as exc:
             raise ValueError("approved_catalogue_unavailable") from exc
+    # Only explicitly approved public catalogue routes and Arabic equivalents.
+    # Require self-canonical and non-noindex source metadata for additions.
+    added = set()
+    for lang in ("fa", "en", "ar"):
+        added.update("/" + lang + "/" + p for p in
+                     ("jrei/", "jrei/pricing/", "jrei/order/", "jrei/seo/", "forge/", "jrei-academic/"))
+        added.update("/" + lang + "/jrei/catalog/" + slug + "/" for slug in JREI_SLUGS)
+    ar_manifest = root / "platform/jr-arabic-public-routes-v1.json"
+    if ar_manifest.is_file():
+        data = json.loads(ar_manifest.read_text("utf-8"))
+        if data.get("schema") != "jr.locale-equivalence.v1":
+            raise ValueError("invalid_arabic_manifest")
+        for item in data["routes"]:
+            route = item.get("ar")
+            if isinstance(route, str) and route.startswith("/ar/") and _verified_route(EXPECTED_PROPERTY.rstrip("/") + route):
+                added.add(route)
+    approved_new = added - allowed
+    allowed.update(added)
     candidates = set()
     for source in sources:
         if not isinstance(source, str) or not source.startswith(EXPECTED_PROPERTY):
@@ -106,7 +150,10 @@ def sitemap_inventory(root: Path = ROOT) -> list[str]:
                 continue
             file = root / (route.lstrip("/") + "index.html")
             if file.is_file():
-                candidates.add(EXPECTED_PROPERTY.rstrip("/") + route)
+                canonical = EXPECTED_PROPERTY.rstrip("/") + route
+                if route in approved_new and not _new_public_source(file, canonical):
+                    continue
+                candidates.add(canonical)
     if not candidates:
         raise ValueError("empty_public_sitemap_inventory")
     def rank(url: str):
@@ -125,6 +172,10 @@ def section_for_url(url: str) -> str:
     route = _verified_route(url)
     if route is None:
         raise ValueError("invalid_sampling_url")
+    if route.startswith(("/fa/jrei/", "/en/jrei/", "/ar/jrei/")) or route in {"/"+l+"/"+p+"/" for l in ("fa","en","ar") for p in ("jrei-academic","forge")}:
+        return "jrei"
+    if route.startswith("/ar/"):
+        return "arabic"
     if (route.startswith(("/fa/services/", "/en/services/",
                           "/fa/vip/", "/en/vip/"))):
         return "services"
@@ -142,7 +193,7 @@ def _balanced_language_order(urls: list[str]) -> list[str]:
     groups = {}
     for url in sorted(urls):
         route = _verified_route(url)
-        if route.startswith(("/en/", "/fa/")):
+        if route.startswith(("/en/", "/fa/", "/ar/")):
             key = route[4:]
             lang = route[1:3]
         elif route.startswith("/journal/fa/"):
@@ -154,7 +205,7 @@ def _balanced_language_order(urls: list[str]) -> list[str]:
         groups.setdefault(key, {})[lang] = url
     ordered = []
     for key in sorted(groups):
-        ordered.extend(groups[key][lang] for lang in ("fa", "en") if lang in groups[key])
+        ordered.extend(groups[key][lang] for lang in ("fa", "en", "ar") if lang in groups[key])
     return ordered
 
 
@@ -179,9 +230,9 @@ def select_sample(inventory: list[str], limit: int) -> list[str]:
     result = anchor[:]
     pool = {section: _balanced_language_order(
         [u for u in inventory if u not in pri and section_for_url(u) == section]
-    ) for section in ("services", "guides", "news", "journal", "other")}
-    weights = {"services": 0.30, "guides": 0.25, "news": 0.15,
-               "journal": 0.15, "other": 0.15}
+    ) for section in ("services", "guides", "news", "journal", "other", "jrei", "arabic")}
+    weights = {"services": 0.25, "guides": 0.15, "news": 0.10,
+               "journal": 0.10, "other": 0.10, "jrei": 0.20, "arabic": 0.10}
     selected = {s: 0 for s in pool}
     while len(result) < limit and any(pool.values()):
         # Weighted fair queue keeps the guide/news/journal cohorts represented,
