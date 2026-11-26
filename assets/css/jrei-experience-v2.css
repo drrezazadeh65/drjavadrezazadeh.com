@@ -71,3 +71,37 @@ body[data-jrei-public-centre] :is(.tile,.orderlist li,.jx-toolbar)[hidden]{displ
 @media(max-width:420px){body:is([data-jrei-public-centre],[data-jrei-launch]) .wrap{width:calc(100% - 24px)}.jx-network{min-height:235px}.jx-node{width:40%;font-size:.68rem}.jx-core{width:74px}.jx-core>span{font-size:1.2rem}.jx-stats>div{padding:.6rem .35rem}.jx-stats span{font-size:.7rem}.jx-filters button{font-size:.78rem}.jx-scene-top{font-size:.59rem}}
 @media(min-width:1500px){body:is([data-jrei-public-centre],[data-jrei-launch]) .wrap{width:94%;max-width:none}body:is([data-jrei-public-centre],[data-jrei-launch]) .grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,22rem),1fr))}.jx-scene{max-width:680px;width:100%;justify-self:center}.jx-copy{max-width:76ch}}
 @media(prefers-reduced-motion:reduce){body:is([data-jrei-public-centre],[data-jrei-launch]) :is(.jx-scene,.jx-lines,.hero-art,.tile,.feature,.button,.jx-node,.jx-nav a){animation:none!important;transition:none!important;transform:none!important}}
+
+/* Experience expansion: editorial product showcase, original vector motion and scenario workbench. */
+body[data-jx-theme="domain-0"]{--jx-signal:#92e7dc}body[data-jx-theme="domain-1"]{--jx-signal:#e6c58d}body[data-jx-theme="domain-2"]{--jx-signal:#a9c9ff}body[data-jx-theme="domain-3"]{--jx-signal:#d6b9fa}body[data-jx-theme="domain-4"]{--jx-signal:#a9e6b3}
+body:is([data-jrei-public-centre],[data-jrei-launch]) .hero{background:radial-gradient(ellipse at 76% 20%,#173f4c 0,transparent 50%),radial-gradient(ellipse at 10% 90%,#3a2b48 0,transparent 43%),#080b12}
+body:is([data-jrei-public-centre],[data-jrei-launch]) .hero::after{content:"";position:absolute;z-index:-1;pointer-events:none;inset:-30%;background:radial-gradient(ellipse at center,#83d8d912,transparent 45%);animation:jx-ambient 3.8s ease-out both}
+@keyframes jx-ambient{from{transform:translate(-8%,5%) scale(.85);opacity:.4}to{transform:translate(5%,-4%) scale(1.15);opacity:1}}
+.jx-core::before,.jx-core::after{content:"";position:absolute;inset:-12px;border:1px solid #8be6dc65;border-radius:50%;pointer-events:none}
+.jx-core::after{inset:-22px;border-style:dashed;animation:jx-orbit 4s ease-out both}
+@keyframes jx-orbit{from{transform:rotate(-30deg);opacity:.25}to{transform:rotate(22deg);opacity:.8}}
+.jx-scene{background:linear-gradient(155deg,#172d3c,#0b131f 72%);border-radius:28px}
+.jx-overline{font:700 .72rem/1.5 system-ui,Tahoma,sans-serif;letter-spacing:.06em;color:var(--jx-signal)!important;text-transform:uppercase}
+.jx-studio{isolation:isolate;position:relative;padding:clamp(1rem,3vw,3rem);border:1px solid #385462;border-radius:28px;background:radial-gradient(ellipse at 95% 0,#1e3945,transparent 48%),linear-gradient(140deg,#101c2a,#0b121e 85%);box-shadow:0 22px 70px #0003}
+.jx-studio-heading{max-width:72ch;margin-block-end:1.5rem}.jx-studio-heading h2{font-size:clamp(1.65rem,3.1vw,3rem)!important;margin:.3em 0}.jx-studio-heading p,.jx-studio-disclaimer{color:var(--jx-muted)}
+.jx-workbench{display:grid;gap:.65rem}
+.jx-case{min-width:0;background:#0c1722;border:1px solid #344c5e;border-radius:16px;overflow:hidden}
+.jx-case[open]{border-color:#769da5;background:linear-gradient(120deg,#102635,#0e1825)}
+.jx-case summary{display:flex;gap:.7rem;align-items:center;min-height:54px;padding:.7rem 1rem;cursor:pointer;font-weight:700;list-style:none;color:var(--jx-ink)}
+.jx-case summary::-webkit-details-marker{display:none}.jx-case summary:focus-visible{outline:3px solid var(--jx-signal);outline-offset:-4px}
+.jx-case-index{display:grid;place-items:center;width:32px;height:32px;flex:none;border:1px solid #42616e;border-radius:8px;color:var(--jx-signal);font:700 .8rem/1 system-ui}
+.jx-case-expand{margin-inline-start:auto;color:var(--jx-signal);font-size:1.45rem;line-height:1;transition:transform .2s}
+.jx-case[open] .jx-case-expand{transform:rotate(45deg)}
+.jx-case-content{padding:0 clamp(.8rem,2vw,1.5rem) 1.2rem;animation:jx-enter .45s ease both}
+.jx-case-content h3{font-size:clamp(1.2rem,2vw,1.8rem);margin:.4rem 0 1rem}
+.jx-pipeline{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));list-style:none;padding:0;margin:0 0 1rem;gap:1rem}
+.jx-pipeline li{position:relative;min-width:0;padding:1rem;display:grid;align-content:start;gap:.4rem;background:#0b1420;border:1px solid #3a5161;border-radius:14px;overflow-wrap:anywhere}
+.jx-pipeline li:not(:last-child)::after{content:"";position:absolute;inset-inline-end:-1rem;top:50%;width:1rem;height:2px;background:var(--jx-signal)}
+.jx-step-symbol{width:36px;height:36px;display:grid;place-items:center;border:1px solid #4b6977;border-radius:11px;color:var(--jx-signal);font-size:1.4rem;background:#1c3443}
+.jx-pipeline small{font-size:.78rem;color:var(--jx-muted)}.jx-pipeline strong{font-size:1rem;line-height:1.65;color:var(--jx-ink)}
+.jx-case-link{display:inline-flex;align-items:center;gap:.6rem;min-height:44px;color:var(--jx-signal)!important;font-weight:700;text-decoration:none}
+.jx-studio-disclaimer{font-size:.78rem;margin-block:1rem}.jx-studio-cta{display:inline-flex;align-items:center;background:#e6c58d!important;color:#14110d!important;border-color:#e6c58d!important}
+body[data-jrei-public-centre] .tile[data-jx-domain="1"]{--jx-signal:#e6c58d}body[data-jrei-public-centre] .tile[data-jx-domain="2"]{--jx-signal:#a9c9ff}body[data-jrei-public-centre] .tile[data-jx-domain="3"]{--jx-signal:#d6b9fa}body[data-jrei-public-centre] .tile[data-jx-domain="4"]{--jx-signal:#a9e6b3}
+body[data-jrei-public-centre] .tile[data-jx-domain]::before{background:linear-gradient(135deg,#1b2d3a,#101722);border-color:var(--jx-signal)}
+@media(max-width:700px){.jx-pipeline{grid-template-columns:minmax(0,1fr);gap:.6rem}.jx-pipeline li:not(:last-child)::after{inset-inline-end:auto;inset-inline-start:1.5rem;top:auto;bottom:-.6rem;height:.6rem;width:2px}.jx-studio-cta{width:100%;text-align:center}.jx-case summary{padding:.6rem .75rem}}
+@media(prefers-reduced-motion:reduce){body:is([data-jrei-public-centre],[data-jrei-launch]) .hero::after,.jx-core::after,.jx-case-content{animation:none!important;transition:none!important}.jx-case-expand{transition:none!important}}
