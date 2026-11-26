@@ -2,7 +2,7 @@ const {test,expect}=require('@playwright/test');
 const fs=require('node:fs');
 const path=require('node:path');
 
-const root=process.cwd();
+const root=path.resolve(process.env.SITE_ARTIFACT_ROOT||process.cwd());
 const base=process.env.SITE_BASE_URL||'http://127.0.0.1:4173';
 // Keep the certification inventory aligned with the sanitized public release artifact.
 // Internal document templates are tested by the dedicated Identity OS suite.
@@ -33,7 +33,8 @@ const viewports=[
   ['tablet-768',768,1024],
   ['tablet-820',820,1180],
   ['tablet-landscape-1024',1024,768],
-  ['desktop-1440',1440,900]
+  ['desktop-1440',1440,900],
+  ['landscape-mobile',844,390],['small-foldable',280,653],['laptop',1366,768],['wide-short',1920,720],['full-hd',1920,1080],['qhd',2560,1440],['ultrawide',2560,1080],['ultrawide-3440',3440,1440],['superwide',5120,1440],['4k',3840,2160],['5k',5120,2880],['8k',7680,4320]
 ];
 
 test.describe.configure({mode:'parallel'});
@@ -41,6 +42,7 @@ test.use({serviceWorkers:'block'});
 
 for(const route of routes){
   test('responsive certification '+route,async({page,request})=>{
+    test.setTimeout(180000);
     const http=await request.get(base+route,{maxRedirects:5});
     expect(http.status(),route+' HTTP status').toBeLessThan(400);
 
@@ -75,7 +77,8 @@ for(const route of routes){
               viewport,
               htmlWidth:html.scrollWidth,
               bodyWidth:body?body.scrollWidth:0,
-              brokenImages
+              brokenImages,
+              adaptiveWidth:(()=>{const el=document.querySelector('body.public-home-page main,body.public-content-page .article-shell,body.public-content-page .authority-shell,body.jr-ar-public main.jr-ar-wrap,body[data-jrei-public-centre] main > .wrap,body.academic .hero .wrap,body.forge .hero .wrap,body.seo .hero .wrap');return el?el.getBoundingClientRect().width:0;})()
             };
           });
           break;
@@ -91,6 +94,7 @@ for(const route of routes){
 
       expect(result.htmlWidth,route+' '+label+' html horizontal overflow').toBeLessThanOrEqual(result.viewport+1);
       expect(result.bodyWidth,route+' '+label+' body horizontal overflow').toBeLessThanOrEqual(result.viewport+1);
+      if(width>=1500&&result.adaptiveWidth>0)expect(result.adaptiveWidth,route+' '+label+' usable shell width').toBeGreaterThanOrEqual(width*.8);
       expect(result.brokenImages,route+' '+label+' broken image(s)').toEqual([]);
     }
     expect(pageErrors,route+' client page errors').toEqual([]);

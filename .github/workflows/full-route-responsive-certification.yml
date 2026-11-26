@@ -30,7 +30,7 @@ concurrency:
 jobs:
   certify:
     runs-on: ubuntu-24.04
-    timeout-minutes: 35
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -54,21 +54,23 @@ jobs:
             fi
             sleep 8
           done
+      - name: Build sanitized site for browser certification
+        run: node scripts/build-public-site.mjs
       - name: Start local static site
         run: |
-          python3 -m http.server 4173 --bind 127.0.0.1 > /tmp/drsite-http.log 2>&1 &
+          python3 -m http.server 4173 --bind 127.0.0.1 --directory .public-site > /tmp/drsite-http.log 2>&1 &
           for i in {1..20}; do
             if curl -fsS http://127.0.0.1:4173/ >/dev/null; then exit 0; fi
             sleep 1
           done
           cat /tmp/drsite-http.log
           exit 1
-      - name: Certify every HTML route at four critical viewports
+      - name: Certify all release routes across adaptive viewports
         shell: bash
         run: |
           set +e
           set -o pipefail
-          npx playwright test tests/full-route-responsive.spec.js --workers=4 --reporter=line 2>&1 | tee /tmp/full-route-responsive.log
+          SITE_ARTIFACT_ROOT=.public-site npx playwright test tests/full-route-responsive.spec.js --workers=4 --reporter=line 2>&1 | tee /tmp/full-route-responsive.log
           status=${PIPESTATUS[0]}
           mkdir -p test-results/full-route-responsive
           cp /tmp/full-route-responsive.log test-results/full-route-responsive/

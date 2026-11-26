@@ -930,6 +930,18 @@ if(!fs.existsSync(relayPath)) {
   }
 }
 
+// Independent adaptive layer; original styles and document content remain intact.
+const adaptiveSheet='<link rel="stylesheet" href="/assets/css/jr-adaptive-layout-v1.css?v=1">';
+let adaptiveCount=0;
+for(const file of html){
+ const source=fs.readFileSync(file,'utf8');
+ if(!/<\/head\s*>/i.test(source))continue;
+ if(!source.includes('/assets/css/jr-adaptive-layout-v1.css')){
+  fs.writeFileSync(file,source.replace(/<\/head\s*>/i,adaptiveSheet+'const businessContactReport=applyBusinessContact(out,html,failures);'),'utf8');
+  adaptiveCount++;
+ }
+}
+console.log('Adaptive layout stylesheet added to '+adaptiveCount+' HTML routes');
 const businessContactReport=applyBusinessContact(out,html,failures);
 console.log('Public WhatsApp Business contact:',JSON.stringify({enhanced:businessContactReport.enhanced,skipped:businessContactReport.skipped,byLanguage:businessContactReport.byLanguage}));
 const releaseAudit=auditPublicRelease(out,html);
