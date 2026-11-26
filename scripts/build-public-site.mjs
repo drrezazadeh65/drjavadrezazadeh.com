@@ -635,6 +635,8 @@ const html=all.filter(p=>p.endsWith('.html') &&
  for(const file of html){
    const relative=path.relative(out,file).replaceAll(path.sep,'/');
    const old=fs.readFileSync(file,'utf8');
+   // Keep the nine public launch introductions static even after owner-approved indexing.
+   if(/^(?:fa|en|ar)\/(?:jrei-academic|forge|jrei\/seo)\/index\.html$/.test(relative))continue;
    const updated=includeJreiAssistant(relative,old);
    if(updated!==old)fs.writeFileSync(file,updated,'utf8');
  }
@@ -852,7 +854,14 @@ for(const route of approvedJreiLaunchRoutes.filter(r=>!approvedJreiCommercialHub
  if(!fs.existsSync(file)){failures.push('Approved JREI introduction missing: '+route);continue;}
  const source=fs.readFileSync(file,'utf8');
  const canonical='https://drjavadrezazadeh.com/'+route.replace(/index\.html$/,'');
- if(!source.includes('data-jrei-launch="coming-soon"')||!source.includes('<meta name="robots" content="noindex,nofollow">')||!source.includes('<link rel="canonical" href="'+canonical+'">')||/<(?:form|script)\b/i.test(source))failures.push('JREI introduction must remain static, correctly scoped and noindex: '+route);
+ if(!source.includes('data-jrei-launch="coming-soon"')||!source.includes('<meta name="robots" content="index,follow,max-image-preview:large">')||!source.includes('<link rel="canonical" href="'+canonical+'">')||/<(?:form|script)\b/i.test(source))failures.push('JREI introduction must remain static, correctly scoped and indexable: '+route);
+ const sitemap=path.join(out,'sitemap-jrei.xml');
+ if(!fs.existsSync(sitemap)||!fs.readFileSync(sitemap,'utf8').includes('<loc>'+canonical+'</loc>'))failures.push('Indexable JREI introduction missing from sitemap: '+route);
+ const product=route.split('/').slice(1,-1).join('/');
+ for(const locale of ['fa','en','ar','x-default']){
+   const alternate='https://drjavadrezazadeh.com/'+(locale==='x-default'?'fa':locale)+'/'+product+'/';
+   if(!source.includes('<link rel="alternate" hreflang="'+locale+'" href="'+alternate+'">'))failures.push('JREI introduction hreflang missing: '+route+' '+locale);
+ }
 }
 for(const route of [...approvedJreiCommercialHubs,...approvedJreiCommercialRoutes]){
  const file=path.join(out,route);
