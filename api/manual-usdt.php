@@ -10,6 +10,17 @@ const JR_USDT_ADMIN_EMAIL='admin@drjavadrezazadeh.com';
 
 function jrUsdtReady(PDO $pdo): bool {
     if(getenv('JR_MANUAL_USDT_ENABLED')!=='true' || getenv('JR_MANUAL_USDT_SCHEMA_APPROVED')!=='true')return false;
+    // The historical receiving address is not proof of the current deposit route.
+    // Require owner-reconfirmed server-side configuration, not a browser value.
+    $receiver=(string)getenv('JR_MANUAL_USDT_CONFIRMED_RECEIVER');
+    $contract=(string)getenv('JR_MANUAL_USDT_CONFIRMED_CONTRACT');
+    if(!preg_match('/^0x[a-fA-F0-9]{40}$/D',$receiver) ||
+       !preg_match('/^0x[a-fA-F0-9]{40}$/D',$contract) ||
+       !hash_equals(strtolower(JR_USDT_RECEIVER),strtolower($receiver)) ||
+       !hash_equals(strtolower(JR_USDT_CONTRACT),strtolower($contract)))return false;
+    // Draft has no authoritative checkout-to-quote writer. Do not advertise
+    // payment until that writer and its live acceptance gate are integrated.
+    if(!function_exists('jrUsdtIssueBoundOrderQuote'))return false;
     try{$pdo->query('SELECT id FROM manual_usdt_claims LIMIT 0');$pdo->query('SELECT id FROM manual_usdt_audit LIMIT 0');return true;}
     catch(Throwable $e){return false;}
 }

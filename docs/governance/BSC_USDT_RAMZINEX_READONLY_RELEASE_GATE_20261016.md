@@ -37,3 +37,9 @@ The admin-only, fresh-TOTP endpoint `/api/admin/operations/crypto/usdt/exchange-
 3. Verify the designated BSC USDT receiving address and token contract in the active account; do not publish an expired exchange address.
 4. Run integrated simulated claim, receipt upload, admin SMTP queue, fresh-MFA review and customer history for both languages. Check duplicate hash claims, concurrent approval and refund/reversal edge cases.
 5. Explicitly approve one controlled production rollout with rollback and monitoring. No automatic service activation by any API or receipt.
+
+## 26 November 2026 — isolated corrective candidate
+- Removed duplicate audit primary key and aligned the audit enum with the review state actually written by PHP.
+- Added exact integer amount calculation and fixtures, including 18-decimal BSC token-unit conversion and freshness limits. The arithmetic is not an invoice issuer and does not collect funds.
+- The draft now requires privately reconfirmed receiving address and contract and an integrated authoritative bound-order quote issuer before reporting enabled. No exchange credential is required for the optional manual review path itself; do not reuse old credentials.
+- Production schema inventory, canonical order creation/reservation/quote binding, atomic fulfillment and replay controls, live wallet verification, lawful merchant/provider eligibility, and actual end-to-end tests remain required. This isolated branch must not be merged blindly into the newer website release.

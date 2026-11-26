@@ -38,10 +38,9 @@ CREATE TABLE IF NOT EXISTS manual_usdt_audit (
  id CHAR(36) NOT NULL PRIMARY KEY,
  claim_id CHAR(36) NOT NULL,
  actor_id CHAR(36) NOT NULL,
- action ENUM('submitted','review_started','needs_information','approved','rejected','fulfilled') NOT NULL,
+ action ENUM('submitted','under_review','needs_information','approved','rejected','fulfilled') NOT NULL,
  note VARCHAR(1200) DEFAULT NULL,
  at_ts BIGINT UNSIGNED NOT NULL,
- PRIMARY KEY (id),
  KEY idx_manual_usdt_audit (claim_id,at_ts),
  CONSTRAINT fk_manual_usdt_audit_claim FOREIGN KEY (claim_id) REFERENCES manual_usdt_claims(id),
  CONSTRAINT fk_manual_usdt_audit_actor FOREIGN KEY (actor_id) REFERENCES customer_accounts(id)

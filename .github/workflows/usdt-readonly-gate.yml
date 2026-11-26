@@ -14,6 +14,8 @@ on:
       - 'tests/ramzinex-readonly-smoke.php'
       - 'tests/ramzinex-usdt-safety.test.mjs'
       - 'tests/manual-usdt-integration.test.mjs'
+      - 'api/manual-usdt-quote-math.php'
+      - 'tests/manual-usdt-quote-math.php'
       - 'fa/payments/usdt/index.html'
       - 'en/payments/usdt/index.html'
       - 'assets/js/manual-usdt-payment.js'
@@ -52,6 +54,8 @@ jobs:
           php -m | grep -iq '^openssl$'
       - name: Lint isolated PHP and exercise hash-matching fixtures
         run: |
+          php -l api/manual-usdt-quote-math.php
+          php tests/manual-usdt-quote-math.php
           php -l api/manual-usdt.php
           php -l api/ramzinex-readonly.php
           php -l tests/ramzinex-readonly-smoke.php
