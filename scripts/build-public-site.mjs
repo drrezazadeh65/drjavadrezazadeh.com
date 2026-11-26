@@ -879,7 +879,21 @@ const arabicEditorialRoutes=JSON.parse(fs.readFileSync(path.join(root,'platform/
 const approvedArabicEditorialCount=validateArabicPublicRoutes(out,arabicEditorialRoutes,failures);
 const localeNavigationReport=applyPublicLocaleNavigation(out,html);
 console.log('Public locale navigation:',JSON.stringify(localeNavigationReport));
-const approvedPublicHtmlRoutes=approvedArabicEditorialCount+existingBaseHtmlRoutes+approvedEnglishServices.length+protectedNewRoutes.length+2+approvedEnglishVipRoutes.length+1+1+1+approvedBilingualEducationalRoutes.length*2+approvedPublicExamPages.length+approvedPrivateExamPages.length+approvedBilingualCollectibleRoutes.length+approvedJreiLaunchRoutes.length+approvedJreiCommercialRoutes.length;
+// Three owner-authorized transactional USDT forms are private and must never
+// enter XML sitemaps, public search or crawler-visible payment instructions.
+const approvedUsdtCheckoutRoutes=['fa/payments/usdt/index.html','en/payments/usdt/index.html','ar/payments/usdt/index.html'];
+for(const route of approvedUsdtCheckoutRoutes){
+ const file=path.join(out,route);
+ if(!fs.existsSync(file)){failures.push('USDT checkout missing: '+route);continue;}
+ const source=fs.readFileSync(file,'utf8'),url='https://drjavadrezazadeh.com/'+route.replace(/index\.html$/,'');
+ if(!source.includes('<meta name="robots" content="noindex,nofollow,noarchive">')||
+    !source.includes('data-jr-usdt-checkout')||!source.includes('jr-usdt-commerce-v1.js')||
+    /0x[a-f0-9]{40}/i.test(source))failures.push('USDT private form contract invalid: '+route);
+ for(const map of ['sitemap-core.xml','sitemap-fa.xml','sitemap-en.xml','sitemap-ar.xml','sitemap-jrei.xml','sitemap-services.xml','sitemap-news.xml','journal/sitemap.xml']){
+  if(fs.readFileSync(path.join(out,map),'utf8').includes('<loc>'+url+'</loc>'))failures.push('Private USDT checkout listed in sitemap: '+route);
+ }
+}
+const approvedPublicHtmlRoutes=approvedArabicEditorialCount+existingBaseHtmlRoutes+approvedEnglishServices.length+protectedNewRoutes.length+2+approvedEnglishVipRoutes.length+1+1+1+approvedBilingualEducationalRoutes.length*2+approvedPublicExamPages.length+approvedPrivateExamPages.length+approvedBilingualCollectibleRoutes.length+approvedJreiLaunchRoutes.length+approvedJreiCommercialRoutes.length+approvedUsdtCheckoutRoutes.length;
 
 const aiLabRoute='fa/konkur-ai-lab/index.html';
 const aiLabPath=path.join(out,aiLabRoute);
