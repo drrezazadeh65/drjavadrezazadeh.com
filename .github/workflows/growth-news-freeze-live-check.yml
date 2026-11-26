@@ -1,5 +1,11 @@
 name: Growth Release — Protected Live News Preflight (No Deployment)
 on:
+  push:
+    branches: [migration/bertina-linux6]
+    paths:
+      - 'scripts/news-freeze-release-guard.mjs'
+      - 'tests/growth-release-protection.test.mjs'
+      - '.github/workflows/growth-news-freeze-live-check.yml'
   pull_request:
     branches: [migration/bertina-linux6]
   workflow_dispatch:
@@ -16,6 +22,8 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      - name: Test protected news delta with positive and negative Git fixtures
+        run: node --test tests/growth-release-protection.test.mjs
       - name: Verify immutable live revision from the existing public release
         run: |
           set -euo pipefail
