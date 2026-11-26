@@ -5,6 +5,11 @@
  body.public-content-page :is(.breadcrumbs,.article-shell,.authority-shell),
  body :is(.site-header,.service-shell,.profile-body,.journal-main,.journal-footer,.foundation-main,.book-store-shell,.gt-shop-shell,.rcas-shell,.app-prototype,.student-dash-shell,.gt-private-shell,.gateway-shell),
  body.jr-ar-public .jr-ar-wrap,body[data-jrei-public-centre] .wrap,body:is(.academic,.forge,.seo) .wrap{width:var(--jr-wide-width);max-width:none;margin-inline:auto}
+ /* News has a higher-specificity ID-based legacy cap. Expand the outer shell once,
+    then use all its available width without applying a second viewport gutter. */
+ body.public-content-page.jr-news-experience #main-content{width:var(--jr-wide-width);max-width:none;margin-inline:auto}
+ body.public-content-page.jr-news-experience #main-content :is(.article-shell,.authority-shell){width:100%;max-width:none;margin-inline:auto}
+ body.public-content-page.jr-news-experience .jrn21{width:100%;max-width:none;margin-inline:auto}
  body.public-home-page main > :is(.hero,.section),body[data-jrei-public-centre] .hero{width:100%;max-width:none}
  body:is(.academic,.forge,.seo) .hero .wrap{grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr)}
  body:is(.academic,.forge,.seo) .grid,body[data-jrei-public-centre] .grid,body.jr-ar-public .jr-ar-grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,22rem),1fr))}

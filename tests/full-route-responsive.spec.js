@@ -46,6 +46,17 @@ for(const route of routes){
     const http=await request.get(base+route,{maxRedirects:5});
     expect(http.status(),route+' HTTP status').toBeLessThan(400);
 
+    // Historic HTML redirects deliberately use the production canonical origin.
+    // In certification, resolve that exact same-origin target against the release
+    // artifact, never the previously deployed website. Unknown targets fail closed.
+    const origin=new URL(base).origin;
+    await page.route('https://drjavadrezazadeh.com/**',async interception=>{
+      const req=interception.request();
+      if(!req.isNavigationRequest()||req.frame()!==page.mainFrame())return interception.continue();
+      const target=new URL(req.url());
+      if(!routes.includes(target.pathname))return interception.abort('blockedbyclient');
+      return interception.fulfill({status:302,headers:{location:origin+target.pathname+target.search+target.hash}});
+    });
     const pageErrors=[];
     page.on('pageerror',err=>pageErrors.push(String(err.message||err)));
     for(const [label,width,height] of viewports){
@@ -91,6 +102,7 @@ for(const route of routes){
         }
       }
       if(!result)throw transient||new Error('responsive_document_not_stable');
+      expect(new URL(page.url()).origin,route+' must certify the local release, not production').toBe(origin);
 
       expect(result.htmlWidth,route+' '+label+' html horizontal overflow').toBeLessThanOrEqual(result.viewport+1);
       expect(result.bodyWidth,route+' '+label+' body horizontal overflow').toBeLessThanOrEqual(result.viewport+1);
