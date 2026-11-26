@@ -7,13 +7,20 @@ function pilotCheck(bool $pass,string $code): void {
 }
 // A separately registered secondary Windows PC with an actual local GGUF
 // must not be relabelled as Node A or assigned Node A's signing identity.
-// Exactly the two original PRIVATE pilot authorisation/lease gates admit
-// both reviewed Windows node classes; no generic provider wildcard.
+// Two authorisation/lease gates and the read-only inventory count must
+// admit exactly the two reviewed node classes; no generic provider wildcard.
 $pilotSource=file_get_contents(dirname(__DIR__).'/api/jrei-owner-private-pilot.php');
 pilotCheck(is_string($pilotSource)&&
     substr_count($pilotSource,
-      "provider_type IN ('LOCAL_WINDOWS_WORKER','LOCAL_SECONDARY_WORKER')")===2,
+      "provider_type IN ('LOCAL_WINDOWS_WORKER','LOCAL_SECONDARY_WORKER')")===3,
     'pilot_signed_secondary_node_must_be_explicitly_allowed');
+$authSection=substr($pilotSource,strpos($pilotSource,'function jrOwnerPilotModel('),strpos($pilotSource,'function jrOwnerPilotReady(')-strpos($pilotSource,'function jrOwnerPilotModel('));
+$leaseSection=substr($pilotSource,strpos($pilotSource,'function jrOwnerPilotWorkerPoll('),strpos($pilotSource,'function jrOwnerPilotWorkerFinish(')-strpos($pilotSource,'function jrOwnerPilotWorkerPoll('));
+foreach([$authSection,$leaseSection] as $gate)pilotCheck(
+    str_contains($gate,"provider_type IN ('LOCAL_WINDOWS_WORKER','LOCAL_SECONDARY_WORKER')")&&
+    str_contains($gate,"status='ENABLED'")&&str_contains($gate,'revoked_at IS NULL'),
+    'pilot_exact_signed_node_gate');
+
 pilotCheck(str_contains($pilotSource,"n.status='ENABLED'")&&
     str_contains($pilotSource,"n.revoked_at IS NULL")&&
     str_contains($pilotSource,"m.status='RIGHTS_REVIEWED'")&&

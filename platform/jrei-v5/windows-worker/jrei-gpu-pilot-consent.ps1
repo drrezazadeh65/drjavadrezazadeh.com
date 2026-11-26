@@ -80,21 +80,7 @@ Require ((Get-FileHash -LiteralPath $secureLauncher -Algorithm SHA256).Hash.ToLo
   [string]$secure.secureLauncherSha256) 'JREI_GPU_SECURE_LAUNCHER_HASH_MISMATCH'
 Require (Test-Path -LiteralPath $keyPath -PathType Leaf) 'JREI_GPU_OWNER_SECRET_MISSING'
 $token=(Get-Content -LiteralPath $keyPath -Encoding ASCII -Raw).Trim()
-Require ($token -cmatch '^[a-f0-9]{64}
-$payload=[ordered]@{
- schema=$schema;enabled=$true;external_model_acknowledged=$true
- owner_approved=$true;model_sha256=$digest
-} | ConvertTo-Json -Depth 3
-$f=[IO.File]::Open($consent,[IO.FileMode]::CreateNew,[IO.FileAccess]::Write,[IO.FileShare]::None)
-try{
- $b=[Text.UTF8Encoding]::new($false).GetBytes($payload)
- $f.Write($b,0,$b.Length)
-}finally{$f.Dispose()}
-Write-Output 'JREI_GPU_PILOT_PRIVATE_CONSENT_STAGED'
-Write-Output 'THIRD_PARTY_QWEN_EXPLICITLY_LABELLED_NOT_JREI_NATIVE'
-Write-Output 'NO_RESTART_NO_MODEL_DOWNLOAD_NO_WEBSITE_DEPLOYMENT'
-Write-Output 'REQUIRES_FINAL_INTEGRATED_WINDOWS_RELEASE_APPROVAL'
-) 'JREI_GPU_OWNER_SECRET_INVALID'
+Require ($token -cmatch '^[a-f0-9]{64}$') 'JREI_GPU_OWNER_SECRET_INVALID'
 # The original unsecured V4 server must NEVER count as an approved pilot.
 # In the pinned llama.cpp server /v1/models must reject unauthenticated GET.
 $unauthDenied=$false
