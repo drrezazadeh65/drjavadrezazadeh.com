@@ -1,0 +1,85 @@
+{
+  "schema": "jr.locale-equivalence.v1",
+  "source_commit": "d3e70bebb5f554d9d2d37aaa61eeb9ef5402f275",
+  "scope": "first editorial localization tranche; not full feature parity",
+  "routes": [
+    {
+      "ar": "/ar/",
+      "en": "/en/",
+      "fa": "/fa/",
+      "xDefault": "/"
+    },
+    {
+      "ar": "/ar/about/",
+      "en": "/en/about/",
+      "fa": "/fa/darbare-man/",
+      "xDefault": "/en/about/"
+    },
+    {
+      "ar": "/ar/research/",
+      "en": "/en/research/",
+      "fa": "/fa/pajouhesh/",
+      "xDefault": "/en/research/"
+    },
+    {
+      "ar": "/ar/publications/",
+      "en": "/en/publications/",
+      "fa": "/fa/entesharat-elmi/",
+      "xDefault": "/en/publications/"
+    },
+    {
+      "ar": "/ar/teaching/",
+      "en": "/en/teaching/",
+      "fa": "/fa/tadris/",
+      "xDefault": "/en/teaching/"
+    },
+    {
+      "ar": "/ar/educational-philosophy/",
+      "en": "/en/educational-philosophy/",
+      "fa": "/fa/falsafe-amoozeshi/",
+      "xDefault": "/en/educational-philosophy/"
+    },
+    {
+      "ar": "/ar/contact/",
+      "en": "/en/contact/",
+      "fa": "/fa/tamas/",
+      "xDefault": "/en/contact/"
+    },
+    {
+      "ar": "/ar/language-education/",
+      "en": "/en/language-education/",
+      "fa": "/fa/amoozesh-zaban/",
+      "xDefault": "/en/language-education/"
+    },
+    {
+      "ar": "/ar/academic-engagements/",
+      "en": "/en/academic-engagements/",
+      "fa": "/fa/faaliat-haye-elmi/",
+      "xDefault": "/en/academic-engagements/"
+    },
+    {
+      "ar": "/ar/books/",
+      "en": "/en/books/",
+      "fa": "/fa/ketab-ha/",
+      "xDefault": "/en/books/"
+    },
+    {
+      "ar": "/ar/academic-services/",
+      "en": "/en/academic-services/",
+      "fa": "/fa/khadamat-pajouheshi/",
+      "xDefault": "/en/academic-services/"
+    },
+    {
+      "ar": "/ar/services/",
+      "en": "/en/services/",
+      "fa": "/fa/services/",
+      "xDefault": "/en/services/"
+    },
+    {
+      "ar": "/ar/golden-talent/methodology/",
+      "en": "/en/golden-talent/methodology/",
+      "fa": "/fa/golden-talent/ravesh-shenasi/",
+      "xDefault": "/en/golden-talent/methodology/"
+    }
+  ]
+}

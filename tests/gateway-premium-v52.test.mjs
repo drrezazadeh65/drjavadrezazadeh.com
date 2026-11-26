@@ -13,7 +13,7 @@ test('premium gateway preserves frozen identity, canonical, bilingual and search
  for(const token of [
   'name="enamad"','name="google-site-verification"',
   'rel="canonical" href="https://drjavadrezazadeh.com/"',
-  'hreflang="en"','hreflang="fa"','hreflang="x-default"',
+  'hreflang="en"','hreflang="fa"','hreflang="ar"','hreflang="x-default"',
   'application/ld+json','href="https://drjavadrezazadeh.com/llms.txt"',
   'class="gateway-monogram" aria-hidden="true"><img src="./favicon.svg"',
   'name="robots" content="index,follow,max-image-preview:large"',
@@ -42,19 +42,20 @@ test('gateway is CSS-only progressive enhancement, not an inline-style takeover'
  assert.ok(!css.includes('@import'),'No remote CSS imports');
  assert.ok(!css.includes('https://'),'No remote font or artwork dependence');
  assert.ok(css.length<22000,'CSS size budget exceeded');
- assert.ok(html.length<12000,'HTML document grew beyond performance budget');
+ assert.ok(html.length<13000,'HTML document grew beyond performance budget');
  assert.ok(old.includes('@font-face'),'Existing self-hosted font retained');
 });
 
-test('two language choices and all premium navigation destinations resolve to committed pages',()=>{
+test('three language choices and all premium navigation destinations resolve to committed pages',()=>{
  assert.equal((html.match(/data-language-choice="en"/g)||[]).length,1);
  assert.equal((html.match(/data-language-choice="fa"/g)||[]).length,1);
+ assert.equal((html.match(/data-language-choice="ar"/g)||[]).length,1);
  assert.match(html,/class="gateway-actions"/);
  assert.match(html,/href="#language-entry"/);
  assert.match(html,/id="language-entry"/);
  assert.match(html,/href="#main"/);
  assert.match(html,/id="main"/);
- const destinations=['en/','fa/','en/research/','en/golden-talent/','en/services/','en/publications/','en/contact/'];
+ const destinations=['en/','fa/','ar/','en/research/','en/golden-talent/','en/services/','en/publications/','en/contact/'];
  for(const route of destinations){
   const target=path.join(root,route,'index.html');
   assert.ok(fs.existsSync(target),'Broken gateway destination: '+route);

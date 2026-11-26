@@ -1,11 +1,11 @@
 (()=>{
 // A saved locale can preselect a label, but it must never hijack the installed
-// PWA's explicit language gateway. Every new gateway visit retains both choices.
+// PWA's explicit language gateway. Every new gateway visit retains all three choices.
 document.addEventListener('click',e=>{
   const a=e.target.closest('[data-language-choice]');
   if(!a)return;
   const lang=a.getAttribute('data-language-choice');
-  if(lang==='fa'||lang==='en') localStorage.setItem('preferred-language',lang);
+  if(['fa','en','ar'].includes(lang)){try{localStorage.setItem('preferred-language',lang);}catch(_){/* language links still work */}}
 });
 })();
 

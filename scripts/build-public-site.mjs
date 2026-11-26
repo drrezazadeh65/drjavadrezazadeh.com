@@ -10,6 +10,7 @@ import {hiddenFeatureSourceInventory} from './operations-hidden-features.mjs';
 import {includeJreiAssistant} from './jrei-public-assistant-surface.mjs';
 import {fingerprintCoreStyles} from './release-fingerprint-core-styles.mjs';
 import {bundleOwnerStyles} from './release-bundle-owner-styles.mjs';
+import {validateArabicPublicRoutes,applyPublicLocaleNavigation} from './jr-public-locale-navigation.mjs';
 
 checkStylesheetBundles();
 
@@ -478,7 +479,7 @@ const failures=[];
 for(const blocked of ['database','migrations']) if(fs.existsSync(path.join(out,blocked))) failures.push('Database or migration source leaked into public artifact: '+blocked);
 const required=[
   'index.html','404.html','offline.html','robots.txt','llms.txt','site.webmanifest','sw.js',
-  'sitemap.xml','sitemap-core.xml','journal/sitemap.xml','journal/.htaccess','sitemap-fa.xml','sitemap-en.xml','sitemap-news.xml',
+  'sitemap.xml','sitemap-core.xml','journal/sitemap.xml','journal/.htaccess','sitemap-fa.xml','sitemap-en.xml','sitemap-news.xml','sitemap-ar.xml','assets/css/jr-arabic-public-v1.css',
   'assets/data/book-catalog.json','assets/data/service-catalog.json','assets/data/analytics-config.json',
   // Owner operations dashboard relies on this exact source/runtime bundle.
   // Guard against a syntactically valid release missing its require_once target.
@@ -870,7 +871,11 @@ for(const route of [...approvedJreiCommercialHubs,...approvedJreiCommercialRoute
  const canonical='https://drjavadrezazadeh.com/'+route.replace(/index\.html$/,'');
  if(!source.includes('data-jrei-public-centre="v1"')||!source.includes('<meta name="robots" content="index,follow,max-image-preview:large">')||!source.includes('<link rel="canonical" href="'+canonical+'">')||/<form\b/i.test(source))failures.push('JREI commercial public page contract invalid: '+route);
 }
-const approvedPublicHtmlRoutes=existingBaseHtmlRoutes+approvedEnglishServices.length+protectedNewRoutes.length+2+approvedEnglishVipRoutes.length+1+1+1+approvedBilingualEducationalRoutes.length*2+approvedPublicExamPages.length+approvedPrivateExamPages.length+approvedBilingualCollectibleRoutes.length+approvedJreiLaunchRoutes.length+approvedJreiCommercialRoutes.length;
+const arabicEditorialRoutes=JSON.parse(fs.readFileSync(path.join(root,'platform/jr-arabic-public-routes-v1.json'),'utf8')).routes;
+const approvedArabicEditorialCount=validateArabicPublicRoutes(out,arabicEditorialRoutes,failures);
+const localeNavigationReport=applyPublicLocaleNavigation(out,html);
+console.log('Public locale navigation:',JSON.stringify(localeNavigationReport));
+const approvedPublicHtmlRoutes=approvedArabicEditorialCount+existingBaseHtmlRoutes+approvedEnglishServices.length+protectedNewRoutes.length+2+approvedEnglishVipRoutes.length+1+1+1+approvedBilingualEducationalRoutes.length*2+approvedPublicExamPages.length+approvedPrivateExamPages.length+approvedBilingualCollectibleRoutes.length+approvedJreiLaunchRoutes.length+approvedJreiCommercialRoutes.length;
 
 const aiLabRoute='fa/konkur-ai-lab/index.html';
 const aiLabPath=path.join(out,aiLabRoute);
@@ -916,7 +921,7 @@ if(!fs.existsSync(relayPath)) {
   if(!relay.includes('<meta name="robots" content="noindex,nofollow">')){
     failures.push('Payment-return relay must remain noindex,nofollow');
   }
-  for(const sitemap of ['sitemap.xml','sitemap-core.xml','sitemap-fa.xml','sitemap-en.xml']){
+  for(const sitemap of ['sitemap.xml','sitemap-core.xml','sitemap-fa.xml','sitemap-en.xml','sitemap-ar.xml']){
     if(fs.existsSync(path.join(out,sitemap)) &&
        fs.readFileSync(path.join(out,sitemap),'utf8').includes('/fa/shop/payment-return/')){
       failures.push('Noindex payment-return relay must not enter '+sitemap);

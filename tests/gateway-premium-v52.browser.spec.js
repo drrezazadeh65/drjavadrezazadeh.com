@@ -19,6 +19,8 @@ for(const viewport of [
   await expect(page.locator('h1')).toContainText('Rezazadeh');
   await expect(page.locator('#language-entry')).toBeVisible();
   await expect(page.locator('[data-language-choice="en"]')).toBeVisible();
+  await expect(page.locator('[data-language-choice="ar"]')).toBeVisible();
+  await expect(page.locator('[data-language-choice="ar"]')).toHaveAttribute('href','./ar/');
   await expect(page.locator('[data-language-choice="fa"]')).toBeVisible();
   const fa=page.locator('[data-language-choice="fa"]');
   await expect(fa).toHaveAttribute('href','./fa/');
