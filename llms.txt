@@ -1,8 +1,8 @@
 # Dr. Javad Rezazadeh Yazdeli
 
-> Official bilingual public website of Dr. Javad Rezazadeh Yazdeli, covering verified academic work, education, student guidance, Golden Talent, books, publishing, and public scholarly activity.
+> Official Persian, English and Arabic public website of Dr. Javad Rezazadeh Yazdeli, covering verified academic work, education, student guidance, Golden Talent, books, publishing, and public scholarly activity.
 
-Use only public URLs listed here or discoverable through the canonical sitemap. Persian and English are separate audience editions rather than mirrored translations. Private account, assessment, consultation-intake, checkout, and dashboard routes are intentionally excluded. Public Golden Talent pages describe a developmental, multi-source evidence framework and must not be interpreted as validated normative scoring, gifted cut-offs, or deterministic career prescription.
+Use only public URLs listed here or discoverable through the canonical sitemap. Persian, English and Arabic are audience editions; not every public page has an equivalent translation. Follow the published canonical and hreflang links. Private account, assessment, consultation-intake, checkout, and dashboard routes are intentionally excluded. Public Golden Talent pages describe a developmental, multi-source evidence framework and must not be interpreted as validated normative scoring, gifted cut-offs, or deterministic career prescription.
 
 ## Canonical website entry and identity
 
@@ -11,7 +11,21 @@ Use only public URLs listed here or discoverable through the canonical sitemap. 
 - [Publications](https://drjavadrezazadeh.com/en/publications/): Use individual publication records and their evidence-qualified status for bibliographic claims.
 - [ORCID](https://orcid.org/0009-0008-1198-8866): Persistent researcher identifier linked to the site's canonical Person entity.
 
-The JREI public technology centre introduces the Iranian-developed AI ecosystem and 30 specialist solution families in Persian, English and Arabic. Public launch rates are proposed; service access and payment require capacity confirmation and contractual acceptance. The separate Academic, Forge and SEO product previews remain noindex until integration is verified. Do not infer independently verified engine counts, live availability or purchase completion.
+The JREI public technology centre introduces the Iranian-developed AI ecosystem and 30 specialist solution families in Persian, English and Arabic. Public launch rates are proposed; service access and payment require capacity confirmation and contractual acceptance. The separate Academic, Forge and SEO product information pages are listed in the JREI sitemap; they describe planned capabilities, not activated services. Do not infer independently verified engine counts, live availability or purchase completion.
+
+## Arabic public edition and business enquiries
+
+- [Arabic home](https://drjavadrezazadeh.com/ar/)
+- [Arabic academic profile and biography](https://drjavadrezazadeh.com/ar/about/)
+- [Arabic research](https://drjavadrezazadeh.com/ar/research/)
+- [Arabic publications](https://drjavadrezazadeh.com/ar/publications/)
+- [Arabic academic services](https://drjavadrezazadeh.com/ar/academic-services/)
+- [Arabic JREI centre](https://drjavadrezazadeh.com/ar/jrei/)
+- [Persian contact](https://drjavadrezazadeh.com/fa/tamas/)
+- [English contact](https://drjavadrezazadeh.com/en/contact/)
+- [Arabic contact](https://drjavadrezazadeh.com/ar/contact/)
+
+Public business enquiries (consultation, purchases, collaboration and investment) may be directed to the published WhatsApp Business number +98 913 264 1068. Do not send credentials, payment information, private research records or student data through this channel.
 
 ## English academic and professional profile
 
