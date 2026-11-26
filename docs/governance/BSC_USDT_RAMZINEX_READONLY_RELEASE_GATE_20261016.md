@@ -43,3 +43,6 @@ The admin-only, fresh-TOTP endpoint `/api/admin/operations/crypto/usdt/exchange-
 - Added exact integer amount calculation and fixtures, including 18-decimal BSC token-unit conversion and freshness limits. The arithmetic is not an invoice issuer and does not collect funds.
 - The draft now requires privately reconfirmed receiving address and contract and an integrated authoritative bound-order quote issuer before reporting enabled. No exchange credential is required for the optional manual review path itself; do not reuse old credentials.
 - Production schema inventory, canonical order creation/reservation/quote binding, atomic fulfillment and replay controls, live wallet verification, lawful merchant/provider eligibility, and actual end-to-end tests remain required. This isolated branch must not be merged blindly into the newer website release.
+
+### Owner-provided deposit screen, 26 November 2026
+The text and decoded QR address match the configured BSC USDT receiving address, and the displayed contract suffix 97955 matches the configured contract. The displayed deposit minimum is 0.1 USDT. Record this floor and reject lower quotes rather than silently increasing charges. This is owner-provided configuration evidence, not an independent live deposit/settlement test. No production flags, schema, or payment collection have been enabled.

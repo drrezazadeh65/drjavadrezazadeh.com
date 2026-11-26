@@ -28,5 +28,12 @@
     "Never equate a receipt or tx hash with completed payment",
     "No checkout restrictions based on user nationality or interface language"
   ],
-  "source": "Wallet address explicitly provided by site owner; token contract checked against BscScan."
+  "source": "Wallet address explicitly provided by site owner; token contract checked against BscScan.",
+  "minimumDepositUsdt": "0.100000",
+  "receiverEvidence": {
+    "date": "2026-11-26",
+    "source": "Owner-supplied Ramzinex BSC USDT deposit screen; displayed address and decoded QR match existing configuration",
+    "contractSuffixMatched": "97955",
+    "liveProviderSettlementVerified": false
+  }
 }

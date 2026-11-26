@@ -24,3 +24,10 @@ rejects(fn()=>jrUsdtQuoteMath(900000000001,'1000000',1000,1000));
 $x=jrUsdtQuoteMath(900000000000,'1000',1000,1000);
 eq($x['amount_usdt'],'9000000000.000000');
 echo "Exact quote arithmetic, 18-decimal token units, freshness and bounds: PASS\n";
+
+rejects(fn()=>jrUsdtRequireMinimumDeposit('0.099999'));
+rejects(fn()=>jrUsdtRequireMinimumDeposit('0.000000'));
+rejects(fn()=>jrUsdtRequireMinimumDeposit('0.1'));
+jrUsdtRequireMinimumDeposit('0.100000');
+jrUsdtRequireMinimumDeposit('1.000000');
+echo "Documented minimum deposit checks: PASS\n";

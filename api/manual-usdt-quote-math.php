@@ -21,3 +21,14 @@ function jrUsdtQuoteMath(int $toman, string $irrPerToken, int $observedAt, int $
       'token_decimals'=>18,'quote_decimals'=>6,'observed_at'=>$observedAt,
       'rounding'=>'CEILING','issued'=>false];
 }
+
+/** Validate the current documented deposit floor before issuing a quote.
+ * Do not silently round a smaller invoice up to the exchange minimum.
+ * Reconfirm provider limits before production; this is a source policy floor.
+ */
+function jrUsdtRequireMinimumDeposit(string $amountUsdt): void {
+    if(!preg_match('/^(0|[1-9][0-9]{0,12})\.([0-9]{6})$/D',$amountUsdt,$m))
+        throw new InvalidArgumentException('invalid_usdt_quote_format');
+    if($m[1]==='0' && (int)$m[2]<100000)
+        throw new InvalidArgumentException('below_exchange_deposit_minimum');
+}
