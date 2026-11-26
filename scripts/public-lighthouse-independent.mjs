@@ -9,9 +9,11 @@ if(!route)throw Error('INVALID_LAB_ROUTE');
 const url=validatedPublicUrl(origin+route),dir='independent-lighthouse-results';
 fs.mkdirSync(dir,{recursive:true});
 async function fingerprint(){
- const res=await fetch(origin+'/sw.js',{redirect:'error',cache:'no-store',signal:AbortSignal.timeout(18000)});
- if(!res.ok)throw Error('LIVE_FINGERPRINT_HTTP_'+res.status);
- const s=await res.text(),sha=s.match(/^const CACHE_VERSION='jr-site-bertina-([a-f0-9]{40})';$/m)?.[1];
+ // Separate CA-verified connection avoids reusing the host's closed
+ // keep-alive socket after the Chrome measurements. No TLS bypass.
+ const result=spawnSync('curl',['--http1.1','--fail','--silent','--show-error','--retry','2','--retry-all-errors','--connect-timeout','5','--max-time','15','--max-filesize','512000','--proto','=https','--header','Cache-Control: no-cache','--header','Connection: close','--write-out','\n%{http_code}',origin+'/sw.js'],{encoding:'utf8',timeout:55000,maxBuffer:600000});
+ if(result.status!==0||!result.stdout.endsWith('\n200'))throw Error('LIVE_FINGERPRINT_TRANSPORT_UNAVAILABLE');
+ const s=result.stdout.slice(0,-4),sha=s.match(/^const CACHE_VERSION='jr-site-bertina-([a-f0-9]{40})';$/m)?.[1];
  if(!sha)throw Error('LIVE_FINGERPRINT_MISSING');
  return sha;
 }

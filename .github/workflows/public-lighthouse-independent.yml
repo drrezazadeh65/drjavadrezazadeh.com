@@ -22,6 +22,7 @@ jobs:
     timeout-minutes: 12
     strategy:
       fail-fast: false
+      max-parallel: 2
       matrix:
         route: [fa-home, fa-jrei, en-jrei, ar-jrei]
     steps:
