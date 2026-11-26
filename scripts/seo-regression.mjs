@@ -1,4 +1,5 @@
 import fs from 'node:fs';
+import {execFileSync} from 'node:child_process';
 import path from 'node:path';
 import {auditCommittedRobots} from './seo-robots-sitemap-audit.mjs';
 import {isOwnershipVerificationArtifact} from './site-ownership-verification.mjs';
@@ -187,8 +188,15 @@ if(failures.length){
 }
 
 
+// Certify generated search and social metadata on the same exact sanitized
+// candidate that would be deployed. All source canonical, route, private and
+// content checks above and below remain in force. A failed build fails this gate.
+const candidateRoot=path.join(root,'.public-site');
+const candidateExisted=fs.existsSync(candidateRoot);
+if(!candidateExisted)process.on('exit',()=>{fs.rmSync(candidateRoot,{recursive:true,force:true});});
+execFileSync(process.execPath,[path.join(root,'scripts','build-public-site.mjs')],{cwd:root,stdio:'inherit'});
 // PUBLIC SEARCH INDEX — must mirror released public discovery surface without exposing private routes.
-const searchIndexPath=path.join(root,'assets','search-index.json');
+const searchIndexPath=path.join(candidateRoot,'assets','search-index.json');
 if(!fs.existsSync(searchIndexPath)) failures.push('/assets/search-index.json: missing public search index');
 else{
   try{
@@ -1485,10 +1493,21 @@ if(failures.length){
 }
 
 
-// SOCIAL + STRUCTURED DATA RELEASE GATE
+// SOCIAL + STRUCTURED DATA RELEASE GATE — verify every indexable source route
+// actually receives valid generated metadata in the candidate; never exempt it.
 for(const file of htmlFiles){
-  const html=fs.readFileSync(file,'utf8');
+  const source=fs.readFileSync(file,'utf8');
   const route=routeFor(file);
+  const sourceRobots=getAttr((source.match(/<meta\b[^>]*name=["']robots["'][^>]*>/i)||[''])[0],'content')||'';
+  if(/\bnoindex\b/i.test(sourceRobots))continue;
+  const deployed=path.join(candidateRoot,path.relative(root,file));
+  if(!fs.existsSync(deployed)){failures.push(route+': indexable route missing from candidate');continue;}
+  const html=fs.readFileSync(deployed,'utf8');
+  const sourceCanonical=getAttr((source.match(/<link\b[^>]*rel=["']canonical["'][^>]*>/i)||[''])[0],'href');
+  const candidateCanonical=getAttr((html.match(/<link\b[^>]*rel=["']canonical["'][^>]*>/i)||[''])[0],'href');
+  if(candidateCanonical!==sourceCanonical)failures.push(route+': candidate canonical differs from source');
+  const candidateRobots=getAttr((html.match(/<meta\b[^>]*name=["']robots["'][^>]*>/i)||[''])[0],'content')||'';
+  if(/\bnoindex\b/i.test(candidateRobots))failures.push(route+': source indexable route became noindex in candidate');
   const robots=((html.match(/<meta\b[^>]*name=["']robots["'][^>]*>/i)||[''])[0]);
   const rc=getAttr(robots,'content')||'';
   if(/\bnoindex\b/i.test(rc)) continue;
@@ -1684,7 +1703,7 @@ if(failures.length){
 
 
 // PUBLIC SEARCH GOVERNANCE — search index must contain public/indexable pages only.
-const searchGovernanceIndexPath=path.join(root,'assets','search-index.json');
+const searchGovernanceIndexPath=path.join(candidateRoot,'assets','search-index.json');
 if(!fs.existsSync(searchGovernanceIndexPath)){
   failures.push('/assets/search-index.json: public search index missing');
 }else{
