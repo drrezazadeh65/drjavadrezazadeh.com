@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
+import vm from 'node:vm';
 
 const read=path=>readFileSync(path,'utf8');
 test('JHELA bilingual search reuses public index and never exposes private routes',()=>{
@@ -8,7 +9,7 @@ test('JHELA bilingual search reuses public index and never exposes private route
  assert.match(engine,/data-journal-search/);
  assert.match(engine,/startsWith\('journal\/'\)/);
  assert.match(engine,/safePublicPath\(x\.path\)/);
- assert.match(engine,/\^\(\?:fa\|en\|journal\)/);
+ assert.match(engine,/\^\(\?:fa\|en\|ar\|journal\)/);
  assert.match(engine,/esc\(base\+x\.path\)/);
  for(const path of ['journal/search/index.html','journal/fa/search/index.html']){
   const page=read(path);
@@ -20,10 +21,22 @@ test('JHELA bilingual search reuses public index and never exposes private route
  assert.ok(index.some(x=>x.path==='journal/'&&x.lang==='en'));
  assert.ok(index.some(x=>x.path==='journal/fa/'&&x.lang==='fa'));
  for(const item of index){
-  assert.ok(['fa','en'].includes(item.lang));
-  assert.doesNotMatch(item.path,/^(?:api\/|fa\/app\/|app\/|en\/account\/)/);
+  assert.ok(['fa','en','ar'].includes(item.lang));
+  assert.doesNotMatch(item.path,/^(?:api\/|app\/|(?:fa|en|ar)\/(?:app|account|admin|customer-dashboard|private|login|register|recover|workspace)\/)/);
   assert.doesNotMatch(item.path,/\/(?:checkout|cart|payment-start|payment-result|receipt)\//);
  }
+ // Exercise the real predicate, not merely its source spelling. The shared
+ // index is trilingual, while the journal scope must remain journal-only.
+ const extract=name=>{const m=engine.match(new RegExp('^const '+name+'=(.+);$','m'));assert.ok(m,name);return m[1];};
+ const scope=(lang,journalOnly)=>vm.runInNewContext('(()=>{const safePublicPath='+extract('safePublicPath')+';const eligible='+extract('eligible')+';return {safePublicPath,eligible};})()', {document:{documentElement:{lang}},journalOnly},{timeout:1000});
+ for(const lang of ['fa','en']){
+  const j=scope(lang,true);
+  assert.equal(j.eligible({lang,path:lang==='fa'?'journal/fa/':'journal/'}),true);
+  for(const row of [{lang,path:lang+'/services/'},{lang:'ar',path:'ar/services/'},{lang,path:'journal/fa/manuscripts/'},{lang,path:'journal/admin/'},{lang,path:'journal/account/'}])assert.equal(j.eligible(row),false,row.path);
+ }
+ const ar=scope('ar',false);
+ assert.equal(ar.eligible({lang:'ar',path:'ar/services/'}),true);
+ for(const p of ['ar/account/','ar/admin/','ar/private/','ar/services/checkout/'])assert.equal(ar.safePublicPath(p),false,p);
  assert.ok(read('fa/jostojo/index.html').includes('data-site-search'));
  assert.match(read('assets/js/assistant.js'),/fa\/jostojo\//);
 });
