@@ -20,4 +20,5 @@ test('USDT manual invoice enquiry covers commerce and support without pretending
  }
  assert.equal(invoiceRequestEligible('/en/shop/checkout/',fixture('/en/shop/checkout/','noindex,follow').replace('lang="fa"','lang="en"'),new Set()),true);
  assert.equal(invoiceRequestEligible('/fa/services/',fixture('/fa/services/','noindex,follow'),new Set([origin+'/fa/services/'])),false);
+ for(const lang of ['fa','en']){const route='/'+lang+'/support-talented-students/';assert.equal(invoiceRequestEligible(route,fixture(route,'noindex,follow').replace('lang="fa"','lang="'+lang+'"'),new Set()),true);}
 });

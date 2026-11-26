@@ -6,6 +6,8 @@ const origin='https://drjavadrezazadeh.com';
 // No account/admin/private evidence routes, journal invoices or payment callbacks.
 const publicPattern=/^\/(?:fa|en|ar)\/(?:support-talented-students|donations?|books|ketab-ha|shop|services|academic-services|khadamat|khadamat-pajouheshi|moshavere-tahsili|moshavere-konkur|golden-talent|vip\/golden-talent-signature|jrei|jrei-academic|forge)(?:\/|$)/;
 const excluded=/(?:^|\/)(?:customer-policy|purchase-guide|assessment|plans|account|admin|app|login|register|recover|cart|payment-start|payment-return|payment-result|private|workspace)(?:\/|$)/;
+// The two public donation forms intentionally remain noindex for safeguarding.
+const support=new Set(['/fa/support-talented-students/','/en/support-talented-students/']);
 const checkout=new Set(['/fa/services/checkout/','/en/services/checkout/','/fa/shop/checkout/','/en/shop/checkout/','/fa/shop/golden-talent/checkout/','/en/golden-talent/checkout/']);
 const copy={
  fa:{label:'درخواست فاکتور USDT (BEP20)',detail:'پرداخت دستی پس از هماهنگی و دریافت فاکتور تأییدشده. پیش از تأیید مبلغ، شبکه و آدرس دریافت هیچ وجهی ارسال نکنید. این گزینه درگاه خودکار یا تأیید پرداخت نیست.',message:'سلام. برای این صفحه درخواست فاکتور و هماهنگی پرداخت دستی USDT روی شبکه BEP20 دارم. لطفاً مبلغ و شرایط را تأیید کنید.'},
@@ -15,6 +17,12 @@ const copy={
 const esc=v=>String(v).replaceAll('&','&amp;').replaceAll('"','&quot;').replaceAll('<','&lt;');
 export function invoiceRequestEligible(route,source,urls){
  if(excluded.test(route)||!publicPattern.test(route)||!/<\/body\s*>/i.test(source)||!/<\/head\s*>/i.test(source))return false;
+ if(support.has(route)){
+  const lang=route.split('/')[1];
+  return source.includes('href="'+origin+route+'"')&&
+    new RegExp('<html\\b[^>]*lang=["\']'+lang+'["\']','i').test(source)&&
+    !/<meta\b[^>]*http-equiv=["']refresh["']/i.test(source);
+ }
  if(checkout.has(route))return /<html\b[^>]*lang=["'](?:fa|en)["']/i.test(source)&&!/<meta\b[^>]*http-equiv=["']refresh["']/i.test(source);
  return isContactEligible(route,source,urls);
 }
