@@ -1,0 +1,29 @@
+/* Additive root gateway product row. Existing gateway styles remain unchanged. */
+body.language-gateway.public-gateway-page .jr-gateway-products{margin:30px 0 0;min-width:0}
+.jr-gateway-products-heading{margin:0 0 17px;padding:0 2px}
+.jr-gateway-products-heading .jr-gateway-products-kicker{margin:0 0 5px;color:#dec08c;font:600 11px/1.5 "JR Gateway Inter",Arial,sans-serif;letter-spacing:.15em;text-transform:uppercase}
+.jr-gateway-products-heading h2{margin:0 0 6px;color:#f6efdf;font:500 clamp(23px,2.7vw,34px)/1.25 "Iowan Old Style",Georgia,serif;letter-spacing:-.025em}
+.jr-gateway-products-heading p{margin:0;color:#c5bbaf;font-size:14px}
+.jr-gateway-products-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.jr-gateway-product{--jr-product-accent:#dec08c;--jr-product-tint:rgba(222,192,140,.06);display:flex;flex-direction:column;min-width:0;gap:0;padding:26px;border:1px solid rgba(219,185,120,.22);border-top:3px solid var(--jr-product-accent);border-radius:22px;background:linear-gradient(155deg,var(--jr-product-tint),transparent 55%),linear-gradient(155deg,#1c1916,#101010);transition:border-color .18s ease,transform .18s ease}
+.jr-gateway-product--academic{--jr-product-accent:#d9c48a;--jr-product-tint:rgba(30,123,91,.17)}
+.jr-gateway-product--forge{--jr-product-accent:#a9caff;--jr-product-tint:rgba(62,108,181,.16)}
+.jr-gateway-product--seo{--jr-product-accent:#77dfd0;--jr-product-tint:rgba(25,130,125,.16)}
+.jr-gateway-product:hover{border-color:var(--jr-product-accent);transform:translateY(-3px)}
+.jr-gateway-product-top{display:flex;align-items:center;gap:11px;min-width:0;margin:0 0 17px}
+.jr-gateway-product-top img{display:block;flex:0 0 56px;width:56px;height:56px;object-fit:contain;border-radius:14px}
+.jr-gateway-product-label{color:var(--jr-product-accent);font:600 10px/1.5 "JR Gateway Inter",Arial,sans-serif;letter-spacing:.09em;text-transform:uppercase;overflow-wrap:anywhere}
+.jr-gateway-product h3{font:500 clamp(22px,2.1vw,29px)/1.22 "Iowan Old Style",Georgia,serif;letter-spacing:-.02em;color:#f6efdf;margin:0 0 9px;overflow-wrap:anywhere}
+.jr-gateway-product .jr-gateway-product-subtitle{font:600 13px/1.6 "JR Gateway Inter",Arial,sans-serif;color:var(--jr-product-accent);margin:0 0 10px}
+.jr-gateway-product .jr-gateway-product-desc{color:#c5bbaf;font-size:14px;line-height:1.78;margin:0 0 17px;flex:1}
+.jr-gateway-product-main{display:flex;justify-content:space-between;align-items:center;gap:8px;min-height:46px;padding:10px 13px;border-radius:10px;border:1px solid var(--jr-product-accent);background:var(--jr-product-tint);color:var(--jr-product-accent);font-weight:650;font-size:14px;text-decoration:none}
+.jr-gateway-product-main:hover{background:var(--jr-product-accent);color:#101414}
+.jr-gateway-product-languages{display:flex;flex-wrap:wrap;align-items:center;gap:5px 13px;margin-top:9px}
+.jr-gateway-product-languages a{display:inline-flex;align-items:center;min-height:44px;color:#ded4c2;text-decoration:underline;text-underline-offset:4px;font-size:12px}
+.jr-gateway-product-languages a[lang="fa"],.jr-gateway-product-languages a[lang="ar"]{font-family:Tahoma,Arial,sans-serif}
+.jr-gateway-products-note{font-size:13px;color:#c5bbaf;margin:15px 0 0;line-height:1.7}
+.jr-gateway-products-all{margin-top:3px}
+@media(max-width:980px){.jr-gateway-product{padding:21px}}
+@media(max-width:760px){.jr-gateway-products-grid{grid-template-columns:minmax(0,1fr);gap:12px}.jr-gateway-product{padding:22px}.jr-gateway-products-heading{margin-bottom:12px}}
+@media(prefers-reduced-motion:reduce){.jr-gateway-product{transition:none}.jr-gateway-product:hover{transform:none}}
+@media(forced-colors:active){.jr-gateway-product,.jr-gateway-product-main{border:1px solid CanvasText}}
