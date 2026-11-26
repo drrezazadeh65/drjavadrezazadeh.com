@@ -18,6 +18,13 @@ export const protectedPath=p=>/(^|\/)(news|akhbar|news-insights|news-intelligenc
 // Their own changes must not be falsely classified as a news publication delta.
 const releaseGuardFiles=new Set(['scripts/news-freeze-release-guard.mjs',
   '.github/workflows/growth-news-freeze-live-check.yml']);
-const hits=changes.filter(p=>!releaseGuardFiles.has(p)&&protectedPath(p));
+// Exact static commercial catalogue pages only; never exempt a directory,
+// newsroom route, engine, publisher, feed, configuration or news asset.
+const commercialCataloguePages=new Set([
+ 'ar/jrei/catalog/news/index.html',
+ 'en/jrei/catalog/news/index.html',
+ 'fa/jrei/catalog/news/index.html'
+]);
+const hits=changes.filter(p=>!releaseGuardFiles.has(p)&&!commercialCataloguePages.has(p)&&protectedPath(p));
 if(hits.length){console.error('NEWS_FREEZE_GUARD_BLOCKED: '+hits.join(', '));process.exit(1)}
 console.log('NEWS_FREEZE_GUARD_PASSED: '+changes.length+' total changed files, zero news-related files changed.');
