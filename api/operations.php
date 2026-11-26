@@ -416,6 +416,10 @@ function operationsRoute(string $path, string $verb): never {
             respond(['ok'=>true,'mfaVerified'=>true]);
         }
         if (!$fresh) fail('admin_mfa_required',403);
+        if(str_starts_with($path,'/admin/operations/usdt/')){
+            require_once __DIR__.'/usdt-commerce-v1.php';
+            jrUsdtAdmin($pdo,$accountId,$path,$verb,$csrf,$configuration);
+        }
 
         // JREI-owned intelligence reporting: site is an authenticated API
         // consumer only. No local AI computation or invented fallback.

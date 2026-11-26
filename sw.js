@@ -29,7 +29,7 @@ const PUBLIC_LEARNING_SHELL=new Set(CORE.filter(url=>
   url.startsWith('/fa/')||url.startsWith('/en/')||url.startsWith('/assets/')));
 
 const PRIVATE_PREFIXES=[
-  '/api/','/fa/services/checkout/','/fa/shop/golden-talent/checkout/',
+  '/api/','/fa/payments/usdt/','/en/payments/usdt/','/ar/payments/usdt/','/fa/services/checkout/','/fa/shop/golden-talent/checkout/',
   '/fa/app/','/fa/customer-dashboard/','/app/','/fa/login/','/login/','/fa/register/','/register/','/fa/bazyabi-hesab/',
   '/en/login/','/en/register/','/en/recover/','/en/account/',
   // Private candidate exam pages: no offline cache, precache or PWA replay.

@@ -45,6 +45,11 @@ function cfg(): array {
         'smtp_password' => (string)(getenv('JR_SMTP_PASSWORD') ?: ''),
         'smtp_verify_peer' => getenv('JR_SMTP_VERIFY_PEER') !== 'false',
         'commerce_enabled' => getenv('JR_COMMERCE_ENABLED') === 'true',
+        'usdt_bsc_enabled' => getenv('JR_USDT_BSC_ENABLED') === 'true',
+        'usdt_bsc_schema_approved' => getenv('JR_USDT_BSC_SCHEMA_APPROVED') === 'true',
+        'usdt_bsc_receiver' => (string)(getenv('JR_USDT_BSC_RECEIVER') ?: ''),
+        'usdt_bsc_contract' => (string)(getenv('JR_USDT_BSC_CONTRACT') ?: ''),
+        'usdt_bsc_rate_side' => (string)(getenv('JR_USDT_BSC_RATE_SIDE') ?: ''),
         'public_tls_confirmed' => getenv('JR_PUBLIC_TLS_CONFIRMED') === 'true',
         'bitpay_api_key' => (string)(getenv('JR_BITPAY_API_KEY') ?: ''),
         'bitpay_amount_multiplier' => (string)(getenv('JR_BITPAY_AMOUNT_MULTIPLIER') ?: ''),
@@ -773,6 +778,7 @@ if (defined('BERTINA_MAIL_SMOKE_CONTEXT') && BERTINA_MAIL_SMOKE_CONTEXT === true
 define('BERTINA_API_BOOTSTRAPPED', true);
 require_once __DIR__.'/operations.php';
 require_once __DIR__.'/commerce-stage9.php';
+require_once __DIR__.'/usdt-commerce-v1.php';
 require_once __DIR__.'/publishing.php';
 require_once __DIR__.'/internal/jr-publishing-digital.php';
 require_once __DIR__.'/service-intake.php';
@@ -875,6 +881,7 @@ if ($path==='/exams/catalog' && $verb==='GET') {
         respond(['ok'=>true,'enabled'=>true]+$view);
     }catch(Throwable $e){fail('exam_catalogue_read_unavailable',503);}
 }
+if (str_starts_with($path, '/crypto/usdt/')) jrUsdtRoute($path,$verb);
 if (str_starts_with($path, '/admin/operations')) operationsRoute($path, $verb);
 // Minimal real signed job: one fixed arithmetic computation, no model tools.
 if (in_array($path,['/jrei/v1/python-canary/poll',
@@ -1389,6 +1396,8 @@ if($path==='/commerce/history'&&$verb==='GET'){
                 (string)$claims[(string)$row['id']]['verified_amount']
             &&count($safeItems)===count($items) &&count($safeItems)>0
             &&array_sum(array_column($safeItems,'subtotalToman'))===(int)$row['amount_toman'];
+        if(!$verified&&str_starts_with((string)$row['provider_id_get'],'usdt:'))
+            $verified=jrUsdtVerifiedOrder($pdo,(string)$row['id'],$row)&&count($safeItems)===count($items)&&count($safeItems)>0&&array_sum(array_column($safeItems,'subtotalToman'))===(int)$row['amount_toman'];
         $orders[]=[
             'id'=>(string)$row['id'],
             'state'=>(string)$row['state'],
@@ -1419,8 +1428,8 @@ if($path==='/commerce/fulfilment'&&$verb==='GET'){
     // An unbackfilled historical payment or a mismatch is not a fulfilment entitlement.
     $claim=$pdo->prepare("SELECT transaction_id,verified_amount FROM commerce_payment_claims WHERE provider='bitpay' AND order_id=? LIMIT 1");
     $claim->execute([$orderId]);$evidence=$claim->fetch();
-    if(!$evidence || (string)$evidence['transaction_id']!==(string)$row['provider_trans_id']
-        || (string)$evidence['verified_amount']!==(string)$row['provider_amount'])
+    if(!jrUsdtVerifiedOrder($pdo,$orderId,$row) && (!$evidence || (string)$evidence['transaction_id']!==(string)$row['provider_trans_id']
+        || (string)$evidence['verified_amount']!==(string)$row['provider_amount']))
         respond(['ok'=>true,'paymentRecord'=>'requires_reconciliation','serviceCases'=>[],'parcel'=>null]);
     $prefsReady=commerceConsultationPreferenceSchemaReady($pdo);
     $voiceReady=$prefsReady&&commerceConsultationVoiceSchemaReady($pdo);
