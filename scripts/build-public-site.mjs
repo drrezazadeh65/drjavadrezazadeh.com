@@ -20,7 +20,7 @@ checkStylesheetBundles();
 
 const root=process.cwd();
 const out=path.join(root,'.public-site');
-const excludedTop=new Set(['.git','.github','docs','edge','payment-api','foundation','node_modules','platform','database','migrations','scripts','tests','test-results','playwright-report','proposals','work','identity','.public-site']);
+const excludedTop=new Set(['.git','.github','.artifacts','docs','edge','payment-api','foundation','node_modules','platform','database','migrations','scripts','tests','test-results','playwright-report','proposals','work','identity','.public-site']);
 const excludedRoot=new Set(['README.md','AGENTS.md','.bertina-deploy-trigger','.bertina-backup-trigger','.bertina-bootstrap-authorization.json','CACHE_STANDARD.md','CNAME','_headers','_redirects','_config.yml']);
 const excludedExact=new Set(['assets/media-registry.json','assets/release-v4.4.json',
   // Retired third-party journal stylesheet is archival source, never public release material.
