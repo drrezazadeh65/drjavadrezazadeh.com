@@ -27,3 +27,13 @@ body.language-gateway.public-gateway-page .jr-gateway-products{margin:30px 0 0;m
 @media(max-width:760px){.jr-gateway-products-grid{grid-template-columns:minmax(0,1fr);gap:12px}.jr-gateway-product{padding:22px}.jr-gateway-products-heading{margin-bottom:12px}}
 @media(prefers-reduced-motion:reduce){.jr-gateway-product{transition:none}.jr-gateway-product:hover{transform:none}}
 @media(forced-colors:active){.jr-gateway-product,.jr-gateway-product-main{border:1px solid CanvasText}}
+
+/* Semantic headings and compact product cards, preserving the premium gateway. */
+.jr-gateway-academic-heading{margin-top:25px;margin-bottom:0}
+body.language-gateway.public-gateway-page .jr-gateway-academic-heading+.gateway-panels{margin-top:14px}
+body.language-gateway.public-gateway-page .gateway-panels h3{margin:0 0 12px;color:#f6efdf;font:500 clamp(23px,2.2vw,30px)/1.24 "Iowan Old Style",Georgia,serif;letter-spacing:-.025em}
+.jr-gateway-identity-fa{font:400 14px/1.8 Tahoma,Arial,sans-serif;color:#e5d1a8;margin:0 0 17px;text-align:start}
+.jr-gateway-product-logo{width:56px;height:56px;object-fit:contain;border-radius:14px;display:block;margin:0 0 17px}
+.jr-gateway-product-main[lang="fa"]{font-family:Tahoma,Arial,sans-serif}
+.jr-gateway-products-all{display:inline-flex;align-items:center;gap:9px;min-height:44px;color:#f0d79e;font-weight:650;font-size:14px;text-decoration:none;border-bottom:1px solid rgba(222,183,116,.48);padding:8px 0}
+.jr-gateway-products-all:hover{border-color:#ffe6ad}

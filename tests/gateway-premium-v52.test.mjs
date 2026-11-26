@@ -93,3 +93,23 @@ test('Golden Talent introduction does not advertise unvalidated diagnostics or i
  assert.match(html,/Golden Talent/);
  assert.match(html,/Research · Education · Academic Guidance/);
 });
+
+test('root gateway has a coherent academic and product heading hierarchy and one canonical owner identity',()=>{
+ const levels=[...html.matchAll(/<h([1-6])\b/gi)].map(m=>Number(m[1]));
+ assert.deepEqual(levels,[1,2,3,3,3,2,3,3,3]);
+ const graph=JSON.parse(html.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)[1])['@graph'];
+ const person=graph.find(x=>x['@type']==='Person'),site=graph.find(x=>x['@type']==='WebSite'),page=graph.find(x=>x['@type']==='WebPage');
+ assert.equal(person['@id'],'https://drjavadrezazadeh.com/#person');
+ assert.equal(page.mainEntity['@id'],person['@id']);
+ assert.equal(site.publisher['@id'],person['@id']);
+ assert.equal(page.isPartOf['@id'],site['@id']);
+ assert.ok(person.alternateName.includes('دکتر جواد رضازاده'));
+ for(const product of ['jrei-academic','forge','jrei/seo']) for(const locale of ['fa','ar','en']){
+  assert.ok(html.includes('href="./'+locale+'/'+product+'/"'));
+  assert.ok(fs.existsSync(path.join(root,locale,product,'index.html')));
+ }
+ assert.equal((html.match(/class="gateway-panel-link"/g)||[]).length,3);
+ assert.ok(html.includes('https://orcid.org/0009-0008-1198-8866'));
+ assert.ok(html.includes('PhD in Education from Arak University (2026)'));
+ assert.ok(html.includes('following integration and specialist evaluation'));
+});
