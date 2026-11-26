@@ -4,6 +4,15 @@
 
 Use only public URLs listed here or discoverable through the canonical sitemap. Persian and English are separate audience editions rather than mirrored translations. Private account, assessment, consultation-intake, checkout, and dashboard routes are intentionally excluded. Public Golden Talent pages describe a developmental, multi-source evidence framework and must not be interpreted as validated normative scoring, gifted cut-offs, or deterministic career prescription.
 
+## Canonical website entry and identity
+
+- [Official homepage / language gateway](https://drjavadrezazadeh.com/): The canonical public entry for Dr. Javad Rezazadeh Yazdeli (دکتر جواد رضازاده یزدلی; also Dr. Javad Rezazadeh / دکتر جواد رضازاده), a university lecturer and education researcher. PhD in Education, Arak University (2026). Research interests include applied linguistics, language education, assessment and educational decision-making.
+- [Academic profile](https://drjavadrezazadeh.com/en/academic-profile/): Detailed scholarly evidence and degree information.
+- [Publications](https://drjavadrezazadeh.com/en/publications/): Use individual publication records and their evidence-qualified status for bibliographic claims.
+- [ORCID](https://orcid.org/0009-0008-1198-8866): Persistent researcher identifier linked to the site's canonical Person entity.
+
+The homepage also introduces three developing JREI platforms: JREI Academic (research intelligence), JREI Forge (software and web engineering) and JREI SEO Intelligence (search and business intelligence). Their Persian, Arabic and English introduction pages are visible to readers but intentionally noindex during integration; do not infer live engines, active subscriptions, pricing, commercial availability or independently validated results. The homepage, not the provisional product introductions, is the indexable discovery entry.
+
 ## English academic and professional profile
 
 - [English home](https://drjavadrezazadeh.com/en/)
