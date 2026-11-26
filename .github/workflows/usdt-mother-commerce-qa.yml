@@ -10,6 +10,8 @@ on:
       - 'docs/migrations/20261126_usdt_bsc_mother_commerce.sql'
       - 'assets/js/jr-usdt-*.js'
       - 'tests/usdt-mother-commerce-mysql.php'
+      - 'tests/bertina-usdt-migration-guard.php'
+      - '.github/workflows/bertina-usdt-schema-activation.yml'
       - '.github/workflows/usdt-mother-commerce-qa.yml'
   pull_request:
     branches: [migration/bertina-linux6]
@@ -42,6 +44,7 @@ jobs:
           php -l api/internal/jr-publishing-digital.php
           php -l api/internal/jr-publishing-mailer.php
           php -l tests/usdt-mother-commerce-mysql.php
+          php tests/bertina-usdt-migration-guard.php
           node --check assets/js/jr-usdt-commerce-v1.js
           node --check assets/js/jr-usdt-admin-v1.js
       - name: Verify isolated order, stock, quote and settlement contracts

@@ -1,0 +1,297 @@
+name: Bertina USDT Mother Schema and Activation
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: 'Type AUTHORIZE_USDT_AFTER_SIGNED_RESTORE; requires real private signed recovery proof'
+        required: true
+        type: string
+      expected_source_sha:
+        description: 'Exact 40-hex canonical branch SHA reviewed before this production mutation'
+        required: true
+        type: string
+      expected_live_sha:
+        description: 'Exact 40-hex current Bertina /sw.js SHA; must match private backup sourceRelease'
+        required: true
+        type: string
+      mode:
+        description: 'Prepare additive tables only, or activate after independently verified credited test deposit'
+        required: true
+        type: choice
+        options: [prepare_schema, activate]
+        default: prepare_schema
+      rate_side:
+        description: 'Owner-approved public IRR market reference side; not a guaranteed executable exchange trade'
+        required: true
+        type: choice
+        options: [buyIRR, sellIRR]
+      provider_and_credit_verified:
+        description: 'Activate only if merchant/deposit eligibility and a real credited BSC USDT test transfer were independently confirmed'
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+# Uses the SAME environment lock as deploy-bertina.yml: a schema migration
+# and a release must never interleave on the production Bertina MySQL/files.
+concurrency:
+  group: bertina-production-deploy
+  cancel-in-progress: false
+
+jobs:
+  migrate:
+    if: github.ref == 'refs/heads/migration/bertina-linux6' && github.actor == 'drrezazadeh65'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - name: Refuse unapproved, stale, unverifiable or unaudited production changes
+        env:
+          CONFIRMATION: ${{ inputs.confirmation }}
+          EXPECTED_SOURCE: ${{ inputs.expected_source_sha }}
+          EXPECTED_LIVE: ${{ inputs.expected_live_sha }}
+          MODE: ${{ inputs.mode }}
+          RATE_SIDE: ${{ inputs.rate_side }}
+          PROVIDER_VERIFIED: ${{ inputs.provider_and_credit_verified }}
+        run: |
+          set -euo pipefail
+          test "$CONFIRMATION" = 'AUTHORIZE_USDT_AFTER_SIGNED_RESTORE'
+          [[ "$MODE" = prepare_schema || "$MODE" = activate ]]
+          [[ "$RATE_SIDE" = buyIRR || "$RATE_SIDE" = sellIRR ]]
+          if [ "$MODE" = activate ]; then test "$PROVIDER_VERIFIED" = true; fi
+          php tests/bertina-usdt-migration-guard.php
+          [[ "$EXPECTED_SOURCE" =~ ^[a-f0-9]{40}$ ]]
+          [[ "$EXPECTED_LIVE" =~ ^[a-f0-9]{40}$ ]]
+          test "$EXPECTED_SOURCE" = "$GITHUB_SHA"
+          current="$(git ls-remote origin refs/heads/migration/bertina-linux6 | cut -f1)"
+          test "$current" = "$GITHUB_SHA"
+          php -l scripts/bertina-private-recovery-gate.php
+          php tests/bertina-private-recovery-gate.php
+          python3 tests/test_bertina_commerce_migration_guard.py
+          python3 - <<'PY'
+          import json,os,re,time
+          request=json.load(open('.bertina-backup-trigger',encoding='utf-8'))
+          expected=os.environ['EXPECTED_LIVE']
+          assert request.get('schema')=='bertina-private-backup-v1'
+          assert request.get('sourceRelease')==expected
+          assert isinstance(request.get('issuedAt'),int) and isinstance(request.get('expiresAt'),int)
+          assert request['issuedAt']<=time.time()<request['expiresAt']
+          assert request['expiresAt']-request['issuedAt']<=3600
+          print('A fresh public request matches the expected live release; private signed proof is NOT yet certified here.')
+          PY
+          live="$(curl -fsS --max-time 25 --resolve drjavadrezazadeh.com:443:188.40.203.218 https://drjavadrezazadeh.com/sw.js |
+            sed -n "s/^const CACHE_VERSION='jr-site-bertina-\\([a-f0-9]\\{40\\}\\)';$/\\1/p" | head -n 1)"
+          test "$live" = "$EXPECTED_LIVE"
+          echo 'Confirmed expected source and actual TLS-verified live releases; PHP must independently check signed restore.'
+      - name: Install FTPS client
+        run: |
+          for file in /etc/apt/sources.list.d/*; do
+            if [ -f "$file" ] && grep -q 'packages.microsoft.com' "$file" && ! grep -Eq '(archive.ubuntu.com|security.ubuntu.com)' "$file"; then sudo mv "$file" "$file.disabled"; fi
+          done
+          sudo apt-get update -qq && sudo apt-get install -y -qq lftp
+
+      - name: Create one-time migration script
+        id: prep
+        env:
+          MODE: ${{ inputs.mode }}
+          RATE_SIDE: ${{ inputs.rate_side }}
+          PROVIDER_VERIFIED: ${{ inputs.provider_and_credit_verified }}
+        run: |
+          set -euo pipefail
+          TOKEN="$(openssl rand -hex 32)"
+          TOKEN_HASH="$(printf '%s' "$TOKEN" | sha256sum | awk '{print $1}')"
+          NONCE="$(openssl rand -hex 10)"
+          SCRIPT_NAME="usdt-schema-${NONCE}.php"
+          cat > "/tmp/${SCRIPT_NAME}" <<'PHP'
+          <?php
+          declare(strict_types=1);
+          // Trusted pinned RSA validation is copied verbatim from the already-tested recovery gate.
+          __PINNED_RECOVERY_GATE__
+          header('Content-Type: application/json; charset=utf-8');
+          header('Cache-Control: no-store');
+          header('X-Robots-Tag: noindex, noarchive');
+          $expected='__TOKEN_HASH__';
+          $provided=(string)($_SERVER['HTTP_X_MIGRATION_TOKEN']??'');
+          if(!hash_equals($expected,hash('sha256',$provided))){http_response_code(403);echo json_encode(['ok'=>false,'error'=>'forbidden']);exit;}
+          $self=__FILE__;
+          try{
+              // This script lives under public_html/api; recovery metadata lives above public_html.
+              drjrRecoveryCheck(dirname(__DIR__),'__RECOVERY_REQUEST_B64__',time());
+          }catch(Throwable $e){
+              @unlink($self);
+              http_response_code(503);
+              echo json_encode(['ok'=>false,'error'=>'verified_private_recovery_required']);
+              exit;
+          }
+          try{
+              $cfg=require __DIR__.'/config.local.php';
+              if(!is_array($cfg))throw new RuntimeException('config_invalid');
+              $pdo=new PDO((string)($cfg['db_dsn']??''),(string)($cfg['db_user']??''),(string)($cfg['db_password']??''),[
+                  PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,
+                  PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC,
+                  PDO::ATTR_EMULATE_PREPARES=>false,
+              ]);
+              // Load only source-pinned functions, after private recovery and config checks.
+              define('BERTINA_API_BOOTSTRAPPED',true);
+              __USDT_RUNTIME_SOURCE__
+              if(!stage9SchemaReady($pdo))throw new RuntimeException('existing_commerce_schema_not_ready');
+              // Verify both parent tables before creating the two additive tables.
+              foreach(['commerce_orders','customer_accounts'] as $table){
+                  $q=$pdo->prepare('SELECT ENGINE FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME=?');
+                  $q->execute([$table]);
+                  if(strcasecmp((string)$q->fetchColumn(),'InnoDB')!==0)throw new RuntimeException('parent_engine_invalid');
+                  $q=$pdo->prepare('SELECT COLUMN_TYPE,COLLATION_NAME FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME=? AND COLUMN_NAME=?');
+                  $q->execute([$table,'id']);$column=$q->fetch(PDO::FETCH_ASSOC);
+                  if(!$column||strtolower($column['COLUMN_TYPE'])!=='char(36)'||$column['COLLATION_NAME']!=='utf8mb4_unicode_ci')throw new RuntimeException('parent_key_incompatible');
+              }
+              $schema=base64_decode('__USDT_SCHEMA_B64__',true);
+              if(!is_string($schema))throw new RuntimeException('invalid_embedded_schema');
+              // Exactly the two source-reviewed CREATE TABLE statements; never
+              // ALTER, drop, reseed, update or delete existing commerce records.
+              $pdo->exec($schema);
+              if(!jrUsdtSchemaReady($pdo))throw new RuntimeException('usdt_schema_postflight_failed');
+              $activated=false;
+              if('__USDT_MODE__'==='activate'){
+                  if('__USDT_PROVIDER_VERIFIED__'!=='true')throw new RuntimeException('owner_credit_evidence_missing');
+                  $pepper=(string)($cfg['auth_pepper']??'');
+                  if(strlen($pepper)<32||($cfg['commerce_enabled']??false)!==true||
+                    ($cfg['public_tls_confirmed']??false)!==true||
+                    ($cfg['order_email_fulfilment_confirmed']??false)!==true)
+                      throw new RuntimeException('existing_commerce_not_ready');
+                  $side='__USDT_RATE_SIDE__';
+                  if(!in_array($side,['buyIRR','sellIRR'],true))throw new RuntimeException('rate_side_missing');
+                  $tick=jrReadPublicUsdtRate();$now=time();$observed=strtotime((string)($tick['receivedAt']??''));
+                  if($observed===false||!is_numeric($tick[$side]??null))throw new RuntimeException('rate_unavailable');
+                  // Verify the exact selected benchmark with the real host transport.
+                  jrUsdtCalculate(100000000,(int)floor((float)$tick[$side]),$observed,$now);
+                  $payload=['schema'=>'jr.owner.usdt-bsc-activation.v1','sourceSha'=>'__USDT_SOURCE_SHA__',
+                    'enabled'=>true,'schemaApproved'=>true,'providerAndCreditOwnerConfirmed'=>true,
+                    'receiver'=>JR_USDT_BSC_RECEIVER,'contract'=>JR_USDT_BSC_TOKEN,'rateSide'=>$side,
+                    'activatedAt'=>$now];
+                  $encoded=json_encode($payload,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);
+                  $hmac=hash_hmac('sha256',$encoded,hash_hmac('sha256','jr.owner.usdt-bsc-activation.v1',$pepper));
+                  $target=dirname(__DIR__,2).'/.jr-owner-usdt-bsc.v1.json';
+                  if(is_link($target))throw new RuntimeException('unsafe_receipt_path');
+                  $tmp=$target.'.'.bin2hex(random_bytes(12)).'.tmp';
+                  $raw=json_encode(['payload'=>$payload,'hmac'=>$hmac],JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);
+                  try{
+                      $fh=fopen($tmp,'xb');if(!$fh)throw new RuntimeException('receipt_create_failed');
+                      try{if(!chmod($tmp,0600)||fwrite($fh,$raw)!==strlen($raw)||!fflush($fh))
+                        throw new RuntimeException('receipt_write_failed');}finally{fclose($fh);}
+                      if(!rename($tmp,$target))throw new RuntimeException('receipt_commit_failed');
+                  }finally{if(is_file($tmp))@unlink($tmp);}
+                  $activated=true;
+              }
+              echo json_encode(['ok'=>true,'schema'=>'usdt-bsc-v1','tablesVerified'=>2,'activationReceiptWritten'=>$activated,'paymentLiveVerified'=>false],JSON_UNESCAPED_SLASHES);
+          }catch(Throwable $e){
+              http_response_code(500);
+              echo json_encode(['ok'=>false,'error'=>'migration_failed']);
+          }finally{
+              @unlink($self);
+          }
+          PHP
+          sed -i "s/__TOKEN_HASH__/$TOKEN_HASH/" "/tmp/$SCRIPT_NAME"
+          # Assemble source-controlled PHP, never embed an owner private key.
+          python3 - "$SCRIPT_NAME" <<'PY'
+          import base64,pathlib,sys,os,re
+          target=pathlib.Path('/tmp')/sys.argv[1]
+          php=target.read_text()
+          guard=pathlib.Path('scripts/bertina-private-recovery-gate.php').read_text().removeprefix('<?php').lstrip('\n')
+          public_request=base64.b64encode(pathlib.Path('.bertina-backup-trigger').read_bytes()).decode('ascii')
+          assert '__PINNED_RECOVERY_GATE__' in php and '__RECOVERY_REQUEST_B64__' in php
+          assert php.index('drjrRecoveryCheck(dirname(__DIR__)') < php.index("require __DIR__.'/config.local.php'")
+          php=php.replace('__PINNED_RECOVERY_GATE__',guard).replace('__RECOVERY_REQUEST_B64__',public_request)
+          mode=os.environ['MODE']; side=os.environ['RATE_SIDE']; verified=os.environ['PROVIDER_VERIFIED']; sha=os.environ['GITHUB_SHA']
+          assert mode in ('prepare_schema','activate') and side in ('buyIRR','sellIRR')
+          assert verified in ('true','false') and (mode!='activate' or verified=='true')
+          assert re.fullmatch(r'[a-f0-9]{40}',sha)
+          sql=pathlib.Path('docs/migrations/20261126_usdt_bsc_mother_commerce.sql').read_text()
+          ddl=[x.strip() for x in re.sub(r'(?m)^\s*--.*$','',sql).split(';') if x.strip()]
+          assert len(ddl)==2
+          assert [re.match(r'CREATE TABLE IF NOT EXISTS ([a-z_]+) \(',x).group(1) for x in ddl]==['commerce_usdt_quotes','commerce_usdt_authorized_offers']
+          src=[]
+          for name in ('commerce-stage9.php','usdt-commerce-v1.php','ramzinex-public-usdt-rate.php'):
+              raw=pathlib.Path('api',name).read_text()
+              raw=raw.removeprefix('<?php').replace('declare(strict_types=1);','',1)
+              # Functions are declared at file scope, not inside the guarded try.
+              src.append(raw)
+          # Insert definitions after the pinned recovery gate but before any invocation.
+          php=php.replace('__USDT_RUNTIME_SOURCE__','')
+          php=php.replace("header('Content-Type: application/json; charset=utf-8');",
+              "define('BERTINA_API_BOOTSTRAPPED',true);\n"+'\n'.join(src)+"\nheader('Content-Type: application/json; charset=utf-8');",1)
+          php=php.replace("              define('BERTINA_API_BOOTSTRAPPED',true);","")
+          php=php.replace('__USDT_SCHEMA_B64__',base64.b64encode(sql.encode()).decode())
+          for k,v in {'__USDT_MODE__':mode,'__USDT_RATE_SIDE__':side,'__USDT_PROVIDER_VERIFIED__':verified,'__USDT_SOURCE_SHA__':sha}.items():php=php.replace(k,v)
+          assert '__USDT_' not in php
+
+          target.write_text(php)
+          target.chmod(0o600)
+          PY
+          php -l "/tmp/$SCRIPT_NAME"
+          {
+            echo "::add-mask::$TOKEN"
+            echo "token=$TOKEN"
+            echo "script_name=$SCRIPT_NAME"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Upload migration over protected FTPS
+        env:
+          FTP_USER: ${{ secrets.BERTINA_FTP_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.BERTINA_FTP_PASSWORD }}
+          FTP_REMOTE_DIR: ${{ secrets.BERTINA_FTP_REMOTE_DIR }}
+          SCRIPT_NAME: ${{ steps.prep.outputs.script_name }}
+        run: |
+          set -euo pipefail
+          test "$(git ls-remote origin refs/heads/migration/bertina-linux6 | cut -f1)" = "$GITHUB_SHA"
+          echo "188.40.203.218 server388.bertina.biz" | sudo tee -a /etc/hosts >/dev/null
+          timeout 90s lftp -u "$FTP_USER","$FTP_PASSWORD" "ftp://server388.bertina.biz" <<LFTP
+          set ftp:ssl-force true
+          set ftp:ssl-protect-data true
+          set ssl:verify-certificate yes
+          set ftp:passive-mode true
+          set ftp:prefer-epsv false
+          set net:max-retries 1
+          set net:timeout 20
+          cd "$FTP_REMOTE_DIR/api"
+          put "/tmp/$SCRIPT_NAME" -o "$SCRIPT_NAME"
+          bye
+          LFTP
+
+      - name: Run and verify migration
+        env:
+          TOKEN: ${{ steps.prep.outputs.token }}
+          SCRIPT_NAME: ${{ steps.prep.outputs.script_name }}
+        run: |
+          set -euo pipefail
+          test "$(git ls-remote origin refs/heads/migration/bertina-linux6 | cut -f1)" = "$GITHUB_SHA"
+          RESPONSE="$(curl -fsS --max-time 60             --resolve drjavadrezazadeh.com:443:188.40.203.218             -H "X-Migration-Token: $TOKEN"             "https://drjavadrezazadeh.com/api/$SCRIPT_NAME")"
+          printf '%s' "$RESPONSE" > /tmp/migration.json
+          node - <<'NODE'
+          const fs=require('fs');
+          const d=JSON.parse(fs.readFileSync('/tmp/migration.json','utf8'));
+          if(d.ok!==true||d.schema!=='usdt-bsc-v1'||d.tablesVerified!==2||d.paymentLiveVerified!==false) throw new Error('Commerce schema migration failed');
+          console.log('USDT schema migration PASS; activation receipt written:', d.activationReceiptWritten);
+          NODE
+
+      - name: Cleanup temporary script if still present
+        if: always()
+        env:
+          FTP_USER: ${{ secrets.BERTINA_FTP_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.BERTINA_FTP_PASSWORD }}
+          FTP_REMOTE_DIR: ${{ secrets.BERTINA_FTP_REMOTE_DIR }}
+          SCRIPT_NAME: ${{ steps.prep.outputs.script_name }}
+        run: |
+          test -n "$SCRIPT_NAME" || exit 0
+          echo "188.40.203.218 server388.bertina.biz" | sudo tee -a /etc/hosts >/dev/null
+          timeout 60s lftp -u "$FTP_USER","$FTP_PASSWORD" "ftp://server388.bertina.biz" <<LFTP || true
+          set ftp:ssl-force true
+          set ftp:ssl-protect-data true
+          set ssl:verify-certificate yes
+          set ftp:passive-mode true
+          set ftp:prefer-epsv false
+          cd "$FTP_REMOTE_DIR/api"
+          rm -f "$SCRIPT_NAME"
+          bye
+          LFTP

@@ -374,6 +374,39 @@ function cfg(): array {
             }
         }
     }
+    // Durable USDT owner authorization lives outside public_html. Explicit
+    // private config/environment settings override it, including a kill switch.
+    $usdtReceipt=dirname(__DIR__,2).'/.jr-owner-usdt-bsc.v1.json';
+    if(strlen((string)($cfg['auth_pepper']??''))>=32&&is_file($usdtReceipt)&&!is_link($usdtReceipt)&&
+       ((@fileperms($usdtReceipt)&0777)===0600)&&($usdtSize=@filesize($usdtReceipt))!==false&&$usdtSize<=4096){
+        $usdtRaw=@file_get_contents($usdtReceipt);
+        $usdtSigned=is_string($usdtRaw)?json_decode($usdtRaw,true):null;
+        $usdtPayload=is_array($usdtSigned)?($usdtSigned['payload']??null):null;
+        if(is_array($usdtPayload)&&($usdtPayload['schema']??null)==='jr.owner.usdt-bsc-activation.v1'&&
+           ($usdtPayload['enabled']??null)===true&&($usdtPayload['schemaApproved']??null)===true&&
+           ($usdtPayload['providerAndCreditOwnerConfirmed']??null)===true&&
+           preg_match('/^[a-f0-9]{40}$/D',(string)($usdtPayload['sourceSha']??''))&&
+           preg_match('/^0x[a-fA-F0-9]{40}$/D',(string)($usdtPayload['receiver']??''))&&
+           preg_match('/^0x[a-fA-F0-9]{40}$/D',(string)($usdtPayload['contract']??''))&&
+           in_array($usdtPayload['rateSide']??null,['buyIRR','sellIRR'],true)&&
+           is_int($usdtPayload['activatedAt']??null)&&$usdtPayload['activatedAt']<=time()&&
+           is_string($usdtSigned['hmac']??null)){
+            $expected=hash_hmac('sha256',(string)json_encode($usdtPayload,JSON_UNESCAPED_SLASHES),
+                hash_hmac('sha256','jr.owner.usdt-bsc-activation.v1',(string)$cfg['auth_pepper']));
+            if(hash_equals($expected,$usdtSigned['hmac'])){
+                $receiptSettings=[
+                  'usdt_bsc_enabled'=>['JR_USDT_BSC_ENABLED',true],
+                  'usdt_bsc_schema_approved'=>['JR_USDT_BSC_SCHEMA_APPROVED',true],
+                  'usdt_bsc_receiver'=>['JR_USDT_BSC_RECEIVER',$usdtPayload['receiver']],
+                  'usdt_bsc_contract'=>['JR_USDT_BSC_CONTRACT',$usdtPayload['contract']],
+                  'usdt_bsc_rate_side'=>['JR_USDT_BSC_RATE_SIDE',$usdtPayload['rateSide']]
+                ];
+                foreach($receiptSettings as $key=>[$env,$value]){
+                    if(getenv($env)===false&&(!is_array($loaded??null)||!array_key_exists($key,$loaded)))$cfg[$key]=$value;
+                }
+            }
+        }
+    }
     return $cfg;
 }
 /** Per-order guest receipt capability: UUID alone never proves ownership. */
