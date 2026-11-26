@@ -57,7 +57,8 @@ class WindowsCommandCenterTests(unittest.TestCase):
     def test_private_sqlite_events_persist_but_do_not_claim_approval(self):
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "mission.sqlite3"
-            with patch.object(cc, "PRIVATE", Path(directory)), \
+            with patch.object(cc.private_storage, "select_private_storage", return_value=Path(directory)), \
+                 patch.object(cc, "PRIVATE", Path(directory)), \
                  patch.object(cc, "TOKEN_PATH", Path(directory) / "owner-token"), \
                  patch.object(cc, "DB_PATH", path):
                 token_a = cc.setup()
@@ -85,90 +86,45 @@ class WindowsCommandCenterTests(unittest.TestCase):
                 self.assertNotIn("model weights trained", details)
                 self.assertFalse((repo / ".git").exists())
 
-    def test_gpu_recovery_only_reuses_explicitly_named_owner_task(self):
-        from types import SimpleNamespace
-        import time
-        with patch.object(cc, "os", SimpleNamespace(name="nt")), \
-             patch.object(cc, "get_json", side_effect=OSError("offline")), \
-             patch.object(cc, "_activity_at", 0.0), \
-             patch.object(cc, "_recovery_last_at", 0.0), \
-             patch.object(cc, "_recovery_failures", 0), \
-             patch.object(cc, "record") as recorder, \
-             patch.object(cc.subprocess, "run") as run:
-            run.return_value.returncode = 0
-            response = cc.gpu_task_recovery()
-            self.assertEqual(response["state"], "RESTART_REQUESTED")
-            self.assertEqual(run.call_count, 3)
-            calls = [args[0][0] for args in run.call_args_list]
-            self.assertEqual(calls, [
-                ["schtasks.exe", "/Query", "/TN", cc._GPU_TASK],
-                ["schtasks.exe", "/End", "/TN", cc._GPU_TASK],
-                ["schtasks.exe", "/Run", "/TN", cc._GPU_TASK],
-            ])
-            for args, kwargs in run.call_args_list:
-                self.assertFalse(kwargs["shell"])
-                self.assertEqual(kwargs["stderr"], cc.subprocess.DEVNULL)
-            self.assertEqual(recorder.call_count, 2)
-
-    def test_gpu_recovery_requires_installed_task_and_owner_idle(self):
-        from types import SimpleNamespace
-        import time
-        with patch.object(cc, "os", SimpleNamespace(name="nt")), \
-             patch.object(cc, "get_json", side_effect=OSError("offline")), \
-             patch.object(cc, "_activity_at", time.monotonic()), \
-             patch.object(cc.subprocess, "run") as run:
-            response = cc.gpu_task_recovery()
-            self.assertEqual(response["state"], "DEFERRED")
+    def assert_retired_recovery_has_no_side_effects(self, *, owner_requested=False):
+        with patch.object(cc.subprocess, "run") as run, \
+             patch.object(cc.subprocess, "Popen") as popen, \
+             patch.object(cc, "get_json") as probe, \
+             patch.object(cc, "record") as record:
+            result = cc.gpu_task_recovery(owner_requested=owner_requested)
+            self.assertEqual(result["state"], "RETIRED")
+            self.assertIn("excluded", result["detail"])
             run.assert_not_called()
-        with patch.object(cc, "os", SimpleNamespace(name="nt")), \
-             patch.object(cc, "get_json", side_effect=OSError("offline")), \
-             patch.object(cc, "_activity_at", 0.0), \
-             patch.object(cc, "_recovery_last_at", 0.0), \
-             patch.object(cc.subprocess, "run") as run:
-            run.return_value.returncode = 1
-            response = cc.gpu_task_recovery()
-            self.assertEqual(response["state"], "NOT_INSTALLED")
-            self.assertEqual(run.call_count, 1)
+            popen.assert_not_called()
+            probe.assert_not_called()
+            record.assert_not_called()
+
+    def test_gpu_recovery_never_restarts_retired_owner_task(self):
+        self.assert_retired_recovery_has_no_side_effects()
+
+    def test_gpu_recovery_cannot_be_reactivated_by_owner_request(self):
+        self.assert_retired_recovery_has_no_side_effects(owner_requested=True)
 
     def test_gpu_recovery_never_intervenes_during_owner_mission(self):
-        from types import SimpleNamespace
-        with patch.object(cc, "os", SimpleNamespace(name="nt")), \
-             patch.object(cc.subprocess, "run") as run:
-            cc._BUSY.acquire()
-            try:
-                self.assertEqual(cc.gpu_task_recovery()["state"], "DEFERRED")
-                run.assert_not_called()
-            finally:
-                cc._BUSY.release()
+        cc._BUSY.acquire()
+        try:
+            self.assert_retired_recovery_has_no_side_effects()
+        finally:
+            cc._BUSY.release()
 
-    def test_owner_gpu_recover_intent_bypasses_idle_delay_but_not_registry(self):
-        from types import SimpleNamespace
-        import time
-        with patch.object(cc, "os", SimpleNamespace(name="nt")), \
-             patch.object(cc, "get_json", side_effect=OSError("offline")), \
-             patch.object(cc, "_activity_at", time.monotonic()), \
-             patch.object(cc, "_recovery_last_at", time.monotonic()), \
-             patch.object(cc.socket, "create_connection", side_effect=ConnectionRefusedError()), \
-             patch.object(cc.subprocess, "run") as runner, \
-             patch.object(cc, "record"):
-            runner.return_value.returncode = 0
-            result=cc.gpu_task_recovery(owner_requested=True)
-            self.assertEqual(result["state"], "RESTART_REQUESTED")
-            self.assertEqual(runner.call_count, 3)
+    def test_unconfigured_local_backend_does_not_probe_legacy_ports(self):
+        with tempfile.TemporaryDirectory() as directory, \
+             patch.object(cc, "PRIVATE", Path(directory)), \
+             patch.object(cc.language_backend, "_exchange") as exchange:
+            self.assertEqual(cc.local_model(), (None, None))
+            exchange.assert_not_called()
 
-    def test_gpu_recovery_never_kills_existing_tcp_listener(self):
-        from types import SimpleNamespace
-        with patch.object(cc, "os", SimpleNamespace(name="nt")), \
-             patch.object(cc, "get_json", side_effect=OSError("offline")), \
-             patch.object(cc, "_activity_at", 0.0), \
-             patch.object(cc, "_recovery_last_at", 0.0), \
-             patch.object(cc.socket, "create_connection") as connector, \
-             patch.object(cc.subprocess, "run") as runner:
-            connector.return_value.__enter__.return_value = object()
-            runner.return_value.returncode = 0
-            result=cc.gpu_task_recovery()
-            self.assertEqual(result["state"], "BLOCKED")
-            self.assertEqual(runner.call_count, 1)
+    def test_local_backend_uses_only_explicit_discovery_and_fails_closed(self):
+        with tempfile.TemporaryDirectory() as directory, \
+             patch.object(cc, "PRIVATE", Path(directory)), \
+             patch.object(cc.language_backend, "discover", side_effect=ValueError("invalid engine")) as discover:
+            self.assertEqual(cc.local_model(), (None, None))
+            discover.assert_called_once_with(Path(directory))
 
     def test_client_has_actual_tools_and_private_token_path(self):
         html = cc.render_html()
@@ -177,11 +133,11 @@ class WindowsCommandCenterTests(unittest.TestCase):
         self.assertIn("seo_audit", html)
         self.assertIn("token=", html)
         self.assertIn("Authorization", html)
-        self.assertIn("127.0.0.1", cc.GPU)
+        self.assertEqual(cc.language_backend.LEGACY_PORTS, frozenset((8081, 8082)))
         self.assertNotIn("0.0.0.0", cc.HOST)
 
     def test_invalid_chat_request_not_forwarded_to_model(self):
-        with patch.object(cc, "local_model", return_value=("http://127.0.0.1:8082", "gpu")):
+        with patch.object(cc, "local_model", return_value=("http://127.0.0.1:8095/v1/chat/completions", "jrei-native-fixture")):
             with self.assertRaises(ValueError):
                 cc.reply([{"role": "system", "content": "bad"}])
             with self.assertRaises(ValueError):

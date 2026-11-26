@@ -107,7 +107,10 @@ class OwnerCandidatePipelineTests(unittest.TestCase):
     def test_windows_command_center_actually_calls_candidate_engine(self):
         with tempfile.TemporaryDirectory() as directory:
             repo, sandbox, sha = self.fixtures(Path(directory))
+            db_path = Path(directory) / "research.sqlite3"
+            cc.oss_evidence.initialize(db_path)
             with patch.object(cc, "REPO", repo), \
+                 patch.object(cc, "DB_PATH", db_path), \
                  patch.object(cc, "PRIVATE", Path(directory) / "private"), \
                  patch.object(cc, "CANDIDATE_FILES", (self.PATH,)), \
                  patch.object(cc, "_candidate_index", 0), \
@@ -119,10 +122,29 @@ class OwnerCandidatePipelineTests(unittest.TestCase):
             self.assertIn("FUNCTIONAL_TESTS_RUN=false", detail)
             self.assertEqual((repo / self.PATH).read_text(), self.SOURCE)
 
+    def test_unavailable_research_database_holds_before_model_or_candidate(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            repo, sandbox, sha = self.fixtures(root)
+            with patch.object(cc, "REPO", repo), \
+                 patch.object(cc, "DB_PATH", root / "missing" / "research.sqlite3"), \
+                 patch.object(cc, "PRIVATE", root / "private"), \
+                 patch.object(cc, "CANDIDATE_FILES", (self.PATH,)), \
+                 patch.object(cc, "reply") as reply:
+                state, detail = cc.patch_candidate()
+            self.assertEqual(state, "HELD")
+            self.assertIn("RESEARCH_PRIORITY_UNAVAILABLE", detail)
+            reply.assert_not_called()
+            self.assertFalse((root / "private").exists())
+            self.assertEqual((repo / self.PATH).read_text(), self.SOURCE)
+
     def test_invalid_model_output_cannot_claim_patch_success(self):
         with tempfile.TemporaryDirectory() as directory:
             repo, sandbox, sha = self.fixtures(Path(directory))
+            db_path = Path(directory) / "research.sqlite3"
+            cc.oss_evidence.initialize(db_path)
             with patch.object(cc, "REPO", repo), \
+                 patch.object(cc, "DB_PATH", db_path), \
                  patch.object(cc, "PRIVATE", Path(directory) / "private"), \
                  patch.object(cc, "CANDIDATE_FILES", (self.PATH,)), \
                  patch.object(cc, "_candidate_index", 0), \
