@@ -50,8 +50,18 @@ function noindex(html){
   return !!(m&&/\bnoindex\b/i.test(m[1]||''));
 }
 
+// Audit every sitemap actually declared to crawlers, not only the October
+// baseline. The Arabic, service, JREI and journal maps are now equally important.
 const indexable=new Set();
-for(const sm of files.filter(f=>/^sitemap-(?:core|fa|en|news)\.xml$/.test(path.basename(f)))){
+const declared=[...fs.readFileSync(path.join(root,'sitemap.xml'),'utf8').matchAll(/<loc>([^<]+)<\/loc>/g)].map(m=>{
+  const u=new URL(m[1].trim());
+  if(u.origin!==PROD||u.search||u.hash||!/^\/(?:sitemap-[a-z]+\.xml|journal\/sitemap\.xml)$/.test(u.pathname))throw Error('Unexpected sitemap declaration: '+u.pathname);
+  const rel=u.pathname.slice(1);
+  if(!fileSet.has(rel))throw Error('Declared sitemap absent: '+rel);
+  return rel;
+});
+if(!declared.length||new Set(declared).size!==declared.length)throw Error('Empty or duplicate sitemap declarations');
+for(const sm of declared){
   const xml=fs.readFileSync(path.join(root,sm),'utf8');
   for(const m of xml.matchAll(/<loc>([^<]+)<\/loc>/g)){
     try{
@@ -111,6 +121,17 @@ for(const route of indexable){
   if(!depth.has(route)) failures.push(route+': indexable URL is unreachable from the root internal-link graph');
   else if(depth.get(route)>5) warnings.push(route+': crawl depth is '+depth.get(route)+' clicks from root');
 }
+
+
+// Prioritize discoverability of pages that correspond to genuine customer intent.
+// Counts are source-graph measurements, NOT Google indexing or rankings.
+const priority=['/fa/','/fa/darbare-man/','/fa/moshavere-konkur/','/fa/moshavere-tahsili/','/fa/entekhab-reshteh/','/fa/exams/konkur/','/fa/estedaadyabi/','/fa/services/','/fa/jrei/','/en/jrei/','/ar/jrei/','/fa/jrei/seo/'];
+for(const route of priority){
+  if(!indexable.has(route)){failures.push(route+': priority URL missing from declared sitemaps');continue;}
+  if((inboundIndexable.get(route)?.size||0)===0)failures.push(route+': priority URL has no incoming link from indexable source');
+  if(!depth.has(route)||depth.get(route)>3)warnings.push(route+': priority discovery depth exceeds three clicks');
+}
+console.log('DISCOVERY_COVERAGE='+JSON.stringify({declaredSitemaps:declared.length,indexableRoutes:indexable.size,jreiRoutes:[...indexable].filter(r=>/^\/(fa|en|ar)\/(?:jrei(?:\/|$)|jrei-academic\/|forge\/)/.test(r)).length,arabicRoutes:[...indexable].filter(r=>r.startsWith('/ar/')).length,priority:priority.map(route=>({route,indexable:indexable.has(route),inboundIndexable:inboundIndexable.get(route)?.size||0,rootDepth:depth.get(route)??null}))}));
 
 console.log('Internal-link graph audit: '+indexable.size+' indexable routes across '+htmlFiles.length+' HTML documents.');
 if(warnings.length){
