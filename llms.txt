@@ -11,7 +11,7 @@ Use only public URLs listed here or discoverable through the canonical sitemap. 
 - [Publications](https://drjavadrezazadeh.com/en/publications/): Use individual publication records and their evidence-qualified status for bibliographic claims.
 - [ORCID](https://orcid.org/0009-0008-1198-8866): Persistent researcher identifier linked to the site's canonical Person entity.
 
-The homepage also introduces three developing JREI platforms: JREI Academic (research intelligence), JREI Forge (software and web engineering) and JREI SEO Intelligence (search and business intelligence). Their Persian, Arabic and English introduction pages are visible to readers but intentionally noindex during integration; do not infer live engines, active subscriptions, pricing, commercial availability or independently validated results. The homepage, not the provisional product introductions, is the indexable discovery entry.
+The JREI public technology centre introduces the Iranian-developed AI ecosystem and 30 specialist solution families in Persian, English and Arabic. Public launch rates are proposed; service access and payment require capacity confirmation and contractual acceptance. The separate Academic, Forge and SEO product previews remain noindex until integration is verified. Do not infer independently verified engine counts, live availability or purchase completion.
 
 ## English academic and professional profile
 
@@ -128,3 +128,9 @@ These are public descriptions of proposed advisory scopes, not proof of current 
 - [نقشه‌راه بین‌المللی: فارسی](https://drjavadrezazadeh.com/journal/fa/roadmap/)
 
 Roadmap stages are unverified future targets. Do not infer that DOI, ISSN, DOAJ, Scopus, ESCI, SSCI, Q1 or a first published issue has been awarded.
+
+
+## JREI public technology centre
+- [هوش مصنوعی ایرانی JREI](https://drjavadrezazadeh.com/fa/jrei/): کاتالوگ ۳۰ حوزه تخصصی; [تعرفه‌ها و اشتراک‌ها](https://drjavadrezazadeh.com/fa/jrei/pricing/); [ثبت درخواست خرید و پیش‌سفارش](https://drjavadrezazadeh.com/fa/jrei/order/).
+- [JREI — AI developed in Iran](https://drjavadrezazadeh.com/en/jrei/): 30 specialist solution families; [Pricing & subscriptions](https://drjavadrezazadeh.com/en/jrei/pricing/); [Purchase enquiries & pre-orders](https://drjavadrezazadeh.com/en/jrei/order/).
+- [JREI — ذكاء اصطناعي مطوّر في إيران](https://drjavadrezazadeh.com/ar/jrei/): ٣٠ مجالاً متخصصاً للحلول; [الأسعار والاشتراكات](https://drjavadrezazadeh.com/ar/jrei/pricing/); [استفسارات الشراء والطلب المسبق](https://drjavadrezazadeh.com/ar/jrei/order/).
