@@ -1,0 +1,50 @@
+name: Public Lighthouse independent lab (No Deployment)
+on:
+  push:
+    branches: [migration/bertina-linux6]
+    paths:
+      - '.github/workflows/public-lighthouse-independent.yml'
+      - 'scripts/public-lighthouse-independent.mjs'
+  workflow_dispatch:
+  workflow_run:
+    workflows: ['Deploy to Bertina']
+    types: [completed]
+    branches: [migration/bertina-linux6]
+permissions:
+  contents: read
+concurrency:
+  group: public-lighthouse-${{ github.run_id }}
+  cancel-in-progress: false
+jobs:
+  live-lab:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    strategy:
+      fail-fast: false
+      matrix:
+        route: [fa-home, fa-jrei, en-jrei, ar-jrei]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install isolated pinned Lighthouse (no provider key)
+        run: |
+          npm install --no-save --ignore-scripts lighthouse@13.6.0
+          google-chrome --version
+      - name: Measure real public production with local Chrome
+        env:
+          LAB_ROUTE: ${{ matrix.route }}
+          EXPECTED_DEPLOYED_SHA: ${{ github.event.workflow_run.head_sha || '' }}
+        run: node scripts/public-lighthouse-independent.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: independent-lighthouse-${{ matrix.route }}
+          path: .independent-lighthouse/
+          if-no-files-found: warn
+          retention-days: 30

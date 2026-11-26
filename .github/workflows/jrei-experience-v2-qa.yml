@@ -21,7 +21,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - run: node --test tests/jrei-experience-v2.test.mjs tests/jrei-universal-public-chat-consent.test.mjs
+      - run: node --test tests/jrei-experience-v2.test.mjs tests/jrei-universal-public-chat-consent.test.mjs tests/jrei-chat-experience.test.mjs tests/jrei-offline-self-introduction.test.mjs
       - run: node --check assets/js/jrei-experience-v2.js
       - run: node scripts/build-public-site.mjs
       - name: Verify exact reviewed SEO observations resolved

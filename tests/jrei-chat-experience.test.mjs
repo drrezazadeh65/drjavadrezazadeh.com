@@ -12,7 +12,7 @@ test('public assistant JavaScript parses in an offline environment', () => {
   assert.doesNotThrow(() => new vm.Script(js, {filename:'assets/js/assistant.js'}));
 });
 test('bilingual, keyboard-operable copy and reset are present', () => {
-  for (const text of ['گفت‌وگوی جدید', 'New chat', 'کپی پاسخ', 'Copy answer', 'jr-assistant-reset', 'jr-assistant-copy']) {
+  for (const text of ['گفت‌وگوی جدید', 'New chat', 'محادثة جديدة', 'کپی پاسخ', 'Copy answer', 'نسخ الرد', 'jr-assistant-reset', 'jr-assistant-copy']) {
     assert.ok(js.includes(text), 'missing interface contract: '+text);
   }
   assert.match(js, /\.addEventListener\('click',\s*\(\)=>clearEphemeralAssistant\(true\)\)/);
@@ -62,7 +62,7 @@ test('assistant differentiates real API readiness from the static guide', () => 
   assert.match(js, /policy\.live!==true/);
   assert.match(js, /providerConsent\.checked/);
   assert.match(js, /const liveGreeting=isFa/);
-  assert.match(js, /const staticGreeting=isFa/);
+  assert.match(js, /const staticGreeting=isAr\?/);
   assert.match(js, /\.slice\(0,800\)/);
 });
 test('published bilingual service pages are reachable from local guide', () => {
@@ -77,7 +77,9 @@ test('published bilingual service pages are reachable from local guide', () => {
 test('JREI bilingual chatbot is correctly branded without false live or learning claims', () => {
   assert.ok(js.includes("open:'چت‌بات JREI'"));
   assert.ok(js.includes("open:'JREI Chat'"));
-  assert.match(js, /const staticGreeting=isFa/);
+  assert.ok(js.includes("open:'مساعد JREI'"));
+  assert.match(js,/async function discoverLiveAssistant\(\)\{\s*if\(isAr\)return/);
+  assert.match(js, /const staticGreeting=isAr\?/);
   assert.match(js, /const liveGreeting=isFa/);
   assert.match(js, /policy\.live!==true/);
   assert.ok(js.includes("providerMode==='JREI_LM_LOCAL_WINDOWS'?"));

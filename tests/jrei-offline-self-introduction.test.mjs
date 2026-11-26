@@ -10,7 +10,7 @@ const functionSource=source.slice(first,last).trim();
 function call(locale,query){
  const quick=Array.from({length:9},(_,i)=>({label:'link-'+i,url:'/fa/link-'+i+'/'}));
  const fn=vm.runInNewContext('('+functionSource+')',{
-  isFa:locale==='fa',quickLinks:()=>quick,
+  isFa:locale==='fa',isAr:locale==='ar',quickLinks:()=>quick,
   labels:{error:'transport failure'},rootPath:p=>'/'+p
  },{timeout:2000});
  return fn(query);
@@ -40,3 +40,5 @@ test('offline scope never claims live Qwen or private-user knowledge',()=>{
  assert.match(fa.answer,/راهنما|گفت‌وگوی زنده/);
  assert.doesNotMatch(fa.answer,/متصل شده|مطمئنم|پرونده شما/);
 });
+
+test('Arabic offline guide gives truthful local responses and commercial routes',()=>{const a=call('ar','أسعار');assert.match(a.answer,/الأسعار المقترحة/);assert.equal(a.links.length,3);const b=call('ar','سؤال غير معروف');assert.match(b.answer,/غير مفعّلة بعد/);assert.doesNotMatch(b.answer,/transport failure/);});
