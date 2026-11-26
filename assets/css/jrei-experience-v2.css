@@ -105,3 +105,39 @@ body[data-jrei-public-centre] .tile[data-jx-domain="1"]{--jx-signal:#e6c58d}body
 body[data-jrei-public-centre] .tile[data-jx-domain]::before{background:linear-gradient(135deg,#1b2d3a,#101722);border-color:var(--jx-signal)}
 @media(max-width:700px){.jx-pipeline{grid-template-columns:minmax(0,1fr);gap:.6rem}.jx-pipeline li:not(:last-child)::after{inset-inline-end:auto;inset-inline-start:1.5rem;top:auto;bottom:-.6rem;height:.6rem;width:2px}.jx-studio-cta{width:100%;text-align:center}.jx-case summary{padding:.6rem .75rem}}
 @media(prefers-reduced-motion:reduce){body:is([data-jrei-public-centre],[data-jrei-launch]) .hero::after,.jx-core::after,.jx-case-content{animation:none!important;transition:none!important}.jx-case-expand{transition:none!important}}
+
+/* V3: proof-first commercial story, native interactions, no remote runtime. */
+body:is([data-jrei-public-centre],[data-jrei-launch]) a:focus-visible,body:is([data-jrei-public-centre],[data-jrei-launch]) select:focus-visible{outline:3px solid #d4fff8;outline-offset:3px}
+body:is([data-jrei-public-centre],[data-jrei-launch]) .hero h1{text-wrap:balance}
+.jx-scene[data-jx-scene="domain-1"] .jx-network{background:radial-gradient(ellipse,#4a3b26,transparent 67%)}
+.jx-scene[data-jx-scene="domain-2"] .jx-network{background:radial-gradient(ellipse,#243e65,transparent 67%)}
+.jx-scene[data-jx-scene="domain-3"] .jx-network{background:radial-gradient(ellipse,#453359,transparent 67%)}
+.jx-scene[data-jx-scene="domain-4"] .jx-network{background:radial-gradient(ellipse,#284939,transparent 67%)}
+.jx-demo,.jx-evidence,.jx-delivery{padding:clamp(1rem,3vw,3rem);border:1px solid #4a6373;border-radius:26px;background:linear-gradient(135deg,#142735,#0c1520);min-width:0}
+.jx-demo{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);align-items:start;gap:clamp(1rem,4vw,4rem)}
+.jx-demo[hidden],.jx-demo-result[hidden]{display:none!important}
+.jx-demo h2,.jx-evidence h2,.jx-delivery h2{margin:.3em 0 .55em}
+.jx-demo-note,.jx-evidence>p,.jx-delivery>p{color:#c7d2dc}
+.jx-demo-note{border-inline-start:3px solid var(--jx-signal);padding-inline-start:.8rem;font-size:.86rem}
+.jx-demo-controls{display:grid;gap:1rem;background:#0b1420;border:1px solid #526b79;border-radius:20px;padding:clamp(.85rem,2vw,1.6rem);min-width:0}
+.jx-demo-label{display:grid;gap:.4rem;color:#f1f6fa;font-weight:650;min-width:0}
+.jx-demo-label select{width:100%;min-width:0;min-height:48px;padding:.65rem .7rem;background:#182c39;border:1px solid #8aa5b5;border-radius:9px;color:#f5f8fb;font:inherit;box-sizing:border-box}
+.jx-demo-controls button{cursor:pointer;justify-content:center;min-height:48px;font:inherit;font-weight:750}
+.jx-demo-result{border-top:1px solid #526b79;padding-top:.8rem}
+.jx-demo-result h3{margin:0 0 .7rem}.jx-demo-result ol{list-style:none;margin:0;padding:0;display:grid;gap:.5rem}
+.jx-demo-result li{display:grid;gap:.25rem;border-inline-start:2px solid var(--jx-signal);padding:.5rem .7rem;background:#172837}
+.jx-demo-result li span{color:#c2d1dc;font-size:.82rem}.jx-demo-result li strong{color:#f7fbfd;overflow-wrap:anywhere}
+.jx-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.jx-evidence-grid,.jx-delivery-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.75rem;margin-block:1.2rem}
+.jx-proof,.jx-delivery-grid>div{min-width:0;border:1px solid #486374;background:#101e2c;border-radius:14px;padding:1rem;display:grid;gap:.5rem;overflow-wrap:anywhere}
+.jx-proof>span,.jx-delivery-grid>div>span{color:var(--jx-signal);font-size:clamp(1.4rem,3vw,2.4rem);font-weight:750;line-height:1}
+.jx-evidence-links{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.65rem;margin-top:1rem}
+.jx-evidence-links a{min-height:48px;display:flex;align-items:center;justify-content:space-between;gap:.6rem;padding:.7rem .9rem;border:1px solid #617b8b;border-radius:10px;color:#f0f7fb;text-decoration:none;overflow-wrap:anywhere}
+.jx-evidence-links a:hover{border-color:var(--jx-signal);color:var(--jx-signal)}
+body[data-jrei-public-centre] .tile[data-jx-domain]{content-visibility:auto;contain-intrinsic-block-size:auto 320px}
+body[data-jrei-public-centre] .tile[data-jx-domain]:focus-within{content-visibility:visible}
+@media(max-width:800px){.jx-demo{grid-template-columns:minmax(0,1fr)}.jx-evidence-grid,.jx-delivery-grid,.jx-evidence-links{grid-template-columns:minmax(0,1fr)}
+ body:is([data-jrei-public-centre],[data-jrei-launch]) .hero::after{animation:none;inset:0}
+ .jx-core::after,.jx-lines{animation:none}.jx-scene{box-shadow:0 8px 24px #0004}
+}
+@media(prefers-reduced-motion:reduce){.jx-demo *,.jx-evidence *{animation:none!important;transition:none!important}}

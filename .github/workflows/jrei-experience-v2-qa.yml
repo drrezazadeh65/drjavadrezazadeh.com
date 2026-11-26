@@ -27,7 +27,7 @@ jobs:
       - run: node scripts/build-public-site.mjs
       - name: Verify exact reviewed SEO observations resolved
         run: node -e 'const r=require("./test-results/jr-public-release-audit.json"); if(r.issueCounts.description_review||r.issueCounts.image_dimensions_review) { console.error(r.issues);process.exit(1); }'
-      - run: npm install --no-save @playwright/test@1.56.0
+      - run: npm install --no-save @playwright/test@1.56.0 axe-core@4.10.3
       - run: npx playwright install --with-deps chromium
       - name: Verify interactions on local artifact
         run: |
@@ -35,7 +35,7 @@ jobs:
           curl -fsS --retry 10 --retry-connrefused --retry-delay 1 http://127.0.0.1:4173/ >/dev/null
           npx playwright test tests/jrei-experience-v2.spec.js --workers=3 --reporter=line
       - uses: actions/upload-artifact@v4
-        if: failure()
+        if: always()
         with:
           name: jrei-experience-v2-diagnostics
           path: test-results/

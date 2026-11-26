@@ -43,3 +43,26 @@ test('legal page uses the wide shell without sacrificing reading measure',async(
   if(width>=1500)expect(result.shell).toBeGreaterThanOrEqual(width*.8);
  }
 });
+
+for(const l of ['fa','en','ar'])test('private browser proposal, accessibility and visual evidence '+l,async({page},testInfo)=>{
+ await page.setViewportSize({width:390,height:844});
+ await page.goto(base+'/'+l+'/jrei/');
+ const demo=page.locator('[data-jx-demo]');
+ await expect(demo).toBeVisible();
+ await expect(demo.locator('[data-jx-output]')).toBeHidden();
+ await demo.locator('[data-jx-demo-choice="0"]').selectOption('research');
+ await demo.locator('[data-jx-demo-choice="1"]').selectOption('1');
+ await demo.locator('[data-jx-demo-choice="2"]').selectOption('2');
+ await demo.locator('[data-jx-run]').click();
+ await expect(demo.locator('[data-jx-output]')).toBeVisible();
+ for(let i=0;i<3;i++)await expect(demo.locator('[data-jx-answer="'+i+'"]')).toHaveText(await demo.locator('[data-jx-demo-choice="'+i+'"] option:checked').textContent());
+ await expect(demo.locator('[data-jx-enquiry]')).toHaveAttribute('href','/'+l+'/jrei/order/#research');
+ await page.addScriptTag({path:require.resolve('axe-core/axe.min.js')});
+ const result=await page.evaluate(async()=>{const r=await axe.run({include:[['.jx-demo'],['.jx-evidence']]},{runOnly:{type:'tag',values:['wcag2a','wcag2aa','wcag21aa','wcag22aa']}});return r.violations.map(v=>({id:v.id,impact:v.impact,nodes:v.nodes.map(n=>n.target)}));});
+ await testInfo.attach('component-accessibility',{body:JSON.stringify(result),contentType:'application/json'});
+ expect(result.filter(v=>v.impact==='critical'||v.impact==='serious')).toEqual([]);
+ await page.screenshot({path:testInfo.outputPath(l+'-mobile.png')});
+ await page.setViewportSize({width:1440,height:1000});
+ await page.evaluate(()=>scrollTo(0,0));
+ await page.screenshot({path:testInfo.outputPath(l+'-desktop.png')});
+});

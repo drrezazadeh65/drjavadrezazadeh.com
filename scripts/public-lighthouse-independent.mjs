@@ -29,7 +29,9 @@ for(const strategy of ['mobile','desktop']){
  try{
   const lhr=JSON.parse(fs.readFileSync(file,'utf8'));
   const record=normalizePsi({lighthouseResult:{...lhr,finalUrl:lhr.finalDisplayedUrl||lhr.finalUrl}},url,strategy,new Date().toISOString());
-  records.push({...record,source:'Independent Chrome Lighthouse laboratory; not Google PSI API or real-user field data'});
+  const failedAudits=(lhr.categories?.accessibility?.auditRefs||[]).filter(x=>x.weight>0&&lhr.audits?.[x.id]?.score!==null&&lhr.audits?.[x.id]?.score<1).map(x=>({id:x.id,score:lhr.audits[x.id].score,targets:(lhr.audits[x.id].details?.items||[]).slice(0,12).map(n=>String(n.node?.selector||'').slice(0,200)).filter(Boolean)}));
+  const performanceDiagnostics=Object.fromEntries(['long-tasks','mainthread-work-breakdown','bootup-time','total-byte-weight','dom-size','unused-javascript','unused-css-rules'].map(id=>[id,{score:lhr.audits?.[id]?.score??null,numericValue:lhr.audits?.[id]?.numericValue??null}]));
+  records.push({...record,failedAccessibilityAudits:failedAudits,performanceDiagnostics,source:'Independent Chrome Lighthouse laboratory; not Google PSI API or real-user field data'});
  }catch{records.push({strategy,status:'unavailable',reason:'invalid_lighthouse_report'});}
  finally{fs.rmSync(file,{force:true});}
 }
