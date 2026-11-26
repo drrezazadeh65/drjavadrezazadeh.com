@@ -3,22 +3,21 @@ const JR_ROUTE_POLICY=Object.freeze({
 noStore:Object.freeze(['/api/','/fa/payments/usdt/','/en/payments/usdt/','/ar/payments/usdt/','/fa/services/checkout/','/fa/shop/golden-talent/checkout/','/fa/app/','/fa/customer-dashboard/','/fa/exams/my/','/en/exams/my/','/app/','/en/account/','/fa/login/','/login/','/en/login/','/fa/register/','/register/','/en/register/','/en/recover/','/fa/bazyabi-hesab/','/fa/assessments/','/assessments/','/en/golden-talent/assessment/','/en/golden-talent/dashboard/','/en/golden-talent/observer/','/en/golden-talent/roles/','/en/golden-talent/student/','/fa/shop/cart/','/fa/shop/checkout/','/fa/shop/payment-start/','/fa/shop/payment-return/','/fa/shop/payment-result/','/en/shop/cart/','/en/shop/checkout/','/en/golden-talent/checkout/','/en/golden-talent/plans/','/fa/darkhast-moshavere/','/en/request-consultation/']),app:Object.freeze(['/fa/app/','/fa/customer-dashboard/','/app/','/en/account/','/fa/assessments/','/assessments/','/en/golden-talent/assessment/','/en/golden-talent/dashboard/','/en/golden-talent/observer/','/en/golden-talent/roles/','/en/golden-talent/student/'])});const JR_PRIV=p=>JR_ROUTE_POLICY.noStore.some(s=>p+'/'===s||p.startsWith(s));
 (()=>{
 const q=(s,r=document)=>r.querySelector(s),qa=(s,r=document)=>[...r.querySelectorAll(s)];
-const rawPath=location.pathname.replace(/index\.html$/,'');
-const gh='/drjavadrezazadeh.com/';const base=rawPath.includes(gh)?gh:'/';const relativePath=base==='/'?rawPath:'/'+rawPath.slice(base.length);const isFa=relativePath.startsWith('/fa/');const isJournal=relativePath.startsWith('/journal/');const isPrivateApp=JR_ROUTE_POLICY.app.some(prefix=>relativePath.startsWith(prefix));const isPersianStudentApp=relativePath.startsWith('/fa/app/student/')||relativePath.startsWith('/fa/assessments/golden-talent/start/');
+const rawPath=location.pathname.replace(/index\.html$/,''),gh='/drjavadrezazadeh.com/',base=rawPath.includes(gh)?gh:'/',relativePath=base==='/'?rawPath:'/'+rawPath.slice(base.length);const isFa=relativePath.startsWith('/fa/');const isJournal=relativePath.startsWith('/journal/');const isPrivateApp=JR_ROUTE_POLICY.app.some(prefix=>relativePath.startsWith(prefix));const isPersianStudentApp=relativePath.startsWith('/fa/app/student/')||relativePath.startsWith('/fa/assessments/golden-talent/start/');
 const u=p=>base+p.replace(/^\//,'');
 function ensurePwaHead(){
 const head=document.head;if(!head)return;
 if(!q('link[rel="manifest"]',head)){
-const link=document.createElement('link');link.rel='manifest';link.href=u('site.webmanifest');head.appendChild(link);
+const link=document.createElement('link');link.rel='manifest';link.href=u('site.webmanifest');head.append(link);
 }
 if(!q('link[rel="apple-touch-icon"]',head)){
-const iconLink=document.createElement('link');iconLink.rel='apple-touch-icon';iconLink.href=u('assets/images/pwa-icon-192.png');head.appendChild(iconLink);
+const iconLink=document.createElement('link');iconLink.rel='apple-touch-icon';iconLink.href=u('assets/images/pwa-icon-192.png');head.append(iconLink);
 }
 if(!q('meta[name="mobile-web-app-capable"]',head)){
-const meta=document.createElement('meta');meta.name='mobile-web-app-capable';meta.content='yes';head.appendChild(meta);
+const meta=document.createElement('meta');meta.name='mobile-web-app-capable';meta.content='yes';head.append(meta);
 }
 if(!q('meta[name="color-scheme"]',head)){
-const meta=document.createElement('meta');meta.name='color-scheme';meta.content='dark';head.appendChild(meta);
+const meta=document.createElement('meta');meta.name='color-scheme';meta.content='dark';head.append(meta);
 }
 }
 ensurePwaHead();
@@ -27,10 +26,7 @@ const main=q('main');
 if(!main)return;
 if(!main.id)main.id='main';
 if(!q('.skip')){
-const a=document.createElement('a');
-a.className='skip';a.href='#'+main.id;
-a.textContent=isFa?'رفتن به محتوای اصلی':'Skip to content';
-document.body.insertBefore(a,document.body.firstChild);
+const a=Object.assign(document.createElement('a'),{className:'skip',href:'#'+main.id,textContent:isFa?'رفتن به محتوای اصلی':'Skip to content'});document.body.prepend(a);
 }
 }
 ensureSkipLink();
@@ -325,10 +321,10 @@ const base=location.hostname.endsWith('github.io')?'/drjavadrezazadeh.com/':'/';
 if(!document.querySelector('link[rel="manifest"]')){
 const l=document.createElement('link');
 l.rel='manifest'; l.href=base+'site.webmanifest';
-document.head.appendChild(l);
+document.head.append(l);
 }
 if(!document.querySelector('link[rel="apple-touch-icon"]')){
-const i=document.createElement('link');i.rel='apple-touch-icon';i.href=base+'assets/images/javad-rezazadeh-yazdeli-portrait-2026.webp';document.head.appendChild(i);
+const i=document.createElement('link');i.rel='apple-touch-icon';i.href=base+'assets/images/javad-rezazadeh-yazdeli-portrait-2026.webp';document.head.append(i);
 }
 const metas=[
 ['apple-mobile-web-app-capable','yes'],
@@ -338,7 +334,7 @@ const metas=[
 ];
 for(const [name,content] of metas){
 if(!document.querySelector('meta[name="'+name+'"]')){
-const m=document.createElement('meta');m.name=name;m.content=content;document.head.appendChild(m);
+const m=document.createElement('meta');m.name=name;m.content=content;document.head.append(m);
 }
 }
 })();
@@ -482,6 +478,6 @@ target_kind:el.matches('a[href^="mailto:"]')?'EMAIL':(el.tagName==='A'?'LINK':'A
 window.dispatchEvent(new CustomEvent('JR_CONVERSION_INTENT',{detail}));
 },{capture:true});
 })();
-(()=>{const jr=document.createElement('script');jr.src='/assets/js/site-extras.js?v=seo26';jr.defer=true;document.head.appendChild(jr)})();
+(()=>{const jr=document.createElement('script');jr.src='/assets/js/site-extras.js?v=seo26';jr.defer=true;document.head.append(jr)})();
 
 

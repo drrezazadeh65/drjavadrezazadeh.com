@@ -11,7 +11,13 @@ const admin=read('../assets/js/operations-jrei-hybrid-nodes-v1.js');
 const worker=read('../platform/jrei-v5/windows-worker/jrei-worker.mjs');
 
 test('runtime cannot be accepted from rights-only model metadata',()=>{
-  assert.match(models,/action===\x27attest_local_model_runtime\x27/);
+  assert.match(models,/in_array\(\$action,\['attest_local_model_runtime','attest_local_model_runtime_only'\],true\)/);
+  assert.match(models,/\$runtimeOnly=\$action==='attest_local_model_runtime_only'/);
+  assert.match(models,/\!\$runtimeOnly&&\(\$body\['independentLanguageQualityReviewed'\]\?\?null\)!==true/);
+  assert.match(models,/\$runtimeOnly&&\(\$body\['ownerReviewedQualityLimitations'\]\?\?null\)!==true/);
+  const update=models.slice(models.indexOf('$update=$pdo->prepare($runtimeOnly?'),models.indexOf('$update->execute',models.indexOf('$update=$pdo->prepare($runtimeOnly?')));
+  assert.ok(update.includes('independent_quality_accepted=1'));
+  assert.doesNotMatch(update.split("':")[0],/independent_quality_accepted=1/);
   assert.match(models,/realLocalGGUFHashChecked/);
   assert.match(models,/independentLanguageQualityReviewed/);
   assert.match(models,/ownerReviewedNoCloudExecution/);

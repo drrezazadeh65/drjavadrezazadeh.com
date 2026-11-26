@@ -20,6 +20,9 @@ Disallow: /edge/
 Disallow: /tests/
 Disallow: /.github/
 Disallow: /api/
+Disallow: /fa/payments/usdt/
+Disallow: /en/payments/usdt/
+Disallow: /ar/payments/usdt/
 Disallow: /fa/customer-dashboard/
 Disallow: /fa/exams/my/
 Disallow: /en/exams/my/
@@ -64,6 +67,9 @@ Disallow: /edge/
 Disallow: /tests/
 Disallow: /.github/
 Disallow: /api/
+Disallow: /fa/payments/usdt/
+Disallow: /en/payments/usdt/
+Disallow: /ar/payments/usdt/
 Disallow: /fa/customer-dashboard/
 Disallow: /fa/exams/my/
 Disallow: /en/exams/my/
@@ -108,6 +114,9 @@ Disallow: /edge/
 Disallow: /tests/
 Disallow: /.github/
 Disallow: /api/
+Disallow: /fa/payments/usdt/
+Disallow: /en/payments/usdt/
+Disallow: /ar/payments/usdt/
 Disallow: /fa/customer-dashboard/
 Disallow: /fa/exams/my/
 Disallow: /en/exams/my/
@@ -152,6 +161,9 @@ Disallow: /edge/
 Disallow: /tests/
 Disallow: /.github/
 Disallow: /api/
+Disallow: /fa/payments/usdt/
+Disallow: /en/payments/usdt/
+Disallow: /ar/payments/usdt/
 Disallow: /fa/customer-dashboard/
 Disallow: /fa/exams/my/
 Disallow: /en/exams/my/
@@ -196,6 +208,9 @@ Disallow: /edge/
 Disallow: /tests/
 Disallow: /.github/
 Disallow: /api/
+Disallow: /fa/payments/usdt/
+Disallow: /en/payments/usdt/
+Disallow: /ar/payments/usdt/
 Disallow: /fa/customer-dashboard/
 Disallow: /fa/exams/my/
 Disallow: /en/exams/my/

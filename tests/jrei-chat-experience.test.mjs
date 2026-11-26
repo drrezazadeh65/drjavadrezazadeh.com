@@ -81,6 +81,7 @@ test('JREI bilingual chatbot is correctly branded without false live or learning
   assert.match(js, /const liveGreeting=isFa/);
   assert.match(js, /policy\.live!==true/);
   assert.ok(js.includes("providerMode==='JREI_LM_LOCAL_WINDOWS'?"));
-  assert.ok(js.includes('خودکار به مدل آموزش داده نمی‌شوند.'));
+  assert.ok(js.includes('گفتگوها به‌طور خودکار به دانش یا آموزش مدل JREI تبدیل نمی‌شوند'));
+  assert.ok(js.includes('فقط اطلاعات بررسی‌شده و دارای مجوز می‌توانند وارد حافظه شوند.'));
   assert.ok(js.includes('Chats do not automatically train JREI'));
 });

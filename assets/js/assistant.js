@@ -1,7 +1,7 @@
 // Dr. Javad Rezazadeh site assistant — public concierge UI.
 // No private records are read. Conversation text is kept in-memory for the current page only.
 (function(){
-  const PRIVATE_PREFIXES=[
+  const PRIVATE_PREFIXES=['/fa/payments/usdt/','/en/payments/usdt/','/ar/payments/usdt/',
     '/fa/app/','/app/','/en/account/','/fa/assessments/','/assessments/',
     '/en/golden-talent/assessment/','/en/golden-talent/dashboard/','/en/golden-talent/observer/',
     '/en/golden-talent/roles/','/en/golden-talent/student/','/fa/login/','/login/','/en/login/','/fa/register/','/register/','/en/register/','/en/recover/','/fa/bazyabi-hesab/','/fa/shop/cart/','/fa/shop/checkout/','/fa/shop/payment-','/en/shop/cart/','/en/shop/checkout/','/en/shop/payment-','/shop/checkout/',

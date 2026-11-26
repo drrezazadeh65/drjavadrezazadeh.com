@@ -166,6 +166,11 @@ jobs:
       - name: Install Chromium runner
         run: |
           npm install --no-save @playwright/test@1.56.0
+          # The hosted runner's unrelated Microsoft package feed returned 403.
+          # Disable only that external feed; keep Ubuntu signatures and dependencies enforced.
+          for file in /etc/apt/sources.list.d/*; do
+            if [ -f "$file" ] && grep -q 'packages.microsoft.com' "$file" && ! grep -Eq '(archive.ubuntu.com|security.ubuntu.com)' "$file"; then sudo mv "$file" "$file.disabled"; fi
+          done
           npx playwright install --with-deps chromium
       - name: Start nonproduction fixture webserver
         run: |

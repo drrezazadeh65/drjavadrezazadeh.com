@@ -2,7 +2,7 @@
  * No changes to canonical URLs, identity routes, forms or server flags.
  * Never displays in password/account/payment/learner response flows.
  */
-const PRIVATE=/(?:^|\/)(?:app|account|dashboard|assessments|student|observer|roles|login|register|recover|checkout|cart|payment|payment-start|payment-return|payment-result|payment-start|my|my-orders|student-records|upload|submission|manuscript)(?:\/|$)/i;
+const PRIVATE=/(?:^|\/)(?:app|account|dashboard|assessments|student|observer|roles|login|register|recover|checkout|cart|payment|payments|payment-start|payment-return|payment-result|payment-start|my|my-orders|student-records|upload|submission|manuscript)(?:\/|$)/i;
 const RESTRICTED=/^(?:api|assets|private|admin|identity|foundation)\//;
 export function isJreiPublicChatRoute(relative,html){
  if(typeof relative!=='string'||typeof html!=='string')return false;
