@@ -133,9 +133,7 @@ jobs:
                   PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC,
                   PDO::ATTR_EMULATE_PREPARES=>false,
               ]);
-              // Load only source-pinned functions, after private recovery and config checks.
-              define('BERTINA_API_BOOTSTRAPPED',true);
-              __USDT_RUNTIME_SOURCE__
+              // Source-pinned definitions are assembled once at file scope; no DB operation precedes recovery.
               if(!stage9SchemaReady($pdo))throw new RuntimeException('existing_commerce_schema_not_ready');
               // Verify both parent tables before creating the two additive tables.
               foreach(['commerce_orders','customer_accounts'] as $table){
@@ -218,10 +216,9 @@ jobs:
               # Functions are declared at file scope, not inside the guarded try.
               src.append(raw)
           # Insert definitions after the pinned recovery gate but before any invocation.
-          php=php.replace('__USDT_RUNTIME_SOURCE__','')
           php=php.replace("header('Content-Type: application/json; charset=utf-8');",
               "define('BERTINA_API_BOOTSTRAPPED',true);\n"+'\n'.join(src)+"\nheader('Content-Type: application/json; charset=utf-8');",1)
-          php=php.replace("              define('BERTINA_API_BOOTSTRAPPED',true);","")
+          assert php.count("define('BERTINA_API_BOOTSTRAPPED',true);")==1
           php=php.replace('__USDT_SCHEMA_B64__',base64.b64encode(sql.encode()).decode())
           for k,v in {'__USDT_MODE__':mode,'__USDT_RATE_SIDE__':side,'__USDT_PROVIDER_VERIFIED__':verified,'__USDT_SOURCE_SHA__':sha}.items():php=php.replace(k,v)
           assert '__USDT_' not in php
