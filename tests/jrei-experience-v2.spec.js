@@ -21,3 +21,15 @@ for(const l of ['fa','en','ar'])test('scenario studio and honest labels '+l,asyn
  await page.goto(base+'/'+l+'/jrei/catalog/research/');
  await expect(page.locator('body')).toHaveAttribute('data-jx-theme','domain-1');
 });
+
+for(const l of ['fa','en','ar'])test('floating controls remain separated and restore after closing '+l,async({page})=>{
+ await page.setViewportSize({width:390,height:844});
+ await page.route('**/api/assistant/v1/capabilities',route=>route.fulfill({json:{schema:'jr.jrei.assistant-capability.v1',live:false}}));
+ await page.goto(base+'/'+l+'/jrei/');
+ const launch=page.locator('.jr-assistant-launcher'),wa=page.locator('.jr-wa-float'),panel=page.locator('.jr-assistant-panel');
+ await expect(launch).toBeVisible();await expect(wa).toBeVisible();
+ const a=await launch.boundingBox(),b=await wa.boundingBox();expect(a.x+a.width<=b.x||b.x+b.width<=a.x).toBeTruthy();
+ await launch.click();await expect(panel).toBeVisible();await expect(wa).toBeHidden();
+ if(l==='ar'){await expect(panel).toHaveAttribute('aria-label','JREI | دليل الموقع');await panel.locator('textarea').fill('أسعار');await panel.locator('textarea').press('Enter');await expect(panel.locator('.jr-assistant-links a[href="http://127.0.0.1:4173/ar/jrei/pricing/"],.jr-assistant-links a[href$="/ar/jrei/pricing/"]')).toBeVisible();}
+ await panel.locator('.jr-assistant-close').click();await expect(panel).toBeHidden();await expect(wa).toBeVisible();
+});

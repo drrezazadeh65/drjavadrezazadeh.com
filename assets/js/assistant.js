@@ -14,6 +14,7 @@
   if(PRIVATE_PREFIXES.some(p=>route.startsWith(p))) return;
 
   const isFa=document.documentElement.lang==='fa';
+  const isAr=document.documentElement.lang==='ar';
   const endpoint=document.querySelector('meta[name="jr-assistant-endpoint"]')?.content?.trim()||'';
   // Public assistant requests may go only through this site's approved
   // same-origin API. An arbitrary metadata URL must never receive visitor
@@ -27,7 +28,15 @@
         target.search==='' && target.hash==='' ? target.href:'';
     }catch{return '';}
   })();
-  const labels=isFa?{
+  // Arabic guide is genuinely local; fa/en are the only accepted server languages.
+  const labels=isAr?{
+    open:'مساعد JREI',title:'JREI | دليل الموقع',subtitle:'دليل محلي · المحادثة الحية غير متاحة بالعربية بعد',
+    greeting:'مرحباً، أنا دليل JREI للموقع.',notice:'لا ترسل معلومات حساسة أو كلمات مرور. لا تُستخدم المحادثات تلقائياً لتدريب النموذج.',
+    placeholder:'اكتب سؤالك…',send:'إرسال',close:'إغلاق',reset:'محادثة جديدة',copy:'نسخ الرد',copied:'تم النسخ',stop:'إيقاف',stopped:'تم إيقاف الرد بناء على طلبك.',thinking:'جارٍ التحقق…',
+    error:'المحادثة الحية غير متاحة حالياً.',reviewRequired:'لم يُعتمد رد قابل للنشر. استخدم المعلومات المنشورة.',retry:'حاول مجدداً',offline:'دليل سريع',
+    leadOpen:'طلب التواصل',leadTitle:'هل ترغب في التواصل؟',leadEmail:'البريد الإلكتروني',leadMobile:'الهاتف',leadValue:'وسيلة التواصل',leadIntent:'الموضوع',leadConsent:'أوافق على حفظ وسيلة التواصل للرد على الطلب.',leadWhatsApp:'أوافق على التواصل عبر واتساب إن كان متاحاً.',leadSend:'إرسال الطلب',leadSaved:'تم تسجيل الطلب.',leadError:'تعذر تسجيل الطلب.',
+    chips:['ما هي خدمات JREI؟','ما هو Golden Talent؟','كيف أتواصل للاستثمار؟']
+  }:isFa?{
     open:'چت‌بات JREI',title:'JREI | هوش مصنوعی سایت',subtitle:'راهنمای سایت • وضعیت اتصال در حال بررسی',
     greeting:'سلام. من JREI، دستیار اختصاصی سایت هستم. درباره خدمات، Golden Talent، پژوهش‌ها و مسیرهای آموزشی سایت می‌توانم راهنمایی‌تان کنم.',
     notice:'اطلاعات حساس یا رمز عبور نفرستید. گفتگوها به‌طور خودکار به دانش یا آموزش مدل JREI تبدیل نمی‌شوند؛ فقط اطلاعات بررسی‌شده و دارای مجوز می‌توانند وارد حافظه شوند.',
@@ -49,6 +58,7 @@
 
   // Only PUBLIC URL context; never infer identity, learning level or private records.
   const publicContext=(()=>{
+    if(isAr)return 'الأقسام العامة للموقع';
     if(/\/(?:exams|konkur-ai-lab|entekhab-reshteh|student-guidance|moshavere-tahsili)\//.test(route))
       return isFa?'آزمون‌ها و راهنمای تحصیلی':'exams and student guidance';
     if(/\/(?:akhbar|news-insights|news)\//.test(route))
@@ -61,7 +71,7 @@
       return isFa?'پژوهش و انتشارات':'research and publications';
     return isFa?'بخش‌های عمومی سایت':'the public website';
   })();
-  const contextIntroduction=isFa?
+  const contextIntroduction=isAr?' يمكنك استكشاف الخدمات والمعلومات المنشورة.':isFa?
     ' اگر دربارهٔ '+publicContext+' پرسشی دارید، می‌توانم راهنمایی‌تان کنم.':
     ' I can help you explore '+publicContext+'.';
   // Local-only consent preference: NOT a server consent ledger, permission
@@ -87,7 +97,7 @@
       }));
     }catch(_){/* Private browsing can refuse storage: keep choice only this page. */}
   };
-  const staticGreeting=isFa
+  const staticGreeting=isAr?'مرحباً، أنا JREI. هذا دليل محلي للمعلومات والخدمات المنشورة؛ المحادثة مع نموذج ذكاء اصطناعي بالعربية غير مفعّلة بعد.':isFa
     ?'سلام. من JREI هستم. اکنون راهنمای صفحات عمومی سایت فعال است؛ اتصال مدل گفت‌وگوی زنده هنوز تأیید نشده است. می‌توانید درباره خدمات و مسیرهای منتشرشده سایت سؤال کنید.'+contextIntroduction
     :'Hello, I am JREI. The public-site navigation guide is available; live AI inference has not been confirmed. Ask about published services and educational pathways.'+contextIntroduction;
   // Topic cues are derived only from the published page route.
@@ -121,6 +131,16 @@
     return (base==='/'?'/':base)+clean;
   };
   const quickLinks=()=>{
+    if(isAr)return [
+      {label:'مركز JREI',url:rootPath('ar/jrei/')},
+      {label:'Golden Talent',url:rootPath('ar/golden-talent/')},
+      {label:'الخدمات',url:rootPath('ar/services/')},
+      {label:'التواصل',url:rootPath('ar/contact/')},
+      {label:'الأسعار',url:rootPath('ar/jrei/pricing/')},
+      {label:'التعاون والاستثمار',url:rootPath('ar/jrei/order/')},
+      {label:'البحث العلمي',url:rootPath('ar/research/')},
+      {label:'BAHAR',url:rootPath('ar/bahar/')}
+    ];
     if(isFa) return [
       {label:'مشاوره تحصیلی',url:rootPath('fa/moshavere-tahsili/')},
       {label:'انتخاب رشته',url:rootPath('fa/entekhab-reshteh/')},
@@ -174,18 +194,18 @@
   welcome.hidden=true;
   welcome.setAttribute('role','dialog');
   welcome.setAttribute('aria-modal','false');
-  welcome.setAttribute('aria-label',isFa?'آشنایی با JREI و انتخاب حریم خصوصی':'Meet JREI and privacy choice');
+  welcome.setAttribute('aria-label',isAr?'التعرف إلى JREI وخيارات الخصوصية':isFa?'آشنایی با JREI و انتخاب حریم خصوصی':'Meet JREI and privacy choice');
   const welcomeHeading=document.createElement('strong');
-  welcomeHeading.textContent=isFa?'سلام، من JREI هستم ✦':'Hello, I am JREI ✦';
+  welcomeHeading.textContent=isAr?'مرحباً، أنا JREI ✦':isFa?'سلام، من JREI هستم ✦':'Hello, I am JREI ✦';
   const welcomeCopy=document.createElement('p');
-  welcomeCopy.textContent=isFa?
+  welcomeCopy.textContent=isAr?'يمكنك استخدام دليل الموقع مجاناً. المشاركة في تحسين JREI اختيارية.':isFa?
     'در '+publicContext+' کمکی لازم دارید؟ می‌توانید رایگان از راهنمای سایت بپرسید. اگر مایل باشید، در آینده می‌توانیم از بازخورد مجاز و بررسی‌شده برای بهترشدن JREI استفاده کنیم.':
     'Need help with '+publicContext+'? Ask the site guide for free. You may opt in to future use of permitted, reviewed feedback to improve JREI.';
   const welcomeDetails=document.createElement('details');
   const detailsTitle=document.createElement('summary');
-  detailsTitle.textContent=isFa?'جزئیات حریم خصوصی و استفاده از داده':'Privacy and data-use details';
+  detailsTitle.textContent=isAr?'تفاصيل الخصوصية واستخدام البيانات':isFa?'جزئیات حریم خصوصی و استفاده از داده':'Privacy and data-use details';
   const detailsBody=document.createElement('p');
-  detailsBody.textContent=isFa?
+  detailsBody.textContent=isAr?'تُحفظ تفضيلات المشاركة في هذا المتصفح فقط. دليل العربية محلي ولا يرسل أسئلتك إلى النموذج. لا تشارك معلومات حساسة.':isFa?
     'انتخاب مشارکت در بهبود سامانه فقط در همین مرورگر ذخیره می‌شود و متن گفت‌وگو به‌طور خودکار برای آموزش مدل استفاده نمی‌شود. ارسال پرسش برای پاسخ‌گویی در رایانهٔ JREI پردازش می‌شود؛ استفادهٔ پژوهشی یا ذخیره‌سازی اطلاعات شخصی سیاست جداگانه دارد. لطفاً اطلاعات حساس نفرستید.':
     'Feedback preferences are stored only in this browser. Chat transcripts are not automatically used for model training or JREI memory. Submitting a question sends it for processing on a JREI computer; research use and retention of personal information are separate. Do not send sensitive details.';
   welcomeDetails.append(detailsTitle,detailsBody);
@@ -193,8 +213,8 @@
   choiceActions.className='jr-assistant-onboarding-actions';
   const agree=document.createElement('button'),decline=document.createElement('button');
   agree.type='button';decline.type='button';
-  agree.textContent=isFa?'مایلم؛ فعلاً راهنمای سایت را باز کن':'I agree; open the site guide';
-  decline.textContent=isFa?'فعلاً خیر؛ ادامه بدون مشارکت':'Not now; continue without sharing';
+  agree.textContent=isAr?'أوافق؛ افتح دليل الموقع':isFa?'مایلم؛ فعلاً راهنمای سایت را باز کن':'I agree; open the site guide';
+  decline.textContent=isAr?'ليس الآن؛ المتابعة دون مشاركة':isFa?'فعلاً خیر؛ ادامه بدون مشارکت':'Not now; continue without sharing';
   choiceActions.append(agree,decline);
   welcome.append(welcomeHeading,welcomeCopy,welcomeDetails,choiceActions);
   wrap.append(welcome);
@@ -211,7 +231,7 @@
   // their free access or changing independent cloud/local inference consent.
   const privacyChoice=document.createElement('button');
   privacyChoice.type='button';privacyChoice.className='jr-assistant-privacy-choice';
-  privacyChoice.textContent=isFa?'تنظیم مشارکت در بهبود JREI':'JREI feedback preference';
+  privacyChoice.textContent=isAr?'تفضيلات المشاركة في تحسين JREI':isFa?'تنظیم مشارکت در بهبود JREI':'JREI feedback preference';
   privacyChoice.addEventListener('click',openWelcome);
   wrap.querySelector('.jr-assistant-privacy').after(privacyChoice);
   let privateNoStorageChoice=null;
@@ -248,6 +268,7 @@
   providerLabel.append(providerConsent,providerConsentText);
   form.before(providerLabel);
   async function discoverLiveAssistant(){
+    if(isAr)return; // Remain local until Arabic server inference is independently accepted.
     if(liveCapabilitiesChecked)return;
     liveCapabilitiesChecked=true;
     try{
@@ -306,7 +327,7 @@
       '<small class="jr-assistant-lead-status" role="status" aria-live="polite"></small>'+
     '</form>';
   form.before(leadBox);
-  if(!endpoint) leadBox.hidden=true;
+  if(isAr||!endpoint) leadBox.hidden=true;
   if(!leadEndpoint) leadBox.hidden=true;
   const leadToggle=leadBox.querySelector('.jr-assistant-lead-toggle');
   const leadForm=leadBox.querySelector('.jr-assistant-lead-form');
@@ -387,6 +408,13 @@
     const links=quickLinks();
     // When no API is configured, retain accurate directory-based guidance,
     // not a fake generated answer or a fabricated booking/price.
+    if(isAr){
+      if(/استثمار|تعاون|شراك|شراء|سعر|أسعار|طلب/.test(q))return {answer:'يمكنك الاطلاع على الأسعار المقترحة وطلب عرض أو مناقشة التعاون. لا يعني الطلب تأكيد الشراء أو الدفع.',links:[links[4],links[5],links[3]]};
+      if(/golden|موهب|استعداد/.test(q))return {answer:'Golden Talent إطار تنموي لاستكشاف القدرات بالاستناد إلى أدلة متعددة. راجع الصفحة العامة للتعرف إلى المنهج وحدوده.',links:[links[1]]};
+      if(/بحث|علمي/.test(q))return {answer:'استكشف المعلومات والموارد البحثية المنشورة في الموقع.',links:[links[6],links[2]]};
+      if(/دراس|تعلم|bahar/.test(q))return {answer:'يمكنك التعرف إلى مسارات التعلم والتخطيط الدراسي المنشورة.',links:[links[7],links[2]]};
+      return {answer:'أنا دليل JREI المحلي للموقع؛ يمكنني توجيهك إلى الخدمات والأسعار والتعاون والموارد المنشورة. المحادثة الحية بالعربية غير مفعّلة بعد.',links:[links[0],links[2],links[4],links[5]]};
+    }
     if(isFa){
       if(/(?:تو|شما).{0,24}(?:کی|چی|هستی|هستید)|(?:کی|چی) هستی|خودت.{0,15}معرفی|معرفی.{0,15}خودت|jrei.*(?:چی|کی)|(?:چی|کی).*jrei/.test(q))
         return {answer:'من JREI، دستیار اختصاصی سایت هستم. در حال حاضر می‌توانم شما را به راهنماها و خدمات منتشرشده هدایت کنم. گفت‌وگوی زنده با مدل هوش مصنوعی هنوز فعال یا تأیید نشده است.',links:[links[0],links[4]]};

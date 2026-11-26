@@ -6,7 +6,7 @@ const PRIVATE=/(?:^|\/)(?:app|account|dashboard|assessments|student|observer|rol
 const RESTRICTED=/^(?:api|assets|private|admin|identity|foundation)\//;
 export function isJreiPublicChatRoute(relative,html){
  if(typeof relative!=='string'||typeof html!=='string')return false;
- if(!/^(?:index\.html|(?:fa|en|journal)\/[a-zA-Z0-9/_-]*index\.html)$/.test(relative))return false;
+ if(!/^(?:index\.html|(?:fa|en|ar|journal)\/[a-zA-Z0-9/_-]*index\.html)$/.test(relative))return false;
  if(RESTRICTED.test(relative)||PRIVATE.test(relative))return false;
  if(/<meta\b[^>]*name=["']robots["'][^>]*content=["'][^"']*noindex/i.test(html)||
     /<meta\b[^>]*content=["'][^"']*noindex[^"']*["'][^>]*name=["']robots["']/i.test(html))return false;
@@ -17,8 +17,8 @@ export function includeJreiAssistant(relative,html){
  if(!isJreiPublicChatRoute(relative,html))return html;
  let out=html;
  if(!/\/assets\/css\/assistant\.css(?:\?|["'])/.test(out))
-   out=out.replace('</head>','<link rel="stylesheet" href="/assets/css/assistant.css?v=jrei-welcome-20261025"></head>');
+   out=out.replace('</head>','<link rel="stylesheet" href="/assets/css/assistant.css?v=jrei-public-20261126-v3"></head>');
  if(!/\/assets\/js\/assistant\.js(?:\?|["'])/.test(out))
-   out=out.replace('</body>','<script defer src="/assets/js/assistant.js?v=jrei-public-qwen-20261026"></script></body>');
+   out=out.replace('</body>','<script defer src="/assets/js/assistant.js?v=jrei-public-20261126-v3"></script></body>');
  return out;
 }

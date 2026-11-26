@@ -7,7 +7,7 @@ import {includeJreiAssistant,isJreiPublicChatRoute}
 const read=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
 const publicHtml='<!doctype html><html lang="fa"><head><meta name="robots" content="index,follow"></head><body>محتوا</body></html>';
 test('all ordinary public pages can display JREI but never fake live model readiness',()=>{
- for(const r of ['fa/index.html','en/index.html','fa/exams/konkur/index.html',
+ for(const r of ['fa/index.html','en/index.html','ar/index.html','ar/jrei/index.html','fa/exams/konkur/index.html',
                   'en/services/konkur_month/index.html','journal/fa/index.html']){
   const html=includeJreiAssistant(r,publicHtml);
   assert.match(html,/\/assets\/js\/assistant\.js/);
@@ -42,3 +42,5 @@ test('public site greeting asks permission, protects decliners, and does not tra
   assert.ok(js.includes("providerMode==='JREI_LM_LOCAL_WINDOWS'?"));
  assert.match(js,/history=\[\];lastQuery='';busy=false;ephemeralVisitorId=null/);
 });
+
+test('Arabic navigation stays local and excludes payments',()=>{const js=read('assets/js/assistant.js');assert.match(js,/async function discoverLiveAssistant\(\)\{\s*if\(isAr\)return/);assert.match(js,/ar\/jrei\/pricing\//);assert.match(js,/المحادثة الحية بالعربية غير مفعّلة بعد/);assert.equal(isJreiPublicChatRoute('ar/payments/usdt/index.html',publicHtml),false);});
