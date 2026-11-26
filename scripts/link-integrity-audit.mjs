@@ -17,7 +17,8 @@ function walk(dir){
 }
 walk(root);
 const fileSet=new Set(files);
-const htmlFiles=files.filter(f=>f.endsWith('.html'));
+// Source-only hash-router preview is excluded from the production bundle.
+const htmlFiles=files.filter(f=>f.endsWith('.html')&&!f.startsWith('docs/jrei-academic/source-preview/'));
 const htmlCache=new Map(htmlFiles.map(f=>[f,fs.readFileSync(path.join(root,f),'utf8')]));
 const failures=[];
 const warnings=[];

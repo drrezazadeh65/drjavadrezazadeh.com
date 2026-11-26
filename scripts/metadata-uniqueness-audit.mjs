@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {isOwnershipVerificationArtifact} from './site-ownership-verification.mjs';
 
-const root=process.cwd();
+const root=path.resolve(process.env.JR_PUBLIC_ARTIFACT||process.cwd());
 const ignoreDirs=new Set(['.git','node_modules','.public-site','identity','proposals','work','test-results']);
 const htmlFiles=[];
 

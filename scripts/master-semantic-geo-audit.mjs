@@ -108,8 +108,8 @@ for (const file of (visit(root),htmlFiles.sort())) {
     issue('P1',route,'FROZEN_NOINDEX','Frozen indexable route may not become noindex without approved migration');
   if(routePolicy.indexing==='NOINDEX'&&!noindex)
     issue('P1',route,'PRIVATE_INDEXING','Private/controlled route requires noindex under '+routePolicy.policy);
-  if(!['fa','en'].includes(language)) issue('P1',route,'HTML_LANG','Missing/unsupported page language');
-  if(language==='fa'&&direction!=='rtl')issue('P1',route,'RTL','Persian page lacks dir=rtl');
+  if(!['fa','en','ar'].includes(language)) issue('P1',route,'HTML_LANG','Missing/unsupported page language');
+  if(['fa','ar'].includes(language)&&direction!=='rtl')issue('P1',route,'RTL','Persian or Arabic page lacks dir=rtl');
   if(language==='en'&&direction&&direction!=='ltr')issue('P2',route,'LTR','English page has non-LTR direction');
   const mainCount=tags(html,'main').length;
   if(mainCount!==1)issue(noindex?'P2':'P1',route,'MAIN','Expected one main landmark; found '+mainCount);
@@ -173,7 +173,7 @@ for (const file of (visit(root),htmlFiles.sort())) {
       issue('P2',route,'HREFLANG_SELF_MISSING','Localised alternates should include the current public page');
   }
   for(const a of alternates) {
-    if(!['fa','en','x-default'].includes(a.hreflang))issue('P2',route,'HREFLANG_LOCALE',a.hreflang);
+    if(!['fa','en','ar','x-default'].includes(a.hreflang))issue('P2',route,'HREFLANG_LOCALE',a.hreflang);
     if(!xDefaultGateway&&a.hreflang===language&&a.href!==origin+route)
       issue('P1',route,'HREFLANG_SELF','Declared self-language alternate is not this page');
     if(!a.href?.startsWith(origin+'/'))issue('P1',route,'HREFLANG_ORIGIN',a.href||'missing href');
@@ -205,7 +205,7 @@ for (const file of (visit(root),htmlFiles.sort())) {
     if(textOnly(main).length<250)issue('P2',route,'THIN_CONTENT','Review whether the public landing page satisfies a real search intent; no prescribed word count');
   }
 }
-for(const file of ['sitemap-core.xml','sitemap-fa.xml','sitemap-en.xml','sitemap-news.xml','sitemap-services.xml','journal/sitemap.xml']){
+for(const file of ['sitemap-core.xml','sitemap-fa.xml','sitemap-en.xml','sitemap-news.xml','sitemap-services.xml','sitemap-ar.xml','sitemap-jrei.xml','journal/sitemap.xml']){
   const absolute=path.join(root,file);
   if(!fs.existsSync(absolute))continue;
   const xml=fs.readFileSync(absolute,'utf8');

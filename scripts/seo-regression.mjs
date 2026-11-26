@@ -12,7 +12,7 @@ function walk(dir){
     if(ignoreDirs.has(ent.name)) continue;
     // This Python-owned Windows desktop template is not a deployable website route.
     // Keep the strict public SEO checks limited to pages eligible for the site build.
-    if(ent.isDirectory() && path.relative(root,path.join(dir,ent.name)).replaceAll(path.sep,'/')==='platform/jrei-python') continue;
+    if(ent.isDirectory() && ['platform/jrei-python','docs/jrei-academic/source-preview'].includes(path.relative(root,path.join(dir,ent.name)).replaceAll(path.sep,'/'))) continue;
     const p=path.join(dir,ent.name);
     if(ent.isDirectory()) walk(p);
     else if(ent.isFile() && ent.name.endsWith('.html') &&
@@ -97,7 +97,7 @@ for(const file of htmlFiles){
       const loading=(getAttr(img,'loading')||'').toLowerCase();
       const priority=(getAttr(img,'fetchpriority')||'').toLowerCase();
       if(loading==='lazy' && priority==='high') failures.push(route+': image cannot be both lazy and fetchpriority=high: '+src);
-      if(loading!=='lazy' && priority!=='high') failures.push(route+': indexable-page image must be classified as lazy or fetchpriority=high: '+src);
+      if(loading!=='lazy' && loading!=='eager' && priority!=='high') failures.push(route+': indexable-page image must explicitly declare loading or fetchpriority=high: '+src);
     }
   }
 
@@ -124,7 +124,7 @@ if(failures.length) process.exit(1);
 
 
 // SITEMAP GOVERNANCE — Frozen SEO baseline
-const sitemapChildren=['sitemap-core.xml','journal/sitemap.xml','sitemap-fa.xml','sitemap-en.xml','sitemap-news.xml','sitemap-services.xml'];
+const sitemapChildren=['sitemap-core.xml','journal/sitemap.xml','sitemap-fa.xml','sitemap-en.xml','sitemap-news.xml','sitemap-services.xml','sitemap-ar.xml','sitemap-jrei.xml'];
 const sitemapUrls=new Set();
 const sitemapIndexPath=path.join(root,'sitemap.xml');
 let sitePrefix='';

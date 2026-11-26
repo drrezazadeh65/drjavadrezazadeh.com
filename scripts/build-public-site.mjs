@@ -11,6 +11,7 @@ import {includeJreiAssistant} from './jrei-public-assistant-surface.mjs';
 import {fingerprintCoreStyles} from './release-fingerprint-core-styles.mjs';
 import {bundleOwnerStyles} from './release-bundle-owner-styles.mjs';
 import {validateArabicPublicRoutes,applyPublicLocaleNavigation} from './jr-public-locale-navigation.mjs';
+import {projectPublicPresentation} from './jr-public-presentation-v1.mjs';
 import {applyBusinessContact,auditPublicRelease} from './jr-business-contact-v1.mjs';
 
 checkStylesheetBundles();
@@ -937,11 +938,12 @@ for(const file of html){
  const source=fs.readFileSync(file,'utf8');
  if(!/<\/head\s*>/i.test(source))continue;
  if(!source.includes('/assets/css/jr-adaptive-layout-v1.css')){
-  fs.writeFileSync(file,source.replace(/<\/head\s*>/i,adaptiveSheet+'const businessContactReport=applyBusinessContact(out,html,failures);'),'utf8');
+  fs.writeFileSync(file,source.replace(/<\/head\s*>/i,m=>adaptiveSheet+m),'utf8');
   adaptiveCount++;
  }
 }
 console.log('Adaptive layout stylesheet added to '+adaptiveCount+' HTML routes');
+console.log('Public sharing metadata enhanced:',projectPublicPresentation(out,html));
 const businessContactReport=applyBusinessContact(out,html,failures);
 console.log('Public WhatsApp Business contact:',JSON.stringify({enhanced:businessContactReport.enhanced,skipped:businessContactReport.skipped,byLanguage:businessContactReport.byLanguage}));
 const releaseAudit=auditPublicRelease(out,html);

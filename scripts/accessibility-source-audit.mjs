@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {isOwnershipVerificationArtifact} from './site-ownership-verification.mjs';
 
-const root=process.cwd();
+const root=path.resolve(process.env.JR_PUBLIC_ARTIFACT||process.cwd());
 const ignoreDirs=new Set(['.git','node_modules','.public-site','identity','proposals','work','test-results']);
 const htmlFiles=[];
 
@@ -110,7 +110,12 @@ for(const file of htmlFiles){
     if(hasAttr(tag,'autoplay') && !hasAttr(tag,'muted')) failures.push(route+': autoplay media must not start with sound');
   }
 
-  const skipLink=/class=["'][^"']*\bskip(?:-|_)link\b[^"']*["']/i.test(html) || /href=["']#(?:main|main-content|content)["'][^>]*>[^<]*(?:skip|پرش)/i.test(html);
+  const mainId=(html.match(/<main\b[^>]*\bid=["']([^"']+)["']/i)||[])[1];
+  const skipLink=[...html.matchAll(/<a\b[^>]*>[\s\S]*?<\/a>/gi)].some(m=>{
+    const tag=m[0].slice(0,m[0].indexOf('>')+1),target=getAttr(tag,'href');
+    const label=strip(m[0]);
+    return target&&target==='#'+mainId&&/(?:skip|پرش|انتقل إلى المحتوى)/i.test(label);
+  }) || /class=["'][^"']*\bskip(?:-|_)link\b[^"']*["']/i.test(html);
   if(!skipLink) failures.push(route+': missing required skip-to-content link');
 }
 

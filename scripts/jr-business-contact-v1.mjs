@@ -19,7 +19,7 @@ function locale(s){const l=attrs(s.match(/<html\b[^>]*>/i)?.[0]||'').lang?.toLow
 function route(rel){return '/'+rel.replace(/(?:^|\/)index\.html$/,m=>m.startsWith('/')?'/':'');}
 const forbidden=/(?:^|\/)(?:api|app|account|customer-dashboard|admin|login|register|recover|bazyabi-hesab|checkout|cart|payment-start|payment-return|payment-result|workspace|observer|roles|student|assessments|my|request-consultation|darkhast-moshavere)(?:\/|$)/i;
 export function isContactEligible(p,s,sitemap){
- if(!sitemap.has(ORIGIN+p)||/\bnoindex\b/i.test(meta(s,'robots'))||canonical(s)!==ORIGIN+p||!/<\/head\s*>/i.test(s)||!/<\/body\s*>/i.test(s)||forbidden.test(p))return false;
+ if(!sitemap.has(ORIGIN+p)||/\bnoindex\b/i.test(meta(s,'robots'))||canonical(s)!==ORIGIN+p||!/<\/head\s*>/i.test(s)||!/<\/body\s*>/i.test(s)||(forbidden.test(p)&&!/^\/(?:fa|en|ar)\/jrei\/catalog\/api\/$/.test(p)))return false;
  if(/\/dashboard(?:\/|$)/i.test(p)&&!/^\/journal\/(?:fa\/)?dashboard\/$/.test(p))return false;
  if(/\/golden-talent\/(?:assessment|plans)(?:\/|$)/i.test(p))return false;
  return true;

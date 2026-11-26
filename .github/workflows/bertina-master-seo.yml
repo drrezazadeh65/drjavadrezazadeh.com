@@ -73,8 +73,6 @@ jobs:
           run_audit "llms.txt discovery" node scripts/llms-txt-audit.mjs
           run_audit "AI crawler policy" node scripts/ai-crawler-policy-audit.mjs
           run_audit "AI discovery privacy regressions" node --test tests/ai-discovery-privacy.test.mjs
-          run_audit "Metadata uniqueness" node scripts/metadata-uniqueness-audit.mjs
-          run_audit "Accessibility source" node scripts/accessibility-source-audit.mjs
           run_audit "Performance source" node scripts/performance-source-audit.mjs
           run_audit "Public HTML transport and PageSpeed authenticity" node --test tests/performance-production-contract.test.mjs
           run_audit "Public secret exposure" node scripts/public-secret-audit.mjs
@@ -116,6 +114,8 @@ jobs:
           run_audit "Public entity schema" node platform/public-entity-schema-audit.mjs
           run_audit "Multilingual WhatsApp business contact" node --test tests/jr-business-contact-v1.test.mjs
           run_audit "Sanitized public build" node scripts/build-public-site.mjs
+          run_audit "Metadata uniqueness in packaged public site" env JR_PUBLIC_ARTIFACT=.public-site node scripts/metadata-uniqueness-audit.mjs
+          run_audit "Accessibility in packaged public site" env JR_PUBLIC_ARTIFACT=.public-site node scripts/accessibility-source-audit.mjs
           run_audit "Sanitized release all-route resource inventory" node scripts/performance-source-audit.mjs --release
           run_audit "Retired commerce and bookstore hero" node scripts/public-retired-commerce-audit.mjs
           echo
