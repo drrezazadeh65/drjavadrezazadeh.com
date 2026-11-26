@@ -24,12 +24,12 @@ export function isContactEligible(p,s,sitemap){
  if(/\/golden-talent\/(?:assessment|plans)(?:\/|$)/i.test(p))return false;
  return true;
 }
-function topicFor(p){if(p.startsWith('/journal/'))return 'journal';if(/\/(?:shop|order|pricing|services)(?:\/|$)/i.test(p))return 'buy';if(/\/(?:jrei|forge|jrei-academic|collaboration|invite|hamkari-sazmani)(?:\/|$)/i.test(p))return 'invest';if(/consult|moshavere|research|pajouhesh|teaching|tadris|golden-talent|rcas|bahar|exams|education|amoozesh/i.test(p))return 'consult';return 'general';}
+function topicFor(p){if(p.startsWith('/journal/'))return 'journal';if(/\/(?:shop|order|pricing|services|khadamat|books)(?:\/|$)/i.test(p))return 'buy';if(/\/(?:jrei|forge|jrei-academic|collaboration|invite|hamkari-sazmani)(?:\/|$)/i.test(p))return 'invest';if(/consult|moshavere|research|pajouhesh|teaching|tadris|golden-talent|rcas|bahar|exams|education|amoozesh/i.test(p))return 'consult';return 'general';}
 export function businessHref(l,p,topic=topicFor(p)){
  if(!copy[l]||!copy[l].topics[topic]||!/^\/(?!\/)[^\s?#]*$/.test(p))throw Error('Invalid business contact context');
  const c=copy[l];return 'https://wa.me/'+BUSINESS_NUMBER+'?text='+encodeURIComponent(c.hello+'\n'+c.purpose+': '+c.topics[topic]+'\n'+c.page+': '+ORIGIN+p);
 }
-function anchor(l,p,topic,label){return '<a class="jr-wa-link" href="'+esc(businessHref(l,p,topic))+'" rel="noopener noreferrer" target="_blank">'+icon+'<span>'+esc(label||copy[l].label)+'</span></a>';}
+function anchor(l,p,topic,label){return '<a class="jr-wa-link" href="'+esc(businessHref(l,p,topic))+'" rel="noopener noreferrer" target="_blank">'+icon+'<span>'+esc(label||copy[l].label)+'</span> <bdi dir="ltr">+98 913 264 1068</bdi></a>';}
 export function contactMarkup(l,p,float=false){const c=copy[l],a=anchor(l,p,topicFor(p));return '<aside class="jr-wa-business" data-jr-business-contact="v1" aria-label="'+esc(c.label)+'"><p>'+esc(c.intro)+'</p>'+a+'</aside>'+(float?'<div class="jr-wa-float" data-jr-business-float="v1">'+a+'</div>':'');}
 function sitemapSet(out){
  const maps=['sitemap-core.xml','journal/sitemap.xml','sitemap-fa.xml','sitemap-en.xml','sitemap-news.xml','sitemap-services.xml','sitemap-jrei.xml','sitemap-ar.xml'];
