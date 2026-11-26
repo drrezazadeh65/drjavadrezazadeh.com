@@ -1,0 +1,53 @@
+name: USDT Mother Commerce Acceptance (No Deployment)
+on:
+  push:
+    branches: [migration/bertina-linux6]
+    paths:
+      - 'api/usdt-commerce-v1.php'
+      - 'api/index.php'
+      - 'api/operations.php'
+      - 'api/internal/jr-publishing-*.php'
+      - 'docs/migrations/20261126_usdt_bsc_mother_commerce.sql'
+      - 'assets/js/jr-usdt-*.js'
+      - 'tests/usdt-mother-commerce-mysql.php'
+      - '.github/workflows/usdt-mother-commerce-qa.yml'
+  pull_request:
+    branches: [migration/bertina-linux6]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  disposable-mysql:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: fixture-password
+          MYSQL_DATABASE: usdt_fixture
+        ports: ['3306:3306']
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -pfixture-password"
+          --health-interval=10s --health-timeout=5s --health-retries=10
+    env:
+      USDT_FIXTURE_DSN: mysql:host=127.0.0.1;port=3306;dbname=usdt_fixture;charset=utf8mb4
+    steps:
+      - uses: actions/checkout@v4
+      - name: Lint server and browser modules
+        run: |
+          php -l api/usdt-commerce-v1.php
+          php -l api/index.php
+          php -l api/operations.php
+          php -l api/internal/jr-publishing-digital.php
+          php -l api/internal/jr-publishing-mailer.php
+          php -l tests/usdt-mother-commerce-mysql.php
+          node --check assets/js/jr-usdt-commerce-v1.js
+          node --check assets/js/jr-usdt-admin-v1.js
+      - name: Verify isolated order, stock, quote and settlement contracts
+        run: php tests/usdt-mother-commerce-mysql.php
+      - name: Preserve existing commerce and deployment checks
+        run: |
+          php tests/stage09-commerce-atomic.php
+          node --test tests/jr-business-contact-v1.test.mjs tests/jr-publishing-digital-payment-guard.test.mjs
+          node scripts/workflow-governance-audit.mjs
