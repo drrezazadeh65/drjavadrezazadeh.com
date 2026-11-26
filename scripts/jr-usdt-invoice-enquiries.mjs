@@ -30,7 +30,11 @@ export function invoiceRequestMarkup(route){
  const lang=route.split('/')[1],c=copy[lang];
  if(!c||!publicPattern.test(route)||excluded.test(route)||!/^(?:\/[a-zA-Z0-9_-]+)+\/$/.test(route))throw Error('Invalid invoice enquiry route');
  const href='https://wa.me/'+BUSINESS_NUMBER+'?text='+encodeURIComponent(c.message+'\n'+origin+route);
- return '<aside class="jr-wa-business" data-jr-usdt-invoice-enquiry="v1" aria-label="'+esc(c.label)+'"><p>'+esc(c.detail)+'</p><a class="jr-wa-link" rel="noopener noreferrer" target="_blank" href="'+esc(href)+'">'+esc(c.label)+'</a></aside>';
+ const direct={fa:'بررسی امکان پرداخت مستقیم USDT',en:'Check direct USDT checkout',ar:'التحقق من إمكانية الدفع المباشر بـ USDT'}[lang];
+ const service=route.match(/^\/(?:fa|en|ar)\/services\/([a-z0-9_-]+)\/$/);
+ const query=route.includes('/support-talented-students/')?'?purpose=donation':service&&service[1]!=='checkout'?'?sku='+encodeURIComponent('service:'+service[1]):'';
+ const checkoutLink='<p><a class="jr-wa-link" href="/'+lang+'/payments/usdt/'+query+'">'+esc(direct)+'</a></p>';
+ return '<aside class="jr-wa-business" data-jr-usdt-invoice-enquiry="v1" aria-label="'+esc(c.label)+'"><p>'+esc(c.detail)+'</p><a class="jr-wa-link" rel="noopener noreferrer" target="_blank" href="'+esc(href)+'">'+esc(c.label)+'</a>'+checkoutLink+'</aside>';
 }
 export function applyUsdtInvoiceEnquiries(out,files,failures){
  const maps=['sitemap-core.xml','sitemap-fa.xml','sitemap-en.xml','sitemap-ar.xml','sitemap-jrei.xml','sitemap-services.xml','sitemap-news.xml','journal/sitemap.xml'];

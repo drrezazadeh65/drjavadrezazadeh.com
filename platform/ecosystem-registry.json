@@ -243,6 +243,21 @@
       "id": "en-exam-candidate",
       "prefix": "/en/exams/my/",
       "policy": "PRIVATE_ASSESSMENT"
+    },
+    {
+      "id": "fa-usdt-checkout",
+      "prefix": "/fa/payments/usdt/",
+      "policy": "TRANSACTIONAL"
+    },
+    {
+      "id": "en-usdt-checkout",
+      "prefix": "/en/payments/usdt/",
+      "policy": "TRANSACTIONAL"
+    },
+    {
+      "id": "ar-usdt-checkout",
+      "prefix": "/ar/payments/usdt/",
+      "policy": "TRANSACTIONAL"
     }
   ],
   "module_boundaries": {

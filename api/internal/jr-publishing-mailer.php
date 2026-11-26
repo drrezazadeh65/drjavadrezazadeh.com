@@ -9,9 +9,10 @@ require_once __DIR__.'/jr-publishing-allocation-policy.php';
  */
 function jrPubProcessOutbox(PDO $pdo, string $orderId): int {
     if(!validUuid($orderId)||!mailReady())return 0;
+    $claimProvider=function_exists('jrUsdtPublishingClaimPredicate')?jrUsdtPublishingClaimPredicate($pdo):"p.provider='bitpay'";
     $s=$pdo->prepare("SELECT o.id,o.customer_email,o.amount_toman,o.items_json
       FROM commerce_orders o JOIN commerce_payment_claims p ON p.order_id=o.id
-      AND p.provider='bitpay' AND p.transaction_id=o.provider_trans_id
+      AND {$claimProvider} AND p.transaction_id=o.provider_trans_id
       AND p.verified_amount=o.provider_amount
       WHERE o.id=? AND o.state='paid' AND o.currency='IRT' AND o.paid_at IS NOT NULL
         AND NOT EXISTS (SELECT 1 FROM commerce_refund_requests r

@@ -177,12 +177,13 @@ function jrPubDownloadRoute(): never {
     $hash=hash('sha256',$raw);
     try{
       $pdo->beginTransaction();
+      $claimProvider=function_exists('jrUsdtPublishingClaimPredicate')?jrUsdtPublishingClaimPredicate($pdo):"p.provider='bitpay'";
       $q=$pdo->prepare("SELECT a.private_storage_name,a.sha256,a.byte_size,a.logical_kind,
         g.download_count,g.max_downloads,g.revoked_at,g.expires_at
         FROM publishing_digital_access_grants g
         JOIN publishing_private_assets a ON a.id=g.asset_id
         JOIN commerce_orders o ON o.id=g.order_id AND o.state='paid' AND o.paid_at IS NOT NULL
-        JOIN commerce_payment_claims p ON p.order_id=o.id AND p.provider='bitpay'
+        JOIN commerce_payment_claims p ON p.order_id=o.id AND {$claimProvider}
           AND p.transaction_id=o.provider_trans_id AND p.verified_amount=o.provider_amount
         WHERE NOT EXISTS (SELECT 1 FROM commerce_refund_requests r
           WHERE r.order_id=o.id AND r.status='settled')

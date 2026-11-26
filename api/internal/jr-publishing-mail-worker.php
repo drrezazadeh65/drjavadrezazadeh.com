@@ -10,6 +10,7 @@ if(PHP_SAPI!=='cli') { http_response_code(404); exit; }
 define('BERTINA_MAIL_SMOKE_CONTEXT',true);
 require_once dirname(__DIR__).'/index.php'; // defines cfg(), db(), sendLocalMail(), etc.; returns before routing
 define('BERTINA_API_BOOTSTRAPPED',true);
+require_once dirname(__DIR__).'/usdt-commerce-v1.php';
 require_once dirname(__DIR__).'/publishing.php';
 require_once __DIR__.'/jr-publishing-digital.php';
 require_once __DIR__.'/jr-publishing-notifications.php';

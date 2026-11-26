@@ -1428,7 +1428,7 @@ if($path==='/commerce/fulfilment'&&$verb==='GET'){
     // An unbackfilled historical payment or a mismatch is not a fulfilment entitlement.
     $claim=$pdo->prepare("SELECT transaction_id,verified_amount FROM commerce_payment_claims WHERE provider='bitpay' AND order_id=? LIMIT 1");
     $claim->execute([$orderId]);$evidence=$claim->fetch();
-    if(!jrUsdtVerifiedOrder($pdo,$orderId,$row) && (!$evidence || (string)$evidence['transaction_id']!==(string)$row['provider_trans_id']
+    if(!(str_starts_with((string)$row['provider_id_get'],'usdt:')&&function_exists('jrUsdtVerifiedOrder')&&jrUsdtVerifiedOrder($pdo,$orderId,$row)) && (!$evidence || (string)$evidence['transaction_id']!==(string)$row['provider_trans_id']
         || (string)$evidence['verified_amount']!==(string)$row['provider_amount']))
         respond(['ok'=>true,'paymentRecord'=>'requires_reconciliation','serviceCases'=>[],'parcel'=>null]);
     $prefsReady=commerceConsultationPreferenceSchemaReady($pdo);

@@ -75,14 +75,20 @@ function jrUsdtQuoteRow(PDO $pdo,string $order,string $account): ?array {
     $q->execute([$order,$account]);$r=$q->fetch(PDO::FETCH_ASSOC);
     return is_array($r)?$r:null;
 }
-function jrUsdtQuoteView(array $r,bool $mayPay): array {
+function jrUsdtQuoteView(array $r,bool $mayPay,?PDO $pdo=null): array {
     $available=$mayPay&&$r['status']==='issued'&&(int)$r['expires_at']>=time();
+    $verified=false;
+    if($pdo&&$r['status']==='settled'){
+        $q=$pdo->prepare('SELECT state,paid_at,provider_id_get,provider_trans_id,provider_amount FROM commerce_orders WHERE id=?');
+        $q->execute([$r['order_id']]);$order=$q->fetch(PDO::FETCH_ASSOC);
+        $verified=is_array($order)&&jrUsdtVerifiedOrder($pdo,(string)$r['order_id'],$order);
+    }
     return ['orderId'=>$r['order_id'],'status'=>$r['status'],'amountToman'=>(int)$r['amount_toman'],
       'amountUsdt'=>jrUsdtAmount((int)$r['amount_micros']),'rateIrr'=>(string)$r['rate_irr'],
       'rateSide'=>$r['rate_side'],'issuedAt'=>(int)$r['issued_at'],'expiresAt'=>(int)$r['expires_at'],
       'mayTransfer'=>$available,'chainId'=>56,'network'=>'BSC / BEP20','tokenDecimals'=>18,
       'receiveAddress'=>$available?$r['receiver']:null,'tokenContract'=>$available?$r['token_contract']:null,
-      'transactionHash'=>$r['claimed_hash'],'paymentVerified'=>$r['status']==='settled'];
+      'transactionHash'=>$r['claimed_hash'],'paymentVerified'=>$verified];
 }
 function jrUsdtProductLines(array $b,array $account,PDO $pdo): array {
     $email=(string)$account['email_normalized'];
@@ -106,7 +112,7 @@ function jrUsdtProductLines(array $b,array $account,PDO $pdo): array {
     $lines=[];$total=0;$book=false;$digital=false;
     foreach($counts as $sku=>$n){
         $x=$catalog[$sku];
-        if(!in_array($x['kind'],['book','service','vip'],true)||$n>20||
+        if(!in_array($x['kind'],['book','service','vip','digital'],true)||$n>20||
           ($x['kind']!=='book'&&$n!==1)||(($x['single_copy']??false)&&$n!==1))fail('invalid_quantity');
         if($x['kind']==='book'){$book=true;}
         if($x['kind']==='digital'){$digital=true;}
@@ -127,7 +133,7 @@ function jrUsdtIssue(PDO $pdo,array $a,array $b): array {
     $digest=hash('sha256',json_encode($b,JSON_THROW_ON_ERROR|JSON_UNESCAPED_UNICODE));
     $q=$pdo->prepare('SELECT * FROM commerce_usdt_quotes WHERE account_id=? AND request_id=?');
     $q->execute([$account,$request]);$old=$q->fetch(PDO::FETCH_ASSOC);
-    if($old){if(!hash_equals($old['request_digest'],$digest))fail('idempotency_conflict',409);return jrUsdtQuoteView($old,true);}
+    if($old){if(!hash_equals($old['request_digest'],$digest))fail('idempotency_conflict',409);return jrUsdtQuoteView($old,true,$pdo);}
     if(!rateAllowed($pdo,'usdt_quote',$account,5,3600))fail('rate_limited',429);
     [$lines,$total,$customer]=jrUsdtProductLines($b,$a,$pdo);
     require_once __DIR__.'/ramzinex-public-usdt-rate.php';
@@ -151,7 +157,7 @@ function jrUsdtIssue(PDO $pdo,array $a,array $b): array {
         if($existing){
             $pdo->commit();
             if(!hash_equals($existing['request_digest'],$digest))fail('idempotency_conflict',409);
-            return jrUsdtQuoteView($existing,true);
+            return jrUsdtQuoteView($existing,true,$pdo);
         }
         $open=$pdo->prepare("SELECT COUNT(*) FROM commerce_usdt_quotes WHERE account_id=? AND status IN ('issued','submitted')");
         $open->execute([$account]);if((int)$open->fetchColumn()>0)throw new RuntimeException('open_invoice_exists');
@@ -167,7 +173,7 @@ function jrUsdtIssue(PDO $pdo,array $a,array $b): array {
     }
     $row=jrUsdtQuoteRow($pdo,$order,$account);
     if(!$row)fail('invoice_lookup_failed',503);
-    return jrUsdtQuoteView($row,true);
+    return jrUsdtQuoteView($row,true,$pdo);
 }
 function jrUsdtClaim(PDO $pdo,array $a,array $b): array {
     $id=$b['orderId']??null;$hash=strtolower((string)($b['transactionHash']??''));
@@ -179,7 +185,7 @@ function jrUsdtClaim(PDO $pdo,array $a,array $b): array {
     if(!$row||!in_array($row['status'],['submitted','settled'],true)||!hash_equals((string)$row['claimed_hash'],$hash))
         fail('claim_conflict',409);
     // A submitted hash never establishes ownership, receipt, or settlement.
-    return jrUsdtQuoteView($row,false);
+    return jrUsdtQuoteView($row,false,$pdo);
 }
 function jrUsdtRoute(string $path,string $verb): never {
     header('Cache-Control: private, no-store, max-age=0');
@@ -191,13 +197,13 @@ function jrUsdtRoute(string $path,string $verb): never {
     // Prior invoices and claims stay readable/submit-able if new quote creation is paused.
     if($path==='/crypto/usdt/invoices'&&$verb==='GET'){
         $q=$pdo->prepare('SELECT * FROM commerce_usdt_quotes WHERE account_id=? ORDER BY issued_at DESC LIMIT 30');
-        $q->execute([$a['id']]);$rows=array_map(fn($r)=>jrUsdtQuoteView($r,$ready),$q->fetchAll(PDO::FETCH_ASSOC));
+        $q->execute([$a['id']]);$rows=array_map(fn($r)=>jrUsdtQuoteView($r,$ready,$pdo),$q->fetchAll(PDO::FETCH_ASSOC));
         respond(['ok'=>true,'csrfToken'=>jrUsdtCustomerCsrf($a),'enabled'=>$ready,'invoices'=>$rows]);
     }
     if($path==='/crypto/usdt/claim'&&$verb==='POST'){jrUsdtCustomerMutation($a);respond(['ok'=>true,'invoice'=>jrUsdtClaim($pdo,$a,jsonBody())]);}
     if(!$ready)fail('usdt_checkout_disabled',503);
     if($path==='/crypto/usdt/catalog'&&$verb==='GET'){
-        $items=[];foreach(localCatalog() as $x){if(in_array($x['kind'],['book','service','vip'],true))
+        $items=[];foreach(localCatalog() as $x){if(in_array($x['kind'],['book','service','vip','digital'],true))
             $items[]=['sku'=>$x['sku'],'title'=>$x['title'],'kind'=>$x['kind'],'priceToman'=>$x['price']];}
         respond(['ok'=>true,'items'=>$items]);
     }
@@ -295,4 +301,17 @@ function jrUsdtVerifiedOrder(PDO $pdo,string $id,array $row): bool {
         $q=$pdo->prepare("SELECT 1 FROM commerce_usdt_quotes q JOIN commerce_payment_claims p ON p.order_id=q.order_id AND p.provider='usdt_bsc' AND p.transaction_id=q.settled_hash WHERE q.order_id=? AND q.status='settled' AND q.credited_micros=q.amount_micros AND q.credit_reference_hash IS NOT NULL AND q.reviewer_id IS NOT NULL AND q.settled_hash=? AND p.verified_amount=? AND q.amount_toman*10=p.verified_amount");
         $q->execute([$id,$row['provider_trans_id'],$row['provider_amount']]);return (bool)$q->fetchColumn();
     }catch(Throwable $e){return false;}
+}
+
+/** The aliases p and o are fixed by the two publishing queries. Use the
+ * historical BitPay predicate when the additive USDT schema is absent. */
+function jrUsdtPublishingClaimPredicate(PDO $pdo): string {
+    if(!jrUsdtSchemaReady($pdo))return "p.provider='bitpay'";
+    return "(p.provider='bitpay' OR (p.provider='usdt_bsc'
+      AND o.provider_id_get=CONCAT('usdt:',o.id)
+      AND EXISTS (SELECT 1 FROM commerce_usdt_quotes uq
+       WHERE uq.order_id=o.id AND uq.status='settled'
+        AND uq.settled_hash=p.transaction_id AND uq.credited_micros=uq.amount_micros
+        AND uq.amount_toman*10=p.verified_amount AND uq.credit_reference_hash IS NOT NULL
+        AND uq.reviewer_id IS NOT NULL)))";
 }
