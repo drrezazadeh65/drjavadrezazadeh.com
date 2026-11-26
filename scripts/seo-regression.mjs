@@ -195,7 +195,7 @@ else{
     const searchEntries=JSON.parse(fs.readFileSync(searchIndexPath,'utf8'));
     const searchPaths=new Set();
     for(const entry of searchEntries){
-      if(!['en','fa'].includes(entry.lang)||!entry.path||!entry.title||!entry.summary) failures.push('/assets/search-index.json: incomplete search entry '+(entry.path||'unknown'));
+      if(!['en','fa','ar'].includes(entry.lang)||!entry.path||!entry.title||!entry.summary) failures.push('/assets/search-index.json: incomplete search entry '+(entry.path||'unknown'));
       const route='/'+String(entry.path).replace(/^\/+|\/+$/g,'')+'/';
       if(searchPaths.has(route)) failures.push('/assets/search-index.json: duplicate search path '+route);
       searchPaths.add(route);
@@ -205,7 +205,7 @@ else{
     }
     for(const url of sitemapUrls){
       let route=url.slice(sitePrefix.length)||'/';
-      if(route==='/'||!/^\/(?:en|fa|publisher|journal)\//.test(route)) continue;
+      if(route==='/'||!/^\/(?:en|fa|ar|publisher|journal)\//.test(route)) continue;
       if(!searchPaths.has(route)) failures.push('/assets/search-index.json: released public route missing from search index '+route);
     }
   }catch(e){

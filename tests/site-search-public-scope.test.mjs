@@ -51,3 +51,5 @@ test('public search index exposes no registered sensitive route families',()=>{
  assert.deepEqual(leaks,[]);
  assert.equal(new Set(index.map(x=>x.lang+':'+x.path)).size,index.length);
 });
+
+test('Arabic search accepts public localized paths and rejects private paths',()=>{const ar=scope('ar');assert.equal(ar.eligible({lang:'ar',path:'ar/services/academic_consult_60/'}),true);assert.equal(ar.eligible({lang:'ar',path:'ar/account/'}),false);assert.equal(ar.eligible({lang:'en',path:'en/books/'}),false);});

@@ -35,6 +35,12 @@ export function projectPublicPresentation(out,files){
     tags+='<script type="application/ld+json">'+JSON.stringify(schema).replaceAll('<','\\u003c')+'</script>';
    }
   }
+  if(/^\/(?:fa|en|ar)\/jrei(?:\/|$)/.test(p)&&html.includes('data-jrei-public-centre=')){
+   const language=attrs(html.match(/<html\b[^>]*>/i)?.[0]||'').lang;
+   const label={fa:'پرش به محتوای اصلی',en:'Skip to main content',ar:'انتقل إلى المحتوى الرئيسي'}[language];
+   if(label)html=html.replace(/(<a\b[^>]*class="skip"[^>]*href="#main"[^>]*>)[\s\S]*?(<\/a>)/i,(_,a,z)=>a+label+z);
+   fs.writeFileSync(file,html,'utf8');
+  }
   if(tags){html=html.replace(/<\/head\s*>/i,m=>tags+m);fs.writeFileSync(file,html,'utf8');enhanced++;}
  }
  return enhanced;

@@ -3,14 +3,14 @@ const form=document.querySelector('[data-site-search]');
 if(!form)return;
 // Reuse the public discovery engine for JHELA without creating a parallel index.
 const journalOnly=form.hasAttribute('data-journal-search');
-const safePublicPath=p=>typeof p==='string'&&(/^(?:fa|en|journal)\/(?:[a-zA-Z0-9_-]+\/)*$/.test(p)||p==='publisher/')&&!p.includes('..')&&!/^(?:fa\/(?:app|customer-dashboard|login|register|bazyabi-hesab|assessments|checkout|auth|private)\/|en\/(?:app|customer-dashboard|account|login|register|recover|checkout|auth|private)\/|(?:fa|en)\/(?:shop|services)\/(?:checkout|cart|payment-result|orders)\/|journal\/(?:fa\/)?(?:private|submission|submissions|manuscripts|reviewer-private|admin|account)\/)/.test(p);
-const eligible=x=>x&&safePublicPath(x.path)&&x.lang===(document.documentElement.lang==='fa'?'fa':'en')&&(!journalOnly||x.path.startsWith('journal/'))&&(x.path!=='publisher/'||x.lang==='en');
+const safePublicPath=p=>typeof p==='string'&&(/^(?:fa|en|ar|journal)\/(?:[a-zA-Z0-9_-]+\/)*$/.test(p)||p==='publisher/')&&!p.includes('..')&&!/^(?:fa\/(?:app|customer-dashboard|login|register|bazyabi-hesab|assessments|checkout|auth|private)\/|en\/(?:app|customer-dashboard|account|login|register|recover|checkout|auth|private)\/|ar\/(?:app|customer-dashboard|account|login|register|recover|checkout|auth|private|admin|assessment|assessments|workspace)\/|(?:fa|en|ar)\/(?:shop|services)\/(?:checkout|cart|payment-result|orders)\/|journal\/(?:fa\/)?(?:private|submission|submissions|manuscripts|reviewer-private|admin|account)\/)/.test(p);
+const eligible=x=>x&&safePublicPath(x.path)&&x.lang===(['fa','ar'].includes(document.documentElement.lang)?document.documentElement.lang:'en')&&(!journalOnly||x.path.startsWith('journal/'))&&(x.path!=='publisher/'||x.lang==='en');
 const input=form.querySelector('input[type="search"]');
 const category=form.querySelector('[data-search-category]');
 const clear=form.querySelector('[data-search-clear]');
 const results=document.querySelector('[data-search-results]');
-const lang=document.documentElement.lang==='fa'?'fa':'en';
-const locale=lang==='fa'?'fa-IR':'en-US';
+const lang=['fa','ar'].includes(document.documentElement.lang)?document.documentElement.lang:'en';
+const locale=lang==='fa'?'fa-IR':lang==='ar'?'ar':'en-US';
 const base=location.hostname.endsWith('github.io')?'/drjavadrezazadeh.com/':'/';
 
 const norm=s=>(s||'')
@@ -39,6 +39,8 @@ const synonymGroups=lang==='fa'?[
   ['معلم','مدرس','تدریس','آموزش'],
   ['والد','والدین','خانواده'],
   ['دانش آموز','دانش‌آموز','student']
+]:lang==='ar'?[
+  ['موهبة','قدرات','المسار الذهبي'],['بحث','مقالة','نشر','دراسة'],['استشارة','إرشاد','توجيه'],['تعليم','تدريس','معلم'],['ذكاء اصطناعي','JREI','تقنية']
 ]:[
   ['talent','strengths','golden talent','aptitude'],
   ['student guidance','major','major exploration','pathway','educational choice'],
@@ -61,7 +63,7 @@ function hydrateCategories(){
   const categories=[...new Set(data.filter(eligible).map(x=>x.category).filter(Boolean))]
     .sort((a,b)=>a.localeCompare(b,locale));
   const current=category.value;
-  category.innerHTML='<option value="">'+(lang==='fa'?'همه دسته‌ها':'All categories')+'</option>'+
+  category.innerHTML='<option value="">'+(lang==='fa'?'همه دسته‌ها':lang==='ar'?'جميع الفئات':'All categories')+'</option>'+
     categories.map(c=>'<option value="'+esc(c)+'">'+esc(c)+'</option>').join('');
   if(categories.includes(current))category.value=current;
 }
@@ -110,7 +112,7 @@ function run(){
   const q=norm(input.value);
   const selected=category?.value||'';
   if(!q){
-    results.innerHTML='<p class="form-note">'+(lang==='fa'?'برای جست‌وجو یک عبارت وارد کنید.':'Enter a term to search the public website.')+'</p>';
+    results.innerHTML='<p class="form-note">'+(lang==='fa'?'برای جست‌وجو یک عبارت وارد کنید.':lang==='ar'?'أدخل عبارة للبحث في الموقع العام.':'Enter a term to search the public website.')+'</p>';
     return;
   }
   const terms=expandedTerms(q);
@@ -124,12 +126,12 @@ function run(){
   if(!ranked.length){
     const discovery=journalOnly ? '<div class="actions"><a class="button" href="'+base+(lang==='fa'?'journal/fa/':'journal/')+'">'+(lang==='fa'?'صفحه اصلی مجله':'Journal home')+'</a></div>' : lang==='fa'
       ? '<div class="actions"><a class="button" href="'+base+'fa/rahnamaha/">راهنماها</a><a class="button" href="'+base+'fa/khadamat/">خدمات</a><a class="button" href="'+base+'fa/tamas/">تماس</a></div>'
-      : '<div class="actions"><a class="button" href="'+base+'en/news-insights/">News & Insights</a><a class="button" href="'+base+'en/services/">Services</a><a class="button" href="'+base+'en/contact/">Contact</a></div>';
-    results.innerHTML='<p class="form-note">'+(lang==='fa'?'نتیجه‌ای در صفحات عمومی پیدا نشد. عبارت کوتاه‌تر یا دسته دیگری را امتحان کنید.':'No matching public page was found. Try a shorter phrase or another category.')+'</p>'+discovery;
+      : lang==='ar'?'<div class="actions"><a href="/ar/services/">الخدمات</a> · <a href="/ar/contact/">التواصل</a></div>':'<div class="actions"><a class="button" href="'+base+'en/news-insights/">News & Insights</a><a class="button" href="'+base+'en/services/">Services</a><a class="button" href="'+base+'en/contact/">Contact</a></div>';
+    results.innerHTML='<p class="form-note">'+(lang==='fa'?'نتیجه‌ای در صفحات عمومی پیدا نشد. عبارت کوتاه‌تر یا دسته دیگری را امتحان کنید.':lang==='ar'?'لم نجد نتيجة. جرّب عبارة أقصر أو فئة أخرى.':'No matching public page was found. Try a shorter phrase or another category.')+'</p>'+discovery;
     return;
   }
 
-  const count=lang==='fa'?(ranked.length+' نتیجه عمومی'):(ranked.length+' public result'+(ranked.length===1?'':'s'));
+  const count=lang==='fa'?(ranked.length+' نتیجه عمومی'):lang==='ar'?(ranked.length+' نتيجة'):(ranked.length+' public result'+(ranked.length===1?'':'s'));
   results.innerHTML='<p class="form-note" role="status">'+esc(count)+'</p><div class="related-cluster-grid">'+
     ranked.map(({x})=>'<a href="'+esc(base+x.path)+'"><b>'+esc(x.title)+'</b><span>'+esc(x.category)+' · '+esc(x.summary)+'</span></a>').join('')+
     '</div>';
@@ -148,7 +150,7 @@ fetch(base+'assets/search-index.json',{cache:'no-cache'})
     if(c&&category&&[...category.options].some(o=>o.value===c))category.value=c;
     run();
   })
-  .catch(()=>{results.innerHTML='<p class="form-note">'+(lang==='fa'?'فهرست جست‌وجو فعلاً در دسترس نیست.':'Search index is temporarily unavailable.')+'</p>'});
+  .catch(()=>{results.innerHTML='<p class="form-note">'+(lang==='fa'?'فهرست جست‌وجو فعلاً در دسترس نیست.':lang==='ar'?'فهرس البحث غير متاح مؤقتاً.':'Search index is temporarily unavailable.')+'</p>'});
 
 form.addEventListener('submit',e=>{e.preventDefault();run()});
 input.addEventListener('input',()=>{window.clearTimeout(input._t);input._t=window.setTimeout(run,140)});

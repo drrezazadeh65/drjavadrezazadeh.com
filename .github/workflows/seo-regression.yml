@@ -25,6 +25,8 @@ jobs:
         run: node scripts/growth-discovery-release-audit.mjs
       - name: Verify frozen deployment contract and news source gate
         run: node --test tests/growth-release-protection.test.mjs
+      - name: Project all canonical public search routes
+        run: node scripts/project-search-index.mjs
       - name: Run source SEO/GEO regression audit
         run: node scripts/seo-regression.mjs
       - name: Validate all 54 bilingual service/VIP pages against canonical prices and crawl contracts
@@ -89,10 +91,12 @@ jobs:
         run: node scripts/llms-txt-audit.mjs
       - name: Run AI/search crawler policy audit
         run: node scripts/ai-crawler-policy-audit.mjs
+      - name: Build exact public artifact for metadata and accessibility audit
+        run: node scripts/build-public-site.mjs
       - name: Run metadata uniqueness and content-identity audit
-        run: node scripts/metadata-uniqueness-audit.mjs
+        run: JR_PUBLIC_ARTIFACT=.public-site node scripts/metadata-uniqueness-audit.mjs
       - name: Run accessibility source audit
-        run: node scripts/accessibility-source-audit.mjs
+        run: JR_PUBLIC_ARTIFACT=.public-site node scripts/accessibility-source-audit.mjs
       - name: Run performance source audit
         run: node scripts/performance-source-audit.mjs
       - name: Run committed-secret exposure audit

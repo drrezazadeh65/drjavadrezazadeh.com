@@ -11,6 +11,7 @@ import {includeJreiAssistant} from './jrei-public-assistant-surface.mjs';
 import {fingerprintCoreStyles} from './release-fingerprint-core-styles.mjs';
 import {bundleOwnerStyles} from './release-bundle-owner-styles.mjs';
 import {validateArabicPublicRoutes,applyPublicLocaleNavigation} from './jr-public-locale-navigation.mjs';
+import {projectSearchIndex} from './project-search-index.mjs';
 import {projectPublicPresentation} from './jr-public-presentation-v1.mjs';
 import {applyBusinessContact,auditPublicRelease} from './jr-business-contact-v1.mjs';
 
@@ -944,6 +945,7 @@ for(const file of html){
 }
 console.log('Adaptive layout stylesheet added to '+adaptiveCount+' HTML routes');
 console.log('Public sharing metadata enhanced:',projectPublicPresentation(out,html));
+projectSearchIndex(out);
 const businessContactReport=applyBusinessContact(out,html,failures);
 console.log('Public WhatsApp Business contact:',JSON.stringify({enhanced:businessContactReport.enhanced,skipped:businessContactReport.skipped,byLanguage:businessContactReport.byLanguage}));
 const releaseAudit=auditPublicRelease(out,html);

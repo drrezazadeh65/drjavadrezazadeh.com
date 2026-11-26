@@ -22,6 +22,7 @@ function walk(dir){
  for(const ent of fs.readdirSync(dir,{withFileTypes:true})){
   if(['.git','node_modules','.public-site','identity','proposals','work','test-results'].includes(ent.name)) continue;
   const p=path.join(dir,ent.name);
+  if(ent.isDirectory()&&path.relative(root,p).replaceAll(path.sep,'/')==='docs/jrei-academic/source-preview')continue;
   if(ent.isDirectory()) walk(p);
   else if(ent.isFile()&&ent.name.endsWith('.html') &&
       !isOwnershipVerificationArtifact(path.relative(root,p))) html.push(p);
@@ -30,7 +31,7 @@ function walk(dir){
 walk(root);
 const noindex=html.filter(p=>/name=["']robots["'][^>]*content=["'][^"']*noindex/i.test(fs.readFileSync(p,'utf8'))).length;
 const indexable=html.length-noindex;
-const sitemapFiles=['sitemap-core.xml','journal/sitemap.xml','sitemap-fa.xml','sitemap-en.xml','sitemap-news.xml','sitemap-services.xml'];
+const sitemapFiles=['sitemap-core.xml','journal/sitemap.xml','sitemap-fa.xml','sitemap-en.xml','sitemap-news.xml','sitemap-services.xml','sitemap-ar.xml','sitemap-jrei.xml'];
 const sitemapUrls=new Set();
 for(const f of sitemapFiles){
  const p=path.join(root,f); if(!fs.existsSync(p)) continue;
