@@ -4,6 +4,7 @@ on:
     branches: [migration/bertina-linux6]
     paths:
       - 'scripts/jrei-experience-v2.mjs'
+      - 'scripts/jrei-candidate-lab.mjs'
       - 'scripts/build-public-site.mjs'
       - 'assets/css/jrei-experience-v2.css'
       - 'assets/js/jrei-experience-v2.js'
@@ -40,3 +41,34 @@ jobs:
           name: jrei-experience-v2-diagnostics
           path: test-results/
           retention-days: 7
+
+  candidate-lab:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        locale: [fa, en, ar]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node scripts/build-public-site.mjs
+      - run: npm install --no-save --ignore-scripts lighthouse@13.6.0
+      - name: Measure local release candidate, not production
+        env:
+          CANDIDATE_LOCALE: ${{ matrix.locale }}
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 --directory .public-site >/tmp/jrei-candidate-http.log 2>&1 &
+          curl -fsS --retry 10 --retry-connrefused --retry-delay 1 http://127.0.0.1:4173/ >/dev/null
+          node scripts/jrei-candidate-lab.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: jrei-candidate-lab-${{ matrix.locale }}
+          path: jrei-candidate-lab-results/
+          retention-days: 14

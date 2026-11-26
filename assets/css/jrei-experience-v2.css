@@ -141,3 +141,17 @@ body[data-jrei-public-centre] .tile[data-jx-domain]:focus-within{content-visibil
  .jx-core::after,.jx-lines{animation:none}.jx-scene{box-shadow:0 8px 24px #0004}
 }
 @media(prefers-reduced-motion:reduce){.jx-demo *,.jx-evidence *{animation:none!important;transition:none!important}}
+
+/* Correct the observed Lighthouse contrast failure on the dark commercial surface. */
+body:is([data-jrei-public-centre],[data-jrei-launch]) aside.jr-related-links{background:#101e2c;color:#e9f2f8;border-color:#506a7b}
+body:is([data-jrei-public-centre],[data-jrei-launch]) aside.jr-related-links>p{color:#f1f7fb}
+body:is([data-jrei-public-centre],[data-jrei-launch]) :is(aside.jr-related-links a,a.jr-context-link){color:#f2d99f;text-decoration:underline}
+body:is([data-jrei-public-centre],[data-jrei-launch]) :is(aside.jr-related-links a,a.jr-context-link):hover{color:#fff0c8}
+body[data-jrei-public-centre] .hero .jx-value{font-size:clamp(1.1rem,1.8vw,1.6rem);font-weight:650;color:#bdebe5;line-height:1.55;margin:.5rem 0}
+.jx-demo-result [data-jx-rule-output]{color:#dce8f0;font-size:.87rem;line-height:1.8;margin:.25rem 0 0;overflow-wrap:anywhere}
+.jx-buyer{border-block-start:1px solid #36505e;padding-block:1.5rem}
+.jx-buyer details{margin:.55rem 0;border:1px solid #4c687a;border-radius:12px;background:#111e2b;padding:0 .95rem}
+.jx-buyer summary{min-height:48px;padding:.65rem 0;color:#edf7fa;cursor:pointer;font-weight:650}
+.jx-buyer summary:focus-visible{outline:3px solid #d4fff8;outline-offset:1px}
+.jx-buyer details p{color:#c9d9e5;margin:.5rem 0 1rem}
+@media(max-width:440px){.jx-demo-label select{font-size:14px;font-weight:600;padding-inline:.35rem;min-height:48px}}
