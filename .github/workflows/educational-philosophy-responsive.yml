@@ -1,0 +1,87 @@
+name: Educational philosophy responsive certification (No Deployment)
+
+on:
+  push:
+    branches: [migration/bertina-linux6]
+    paths:
+      - 'fa/falsafe-amoozeshi/index.html'
+      - 'en/educational-philosophy/index.html'
+      - 'ar/educational-philosophy/index.html'
+      - '.github/workflows/educational-philosophy-responsive.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+
+concurrency:
+  group: philosophy-responsive-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  certify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install pinned Playwright runtime
+        run: npm install --no-save @playwright/test@1.56.0
+      - name: Install Chromium
+        timeout-minutes: 15
+        shell: bash
+        run: |
+          set -e
+          for attempt in 1 2; do
+            echo "Chromium install attempt $attempt"
+            if timeout 420s npx playwright install chromium; then
+              exit 0
+            fi
+            if [ "$attempt" = "2" ]; then
+              echo "Chromium installation failed after retry."
+              exit 1
+            fi
+            sleep 8
+          done
+      - name: Build sanitized site for browser certification
+        run: node scripts/build-public-site.mjs
+      - name: Start local static site
+        run: |
+          python3 -m http.server 4173 --bind 127.0.0.1 --directory .public-site > /tmp/drsite-http.log 2>&1 &
+          for i in {1..20}; do
+            if curl -fsS http://127.0.0.1:4173/ >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/drsite-http.log
+          exit 1
+      - name: Certify all three philosophy routes using the unmodified full-route suite
+        shell: bash
+        run: |
+          set +e
+          set -o pipefail
+          SITE_ARTIFACT_ROOT=.public-site npx playwright test tests/full-route-responsive.spec.js --grep 'responsive certification /(fa/falsafe-amoozeshi|en/educational-philosophy|ar/educational-philosophy)/ 2>&1 | tee /tmp/full-route-responsive.log
+          status=${PIPESTATUS[0]}
+          mkdir -p test-results/full-route-responsive
+          cp /tmp/full-route-responsive.log test-results/full-route-responsive/
+          exit "$status"
+      - name: Upload failure evidence
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: philosophy-responsive-evidence
+          path: test-results/full-route-responsive
+          if-no-files-found: ignore
+          retention-days: 14
+ --workers=1 --reporter=line 2>&1 | tee /tmp/full-route-responsive.log
+          status=${PIPESTATUS[0]}
+          mkdir -p test-results/full-route-responsive
+          cp /tmp/full-route-responsive.log test-results/full-route-responsive/
+          exit "$status"
+      - name: Upload failure evidence
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: philosophy-responsive-evidence
+          path: test-results/full-route-responsive
+          if-no-files-found: ignore
+          retention-days: 14
