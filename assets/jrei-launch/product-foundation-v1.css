@@ -40,3 +40,8 @@ body[data-jrei-launch] .jr-wa-business p{color:var(--ink)}
 @media(max-width:800px){.workspace-grid,.audience-grid,.workflow-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.product-visual{width:100%;max-width:650px;margin-inline:auto}.product-visual .hero-art{max-height:none}.product-actions>*{flex:1 1 150px}}
 @media(max-width:480px){.workspace-grid,.audience-grid,.workflow-grid{grid-template-columns:minmax(0,1fr)}.productbar nav{width:100%;display:flex;flex-wrap:wrap}.productbar nav a{font-size:.8rem;min-height:44px}.product-section{margin-block:32px}.product-primary,.product-secondary{width:100%}.product-showcase img{min-height:112px;object-fit:cover}.product-visual .hero-art{max-height:none}}
 @media(prefers-reduced-motion:reduce){body[data-jrei-launch] *{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+
+/* Restore licensed local RTL typography independently of the commercial theme. */
+@font-face{font-family:"JREI Persian";src:url("/assets/fonts/vazirmatn-variable-a501289a8559.woff2") format("woff2");font-weight:100 900;font-style:normal;font-display:swap}
+html:is([lang="fa"],[lang="ar"]) body[data-jrei-launch]{font-family:"JREI Persian",Tahoma,Arial,sans-serif;line-height:1.9}
+html:is([lang="fa"],[lang="ar"]) body[data-jrei-launch] :is(h1,h2,h3,p,summary,nav a,.product-actions a){font-family:"JREI Persian",Tahoma,Arial,sans-serif;letter-spacing:normal}

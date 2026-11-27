@@ -150,6 +150,7 @@ for(const l of ['fa','en','ar'])test('independent launch identity and artwork st
   for(const width of [390,1440]){await page.setViewportSize({width,height:844});await page.goto(base+'/'+l+'/'+route+'/',{waitUntil:'load'});
    await expect(page.locator('body')).toHaveClass(new RegExp('\\b'+cls+'\\b'));await expect(page.locator('.hero-art')).toBeVisible();await expect.poll(()=>page.locator('.hero-art').evaluate(e=>e.complete&&e.naturalWidth>0)).toBe(true);
    await expect(page.locator('link[href*="jrei-experience-v2.css"]')).toHaveCount(0);await expect(page.locator('[data-jx-studio],.jx-nav')).toHaveCount(0);
+   if(l!=='en'){const font=await page.locator('h1').evaluate(async e=>{const faces=await document.fonts.load('700 20px "JREI Persian"','هوش مصنوعی');return {family:getComputedStyle(e).fontFamily,loaded:faces.length>0&&faces.every(f=>f.status==='loaded')};});expect(font.family).toContain('JREI Persian');expect(font.loaded).toBe(true);}
    expect(await page.locator('.hero').evaluate(e=>getComputedStyle(e).backgroundColor)).toBe(deep);expect(await page.locator('body').evaluate(e=>getComputedStyle(e).backgroundColor)).toBe(paper);
    expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);await page.screenshot({path:testInfo.outputPath(l+'-'+cls+'-'+width+'.png')});
   }
