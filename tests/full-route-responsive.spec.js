@@ -68,10 +68,24 @@ for(const route of routes){
         if(!/ERR_ABORTED|interrupted by another navigation/i.test(message)) throw error;
         await page.waitForLoadState('domcontentloaded',{timeout:5000}).catch(()=>{});
       }
-      // Measure the rendered release, not the unstyled document during stylesheet/font download.
-      // Missing styles or fonts must not silently satisfy the geometry checks.
-      await page.waitForLoadState('load',{timeout:15000});
-      await page.evaluate(()=>document.fonts.ready);
+      // Wait for the inputs to layout, not unrelated remote images, analytics,
+      // widgets or the global load event. Missing local CSS must fail certification.
+      await page.waitForFunction(()=>document.readyState!=='loading'&&
+        [...document.querySelectorAll('link[rel~="stylesheet"]')].every(link=>{
+          if(link.disabled||link.relList.contains('alternate')||(link.media&&!matchMedia(link.media).matches))return true;
+          const url=new URL(link.href,location.href);
+          return url.origin!==location.origin||Boolean(link.sheet);
+        }),{},{timeout:12000});
+      // The Persian/Arabic JREI font affects the measured shell. Verify the
+      // actual local face, with a bounded wait; never accept a missing face.
+      if(await page.locator('html[lang="fa"] body[data-jrei-public-centre],html[lang="ar"] body[data-jrei-public-centre],html[lang="fa"] body[data-jrei-launch],html[lang="ar"] body[data-jrei-launch]').count()){
+        const loaded=await page.evaluate(async()=>{
+          const face='700 20px "JREI Persian"';
+          const faces=await document.fonts.load(face,'هوش مصنوعی');
+          return faces.length>0&&faces.every(f=>f.status==='loaded')&&document.fonts.check(face,'هوش مصنوعی');
+        });
+        expect(loaded,route+' '+label+' local Persian font').toBe(true);
+      }
       await page.waitForTimeout(140);
 
       // Some public routes legitimately redirect on first load. Retry only

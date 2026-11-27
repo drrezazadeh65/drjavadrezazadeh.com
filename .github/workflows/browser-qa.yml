@@ -77,8 +77,16 @@ jobs:
           node-version: '22'
       - name: Install pinned browser test runtime
         run: npm install --no-save @playwright/test@1.56.0
-      - name: Install Chromium
-        run: npx playwright install --with-deps chromium
+      - name: Install Chromium and verify executable
+        run: |
+          npx playwright install chromium
+          smoke() {
+            node -e 'const {chromium}=require("@playwright/test"); (async()=>{const b=await chromium.launch();try{const p=await b.newPage();await p.setContent("<main>ready</main>");if(await p.locator("main").textContent()!=="ready")throw Error("Chromium smoke failed");}finally{await b.close();}})().catch(e=>{console.error(e);process.exit(1);})'
+          }
+          if ! smoke; then
+            npx playwright install --with-deps chromium
+            smoke
+          fi
       - name: Start local static site
         run: |
           python3 -m http.server 4173 --bind 127.0.0.1 > /tmp/drsite-http.log 2>&1 &
