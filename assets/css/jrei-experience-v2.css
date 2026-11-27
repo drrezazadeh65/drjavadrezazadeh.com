@@ -186,3 +186,18 @@ html:is([lang="fa"],[lang="ar"]) .jx-core small{font-size:.58rem}}
 
 /* Explicit wide launch geometry; retain readable text and bounded illustrations. */
 @media(min-width:1500px){body[data-jrei-launch]:is(.academic,.forge,.seo) .hero>.wrap,body[data-jrei-launch]:is(.academic,.forge,.seo) main>.wrap{width:94%;max-width:none;margin-inline:auto}body[data-jrei-launch] .hero .wrap>div{max-inline-size:76ch}body[data-jrei-launch] .hero-art{width:100%;max-width:680px;justify-self:center}}
+
+/* Mobile-first rendering budget: preserve the gold identity and all controls.
+   Static architecture diagram on phones; motion remains available on desktop.
+   Avoid large blur/filter surfaces and full-card compositing during first paint. */
+@media(max-width:800px){
+ body:is([data-jrei-public-centre],[data-jrei-launch]) .hero::before{mask-image:none;background-size:44px 44px;opacity:.45}
+ body:is([data-jrei-public-centre],[data-jrei-launch]) .hero::after{display:none}
+ body:is([data-jrei-public-centre],[data-jrei-launch]) :is(.jx-scene,.jx-lines,.hero-art,.jx-case-content){animation:none;transition:none}
+ body:is([data-jrei-public-centre],[data-jrei-launch]) :is(.jx-scene,.jx-studio,.tile,.feature,.product){box-shadow:none}
+ body:is([data-jrei-public-centre],[data-jrei-launch]) .jx-core{box-shadow:none}
+ body:is([data-jrei-public-centre],[data-jrei-launch]) .jx-core::after{animation:none}
+ body[data-jrei-launch] .hero-art{filter:grayscale(1) sepia(.30)}
+ body:is([data-jrei-public-centre],[data-jrei-launch]) :is(.jx-scene,.jx-studio){background:linear-gradient(145deg,#24211c,#111112)}
+ body:is([data-jrei-public-centre],[data-jrei-launch]) .hero{background:linear-gradient(150deg,#282117,#101012 65%)}
+}

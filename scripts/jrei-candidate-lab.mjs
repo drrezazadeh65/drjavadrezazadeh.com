@@ -3,13 +3,13 @@
 import fs from 'node:fs';
 import {spawnSync} from 'node:child_process';
 const locale=process.env.CANDIDATE_LOCALE;
-if(!['fa','en','ar'].includes(locale))throw Error('INVALID_CANDIDATE_LOCALE');
-const url='http://127.0.0.1:4173/'+locale+'/jrei/',dir='jrei-candidate-lab-results';
+if(!['fa','en','ar','fa-home'].includes(locale))throw Error('INVALID_CANDIDATE_LOCALE');
+const url='http://127.0.0.1:4173/'+(locale==='fa-home'?'fa/':locale+'/jrei/'),dir='jrei-candidate-lab-results';
 fs.mkdirSync(dir,{recursive:true});
 const res=await fetch(url,{redirect:'error',signal:AbortSignal.timeout(5000)});
-if(!res.ok||!(await res.text()).includes('data-jx-rule-output'))throw Error('CANDIDATE_BUILD_NOT_CURRENT');
+if(!res.ok||!(await res.text()).includes(locale==='fa-home'?'jr-mobile-first-runtime-v1.css':'data-jx-rule-output'))throw Error('CANDIDATE_BUILD_NOT_CURRENT');
 const records=[];
-for(const [strategy,sample] of [['mobile',1],['mobile',2],['desktop',1]]){
+for(const [strategy,sample] of [['mobile',1],['mobile',2],['mobile',3],['desktop',1]]){
  const file=dir+'/'+strategy+'-'+sample+'.json';
  const run=spawnSync(process.execPath,['node_modules/lighthouse/cli/index.js',url,'--quiet','--output=json','--output-path='+file,'--chrome-flags=--headless=new --no-sandbox','--only-categories=performance,accessibility,best-practices,seo','--max-wait-for-load=45000','--port=0',...(strategy==='desktop'?['--preset=desktop']:[])],{encoding:'utf8',timeout:120000,maxBuffer:1000000});
  try{
@@ -23,7 +23,11 @@ for(const [strategy,sample] of [['mobile',1],['mobile',2],['desktop',1]]){
  }catch(e){records.push({strategy,sample,status:'unavailable',reason:String(e.message).slice(0,120)});}
  finally{fs.rmSync(file,{force:true});}
 }
-const report={schema:'jr.jrei.candidate-lab.v1',sourceCommit:process.env.GITHUB_SHA||null,url,scope:'SANITIZED_LOCAL_CANDIDATE_NOT_PRODUCTION_OR_CRUX',records};
+const samples=records.filter(r=>r.strategy==='mobile'&&r.status==='observed');
+const median=values=>{const a=values.filter(Number.isFinite).sort((a,b)=>a-b);return a.length===3?a[1]:null;};
+const mobileSummary={samples:samples.length,medianPerformance:median(samples.map(r=>r.scores.performance)),medianTbtMs:median(samples.map(r=>r.tbtMs)),medianCls:median(samples.map(r=>r.cls)),targetPerformance:95,targetTbtMs:200};
+mobileSummary.meetsTarget=mobileSummary.samples===3&&mobileSummary.medianPerformance>=95&&mobileSummary.medianTbtMs<=200&&mobileSummary.medianCls<=.1;
+const report={mobileSummary,schema:'jr.jrei.candidate-lab.v1',sourceCommit:process.env.GITHUB_SHA||null,url,scope:'SANITIZED_LOCAL_CANDIDATE_NOT_PRODUCTION_OR_CRUX',records};
 fs.writeFileSync(dir+'/report.json',JSON.stringify(report,null,2)+'\n');
 console.log('JREI_CANDIDATE_LAB='+JSON.stringify(report));
-if(records.some(r=>r.status!=='observed'))process.exitCode=1;
+if(records.some(r=>r.status!=='observed')||!mobileSummary.meetsTarget){console.error('MOBILE_CANDIDATE_TARGET_NOT_MET');process.exitCode=1;}

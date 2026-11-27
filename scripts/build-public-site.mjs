@@ -962,6 +962,12 @@ for(const file of html){
 console.log('Adaptive layout stylesheet added to '+adaptiveCount+' HTML routes');
 console.log('JREI experience coverage:',JSON.stringify(applyJreiExperience(out,html,failures)));
 console.log('Public sharing metadata enhanced:',projectPublicPresentation(out,html));
+// Explicit home scope: do not touch protected newsroom, private or payment routes.
+for(const rel of ['index.html','fa/index.html','en/index.html']){
+ const file=path.join(out,rel);const source=fs.readFileSync(file,'utf8');
+ if(!source.includes('/assets/css/jr-mobile-first-runtime-v1.css'))
+  fs.writeFileSync(file,source.replace(/<\/head>/i,tag=>'<link rel="stylesheet" href="/assets/css/jr-mobile-first-runtime-v1.css?v=1">'+tag),'utf8');
+}
 projectSearchIndex(out);
 const businessContactReport=applyBusinessContact(out,html,failures);
 const usdtInvoiceEnquiryReport=applyUsdtInvoiceEnquiries(out,html,failures);

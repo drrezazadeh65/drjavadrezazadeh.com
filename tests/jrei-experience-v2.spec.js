@@ -85,3 +85,28 @@ test('Obsidian Champagne visual identity uses local Persian typography across th
 });
 
 test('wide launch geometry remains valid after fonts load',async({page})=>{for(const l of ['fa','en','ar'])for(const route of ['forge/','jrei-academic/','jrei/seo/']){for(const width of [2560,3840]){await page.setViewportSize({width,height:1080});await page.goto(base+'/'+l+'/'+route,{waitUntil:'load'});await page.evaluate(()=>document.fonts.ready);const geometry=await page.locator('.hero>.wrap').evaluate(e=>({width:e.getBoundingClientRect().width,viewport:innerWidth,overflow:document.documentElement.scrollWidth-innerWidth}));expect(geometry.width).toBeGreaterThanOrEqual(width*.8);expect(geometry.overflow).toBeLessThanOrEqual(1);}}});
+
+test('mobile rendering budget preserves native controls and identity',async({page})=>{
+ await page.setViewportSize({width:390,height:844});
+ for(const locale of ['fa','en','ar']){
+  await page.goto(base+'/'+locale+'/jrei/');
+  await expect(page.locator('.jx-scene')).toBeVisible();
+  expect(await page.locator('.jx-scene').evaluate(e=>getComputedStyle(e).animationName)).toBe('none');
+  expect(await page.locator('.jx-scene').evaluate(e=>getComputedStyle(e).boxShadow)).toBe('none');
+  await expect(page.locator('[data-jx-demo]')).toBeVisible();
+  await page.locator('[data-jx-filter="1"]').click();
+  await expect(page.locator('[data-jx-domain]:visible')).toHaveCount(5);
+  await page.locator('[data-jx-filter="-1"]').click();
+  await expect(page.locator('[data-jx-domain]:visible')).toHaveCount(30);
+  await page.locator('[data-jx-search]').fill('zzzzzzzzzzz');
+  await expect(page.locator('[data-jx-domain]:visible')).toHaveCount(0);
+  await page.locator('[data-jx-search]').fill('');
+  await expect(page.locator('[data-jx-domain]:visible')).toHaveCount(30);
+ }
+ await page.goto(base+'/fa/',{waitUntil:'domcontentloaded'});
+ await expect(page.locator('h1')).toBeVisible();
+ await expect(page.locator('main .hero')).toBeVisible();
+ expect(await page.locator('.site-header').evaluate(e=>getComputedStyle(e).backdropFilter)).toBe('none');
+ await expect(page.locator('a[href="/fa/jrei/"]').first()).toBeAttached();
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
+});

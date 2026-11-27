@@ -7,6 +7,7 @@ on:
       - 'scripts/jrei-candidate-lab.mjs'
       - 'scripts/build-public-site.mjs'
       - 'assets/css/jrei-experience-v2.css'
+      - 'assets/css/jr-mobile-first-runtime-v1.css'
       - 'assets/js/jrei-experience-v2.js'
       - 'tests/jrei-experience-v2*'
       - '.github/workflows/jrei-experience-v2-qa.yml'
@@ -49,7 +50,7 @@ jobs:
       fail-fast: false
       max-parallel: 2
       matrix:
-        locale: [fa, en, ar]
+        locale: [fa, en, ar, fa-home]
     steps:
       - uses: actions/checkout@v4
         with:

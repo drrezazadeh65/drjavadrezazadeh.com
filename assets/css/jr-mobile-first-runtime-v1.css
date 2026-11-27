@@ -1,0 +1,21 @@
+/* Mobile-first rendering budget for public home pages only.
+   Preserve navigation, PWA controls, link targets, accessibility and content.
+   Opaque surfaces avoid expensive full-viewport backdrop compositing.
+   The homepage is static HTML: no deferred or hidden editorial content. */
+@media(max-width:800px){
+ body.public-home-page :is(.site-header,.app-dock,.gt-mobile-dock,.pwa-install,.mobile-app-sheet,.home-nav-menu){
+  -webkit-backdrop-filter:none!important;backdrop-filter:none!important;
+ }
+ body.public-home-page :is(.site-header,.app-dock,.gt-mobile-dock,.pwa-install,.home-nav-menu){background:#10100f!important;box-shadow:0 2px 8px #0003!important}
+ body.public-home-page .mobile-app-sheet{background:rgba(10,10,10,.97)}
+ body.public-home-page :is(.hero,.portrait-shell,.home-account-strip,.home-focus-strip,.audience-gate,.service-card,.news-card,.jr-choice-discovery){
+  box-shadow:none!important;
+ }
+ body.public-home-page .hero-portrait{filter:none!important}
+ body.public-home-page .hero-pathway-cta .button{box-shadow:none!important}
+ body.public-home-page .hero .eyebrow::before{box-shadow:none}
+ body.public-home-page .audience-gate::after{box-shadow:none}
+}
+@media(max-width:800px) and (prefers-color-scheme:light){
+ body.public-home-page[data-theme="light"] :is(.site-header,.app-dock,.gt-mobile-dock,.home-nav-menu){background:#fff!important}
+}
