@@ -69,7 +69,8 @@ export function projectPremium(l,relative,html,map){
    const featured=['automation','desktop','distributed','local-ai','security','recovery','plugins','api'];
    const cards=[...content.matchAll(/<li id="([^"]+)"[\s\S]*?<\/li>/g)];
    if(cards.length!==35)throw Error('Featured gallery inventory');
-   const rank=id=>featured.includes(id)?featured.indexOf(id):featured.length+cards.findIndex(row=>row[1]===id);
+   const originalOrder=new Map(cards.map((row,i)=>[row[1],i]));
+   const rank=id=>featured.includes(id)?featured.indexOf(id):featured.length+originalOrder.get(id);
    content=cards.sort((x,y)=>rank(x[1])-rank(y[1])).map(row=>row[0]).join('');
    return '<ul class="orderlist jp-grid jp-featured-grid">'+content+'</ul>';
   }
