@@ -112,13 +112,14 @@ test('mobile rendering budget preserves native controls and identity',async({pag
 });
 
 for(const l of ['fa','en','ar'])test('premium service gallery preserves every service price and exact detail target '+l,async({page,request},testInfo)=>{
+ test.setTimeout(120000);
  await page.setViewportSize({width:390,height:844});
  await page.goto(base+'/'+l+'/jrei/order/#automation');
  const list=page.locator('.orderlist.jp-featured-grid'),cards=list.locator(':scope > li.jp-card');
  await expect(cards).toHaveCount(35);
  await expect(list.locator('#automation .jp-secondary')).toHaveAttribute('href','/'+l+'/jrei/catalog/automation/');
  await expect(list.locator('#automation .jp-primary')).toHaveAttribute('href',/^mailto:/);
- for(const slug of ['automation','desktop','distributed','local-ai','security','recovery','plugins','api']){
+ for(const slug of ["architecture","language","memory","adaptive-context","knowledge","agents","coding","education","assessment","talent","research","academic-writing","data","vision","audio","documents","web","search","search-visibility","marketing","news","automation","desktop","distributed","local-ai","security","recovery","plugins","api","enterprise"]){
   const card=list.locator('#'+slug);await card.scrollIntoViewIfNeeded();
   await expect(card.locator('.jp-title')).toBeVisible();
   await expect(card.locator('.price')).toBeVisible();
