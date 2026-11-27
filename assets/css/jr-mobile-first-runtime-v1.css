@@ -19,3 +19,10 @@
 @media(max-width:800px) and (prefers-color-scheme:light){
  body.public-home-page[data-theme="light"] :is(.site-header,.app-dock,.gt-mobile-dock,.home-nav-menu){background:#fff!important}
 }
+
+/* Cold mobile visits: preload the same licensed Persian display font on /fa/.
+   Optional display prevents a late font swap from shifting the entire main area.
+   Keep desktop typography, all text and all navigation unchanged. */
+@media(max-width:800px){
+ @font-face{font-family:"JR Persian Display";src:url("/assets/fonts/vazirmatn-variable-a501289a8559.woff2") format("woff2");font-weight:100 900;font-style:normal;font-display:optional}
+}
