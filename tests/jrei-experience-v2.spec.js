@@ -1,4 +1,4 @@
-const {test,expect}=require('@playwright/test');const base=process.env.SITE_BASE_URL||'http://127.0.0.1:4173';test.use({serviceWorkers:'block'});for(const l of ['fa','en','ar'])test('JREI interaction '+l,async({page})=>{await page.goto(base+'/'+l+'/jrei/');await expect(page.locator('.jx-scene')).toBeVisible();await expect(page.locator('[data-jx-domain]')).toHaveCount(30);await expect(page.locator('[data-jx-toolbar]')).toBeVisible();await page.locator('[data-jx-filter="1"]').click();await expect(page.locator('[data-jx-domain]:visible')).toHaveCount(5);await page.locator('[data-jx-search]').fill('zzzzzzzzzzz');await expect(page.locator('[data-jx-domain]:visible')).toHaveCount(0);await page.locator('[data-jx-search]').fill('');await page.locator('[data-jx-filter="-1"]').click();await expect(page.locator('[data-jx-domain]:visible')).toHaveCount(30);for(const width of [280,390,768,1440,1920]){await page.setViewportSize({width,height:844});expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);}await page.emulateMedia({reducedMotion:'reduce'});expect(await page.locator('.jx-scene').evaluate(e=>getComputedStyle(e).animationName)).toBe('none');await page.goto(base+'/'+l+'/jrei/order/#agents');await expect(page.locator('#agents')).toBeVisible();await expect(page.locator('[data-jx-search]')).toBeVisible();await page.goto(base+'/'+l+'/jrei-academic/');await expect(page.locator('.jx-nav')).toBeVisible();await expect(page.locator('.notice')).toBeVisible();});
+const {test,expect}=require('@playwright/test');const base=process.env.SITE_BASE_URL||'http://127.0.0.1:4173';test.use({serviceWorkers:'block'});for(const l of ['fa','en','ar'])test('JREI interaction '+l,async({page})=>{await page.goto(base+'/'+l+'/jrei/');await expect(page.locator('.jx-scene')).toBeVisible();await expect(page.locator('[data-jx-domain]')).toHaveCount(30);await expect(page.locator('[data-jx-toolbar]')).toBeVisible();await page.locator('[data-jx-filter="1"]').click();await expect(page.locator('[data-jx-domain]:visible')).toHaveCount(5);await page.locator('[data-jx-search]').fill('zzzzzzzzzzz');await expect(page.locator('[data-jx-domain]:visible')).toHaveCount(0);await page.locator('[data-jx-search]').fill('');await page.locator('[data-jx-filter="-1"]').click();await expect(page.locator('[data-jx-domain]:visible')).toHaveCount(30);for(const width of [280,390,768,1440,1920]){await page.setViewportSize({width,height:844});expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);}await page.emulateMedia({reducedMotion:'reduce'});expect(await page.locator('.jx-scene').evaluate(e=>getComputedStyle(e).animationName)).toBe('none');await page.goto(base+'/'+l+'/jrei/order/#agents');await expect(page.locator('#agents')).toBeVisible();await expect(page.locator('[data-jx-search]')).toBeVisible();await page.goto(base+'/'+l+'/jrei-academic/');await expect(page.locator('.productbar')).toBeVisible();await expect(page.locator('.jx-nav')).toHaveCount(0);await expect(page.locator('.notice')).toBeVisible();});
 for(const l of ['fa','en','ar'])test('scenario studio and honest labels '+l,async({page})=>{
  await page.setViewportSize({width:390,height:844});
  await page.goto(base+'/'+l+'/jrei/');
@@ -14,7 +14,7 @@ for(const l of ['fa','en','ar'])test('scenario studio and honest labels '+l,asyn
  expect(await studio.locator('.jx-case[open] .jx-case-content').evaluate(e=>getComputedStyle(e).animationName)).toBe('none');
  for(const route of ['jrei-academic/','forge/','jrei/seo/']){
   await page.goto(base+'/'+l+'/'+route);
-  await expect(page.locator('[data-jx-studio] .jx-case')).toHaveCount(1);
+  await expect(page.locator('[data-jx-studio]')).toHaveCount(0);await expect(page.locator('.hero-art')).toBeVisible();
   await expect(page.locator('.notice')).toBeVisible();
   expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
  }
@@ -76,7 +76,7 @@ for(const l of ['fa','en','ar'])test('private browser proposal, accessibility an
 
 test('Obsidian Champagne visual identity uses local Persian typography across the JREI routes',async({page})=>{
  await page.setViewportSize({width:390,height:844});
- for(const route of ['fa/jrei/','fa/jrei/catalog/research/','fa/jrei/pricing/','fa/jrei-academic/','fa/forge/','fa/jrei/seo/','ar/jrei/']){
+ for(const route of ['fa/jrei/','fa/jrei/catalog/research/','fa/jrei/pricing/','ar/jrei/']){
   await page.goto(base+'/'+route);
   const styles=await page.locator('h1').evaluate(async e=>{await document.fonts.ready;return {family:getComputedStyle(e).fontFamily,loaded:document.fonts.check('700 20px "JREI Persian"','هوش مصنوعی'),signal:getComputedStyle(document.body).getPropertyValue('--jx-signal').trim(),overflow:document.documentElement.scrollWidth-innerWidth}});
   expect(styles.family).toContain('JREI Persian');expect(styles.loaded).toBeTruthy();expect(styles.signal).toMatch(/^#[0-9a-f]{6}$/i);
@@ -143,4 +143,15 @@ for(const l of ['fa','en','ar'])test('premium service gallery preserves every se
  await expect(page.locator('[data-jp-service="automation"]').first()).toBeVisible();
  await page.goto(base+'/'+l+'/jrei/catalog/automation/');
  await expect(page.locator('.jp-detail-visual img')).toBeVisible();
+});
+
+for(const l of ['fa','en','ar'])test('independent launch identity and artwork stay intact '+l,async({page},testInfo)=>{
+ for(const [route,cls,deep,paper] of [['forge','forge','rgb(20, 40, 63)','rgb(237, 242, 249)'],['jrei-academic','academic','rgb(16, 62, 49)','rgb(247, 244, 236)'],['jrei/seo','seo','rgb(7, 62, 67)','rgb(237, 248, 245)']]){
+  for(const width of [390,1440]){await page.setViewportSize({width,height:844});await page.goto(base+'/'+l+'/'+route+'/',{waitUntil:'load'});
+   await expect(page.locator('body')).toHaveClass(new RegExp('\\b'+cls+'\\b'));await expect(page.locator('.hero-art')).toBeVisible();await expect.poll(()=>page.locator('.hero-art').evaluate(e=>e.complete&&e.naturalWidth>0)).toBe(true);
+   await expect(page.locator('link[href*="jrei-experience-v2.css"]')).toHaveCount(0);await expect(page.locator('[data-jx-studio],.jx-nav')).toHaveCount(0);
+   expect(await page.locator('.hero').evaluate(e=>getComputedStyle(e).backgroundColor)).toBe(deep);expect(await page.locator('body').evaluate(e=>getComputedStyle(e).backgroundColor)).toBe(paper);
+   expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);await page.screenshot({path:testInfo.outputPath(l+'-'+cls+'-'+width+'.png')});
+  }
+ }
 });
