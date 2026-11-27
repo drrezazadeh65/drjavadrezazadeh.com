@@ -100,7 +100,7 @@ export function projectExperience(relative,source){
  const l=m[1],c=locales[l],commercial=source.includes('data-jrei-public-centre="v1"');
  if(source.includes('/assets/css/jrei-experience-v2.css'))return source;
  if(!commercial&&!source.includes('data-jrei-launch="coming-soon"'))throw Error('Unexpected JREI route '+relative);
- let next=source.replace(/<\/head>/i,m=>'<link rel="stylesheet" href="/assets/css/jrei-experience-v2.css?v=5">'+m);
+ let next=source.replace(/<\/head>/i,m=>(l==='fa'||l==='ar'?'<link rel="preload" href="/assets/fonts/vazirmatn-variable-a501289a8559.woff2" as="font" type="font/woff2" crossorigin>':'')+'<link rel="stylesheet" href="/assets/css/jrei-experience-v2.css?v=6">'+m);
  if(commercial){
   const hero=/<div class="hero"><div class="wrap">([\s\S]*?)<\/div><\/div><\/div>/;
   if(!hero.test(next))throw Error('JREI hero shape '+relative);

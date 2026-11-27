@@ -83,3 +83,5 @@ test('Obsidian Champagne visual identity uses local Persian typography across th
   expect(styles.overflow).toBeLessThanOrEqual(1);
  }
 });
+
+test('wide launch geometry remains valid after fonts load',async({page})=>{for(const l of ['fa','en','ar'])for(const route of ['forge/','jrei-academic/','jrei/seo/']){for(const width of [2560,3840]){await page.setViewportSize({width,height:1080});await page.goto(base+'/'+l+'/'+route,{waitUntil:'load'});await page.evaluate(()=>document.fonts.ready);const geometry=await page.locator('.hero>.wrap').evaluate(e=>({width:e.getBoundingClientRect().width,viewport:innerWidth,overflow:document.documentElement.scrollWidth-innerWidth}));expect(geometry.width).toBeGreaterThanOrEqual(width*.8);expect(geometry.overflow).toBeLessThanOrEqual(1);}}});

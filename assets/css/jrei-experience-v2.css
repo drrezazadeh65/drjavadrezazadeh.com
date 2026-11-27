@@ -134,7 +134,7 @@ body:is([data-jrei-public-centre],[data-jrei-launch]) .hero h1{text-wrap:balance
 .jx-evidence-links{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.65rem;margin-top:1rem}
 .jx-evidence-links a{min-height:48px;display:flex;align-items:center;justify-content:space-between;gap:.6rem;padding:.7rem .9rem;border:1px solid #867257;border-radius:10px;color:#f9f0e3;text-decoration:none;overflow-wrap:anywhere}
 .jx-evidence-links a:hover{border-color:var(--jx-signal);color:var(--jx-signal)}
-body[data-jrei-public-centre] .tile[data-jx-domain]{content-visibility:auto;contain-intrinsic-block-size:auto 320px}
+@media(max-width:800px){body[data-jrei-public-centre] .tile[data-jx-domain]{content-visibility:auto;contain-intrinsic-block-size:auto 320px}}
 body[data-jrei-public-centre] .tile[data-jx-domain]:focus-within{content-visibility:visible}
 @media(max-width:800px){.jx-demo{grid-template-columns:minmax(0,1fr)}.jx-evidence-grid,.jx-delivery-grid,.jx-evidence-links{grid-template-columns:minmax(0,1fr)}
  body:is([data-jrei-public-centre],[data-jrei-launch]) .hero::after{animation:none;inset:0}
@@ -157,7 +157,7 @@ body[data-jrei-public-centre] .hero .jx-value{font-size:clamp(1.1rem,1.8vw,1.6re
 @media(max-width:440px){.jx-demo-label select{font-size:14px;font-weight:600;padding-inline:.35rem;min-height:48px}}
 
 /* JREI Obsidian / Champagne: local Persian typography, quiet metallic detail. */
-@font-face{font-family:"JREI Persian";src:url("/assets/fonts/vazirmatn-variable-a501289a8559.woff2") format("woff2");font-weight:100 900;font-style:normal;font-display:swap}
+@font-face{font-family:"JREI Persian";src:url("/assets/fonts/vazirmatn-variable-a501289a8559.woff2") format("woff2");font-weight:100 900;font-style:normal;font-display:block}
 html:is([lang="fa"],[lang="ar"]) body:is([data-jrei-public-centre],[data-jrei-launch]){font-family:"JREI Persian",Tahoma,Arial,sans-serif;line-height:1.95}
 html:is([lang="fa"],[lang="ar"]) body:is([data-jrei-public-centre],[data-jrei-launch]) :is(h1,h2,h3,p,summary,button,input,select,textarea,label,nav a,.jx-overline,.jx-node,.jx-core small,.jx-stats span,.jx-filters button,.jx-demo-label){font-family:"JREI Persian",Tahoma,Arial,sans-serif;letter-spacing:normal}
 html:is([lang="fa"],[lang="ar"]) body:is([data-jrei-public-centre],[data-jrei-launch]) h1{font-weight:800;line-height:1.55;text-wrap:balance}
@@ -183,3 +183,6 @@ body[data-jrei-public-centre] .hero .jx-value{color:#e7cfa0}
 html:is([lang="fa"],[lang="ar"]) .jx-demo-label select{font-size:1rem;line-height:1.6}
 html:is([lang="fa"],[lang="ar"]) .jx-stats span{font-size:.77rem}
 html:is([lang="fa"],[lang="ar"]) .jx-core small{font-size:.58rem}}
+
+/* Explicit wide launch geometry; retain readable text and bounded illustrations. */
+@media(min-width:1500px){body[data-jrei-launch]:is(.academic,.forge,.seo) .hero>.wrap,body[data-jrei-launch]:is(.academic,.forge,.seo) main>.wrap{width:94%;max-width:none;margin-inline:auto}body[data-jrei-launch] .hero .wrap>div{max-inline-size:76ch}body[data-jrei-launch] .hero-art{width:100%;max-width:680px;justify-self:center}}

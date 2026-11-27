@@ -68,8 +68,11 @@ for(const route of routes){
         if(!/ERR_ABORTED|interrupted by another navigation/i.test(message)) throw error;
         await page.waitForLoadState('domcontentloaded',{timeout:5000}).catch(()=>{});
       }
+      // Measure the rendered release, not the unstyled document during stylesheet/font download.
+      // Missing styles or fonts must not silently satisfy the geometry checks.
+      await page.waitForLoadState('load',{timeout:15000});
+      await page.evaluate(()=>document.fonts.ready);
       await page.waitForTimeout(140);
-      await page.waitForLoadState('domcontentloaded',{timeout:3000}).catch(()=>{});
 
       // Some public routes legitimately redirect on first load. Retry only
       // a navigation-destroyed JS context, then perform the same strict checks.
