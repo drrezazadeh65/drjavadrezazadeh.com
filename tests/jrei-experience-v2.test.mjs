@@ -13,3 +13,24 @@ import {catalogMap,projectPremium} from '../scripts/jrei-premium-cards-v1.mjs';
 test('Premium galleries preserve all original links, anchors, prices, descriptions and local art in three languages',()=>{for(const l of ['fa','en','ar']){const base=l+'/jrei/',home=fs.readFileSync(base+'index.html','utf8'),map=catalogMap(l,home);for(const part of ['index.html','order/index.html','pricing/index.html',...Array.from(map.keys(),s=>'catalog/'+s+'/index.html')]){const file=base+part,src=fs.readFileSync(file,'utf8'),out=projectPremium(l,file,projectExperience(file,src),map);assert.match(out,/data-jp-premium="v1"/);for(const match of src.matchAll(/href="[^"]+"|\bid="[^"]+"|<p class="price">[\s\S]*?<\/p>/g))assert.ok(out.includes(match[0]),file+' '+match[0].slice(0,120));for(const img of out.matchAll(/<img src="(\/assets\/images\/jrei-premium\/[^"]+)" /g)){assert.ok(fs.existsSync(img[1].slice(1)));assert.ok(fs.statSync(img[1].slice(1)).size<(img[1].endsWith('.webp')?60000:4096));}if(part==='order/index.html'){assert.equal((out.match(/<li id="[^"]+" class="jp-card"/g)||[]).length,87);assert.match(out,/<ul class="orderlist jp-grid jp-featured-grid"><li id="automation"/);for(const [slug,v] of map){assert.ok(out.includes(v.desc));assert.ok(out.includes('href="/'+base+'catalog/'+slug+'/"'));}assert.match(out,/<li id="contracts" class="jp-card"/);}assert.equal(projectPremium(l,file,out,map),out);}}});
 
 test('all 30 commercial services use actual high-detail WebP artwork',()=>{for(const l of ['fa','en','ar']){const base=l+'/jrei/',src=fs.readFileSync(base+'order/index.html','utf8'),map=catalogMap(l,fs.readFileSync(base+'index.html','utf8')),out=projectPremium(l,base+'order/index.html',projectExperience(base+'order/index.html',src),map);for(const [slug,n] of [["architecture",1],["language",2],["memory",3],["adaptive-context",4],["knowledge",5],["agents",6],["coding",7],["education",8],["assessment",9],["talent",10],["research",11],["academic-writing",12],["data",13],["vision",14],["audio",15],["documents",16],["web",17],["search",18],["search-visibility",19],["marketing",20],["news",21],["automation",22],["desktop",23],["distributed",24],["local-ai",25],["security",26],["recovery",27],["plugins",28],["api",29],["enterprise",30]]){const card=out.match(new RegExp('<li id="'+slug+'"[^>]*>[\\s\\S]*?</li>'))?.[0];assert.ok(card);assert.ok(card.includes('data-jp-art="3d"'));const file='assets/images/jrei-premium/service-'+String(n).padStart(2,'0')+'.webp';assert.ok(card.includes('/'+file));const buf=fs.readFileSync(file);assert.equal(buf.toString('ascii',0,4),'RIFF');assert.equal(buf.toString('ascii',8,12),'WEBP');assert.ok(buf.length>15000&&buf.length<60000);}}});
+
+import {bundleFaHomeStyles} from '../scripts/release-bundle-fa-home-styles.mjs';
+import os from 'node:os';import path from 'node:path';
+test('Persian home first paint and stylesheet bundling retain source content and all links',()=>{
+ const src=fs.readFileSync('fa/index.html','utf8');
+ assert.ok(src.indexOf('document.documentElement.classList.add("js")')<src.indexOf('rel="stylesheet"'));
+ assert.match(src,/data-jr-native-mobile="1"/);
+ assert.equal((src.match(/class="tablet-menu-trigger"/g)||[]).length,1);
+ const root=fs.mkdtempSync(path.join(os.tmpdir(),'jr-fa-home-'));
+ try{fs.mkdirSync(path.join(root,'fa'));fs.mkdirSync(path.join(root,'assets/css'),{recursive:true});
+  for(const m of src.matchAll(/href="(?:\.\.\/|\/)?assets\/css\/([^"?]+\.css)(?:\?[^"]*)?"/g)){const f=m[1];fs.copyFileSync('assets/css/'+f,path.join(root,'assets/css',f))}
+  const page=src.replace('</head>','<link rel="stylesheet" href="/assets/css/assistant.css?v=test"></head>').replace('</body>','<script defer src="/assets/js/assistant.js?v=test"></script></body>');
+  fs.writeFileSync(path.join(root,'fa/index.html'),page);
+  const report=bundleFaHomeStyles(root);const out=fs.readFileSync(path.join(root,'fa/index.html'),'utf8');
+  assert.equal(report.reducedRequests,8);assert.equal(report.groups.length,2);
+  assert.equal((out.match(/rel="stylesheet"/g)||[]).length,(page.match(/rel="stylesheet"/g)||[]).length-8);
+  assert.match(out,/data-jr-assistant="1"/);assert.match(out,/data-jr-assistant-style="1"/);
+  assert.equal(out.slice(out.indexOf('<main '),out.indexOf('</main>')),page.slice(page.indexOf('<main '),page.indexOf('</main>')));
+  for(const g of report.groups)assert.ok(fs.statSync(path.join(root,'assets/css',g.alias)).size===g.bytes);
+ }finally{fs.rmSync(root,{recursive:true,force:true})}
+});

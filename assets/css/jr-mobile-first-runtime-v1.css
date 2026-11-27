@@ -26,3 +26,21 @@
 @media(max-width:800px){
  @font-face{font-family:"JR Persian Display";src:url("/assets/fonts/vazirmatn-variable-a501289a8559.woff2") format("woff2");font-weight:100 900;font-style:normal;font-display:optional}
 }
+
+/* Persian home only: native mobile navigation geometry from the first paint.
+   The no-JS links remain available. Keep all editorial text, anchors and destinations. */
+html:not(.js)[lang="fa"] body.public-home-page .tablet-menu-trigger{display:none!important}
+@media(max-width:800px){
+ html[lang="fa"].js body.public-home-page .site-header nav{display:none!important}
+ html[lang="fa"] body.public-home-page .site-header .brand{min-width:0}
+ html[lang="fa"] body.public-home-page #main-content > .section:not(.hero){padding-block:clamp(20px,5vw,36px)!important;margin-block:16px!important}
+ html[lang="fa"] body.public-home-page :is(.jr-growth,.jr-q-entry,.jr-decision-guide,.jr-search-pathways){margin-block:16px!important;padding:16px!important}
+ html[lang="fa"] body.public-home-page :is(#research .grid article,#consulting .service-card,.ecosystem-journey>a){padding:14px!important;min-width:0}
+ html[lang="fa"] body.public-home-page :is(#research .grid h3,#consulting .service-card h3,.ecosystem-journey h3){font-size:1rem!important;line-height:1.6!important;overflow-wrap:anywhere}
+ html[lang="fa"] body.public-home-page :is(#research .grid p,#consulting .service-card p,.ecosystem-journey p){font-size:.875rem;line-height:1.7}
+ html[lang="fa"] body.public-home-page :is(#research .grid,#consulting .grid,.ecosystem-journey,#connect .profile-grid,#jr-jrei-platforms .profile-grid){gap:10px!important}
+ html[lang="fa"] body.public-home-page .jr-related-links{margin-block:14px}
+}
+@media(min-width:380px) and (max-width:800px){
+ html[lang="fa"] body.public-home-page :is(#research .grid,#consulting .grid,.ecosystem-journey,#connect .profile-grid,#jr-jrei-platforms .profile-grid){display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important}
+}

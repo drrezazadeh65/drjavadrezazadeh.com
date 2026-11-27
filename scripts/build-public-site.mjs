@@ -17,6 +17,7 @@ import {applyUsdtInvoiceEnquiries} from './jr-usdt-invoice-enquiries.mjs';
 import {applyBusinessContact,auditPublicRelease} from './jr-business-contact-v1.mjs';
 import {applyJreiExperience} from './jrei-experience-v2.mjs';
 import {applyPremiumCards} from './jrei-premium-cards-v1.mjs';
+import {bundleFaHomeStyles} from './release-bundle-fa-home-styles.mjs';
 
 checkStylesheetBundles();
 
@@ -968,7 +969,7 @@ console.log('Public sharing metadata enhanced:',projectPublicPresentation(out,ht
 for(const rel of ['index.html','fa/index.html','en/index.html']){
  const file=path.join(out,rel);const source=fs.readFileSync(file,'utf8');
  if(!source.includes('/assets/css/jr-mobile-first-runtime-v1.css'))
-  fs.writeFileSync(file,source.replace(/<\/head>/i,tag=>'<link rel="stylesheet" href="/assets/css/jr-mobile-first-runtime-v1.css?v=2">'+tag),'utf8');
+  fs.writeFileSync(file,source.replace(/<\/head>/i,tag=>'<link rel="stylesheet" href="/assets/css/jr-mobile-first-runtime-v1.css?v=3">'+tag),'utf8');
 }
 projectSearchIndex(out);
 const businessContactReport=applyBusinessContact(out,html,failures);
@@ -1005,6 +1006,8 @@ if(failures.length){
 // each authenticated owner shell are combined without changing their order.
 // This reduces style request overhead on high-RTT mobile connections in Iran.
 const ownerStyles=bundleOwnerStyles(out);
+const homeStyleReport=bundleFaHomeStyles(out);
+console.log('Persian home styles:',JSON.stringify(homeStyleReport));
 const sharedStyleAliases=fingerprintCoreStyles(out);
 console.log('Release owner styles:',JSON.stringify(ownerStyles));
 console.log('Release core styles:',JSON.stringify(sharedStyleAliases));
