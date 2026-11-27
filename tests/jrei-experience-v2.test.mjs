@@ -43,3 +43,15 @@ test('nine product landings keep original distinct palette, logos, hero illustra
   for(const l of ['fa','en','ar']){const f=l+'/'+route+'/index.html',s=fs.readFileSync(f,'utf8');assert.equal(projectExperience(f,s),s);assert.ok(s.includes('/assets/jrei-launch/'+cls+'-logo.svg'));assert.ok(s.includes('/assets/jrei-launch/'+cls+'-hero.svg'));assert.ok(s.includes('href="/assets/jrei-launch/style.css"'));assert.ok(s.includes('data-jrei-launch="coming-soon"'));}
  }
 });
+
+import {verifyProductPage} from '../scripts/jrei-independent-product-guard.mjs';
+test('final independent product guard accepts metadata but rejects commercial styles, altered logos and content',()=>{
+ for(const [route,product] of [['forge','forge'],['jrei-academic','academic'],['jrei/seo','seo']])for(const lang of ['fa','en','ar']){
+  const rel=lang+'/'+route+'/index.html',original=fs.readFileSync(rel,'utf8');
+  const enriched=original.replace('</head>','<script type="application/ld+json">{}</script></head>');
+  assert.equal(verifyProductPage(rel,original,enriched,product),true);
+  assert.throws(()=>verifyProductPage(rel,original,enriched.replace('</head>','<link rel="stylesheet" href="/assets/css/jrei-experience-v2.css"></head>'),product),/commercial design/);
+  assert.throws(()=>verifyProductPage(rel,original,enriched.replace(product+'-hero.svg','other-hero.svg'),product));
+  assert.throws(()=>verifyProductPage(rel,original,enriched.replace('<h1>','<h1>changed '),product));
+ }
+});

@@ -18,6 +18,7 @@ import {applyBusinessContact,auditPublicRelease} from './jr-business-contact-v1.
 import {applyJreiExperience} from './jrei-experience-v2.mjs';
 import {applyPremiumCards} from './jrei-premium-cards-v1.mjs';
 import {bundleFaHomeStyles} from './release-bundle-fa-home-styles.mjs';
+import {verifyIndependentProducts} from './jrei-independent-product-guard.mjs';
 
 checkStylesheetBundles();
 
@@ -1011,4 +1012,5 @@ console.log('Persian home styles:',JSON.stringify(homeStyleReport));
 const sharedStyleAliases=fingerprintCoreStyles(out);
 console.log('Release owner styles:',JSON.stringify(ownerStyles));
 console.log('Release core styles:',JSON.stringify(sharedStyleAliases));
+console.log('Independent JREI product identity gate:',JSON.stringify(verifyIndependentProducts(root,out)));
 console.log('Sanitized public-site artifact built:',all.length,'files;',html.length,'HTML routes; internal engineering directories excluded.');
