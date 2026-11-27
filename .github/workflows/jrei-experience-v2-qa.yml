@@ -4,6 +4,9 @@ on:
     branches: [migration/bertina-linux6]
     paths:
       - 'scripts/jrei-experience-v2.mjs'
+      - 'scripts/jrei-premium-cards-v1.mjs'
+      - 'assets/css/jrei-premium-cards-v1.css'
+      - 'assets/images/jrei-premium/**'
       - 'scripts/jrei-candidate-lab.mjs'
       - 'scripts/jrei-candidate-http.py'
       - 'tests/test_jrei_candidate_http.py'

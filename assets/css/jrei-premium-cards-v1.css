@@ -1,0 +1,32 @@
+/* Premium commercial gallery — responsive HTML, no canvas, no remote images.
+   Champagne metal and graphite identity. Scoped to the existing JREI catalogue. */
+body[data-jp-premium] .jp-heading{padding:clamp(1.2rem,3vw,2.5rem) 1rem;text-align:center;margin:1rem 0 1.4rem;border-block:1px solid #806638;background:radial-gradient(ellipse at 50% 0,#372a19,transparent 75%)}
+body[data-jp-premium] .jp-heading h2{color:#f6dca8;margin:.35rem 0;font-weight:800;font-size:clamp(1.4rem,3.1vw,2.65rem);line-height:1.55}
+body[data-jp-premium] .jp-heading p{color:#e1d6c4;margin:.5rem auto;max-width:76ch}
+body[data-jp-premium] .jp-kicker{font-size:.72rem;letter-spacing:.16em;color:#e2bd78!important}
+body[data-jp-premium] .orderlist.jp-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,20rem),1fr));gap:clamp(.8rem,1.4vw,1.4rem);padding:0;margin:0 0 1.7rem;list-style:none;align-items:stretch}
+body[data-jp-premium] :is(.orderlist.jp-grid>li.jp-card,article.tile.jp-card){min-width:0;display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;position:relative;gap:0;padding:0;border:1px solid #9c7b46;border-radius:19px;overflow:hidden;background:linear-gradient(153deg,#24201a 0,#171615 42%,#0d0d0e 100%);box-shadow:inset 0 1px 0 #f3d49935,0 6px 18px #0003;scroll-margin-top:1rem}
+body[data-jp-premium] article.tile.jp-card::before{display:none}
+body[data-jp-premium] .jp-art{position:relative;display:grid;place-items:center;aspect-ratio:16/9;overflow:hidden;border-bottom:1px solid #b28d4b55;background:radial-gradient(ellipse at 50% 65%,#49331b 0,#1d1812 44%,#111112 78%)}
+body[data-jp-premium] .jp-art img{width:100%;height:100%;max-width:360px;object-fit:contain;display:block}
+body[data-jp-premium] .jp-emblem{position:absolute;inset-block-start:.65rem;inset-inline-start:.75rem;width:30px;height:30px;display:grid;place-items:center;border:1px solid #b38b4e;border-radius:50%;color:#ffe2a5;background:#1d1812;font-size:.9rem}
+body[data-jp-premium] .jp-copy{display:flex;flex-direction:column;flex:1;gap:.8rem;padding:clamp(1rem,2vw,1.4rem);min-width:0}
+body[data-jp-premium] .jp-copy :is(h3,h4){font-size:clamp(1.04rem,1.55vw,1.38rem);line-height:1.55;font-weight:760;margin:0;color:#fff4df;overflow-wrap:anywhere}
+body[data-jp-premium] .jp-copy :is(h3,h4) a{color:#fff4df;text-decoration:none}
+body[data-jp-premium] .jp-copy p:not(.price){font-size:.92rem;line-height:1.85;color:#ddd5c8;margin:0;overflow-wrap:anywhere}
+body[data-jp-premium] .jp-copy .price{display:flex;align-items:center;gap:.45rem;align-self:flex-start;padding:.45rem .65rem;margin:auto 0 0;border:1px solid #927347;border-radius:9px;background:#241e15;color:#ffe0a4;font-size:1rem;line-height:1.6;font-weight:750;max-width:100%;overflow-wrap:anywhere}
+body[data-jp-premium] .jp-tag{color:#f3ce84}
+body[data-jp-premium] .jp-actions{display:grid;grid-template-columns:minmax(0,1fr);gap:.55rem;margin-top:.25rem}
+body[data-jp-premium] .jp-actions .button{display:flex;align-items:center;justify-content:center;text-align:center;min-height:48px;padding:.65rem .5rem;line-height:1.5;margin:0;width:100%;font-size:.86rem;white-space:normal;overflow-wrap:anywhere;border-radius:10px}
+body[data-jp-premium] .jp-actions .jp-secondary{background:#151414;color:#ffebc5;border-color:#b28c51}
+body[data-jp-premium] .jp-actions .jp-primary{background:linear-gradient(145deg,#ffe7b5,#d9ae67 52%,#b9853f);color:#1b1309;border-color:#f0cf92;font-weight:780}
+body[data-jp-premium] .jp-card:target{outline:2px solid #ffdf9b;outline-offset:3px}
+body[data-jp-premium] .jp-card :is(a,button):focus-visible{outline:3px solid #fff2cb;outline-offset:2px}
+body[data-jp-premium] .jp-card[hidden]{display:none!important}
+body[data-jp-premium] .jp-detail-visual{min-width:0;display:grid;gap:1rem;width:100%}
+body[data-jp-premium] .jp-detail-visual .jp-art{border:1px solid #9c7b46;border-radius:18px}
+@media(min-width:650px){body[data-jp-premium] .jp-actions{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}body[data-jp-premium] .jp-actions:has(>.button:only-child){grid-template-columns:1fr}}
+@media(min-width:1050px){body[data-jp-premium] .orderlist.jp-grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,20rem),1fr))}}
+@media(max-width:800px){body[data-jp-premium] .orderlist.jp-grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,19rem),1fr))}body[data-jp-premium] :is(.orderlist.jp-grid>li.jp-card,article.tile.jp-card){box-shadow:none;content-visibility:auto;contain-intrinsic-block-size:auto 440px}body[data-jp-premium] .jp-card:focus-within,body[data-jp-premium] .jp-card:target{content-visibility:visible}body[data-jp-premium] .jp-art{aspect-ratio:16/8}body[data-jp-premium] .jp-copy p:not(.price){font-size:1rem}}
+@media(hover:hover) and (pointer:fine){body[data-jp-premium] :is(.orderlist.jp-grid>li.jp-card,article.tile.jp-card):hover{border-color:#f5d58d;box-shadow:inset 0 1px 0 #f3d49955,0 8px 28px #0005}}
+@media(prefers-reduced-motion:reduce){body[data-jp-premium] .jp-card,body[data-jp-premium] .jp-card *{transition:none!important;animation:none!important;transform:none!important}}

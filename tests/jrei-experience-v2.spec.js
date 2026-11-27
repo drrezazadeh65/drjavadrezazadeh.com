@@ -110,3 +110,31 @@ test('mobile rendering budget preserves native controls and identity',async({pag
  await expect(page.locator('a[href="/fa/jrei/"]').first()).toBeAttached();
  expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
 });
+
+for(const l of ['fa','en','ar'])test('premium service gallery preserves every service price and exact detail target '+l,async({page,request},testInfo)=>{
+ await page.setViewportSize({width:390,height:844});
+ await page.goto(base+'/'+l+'/jrei/order/#automation');
+ const list=page.locator('.orderlist.jp-grid').first(),cards=list.locator(':scope > li.jp-card');
+ await expect(cards).toHaveCount(35);
+ await expect(list.locator('#automation .jp-secondary')).toHaveAttribute('href','/'+l+'/jrei/catalog/automation/');
+ await expect(list.locator('#automation .jp-primary')).toHaveAttribute('href',/^mailto:/);
+ for(const slug of ['automation','desktop','distributed','local-ai','security','recovery','plugins','api']){
+  const card=list.locator('#'+slug);await card.scrollIntoViewIfNeeded();
+  await expect(card.locator('.jp-title')).toBeVisible();
+  await expect(card.locator('.price')).toBeVisible();
+  const href=await card.locator('.jp-secondary').getAttribute('href');
+  expect(href).toBe('/'+l+'/jrei/catalog/'+slug+'/');
+  const image=card.locator('img');await expect(image).toBeVisible();
+  await expect.poll(()=>image.evaluate(e=>e.complete&&e.naturalWidth>0)).toBe(true);
+  expect((await request.get(base+href)).status()).toBe(200);
+ }
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
+ await list.locator('#automation').scrollIntoViewIfNeeded();
+ await page.screenshot({path:testInfo.outputPath(l+'-premium-mobile.png')});
+ await page.setViewportSize({width:1440,height:1000});await list.locator('#automation').scrollIntoViewIfNeeded();
+ await page.screenshot({path:testInfo.outputPath(l+'-premium-desktop.png')});
+ await page.goto(base+'/'+l+'/jrei/pricing/');
+ await expect(page.locator('[data-jp-service="automation"]').first()).toBeVisible();
+ await page.goto(base+'/'+l+'/jrei/catalog/automation/');
+ await expect(page.locator('.jp-detail-visual img')).toBeVisible();
+});
