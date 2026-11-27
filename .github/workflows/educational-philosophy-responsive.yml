@@ -59,20 +59,7 @@ jobs:
         run: |
           set +e
           set -o pipefail
-          SITE_ARTIFACT_ROOT=.public-site npx playwright test tests/full-route-responsive.spec.js --grep 'responsive certification /(fa/falsafe-amoozeshi|en/educational-philosophy|ar/educational-philosophy)/ 2>&1 | tee /tmp/full-route-responsive.log
-          status=${PIPESTATUS[0]}
-          mkdir -p test-results/full-route-responsive
-          cp /tmp/full-route-responsive.log test-results/full-route-responsive/
-          exit "$status"
-      - name: Upload failure evidence
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: philosophy-responsive-evidence
-          path: test-results/full-route-responsive
-          if-no-files-found: ignore
-          retention-days: 14
- --workers=1 --reporter=line 2>&1 | tee /tmp/full-route-responsive.log
+          SITE_ARTIFACT_ROOT=.public-site npx playwright test tests/full-route-responsive.spec.js --grep 'responsive certification /(fa/falsafe-amoozeshi|en/educational-philosophy|ar/educational-philosophy)/$' --workers=1 --reporter=line 2>&1 | tee /tmp/full-route-responsive.log
           status=${PIPESTATUS[0]}
           mkdir -p test-results/full-route-responsive
           cp /tmp/full-route-responsive.log test-results/full-route-responsive/
