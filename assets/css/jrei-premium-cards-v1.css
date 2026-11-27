@@ -34,3 +34,7 @@ body[data-jp-premium] .jp-detail-visual .jp-art{border:1px solid #9c7b46;border-
 /* Match the reference's three hero cards and five secondary cards on wide screens. */
 @media(min-width:1700px){body[data-jp-premium] .orderlist.jp-featured-grid{grid-template-columns:repeat(15,minmax(0,1fr))}body[data-jp-premium] .jp-featured-grid>li{grid-column:span 3}body[data-jp-premium] .jp-featured-grid>li:nth-child(-n+3){grid-column:span 5}}
 @media(max-width:649px){body[data-jp-premium] .orderlist.jp-grid{grid-template-columns:minmax(0,1fr)}body[data-jp-premium] .jp-copy{padding:1rem}body[data-jp-premium] .jp-art img{max-width:280px}}
+
+/* Card content must paint immediately when reached through a deep link or fast scroll.
+   Keep lazy image decoding; do not skip layout/painting of the card itself. */
+@media(max-width:800px){body[data-jrei-public-centre][data-jp-premium] :is(.orderlist.jp-grid>li.jp-card,article.tile.jp-card){content-visibility:visible;contain-intrinsic-block-size:none}}

@@ -28,7 +28,7 @@ export function projectPremium(l,relative,html,map){
  if(html.includes('data-jp-premium="v1"'))return html;
  const t=copy[l],base='/'+l+'/jrei/',isOrder=relative===l+'/jrei/order/index.html',isPricing=relative===l+'/jrei/pricing/index.html',isHome=relative===l+'/jrei/index.html',detailSlug=relative.match(/\/catalog\/([a-z-]+)\/index\.html$/)?.[1];
  if(!isOrder&&!isPricing&&!isHome&&!detailSlug)return html;
- html=html.replace('data-jrei-public-centre="v1"','data-jrei-public-centre="v1" data-jp-premium="v1"').replace('</head>','<link rel="stylesheet" href="/assets/css/jrei-premium-cards-v1.css?v=1"></head>');
+ html=html.replace('data-jrei-public-centre="v1"','data-jrei-public-centre="v1" data-jp-premium="v1"').replace('</head>','<link rel="stylesheet" href="/assets/css/jrei-premium-cards-v1.css?v=2"></head>');
  // All original article text and hrefs stay present; only presentation changes.
  let contract=0,packageCount=0;
  html=html.replace(/<article class="tile"([^>]*)>([\s\S]*?)<\/article>/g,(all,attrs,inside)=>{

@@ -130,6 +130,11 @@ for(const l of ['fa','en','ar'])test('premium service gallery preserves every se
  }
  expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
  await list.locator('#automation').scrollIntoViewIfNeeded();
+ const first=list.locator('#automation');
+ expect(await first.evaluate(e=>getComputedStyle(e).contentVisibility)).toBe('visible');
+ await expect.poll(()=>first.locator('img').evaluate(e=>e.complete&&e.naturalWidth>0)).toBe(true);
+ await expect(first.locator('.jp-title')).toBeInViewport();
+ await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
  await page.screenshot({path:testInfo.outputPath(l+'-premium-mobile.png')});
  await page.setViewportSize({width:1440,height:1000});await list.locator('#automation').scrollIntoViewIfNeeded();
  await page.screenshot({path:testInfo.outputPath(l+'-premium-desktop.png')});

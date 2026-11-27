@@ -20,7 +20,7 @@ for(const [strategy,sample] of [['mobile',1],['mobile',2],['mobile',3],['desktop
   if(Object.values(scores).some(s=>s===null))throw Error('MISSING_CATEGORIES');
   const failedAccessibility=(lhr.categories.accessibility.auditRefs||[]).filter(x=>x.weight>0&&lhr.audits?.[x.id]?.score!==null&&lhr.audits?.[x.id]?.score<1).map(x=>({id:x.id,targets:(lhr.audits[x.id].details?.items||[]).slice(0,12).map(n=>String(n.node?.selector||'').slice(0,200)).filter(Boolean)}));
   const insights={};
-  for(const id of ['lcp-breakdown-insight','lcp-discovery-insight','render-blocking-insight','largest-contentful-paint-element','mainthread-work-breakdown','total-byte-weight']){const audit=lhr.audits?.[id];if(audit)insights[id]={score:audit.score??null,numericValue:audit.numericValue??null,details:audit.details??null};}
+  for(const id of ['cls-culprits-insight','layout-shifts','lcp-breakdown-insight','lcp-discovery-insight','render-blocking-insight','largest-contentful-paint-element','mainthread-work-breakdown','total-byte-weight']){const audit=lhr.audits?.[id];if(audit)insights[id]={score:audit.score??null,numericValue:audit.numericValue??null,details:audit.details??null};}
   fs.writeFileSync(dir+'/'+strategy+'-'+sample+'-diagnostics.json',JSON.stringify(insights,null,2)+'\n');
   records.push({strategy,sample,status:'observed',scores,failedAccessibility,lcpMs:lhr.audits?.['largest-contentful-paint']?.numericValue??null,tbtMs:lhr.audits?.['total-blocking-time']?.numericValue??null,cls:lhr.audits?.['cumulative-layout-shift']?.numericValue??null});
  }catch(e){records.push({strategy,sample,status:'unavailable',reason:String(e.message).slice(0,120)});}
