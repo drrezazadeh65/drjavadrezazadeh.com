@@ -124,7 +124,7 @@ for(const l of ['fa','en','ar'])test('premium service gallery preserves every se
   await expect(card.locator('.price')).toBeVisible();
   const href=await card.locator('.jp-secondary').getAttribute('href');
   expect(href).toBe('/'+l+'/jrei/catalog/'+slug+'/');
-  const image=card.locator('img');await expect(image).toBeVisible();
+  const image=card.locator('img');await expect(image).toBeVisible();await expect(image).toHaveAttribute('src',/\.webp$/);
   await expect.poll(()=>image.evaluate(e=>e.complete&&e.naturalWidth>0)).toBe(true);
   expect((await request.get(base+href)).status()).toBe(200);
  }

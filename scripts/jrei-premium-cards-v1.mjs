@@ -8,7 +8,9 @@ const copy={
  ar:{heading:'حلول وخدمات JREI المتخصصة',intro:'حلول الذكاء الاصطناعي والتعليم والبحث والتطوير المؤسسي بنطاق وشروط تسليم محددة.',detail:'عرض صفحة الخدمة',request:'إرسال طلب',review:'عرض شروط المراجعة',terms:'مراجعة الأدلة وإعداد تقرير ضمن نطاق متفق عليه، بعد تأكيد السعة والشروط.',pack:'يحدد نطاق الاشتراك وشروطه بعد دراسة الاحتياج.',contract:'يحدد نطاق المشروع والتكلفة وشروط التسليم في عرض السعر.',more:'تفاصيل الأسعار',platform:'عرض المنصة'}
 };
 const svg=(slug)=>'/assets/images/jrei-premium/service-'+String(slugs.indexOf(slug)+1).padStart(2,'0')+'.svg';
-const art=(slug)=>'<div class="jp-art"><img src="'+svg(slug)+'" width="320" height="200" loading="lazy" decoding="async" alt=""><span class="jp-emblem" aria-hidden="true">✦</span></div>';
+// Native photographic-style illustrations, generated for the approved commercial visual identity.
+const premiumArt=Object.freeze({"automation":{"file":"service-22.webp","w":440,"h":440,"icon":"▦"},"desktop":{"file":"service-23.webp","w":439,"h":440,"icon":"⌘"},"distributed":{"file":"service-24.webp","w":439,"h":440,"icon":"▤"},"local-ai":{"file":"service-25.webp","w":440,"h":440,"icon":"◈"},"security":{"file":"service-26.webp","w":440,"h":439,"icon":"⬡"},"recovery":{"file":"service-27.webp","w":439,"h":439,"icon":"↻"},"plugins":{"file":"service-28.webp","w":439,"h":439,"icon":"✜"},"api":{"file":"service-29.webp","w":440,"h":439,"icon":"⌬"}});
+const art=(slug)=>{const a=premiumArt[slug];return '<div class="jp-art" data-jp-art="'+(a?'3d':'vector')+'"><img src="'+(a?'/assets/images/jrei-premium/'+a.file:svg(slug))+'" width="'+(a?a.w:320)+'" height="'+(a?a.h:200)+'" loading="lazy" decoding="async" alt=""><span class="jp-emblem" aria-hidden="true">'+(a?a.icon:'✦')+'</span></div>';};
 const detail=(href,label)=>'<a class="button jp-secondary" href="'+href+'">'+label+' <span aria-hidden="true">↗</span></a>';
 const primary=(tag)=>tag.replace('class="button"','class="button primary jp-primary"');
 const sectionTitle=(l)=>'<div class="jp-heading"><p class="jp-kicker">JREI / SOLUTIONS</p><h2>'+copy[l].heading+'</h2><p>'+copy[l].intro+'</p></div>';
@@ -28,7 +30,7 @@ export function projectPremium(l,relative,html,map){
  if(html.includes('data-jp-premium="v1"'))return html;
  const t=copy[l],base='/'+l+'/jrei/',isOrder=relative===l+'/jrei/order/index.html',isPricing=relative===l+'/jrei/pricing/index.html',isHome=relative===l+'/jrei/index.html',detailSlug=relative.match(/\/catalog\/([a-z-]+)\/index\.html$/)?.[1];
  if(!isOrder&&!isPricing&&!isHome&&!detailSlug)return html;
- html=html.replace('data-jrei-public-centre="v1"','data-jrei-public-centre="v1" data-jp-premium="v1"').replace('</head>','<link rel="stylesheet" href="/assets/css/jrei-premium-cards-v1.css?v=2"></head>');
+ html=html.replace('data-jrei-public-centre="v1"','data-jrei-public-centre="v1" data-jp-premium="v1"').replace('</head>','<link rel="stylesheet" href="/assets/css/jrei-premium-cards-v1.css?v=3"></head>');
  // All original article text and hrefs stay present; only presentation changes.
  let contract=0,packageCount=0;
  html=html.replace(/<article class="tile"([^>]*)>([\s\S]*?)<\/article>/g,(all,attrs,inside)=>{

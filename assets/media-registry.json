@@ -4386,6 +4386,102 @@
       "caption_en": "Specialist service illustration for Enterprise intelligence.",
       "caption_fa": "تصویر معرفی خدمت هوش تجاری و راهکار سازمانی.",
       "mime_type": "image/svg+xml"
+    },
+    {
+      "path": "assets/images/jrei-premium/service-22.webp",
+      "kind": "illustration",
+      "role": "jrei-commercial-automation-3d",
+      "provenance": "AI-generated original conceptual 3D artwork in the approved black-and-gold aesthetic, isolated from the generated eight-object image sheet; not a photograph of a real deployed system",
+      "rights": "site-use-approved",
+      "alt_en": "Conceptual illustration: Organisational automation",
+      "alt_fa": "تصویر مفهومی: اتوماسیون سازمانی",
+      "caption_en": "Specialist service illustration for Organisational automation.",
+      "caption_fa": "تصویر معرفی خدمت اتوماسیون سازمانی.",
+      "mime_type": "image/webp"
+    },
+    {
+      "path": "assets/images/jrei-premium/service-23.webp",
+      "kind": "illustration",
+      "role": "jrei-commercial-desktop-3d",
+      "provenance": "AI-generated original conceptual 3D artwork in the approved black-and-gold aesthetic, isolated from the generated eight-object image sheet; not a photograph of a real deployed system",
+      "rights": "site-use-approved",
+      "alt_en": "Conceptual illustration: Desktop & OS agents",
+      "alt_fa": "تصویر مفهومی: عامل دسکتاپ و سیستم‌عامل",
+      "caption_en": "Specialist service illustration for Desktop & OS agents.",
+      "caption_fa": "تصویر معرفی خدمت عامل دسکتاپ و سیستم‌عامل.",
+      "mime_type": "image/webp"
+    },
+    {
+      "path": "assets/images/jrei-premium/service-24.webp",
+      "kind": "illustration",
+      "role": "jrei-commercial-distributed-3d",
+      "provenance": "AI-generated original conceptual 3D artwork in the approved black-and-gold aesthetic, isolated from the generated eight-object image sheet; not a photograph of a real deployed system",
+      "rights": "site-use-approved",
+      "alt_en": "Conceptual illustration: DHRO distributed computing",
+      "alt_fa": "تصویر مفهومی: پردازش توزیع‌شده DHRO",
+      "caption_en": "Specialist service illustration for DHRO distributed computing.",
+      "caption_fa": "تصویر معرفی خدمت پردازش توزیع‌شده DHRO.",
+      "mime_type": "image/webp"
+    },
+    {
+      "path": "assets/images/jrei-premium/service-25.webp",
+      "kind": "illustration",
+      "role": "jrei-commercial-local-ai-3d",
+      "provenance": "AI-generated original conceptual 3D artwork in the approved black-and-gold aesthetic, isolated from the generated eight-object image sheet; not a photograph of a real deployed system",
+      "rights": "site-use-approved",
+      "alt_en": "Conceptual illustration: Private & local AI",
+      "alt_fa": "تصویر مفهومی: هوش مصنوعی خصوصی و آفلاین",
+      "caption_en": "Specialist service illustration for Private & local AI.",
+      "caption_fa": "تصویر معرفی خدمت هوش مصنوعی خصوصی و آفلاین.",
+      "mime_type": "image/webp"
+    },
+    {
+      "path": "assets/images/jrei-premium/service-26.webp",
+      "kind": "illustration",
+      "role": "jrei-commercial-security-3d",
+      "provenance": "AI-generated original conceptual 3D artwork in the approved black-and-gold aesthetic, isolated from the generated eight-object image sheet; not a photograph of a real deployed system",
+      "rights": "site-use-approved",
+      "alt_en": "Conceptual illustration: Security & data governance",
+      "alt_fa": "تصویر مفهومی: امنیت و حاکمیت داده",
+      "caption_en": "Specialist service illustration for Security & data governance.",
+      "caption_fa": "تصویر معرفی خدمت امنیت و حاکمیت داده.",
+      "mime_type": "image/webp"
+    },
+    {
+      "path": "assets/images/jrei-premium/service-27.webp",
+      "kind": "illustration",
+      "role": "jrei-commercial-recovery-3d",
+      "provenance": "AI-generated original conceptual 3D artwork in the approved black-and-gold aesthetic, isolated from the generated eight-object image sheet; not a photograph of a real deployed system",
+      "rights": "site-use-approved",
+      "alt_en": "Conceptual illustration: Resilience & recovery",
+      "alt_fa": "تصویر مفهومی: پایداری و بازیابی",
+      "caption_en": "Specialist service illustration for Resilience & recovery.",
+      "caption_fa": "تصویر معرفی خدمت پایداری و بازیابی.",
+      "mime_type": "image/webp"
+    },
+    {
+      "path": "assets/images/jrei-premium/service-28.webp",
+      "kind": "illustration",
+      "role": "jrei-commercial-plugins-3d",
+      "provenance": "AI-generated original conceptual 3D artwork in the approved black-and-gold aesthetic, isolated from the generated eight-object image sheet; not a photograph of a real deployed system",
+      "rights": "site-use-approved",
+      "alt_en": "Conceptual illustration: Engines & plugins",
+      "alt_fa": "تصویر مفهومی: موتورها و پلاگین‌ها",
+      "caption_en": "Specialist service illustration for Engines & plugins.",
+      "caption_fa": "تصویر معرفی خدمت موتورها و پلاگین‌ها.",
+      "mime_type": "image/webp"
+    },
+    {
+      "path": "assets/images/jrei-premium/service-29.webp",
+      "kind": "illustration",
+      "role": "jrei-commercial-api-3d",
+      "provenance": "AI-generated original conceptual 3D artwork in the approved black-and-gold aesthetic, isolated from the generated eight-object image sheet; not a photograph of a real deployed system",
+      "rights": "site-use-approved",
+      "alt_en": "Conceptual illustration: API & developer services",
+      "alt_fa": "تصویر مفهومی: API و خدمات توسعه‌دهندگان",
+      "caption_en": "Specialist service illustration for API & developer services.",
+      "caption_fa": "تصویر معرفی خدمت API و خدمات توسعه‌دهندگان.",
+      "mime_type": "image/webp"
     }
   ]
 }
