@@ -7,6 +7,12 @@ on:
     paths:
       - '**/*.html'
       - 'assets/css/**'
+      - 'assets/jrei-launch/**'
+      - 'assets/images/jrei-launch/**'
+      - 'assets/fonts/**'
+      - 'scripts/jrei-independent-product-guard.mjs'
+      - 'scripts/jrei-experience-v2.mjs'
+      - 'scripts/build-public-site.mjs'
       - 'assets/js/**'
       - 'site.webmanifest'
       - 'sw.js'
