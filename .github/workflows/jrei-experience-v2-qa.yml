@@ -5,6 +5,8 @@ on:
     paths:
       - 'scripts/jrei-experience-v2.mjs'
       - 'scripts/jrei-candidate-lab.mjs'
+      - 'scripts/jrei-candidate-http.py'
+      - 'tests/test_jrei_candidate_http.py'
       - 'scripts/build-public-site.mjs'
       - 'assets/css/jrei-experience-v2.css'
       - 'assets/css/jr-mobile-first-runtime-v1.css'
@@ -64,8 +66,12 @@ jobs:
         env:
           CANDIDATE_LOCALE: ${{ matrix.locale }}
         run: |
-          python3 -m http.server 4173 --bind 127.0.0.1 --directory .public-site >/tmp/jrei-candidate-http.log 2>&1 &
+          python3 -m unittest discover -s tests -p 'test_jrei_candidate_http.py' -v
+          python3 scripts/jrei-candidate-http.py --directory .public-site >/tmp/jrei-candidate-http.log 2>&1 &
           curl -fsS --retry 10 --retry-connrefused --retry-delay 1 http://127.0.0.1:4173/ >/dev/null
+          curl -fsS -D /tmp/jrei-http-headers -H 'Accept-Encoding: gzip' http://127.0.0.1:4173/fa/ -o /tmp/jrei-home.gz
+          grep -qi '^Content-Encoding: gzip' /tmp/jrei-http-headers
+          gzip -dc /tmp/jrei-home.gz | cmp - .public-site/fa/index.html
           node scripts/jrei-candidate-lab.mjs
       - uses: actions/upload-artifact@v4
         if: always()
