@@ -4746,6 +4746,78 @@
       "caption_en": "Specialist service illustration for Enterprise intelligence.",
       "caption_fa": "تصویر معرفی خدمت هوش تجاری و راهکار سازمانی.",
       "mime_type": "image/webp"
+    },
+    {
+      "path": "assets/jrei-launch/forge-hero.webp",
+      "kind": "illustration",
+      "role": "jrei-forge-hero-3d",
+      "provenance": "Original AI-generated conceptual CGI for independent product identity; not an operational screenshot.",
+      "rights": "site-use-approved",
+      "alt_en": "Conceptual illustration: Engineering and software infrastructure",
+      "alt_fa": "تصویر مفهومی: مهندسی نرم‌افزار و زیرساخت",
+      "caption_en": "Engineering and software infrastructure — product design concept.",
+      "caption_fa": "مهندسی نرم‌افزار و زیرساخت؛ تصویر مفهومی طراحی محصول.",
+      "mime_type": "image/webp"
+    },
+    {
+      "path": "assets/jrei-launch/forge-showcase.webp",
+      "kind": "illustration",
+      "role": "jrei-forge-showcase-3d",
+      "provenance": "Original AI-generated conceptual CGI for independent product identity; not an operational screenshot.",
+      "rights": "site-use-approved",
+      "alt_en": "Conceptual illustration: Engineering and software infrastructure",
+      "alt_fa": "تصویر مفهومی: مهندسی نرم‌افزار و زیرساخت",
+      "caption_en": "Engineering and software infrastructure — product design concept.",
+      "caption_fa": "مهندسی نرم‌افزار و زیرساخت؛ تصویر مفهومی طراحی محصول.",
+      "mime_type": "image/webp"
+    },
+    {
+      "path": "assets/jrei-launch/academic-hero.webp",
+      "kind": "illustration",
+      "role": "jrei-academic-hero-3d",
+      "provenance": "Original AI-generated conceptual CGI for independent product identity; not an operational screenshot.",
+      "rights": "site-use-approved",
+      "alt_en": "Conceptual illustration: Academic research and knowledge",
+      "alt_fa": "تصویر مفهومی: پژوهش علمی و دانش",
+      "caption_en": "Academic research and knowledge — product design concept.",
+      "caption_fa": "پژوهش علمی و دانش؛ تصویر مفهومی طراحی محصول.",
+      "mime_type": "image/webp"
+    },
+    {
+      "path": "assets/jrei-launch/academic-showcase.webp",
+      "kind": "illustration",
+      "role": "jrei-academic-showcase-3d",
+      "provenance": "Original AI-generated conceptual CGI for independent product identity; not an operational screenshot.",
+      "rights": "site-use-approved",
+      "alt_en": "Conceptual illustration: Academic research and knowledge",
+      "alt_fa": "تصویر مفهومی: پژوهش علمی و دانش",
+      "caption_en": "Academic research and knowledge — product design concept.",
+      "caption_fa": "پژوهش علمی و دانش؛ تصویر مفهومی طراحی محصول.",
+      "mime_type": "image/webp"
+    },
+    {
+      "path": "assets/jrei-launch/seo-hero.webp",
+      "kind": "illustration",
+      "role": "jrei-seo-hero-3d",
+      "provenance": "Original AI-generated conceptual CGI for independent product identity; not an operational screenshot.",
+      "rights": "site-use-approved",
+      "alt_en": "Conceptual illustration: Search and digital analytics",
+      "alt_fa": "تصویر مفهومی: جست‌وجو و تحلیل دیجیتال",
+      "caption_en": "Search and digital analytics — product design concept.",
+      "caption_fa": "جست‌وجو و تحلیل دیجیتال؛ تصویر مفهومی طراحی محصول.",
+      "mime_type": "image/webp"
+    },
+    {
+      "path": "assets/jrei-launch/seo-showcase.webp",
+      "kind": "illustration",
+      "role": "jrei-seo-showcase-3d",
+      "provenance": "Original AI-generated conceptual CGI for independent product identity; not an operational screenshot.",
+      "rights": "site-use-approved",
+      "alt_en": "Conceptual illustration: Search and digital analytics",
+      "alt_fa": "تصویر مفهومی: جست‌وجو و تحلیل دیجیتال",
+      "caption_en": "Search and digital analytics — product design concept.",
+      "caption_fa": "جست‌وجو و تحلیل دیجیتال؛ تصویر مفهومی طراحی محصول.",
+      "mime_type": "image/webp"
     }
   ]
 }

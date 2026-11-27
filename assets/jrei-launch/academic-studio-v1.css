@@ -1,0 +1,12 @@
+/* Academic: editorial ivory, emerald and antique gold. */
+body.academic{--studio-radius:20px;--studio-heading:#103e31;--studio-rule:#ddd9c7;--studio-surface:#fffdf7}
+body.academic .parent{background:#103126}body.academic .parent-name{color:#f2dba9}
+body.academic .hero:before{background:radial-gradient(ellipse at 85% 40%,#e3c68722,transparent 62%)}
+body.academic .product-visual{border:3px double #e3c6879c;box-shadow:0 16px 40px #062c2266}
+body.academic .product-heading{text-align:center;max-width:700px;margin:0 auto 24px}
+body.academic .workspace-card{border-top:3px solid #b79248}
+body.academic .workspace-icon,body.academic .feature-icon{border-radius:50%;background:#103e31;color:#e3c687}
+body.academic .workflow-grid li{border-radius:4px 20px 20px 4px;border-inline-start:3px solid #b79248}
+body.academic .workflow-grid li>span{font-family:Georgia,serif;color:#72551d}
+body.academic .product-contact{text-align:center;justify-items:center;border:1px solid #b79248}
+@media(min-width:850px){body.academic .workspace-card:first-child{grid-column:span 2;min-height:220px}body.academic .workspace-card:nth-child(6){grid-column:span 2}}

@@ -55,3 +55,5 @@ test('final independent product guard accepts metadata but rejects commercial st
   assert.throws(()=>verifyProductPage(rel,original,enriched.replace('<h1>','<h1>changed '),product));
  }
 });
+
+test('independent product studios retain six original and six additional capability cards, native FAQ and premium artwork',()=>{for(const l of ['fa','en','ar'])for(const [route,p] of [['forge','forge'],['jrei-academic','academic'],['jrei/seo','seo']]){const src=fs.readFileSync(l+'/'+route+'/index.html','utf8');assert.equal((src.match(/class="feature"/g)||[]).length,6);assert.equal((src.match(/class="workspace-card"/g)||[]).length,6);assert.equal((src.match(/<details>/g)||[]).length,3);assert.ok(src.includes(p+'-studio-v1.css'));assert.ok(src.includes(p+'-hero.webp'));assert.ok(src.includes(p+'-showcase.webp'));for(const suffix of ['hero','showcase']){const b=fs.readFileSync('assets/jrei-launch/'+p+'-'+suffix+'.webp');assert.equal(b.toString('ascii',8,12),'WEBP');assert.ok(b.length<100000);}}});

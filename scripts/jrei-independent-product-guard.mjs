@@ -11,7 +11,7 @@ const section=(html,pattern,label)=>{
  return m[0];
 };
 export function verifyProductPage(relative,original,packaged,product){
- const required=['/assets/jrei-launch/style.css','/assets/jrei-launch/'+product+'-logo.svg','/assets/jrei-launch/'+product+'-hero.svg','data-jrei-launch="coming-soon"'];
+ const required=['/assets/jrei-launch/product-foundation-v1.css','/assets/jrei-launch/'+product+'-studio-v1.css','/assets/jrei-launch/'+product+'-hero.webp','/assets/jrei-launch/'+product+'-showcase.webp','/assets/jrei-launch/style.css','/assets/jrei-launch/'+product+'-logo.svg','/assets/jrei-launch/'+product+'-hero.svg','data-jrei-launch="coming-soon"'];
  for(const marker of required)if(!packaged.includes(marker))throw Error(relative+' lost '+marker);
  if(/jrei-experience-v2\.(?:css|js)|jrei-premium-cards[^"']*\.(?:css|js)|data-jp-premium=|data-jx-studio|class="jx-nav"|data-jrei-public-centre=/.test(packaged))throw Error(relative+' received generic commercial design');
  for(const [label,pattern] of [
@@ -22,7 +22,8 @@ export function verifyProductPage(relative,original,packaged,product){
   ['feature cards',/<section id="features"[\s\S]*?<\/section>/i],
   ['readiness notice',/<p class="notice" role="status">[\s\S]*?<\/p>/i],
   ['footer',/<footer class="footer">[\s\S]*?<\/footer>/i],
-  ['canonical',/<link rel="canonical"[^>]*>/i]
+  ['canonical',/<link rel="canonical"[^>]*>/i],
+  ...['workspaces','workflow','use-cases','product-faq'].map(id=>[id,new RegExp('<section class="product-section" id="'+id+'"[\\s\\S]*?</section>','i')])
  ]){
   if(section(original,pattern,label)!==section(packaged,pattern,label))throw Error(relative+' changed protected '+label);
  }
@@ -47,7 +48,10 @@ export function verifyIndependentProducts(root,out){
    pages++;
   }
  }
- const css='assets/jrei-launch/style.css';
- if(!fs.readFileSync(path.join(root,css)).equals(fs.readFileSync(path.join(out,css))))throw Error('Independent product design stylesheet changed during release');
+ for(const file of ['style.css','product-foundation-v1.css',...products.map(([,p])=>p+'-studio-v1.css'),...products.flatMap(([,p])=>[p+'-hero.webp',p+'-showcase.webp'])]){
+ const rel='assets/jrei-launch/'+file,source=fs.readFileSync(path.join(root,rel)),actual=fs.readFileSync(path.join(out,rel));
+ if(!source.equals(actual))throw Error('Independent product asset changed: '+rel);
+ if(file.endsWith('.webp')&&(actual.length>100000||actual.toString('ascii',8,12)!=='WEBP'))throw Error('Invalid premium art '+rel);
+ }
  return {pages,distinctArtwork:identities.size,originalLayoutPreserved:true};
 }

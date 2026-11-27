@@ -1,0 +1,11 @@
+/* SEO Intelligence: teal glass, clean analytics geometry and green-blue signals. */
+body.seo{--studio-radius:24px;--studio-heading:#073e43;--studio-rule:#b9ddd5;--studio-surface:#fff}
+body.seo .parent{background:#07343a}body.seo .parent-name{color:#a9f1e4}body.seo .langs [aria-current]{background:#77e9d5;color:#073e43}
+body.seo .hero:before{background:radial-gradient(ellipse at 80% 45%,#77e9d522,transparent 60%),linear-gradient(130deg,transparent,#77e9d50c)}
+body.seo .product-visual{border:1px solid #77e9d5a0;box-shadow:0 16px 42px #052e3b70}
+body.seo .workspace-card{background:linear-gradient(145deg,#fff,#edf8f5);border-radius:22px}
+body.seo .workspace-icon,body.seo .feature-icon{background:#073e43;color:#77e9d5;border-radius:16px}
+body.seo .workflow-grid li{border-top:4px solid #208b83}
+body.seo .product-heading{border-inline-start:5px solid #208b83;padding-inline-start:18px}
+body.seo .product-contact{background:#073e43;border:1px solid #77e9d5}
+@media(min-width:850px){body.seo .workspace-card:first-child{grid-column:span 2}body.seo .workspace-card:nth-child(5){grid-column:span 2}}

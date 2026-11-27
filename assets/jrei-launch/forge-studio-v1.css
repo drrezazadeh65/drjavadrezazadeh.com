@@ -1,0 +1,10 @@
+/* Forge: industrial engineering, brushed steel and cobalt. */
+body.forge{--studio-radius:12px;--studio-heading:#14283f;--studio-rule:#cbd9eb;--studio-surface:#fff}
+body.forge .parent{background:#0b182a}body.forge .parent-name{color:#d7e8ff}body.forge .langs [aria-current]{background:#9fc5ff;color:#14283f}
+body.forge .hero:before{background-image:linear-gradient(#9fc5ff0c 1px,transparent 1px),linear-gradient(90deg,#9fc5ff0c 1px,transparent 1px);background-size:36px 36px}
+body.forge .product-visual{border:2px solid #9fc5ff60;box-shadow:0 0 0 7px #9fc5ff12,0 22px 50px #05142780}
+body.forge .workspace-card{border-inline-start:4px solid #315e9a;position:relative}
+body.forge .workspace-icon,body.forge .feature-icon{border-radius:8px}
+body.forge .workflow-grid li{border-top:4px solid #315e9a}body.forge .workflow-grid li>span{font-family:monospace}
+body.forge .product-heading{border-bottom:1px solid var(--studio-rule);padding-bottom:16px}
+body.forge .product-contact{border-inline-start:8px solid #9fc5ff}
