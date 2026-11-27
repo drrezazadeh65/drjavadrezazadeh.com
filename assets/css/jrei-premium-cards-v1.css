@@ -30,3 +30,7 @@ body[data-jp-premium] .jp-detail-visual .jp-art{border:1px solid #9c7b46;border-
 @media(max-width:800px){body[data-jp-premium] .orderlist.jp-grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,19rem),1fr))}body[data-jp-premium] :is(.orderlist.jp-grid>li.jp-card,article.tile.jp-card){box-shadow:none;content-visibility:auto;contain-intrinsic-block-size:auto 440px}body[data-jp-premium] .jp-card:focus-within,body[data-jp-premium] .jp-card:target{content-visibility:visible}body[data-jp-premium] .jp-art{aspect-ratio:16/8}body[data-jp-premium] .jp-copy p:not(.price){font-size:1rem}}
 @media(hover:hover) and (pointer:fine){body[data-jp-premium] :is(.orderlist.jp-grid>li.jp-card,article.tile.jp-card):hover{border-color:#f5d58d;box-shadow:inset 0 1px 0 #f3d49955,0 8px 28px #0005}}
 @media(prefers-reduced-motion:reduce){body[data-jp-premium] .jp-card,body[data-jp-premium] .jp-card *{transition:none!important;animation:none!important;transform:none!important}}
+
+/* Match the reference's three hero cards and five secondary cards on wide screens. */
+@media(min-width:1700px){body[data-jp-premium] .orderlist.jp-featured-grid{grid-template-columns:repeat(15,minmax(0,1fr))}body[data-jp-premium] .jp-featured-grid>li{grid-column:span 3}body[data-jp-premium] .jp-featured-grid>li:nth-child(-n+3){grid-column:span 5}}
+@media(max-width:649px){body[data-jp-premium] .orderlist.jp-grid{grid-template-columns:minmax(0,1fr)}body[data-jp-premium] .jp-copy{padding:1rem}body[data-jp-premium] .jp-art img{max-width:280px}}

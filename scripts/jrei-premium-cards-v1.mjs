@@ -17,7 +17,7 @@ const productPaths={'RCAS':'rcas/','Golden Talent':'golden-talent/','BAHAR':'bah
 const packageArt=['architecture','automation','enterprise','local-ai'];
 const contractArt=['research','api','enterprise','local-ai'];
 const reviewArt=['search','search-visibility','data','assessment','security','academic-writing','agents','documents','vision','desktop','recovery','enterprise','research'];
-function catalogMap(l,html){
+export function catalogMap(l,html){
  const out=new Map();
  for(const m of html.matchAll(/<article class="tile"(?: [^>]*)?><h3><a href="\/(?:fa|en|ar)\/jrei\/catalog\/([a-z-]+)\/">([^<]+)<\/a><\/h3><p>([\s\S]*?)<\/p>(<p class="price">[\s\S]*?<\/p>)/g))
   out.set(m[1],{title:m[2],desc:m[3],price:m[4]});
@@ -48,7 +48,7 @@ export function projectPremium(l,relative,html,map){
  let n=0,reviews=0;
  html=html.replace(/<ul class="orderlist">([\s\S]*?)<\/ul>/g,(all,items)=>{
   let count=0;
-  const content=items.replace(/<li id="([^"]+)"><span><strong>([\s\S]*?)<\/strong> · ([\s\S]*?)<\/span>(<a class="button" href="[^"]+">[\s\S]*?<\/a>)<\/li>/g,(row,id,title,price,button)=>{
+  let content=items.replace(/<li id="([^"]+)"><span><strong>([\s\S]*?)<\/strong> · ([\s\S]*?)<\/span>(<a class="button" href="[^"]+">[\s\S]*?<\/a>)<\/li>/g,(row,id,title,price,button)=>{
    let info=map.get(id),icon=id,target,desc,label=t.detail;
    if(info){n++;target=base+'catalog/'+id+'/';desc=info.desc;}
    else if(/^package-[0-3]$/.test(id)){icon=packageArt[Number(id.slice(-1))];target=base+'pricing/#jp-'+id;desc=t.pack;label=t.more;}
@@ -59,13 +59,26 @@ export function projectPremium(l,relative,html,map){
    count++;
    return '<li id="'+id+'" class="jp-card" data-jp-service="'+icon+'">'+art(icon)+'<div class="jp-copy"><'+(info||!id.startsWith('review-')?'h3':'h4')+' class="jp-title">'+title+'</'+(info||!id.startsWith('review-')?'h3':'h4')+'><p class="jp-description">'+desc+'</p><p class="price jp-price"><span class="jp-tag" aria-hidden="true">◇</span> '+price+'</p><div class="jp-actions">'+detail(target,label)+primary(button)+'</div></div></li>';
   });
+  // A bespoke contract has no fixed price. Preserve its enquiry without inventing a price.
+  content=content.replace(/<li id="contracts"><strong>([\s\S]*?)<\/strong>(<a class="button" href="[^"]+">[\s\S]*?<\/a>)<\/li>/g,(_,title,button)=>{
+   count++;return '<li id="contracts" class="jp-card" data-jp-service="enterprise">'+art('enterprise')+'<div class="jp-copy"><h3 class="jp-title">'+title+'</h3><p class="jp-description">'+t.contract+'</p><div class="jp-actions">'+detail(base+'pricing/#jp-contract-0',t.more)+primary(button)+'</div></div></li>';
+  });
   if(count!==(items.match(/<li id="/g)||[]).length)throw Error('Unparsed order cards '+relative);
+  // Put the eight services in the approved concept first, with keyboard order matching visual order.
+  if(isOrder&&count===35){
+   const featured=['automation','desktop','distributed','local-ai','security','recovery','plugins','api'];
+   const cards=[...content.matchAll(/<li id="([^"]+)"[\s\S]*?<\/li>/g)];
+   if(cards.length!==35)throw Error('Featured gallery inventory');
+   const rank=id=>featured.includes(id)?featured.indexOf(id):featured.length+cards.findIndex(row=>row[1]===id);
+   content=cards.sort((x,y)=>rank(x[1])-rank(y[1])).map(row=>row[0]).join('');
+   return '<ul class="orderlist jp-grid jp-featured-grid">'+content+'</ul>';
+  }
   return '<ul class="orderlist jp-grid">'+content+'</ul>';
  });
  if(isOrder&&(n!==30||reviews!==52))throw Error('Order service count '+l+': '+n+'/'+reviews);
  if(isPricing&&reviews!==52)throw Error('Pricing review count '+l);
  if(isOrder||isPricing){
-  const marker=isOrder?'<ul class="orderlist jp-grid">':'<article class="tile jp-card" data-jp-service="architecture">';
+  const marker=isOrder?'<ul class="orderlist jp-grid jp-featured-grid">':'<article class="tile jp-card" data-jp-service="architecture">';
   const index=html.indexOf(marker);
   if(index<0)throw Error('Premium service heading target '+relative);
   if(isOrder)html=html.slice(0,index)+sectionTitle(l)+html.slice(index);

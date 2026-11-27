@@ -114,7 +114,7 @@ test('mobile rendering budget preserves native controls and identity',async({pag
 for(const l of ['fa','en','ar'])test('premium service gallery preserves every service price and exact detail target '+l,async({page,request},testInfo)=>{
  await page.setViewportSize({width:390,height:844});
  await page.goto(base+'/'+l+'/jrei/order/#automation');
- const list=page.locator('.orderlist.jp-grid').first(),cards=list.locator(':scope > li.jp-card');
+ const list=page.locator('.orderlist.jp-featured-grid'),cards=list.locator(':scope > li.jp-card');
  await expect(cards).toHaveCount(35);
  await expect(list.locator('#automation .jp-secondary')).toHaveAttribute('href','/'+l+'/jrei/catalog/automation/');
  await expect(list.locator('#automation .jp-primary')).toHaveAttribute('href',/^mailto:/);
