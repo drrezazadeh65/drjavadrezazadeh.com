@@ -4748,7 +4748,7 @@
       "mime_type": "image/webp"
     },
     {
-      "path": "assets/jrei-launch/forge-hero.webp",
+      "path": "assets/images/jrei-launch/forge-hero.webp",
       "kind": "illustration",
       "role": "jrei-forge-hero-3d",
       "provenance": "Original AI-generated conceptual CGI for independent product identity; not an operational screenshot.",
@@ -4760,7 +4760,7 @@
       "mime_type": "image/webp"
     },
     {
-      "path": "assets/jrei-launch/forge-showcase.webp",
+      "path": "assets/images/jrei-launch/forge-showcase.webp",
       "kind": "illustration",
       "role": "jrei-forge-showcase-3d",
       "provenance": "Original AI-generated conceptual CGI for independent product identity; not an operational screenshot.",
@@ -4772,7 +4772,7 @@
       "mime_type": "image/webp"
     },
     {
-      "path": "assets/jrei-launch/academic-hero.webp",
+      "path": "assets/images/jrei-launch/academic-hero.webp",
       "kind": "illustration",
       "role": "jrei-academic-hero-3d",
       "provenance": "Original AI-generated conceptual CGI for independent product identity; not an operational screenshot.",
@@ -4784,7 +4784,7 @@
       "mime_type": "image/webp"
     },
     {
-      "path": "assets/jrei-launch/academic-showcase.webp",
+      "path": "assets/images/jrei-launch/academic-showcase.webp",
       "kind": "illustration",
       "role": "jrei-academic-showcase-3d",
       "provenance": "Original AI-generated conceptual CGI for independent product identity; not an operational screenshot.",
@@ -4796,7 +4796,7 @@
       "mime_type": "image/webp"
     },
     {
-      "path": "assets/jrei-launch/seo-hero.webp",
+      "path": "assets/images/jrei-launch/seo-hero.webp",
       "kind": "illustration",
       "role": "jrei-seo-hero-3d",
       "provenance": "Original AI-generated conceptual CGI for independent product identity; not an operational screenshot.",
@@ -4808,7 +4808,7 @@
       "mime_type": "image/webp"
     },
     {
-      "path": "assets/jrei-launch/seo-showcase.webp",
+      "path": "assets/images/jrei-launch/seo-showcase.webp",
       "kind": "illustration",
       "role": "jrei-seo-showcase-3d",
       "provenance": "Original AI-generated conceptual CGI for independent product identity; not an operational screenshot.",
