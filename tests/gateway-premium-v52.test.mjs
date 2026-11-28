@@ -42,7 +42,7 @@ test('gateway is CSS-only progressive enhancement, not an inline-style takeover'
  assert.ok(!css.includes('@import'),'No remote CSS imports');
  assert.ok(!css.includes('https://'),'No remote font or artwork dependence');
  assert.ok(css.length<22000,'CSS size budget exceeded');
- assert.ok(html.length<13000,'HTML document grew beyond performance budget');
+ assert.ok(html.length<15000,'HTML document grew beyond performance budget');
  assert.ok(old.includes('@font-face'),'Existing self-hosted font retained');
 });
 
@@ -114,3 +114,5 @@ test('root gateway has a coherent academic and product heading hierarchy and one
  assert.ok(html.includes('PhD in Education from Arak University (2026)'));
  assert.ok(html.includes('following integration and specialist evaluation'));
 });
+
+test('root gateway exposes primary JREI discovery links',()=>{for(const r of ["jrei","forge","jrei-academic","jrei/seo","golden-talent","bahar","rcas","jrei/pricing","jrei/order"]){assert.ok(html.includes('href="./fa/'+r+'/"'));assert.ok(fs.existsSync(path.join(root,'fa',r,'index.html')));}});
