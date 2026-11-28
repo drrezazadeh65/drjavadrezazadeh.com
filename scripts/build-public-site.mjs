@@ -863,7 +863,11 @@ for(const route of approvedJreiLaunchRoutes.filter(r=>!approvedJreiCommercialHub
  if(!fs.existsSync(file)){failures.push('Approved JREI introduction missing: '+route);continue;}
  const source=fs.readFileSync(file,'utf8');
  const canonical='https://drjavadrezazadeh.com/'+route.replace(/index\.html$/,'');
- if(!source.includes('data-jrei-launch="coming-soon"')||!source.includes('<meta name="robots" content="index,follow,max-image-preview:large">')||!source.includes('<link rel="canonical" href="'+canonical+'">')||/<(?:form|script)\b/i.test(source))failures.push('JREI introduction must remain static, correctly scoped and indexable: '+route);
+ if(!source.includes('data-jrei-launch="coming-soon"')||!source.includes('<meta name="robots" content="index,follow,max-image-preview:large">')||!source.includes('<link rel="canonical" href="'+canonical+'">')||/<form\b/i.test(source)||/<script\b/i.test(source.replace(/<script type="application\/ld\+json">[\s\S]*?<\/script>/gi,'')))failures.push('JREI introduction must remain static, correctly scoped and indexable: '+route);
+ // Structured metadata is inert, but it must be valid JSON; all executable scripts remain forbidden.
+ for(const match of source.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/gi)){
+  try{JSON.parse(match[1]);}catch{failures.push('Invalid JREI introduction JSON-LD: '+route);}
+ }
  const sitemap=path.join(out,'sitemap-jrei.xml');
  if(!fs.existsSync(sitemap)||!fs.readFileSync(sitemap,'utf8').includes('<loc>'+canonical+'</loc>'))failures.push('Indexable JREI introduction missing from sitemap: '+route);
  const product=route.split('/').slice(1,-1).join('/');

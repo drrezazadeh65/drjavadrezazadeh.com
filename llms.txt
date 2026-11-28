@@ -14,15 +14,14 @@ The JREI public technology centre introduces the Iranian-developed AI ecosystem 
 
 ## JREI platform directory (public, three languages)
 
-- JREI AI ecosystem: [FA](https://drjavadrezazadeh.com/fa/jrei/) · [EN](https://drjavadrezazadeh.com/en/jrei/) · [AR](https://drjavadrezazadeh.com/ar/jrei/)
 - JREI Forge – software engineering: [FA](https://drjavadrezazadeh.com/fa/forge/) · [EN](https://drjavadrezazadeh.com/en/forge/) · [AR](https://drjavadrezazadeh.com/ar/forge/)
 - JREI Academic – research intelligence: [FA](https://drjavadrezazadeh.com/fa/jrei-academic/) · [EN](https://drjavadrezazadeh.com/en/jrei-academic/) · [AR](https://drjavadrezazadeh.com/ar/jrei-academic/)
 - JREI SEO Intelligence – SEO and GEO: [FA](https://drjavadrezazadeh.com/fa/jrei/seo/) · [EN](https://drjavadrezazadeh.com/en/jrei/seo/) · [AR](https://drjavadrezazadeh.com/ar/jrei/seo/)
-- Golden Talent – talent development: [FA](https://drjavadrezazadeh.com/fa/golden-talent/) · [EN](https://drjavadrezazadeh.com/en/golden-talent/) · [AR](https://drjavadrezazadeh.com/ar/golden-talent/)
-- BAHAR – study planning: [FA](https://drjavadrezazadeh.com/fa/bahar/) · [EN](https://drjavadrezazadeh.com/en/bahar/) · [AR](https://drjavadrezazadeh.com/ar/bahar/)
-- RCAS – educational reflection: [FA](https://drjavadrezazadeh.com/fa/rcas/) · [EN](https://drjavadrezazadeh.com/en/rcas/) · [AR](https://drjavadrezazadeh.com/ar/rcas/)
-- JREI pricing and subscriptions: [FA](https://drjavadrezazadeh.com/fa/jrei/pricing/) · [EN](https://drjavadrezazadeh.com/en/jrei/pricing/) · [AR](https://drjavadrezazadeh.com/ar/jrei/pricing/)
-- JREI business enquiries: [FA](https://drjavadrezazadeh.com/fa/jrei/order/) · [EN](https://drjavadrezazadeh.com/en/jrei/order/) · [AR](https://drjavadrezazadeh.com/ar/jrei/order/)
+- Golden Talent – talent development: [EN](https://drjavadrezazadeh.com/en/golden-talent/)
+
+- RCAS – educational reflection: [FA](https://drjavadrezazadeh.com/fa/rcas/) · [EN](https://drjavadrezazadeh.com/en/rcas/)
+- JREI pricing and subscriptions: [AR](https://drjavadrezazadeh.com/ar/jrei/pricing/)
+- JREI business enquiries: [AR](https://drjavadrezazadeh.com/ar/jrei/order/)
 
 These are discovery references, not proof of live AI services, guaranteed outcomes or settled payments. Educational resources retain their published evidence and research-stage limitations.
 
