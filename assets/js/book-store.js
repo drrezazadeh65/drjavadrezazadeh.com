@@ -297,7 +297,10 @@
   const host=document.querySelector('[data-book-cart]'); if(!host)return;
   const cart=readCart();
   const books=cart.map(item=>({item,book:data.books.find(b=>b.id===item.book_id)})).filter(row=>row.book);
-  const checkoutReadyForSelection=bookPaymentReady||(books.length===1&&books[0].book?.commerce?.single_copy===true&&singleCopyPaymentReady);
+  const hasCollectible=books.some(x=>x.book?.commerce?.single_copy===true);
+  const hasRegular=books.some(x=>x.book?.commerce?.single_copy!==true);
+  const checkoutReadyForSelection=(!hasCollectible||singleCopyPaymentReady)&&(!hasRegular||bookPaymentReady);
+  const selectionCaptureReady=deliveryCaptureReady&&(!hasCollectible||checkoutReadyForSelection);
   host.replaceChildren();
   if(!books.length){
    host.innerHTML='<div class="cart-empty-state" role="status"><strong>'+(isFa?'سبد شما هنوز خالی است':'Your cart is empty')+'</strong><p>'+(isFa?'کتاب‌ها را در فروشگاه مرور کنید و انتخابتان را به همین سبد اضافه کنید.':'Browse the bookstore and add your selection to this cart.')+'</p><a class="button primary" href="'+root((isFa?'fa':'en')+'/shop/')+'">'+(isFa?'رفتن به فروشگاه':'Browse books')+'</a></div>';
@@ -339,6 +342,8 @@
      '','This enquiry is not an order or payment confirmation.']).join('\n');
   summary.innerHTML='<p class="store-notice">'+(isFa?'هزینه ارسال: رایگان (بر عهده فروشگاه)':'Shipping: free (paid by the store)')+'</p><strong>'+(isFa?'جمع نمایشی انتخاب‌ها':'Illustrative selection subtotal')+
     ': '+escapeHtml(amount)+'</strong><p>'+disclosure+'</p>';
+  const collectibleBlockedText=isFa?'فروش مجموعه تک‌نسخه‌ای هنوز تأیید نشده است؛ برای ادامه خرید سایر کتاب‌ها، وبستر را از سبد حذف کنید یا وضعیت آن را از پشتیبانی بپرسید.':'The one-of-one set is not verified for sale. Remove Webster’s to continue buying other books or contact support.';
+  if(hasCollectible&&!checkoutReadyForSelection){const p=document.createElement('p');p.className='store-notice';p.setAttribute('role','status');p.textContent=collectibleBlockedText;summary.appendChild(p);}
   const actions=document.createElement('div');
   actions.className='actions';
   const checkout=document.createElement('button');
@@ -346,13 +351,13 @@
   checkout.className='button primary';
   checkout.dataset.bookPayment='';
   checkout.textContent=isFa?'ادامه به تسویه':'Continue to checkout';
-  checkout.disabled=!deliveryCaptureReady;
-  checkout.textContent=(checkoutReadyForSelection&&deliveryCaptureReady)
+  checkout.disabled=!selectionCaptureReady;
+  checkout.textContent=(checkoutReadyForSelection&&selectionCaptureReady)
     ?(isFa?'ادامه به تسویه امن':'Continue to secure checkout')
-    :(deliveryCaptureReady?(isFa?'ادامه و ثبت سفارش':'Continue and place order'):(isFa?'ثبت سفارش موقتاً در دسترس نیست':'Order capture temporarily unavailable'));
-  checkout.title=(checkoutReadyForSelection&&deliveryCaptureReady)
+    :(selectionCaptureReady?(isFa?'ادامه و ثبت سفارش':'Continue and place order'):(isFa?'ثبت سفارش موقتاً در دسترس نیست':'Order capture temporarily unavailable'));
+  checkout.title=(checkoutReadyForSelection&&selectionCaptureReady)
     ?(isFa?'ورود اطلاعات تحویل و سپس انتقال به درگاه امن':'Enter delivery details, then proceed to secure payment')
-    :(deliveryCaptureReady?(isFa?'اطلاعات تحویل را وارد کنید؛ سفارش بدون برداشت وجه ثبت می‌شود':'Enter delivery details; the order will be recorded without charging you'):(isFa?'ثبت سفارش سمت سرور در دسترس نیست':'Order submission is unavailable'));
+    :(selectionCaptureReady?(isFa?'اطلاعات تحویل را وارد کنید؛ سفارش بدون برداشت وجه ثبت می‌شود':'Enter delivery details; the order will be recorded without charging you'):(isFa?'ثبت سفارش سمت سرور در دسترس نیست':'Order submission is unavailable'));
   actions.appendChild(checkout);
 
   const inquiry=document.createElement('a');
@@ -394,7 +399,7 @@
      return;
    }
    if(e.target.closest('[data-book-payment]')){
-     if(!deliveryCaptureReady){status.textContent=isFa?'ثبت سفارش موقتاً در دسترس نیست؛ لطفاً دوباره تلاش کنید.':'Order capture is temporarily unavailable; please try again.';return}
+     if(!selectionCaptureReady){status.textContent=isFa?'ثبت سفارش موقتاً در دسترس نیست؛ لطفاً دوباره تلاش کنید.':'Order capture is temporarily unavailable; please try again.';return}
      location.assign(root((isFa?'fa':'en')+'/shop/checkout/'));
      return;
    }
@@ -422,16 +427,19 @@
   const host=document.querySelector('[data-book-checkout]'); if(!host) return;
   const cart=readCart();
   const books=cart.map(x=>({item:x,book:data.books.find(b=>b.id===x.book_id)})).filter(x=>x.book);
-  const checkoutReadyForSelection=bookPaymentReady||(books.length===1&&books[0].book?.commerce?.single_copy===true&&singleCopyPaymentReady);
+  const hasCollectible=books.some(x=>x.book?.commerce?.single_copy===true);
+  const hasRegular=books.some(x=>x.book?.commerce?.single_copy!==true);
+  const checkoutReadyForSelection=(!hasCollectible||singleCopyPaymentReady)&&(!hasRegular||bookPaymentReady);
+  const selectionCaptureReady=deliveryCaptureReady&&(!hasCollectible||checkoutReadyForSelection);
   const valid=books.length>0&&books.every(x=>ready(x.book));
   const form=document.getElementById('shipping-details');
   const fieldset=form?.querySelector('fieldset');
   const note=document.getElementById('shipping-disabled-note');
-  const canCapture=deliveryCaptureReady;
+  const canCapture=selectionCaptureReady;
   if(fieldset)fieldset.disabled=!canCapture;
   const legend=fieldset?.querySelector('legend');
   if(legend)legend.textContent=isFa?'اطلاعات تحویل':'Delivery details';
-  if(note)note.textContent=canCapture
+  if(note)note.textContent=hasCollectible&&!checkoutReadyForSelection?(isFa?'موجودی مجموعه تک‌نسخه‌ای یا آمادگی پرداخت سبد تأیید نشده است. هیچ اطلاعاتی ارسال نمی‌شود.':'The collectible stock or payment readiness of this cart is unverified. No information will be submitted.'):canCapture
    ?(isFa?'اطلاعات تحویل فقط برای اجرای همین سفارش ثبت می‌شود و برای احراز هویت تلفنی استفاده نمی‌شود.':'Delivery details are stored only to fulfil this order and are not used for phone verification.')
    :(isFa?'ثبت امن سفارش موقتاً در دسترس نیست؛ هیچ اطلاعات تحویلی ارسال نمی‌شود.':'Secure order capture is temporarily unavailable; no delivery data will be submitted.');
   if(!books.length){
@@ -442,13 +450,13 @@
    '<p class="store-notice" role="note">'+(isFa?'پس از پرداخت، شناسه سفارش را برای پیگیری نگه دارید. اگر ارسال کتاب امکان‌پذیر نبود، از طریق ایمیل info@drjavadrezazadeh.com با ذکر شناسه سفارش درخواست پیگیری یا استرداد وجه ثبت کنید.':'Keep your order ID after payment. If delivery cannot be completed, email info@drjavadrezazadeh.com with the order ID to request support or a refund.')+'</p>'+ 
    '<p class="lead">'+(checkoutReadyForSelection
      ?(isFa?'اطلاعات سفارش و مبلغ نهایی پیش از انتقال به درگاه دوباره در سرور بررسی می‌شود.':'Order details and the final amount are checked again on the server before payment.')
-     :(bookStockPending
+     :(hasCollectible?(isFa?'این مجموعه یا ترکیب سبد برای پرداخت تأیید نشده است؛ خرید فعلاً بسته است.':'The collectible or this cart combination is not verified for payment; checkout is closed.') : bookStockPending
        ?(isFa?'موجودی فیزیکی کتاب‌ها هنوز در سامانه تأیید نشده است؛ سفارش فعلاً بدون برداشت وجه ثبت می‌شود و شناسه پیگیری دریافت می‌کنید.':'Physical book inventory has not yet been reconciled; your request is recorded without charging you and a tracking ID is provided.')
        :(isFa?'ثبت سفارش سمت سرور فعال است. در وضعیت فعلی سفارش بدون برداشت وجه ثبت می‌شود و شناسه پیگیری دریافت می‌کنید.':'Order submission is active. For now, the order is recorded without charging you and you receive a tracking ID.')) )+'</p>'+ 
    '<div class="store-notice">'+(valid
      ?(checkoutReadyForSelection
        ?(isFa?'ارسال کتاب رایگان است. مبلغ نهایی در سرور محاسبه می‌شود و فقط پرداخت تأییدشده سفارش را قطعی می‌کند.':'Book shipping is free. The final total is calculated on the server and only a verified payment completes the order.')
-       :(isFa?'ارسال کتاب رایگان است. با ثبت این فرم، درخواست سفارش در سرور ذخیره می‌شود؛ هیچ وجهی برداشت نمی‌شود.':'Book shipping is free. Submitting this form records the order request on the server; no payment is taken.'))
+       :(hasCollectible?(isFa?'ثبت سفارش بدون پرداخت برای وبستر مجاز نیست.':'Unpaid orders are not permitted for the collectible.'):(isFa?'ارسال کتاب رایگان است. با ثبت این فرم، درخواست سفارش در سرور ذخیره می‌شود؛ هیچ وجهی برداشت نمی‌شود.':'Book shipping is free. Submitting this form records the order request on the server; no payment is taken.')))
      :(isFa?'در حال حاضر محصول قیمت‌گذاری‌شده و قابل‌فروش در کاتالوگ فعال نیست.':'There is currently no verified priced and sellable book in the active catalogue.'))+'</div>'+
    '<div class="actions"><a class="button" href="'+root((isFa?'fa':'en')+'/shop/cart/')+'">'+(isFa?'بازگشت به سبد':'Back to cart')+'</a></div>';
   if(valid){

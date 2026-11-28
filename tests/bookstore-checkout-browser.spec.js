@@ -464,3 +464,41 @@ for(const language of ['fa','en']){
   );
  });
 }
+
+ // End-to-end product selection, cart, checkout and simulated gateway. All writes intercepted.
+for (const lang of ['fa','en']) {
+ for(const [id,total] of [['roshanaei',2000000],['tariki',2000000],['bonbast',2000000],['websters-third-1981',50000000]]) {
+  test(lang+' product-to-BitPay fixture '+id,async({page})=>{
+   const gateway='https://bitpay.ir/payment/gateway-123456-get', collectible=id==='websters-third-1981',requests=[];
+   await page.setViewportSize({width:390,height:844});
+   await page.route('**/api/commerce/health',r=>r.fulfill({json:{ok:true,service:'commerce',checkout:true,orderCapture:true,capabilities:{books:true,singleCopyCollectible:true}}}));
+   await page.route('**/api/commerce/collectible-availability',r=>r.fulfill({json:{ok:true,sku:'book:websters-third-1981',available:true,checkoutReady:true}}));
+   await page.route('**/api/commerce/prepare',r=>r.abort());
+   await page.route('**/api/commerce/create',r=>{requests.push(r.request().postDataJSON());return r.fulfill({json:{ok:true,orderId:'11111111-1111-4111-8111-111111111111',totalToman:total,currency:'IRT',paymentUrl:base+'/fa/shop/payment-start/?gateway='+encodeURIComponent(gateway)}});});
+   await page.route(gateway,r=>r.fulfill({contentType:'text/html',body:'<h1>Mock BitPay destination</h1>'}));
+   await page.goto(base+'/'+lang+'/shop/'+(collectible?'collectibles/websters-third-1981/':'book/?id='+id),{waitUntil:'domcontentloaded'});
+   const buy=page.locator(collectible?'[data-collectible-buy]':'[data-detail-add="'+id+'"]');
+   await expect(buy).toBeEnabled();await buy.click();
+   if(!collectible)await page.locator('.book-detail-cart-link').click();
+   await expect(page).toHaveURL(base+'/'+lang+'/shop/cart/');
+   if(collectible)await expect(page.locator('[data-increase-book="'+id+'"]')).toBeDisabled();
+   await expect(page.locator('[data-book-payment]')).toBeEnabled();
+   await page.locator('[data-book-payment]').click();
+   await expect(page).toHaveURL(base+'/'+lang+'/shop/checkout/');
+   const pay=page.locator('[data-book-checkout] button.primary');await expect(pay).toBeEnabled();
+   await page.locator('#buyer-name').fill('Test Customer');await page.locator('#buyer-email').fill('test@example.invalid');await page.locator('#buyer-address').fill('123 Test Street, Test City');await page.locator('#buyer-postal').fill('1234567890');
+   await pay.click();await expect(page).toHaveURL(gateway);await expect(page.getByText('Mock BitPay destination')).toBeVisible();
+   expect(requests).toHaveLength(1);expect(requests[0].items).toEqual([{sku:'book:'+id,quantity:1}]);
+  });
+ }
+ for(const mixed of [false,true]){
+  test(lang+' unavailable collectible blocks stale '+(mixed?'mixed':'single')+' cart without any order',async({page})=>{
+   const items=[{book_id:'websters-third-1981',quantity:1}];if(mixed)items.push({book_id:'roshanaei',quantity:1});
+   await page.addInitScript(items=>localStorage.setItem('jr-book-cart-v1',JSON.stringify(items)),items);
+   await page.route('**/api/commerce/health',r=>r.fulfill({json:{ok:true,service:'commerce',checkout:true,orderCapture:true,capabilities:{books:true,singleCopyCollectible:false}}}));
+   let posts=0;await page.route('**/api/commerce/create',r=>{posts++;return r.abort()});await page.route('**/api/commerce/prepare',r=>{posts++;return r.abort()});
+   await page.goto(base+'/'+lang+'/shop/cart/',{waitUntil:'domcontentloaded'});await expect(page.locator('[data-book-payment]')).toBeDisabled();
+   await page.goto(base+'/'+lang+'/shop/checkout/',{waitUntil:'domcontentloaded'});await expect(page.locator('[data-book-checkout] button.primary')).toBeDisabled();await expect(page.locator('#shipping-details fieldset')).toBeDisabled();expect(posts).toBe(0);
+  });
+ }
+}
