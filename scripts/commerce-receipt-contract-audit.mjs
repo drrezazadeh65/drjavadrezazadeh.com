@@ -38,8 +38,9 @@ for(const [source,needle,label] of [
 for(const [needle,why] of [
  ["const API='/api'",'book client must use same-origin Bertina API'],
  ["let singleCopyPaymentReady=false",'single-copy payment readiness must initialise fail-closed'],
- ["checkoutReadyForSelection=bookPaymentReady||",'limited item checkout must retain verified legacy capability'],
+ ["checkoutReadyForSelection=(!hasCollectible||singleCopyPaymentReady)&&(!hasRegular||bookPaymentReady)",'each stock class must have independent verified capability'],
  ["let bookPaymentReady=false",'payment must initialise fail-closed'],
+ ["selectionCaptureReady=deliveryCaptureReady&&(!hasCollectible||checkoutReadyForSelection)",'unverified collectibles cannot create unpaid orders'],
  ["let deliveryCaptureReady=false",'order capture must initialise fail-closed'],
  ["health.capabilities?.books===true",'generic checkout cannot authorise book payment'],
  ["health.orderCapture===true",'non-monetary capture must have an explicit capability'],

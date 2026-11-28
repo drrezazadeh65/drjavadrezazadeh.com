@@ -75,11 +75,12 @@ if(fs.existsSync(catalogPath)){
 const bookClient=fs.readFileSync(path.join(root,'assets/js/book-store.js'),'utf8');
 for(const [needle,why] of [
  ['health.capabilities?.books===true','missing explicit live book-payment capability'],
- ['checkout.disabled=!deliveryCaptureReady','book cart must wait for server order-capture readiness'],
+ ['checkout.disabled=!selectionCaptureReady','book cart must wait for selection-specific server readiness'],
+ ['selectionCaptureReady=deliveryCaptureReady&&(!hasCollectible||checkoutReadyForSelection)','collectible cannot fall back to unpaid order capture'],
  ['btn.disabled=!canCapture','book order submission must wait for server capture readiness'],
  ['const capability=await verifyBookPaymentCapability()','book controls must wait for a fresh readiness check'],
  ['let singleCopyPaymentReady=false','collectible payment state must initialise fail-closed'],
- ['checkoutReadyForSelection=bookPaymentReady||','collectible checkout must preserve server verified legacy payment gate'],
+ ['checkoutReadyForSelection=(!hasCollectible||singleCopyPaymentReady)&&(!hasRegular||bookPaymentReady)','each stock class must have its own verified payment capability'],
  ['let bookPaymentReady=false','book payment must initialise fail-closed'],
  ['let deliveryCaptureReady=false','book capture must initialise fail-closed'],
  ['bookPaymentReady=capability.payment','payment must use the explicit category capability'],
