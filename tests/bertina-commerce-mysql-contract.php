@@ -172,3 +172,44 @@ try {
     $pdo->prepare('DELETE FROM commerce_orders WHERE id=?')->execute([$order]);
     $pdo->prepare('DELETE FROM commerce_book_stock WHERE sku=?')->execute(['book:roshanaei']);
 }
+
+ // Owner's one-off reconciliation is exercised only against the disposable CI database.
+$sku='book:websters-third-1981';
+$setOrder='11111111-1111-4111-8111-111111111129';
+$reconciliation=(string)file_get_contents(__DIR__.'/../docs/migrations/20261028_websters_single_set_owner_reconciliation.sql');
+$reconciliation=preg_replace('/^\\h*--[^\\r\\n]*\\r?\\n/m','',$reconciliation);
+$runReconciliation=static function()use($pdo,$reconciliation):void{
+    foreach(explode(';',$reconciliation) as $statement) {
+        if(trim($statement)!=='') $pdo->query(trim($statement))->closeCursor();
+    }
+};
+try {
+    verify(!stage9SingleCopyAvailable($pdo,$sku),'unreconciled_collectible_is_not_available');
+    $runReconciliation();
+    verify(stage9SingleCopyAvailable($pdo,$sku),'guarded_owner_reconciliation_enables_one_set');
+    $runReconciliation();
+    verify(stage9SingleCopyAvailable($pdo,$sku),'repeated_reconciliation_does_not_add_inventory');
+    $pdo->beginTransaction();
+    stage9ReserveBooks($pdo,$setOrder,[['kind'=>'book','sku'=>$sku,'quantity'=>1]]);
+    $pdo->commit();
+    verify(!stage9SingleCopyAvailable($pdo,$sku),'reserved_collectible_is_not_available');
+    $runReconciliation();
+    verify(!stage9SingleCopyAvailable($pdo,$sku),'reconciliation_cannot_reset_reservation');
+    $pdo->beginTransaction();
+    try {
+        stage9ReserveBooks($pdo,'11111111-1111-4111-8111-111111111130',[['kind'=>'book','sku'=>$sku,'quantity'=>1]]);
+        throw new LogicException('second_collectible_reservation_succeeded');
+    } catch(RuntimeException $e) {
+        verify($e->getMessage()==='stock_unavailable','second_collectible_reservation_refused');
+    } finally { if($pdo->inTransaction())$pdo->rollBack(); }
+    // Isolate a missing stock row with historical reservation: do not recreate it.
+    $pdo->prepare('DELETE FROM commerce_book_stock WHERE sku=?')->execute([$sku]);
+    $runReconciliation();
+    verify(!stage9SingleCopyAvailable($pdo,$sku),'historical_reservation_prevents_recreation');
+    $q=$pdo->prepare('SELECT COUNT(*) FROM commerce_book_stock WHERE sku=?');$q->execute([$sku]);
+    verify((int)$q->fetchColumn()===0,'no_collectible_restock_after_history');
+} finally {
+    if($pdo->inTransaction())$pdo->rollBack();
+    $pdo->prepare('DELETE FROM commerce_book_reservations WHERE sku=?')->execute([$sku]);
+    $pdo->prepare('DELETE FROM commerce_book_stock WHERE sku=?')->execute([$sku]);
+}

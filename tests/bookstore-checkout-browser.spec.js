@@ -502,3 +502,17 @@ for (const lang of ['fa','en']) {
   });
  }
 }
+
+for(const lang of ['fa','en']){
+ test(lang+' digital TEFL book to mocked bank gateway',async({page})=>{
+  const gateway='https://bitpay.ir/payment/gateway-123456-get',requests=[];
+  await page.route('**/api/publishing/offer',r=>r.fulfill({json:{ok:true,available:true,checkoutEnabled:true,sku:'digital:tefl-ma-exams-1370-1405',priceToman:1000000}}));
+  await page.route('**/api/commerce/create',r=>{requests.push(r.request().postDataJSON());return r.fulfill({json:{ok:true,orderId:'11111111-1111-4111-8111-111111111111',totalToman:1000000,currency:'IRT',paymentUrl:base+'/fa/shop/payment-start/?gateway='+encodeURIComponent(gateway)}})});
+  await page.route(gateway,r=>r.fulfill({contentType:'text/html',body:'<h1>Mock BitPay destination</h1>'}));
+  await page.goto(base+'/'+lang+'/shop/authors/mehrab-mirkarimi/',{waitUntil:'domcontentloaded'});
+  await expect(page.locator('#jp-pay-now')).toBeEnabled();
+  await page.locator('#jp-buyer-name').fill('Test Customer');await page.locator('#jp-buyer-email').fill('test@example.invalid');
+  await page.locator('#jp-pay-now').click();await expect(page).toHaveURL(gateway);await expect(page.getByText('Mock BitPay destination')).toBeVisible();
+  expect(requests).toHaveLength(1);expect(requests[0].items).toEqual([{sku:'digital:tefl-ma-exams-1370-1405',quantity:1}]);
+ });
+}
